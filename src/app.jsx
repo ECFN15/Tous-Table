@@ -78,27 +78,6 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#FAF9F6] text-stone-900 font-sans overflow-x-hidden selection:bg-amber-100">
       
-      {/* MENU LATERAL (OVERLAY - Visible uniquement si activé via le bouton hamburger) */}
-      <div className={`fixed inset-0 z-[110] transition-all duration-700 ${isMenuOpen ? 'visible' : 'invisible pointer-events-none'}`}>
-          <div className={`absolute inset-0 bg-stone-900/60 backdrop-blur-md transition-opacity duration-700 ${isMenuOpen ? 'opacity-100' : 'opacity-0'}`} onClick={() => setIsMenuOpen(false)}></div>
-          <div className={`absolute right-0 top-0 bottom-0 w-full md:w-[450px] bg-white shadow-2xl transition-transform duration-700 ease-expo p-12 flex flex-col justify-between ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-              <div className="space-y-20">
-                  <div className="flex justify-between items-center"><span className="text-[10px] font-black uppercase tracking-[0.3em] text-stone-300">Menu</span><button onClick={() => setIsMenuOpen(false)} className="w-12 h-12 rounded-full border border-stone-100 flex items-center justify-center hover:bg-stone-50"><X size={20}/></button></div>
-                  <nav className="flex flex-col gap-10">
-                      <button onClick={() => { setView('home'); setIsMenuOpen(false); window.scrollTo(0,0); }} className="text-5xl font-black tracking-tighter hover:text-amber-600 transition-all text-left">Accueil.</button>
-                      <button onClick={() => { setView('gallery'); setIsMenuOpen(false); window.scrollTo(0,0); }} className="text-5xl font-black tracking-tighter hover:text-amber-600 transition-all text-left">Marketplace.</button>
-                      {isAdmin && <button onClick={() => { setView('admin'); setIsMenuOpen(false); window.scrollTo(0,0); }} className="text-5xl font-black tracking-tighter hover:text-stone-300 transition-all text-left opacity-30">Admin.</button>}
-                  </nav>
-              </div>
-              <div className="space-y-6 pt-10 border-t border-stone-100">
-                  <div className="flex gap-6">
-                      <a href="#" className="w-12 h-12 rounded-full bg-stone-50 flex items-center justify-center hover:bg-stone-900 hover:text-white transition-all"><Instagram size={20}/></a>
-                      <a href="mailto:contact@tat.fr" className="w-12 h-12 rounded-full bg-stone-50 flex items-center justify-center hover:bg-stone-900 hover:text-white transition-all"><Mail size={20}/></a>
-                  </div>
-              </div>
-          </div>
-      </div>
-
       {/* MODAL LOGIN (Pour la Marketplace) */}
       {showFullLogin && (
           <div className="fixed inset-0 z-[100] bg-stone-900/60 backdrop-blur-md flex items-center justify-center p-4">
@@ -119,27 +98,50 @@ export default function App() {
           </div>
       )}
 
-      {/* --- NAVBAR GLOBALE --- */}
-      {/* On l'affiche SEULEMENT si on n'est PAS sur la page d'accueil (view !== 'home') */}
+      {/* --- NAVBAR & MENU GLOBAUX (NE S'AFFICHENT PAS SUR LA PAGE D'ACCUEIL) --- */}
       {view !== 'home' && (
-        <nav className="fixed top-0 left-0 right-0 z-[100] px-4 md:px-12 py-6 md:py-8 flex justify-between items-center mix-blend-difference text-white transition-all duration-300">
-            <div className="flex items-center gap-3 cursor-pointer group" onClick={() => {setView('home'); window.scrollTo({top:0, behavior:'smooth'});}}>
-            <div className="bg-white text-stone-900 p-1.5 rounded-lg shadow-md group-hover:rotate-6 transition-all"><Hammer size={20}/></div>
-            <div><h1 className="text-lg font-black uppercase tracking-tighter leading-none">Tous à Table</h1><p className="text-[7px] font-black tracking-[0.3em] uppercase opacity-60">Atelier Normand</p></div>
-            </div>
-            
-            <div className="flex items-center gap-4">
-                {user && !user.isAnonymous ? (
-                    <div className="flex items-center gap-4 mr-2">
-                        <div className="text-right hidden md:block"><p className="text-[10px] font-black uppercase tracking-widest">{user.displayName || 'Client'}</p></div>
-                        <button onClick={() => { signOut(auth); setView('home'); }} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white hover:text-stone-900 backdrop-blur border border-white/20 transition-all"><LogOut size={16}/></button>
-                    </div>
-                ) : !isSecretGateOpen && (
-                    <button onClick={() => setShowFullLogin(true)} className="flex items-center gap-2 px-5 py-3 rounded-full bg-white/10 backdrop-blur border border-white/20 hover:bg-white hover:text-stone-900 transition-all text-[10px] font-black uppercase tracking-widest mr-2"><ShieldCheck size={14}/> <span>Login</span></button>
-                )}
-                <button onClick={() => setIsMenuOpen(true)} className="w-10 h-10 md:w-auto md:h-auto md:px-6 md:py-3 rounded-full bg-white/10 flex items-center justify-center gap-4 hover:bg-white hover:text-stone-900 backdrop-blur border border-white/20 group transition-all"><span className="hidden md:block text-[10px] font-black uppercase tracking-widest">Menu</span><Menu size={20}/></button>
-            </div>
-        </nav>
+        <>
+          {/* MENU LATERAL (OVERLAY) */}
+          <div className={`fixed inset-0 z-[110] transition-all duration-700 ${isMenuOpen ? 'visible' : 'invisible pointer-events-none'}`}>
+              <div className={`absolute inset-0 bg-stone-900/60 backdrop-blur-md transition-opacity duration-700 ${isMenuOpen ? 'opacity-100' : 'opacity-0'}`} onClick={() => setIsMenuOpen(false)}></div>
+              <div className={`absolute right-0 top-0 bottom-0 w-full md:w-[450px] bg-white shadow-2xl transition-transform duration-700 ease-expo p-12 flex flex-col justify-between ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+                  <div className="space-y-20">
+                      <div className="flex justify-between items-center"><span className="text-[10px] font-black uppercase tracking-[0.3em] text-stone-300">Menu</span><button onClick={() => setIsMenuOpen(false)} className="w-12 h-12 rounded-full border border-stone-100 flex items-center justify-center hover:bg-stone-50"><X size={20}/></button></div>
+                      <nav className="flex flex-col gap-10">
+                          <button onClick={() => { setView('home'); setIsMenuOpen(false); window.scrollTo(0,0); }} className="text-5xl font-black tracking-tighter hover:text-amber-600 transition-all text-left">Accueil.</button>
+                          <button onClick={() => { setView('gallery'); setIsMenuOpen(false); window.scrollTo(0,0); }} className="text-5xl font-black tracking-tighter hover:text-amber-600 transition-all text-left">Marketplace.</button>
+                          {isAdmin && <button onClick={() => { setView('admin'); setIsMenuOpen(false); window.scrollTo(0,0); }} className="text-5xl font-black tracking-tighter hover:text-stone-300 transition-all text-left opacity-30">Admin.</button>}
+                      </nav>
+                  </div>
+                  <div className="space-y-6 pt-10 border-t border-stone-100">
+                      <div className="flex gap-6">
+                          <a href="#" className="w-12 h-12 rounded-full bg-stone-50 flex items-center justify-center hover:bg-stone-900 hover:text-white transition-all"><Instagram size={20}/></a>
+                          <a href="mailto:contact@tat.fr" className="w-12 h-12 rounded-full bg-stone-50 flex items-center justify-center hover:bg-stone-900 hover:text-white transition-all"><Mail size={20}/></a>
+                      </div>
+                  </div>
+              </div>
+          </div>
+
+          {/* NAVBAR GLOBALE */}
+          <nav className="fixed top-0 left-0 right-0 z-[100] px-4 md:px-12 py-6 md:py-8 flex justify-between items-center mix-blend-difference text-white transition-all duration-300">
+              <div className="flex items-center gap-3 cursor-pointer group" onClick={() => {setView('home'); window.scrollTo({top:0, behavior:'smooth'});}}>
+              <div className="bg-white text-stone-900 p-1.5 rounded-lg shadow-md group-hover:rotate-6 transition-all"><Hammer size={20}/></div>
+              <div><h1 className="text-lg font-black uppercase tracking-tighter leading-none">Tous à Table</h1><p className="text-[7px] font-black tracking-[0.3em] uppercase opacity-60">Atelier Normand</p></div>
+              </div>
+              
+              <div className="flex items-center gap-4">
+                  {user && !user.isAnonymous ? (
+                      <div className="flex items-center gap-4 mr-2">
+                          <div className="text-right hidden md:block"><p className="text-[10px] font-black uppercase tracking-widest">{user.displayName || 'Client'}</p></div>
+                          <button onClick={() => { signOut(auth); setView('home'); }} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white hover:text-stone-900 backdrop-blur border border-white/20 transition-all"><LogOut size={16}/></button>
+                      </div>
+                  ) : !isSecretGateOpen && (
+                      <button onClick={() => setShowFullLogin(true)} className="flex items-center gap-2 px-5 py-3 rounded-full bg-white/10 backdrop-blur border border-white/20 hover:bg-white hover:text-stone-900 transition-all text-[10px] font-black uppercase tracking-widest mr-2"><ShieldCheck size={14}/> <span>Login</span></button>
+                  )}
+                  <button onClick={() => setIsMenuOpen(true)} className="w-10 h-10 md:w-auto md:h-auto md:px-6 md:py-3 rounded-full bg-white/10 flex items-center justify-center gap-4 hover:bg-white hover:text-stone-900 backdrop-blur border border-white/20 group transition-all"><span className="hidden md:block text-[10px] font-black uppercase tracking-widest">Menu</span><Menu size={20}/></button>
+              </div>
+          </nav>
+        </>
       )}
 
       {/* --- CONTENU PRINCIPAL --- */}

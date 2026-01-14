@@ -7,50 +7,81 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 // Enregistrement du plugin GSAP
 gsap.registerPlugin(ScrollTrigger);
 
+// =================================================================================
+// NOUVEAU COMPOSANT MENU - RECONSTRUIT PROPREMENT
+// Ce menu est isolé dans son propre composant et utilise des data-attributes
+// pour ses états, une pratique standard et robuste pour éviter les conflits.
+// =================================================================================
+const CleanMenu = ({ isOpen, onClose, onNavigateFeatured, onNavigateMarketplace }) => {
+    return (
+        <div className="clean-menu" data-state={isOpen ? 'open' : 'closed'}>
+            <div className="clean-menu__backdrop" onClick={onClose}></div>
+            <div className="clean-menu__panel">
+                <div>
+                    <div className="clean-menu__header">
+                        <span className="clean-menu__header-title">Navigation</span>
+                        <button onClick={onClose} className="clean-menu__close-btn">
+                            <X size={24} />
+                        </button>
+                    </div>
+                    <nav className="clean-menu__nav">
+                        <button onClick={onNavigateFeatured} className="clean-menu__nav-link">
+                            Pièce du mois
+                        </button>
+                        <button onClick={onNavigateMarketplace} className="clean-menu__nav-link">
+                            Marketplace
+                        </button>
+                    </nav>
+                </div>
+                <div className="clean-menu__footer">
+                    Tous à Table © 2024
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
 const HomeView = ({ onEnterMarketplace }) => {
     const canvasRef = useRef(null);
     const cursorRef = useRef(null);
     const componentRef = useRef(null);
-    // Le menu est fermé par défaut
+    
+    // L'état du menu reste ici, simple et efficace.
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-    // --- 1. THREE.JS BACKGROUND ---
+    // --- 1. THREE.JS BACKGROUND (Inchangé) ---
     useEffect(() => {
         if (!canvasRef.current) return;
-
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0xF4F2EE);
         scene.fog = new THREE.Fog(0xF4F2EE, 5, 15);
-
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
         camera.position.z = 8;
         camera.position.y = 1;
-
         const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        
         while (canvasRef.current.firstChild) {
             canvasRef.current.removeChild(canvasRef.current.firstChild);
         }
         canvasRef.current.appendChild(renderer.domElement);
-
-        const ambi = new THREE.AmbientLight(0xffffff, 0.7); scene.add(ambi);
-        const dir = new THREE.DirectionalLight(0xffffff, 0.5); dir.position.set(5, 10, 5); scene.add(dir);
-
+        const ambi = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(ambi);
+        const dir = new THREE.DirectionalLight(0xffffff, 0.5);
+        dir.position.set(5, 10, 5);
+        scene.add(dir);
         const geo = new THREE.TorusKnotGeometry(1.5, 0.4, 150, 20);
-        const mat = new THREE.MeshStandardMaterial({ 
-            color: 0x9C8268, 
+        const mat = new THREE.MeshStandardMaterial({
+            color: 0x9C8268,
             roughness: 0.6,
             metalness: 0.1,
             wireframe: false
         });
         const mesh = new THREE.Mesh(geo, mat);
         scene.add(mesh);
-
         const clock = new THREE.Clock();
         let requestID;
-
         const animate = () => {
             const t = clock.getElapsedTime();
             mesh.rotation.x = t * 0.1;
@@ -60,46 +91,40 @@ const HomeView = ({ onEnterMarketplace }) => {
             requestID = requestAnimationFrame(animate);
         };
         animate();
-
         const handleResize = () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         };
         window.addEventListener('resize', handleResize);
-
         return () => {
             window.removeEventListener('resize', handleResize);
             cancelAnimationFrame(requestID);
             if (canvasRef.current && renderer.domElement) {
-                try { canvasRef.current.removeChild(renderer.domElement); } catch (e) {}
+                try {
+                    canvasRef.current.removeChild(renderer.domElement);
+                } catch (e) {}
             }
-            geo.dispose(); mat.dispose();
+            geo.dispose();
+            mat.dispose();
         };
     }, []);
 
-    // --- 2. GSAP ANIMATIONS ---
+    // --- 2. GSAP ANIMATIONS (Inchangé) ---
     useLayoutEffect(() => {
         const ctx = gsap.context(() => {
-            // Cursor
             const moveCursor = (e) => {
                 gsap.to(cursorRef.current, { x: e.clientX, y: e.clientY, duration: 0.1 });
             };
             window.addEventListener('mousemove', moveCursor);
-
-            // Hover effects
             const targets = document.querySelectorAll('a, button, .magnetic, .nav-link, .feat-btn, .magnetic-card, .menu-trigger');
             targets.forEach(el => {
                 el.addEventListener('mouseenter', () => cursorRef.current?.classList.add('hovered'));
                 el.addEventListener('mouseleave', () => cursorRef.current?.classList.remove('hovered'));
             });
-
-            // Hero Animation
             const tlHero = gsap.timeline();
             tlHero.to('.hero-title span', { y: 0, duration: 1.5, ease: 'power4.out', stagger: 0.1, delay: 0.2 })
                   .to('.hero-footer', { opacity: 1, duration: 1 }, "-=1");
-
-            // Horizontal Scroll (Process)
             const processContainer = document.querySelector('.process-container');
             if (processContainer) {
                 gsap.to(processContainer, {
@@ -115,22 +140,18 @@ const HomeView = ({ onEnterMarketplace }) => {
                     }
                 });
             }
-
-            // --- ANIMATION MANIFESTO (PARAMÈTRES EXACTS DU HTML) ---
             const images = gsap.utils.toArray('.image-block img');
             images.forEach(img => {
                 gsap.to(img, {
-                    y: '10%', // Paramètre exact de ton code HTML
+                    y: '10%',
                     ease: "none",
                     scrollTrigger: {
-                        trigger: img.parentElement, 
-                        start: "top bottom", 
-                        scrub: true // True = synchro exacte au scroll (pas d'inertie ajoutée)
+                        trigger: img.parentElement,
+                        start: "top bottom",
+                        scrub: true
                     }
                 });
             });
-            
-            // Featured Parallax (Code HTML : parallax-img-fast = 15%)
             gsap.to('.feat-img', {
                 y: '15%',
                 ease: "none",
@@ -140,8 +161,6 @@ const HomeView = ({ onEnterMarketplace }) => {
                     scrub: true
                 }
             });
-
-            // Team Stagger
             gsap.from('.team-member', {
                 y: 50,
                 opacity: 0,
@@ -153,115 +172,54 @@ const HomeView = ({ onEnterMarketplace }) => {
                     start: "top 80%"
                 }
             });
-
             return () => {
                 window.removeEventListener('mousemove', moveCursor);
             };
         }, componentRef);
-
         return () => ctx.revert();
     }, []);
 
     const scrollToSection = (id) => {
         const el = document.getElementById(id);
-        if(el) {
-            el.scrollIntoView({ behavior: 'smooth' });
+        if (el) {
+            // Remplacement de scrollIntoView par une méthode plus robuste
+            window.scrollTo({
+                top: el.offsetTop,
+                behavior: 'smooth'
+            });
             setIsMenuOpen(false);
         }
     };
 
     return (
         <div ref={componentRef} className="home-container">
-            {/* CSS EXACT DU DESIGN */}
             <style>{`
+                /* ... Styles généraux inchangés ... */
                 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap');
-
-                :root {
-                    --bg-color: #F4F2EE;
-                    --text-color: #141414;
-                    --accent-color: #9C8268;
-                    --line-color: rgba(20, 20, 20, 0.15);
-                    --gutter: 5vw;
-                }
-
+                :root { --bg-color: #F4F2EE; --text-color: #141414; --accent-color: #9C8268; --line-color: rgba(20, 20, 20, 0.15); --gutter: 5vw; }
                 * { box-sizing: border-box; }
-                
-                .home-container {
-                    margin: 0; padding: 0; width: 100%;
-                    background-color: var(--bg-color);
-                    color: var(--text-color);
-                    font-family: 'Montserrat', sans-serif;
-                    overflow-x: hidden;
-                    -webkit-font-smoothing: antialiased;
-                }
-
-                /* Custom Cursor */
-                #cursor {
-                    position: fixed; top: 0; left: 0; width: 10px; height: 10px;
-                    background: var(--text-color); border-radius: 50%; pointer-events: none; z-index: 9999;
-                    transform: translate(-50%, -50%); transition: transform 0.2s, background 0.2s;
-                    mix-blend-mode: difference;
-                }
+                .home-container { margin: 0; padding: 0; width: 100%; background-color: var(--bg-color); color: var(--text-color); font-family: 'Montserrat', sans-serif; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+                #cursor { position: fixed; top: 0; left: 0; width: 10px; height: 10px; background: var(--text-color); border-radius: 50%; pointer-events: none; z-index: 9999; transform: translate(-50%, -50%); transition: transform 0.2s, background 0.2s; mix-blend-mode: difference; }
                 #cursor.hovered { transform: translate(-50%, -50%) scale(5); background: rgba(255,255,255,0.8); }
-
-                /* Nav */
-                .home-nav {
-                    position: fixed; top: 0; left: 0; width: 100%;
-                    padding: 2rem var(--gutter);
-                    display: flex; justify-content: space-between; align-items: center;
-                    z-index: 100; mix-blend-mode: multiply;
-                }
+                .home-nav { position: fixed; top: 0; left: 0; width: 100%; padding: 2rem var(--gutter); display: flex; justify-content: space-between; align-items: center; z-index: 100; mix-blend-mode: multiply; }
                 .logo { font-family: 'Cormorant Garamond'; font-size: 1.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; display: flex; align-items: center; gap: 10px;}
-                
-                /* Canvas */
-                #canvas-wrap {
-                    position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
-                    z-index: 0; opacity: 0.6; pointer-events: none;
-                    filter: contrast(0.9) brightness(1.1);
-                }
-
+                #canvas-wrap { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; z-index: 0; opacity: 0.6; pointer-events: none; filter: contrast(0.9) brightness(1.1); }
                 section { position: relative; z-index: 1; }
-
-                /* HERO */
-                .hero {
-                    height: 100vh; display: flex; flex-direction: column; justify-content: center;
-                    padding: 0 var(--gutter); border-bottom: 1px solid var(--line-color);
-                }
-                .hero-title {
-                    font-family: 'Cormorant Garamond'; font-size: 11vw;
-                    line-height: 0.9; font-weight: 300; text-transform: uppercase;
-                    color: var(--text-color); margin: 0; padding: 0; overflow: hidden;
-                }
+                .hero { height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 0 var(--gutter); border-bottom: 1px solid var(--line-color); }
+                .hero-title { font-family: 'Cormorant Garamond'; font-size: 11vw; line-height: 0.9; font-weight: 300; text-transform: uppercase; color: var(--text-color); margin: 0; padding: 0; overflow: hidden; }
                 .hero-title span { display: block; transform: translateY(100%); }
-                .hero-footer {
-                    position: absolute; bottom: 3rem; left: var(--gutter); right: var(--gutter);
-                    display: flex; justify-content: space-between; font-size: 0.9rem; opacity: 0;
-                }
-
-                /* MANIFESTO */
+                .hero-footer { position: absolute; bottom: 3rem; left: var(--gutter); right: var(--gutter); display: flex; justify-content: space-between; font-size: 0.9rem; opacity: 0; }
                 .manifesto { display: flex; position: relative; border-bottom: 1px solid var(--line-color); background: var(--bg-color); }
                 .manifesto::after { content: ''; position: absolute; top: 0; bottom: 0; left: 40%; width: 1px; background: var(--line-color); z-index: 2; }
                 .manifesto-sticky { width: 40%; height: 100vh; position: sticky; top: 0; display: flex; flex-direction: column; justify-content: center; padding: 0 var(--gutter); }
                 .manifesto-scroll { width: 60%; padding: 10rem var(--gutter) 10rem 10vw; }
                 .lead-text { font-family: 'Cormorant Garamond'; font-size: 3rem; line-height: 1.2; margin-bottom: 2rem; }
                 .sub-text { font-size: 1rem; line-height: 1.6; opacity: 0.7; max-width: 400px; }
-                
                 .image-block { margin-bottom: 10rem; position: relative; overflow: hidden; }
-                
-                /* L'image de base (sera animée par GSAP pour le Y) */
-                /* IMPORTANT : CSS exact du HTML fourni pour la transition et le will-change */
-                .image-block img { 
-                    width: 100%; 
-                    display: block; 
-                    transition: transform 1.5s ease; 
-                    will-change: transform; 
-                }
+                .image-block img { width: 100%; display: block; transition: transform 1.5s ease; will-change: transform; }
                 .image-block:hover img { transform: scale(1.03); }
-                
                 .caption { margin-top: 1.5rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.2em; opacity: 0.6; display: flex; align-items: center; gap: 1rem; }
                 .caption::before { content: ''; width: 30px; height: 1px; background: currentColor; }
-
-                /* PROCESS */
                 .process-wrapper { width: 100%; height: 100vh; display: flex; flex-wrap: nowrap; overflow: hidden; background: #141414; color: #F4F2EE; align-items: center; }
                 .process-container { display: flex; gap: 0; padding: 0 5vw; width: 300%; }
                 .process-card { width: 40vw; height: 60vh; display: flex; flex-direction: column; justify-content: space-between; border-right: 1px solid rgba(255,255,255,0.1); padding: 0 4rem; }
@@ -269,21 +227,9 @@ const HomeView = ({ onEnterMarketplace }) => {
                 .p-img { height: 50%; width: 100%; object-fit: cover; opacity: 0.8; filter: grayscale(100%); transition: filter 0.5s; }
                 .process-card:hover .p-img { filter: grayscale(0%); }
                 .p-title { font-size: 2.5rem; font-family: 'Cormorant Garamond'; margin-top: 1rem; }
-
-                /* FEATURED */
-                .featured-section {
-                    position: relative; min-height: 120vh; background-color: #FFFFFF;
-                    color: var(--text-color); overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center;
-                }
-                .feat-bg-text {
-                    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                    font-family: 'Cormorant Garamond'; font-size: 25vw; line-height: 0.8;
-                    color: rgba(0,0,0,0.03); white-space: nowrap; z-index: 0; pointer-events: none;
-                }
-                .feat-container {
-                    position: relative; z-index: 1; width: 100%; max-width: 1600px;
-                    padding: 0 var(--gutter); display: flex; align-items: center; justify-content: space-between;
-                }
+                .featured-section { position: relative; min-height: 120vh; background-color: #FFFFFF; color: var(--text-color); overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+                .feat-bg-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: 'Cormorant Garamond'; font-size: 25vw; line-height: 0.8; color: rgba(0,0,0,0.03); white-space: nowrap; z-index: 0; pointer-events: none; }
+                .feat-container { position: relative; z-index: 1; width: 100%; max-width: 1600px; padding: 0 var(--gutter); display: flex; align-items: center; justify-content: space-between; }
                 .feat-left { width: 25%; padding-right: 2rem; }
                 .feat-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.2em; color: var(--accent-color); margin-bottom: 2rem; display: block; position: relative; padding-left: 40px; }
                 .feat-label::before { content: ''; position: absolute; left: 0; top: 50%; width: 30px; height: 1px; background: currentColor; }
@@ -299,8 +245,6 @@ const HomeView = ({ onEnterMarketplace }) => {
                 .spec-row span:first-child { opacity: 0.5; }
                 .spec-row span:last-child { font-weight: 500; }
                 .feat-price { font-family: 'Cormorant Garamond'; font-size: 3rem; margin-top: 3rem; display: block; color: var(--accent-color); }
-
-                /* TEAM */
                 .team-section { padding: 12rem var(--gutter); background-color: var(--bg-color); border-top: 1px solid var(--line-color); }
                 .team-header { text-align: center; margin-bottom: 8rem; }
                 .team-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4rem; }
@@ -310,85 +254,123 @@ const HomeView = ({ onEnterMarketplace }) => {
                 .team-member:hover .member-img { filter: grayscale(0%) contrast(1); transform: scale(1.05); }
                 .member-name { font-family: 'Cormorant Garamond'; font-size: 2rem; margin: 0 0 0.5rem 0; }
                 .member-role { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.15em; opacity: 0.5; }
-
-                /* FOOTER */
-                footer { 
-                    position: relative; 
-                    z-index: 50; 
-                    background-color: #141414 !important; 
-                    color: #F4F2EE !important; 
-                    padding: 5rem var(--gutter); 
-                    display: flex; 
-                    justify-content: space-between; 
-                    align-items: flex-end; 
-                    min-height: 50vh; 
-                }
+                footer { position: relative; z-index: 50; background-color: #141414 !important; color: #F4F2EE !important; padding: 5rem var(--gutter); display: flex; justify-content: space-between; align-items: flex-end; min-height: 50vh; }
                 .footer-cta h2 { font-family: 'Cormorant Garamond'; font-size: 6vw; margin: 0; line-height: 1; cursor: pointer; transition: color 0.3s; color: #F4F2EE; }
                 .footer-cta h2:hover { color: var(--accent-color); }
                 .footer-links { display: flex; gap: 2rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.5; color: #F4F2EE; }
+                @media (max-width: 768px) { .manifesto { flex-direction: column; } .manifesto::after { display: none; } .manifesto-sticky { position: relative; width: 100%; height: auto; padding: 4rem var(--gutter); top: 0; } .manifesto-scroll { width: 100%; padding: 0 var(--gutter) 4rem; } .process-card { width: 80vw; } .feat-container { flex-direction: column; gap: 4rem; } .feat-left, .feat-img-wrap, .feat-right { width: 100%; padding: 0; height: auto; } .team-grid { grid-template-columns: 1fr; } .hero-title { font-size: 15vw; } }
 
-                @media (max-width: 768px) {
-                    .manifesto { flex-direction: column; } .manifesto::after { display: none; }
-                    .manifesto-sticky { position: relative; width: 100%; height: auto; padding: 4rem var(--gutter); top: 0; }
-                    .manifesto-scroll { width: 100%; padding: 0 var(--gutter) 4rem; }
-                    .process-card { width: 80vw; } .feat-container { flex-direction: column; gap: 4rem; }
-                    .feat-left, .feat-img-wrap, .feat-right { width: 100%; padding: 0; height: auto; }
-                    .team-grid { grid-template-columns: 1fr; } .hero-title { font-size: 15vw; }
+                /* =========================================== */
+                /* NOUVEAUX STYLES POUR LE MENU RECONSTRUIT   */
+                /* =========================================== */
+                .clean-menu {
+                    position: fixed;
+                    inset: 0;
+                    z-index: 200;
+                    pointer-events: none;
+                    visibility: hidden;
+                }
+                .clean-menu[data-state="open"] {
+                    pointer-events: auto;
+                    visibility: visible;
+                }
+                .clean-menu__backdrop {
+                    position: absolute;
+                    inset: 0;
+                    background: rgba(20,20,20,0.4);
+                    backdrop-filter: blur(10px);
+                    opacity: 0;
+                    transition: opacity 0.5s ease-out;
+                }
+                .clean-menu[data-state="open"] .clean-menu__backdrop {
+                    opacity: 1;
+                }
+                .clean-menu__panel {
+                    position: absolute;
+                    right: 0;
+                    top: 0;
+                    bottom: 0;
+                    width: min(100%, 500px);
+                    background-color: #F4F2EE;
+                    padding: 4rem;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-between;
+                    transform: translateX(100%);
+                    transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+                }
+                .clean-menu[data-state="open"] .clean-menu__panel {
+                    transform: translateX(0);
+                }
+                .clean-menu__header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 5rem;
+                }
+                .clean-menu__header-title {
+                    font-size: 0.8rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.2em;
+                    opacity: 0.5;
+                }
+                .clean-menu__close-btn {
+                    cursor: pointer;
+                    background: none;
+                    border: none;
+                }
+                .clean-menu__nav {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 2rem;
+                }
+                .clean-menu__nav-link {
+                    font-family: 'Cormorant Garamond', serif;
+                    font-size: 3rem;
+                    cursor: pointer;
+                    line-height: 1;
+                    text-align: left;
+                    background: none;
+                    border: none;
+                    transition: color 0.3s;
+                }
+                .clean-menu__nav-link:hover {
+                    color: var(--accent-color);
+                }
+                .clean-menu__footer {
+                    font-size: 0.7rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.2em;
+                    opacity: 0.4;
                 }
             `}</style>
 
-            {/* CURSOR */}
             <div id="cursor" ref={cursorRef}></div>
-
-            {/* 3D BACKGROUND */}
             <div id="canvas-wrap" ref={canvasRef}></div>
 
-            {/* NAV CUSTOM (LOGO + MENU HAMBURGER) */}
             <nav className="home-nav">
                 <div className="logo magnetic" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
                     <Hammer size={24} className="text-[#141414]" />
                     Tous à Table
                 </div>
-                <div 
-                    className="menu-trigger magnetic" 
-                    onClick={() => setIsMenuOpen(true)}
-                    style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}
-                >
+                <div className="menu-trigger magnetic" onClick={() => setIsMenuOpen(true)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <span style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Menu</span>
                     <Menu size={24} />
                 </div>
             </nav>
 
-            {/* MENU OVERLAY */}
-            <div style={{
-                position: 'fixed', inset: 0, zIndex: 200, 
-                visibility: isMenuOpen ? 'visible' : 'hidden', pointerEvents: isMenuOpen ? 'all' : 'none',
-                transition: 'visibility 0.7s'
-            }}>
-                <div onClick={() => setIsMenuOpen(false)} style={{
-                    position: 'absolute', inset: 0, background: 'rgba(20,20,20,0.4)', backdropFilter: 'blur(10px)',
-                    opacity: isMenuOpen ? 1 : 0, transition: 'opacity 0.7s'
-                }}></div>
-                <div style={{
-                    position: 'absolute', right: 0, top: 0, bottom: 0, width: 'min(100%, 500px)',
-                    backgroundColor: '#F4F2EE', padding: '4rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-                    transform: isMenuOpen ? 'translateX(0)' : 'translateX(100%)', transition: 'transform 0.7s cubic-bezier(0.19, 1, 0.22, 1)'
-                }}>
-                    <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5rem' }}>
-                            <span style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.2em', opacity: 0.5 }}>Navigation</span>
-                            <X size={24} onClick={() => setIsMenuOpen(false)} style={{ cursor: 'pointer' }} />
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                            <span className="magnetic" onClick={onEnterMarketplace} style={{ fontFamily: 'Cormorant Garamond', fontSize: '3rem', cursor: 'pointer', lineHeight: 1 }}>Marketplace</span>
-                            <span className="magnetic" onClick={() => scrollToSection('featured')} style={{ fontFamily: 'Cormorant Garamond', fontSize: '3rem', cursor: 'pointer', lineHeight: 1 }}>Pièce du Mois</span>
-                        </div>
-                    </div>
-                    <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.2em', opacity: 0.4 }}>Tous à Table © 2024</div>
-                </div>
-            </div>
+            {/* LE NOUVEAU MENU EST APPELÉ ICI */}
+            <CleanMenu 
+                isOpen={isMenuOpen} 
+                onClose={() => setIsMenuOpen(false)}
+                onNavigateFeatured={() => scrollToSection('featured')}
+                onNavigateMarketplace={() => {
+                    setIsMenuOpen(false);
+                    onEnterMarketplace(); // Fonction passée en props
+                }}
+            />
 
-            {/* HERO */}
+            {/* Le reste de la page reste INCHANGÉ */}
             <section className="hero">
                 <h1 className="hero-title">
                     <span>Matière</span>
@@ -401,7 +383,6 @@ const HomeView = ({ onEnterMarketplace }) => {
                 </div>
             </section>
 
-            {/* MANIFESTO */}
             <section className="manifesto" id="manifesto">
                 <div className="manifesto-sticky">
                     <h2 className="lead-text">Nous ne restaurons pas seulement des objets. <br />Nous prolongeons des histoires.</h2>
@@ -423,7 +404,6 @@ const HomeView = ({ onEnterMarketplace }) => {
                 </div>
             </section>
 
-            {/* PROCESS */}
             <section className="process-wrapper" id="process">
                 <div className="process-container">
                     <div className="process-card" style={{ width: '25vw', justifyContent: 'center', border: 'none' }}>
@@ -435,7 +415,6 @@ const HomeView = ({ onEnterMarketplace }) => {
                 </div>
             </section>
 
-            {/* FEATURED */}
             <section className="featured-section" id="featured">
                 <div className="feat-bg-text">VOLTAIRE</div>
                 <div className="feat-container">
@@ -458,7 +437,6 @@ const HomeView = ({ onEnterMarketplace }) => {
                 </div>
             </section>
 
-            {/* TEAM */}
             <section className="team-section">
                 <div className="team-header">
                     <span className="section-label" style={{ display: 'block', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: '1rem', opacity: 0.5 }}>L'Équipe</span>
@@ -479,8 +457,7 @@ const HomeView = ({ onEnterMarketplace }) => {
                     </div>
                 </div>
             </section>
-
-            {/* FOOTER */}
+            
             <footer>
                 <div className="footer-cta">
                     <span className="section-label" style={{ color: '#666' }}>Contact</span>
