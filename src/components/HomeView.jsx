@@ -50,6 +50,43 @@ const HomeView = ({ onEnterMarketplace }) => {
     // L'état du menu reste ici, simple et efficace.
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+    // --- Données et composant pour le Marquee (ajustés pour mobile) ---
+    const row1Items = [
+        { type: 'img', url: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?q=80&w=600", width: 'w-[140px] md:w-[320px]' },
+        { type: 'img', url: "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?q=80&w=600", width: 'w-[110px] md:w-[240px]' },
+        { type: 'data', val: '50+', label: 'Tables sauvées', color: 'bg-blue-50/80' },
+        { type: 'img', url: "https://images.unsplash.com/photo-1540638349517-3abd5afc5847?q=80&w=2070&auto=format&fit=crop", width: 'w-[150px] md:w-[380px]' },
+        { type: 'img', url: "https://images.unsplash.com/photo-1581428982868-e410dd047a90?q=80&w=600", width: 'w-[130px] md:w-[280px]' },
+        { type: 'data', val: '1.2k', label: 'Heures de ponçage', color: 'bg-rose-50/80' },
+        { type: 'img', url: "https://images.unsplash.com/photo-1505691938895-1758d7eaa511?q=80&w=600", width: 'w-[140px] md:w-[310px]' },
+    ];
+
+    const row2Items = [
+        { type: 'img', url: "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?q=80&w=600", width: 'w-[160px] md:w-[350px]' },
+        { type: 'data', val: '100%', label: 'Origine Normandie', color: 'bg-emerald-50/80' },
+        { type: 'img', url: "https://images.unsplash.com/photo-1517705008128-361805f42e86?q=80&w=600", width: 'w-[120px] md:w-[260px]' },
+        { type: 'img', url: "https://images.unsplash.com/photo-1581428982868-e410dd047a90?q=80&w=2070&auto=format&fit=crop", width: 'w-[140px] md:w-[330px]' },
+        { type: 'data', val: '8.5', label: 'Note moyenne', color: 'bg-purple-50/80' },
+        { type: 'img', url: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?q=80&w=600", width: 'w-[135px] md:w-[290px]' },
+        { type: 'img', url: "https://images.unsplash.com/photo-1455792244736-3ed96c3d7f7e?q=80&w=2070&auto=format&fit=crop", width: 'w-[170px] md:w-[400px]' },
+    ];
+
+    const MarqueeItem = ({ item }) => {
+        if (item.type === 'img') {
+            return (
+                <div className={`inline-block h-[200px] md:h-[32vh] ${item.width} rounded-2xl md:rounded-3xl bg-white shadow-lg md:shadow-xl overflow-hidden border-2 md:border-8 border-white flex-shrink-0 mx-1.5 md:mx-4 transition-transform duration-700 hover:scale-105 active:scale-95 cursor-pointer`}>
+                    <img src={item.url} className="w-full h-full object-cover grayscale-[0.2] hover:grayscale-0 transition-all duration-700" alt="" />
+                </div>
+            );
+        }
+        return (
+            <div className={`inline-flex flex-col justify-center px-8 md:px-12 h-[200px] md:h-[32vh] mx-1.5 md:mx-4 rounded-2xl md:rounded-3xl border border-stone-100 min-w-[160px] md:min-w-[280px] shadow-sm ${item.color}`}>
+                <span className="text-3xl md:text-6xl font-black text-stone-900 tracking-tighter leading-none">{item.val}</span>
+                <span className="text-[9px] md:text-[11px] font-black uppercase tracking-widest md:tracking-[0.2em] text-amber-600 mt-2 md:mt-4">{item.label}</span>
+            </div>
+        );
+    };
+
     // --- 1. THREE.JS BACKGROUND (Inchangé) ---
     useEffect(() => {
         if (!canvasRef.current) return;
@@ -172,6 +209,10 @@ const HomeView = ({ onEnterMarketplace }) => {
                     start: "top 80%"
                 }
             });
+
+
+
+
             return () => {
                 window.removeEventListener('mousemove', moveCursor);
             };
@@ -221,8 +262,11 @@ const HomeView = ({ onEnterMarketplace }) => {
                 .caption { margin-top: 1.5rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.2em; opacity: 0.6; display: flex; align-items: center; gap: 1rem; }
                 .caption::before { content: ''; width: 30px; height: 1px; background: currentColor; }
                 .process-wrapper { width: 100%; height: 100vh; display: flex; flex-wrap: nowrap; overflow: hidden; background: #141414; color: #F4F2EE; align-items: center; }
-                .process-container { display: flex; gap: 0; padding: 0 5vw; width: 300%; }
+                .marquee-wrapper { height: 100vh; display: flex; flex-direction: column; justify-content: center; overflow: hidden; background-color: #FAF9F6; }
+                .process-container { display: flex; width: max-content; }
                 .process-card { width: 40vw; height: 60vh; display: flex; flex-direction: column; justify-content: space-between; border-right: 1px solid rgba(255,255,255,0.1); padding: 0 4rem; }
+                .process-title-card { justify-content: center; align-items: center; border-right: none !important; }
+                .process-main-title { font-family: 'Cormorant Garamond'; font-size: 4rem; line-height: 1; }
                 .p-num { font-size: 5rem; font-family: 'Cormorant Garamond'; opacity: 0.2; }
                 .p-img { height: 50%; width: 100%; object-fit: cover; opacity: 0.8; filter: grayscale(100%); transition: filter 0.5s; }
                 .process-card:hover .p-img { filter: grayscale(0%); }
@@ -258,7 +302,23 @@ const HomeView = ({ onEnterMarketplace }) => {
                 .footer-cta h2 { font-family: 'Cormorant Garamond'; font-size: 6vw; margin: 0; line-height: 1; cursor: pointer; transition: color 0.3s; color: #F4F2EE; }
                 .footer-cta h2:hover { color: var(--accent-color); }
                 .footer-links { display: flex; gap: 2rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.5; color: #F4F2EE; }
-                @media (max-width: 768px) { .manifesto { flex-direction: column; } .manifesto::after { display: none; } .manifesto-sticky { position: relative; width: 100%; height: auto; padding: 4rem var(--gutter); top: 0; } .manifesto-scroll { width: 100%; padding: 0 var(--gutter) 4rem; } .process-card { width: 80vw; } .feat-container { flex-direction: column; gap: 4rem; } .feat-left, .feat-img-wrap, .feat-right { width: 100%; padding: 0; height: auto; } .team-grid { grid-template-columns: 1fr; } .hero-title { font-size: 15vw; } }
+                
+                @media (max-width: 768px) {
+                    .manifesto { flex-direction: column; }
+                    .manifesto::after { display: none; }
+                    .manifesto-sticky { position: relative; width: 100%; height: auto; padding: 4rem var(--gutter); top: 0; }
+                    .manifesto-scroll { width: 100%; padding: 0 var(--gutter) 4rem; }
+                    .process-card { width: 80vw; padding: 0 2rem; }
+                    .process-main-title { font-size: 2.5rem; }
+                    .p-title { font-size: 1.5rem; }
+                    .feat-container { flex-direction: column; gap: 4rem; }
+                    .feat-left, .feat-img-wrap, .feat-right { width: 100%; padding: 0; height: auto; }
+                    .team-grid { grid-template-columns: 1fr; }
+                    .hero-title { font-size: 13vw; }
+                    .feat-name { font-size: 3rem; }
+                    .lead-text { font-size: 2rem; }
+                    .team-section, .featured-section { padding: 6rem var(--gutter); }
+                }
 
                 /* =========================================== */
                 /* NOUVEAUX STYLES POUR LE MENU RECONSTRUIT   */
@@ -343,6 +403,24 @@ const HomeView = ({ onEnterMarketplace }) => {
                     letter-spacing: 0.2em;
                     opacity: 0.4;
                 }
+
+                /* --- Styles pour le Marquee --- */
+                @keyframes marquee-left {
+                    0% { transform: translateX(0); }
+                    100% { transform: translateX(-50%); }
+                }
+                @keyframes marquee-right {
+                    0% { transform: translateX(-50%); }
+                    100% { transform: translateX(0); }
+                }
+                .animate-marquee-left {
+                    animation: marquee-left 50s linear infinite;
+                    width: max-content;
+                }
+                .animate-marquee-right {
+                    animation: marquee-right 50s linear infinite;
+                    width: max-content;
+                }
             `}</style>
 
             <div id="cursor" ref={cursorRef}></div>
@@ -374,7 +452,7 @@ const HomeView = ({ onEnterMarketplace }) => {
             <section className="hero">
                 <h1 className="hero-title">
                     <span>Matière</span>
-                    <span style={{ marginLeft: '10vw', color: 'var(--accent-color)' }}>Vivante</span>
+                    <span className="ml-[20vw] md:ml-[10vw]" style={{ color: 'var(--accent-color)' }}>Vivante</span>
                 </h1>
                 <div className="hero-footer">
                     <span>Est. 2024 — France</span>
@@ -406,8 +484,8 @@ const HomeView = ({ onEnterMarketplace }) => {
 
             <section className="process-wrapper" id="process">
                 <div className="process-container">
-                    <div className="process-card" style={{ width: '25vw', justifyContent: 'center', border: 'none' }}>
-                        <h2 style={{ fontFamily: 'Cormorant Garamond', fontSize: '4rem', lineHeight: 1 }}>Notre<br />Méthode</h2>
+                    <div className="process-card process-title-card">
+                        <h2 className="process-main-title">Notre<br />Méthode</h2>
                     </div>
                     <div className="process-card"><span className="p-num">I</span><img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=600" className="p-img" alt="Diag" /><h3 className="p-title">Diagnostic</h3></div>
                     <div className="process-card"><span className="p-num">II</span><img src="https://images.unsplash.com/photo-1530018607912-eff2daa1bac4?q=80&w=600" className="p-img" alt="Greffe" /><h3 className="p-title">Greffe</h3></div>
@@ -433,6 +511,29 @@ const HomeView = ({ onEnterMarketplace }) => {
                             <div className="spec-row"><span>Finition</span> <span>Vernis Tampon</span></div>
                         </div>
                         <span className="feat-price">450 €</span>
+                    </div>
+                </div>
+            </section>
+
+            {/* --- NOUVELLE SECTION MARQUEE --- */}
+            <section className="marquee-wrapper" id="marquee-section">
+                <div className="mb-12 md:mb-16 px-4 md:px-20 flex flex-col md:flex-row justify-between items-start md:items-end gap-4 md:gap-6">
+                    <div className="space-y-1">
+                        <h3 className="text-3xl md:text-5xl font-serif italic tracking-tighter text-stone-900">L'Atelier en mouvement</h3>
+                        <p className="text-stone-400 font-serif italic text-sm md:text-lg leading-none md:leading-normal">Instants de vie et chiffres clés.</p>
+                    </div>
+                </div>
+
+                <div className="space-y-10 md:space-y-12">
+                    <div className="flex animate-marquee-left">
+                        {[...row1Items, ...row1Items].map((item, i) => (
+                            <MarqueeItem key={i} item={item} />
+                        ))}
+                    </div>
+                    <div className="flex animate-marquee-right">
+                        {[...row2Items, ...row2Items].map((item, i) => (
+                            <MarqueeItem key={i} item={item} />
+                        ))}
                     </div>
                 </div>
             </section>
