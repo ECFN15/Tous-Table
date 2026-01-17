@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
-import { Hammer, Menu, X, ArrowRight, Instagram, ArrowDown, Star, Zap, Plus, Minus } from 'lucide-react';
+import { Hammer, Menu, X, ArrowRight, Instagram, ArrowDown, Star, Zap, Plus } from 'lucide-react';
 import * as THREE from 'three';
 
 // --- COMPOSANT : REVEAL TEXT (CORRIGÉ & ÉLARGI) ---
@@ -340,6 +340,17 @@ const App = ({ onEnterMarketplace }) => {
                    onEnter: () => gsap.to(text, { y: 0, opacity: 1, duration: 0.8, stagger: 0.1 })
                });
            });
+           
+           // EFFET TRANSPARENCE HEADER (AJOUTÉ ICI)
+           ScrollTrigger.create({
+              trigger: ".featured-section",
+              start: "top top",
+              end: () => "+=" + (window.innerHeight * cards.length),
+              onEnter: () => gsap.to("header", { opacity: 0.2, duration: 0.5, ease: "power2.out" }),
+              onLeave: () => gsap.to("header", { opacity: 1, duration: 0.5, ease: "power2.out" }),
+              onEnterBack: () => gsap.to("header", { opacity: 0.2, duration: 0.5, ease: "power2.out" }),
+              onLeaveBack: () => gsap.to("header", { opacity: 1, duration: 0.5, ease: "power2.out" })
+           });
       }
 
       // 7. Data Counters (GSAP pour la Section 12)
@@ -363,10 +374,10 @@ const App = ({ onEnterMarketplace }) => {
       mm.add("(min-width: 768px)", () => {
           ScrollTrigger.create({
             trigger: ".team-section",
-            start: "top top",
-            end: "bottom bottom",
-            pin: ".team-text-wrapper",
-            pinSpacing: false,
+            start: "top top", // Commence quand le haut de la section touche le haut de l'écran
+            end: "bottom bottom", // Finit quand le bas de la section touche le bas de l'écran
+            pin: ".team-text-wrapper", // On épingle le wrapper du texte
+            pinSpacing: false, // On ne veut pas de spacing artificiel qui décale tout
             scrub: true
           });
       });
@@ -608,7 +619,6 @@ const App = ({ onEnterMarketplace }) => {
       </section>
 
       {/* [SECTION 10: PROCESS] */}
-      {/* UPDATE: Last element full width on mobile to ensure visibility without black space */}
       <section className="process-wrapper h-screen bg-[#0D0D0D] text-[#FAF9F6] flex items-center overflow-hidden">
         <div className="horizontal-content flex gap-[5vw] md:gap-[8vw] pl-[5vw] md:pl-[10vw] pr-0 items-center relative will-change-transform">
           
@@ -666,6 +676,7 @@ const App = ({ onEnterMarketplace }) => {
       </section>
 
       {/* [SECTION 11: FEATURED (STACKING EFFECT GSAP PINNED)] */}
+      {/* UPDATE: Titres couleur d'origine et placés au dessus de l'image sur mobile */}
       <section className="featured-section h-screen w-full relative overflow-hidden bg-white">
         {featuredItems.map((item, index) => (
           <div
@@ -686,31 +697,28 @@ const App = ({ onEnterMarketplace }) => {
                 </div>
 
                 {/* GRILLE RESPONSIVE : Gap réduit sur mobile pour éviter l'overflow */}
-                {/* CHANGE: gap-2 instead of gap-4 */}
-                <div className="max-w-7xl w-full grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-32 items-center relative z-10 text-[#1a1a1a] px-6 md:px-8 h-full md:h-auto py-6 md:py-0">
+                <div className="max-w-7xl w-full grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-32 items-center relative z-10 text-[#1a1a1a] px-6 md:px-8 h-full md:h-auto py-8 md:py-0">
                   
                   {/* SUBTITLE MOBILE - Placée avant l'image pour être au dessus sur mobile */}
-                  {/* CHANGE: mb-1 (very small margin) */}
-                  <div className="w-full md:hidden flex justify-center mb-1 order-1">
+                  <div className="w-full md:hidden flex justify-center pb-2 order-1">
                       <span className="text-[10px] uppercase tracking-[0.8em] text-[#9C8268] font-bold italic underline underline-offset-8">
                         {item.subtitle}
                       </span>
                   </div>
 
-                  {/* Image Box : Hauteur AGRANDIE sur mobile (42vh) */}
-                  <div className="feat-img-box w-full h-[42vh] md:h-auto md:aspect-[4/5] shadow-2xl overflow-hidden rounded-sm order-2 md:order-1">
+                  {/* Image Box : Hauteur contrainte sur mobile (35vh) pour laisser place au texte */}
+                  <div className="feat-img-box w-full h-[35vh] md:h-auto md:aspect-[4/5] shadow-2xl overflow-hidden rounded-sm order-2 md:order-1">
                     <img src={item.img} alt={item.bgTitle} className="feat-img-anim w-full h-full object-cover will-change-transform" />
                   </div>
                   
-                  {/* Content : Spacing réduit sur mobile pour éviter le tassement */}
-                  <div className="space-y-6 md:space-y-16 feat-text-anim order-3 md:order-2 flex flex-col justify-center">
+                  <div className="space-y-4 md:space-y-16 feat-text-anim order-3 md:order-2 flex flex-col justify-center">
                     <div>
                       {/* TITRE DESKTOP (Cache sur mobile) - Couleur d'origine #9C8268 */}
                       <span className="hidden md:block text-[10px] uppercase tracking-[0.8em] text-[#9C8268] mb-12 font-bold italic underline underline-offset-8">
                         {item.subtitle}
                       </span>
                       {/* TITRE RESPONSIVE : 4xl sur mobile, 7xl+ sur desktop */}
-                      <h2 className="font-serif text-4xl md:text-7xl lg:text-[8.5vw] leading-[0.9] md:leading-[0.85] font-light italic text-[#1a1a1a]">
+                      <h2 className="font-serif text-4xl md:text-7xl lg:text-[8.5vw] leading-[0.95] md:leading-[0.85] font-light italic text-[#1a1a1a]">
                           {/* Utilisation de map pour gérer les lignes multiples */}
                           {item.title.map((line, i) => (
                              <React.Fragment key={i}>
@@ -719,12 +727,12 @@ const App = ({ onEnterMarketplace }) => {
                           ))}
                       </h2>
                     </div>
-                    {/* DESCRIPTION RESPONSIVE : Texte plus petit sur mobile (text-base) */}
-                    <p className="text-base md:text-2xl font-light opacity-60 leading-snug md:leading-relaxed max-w-md italic text-[#1a1a1a]">
+                    {/* DESCRIPTION RESPONSIVE : Texte plus petit sur mobile */}
+                    <p className="text-lg md:text-2xl font-light opacity-60 leading-snug md:leading-relaxed max-w-md italic text-[#1a1a1a]">
                       {item.desc}
                     </p>
                     {/* BOUTON MODIFIÉ : RotatingButton */}
-                    <button onClick={onEnterMarketplace} className="flex items-center gap-4 md:gap-8 group text-[#1a1a1a] mt-2 md:mt-4">
+                    <button onClick={onEnterMarketplace} className="flex items-center gap-4 md:gap-8 group text-[#1a1a1a] mt-4">
                       <RotatingButton id={item.id} />
                       <span className="text-[10px] md:text-[11px] uppercase tracking-[0.4em] md:tracking-[0.6em] font-medium text-[#1a1a1a]">
                         Découvrir la Galerie
@@ -803,9 +811,9 @@ const App = ({ onEnterMarketplace }) => {
       <section className="team-section relative w-full bg-[#FAF9F6] flex flex-col md:flex-row items-start z-10">
         
         {/* COLONNE GAUCHE (TEXTE) */}
-        <div className="w-full md:w-1/2 min-h-screen flex flex-col justify-center px-8 md:px-[6vw] space-y-24 text-[#1a1a1a] z-20">
+        <div className="w-full md:w-1/2 h-auto md:min-h-screen flex flex-col justify-center px-8 md:px-[6vw] py-20 md:py-0 space-y-12 md:space-y-24 text-[#1a1a1a] z-20">
               {/* Ce wrapper sera épinglé par GSAP */}
-              <div className="team-text-wrapper h-screen flex flex-col justify-center">
+              <div className="team-text-wrapper h-auto md:h-screen flex flex-col justify-center">
                   <div className="space-y-6 team-content-reveal">
                      <span className="text-[12px] uppercase tracking-[1.4em] text-[#9C8268] block font-black italic">La Direction</span>
                      <h2 className="font-serif text-7xl md:text-[8vw] xl:text-[9vw] leading-[0.9] font-light italic tracking-tight text-[#1a1a1a]">
@@ -829,7 +837,7 @@ const App = ({ onEnterMarketplace }) => {
         </div>
 
         {/* COLONNE DROITE (IMAGE) - SCROLLANTE */}
-        <div className="w-full md:w-1/2 h-auto md:min-h-[200vh] flex flex-col items-center px-8 md:px-[4vw] py-20 md:pt-[20vh] md:pb-40 z-10 bg-[#FAF9F6]">
+        <div className="w-full md:w-1/2 h-auto md:min-h-[200vh] flex flex-col items-center px-8 md:px-[4vw] pb-20 md:pt-[20vh] md:pb-40 z-10 bg-[#FAF9F6]">
              <div className="team-img-col relative w-full aspect-[3/4] md:aspect-[2/3] shadow-[0_80px_160px_rgba(0,0,0,0.15)] bg-stone-200">
                 <img
                     src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1600"
