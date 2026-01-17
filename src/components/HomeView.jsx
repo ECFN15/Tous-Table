@@ -340,7 +340,7 @@ const App = ({ onEnterMarketplace }) => {
                    onEnter: () => gsap.to(text, { y: 0, opacity: 1, duration: 0.8, stagger: 0.1 })
                });
            });
-           
+
            // EFFET TRANSPARENCE HEADER (AJOUTÉ ICI)
            ScrollTrigger.create({
               trigger: ".featured-section",
@@ -374,10 +374,10 @@ const App = ({ onEnterMarketplace }) => {
       mm.add("(min-width: 768px)", () => {
           ScrollTrigger.create({
             trigger: ".team-section",
-            start: "top top", // Commence quand le haut de la section touche le haut de l'écran
-            end: "bottom bottom", // Finit quand le bas de la section touche le bas de l'écran
-            pin: ".team-text-wrapper", // On épingle le wrapper du texte
-            pinSpacing: false, // On ne veut pas de spacing artificiel qui décale tout
+            start: "top top",
+            end: "bottom bottom",
+            pin: ".team-text-wrapper",
+            pinSpacing: false,
             scrub: true
           });
       });
@@ -542,8 +542,8 @@ const App = ({ onEnterMarketplace }) => {
         <h1 className="font-serif text-[18vw] md:text-[12.5vw] leading-[0.8] uppercase flex flex-col font-light text-[#1a1a1a] mix-blend-multiply">
           <RevealText text="Le Geste" />
           <div className="flex items-center gap-4 self-end md:mr-[8vw]">
-             <span className="hidden md:block w-20 h-[1px] bg-[#9C8268] opacity-60 reveal-inner"></span>
-             <RevealText text="Ancestral" className="text-[#9C8268] italic" />
+             {/* REMOVED SPAN as per previous request */}
+             <RevealText text="& L'Âme" className="text-[#9C8268] italic pt-[0.25em] -mt-[0.25em]" />
           </div>
         </h1>
 
@@ -676,7 +676,6 @@ const App = ({ onEnterMarketplace }) => {
       </section>
 
       {/* [SECTION 11: FEATURED (STACKING EFFECT GSAP PINNED)] */}
-      {/* UPDATE: Titres couleur d'origine et placés au dessus de l'image sur mobile */}
       <section className="featured-section h-screen w-full relative overflow-hidden bg-white">
         {featuredItems.map((item, index) => (
           <div
@@ -811,9 +810,9 @@ const App = ({ onEnterMarketplace }) => {
       <section className="team-section relative w-full bg-[#FAF9F6] flex flex-col md:flex-row items-start z-10">
         
         {/* COLONNE GAUCHE (TEXTE) */}
-        <div className="w-full md:w-1/2 h-auto md:min-h-screen flex flex-col justify-center px-8 md:px-[6vw] py-20 md:py-0 space-y-12 md:space-y-24 text-[#1a1a1a] z-20">
+        <div className="w-full md:w-1/2 min-h-screen flex flex-col justify-center px-8 md:px-[6vw] space-y-24 text-[#1a1a1a] z-20">
               {/* Ce wrapper sera épinglé par GSAP */}
-              <div className="team-text-wrapper h-auto md:h-screen flex flex-col justify-center">
+              <div className="team-text-wrapper h-screen flex flex-col justify-center">
                   <div className="space-y-6 team-content-reveal">
                      <span className="text-[12px] uppercase tracking-[1.4em] text-[#9C8268] block font-black italic">La Direction</span>
                      <h2 className="font-serif text-7xl md:text-[8vw] xl:text-[9vw] leading-[0.9] font-light italic tracking-tight text-[#1a1a1a]">
@@ -837,7 +836,7 @@ const App = ({ onEnterMarketplace }) => {
         </div>
 
         {/* COLONNE DROITE (IMAGE) - SCROLLANTE */}
-        <div className="w-full md:w-1/2 h-auto md:min-h-[200vh] flex flex-col items-center px-8 md:px-[4vw] pb-20 md:pt-[20vh] md:pb-40 z-10 bg-[#FAF9F6]">
+        <div className="w-full md:w-1/2 min-h-[200vh] flex flex-col items-center px-8 md:px-[4vw] pt-[20vh] pb-40 z-10 bg-[#FAF9F6]">
              <div className="team-img-col relative w-full aspect-[3/4] md:aspect-[2/3] shadow-[0_80px_160px_rgba(0,0,0,0.15)] bg-stone-200">
                 <img
                     src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1600"
