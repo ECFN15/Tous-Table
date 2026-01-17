@@ -6,7 +6,7 @@ import * as THREE from 'three';
 const RevealText = ({ text, className, delay = 0 }) => {
   return (
     <span className={`block overflow-hidden w-fit pb-[0.2em] pr-32 -mr-32 whitespace-nowrap ${className}`}>
-      <span 
+      <span
         className="reveal-inner inline-block translate-y-[110%] will-change-transform"
         data-delay={delay}
       >
@@ -37,7 +37,7 @@ const RotatingSymbol = ({ className, size = 120, text = "TOUS À TABLE • 2024 
 const RotatingButton = ({ id }) => {
   const pathId = `btnPath-${id}`;
   return (
-    <div className="relative w-24 h-24 flex items-center justify-center select-none group-hover:scale-110 transition-transform duration-500">
+    <div className="relative w-16 h-16 md:w-24 md:h-24 flex items-center justify-center select-none group-hover:scale-110 transition-transform duration-500">
       {/* Texte rotatif */}
       <div className="absolute inset-0 animate-spin-slow">
         <svg width="100%" height="100%" viewBox="0 0 100 100">
@@ -54,7 +54,7 @@ const RotatingButton = ({ id }) => {
       
       {/* Marteau Central - SANS CERCLE BLANC */}
       <div className="absolute inset-0 flex items-center justify-center">
-          <Hammer size={24} className="text-current" strokeWidth={1.5} />
+          <Hammer size={20} className="text-current md:w-6 md:h-6" strokeWidth={1.5} />
       </div>
     </div>
   );
@@ -66,21 +66,21 @@ const AccordionItem = ({ question, answer, isOpen, onClick }) => {
 
   return (
     <div className="border-b border-black/10 last:border-none">
-      <button 
+      <button
         onClick={onClick}
         className="w-full py-5 flex justify-between items-center text-left group hover:pl-4 transition-all duration-300"
       >
-        <h4 className="font-serif text-2xl md:text-3xl text-[#1a1a1a] font-light italic pr-8">{question}</h4>
+        <h4 className="font-serif text-xl md:text-3xl text-[#1a1a1a] font-light italic pr-8">{question}</h4>
         <div className={`w-8 h-8 rounded-full border border-black/10 flex items-center justify-center transition-all duration-500 flex-shrink-0 ${isOpen ? 'bg-[#1a1a1a] text-white rotate-45' : 'bg-transparent text-[#1a1a1a] group-hover:bg-[#1a1a1a] group-hover:text-white'}`}>
            <Plus size={16} />
         </div>
       </button>
-      <div 
+      <div
         ref={contentRef}
         style={{ height: isOpen ? contentRef.current?.scrollHeight : 0 }}
         className="overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
       >
-        <div className="pb-6 text-base text-[#1a1a1a]/60 leading-relaxed max-w-lg font-light">
+        <div className="pb-6 text-sm md:text-base text-[#1a1a1a]/60 leading-relaxed max-w-lg font-light">
           {answer}
         </div>
       </div>
@@ -122,8 +122,8 @@ const App = ({ onEnterMarketplace }) => {
   // --- INITIALISATION LENIS ---
   useEffect(() => {
     if (!scriptsLoaded) return;
-    const lenis = new window.Lenis({ 
-      duration: 1.2, 
+    const lenis = new window.Lenis({
+      duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
     });
@@ -144,8 +144,8 @@ const App = ({ onEnterMarketplace }) => {
     const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 100);
     camera.position.z = 18;
 
-    const renderer = new THREE.WebGLRenderer({ 
-      alpha: true, 
+    const renderer = new THREE.WebGLRenderer({
+      alpha: true,
       antialias: true,
       powerPreference: "high-performance"
     });
@@ -158,11 +158,11 @@ const App = ({ onEnterMarketplace }) => {
     scene.add(light);
     scene.add(new THREE.AmbientLight(0xffffff, 0.4));
 
-    const geometry = new THREE.TorusKnotGeometry(4, 1.2, 120, 16, 2, 3); 
-    const material = new THREE.MeshBasicMaterial({ 
-      color: 0x9C8268, 
-      wireframe: true, 
-      transparent: true, 
+    const geometry = new THREE.TorusKnotGeometry(4, 1.2, 120, 16, 2, 3);
+    const material = new THREE.MeshBasicMaterial({
+      color: 0x9C8268,
+      wireframe: true,
+      transparent: true,
       opacity: 0.09
     });
     
@@ -205,9 +205,9 @@ const App = ({ onEnterMarketplace }) => {
     const ctx = gsap.context(() => {
       // 1. Entrée Hero
       const tlHero = gsap.timeline({ defaults: { ease: "power3.out" } });
-      tlHero.to('.reveal-inner', { 
-        y: 0, 
-        stagger: 0.15, 
+      tlHero.to('.reveal-inner', {
+        y: 0,
+        stagger: 0.15,
         duration: 1.6,
         delay: 0.2
       })
@@ -220,13 +220,13 @@ const App = ({ onEnterMarketplace }) => {
 
       // 2. Disparition 3D
       gsap.to('.three-container', {
-        opacity: 0, 
-        y: -150, 
-        scrollTrigger: { 
-          trigger: ".hero-section", 
-          start: "top top", 
-          end: "bottom center", 
-          scrub: true 
+        opacity: 0,
+        y: -150,
+        scrollTrigger: {
+          trigger: ".hero-section",
+          start: "top top",
+          end: "bottom center",
+          scrub: true
         }
       });
 
@@ -268,9 +268,9 @@ const App = ({ onEnterMarketplace }) => {
           scrollTrigger: {
             trigger: ".process-wrapper",
             start: "top top",
-            end: () => "+=" + distanceToScroll, 
+            end: () => "+=" + distanceToScroll,
             pin: true,
-            scrub: 1, 
+            scrub: 1,
             invalidateOnRefresh: true,
             anticipatePin: 1
           }
@@ -303,32 +303,32 @@ const App = ({ onEnterMarketplace }) => {
                   start: "top top",
                   end: () => "+=" + (window.innerHeight * cards.length),
                   pin: true,
-                  scrub: 1, 
+                  scrub: 1,
                   anticipatePin: 1
               }
           });
 
           cards.forEach((card, i) => {
               const img = card.querySelector('.feat-img-anim');
-              if(img) gsap.set(img, { scale: 1.2 }); 
+              if(img) gsap.set(img, { scale: 1.2 });
 
-              if (i === 0) return; 
+              if (i === 0) return;
 
-              tlStack.fromTo(card, 
-                  { yPercent: 100 }, 
+              tlStack.fromTo(card,
+                  { yPercent: 100 },
                   { yPercent: 0, ease: "none", duration: 1 }
               );
 
               const prevCard = cards[i - 1];
               const prevContent = prevCard.querySelector('.card-inner-content');
               
-              tlStack.to(prevContent, { 
-                  scale: 0.90, 
-                  filter: "blur(5px)", 
-                  opacity: 1, 
-                  ease: "none", 
-                  duration: 1 
-              }, "<"); 
+              tlStack.to(prevContent, {
+                  scale: 0.90,
+                  filter: "blur(5px)",
+                  opacity: 1,
+                  ease: "none",
+                  duration: 1
+              }, "<");
           });
           
            cards.forEach((card) => {
@@ -336,7 +336,7 @@ const App = ({ onEnterMarketplace }) => {
                ScrollTrigger.create({
                    trigger: card,
                    containerAnimation: tlStack,
-                   start: "top 60%", 
+                   start: "top 60%",
                    onEnter: () => gsap.to(text, { y: 0, opacity: 1, duration: 0.8, stagger: 0.1 })
                });
            });
@@ -356,14 +356,19 @@ const App = ({ onEnterMarketplace }) => {
       });
 
       // 8. Team Split Scroll (GSAP PINNING FORCE)
-      // On force le 'pinning' via GSAP au lieu de CSS Sticky pour garantir le blocage.
-      ScrollTrigger.create({
-        trigger: ".team-section",
-        start: "top top", // Commence quand le haut de la section touche le haut de l'écran
-        end: "bottom bottom", // Finit quand le bas de la section touche le bas de l'écran
-        pin: ".team-text-wrapper", // On épingle le wrapper du texte
-        pinSpacing: false, // On ne veut pas de spacing artificiel qui décale tout
-        scrub: true
+      // MODIF: Utilisation de matchMedia pour activer le pinning UNIQUEMENT sur Desktop (> 768px)
+      // Sur mobile, le comportement reste statique (flux normal) pour éviter le chevauchement.
+      const mm = gsap.matchMedia();
+      
+      mm.add("(min-width: 768px)", () => {
+          ScrollTrigger.create({
+            trigger: ".team-section",
+            start: "top top",
+            end: "bottom bottom",
+            pin: ".team-text-wrapper",
+            pinSpacing: false,
+            scrub: true
+          });
       });
 
       // Animation d'apparition du texte au début
@@ -391,10 +396,10 @@ const App = ({ onEnterMarketplace }) => {
       id: 1,
       bgTitle: "Voltaire",
       subtitle: "Exposition Temporaire",
-      title: ["Le Voltaire", "Signature"], 
+      title: ["Le Voltaire", "Signature"],
       desc: "\"Une renaissance historique pour l'époque contemporaine.\"",
       img: "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1200",
-      bgColor: "#FFFFFF" 
+      bgColor: "#FFFFFF"
     },
     {
       id: 2,
@@ -402,17 +407,17 @@ const App = ({ onEnterMarketplace }) => {
       subtitle: "Collection Privée",
       title: ["Méridienne", "Impériale"],
       desc: "\"L'art du repos sublimé par un velours de soie restauré à la main.\"",
-      img: "https://images.unsplash.com/photo-1550581190-9c1c48d21d6c?q=80&w=1200", 
-      bgColor: "#F3F4F6" 
+      img: "https://images.unsplash.com/photo-1550581190-9c1c48d21d6c?q=80&w=1200",
+      bgColor: "#F3F4F6"
     },
     {
       id: 3,
       bgTitle: "Secrétaire",
       subtitle: "Pièce Unique",
-      title: ["Le Secrétaire", "Secret"], 
+      title: ["Le Secrétaire", "Secret"],
       desc: "\"Bois de rose et marqueterie complexe. Un gardien de correspondances oubliées.\"",
-      img: "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?q=80&w=1200", 
-      bgColor: "#E5E7EB" 
+      img: "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?q=80&w=1200",
+      bgColor: "#E5E7EB"
     },
     {
       id: 4,
@@ -420,8 +425,8 @@ const App = ({ onEnterMarketplace }) => {
       subtitle: "Nouvelle Acquisition",
       title: ["Bibliothèque", "Céleste"],
       desc: "\"Chêne massif et échelles en laiton. Une structure qui élève l'esprit.\"",
-      img: "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?q=80&w=1200", 
-      bgColor: "#D1D5DB" 
+      img: "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?q=80&w=1200",
+      bgColor: "#D1D5DB"
     }
   ];
 
@@ -455,7 +460,7 @@ const App = ({ onEnterMarketplace }) => {
           transform: translate(-50%, -50%); mix-blend-mode: difference;
         }
 
-        .will-change-transform { will-change: transform; } 
+        .will-change-transform { will-change: transform; }
         .img-parallax { position: relative; overflow: hidden; }
         .img-parallax img { transform: scale(1.1); will-change: transform; transition: transform 1.5s cubic-bezier(0.19, 1, 0.22, 1); }
         .img-parallax:hover img { transform: scale(1.05); }
@@ -464,12 +469,12 @@ const App = ({ onEnterMarketplace }) => {
         .img-box-process { position: relative; overflow: hidden; background: #0D0D0D; }
         
         /* CHIFFRES ROMAINS: Design "Bijou" Élégant */
-        .text-stroke-1 { 
+        .text-stroke-1 {
            -webkit-text-stroke: 1px rgba(255,255,255,0.8); /* Contour blanc plus fin et net */
-           color: transparent; 
+           color: transparent;
            transition: all 0.5s ease;
-        } 
-        .group:hover .text-stroke-1 { 
+        }
+        .group:hover .text-stroke-1 {
            -webkit-text-stroke: 0px;
            color: #9C8268; /* Devient or plein au survol */
            transform: translateY(-10px); /* Léger mouvement d'élévation */
@@ -513,7 +518,7 @@ const App = ({ onEnterMarketplace }) => {
           <X className="absolute top-12 right-12 cursor-pointer text-white/20 hover:text-white transition-all" size={32} onClick={() => setIsMenuOpen(false)} />
           <div className="flex flex-col items-center gap-12 text-white">
             {['La Philosophie', 'Galerie des Meubles', 'L\'Atelier', 'Contact'].map((item) => (
-              <a key={item} href="#" className="font-serif text-6xl md:text-9xl font-light hover:italic hover:text-[#9C8268] transition-all">
+              <a key={item} href="#" className="font-serif text-5xl md:text-9xl font-light hover:italic hover:text-[#9C8268] transition-all">
                 {item}
               </a>
             ))}
@@ -603,33 +608,34 @@ const App = ({ onEnterMarketplace }) => {
       </section>
 
       {/* [SECTION 10: PROCESS] */}
+      {/* UPDATE: Last element full width on mobile to ensure visibility without black space */}
       <section className="process-wrapper h-screen bg-[#0D0D0D] text-[#FAF9F6] flex items-center overflow-hidden">
-        <div className="horizontal-content flex gap-[8vw] px-[10vw] items-center relative will-change-transform">
+        <div className="horizontal-content flex gap-[5vw] md:gap-[8vw] pl-[5vw] md:pl-[10vw] pr-0 items-center relative will-change-transform">
           
           {/* Titre Section */}
-          <div className="min-w-[40vw] relative flex flex-col justify-center h-[70vh] border-r border-white/5 pr-[8vw]">
+          <div className="min-w-[85vw] md:min-w-[40vw] relative flex flex-col justify-center h-[70vh] border-r border-white/5 pr-[8vw]">
               <RotatingSymbol className="absolute -top-20 -left-24 text-[#9C8268]" size={160} />
               <div className="relative z-10">
                 <span className="text-[10px] uppercase tracking-[1.2em] text-[#9C8268] mb-8 block font-black">L'Alchimie</span>
-                <h2 className="font-serif text-8xl md:text-[12vw] leading-none font-light italic text-white">Le Rituel.</h2>
-                <p className="mt-12 text-lg font-light opacity-50 max-w-md border-l border-[#9C8268] pl-6">
+                <h2 className="font-serif text-5xl md:text-8xl lg:text-[12vw] leading-none font-light italic text-white">Le Rituel.</h2>
+                <p className="mt-12 text-base md:text-lg font-light opacity-50 max-w-md border-l border-[#9C8268] pl-6">
                     Chaque étape est une célébration de la matière. De l'état brut à l'œuvre d'art, découvrez notre processus de restauration.
                 </p>
               </div>
           </div>
 
           {[
-            { n: "I", t: "L'Essence", d: "Sélection rigoureuse des billes de bois précieux.", main: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?q=80&w=800", w: "w-[350px] md:w-[480px]", h: "h-[500px] md:h-[650px]", info: "Matière première" },
-            { n: "II", t: "L'Analyse", d: "Diagnostic structurel et scan de la patine historique.", main: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=800", w: "w-[400px] md:w-[600px]", h: "h-[450px] md:h-[600px]", info: "Étude microscopique" },
-            { n: "III", t: "Le Dessin", d: "Tracé géométrique pour les greffes complexes.", main: "https://images.unsplash.com/photo-1517705008128-361805f42e86?q=80&w=800", w: "w-[350px] md:w-[500px]", h: "h-[400px] md:h-[550px]", info: "Perspective d'art" },
-            { n: "IV", t: "La Cure", d: "Greffes invisibles et consolidation structurelle.", main: "https://images.unsplash.com/photo-1530018607912-eff2daa1bac4?q=80&w=800", w: "w-[350px] md:w-[480px]", h: "h-[450px] md:h-[600px]", info: "Renaissance physique" },
-            { n: "V", t: "L'Éclat", d: "Secret du vernis au tampon selon la tradition normande.", main: "https://images.unsplash.com/photo-1622372738946-62e02505feb3?q=80&w=800", w: "w-[450px] md:w-[700px]", h: "h-[450px] md:h-[600px]", info: "Miroir de bois" }
+            { n: "I", t: "L'Essence", d: "Sélection rigoureuse des billes de bois précieux.", main: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?q=80&w=800", w: "w-[85vw] md:w-[480px]", h: "h-[500px] md:h-[650px]", info: "Matière première" },
+            { n: "II", t: "L'Analyse", d: "Diagnostic structurel et scan de la patine historique.", main: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=800", w: "w-[85vw] md:w-[600px]", h: "h-[450px] md:h-[600px]", info: "Étude microscopique" },
+            { n: "III", t: "Le Dessin", d: "Tracé géométrique pour les greffes complexes.", main: "https://images.unsplash.com/photo-1517705008128-361805f42e86?q=80&w=800", w: "w-[85vw] md:w-[500px]", h: "h-[400px] md:h-[550px]", info: "Perspective d'art" },
+            { n: "IV", t: "La Cure", d: "Greffes invisibles et consolidation structurelle.", main: "https://images.unsplash.com/photo-1530018607912-eff2daa1bac4?q=80&w=800", w: "w-[85vw] md:w-[480px]", h: "h-[450px] md:h-[600px]", info: "Renaissance physique" },
+            { n: "V", t: "L'Éclat", d: "Secret du vernis au tampon selon la tradition normande.", main: "https://images.unsplash.com/photo-1622372738946-62e02505feb3?q=80&w=800", w: "w-[85vw] md:w-[700px]", h: "h-[450px] md:h-[600px]", info: "Miroir de bois" }
           ].map((step, i) => (
             <div key={i} className={`process-card flex-shrink-0 relative ${step.w} flex flex-col justify-center group`}>
                 
-                {/* Numéro flottant "Architectural" - DESIGN AMÉLIORÉ (Bijou Style) */}
-                <div className="absolute -top-12 -left-10 z-30 pointer-events-none select-none mix-blend-difference">
-                    <span className="font-serif text-[10rem] md:text-[12rem] leading-none text-stroke-1 italic">{step.n}</span>
+                {/* Numéro flottant "Architectural" - REDUIT SUR MOBILE */}
+                <div className="absolute -top-12 -left-4 md:-left-10 z-30 pointer-events-none select-none mix-blend-difference">
+                    <span className="font-serif text-[6rem] md:text-[12rem] leading-none text-stroke-1 italic">{step.n}</span>
                 </div>
 
                 {/* Conteneur Image */}
@@ -644,15 +650,16 @@ const App = ({ onEnterMarketplace }) => {
                 </div>
 
                 {/* Caption */}
-                <div className="p-caption mt-12 relative z-10 text-white pl-6 border-l border-white/10 group-hover:border-[#9C8268] transition-colors duration-700">
-                    <h3 className="text-4xl md:text-5xl font-light italic font-serif text-white mb-4 group-hover:translate-x-2 transition-transform duration-500">{step.t}</h3>
+                <div className="p-caption mt-8 md:mt-12 relative z-10 text-white pl-4 md:pl-6 border-l border-white/10 group-hover:border-[#9C8268] transition-colors duration-700">
+                    <h3 className="text-3xl md:text-5xl font-light italic font-serif text-white mb-4 group-hover:translate-x-2 transition-transform duration-500">{step.t}</h3>
                     <p className="text-[10px] uppercase tracking-[0.25em] opacity-40 leading-loose max-w-[300px] font-medium text-[#FAF9F6] group-hover:opacity-80 transition-opacity">{step.d}</p>
                 </div>
             </div>
           ))}
 
-          <div className="min-w-[40vw] flex flex-col items-center justify-center border-l border-white/5 pl-[8vw]">
-              <RotatingSymbol size={300} className="text-[#9C8268] opacity-20" text="L'HÉRITAGE DU TEMPS • TOUS À TABLE •" />
+          {/* UPDATE: Full screen width on mobile (100vw) to center content properly at end of scroll */}
+          <div className="min-w-[100vw] md:min-w-[40vw] flex flex-col items-center justify-center border-l border-white/5 pl-0 md:pl-[8vw]">
+              <RotatingSymbol size={300} className="text-[#9C8268] opacity-20 scale-75 md:scale-100" text="L'HÉRITAGE DU TEMPS • TOUS À TABLE •" />
               <span className="font-serif italic text-4xl opacity-30 mt-16 tracking-[0.5em] uppercase text-white">Perpétuité</span>
           </div>
         </div>
@@ -661,34 +668,49 @@ const App = ({ onEnterMarketplace }) => {
       {/* [SECTION 11: FEATURED (STACKING EFFECT GSAP PINNED)] */}
       <section className="featured-section h-screen w-full relative overflow-hidden bg-white">
         {featuredItems.map((item, index) => (
-          <div 
+          <div
             key={item.id}
             className="featured-card absolute top-0 left-0 w-full h-full flex items-center justify-center overflow-hidden will-change-transform"
-            style={{ 
+            style={{
               zIndex: index + 1,
               backgroundColor: item.bgColor
             }}
           >
             {/* Conteneur Interne pour l'effet de recul (Scale Down) */}
-            <div 
+            <div
                 className="card-inner-content relative w-full h-full flex items-center justify-center border-t border-black/5 shadow-[-20px_-20px_60px_rgba(0,0,0,0.1)] origin-center will-change-transform"
             >
-                {/* Background Title Faint */}
+                {/* Background Title Faint - Opacité réduite */}
                 <div className="absolute inset-0 flex items-center justify-center font-serif text-[34vw] text-black/[0.015] pointer-events-none uppercase tracking-tighter italic text-[#1a1a1a]">
                   {item.bgTitle}
                 </div>
 
-                <div className="max-w-7xl w-full grid grid-cols-1 md:grid-cols-2 gap-32 items-center relative z-10 text-[#1a1a1a] px-8">
-                  <div className="feat-img-box aspect-[4/5] shadow-2xl overflow-hidden rounded-sm">
-                    <img src={item.img} alt={item.bgTitle} className="feat-img-anim w-full h-full object-cover will-change-transform" />
-                  </div>
-                  <div className="space-y-16 feat-text-anim">
-                    <div>
-                      <span className="text-[10px] uppercase tracking-[0.8em] text-[#9C8268] block mb-12 font-bold tracking-widest italic underline underline-offset-8">
+                {/* GRILLE RESPONSIVE : Gap réduit sur mobile pour éviter l'overflow */}
+                {/* CHANGE: gap-2 instead of gap-4 */}
+                <div className="max-w-7xl w-full grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-32 items-center relative z-10 text-[#1a1a1a] px-6 md:px-8 h-full md:h-auto py-6 md:py-0">
+                  
+                  {/* SUBTITLE MOBILE - Placée avant l'image pour être au dessus sur mobile */}
+                  {/* CHANGE: mb-1 (very small margin) */}
+                  <div className="w-full md:hidden flex justify-center mb-1 order-1">
+                      <span className="text-[10px] uppercase tracking-[0.8em] text-[#9C8268] font-bold italic underline underline-offset-8">
                         {item.subtitle}
                       </span>
-                      {/* Réduction de la taille du titre (text-[8.5vw]) pour éviter la coupure */}
-                      <h2 className="font-serif text-7xl md:text-[8.5vw] leading-[0.85] font-light italic text-[#1a1a1a]">
+                  </div>
+
+                  {/* Image Box : Hauteur AGRANDIE sur mobile (42vh) */}
+                  <div className="feat-img-box w-full h-[42vh] md:h-auto md:aspect-[4/5] shadow-2xl overflow-hidden rounded-sm order-2 md:order-1">
+                    <img src={item.img} alt={item.bgTitle} className="feat-img-anim w-full h-full object-cover will-change-transform" />
+                  </div>
+                  
+                  {/* Content : Spacing réduit sur mobile pour éviter le tassement */}
+                  <div className="space-y-6 md:space-y-16 feat-text-anim order-3 md:order-2 flex flex-col justify-center">
+                    <div>
+                      {/* TITRE DESKTOP (Cache sur mobile) - Couleur d'origine #9C8268 */}
+                      <span className="hidden md:block text-[10px] uppercase tracking-[0.8em] text-[#9C8268] mb-12 font-bold italic underline underline-offset-8">
+                        {item.subtitle}
+                      </span>
+                      {/* TITRE RESPONSIVE : 4xl sur mobile, 7xl+ sur desktop */}
+                      <h2 className="font-serif text-4xl md:text-7xl lg:text-[8.5vw] leading-[0.9] md:leading-[0.85] font-light italic text-[#1a1a1a]">
                           {/* Utilisation de map pour gérer les lignes multiples */}
                           {item.title.map((line, i) => (
                              <React.Fragment key={i}>
@@ -697,13 +719,14 @@ const App = ({ onEnterMarketplace }) => {
                           ))}
                       </h2>
                     </div>
-                    <p className="text-2xl font-light opacity-60 leading-relaxed max-w-md italic text-[#1a1a1a]">
+                    {/* DESCRIPTION RESPONSIVE : Texte plus petit sur mobile (text-base) */}
+                    <p className="text-base md:text-2xl font-light opacity-60 leading-snug md:leading-relaxed max-w-md italic text-[#1a1a1a]">
                       {item.desc}
                     </p>
                     {/* BOUTON MODIFIÉ : RotatingButton */}
-                    <button onClick={onEnterMarketplace} className="flex items-center gap-8 group text-[#1a1a1a]">
+                    <button onClick={onEnterMarketplace} className="flex items-center gap-4 md:gap-8 group text-[#1a1a1a] mt-2 md:mt-4">
                       <RotatingButton id={item.id} />
-                      <span className="text-[11px] uppercase tracking-[0.6em] font-medium text-[#1a1a1a]">
+                      <span className="text-[10px] md:text-[11px] uppercase tracking-[0.4em] md:tracking-[0.6em] font-medium text-[#1a1a1a]">
                         Découvrir la Galerie
                       </span>
                     </button>
@@ -736,7 +759,7 @@ const App = ({ onEnterMarketplace }) => {
            {/* AJOUT DE border-t POUR FERMER LA GRILLE */}
            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 border-l border-t border-white/10">
               {stats.map((stat, idx) => (
-                <div key={idx} className="stat-item p-12 md:p-16 border-r border-b border-white/10 group flex flex-col justify-between min-h-[400px]">
+                <div key={idx} className="stat-item p-12 md:p-16 border-r border-b border-white/10 group flex flex-col justify-between min-h-[300px] md:min-h-[400px]">
                    {/* En-tête de la cellule */}
                    <div className="flex justify-between items-start">
                       <span className="text-[11px] uppercase tracking-[0.5em] font-bold opacity-30 group-hover:opacity-100 group-hover:text-[#9C8268] transition-all duration-700">Mesure 0{idx+1}</span>
@@ -777,47 +800,41 @@ const App = ({ onEnterMarketplace }) => {
       </section>
 
       {/* [SECTION 13: RENDU - TEAM (DIRECTION) - STICKY SCROLL SPLIT via GSAP PINNING] */}
-      {/* MODIFICATIONS APPLIQUÉES ICI :
-        1. "border-t border-black/5" a été supprimé de la <section>.
-        2. "bg-[#FAF9F6]" a été supprimé de la première <div> de la colonne gauche.
-        3. "border-l border-black/5" a été supprimé de la <div> de la colonne droite (image) pour retirer le trait du milieu.
-      */}
       <section className="team-section relative w-full bg-[#FAF9F6] flex flex-col md:flex-row items-start z-10">
         
         {/* COLONNE GAUCHE (TEXTE) */}
         <div className="w-full md:w-1/2 min-h-screen flex flex-col justify-center px-8 md:px-[6vw] space-y-24 text-[#1a1a1a] z-20">
-             {/* Ce wrapper sera épinglé par GSAP */}
-             <div className="team-text-wrapper h-screen flex flex-col justify-center">
-                 <div className="space-y-6 team-content-reveal">
-                    <span className="text-[12px] uppercase tracking-[1.4em] text-[#9C8268] block font-black italic">La Direction</span>
-                    <h2 className="font-serif text-7xl md:text-[8vw] xl:text-[9vw] leading-[0.9] font-light italic tracking-tight text-[#1a1a1a]">
-                        Jean <br /> Lefebvre
-                    </h2>
-                 </div>
-                 
-                 <p className="text-2xl font-light opacity-60 leading-relaxed italic border-l border-black/10 pl-10 mt-12 team-content-reveal">
-                   "Nous ne luttons pas contre le temps, nous le réapprivoisons. Chaque main possède une mémoire que les outils n'ont pas."
-                 </p>
-                 
-                 <div className="flex gap-16 pt-12 border-t border-black/5 items-center mt-12 team-content-reveal">
-                    <div>
-                        <span className="block text-[9px] uppercase tracking-widest opacity-30 mb-2 font-black">Expérience</span>
-                        <span className="font-serif text-6xl italic text-[#9C8268]">XXV Ans</span>
-                    </div>
-                    <div className="w-[1px] h-12 bg-black/5"></div>
-                    <Zap size={32} className="text-[#9C8268] opacity-60" />
-                 </div>
-             </div>
+              {/* Ce wrapper sera épinglé par GSAP */}
+              <div className="team-text-wrapper h-screen flex flex-col justify-center">
+                  <div className="space-y-6 team-content-reveal">
+                     <span className="text-[12px] uppercase tracking-[1.4em] text-[#9C8268] block font-black italic">La Direction</span>
+                     <h2 className="font-serif text-7xl md:text-[8vw] xl:text-[9vw] leading-[0.9] font-light italic tracking-tight text-[#1a1a1a]">
+                         Jean <br /> Lefebvre
+                     </h2>
+                  </div>
+                  
+                  <p className="text-2xl font-light opacity-60 leading-relaxed italic border-l border-black/10 pl-10 mt-12 team-content-reveal">
+                    "Nous ne luttons pas contre le temps, nous le réapprivoisons. Chaque main possède une mémoire que les outils n'ont pas."
+                  </p>
+                  
+                  <div className="flex gap-16 pt-12 border-t border-black/5 items-center mt-12 team-content-reveal">
+                     <div>
+                         <span className="block text-[9px] uppercase tracking-widest opacity-30 mb-2 font-black">Expérience</span>
+                         <span className="font-serif text-6xl italic text-[#9C8268]">XXV Ans</span>
+                     </div>
+                     <div className="w-[1px] h-12 bg-black/5"></div>
+                     <Zap size={32} className="text-[#9C8268] opacity-60" />
+                  </div>
+              </div>
         </div>
 
         {/* COLONNE DROITE (IMAGE) - SCROLLANTE */}
-        {/* Suppression de "border-l border-black/5" ici */}
-        <div className="w-full md:w-1/2 min-h-[200vh] flex flex-col items-center px-8 md:px-[4vw] pt-[20vh] pb-40 z-10 bg-[#FAF9F6]">
+        <div className="w-full md:w-1/2 h-auto md:min-h-[200vh] flex flex-col items-center px-8 md:px-[4vw] py-20 md:pt-[20vh] md:pb-40 z-10 bg-[#FAF9F6]">
              <div className="team-img-col relative w-full aspect-[3/4] md:aspect-[2/3] shadow-[0_80px_160px_rgba(0,0,0,0.15)] bg-stone-200">
-                <img 
-                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1600" 
-                    alt="Maître Ebéniste" 
-                    className="w-full h-full object-cover grayscale" 
+                <img
+                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1600"
+                    alt="Maître Ebéniste"
+                    className="w-full h-full object-cover grayscale"
                 />
                 <RotatingSymbol className="absolute -bottom-20 -right-20 text-white opacity-20 mix-blend-overlay" size={240} />
              </div>
@@ -840,10 +857,10 @@ const App = ({ onEnterMarketplace }) => {
             
             <div className="flex flex-col gap-0 w-full">
                {faqItems.map((item, index) => (
-                 <AccordionItem 
-                   key={index} 
-                   question={item.q} 
-                   answer={item.a} 
+                 <AccordionItem
+                   key={index}
+                   question={item.q}
+                   answer={item.a}
                    isOpen={openFaqIndex === index}
                    onClick={() => setOpenFaqIndex(openFaqIndex === index ? -1 : index)}
                  />
@@ -854,9 +871,9 @@ const App = ({ onEnterMarketplace }) => {
           {/* Colonne Droite: Image Immersive (LARGE - 8 Cols) */}
           <div className="md:col-span-8 relative h-full min-h-[60vh] hidden md:block">
              <div className="sticky top-20 w-full aspect-square overflow-hidden bg-white shadow-2xl">
-                <img 
-                  src="https://images.unsplash.com/photo-1610701596007-11502861dcfa?q=80&w=1600" 
-                  alt="Détail savoir-faire" 
+                <img
+                  src="https://images.unsplash.com/photo-1610701596007-11502861dcfa?q=80&w=1600"
+                  alt="Détail savoir-faire"
                   className="w-full h-full object-cover scale-110 hover:scale-100 transition-transform duration-[2s] ease-out grayscale hover:grayscale-0"
                 />
                 <div className="absolute bottom-10 left-10 text-white mix-blend-difference pointer-events-none z-10">
