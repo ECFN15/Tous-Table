@@ -575,7 +575,7 @@ const App = ({ onEnterMarketplace }) => {
           </div>
         </h1>
 
-        <div className="absolute bottom-12 left-0 w-full px-8 md:px-[10vw] flex flex-col md:flex-row justify-between items-end">
+        <div className="absolute bottom-12 left-0 w-full px-8 md:px-[10vw] flex flex-row justify-between items-baseline">
           <div className="hero-footer-element space-y-4 max-w-xs text-[#1a1a1a]">
             <p className="text-[10px] uppercase tracking-[0.3em] opacity-60 leading-loose font-medium">
               Restauration de mobilier <br /> de haute ébénisterie. <br /> Normandie, France.
