@@ -106,9 +106,14 @@ const App = ({ onEnterMarketplace }) => {
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
       } else if (selector === 'marketplace') {
-        // Fallback si onEnterMarketplace est utilisé pour une autre logique
-        if (onEnterMarketplace) onEnterMarketplace();
-        // Sinon on scroll vers la section featured
+        // Correctif: Si on change de page vers la marketplace, on l'appelle et on ARRETE là.
+        // On évite ainsi le code suivant qui scrolle vers la section featured.
+        if (onEnterMarketplace) {
+          onEnterMarketplace();
+          return;
+        }
+
+        // Fallback seulement si pas de fonction de navigation fournie
         const feat = document.querySelector('.featured-section');
         if (feat) feat.scrollIntoView({ behavior: 'smooth' });
       }
@@ -139,10 +144,16 @@ const App = ({ onEnterMarketplace }) => {
   // --- INITIALISATION LENIS ---
   useEffect(() => {
     if (!scriptsLoaded) return;
+
+    // Config adaptée au mobile vs desktop (Tablettes incluses maintenant < 1024px)
+    const isMobile = window.innerWidth < 1024;
+
     const lenis = new window.Lenis({
-      duration: 1.2,
+      duration: isMobile ? 0.8 : 1.2, // Mobile: Durée courte pour arrêter l'inertie rapidement
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
+      smoothTouch: true, // IMPORTANT: Force Lenis à gérer le scroll tactile pour appliquer nos réglages
+      touchMultiplier: isMobile ? 0.45 : 2, // Mobile: Très faible sensibilité (scrolling "lourd")
     });
 
     function raf(time) {
@@ -184,6 +195,12 @@ const App = ({ onEnterMarketplace }) => {
     });
 
     const mesh = new THREE.Mesh(geometry, material);
+
+    // ADJUST: Scale down for mobile (initial)
+    if (window.innerWidth < 768) {
+      mesh.scale.set(0.6, 0.6, 0.6);
+    }
+
     scene.add(mesh);
 
     let animationId;
@@ -199,6 +216,13 @@ const App = ({ onEnterMarketplace }) => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
+
+      // ADJUST: Reactive scale on resize
+      if (window.innerWidth < 768) {
+        mesh.scale.set(0.6, 0.6, 0.6);
+      } else {
+        mesh.scale.set(1, 1, 1);
+      }
     };
     window.addEventListener('resize', handleResize);
 
@@ -231,9 +255,9 @@ const App = ({ onEnterMarketplace }) => {
         .from('.hero-footer-element', {
           opacity: 0,
           y: 20,
-          duration: 1,
+          duration: 0.8, // Faster duration
           stagger: 0.1
-        }, "-=1.0");
+        }, ">-0.2"); // Starts 0.2s before the end of the previous animation (almost after)
 
       // 2. Disparition 3D
       gsap.to('.three-container', {
@@ -606,21 +630,21 @@ const App = ({ onEnterMarketplace }) => {
           </div>
         </h1>
 
-        <div className="absolute bottom-12 left-0 w-full px-8 md:px-[10vw] flex flex-row justify-between items-baseline">
-          <div className="hero-footer-element space-y-4 max-w-xs text-[#1a1a1a]">
-            <p className="text-[10px] uppercase tracking-[0.3em] opacity-60 leading-loose font-medium">
+        <div className="absolute bottom-20 md:bottom-12 left-0 w-full px-8 md:px-[10vw] flex flex-row justify-between items-end md:items-baseline">
+          <div className="hero-footer-element space-y-4 max-w-[150px] md:max-w-xs text-[#1a1a1a]">
+            <p className="text-[10px] uppercase tracking-[0.2em] md:tracking-[0.3em] opacity-60 leading-relaxed md:leading-loose font-medium">
               Restauration de mobilier <br /> de haute ébénisterie. <br /> Normandie, France.
             </p>
           </div>
 
-          <div className="hero-footer-element flex flex-col items-center gap-4 text-[#1a1a1a] group cursor-pointer" onClick={() => {
+          <div className="hero-footer-element flex flex-col items-center gap-2 md:gap-4 text-[#1a1a1a] group cursor-pointer" onClick={() => {
             const manifesto = document.querySelector('.manifesto');
             if (manifesto) manifesto.scrollIntoView({ behavior: 'smooth' });
           }}>
-            <span className="text-[9px] uppercase tracking-[0.3em] font-bold opacity-40 group-hover:opacity-100 transition-opacity">
-              Explorer l'Atelier
+            <span className="text-[9px] uppercase tracking-[0.2em] md:tracking-[0.3em] font-bold opacity-40 group-hover:opacity-100 transition-opacity text-center">
+              Explorer <br className="md:hidden" /> l'Atelier
             </span>
-            <div className="w-10 h-10 rounded-full border border-black/10 flex items-center justify-center group-hover:border-black/40 transition-colors bg-white/50 backdrop-blur-sm">
+            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-black/10 flex items-center justify-center group-hover:border-black/40 transition-colors bg-white/50 backdrop-blur-sm">
               <ArrowDown size={14} className="opacity-60 group-hover:translate-y-1 transition-transform duration-500" />
             </div>
           </div>
@@ -679,7 +703,7 @@ const App = ({ onEnterMarketplace }) => {
 
       {/* [SECTION 10: PROCESS] */}
       <section className="process-wrapper h-screen bg-[#0D0D0D] text-[#FAF9F6] flex items-center overflow-hidden">
-        <div className="horizontal-content flex gap-[5vw] md:gap-[8vw] pl-[5vw] md:pl-[10vw] pr-0 items-center relative will-change-transform">
+        <div className="horizontal-content flex gap-16 md:gap-[8vw] pl-[5vw] md:pl-[10vw] pr-0 items-center relative will-change-transform">
 
           {/* Titre Section */}
           <div className="min-w-[85vw] md:min-w-[40vw] relative flex flex-col justify-center h-[70vh] border-r border-white/5 pr-[8vw]">
@@ -895,7 +919,7 @@ const App = ({ onEnterMarketplace }) => {
         </div>
 
         {/* COLONNE DROITE (IMAGE) - SCROLLANTE */}
-        <div className="w-full md:w-1/2 min-h-[200vh] flex flex-col items-center px-8 md:px-[4vw] pt-[20vh] pb-40 z-10 bg-[#FAF9F6]">
+        <div className="w-full md:w-1/2 min-h-auto md:min-h-[200vh] flex flex-col items-center px-8 md:px-[4vw] pt-20 pb-20 md:pt-[20vh] md:pb-40 z-10 bg-[#FAF9F6]">
           <div className="team-img-col relative w-full aspect-[3/4] md:aspect-[2/3] shadow-[0_80px_160px_rgba(0,0,0,0.15)] bg-stone-200">
             <img
               src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1600"

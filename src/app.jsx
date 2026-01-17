@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import {
-  onSnapshot, collection, doc, updateDoc, deleteDoc
+  onSnapshot, collection, doc, updateDoc, deleteDoc, serverTimestamp, addDoc, query, orderBy
 } from 'firebase/firestore';
 import {
   onAuthStateChanged, signInAnonymously, signOut, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification
 } from 'firebase/auth';
 import {
-  Hammer, LogOut, ShieldCheck, Menu, X, Instagram, Mail, User, Eye, EyeOff, Pencil, Trash2, Trophy
+  Hammer, LogOut, ShieldCheck, Menu, X, Instagram, Mail, User, Eye, EyeOff, Pencil, Trash2, Trophy, ShoppingBag
 } from 'lucide-react';
 
 // --- IMPORTS CONFIG & UTILS ---
@@ -17,14 +17,30 @@ import { getMillis } from './utils/time';
 import HomeView from './components/HomeView';
 import GalleryView from './components/GalleryView';
 import ProductDetail from './components/ProductDetail';
+
 import LoginView from './components/LoginView';
 import AdminForm from './components/AdminForm';
+import AdminOrders from './components/AdminOrders'; // New
+import CartSidebar from './components/CartSidebar';
+import CheckoutView from './components/CheckoutView';
+import OrderSuccessModal from './components/OrderSuccessModal';
+
+
+
+// --- CONFIG ADMIN ---
+const ADMIN_EMAILS = ['matthis.fradin2@gmail.com'];
 
 export default function App() {
   // États Globaux
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [items, setItems] = useState([]);
+  const [boardItems, setBoardItems] = useState([]); // New: Planches
+
+  // Cart State
+  const [cartItems, setCartItems] = useState([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [showOrderSuccess, setShowOrderSuccess] = useState(false);
 
   // Navigation
   const [view, setView] = useState('home'); // 'home', 'gallery', 'detail', 'login', 'admin'
@@ -38,6 +54,9 @@ export default function App() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showAuthSuccess, setShowAuthSuccess] = useState(false);
 
+  // Admin State
+  const [adminCollection, setAdminCollection] = useState('furniture'); // 'furniture' | 'cutting_boards'
+
   // --- CHARGEMENT ---
   useEffect(() => {
     // 1. Meubles (Données)
@@ -45,10 +64,17 @@ export default function App() {
       setItems(snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => getMillis(b.createdAt) - getMillis(a.createdAt)));
     });
 
-    // 2. Auth (Utilisateur)
+    // 2. Planches (Données)
+    const unsubBoards = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'cutting_boards'), (snap) => {
+      setBoardItems(snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => getMillis(b.createdAt) - getMillis(a.createdAt)));
+    });
+
+    // 3. Auth (Utilisateur)
     const unsubAuth = onAuthStateChanged(auth, (u) => {
       setUser(u);
-      const isRealAdmin = u && !u.isAnonymous && u.providerData.some(p => p.providerId === 'password');
+
+      // Sécurité : Vérifie si l'email est autorisé
+      const isRealAdmin = u && !u.isAnonymous && ADMIN_EMAILS.includes(u.email);
       setIsAdmin(isRealAdmin);
 
       const params = new URLSearchParams(window.location.search);
@@ -65,29 +91,130 @@ export default function App() {
       setLoading(false);
     });
 
-    return () => { unsubData(); unsubAuth(); };
+    return () => { unsubData(); unsubBoards(); unsubAuth(); };
   }, []);
 
+  // --- CART SYNC ---
+  useEffect(() => {
+    if (user && !user.isAnonymous) {
+      console.log("Subscribing to cart for user:", user.uid);
+      // Removing orderBy for debugging to avoid index issues
+      const q = query(collection(db, 'users', user.uid, 'cart'));
+      const unsubCart = onSnapshot(q, (snap) => {
+        console.log("Cart update received, count:", snap.size);
+        const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        console.log("Cart items:", items);
+        setCartItems(items);
+      }, (err) => {
+        console.error("Cart sync error:", err);
+        // alert("Erreur lecture panier: " + err.message);
+      });
+      return () => unsubCart();
+    } else {
+      setCartItems([]);
+    }
+  }, [user]);
+
   // --- ACTIONS ---
-  const handleToggleStatus = async (item) => {
-    try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'furniture', item.id), { status: item.status === 'published' ? 'draft' : 'published' }); } catch (e) { console.error(e); }
+  const handleToggleStatus = async (item, col) => {
+    try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', col, item.id), { status: item.status === 'published' ? 'draft' : 'published' }); } catch (e) { console.error(e); }
   };
-  const handleDeleteItem = async (id) => {
+  const handleDeleteItem = async (year, id, col) => { // 'year' removed from logic mostly, simplified
     if (!confirm("Supprimer ?")) return;
-    try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'furniture', id)); } catch (e) { console.error(e); }
+    try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', col, id)); } catch (e) { console.error(e); }
   };
   const handleSocialLogin = async (provider) => {
     try { await signInWithPopup(auth, provider); setShowFullLogin(false); } catch (e) { console.error(e); }
   };
 
+  // --- CART ACTIONS ---
+  const addToCart = async (item) => {
+    // console.log("Add to cart clicked", user);
+    if (!user || user.isAnonymous) {
+      // console.log("User is not logged in or anonymous, showing login modal");
+      setShowFullLogin(true);
+      return;
+    }
+
+    const cartItemData = {
+      originalId: item.id,
+      name: item.name,
+      price: item.currentPrice || item.startingPrice,
+      image: item.images?.[0] || item.imageUrl,
+      material: item.material || 'Bois',
+      addedAt: serverTimestamp()
+    };
+
+    try {
+      await addDoc(collection(db, 'users', user.uid, 'cart'), cartItemData);
+      setIsCartOpen(true);
+    } catch (e) {
+      console.error("Error add cart", e);
+      alert("Erreur ajout panier : " + e.message);
+    }
+  };
+
+  const removeFromCart = async (cartDocId) => {
+    if (!user) return;
+    await deleteDoc(doc(db, 'users', user.uid, 'cart', cartDocId));
+  };
+
+  const handlePlaceOrder = async (orderData) => {
+    if (!user) return;
+
+    // 1. Create Order
+    const dbOrder = {
+      ...orderData,
+      userId: user.uid,
+      userEmail: user.email,
+      createdAt: serverTimestamp(),
+      status: orderData.paymentMethod === 'deferred' ? 'pending_payment' : 'pending_stripe'
+    };
+
+    // Add items details to order for persistence
+    const orderRef = await addDoc(collection(db, 'orders'), dbOrder);
+
+    // 2. Clear Cart (Batch)
+    // Note: In a real app we would use a batch, but loop is fine for small carts
+    // We already have cartItems in state
+    for (const item of cartItems) {
+      await deleteDoc(doc(db, 'users', user.uid, 'cart', item.id));
+    }
+    setCartItems([]); // Optimistic update
+
+    // 3. Handle Payment Redirect or Success
+    setCartItems([]); // Clear UI cart immediately
+    setIsCartOpen(false);
+    setShowOrderSuccess(true); // Trigger Success Modal
+    setView('gallery'); // Go to Marketplace (behind the modal)
+
+    // Email simulation log
+    console.log("Order placed:", orderData);
+  };
+
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#FAF9F6]"><div className="w-10 h-10 border-[3px] border-stone-200 border-t-stone-900 rounded-full animate-spin"></div></div>;
+
+  // Active Admin List
+  const currentAdminItems = adminCollection === 'furniture' ? items : boardItems;
+  // Cart Total
+  const cartTotal = cartItems.reduce((sum, item) => sum + (item.price || 0), 0);
 
   return (
     <div className="min-h-screen bg-[#FAF9F6] text-stone-900 font-sans overflow-x-hidden selection:bg-amber-100">
 
+      {/* COMPOSANT PANIER */}
+      <CartSidebar
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        cartItems={cartItems}
+        onRemoveItem={removeFromCart}
+        totalPrice={cartTotal}
+        onCheckout={() => { setIsCartOpen(false); setView('checkout'); window.scrollTo(0, 0); }}
+      />
+
       {/* MODAL LOGIN (Pour la Marketplace) */}
       {showFullLogin && (
-        <div className="fixed inset-0 z-[100] bg-stone-900/60 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[200] bg-stone-900/60 backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl max-w-sm w-full text-center space-y-6 animate-in zoom-in-95 relative overflow-hidden">
 
             {showAuthSuccess ? (
@@ -268,11 +395,26 @@ export default function App() {
                       {user.emailVerified && <ShieldCheck size={14} strokeWidth={3} title="Compte Vérifié" />}
                     </div>
                   </div>
-                  <button onClick={() => { signOut(auth); setView('home'); }} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white hover:text-stone-900 backdrop-blur border border-white/20 transition-all"><LogOut size={16} /></button>
+                  <button onClick={() => { signOut(auth); }} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white hover:text-stone-900 backdrop-blur border border-white/20 transition-all"><LogOut size={16} /></button>
                 </div>
               ) : !isSecretGateOpen && (
                 <button onClick={() => setShowFullLogin(true)} className="flex items-center gap-2 px-5 py-3 rounded-full bg-white/10 backdrop-blur border border-white/20 hover:bg-white hover:text-stone-900 transition-all text-[10px] font-black uppercase tracking-widest mr-2"><ShieldCheck size={14} /> <span>Login</span></button>
               )}
+
+              {/* CART BUTTON */}
+              <button
+                onClick={() => setIsCartOpen(true)}
+                className="w-10 h-10 md:w-auto md:h-auto md:px-5 md:py-3 rounded-full bg-white/10 flex items-center justify-center gap-3 hover:bg-amber-500 hover:text-white backdrop-blur border border-white/20 transition-all group relative"
+              >
+                <ShoppingBag size={20} />
+                <span className="hidden md:block text-[10px] font-black uppercase tracking-widest">Panier</span>
+                {cartItems.length > 0 && (
+                  <span className="absolute -top-1 -right-1 md:top-1 md:right-1 w-5 h-5 bg-stone-900 text-white flex items-center justify-center text-[9px] font-black rounded-full border border-white">
+                    {cartItems.length}
+                  </span>
+                )}
+              </button>
+
               <button onClick={() => setIsMenuOpen(true)} className="w-10 h-10 md:w-auto md:h-auto md:px-6 md:py-3 rounded-full bg-white/10 flex items-center justify-center gap-4 hover:bg-white hover:text-stone-900 backdrop-blur border border-white/20 group transition-all"><span className="hidden md:block text-[10px] font-black uppercase tracking-widest">Menu</span><Menu size={20} /></button>
             </div>
           </nav>
@@ -289,7 +431,9 @@ export default function App() {
         {/* VUE: GALERIE (MARKETPLACE) */}
         {view === 'gallery' && (
           <GalleryView
-            items={items} isAdmin={isAdmin} isSecretGateOpen={isSecretGateOpen} user={user}
+            items={items}
+            boardItems={boardItems}
+            isAdmin={isAdmin} isSecretGateOpen={isSecretGateOpen} user={user}
             onShowLogin={() => setShowFullLogin(true)}
             onSelectItem={(id) => { setSelectedItemId(id); setView('detail'); window.scrollTo(0, 0); }}
           />
@@ -298,9 +442,28 @@ export default function App() {
         {/* VUE: DETAIL PRODUIT */}
         {view === 'detail' && selectedItemId && (
           <div className="pt-32 px-6">
-            <ProductDetail item={items.find(i => i.id === selectedItemId)} user={user} onBack={() => { setView('gallery'); setSelectedItemId(null); }} />
+            <ProductDetail
+              item={[...items, ...boardItems].find(i => i.id === selectedItemId)}
+              user={user}
+              onBack={() => { setView('gallery'); setSelectedItemId(null); }}
+              onAddToCart={addToCart}
+            />
           </div>
         )}
+
+        {/* VUE: CHECKOUT */}
+        {view === 'checkout' && (
+          <CheckoutView
+            cartItems={cartItems}
+            total={cartTotal}
+            user={user}
+            onBack={() => setView('gallery')}
+            onPlaceOrder={handlePlaceOrder}
+          />
+        )}
+
+        {/* MODAL SUCCESS ORDER */}
+        {showOrderSuccess && <OrderSuccessModal onClose={() => setShowOrderSuccess(false)} />}
 
         {/* VUE: LOGIN ADMIN */}
         {view === 'login' && isSecretGateOpen && <LoginView onSuccess={() => setView('admin')} />}
@@ -310,62 +473,96 @@ export default function App() {
           <div className="max-w-6xl mx-auto px-4 py-32 space-y-16 animate-in fade-in text-stone-900">
             <div className="flex justify-between items-center border-b border-stone-200/60 pb-8"><h2 className="text-4xl font-black tracking-tighter">Gestion Atelier</h2><button onClick={() => setView('gallery')} className="text-[10px] font-black border-2 border-stone-900 px-6 py-2 rounded-xl hover:bg-stone-900 hover:text-white transition-all">Retour</button></div>
 
-            {/* Formulaire Admin */}
-            <AdminForm editData={editingItem} onCancelEdit={() => setEditingItem(null)} />
-
-            {/* Liste Admin */}
-            <div className="grid gap-4 pt-10">
-              {items.map(item => {
-                const isAuctionOver = item.auctionActive && item.auctionEnd && (getMillis(item.auctionEnd) < Date.now());
-                const hasWinner = isAuctionOver && item.lastBidderEmail;
-
-                return (
-                  <div key={item.id} className="bg-[#FAF9F6] p-5 rounded-[2.5rem] border border-stone-200 shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
-                    <div className="flex items-center justify-between relative z-10">
-                      <div className="flex items-center gap-8">
-                        <div className="relative">
-                          <img src={item.images?.[0] || item.imageUrl} className="w-20 h-20 rounded-2xl object-cover shadow-sm border border-white" alt="" />
-                          {hasWinner && <div className="absolute -top-2 -right-2 bg-amber-400 text-white p-1.5 rounded-full shadow-md border-2 border-white"><Trophy size={14} fill="currentColor" /></div>}
-                        </div>
-
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-3">
-                            <span className="font-black text-xl text-stone-900">{item.name}</span>
-                            <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg ${item.status === 'published' ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-200 text-stone-500'}`}>
-                              {item.status === 'published' ? 'Public' : 'Brouillon'}
-                            </span>
-                          </div>
-
-                          {hasWinner ? (
-                            <div className="flex flex-col gap-1 bg-amber-50 border border-amber-200 px-4 py-2 rounded-xl animate-in slide-in-from-left-4 shadow-sm w-fit">
-                              <p className="text-[10px] font-black uppercase tracking-widest text-amber-800 flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                                Vainqueur
-                              </p>
-                              <div className="pl-3.5">
-                                <p className="text-sm font-bold text-stone-800">{item.lastBidderName}</p>
-                                <p className="text-xs text-stone-500 font-mono select-all flex items-center gap-1.5 hover:text-amber-700 transition-colors cursor-pointer" title="Copier">
-                                  <Mail size={12} /> {item.lastBidderEmail}
-                                </p>
-                              </div>
-                            </div>
-                          ) : item.auctionActive && (
-                            <div className="text-xs text-stone-400 font-medium pl-1">
-                              Enchère en cours • {item.bidCount || 0} offre(s)
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex gap-3">
-                        <button onClick={() => { setEditingItem(item); window.scrollTo(0, 0); }} className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-stone-900 shadow-sm border border-stone-100 hover:scale-110 transition-transform"><Pencil size={18} /></button>
-                        <button onClick={() => handleToggleStatus(item)} className={`w-12 h-12 rounded-full flex items-center justify-center shadow-sm transition-all hover:scale-110 ${item.status === 'published' ? 'bg-emerald-500 text-white shadow-emerald-200' : 'bg-stone-200 text-stone-400'}`}>{item.status === 'published' ? <Eye size={18} /> : <EyeOff size={18} />}</button>
-                        <button onClick={() => handleDeleteItem(item.id)} className="w-12 h-12 bg-red-50 text-red-500 rounded-full flex items-center justify-center shadow-sm border border-red-100 hover:bg-red-500 hover:text-white hover:scale-110 transition-all"><Trash2 size={18} /></button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+            {/* Collection Switcher */}
+            <div className="flex gap-4 p-1 bg-stone-100 rounded-xl w-fit">
+              <button
+                onClick={() => { setAdminCollection('orders'); setEditingItem(null); }}
+                className={`px-6 py-3 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${adminCollection === 'orders' ? 'bg-white shadow-sm text-stone-900' : 'text-stone-400 hover:text-stone-600'}`}
+              >
+                Commandes
+              </button>
+              <button
+                onClick={() => { setAdminCollection('furniture'); setEditingItem(null); }}
+                className={`px-6 py-3 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${adminCollection === 'furniture' ? 'bg-white shadow-sm text-stone-900' : 'text-stone-400 hover:text-stone-600'}`}
+              >
+                Mobilier
+              </button>
+              <button
+                onClick={() => { setAdminCollection('cutting_boards'); setEditingItem(null); }}
+                className={`px-6 py-3 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${adminCollection === 'cutting_boards' ? 'bg-white shadow-sm text-stone-900' : 'text-stone-400 hover:text-stone-600'}`}
+              >
+                Planches à Découper
+              </button>
             </div>
+
+            {/* CONTENU ADMIN */}
+            {adminCollection === 'orders' ? (
+              <AdminOrders />
+            ) : (
+              <>
+                {/* Formulaire Admin */}
+                <AdminForm
+                  key={adminCollection}
+                  editData={editingItem}
+                  onCancelEdit={() => setEditingItem(null)}
+                  collectionName={adminCollection}
+                />
+
+                {/* Liste Admin */}
+                <div className="grid gap-4 pt-10">
+                  {currentAdminItems.map(item => {
+                    const isAuctionOver = item.auctionActive && item.auctionEnd && (getMillis(item.auctionEnd) < Date.now());
+                    const hasWinner = isAuctionOver && item.lastBidderEmail;
+
+                    return (
+                      <div key={item.id} className="bg-[#FAF9F6] p-5 rounded-[2.5rem] border border-stone-200 shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
+                        <div className="flex items-center justify-between relative z-10">
+                          <div className="flex items-center gap-8">
+                            <div className="relative">
+                              <img src={item.images?.[0] || item.imageUrl} className="w-20 h-20 rounded-2xl object-cover shadow-sm border border-white" alt="" />
+                              {hasWinner && <div className="absolute -top-2 -right-2 bg-amber-400 text-white p-1.5 rounded-full shadow-md border-2 border-white"><Trophy size={14} fill="currentColor" /></div>}
+                            </div>
+
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-3">
+                                <span className="font-black text-xl text-stone-900">{item.name}</span>
+                                <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg ${item.status === 'published' ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-200 text-stone-500'}`}>
+                                  {item.status === 'published' ? 'Public' : 'Brouillon'}
+                                </span>
+                              </div>
+
+                              {hasWinner ? (
+                                <div className="flex flex-col gap-1 bg-amber-50 border border-amber-200 px-4 py-2 rounded-xl animate-in slide-in-from-left-4 shadow-sm w-fit">
+                                  <p className="text-[10px] font-black uppercase tracking-widest text-amber-800 flex items-center gap-2">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                    Vainqueur
+                                  </p>
+                                  <div className="pl-3.5">
+                                    <p className="text-sm font-bold text-stone-800">{item.lastBidderName}</p>
+                                    <p className="text-xs text-stone-500 font-mono select-all flex items-center gap-1.5 hover:text-amber-700 transition-colors cursor-pointer" title="Copier">
+                                      <Mail size={12} /> {item.lastBidderEmail}
+                                    </p>
+                                  </div>
+                                </div>
+                              ) : item.auctionActive && (
+                                <div className="text-xs text-stone-400 font-medium pl-1">
+                                  Enchère en cours • {item.bidCount || 0} offre(s)
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex gap-3">
+                            <button onClick={() => { setEditingItem(item); window.scrollTo(0, 0); }} className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-stone-900 shadow-sm border border-stone-100 hover:scale-110 transition-transform"><Pencil size={18} /></button>
+                            <button onClick={() => handleToggleStatus(item, adminCollection)} className={`w-12 h-12 rounded-full flex items-center justify-center shadow-sm transition-all hover:scale-110 ${item.status === 'published' ? 'bg-emerald-500 text-white shadow-emerald-200' : 'bg-stone-200 text-stone-400'}`}>{item.status === 'published' ? <Eye size={18} /> : <EyeOff size={18} />}</button>
+                            <button onClick={() => handleDeleteItem(null, item.id, adminCollection)} className="w-12 h-12 bg-red-50 text-red-500 rounded-full flex items-center justify-center shadow-sm border border-red-100 hover:bg-red-500 hover:text-white hover:scale-110 transition-all"><Trash2 size={18} /></button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </div>
         )}
       </main>

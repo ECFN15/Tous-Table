@@ -5,7 +5,15 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage, appId } from '../firebase/config';
 import { getMillis } from '../utils/time';
 
-function AdminForm({ editData, onCancelEdit }) {
+const WOOD_TYPES = [
+  "Acacia", "Acajou", "Bambou", "Bouleau", "Châtaignier",
+  "Chêne", "Ébène", "Épicéa", "Érable", "Frêne", "Hêtre",
+  "Iroko", "Manguier", "Mélèze", "Merisier", "Noyer",
+  "Olivier", "Orme", "Palissandre", "Pin", "Peuplier",
+  "Rotin", "Sapin", "Teck", "Wengé", "Autre"
+];
+
+const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture' }) => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -18,20 +26,33 @@ function AdminForm({ editData, onCancelEdit }) {
     auctionActive: false,
     durationMinutes: 0
   });
-  const [imageFiles, setImageFiles] = useState([]);
-  const [previews, setPreviews] = useState([]);
+
+  // Unified state for images
+  const [galleryItems, setGalleryItems] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [msg, setMsg] = useState("");
   const fileInputRef = useRef();
 
+  // New state for drag reordering
+  const [isDragging, setIsDragging] = useState(false);
+  const [draggedItemIndex, setDraggedItemIndex] = useState(null);
+
+  // New state for custom material input
+  const [isCustomMaterial, setIsCustomMaterial] = useState(false);
+
   useEffect(() => {
     if (editData) {
       const duration = editData.auctionEnd ? Math.round((getMillis(editData.auctionEnd) - Date.now()) / 60000) : 0;
+
+      const material = editData.material || '';
+      const isCustom = material && !WOOD_TYPES.includes(material) && material !== "Autre";
+      setIsCustomMaterial(isCustom);
+
       setFormData({
         name: editData.name || '',
         description: editData.description || '',
         startingPrice: editData.startingPrice || 0,
-        material: editData.material || '',
+        material: material,
         dimensions: editData.dimensions || '',
         width: editData.width || '',
         depth: editData.depth || '',
@@ -39,7 +60,14 @@ function AdminForm({ editData, onCancelEdit }) {
         auctionActive: editData.auctionActive || false,
         durationMinutes: duration > 0 ? duration : 0
       });
-      setPreviews(editData.images || [editData.imageUrl] || []);
+
+      const initialImages = editData.images || (editData.imageUrl ? [editData.imageUrl] : []);
+      setGalleryItems(initialImages.map((url, idx) => ({
+        id: `existing-${idx}-${Date.now()}`,
+        file: null,
+        preview: url,
+        isExisting: true
+      })));
     } else { resetForm(); }
   }, [editData]);
 
@@ -56,45 +84,92 @@ function AdminForm({ editData, onCancelEdit }) {
       auctionActive: false,
       durationMinutes: 0
     });
-    setImageFiles([]); setPreviews([]);
+    setGalleryItems([]);
+    setIsCustomMaterial(false);
+  };
+
+  const processFiles = (files) => {
+    const newItems = files.map(file => ({
+      id: `new-${Date.now()}-${Math.random()}`,
+      file: file,
+      preview: URL.createObjectURL(file),
+      isExisting: false
+    }));
+    setGalleryItems(prev => [...prev, ...newItems]);
   };
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
-    if (files.length > 0) {
-      setImageFiles(prev => [...prev, ...files]);
-      setPreviews(prev => [...prev, ...files.map(f => URL.createObjectURL(f))]);
-    }
+    if (files.length > 0) processFiles(files);
   };
 
   const addMeuble = async () => {
     if (!formData.name) { setMsg("⚠️ Nom requis"); return; }
     setUploading(true); setMsg("⏳ Envoi...");
     try {
-      let imageUrls = [...previews.filter(p => !p.startsWith('blob:'))];
-      if (imageFiles.length > 0) {
-        for (const file of imageFiles) {
-          const imageRef = ref(storage, `furniture/${Date.now()}_${file.name}`);
-          await uploadBytes(imageRef, file);
-          imageUrls.push(await getDownloadURL(imageRef));
+      let finalImageUrls = [];
+
+      for (const item of galleryItems) {
+        if (item.isExisting) {
+          finalImageUrls.push(item.preview);
+        } else if (item.file) {
+          const imageRef = ref(storage, `${collectionName}/${Date.now()}_${item.file.name}`);
+          await uploadBytes(imageRef, item.file);
+          finalImageUrls.push(await getDownloadURL(imageRef));
         }
       }
+
       const data = {
-        ...formData, images: imageUrls, imageUrl: imageUrls[0],
+        ...formData,
+        images: finalImageUrls,
+        imageUrl: finalImageUrls[0] || "",
         currentPrice: Number(formData.startingPrice),
         startingPrice: Number(formData.startingPrice),
         durationMinutes: Number(formData.durationMinutes),
         auctionEnd: formData.auctionActive ? Timestamp.fromMillis(Date.now() + (Number(formData.durationMinutes) * 60000)) : null,
       };
       if (editData) {
-        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'furniture', editData.id), data);
+        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', collectionName, editData.id), data);
         onCancelEdit();
       } else {
-        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'furniture'), { ...data, status: 'draft', bidCount: 0, createdAt: serverTimestamp() });
+        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', collectionName), { ...data, status: 'published', bidCount: 0, createdAt: serverTimestamp() });
       }
       setMsg("✅ Succès !"); resetForm();
-    } catch (err) { setMsg(`❌ Erreur: ${err.message}`); }
-    finally { setUploading(false); setTimeout(() => setMsg(""), 3000); }
+    } catch (err) {
+      console.error("FULL ERROR:", err);
+      // Try to identify if it is storage or firestore
+      let errorPrefix = "Erreur incomprise";
+      if (err.message.includes("storage")) errorPrefix = "Erreur Stockage (Images)";
+      else if (err.code === "permission-denied") errorPrefix = "Erreur Permissions (Règles Firebase non mises à jour ?)";
+      
+      setMsg(`❌ ${errorPrefix}: ${err.message}`);
+    } finally { setUploading(false); setTimeout(() => setMsg(""), 5000); }
+  };
+
+  // Drag handlers
+  const handleDragEnter = (e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
+  const handleDragLeave = (e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
+  const handleDragOver = (e) => { e.preventDefault(); e.stopPropagation(); };
+  const handleDrop = (e) => {
+    e.preventDefault(); e.stopPropagation(); setIsDragging(false);
+    const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+    if (files.length > 0) processFiles(files);
+  };
+
+  const onDragStartItem = (e, index) => {
+    setDraggedItemIndex(index);
+  };
+  const onDragOverItem = (e, index) => {
+    e.preventDefault();
+  };
+  const onDropItem = (e, dropIndex) => {
+    e.preventDefault();
+    if (draggedItemIndex === null || draggedItemIndex === dropIndex) return;
+    const newItems = [...galleryItems];
+    const [draggedItem] = newItems.splice(draggedItemIndex, 1);
+    newItems.splice(dropIndex, 0, draggedItem);
+    setGalleryItems(newItems);
+    setDraggedItemIndex(null);
   };
 
   return (
@@ -105,11 +180,26 @@ function AdminForm({ editData, onCancelEdit }) {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 text-stone-900">
         <div className="lg:col-span-4 space-y-4">
-          <div className="grid grid-cols-2 gap-3 text-stone-900">
-            {previews.map((url, idx) => (
-              <div key={idx} className="aspect-square rounded-2xl overflow-hidden relative group shadow-md border border-stone-50 text-stone-900">
-                <img src={url} className="w-full h-full object-cover text-stone-900" alt="" />
-                <button onClick={() => { setPreviews(p => p.filter((_, i) => i !== idx)); setImageFiles(f => f.filter((_, i) => i !== idx)); }} className="absolute inset-0 bg-red-500/80 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all duration-300 text-white text-white"><Trash2 size={20} /></button>
+          {/* ... (keep image upload section) */}
+          <div
+            className={`grid grid-cols-2 gap-3 text-stone-900 p-4 rounded-3xl transition-all border-2 border-dashed ${isDragging ? 'border-amber-500 bg-amber-50/50 scale-[1.02]' : 'border-transparent'}`}
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+          >
+            {galleryItems.map((item, idx) => (
+              <div
+                key={item.id}
+                draggable
+                onDragStart={(e) => onDragStartItem(e, idx)}
+                onDragOver={(e) => onDragOverItem(e, idx)}
+                onDrop={(e) => onDropItem(e, idx)}
+                className={`aspect-square rounded-2xl overflow-hidden relative group shadow-md border text-stone-900 cursor-move transition-all ${draggedItemIndex === idx ? 'opacity-50 scale-95 border-amber-500' : 'border-stone-50 hover:scale-[1.02]'}`}
+              >
+                <img src={item.preview} className="w-full h-full object-cover text-stone-900 pointer-events-none" alt="" />
+                <button onClick={(e) => { e.stopPropagation(); setGalleryItems(items => items.filter((_, i) => i !== idx)); }} className="absolute inset-0 bg-red-500/80 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all duration-300 text-white text-white"><Trash2 size={20} /></button>
+                <div className="absolute top-2 left-2 bg-black/50 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full">{idx + 1}</div>
               </div>
             ))}
             <button onClick={() => !uploading && fileInputRef.current.click()} className="aspect-square rounded-2xl bg-stone-50 border-2 border-dashed border-stone-200 flex flex-col items-center justify-center hover:bg-stone-100 hover:border-stone-300 transition-all text-stone-300"><Upload size={20} /></button>
@@ -130,7 +220,41 @@ function AdminForm({ editData, onCancelEdit }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-stone-900">
             <div className="space-y-1.5 text-stone-900">
               <label className="text-[9px] font-black uppercase text-stone-400 ml-2">Essence de bois</label>
-              <input placeholder="Chêne, noyer..." className="w-full p-4 rounded-xl bg-stone-50 border-none font-bold outline-none text-sm focus:ring-4 ring-stone-100 transition-all shadow-inner text-stone-900 text-stone-900" value={formData.material} onChange={e => setFormData({ ...formData, material: e.target.value })} />
+              <div className="relative space-y-2">
+                <div className="relative">
+                  <select
+                    className="w-full p-4 rounded-xl bg-stone-50 border-none font-bold outline-none text-sm focus:ring-4 ring-stone-100 transition-all shadow-inner text-stone-900 appearance-none cursor-pointer"
+                    value={isCustomMaterial ? "Autre" : formData.material}
+                    onChange={e => {
+                      const val = e.target.value;
+                      if (val === "Autre") {
+                        setIsCustomMaterial(true);
+                        setFormData({ ...formData, material: "" });
+                      } else {
+                        setIsCustomMaterial(false);
+                        setFormData({ ...formData, material: val });
+                      }
+                    }}
+                  >
+                    <option value="" disabled>Sélectionner...</option>
+                    {WOOD_TYPES.map(wood => (
+                      <option key={wood} value={wood}>{wood}</option>
+                    ))}
+                  </select>
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-stone-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                  </div>
+                </div>
+                {isCustomMaterial && (
+                  <input
+                    autoFocus
+                    placeholder="Précisez l'essence de bois..."
+                    className="w-full p-4 rounded-xl bg-amber-50 border border-amber-200/50 font-bold outline-none text-sm focus:ring-4 ring-amber-100 transition-all shadow-inner text-stone-900 animate-in slide-in-from-top-2"
+                    value={formData.material}
+                    onChange={e => setFormData({ ...formData, material: e.target.value })}
+                  />
+                )}
+              </div>
             </div>
             <div className="space-y-1.5 text-stone-900">
               <label className="text-[9px] font-black uppercase text-stone-400 ml-2">Dimensions (L x P x H cm)</label>
@@ -169,7 +293,7 @@ function AdminForm({ editData, onCancelEdit }) {
           </div>
           <div className="space-y-1.5 text-stone-900">
             <label className="text-[9px] font-black uppercase text-stone-400 ml-2">L'histoire de l'objet</label>
-            <textarea placeholder="Décrivez l'origine du bois, le temps de travail, les détails uniques..." className="w-full p-5 rounded-2xl bg-stone-50 border-none font-bold text-sm h-32 resize-none outline-none focus:ring-4 ring-stone-100 transition-all shadow-inner text-stone-900 text-stone-900" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} />
+            <textarea placeholder="Décrivez l'origine du bois, le temps de travail, les détails uniques..." className="w-full p-5 rounded-2xl bg-stone-50 border-none font-bold text-sm h-64 resize-none outline-none focus:ring-4 ring-stone-100 transition-all shadow-inner text-stone-900 text-stone-900" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} />
           </div>
         </div>
       </div>
