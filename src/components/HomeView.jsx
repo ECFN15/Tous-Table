@@ -27,7 +27,7 @@ const RotatingSymbol = ({ className, size = 120, text = "TOUS À TABLE • 2024 
         </text>
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <Star size={size/5} className="opacity-20 text-[#9C8268]" />
+        <Star size={size / 5} className="opacity-20 text-[#9C8268]" />
       </div>
     </div>
   );
@@ -51,10 +51,10 @@ const RotatingButton = ({ id }) => {
           </text>
         </svg>
       </div>
-      
+
       {/* Marteau Central - SANS CERCLE BLANC */}
       <div className="absolute inset-0 flex items-center justify-center">
-          <Hammer size={20} className="text-current md:w-6 md:h-6" strokeWidth={1.5} />
+        <Hammer size={20} className="text-current md:w-6 md:h-6" strokeWidth={1.5} />
       </div>
     </div>
   );
@@ -72,7 +72,7 @@ const AccordionItem = ({ question, answer, isOpen, onClick }) => {
       >
         <h4 className="font-serif text-xl md:text-3xl text-[#1a1a1a] font-light italic pr-8">{question}</h4>
         <div className={`w-8 h-8 rounded-full border border-black/10 flex items-center justify-center transition-all duration-500 flex-shrink-0 ${isOpen ? 'bg-[#1a1a1a] text-white rotate-45' : 'bg-transparent text-[#1a1a1a] group-hover:bg-[#1a1a1a] group-hover:text-white'}`}>
-           <Plus size={16} />
+          <Plus size={16} />
         </div>
       </button>
       <div
@@ -94,7 +94,7 @@ const App = ({ onEnterMarketplace }) => {
   const componentRef = useRef(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
-  
+
   // State pour la FAQ
   const [openFaqIndex, setOpenFaqIndex] = useState(0);
 
@@ -106,11 +106,11 @@ const App = ({ onEnterMarketplace }) => {
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
       } else if (selector === 'marketplace') {
-         // Fallback si onEnterMarketplace est utilisé pour une autre logique
-         if(onEnterMarketplace) onEnterMarketplace();
-         // Sinon on scroll vers la section featured
-         const feat = document.querySelector('.featured-section');
-         if(feat) feat.scrollIntoView({ behavior: 'smooth' });
+        // Fallback si onEnterMarketplace est utilisé pour une autre logique
+        if (onEnterMarketplace) onEnterMarketplace();
+        // Sinon on scroll vers la section featured
+        const feat = document.querySelector('.featured-section');
+        if (feat) feat.scrollIntoView({ behavior: 'smooth' });
       }
     }, 500); // Petit délai pour laisser le menu se fermer
   };
@@ -144,7 +144,7 @@ const App = ({ onEnterMarketplace }) => {
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
     });
-    
+
     function raf(time) {
       lenis.raf(time);
       requestAnimationFrame(raf);
@@ -156,7 +156,7 @@ const App = ({ onEnterMarketplace }) => {
   // --- THREE.JS BACKGROUND ---
   useEffect(() => {
     if (!canvasRef.current) return;
-    
+
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 100);
     camera.position.z = 18;
@@ -182,7 +182,7 @@ const App = ({ onEnterMarketplace }) => {
       transparent: true,
       opacity: 0.09
     });
-    
+
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
 
@@ -201,7 +201,7 @@ const App = ({ onEnterMarketplace }) => {
       renderer.setSize(window.innerWidth, window.innerHeight);
     };
     window.addEventListener('resize', handleResize);
-    
+
     return () => {
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animationId);
@@ -228,12 +228,12 @@ const App = ({ onEnterMarketplace }) => {
         duration: 1.6,
         delay: 0.2
       })
-      .from('.hero-footer-element', {
-        opacity: 0,
-        y: 20,
-        duration: 1,
-        stagger: 0.1
-      }, "-=1.0");
+        .from('.hero-footer-element', {
+          opacity: 0,
+          y: 20,
+          duration: 1,
+          stagger: 0.1
+        }, "-=1.0");
 
       // 2. Disparition 3D
       gsap.to('.three-container', {
@@ -293,81 +293,102 @@ const App = ({ onEnterMarketplace }) => {
           }
         });
 
-        gsap.utils.toArray('.process-card').forEach((card, i) => {
-            let triggerConfig = {};
-            if (i === 0) {
-                triggerConfig = { trigger: ".process-wrapper", start: "top 75%", toggleActions: "play none none reverse" };
-            } else if (i === 1) {
-                triggerConfig = { trigger: card, containerAnimation: xAnim, start: "left 100%", toggleActions: "play none none reverse" };
-            } else {
-                triggerConfig = { trigger: card, containerAnimation: xAnim, start: "left 90%", toggleActions: "play none none reverse" };
-            }
+        // 1. Animation groupée via Timeline (Robustesse : set + to)
+        const cards = gsap.utils.toArray('.process-card');
+        const img1 = cards[0].querySelector('.img-box-process');
+        const img2 = cards[1].querySelector('.img-box-process');
 
-            gsap.from(card.querySelector('.img-box-process'), {
-                opacity: 0, scale: 0.95, y: 40, duration: 0.6, ease: "power2.out", scrollTrigger: triggerConfig
-            });
+        // On force l'état initial (caché)
+        gsap.set([img1, img2], { y: 40, opacity: 0, scale: 0.95 });
+
+        const tlIntro = gsap.timeline({
+          scrollTrigger: {
+            trigger: ".process-wrapper",
+            start: "top 75%",
+            toggleActions: "play none none reverse" // Play est plus sûr que Restart ici
+          }
+        });
+
+        tlIntro
+          .to(img1, {
+            y: 0, opacity: 1, scale: 1, duration: 0.6, ease: "power2.out"
+          })
+          .to(img2, {
+            y: 0, opacity: 1, scale: 1, duration: 0.6, ease: "power2.out"
+          }, ">+0.3");
+
+
+        // 2. Animation individuelle pour les suivantes (Horizontal Scroll)
+        gsap.utils.toArray('.process-card').forEach((card, i) => {
+          if (i <= 1) return; // On saute les 2 premières gérées au dessus
+
+          const triggerConfig = { trigger: card, containerAnimation: xAnim, start: "left 90%", toggleActions: "play none none reverse" };
+
+          gsap.from(card.querySelector('.img-box-process'), {
+            opacity: 0, scale: 0.95, y: 40, duration: 0.6, ease: "power2.out", scrollTrigger: triggerConfig
+          });
         });
       }
 
       // 6. STICKY CARDS ANIMATIONS
       const featuredSection = document.querySelector('.featured-section');
       const cards = gsap.utils.toArray('.featured-card');
-      
+
       if (featuredSection && cards.length > 0) {
-          const tlStack = gsap.timeline({
-              scrollTrigger: {
-                  trigger: ".featured-section",
-                  start: "top top",
-                  end: () => "+=" + (window.innerHeight * cards.length),
-                  pin: true,
-                  scrub: 1,
-                  anticipatePin: 1
-              }
+        const tlStack = gsap.timeline({
+          scrollTrigger: {
+            trigger: ".featured-section",
+            start: "top top",
+            end: () => "+=" + (window.innerHeight * cards.length),
+            pin: true,
+            scrub: 1,
+            anticipatePin: 1
+          }
+        });
+
+        cards.forEach((card, i) => {
+          const img = card.querySelector('.feat-img-anim');
+          if (img) gsap.set(img, { scale: 1.2 });
+
+          if (i === 0) return;
+
+          tlStack.fromTo(card,
+            { yPercent: 100 },
+            { yPercent: 0, ease: "none", duration: 1 }
+          );
+
+          const prevCard = cards[i - 1];
+          const prevContent = prevCard.querySelector('.card-inner-content');
+
+          tlStack.to(prevContent, {
+            scale: 0.90,
+            filter: "blur(5px)",
+            opacity: 1,
+            ease: "none",
+            duration: 1
+          }, "<");
+        });
+
+        cards.forEach((card) => {
+          const text = card.querySelectorAll('.reveal-inner');
+          ScrollTrigger.create({
+            trigger: card,
+            containerAnimation: tlStack,
+            start: "top 60%",
+            onEnter: () => gsap.to(text, { y: 0, opacity: 1, duration: 0.8, stagger: 0.1 })
           });
+        });
 
-          cards.forEach((card, i) => {
-              const img = card.querySelector('.feat-img-anim');
-              if(img) gsap.set(img, { scale: 1.2 });
-
-              if (i === 0) return;
-
-              tlStack.fromTo(card,
-                  { yPercent: 100 },
-                  { yPercent: 0, ease: "none", duration: 1 }
-              );
-
-              const prevCard = cards[i - 1];
-              const prevContent = prevCard.querySelector('.card-inner-content');
-              
-              tlStack.to(prevContent, {
-                  scale: 0.90,
-                  filter: "blur(5px)",
-                  opacity: 1,
-                  ease: "none",
-                  duration: 1
-              }, "<");
-          });
-          
-           cards.forEach((card) => {
-               const text = card.querySelectorAll('.reveal-inner');
-               ScrollTrigger.create({
-                   trigger: card,
-                   containerAnimation: tlStack,
-                   start: "top 60%",
-                   onEnter: () => gsap.to(text, { y: 0, opacity: 1, duration: 0.8, stagger: 0.1 })
-               });
-           });
-
-           // EFFET TRANSPARENCE HEADER (AJOUTÉ ICI)
-           ScrollTrigger.create({
-              trigger: ".featured-section",
-              start: "top top",
-              end: () => "+=" + (window.innerHeight * cards.length),
-              onEnter: () => gsap.to("header", { opacity: 0.2, duration: 0.5, ease: "power2.out" }),
-              onLeave: () => gsap.to("header", { opacity: 1, duration: 0.5, ease: "power2.out" }),
-              onEnterBack: () => gsap.to("header", { opacity: 0.2, duration: 0.5, ease: "power2.out" }),
-              onLeaveBack: () => gsap.to("header", { opacity: 1, duration: 0.5, ease: "power2.out" })
-           });
+        // EFFET TRANSPARENCE HEADER (AJOUTÉ ICI)
+        ScrollTrigger.create({
+          trigger: ".featured-section",
+          start: "top top",
+          end: () => "+=" + (window.innerHeight * cards.length),
+          onEnter: () => gsap.to("header", { opacity: 0.2, duration: 0.5, ease: "power2.out" }),
+          onLeave: () => gsap.to("header", { opacity: 1, duration: 0.5, ease: "power2.out" }),
+          onEnterBack: () => gsap.to("header", { opacity: 0.2, duration: 0.5, ease: "power2.out" }),
+          onLeaveBack: () => gsap.to("header", { opacity: 1, duration: 0.5, ease: "power2.out" })
+        });
       }
 
       // 7. Data Counters (GSAP pour la Section 12)
@@ -387,25 +408,25 @@ const App = ({ onEnterMarketplace }) => {
       // MODIF: Utilisation de matchMedia pour activer le pinning UNIQUEMENT sur Desktop (> 768px)
       // Sur mobile, le comportement reste statique (flux normal) pour éviter le chevauchement.
       const mm = gsap.matchMedia();
-      
+
       mm.add("(min-width: 768px)", () => {
-          ScrollTrigger.create({
-            trigger: ".team-section",
-            start: "top top",
-            end: "bottom bottom",
-            pin: ".team-text-wrapper",
-            pinSpacing: false,
-            scrub: true
-          });
+        ScrollTrigger.create({
+          trigger: ".team-section",
+          start: "top top",
+          end: "bottom bottom",
+          pin: ".team-text-wrapper",
+          pinSpacing: false,
+          scrub: true
+        });
       });
 
       // Animation d'apparition du texte au début
       gsap.from('.team-content-reveal', {
-          y: 50,
-          opacity: 0,
-          duration: 1,
-          stagger: 0.1,
-          scrollTrigger: { trigger: '.team-section', start: "top 60%" }
+        y: 50,
+        opacity: 0,
+        duration: 1,
+        stagger: 0.1,
+        scrollTrigger: { trigger: '.team-section', start: "top 60%" }
       });
 
       // 9. Curseur
@@ -529,15 +550,15 @@ const App = ({ onEnterMarketplace }) => {
 
       {/* NAVIGATION */}
       <header className="fixed top-0 left-0 w-full p-8 md:p-12 flex justify-between items-center z-[210] mix-blend-difference text-white">
-        <div className="flex items-center gap-3 cursor-pointer group" onClick={() => window.scrollTo({top:0, behavior:'smooth'})}>
+        <div className="flex items-center gap-3 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
           <Hammer size={18} className="group-hover:rotate-45 transition-transform duration-500" />
           <span className="font-serif text-xl tracking-widest uppercase font-light italic text-white">Tous à Table</span>
         </div>
-        
+
         {/* BOUTON MENU ANIMÉ */}
         <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="flex items-center gap-4 group focus:outline-none">
           <span className={`text-[9px] uppercase tracking-[0.4em] transition-opacity duration-500 ${isMenuOpen ? 'opacity-100' : 'opacity-40 group-hover:opacity-100'}`}>Menu</span>
-          
+
           {/* ANIMATION HAMBURGER -> CROIX */}
           <div className="w-6 h-4 flex flex-col justify-between">
             <span className={`block w-full h-[1px] bg-white transition-all duration-500 ease-in-out will-change-transform ${isMenuOpen ? 'rotate-45 translate-y-[7px]' : ''}`}></span>
@@ -570,8 +591,8 @@ const App = ({ onEnterMarketplace }) => {
         <h1 className="font-serif text-[18vw] md:text-[12.5vw] leading-[0.8] uppercase flex flex-col font-light text-[#1a1a1a] mix-blend-multiply">
           <RevealText text="Le Geste" />
           <div className="flex items-center gap-4 self-end md:mr-[8vw]">
-             {/* REMOVED SPAN as per previous request */}
-             <RevealText text="& L'Âme" className="text-[#9C8268] italic pt-[0.25em] -mt-[0.25em]" />
+            {/* REMOVED SPAN as per previous request */}
+            <RevealText text="& L'Âme" className="text-[#9C8268] italic pt-[0.25em] -mt-[0.25em]" />
           </div>
         </h1>
 
@@ -581,16 +602,16 @@ const App = ({ onEnterMarketplace }) => {
               Restauration de mobilier <br /> de haute ébénisterie. <br /> Normandie, France.
             </p>
           </div>
-          
+
           <div className="hero-footer-element flex flex-col items-center gap-4 text-[#1a1a1a] group cursor-pointer" onClick={() => {
-              const manifesto = document.querySelector('.manifesto');
-              if(manifesto) manifesto.scrollIntoView({behavior: 'smooth'});
+            const manifesto = document.querySelector('.manifesto');
+            if (manifesto) manifesto.scrollIntoView({ behavior: 'smooth' });
           }}>
             <span className="text-[9px] uppercase tracking-[0.3em] font-bold opacity-40 group-hover:opacity-100 transition-opacity">
-                Explorer l'Atelier
+              Explorer l'Atelier
             </span>
             <div className="w-10 h-10 rounded-full border border-black/10 flex items-center justify-center group-hover:border-black/40 transition-colors bg-white/50 backdrop-blur-sm">
-                <ArrowDown size={14} className="opacity-60 group-hover:translate-y-1 transition-transform duration-500" />
+              <ArrowDown size={14} className="opacity-60 group-hover:translate-y-1 transition-transform duration-500" />
             </div>
           </div>
         </div>
@@ -649,56 +670,56 @@ const App = ({ onEnterMarketplace }) => {
       {/* [SECTION 10: PROCESS] */}
       <section className="process-wrapper h-screen bg-[#0D0D0D] text-[#FAF9F6] flex items-center overflow-hidden">
         <div className="horizontal-content flex gap-[5vw] md:gap-[8vw] pl-[5vw] md:pl-[10vw] pr-0 items-center relative will-change-transform">
-          
+
           {/* Titre Section */}
           <div className="min-w-[85vw] md:min-w-[40vw] relative flex flex-col justify-center h-[70vh] border-r border-white/5 pr-[8vw]">
-              <RotatingSymbol className="absolute -top-20 -left-24 text-[#9C8268]" size={160} />
-              <div className="relative z-10">
-                <span className="text-[10px] uppercase tracking-[1.2em] text-[#9C8268] mb-8 block font-black">L'Alchimie</span>
-                <h2 className="font-serif text-5xl md:text-8xl lg:text-[12vw] leading-none font-light italic text-white">Le Rituel.</h2>
-                <p className="mt-12 text-base md:text-lg font-light opacity-50 max-w-md border-l border-[#9C8268] pl-6">
-                    Chaque étape est une célébration de la matière. De l'état brut à l'œuvre d'art, découvrez notre processus de restauration.
-                </p>
-              </div>
+            <RotatingSymbol className="absolute -top-20 -left-24 text-[#9C8268]" size={160} />
+            <div className="relative z-10">
+              <span className="text-[10px] uppercase tracking-[1.2em] text-[#9C8268] mb-8 block font-black">L'Alchimie</span>
+              <h2 className="font-serif text-5xl md:text-8xl lg:text-[12vw] leading-none font-light italic text-white">Le Rituel.</h2>
+              <p className="mt-12 text-base md:text-lg font-light opacity-50 max-w-md border-l border-[#9C8268] pl-6">
+                Chaque étape est une célébration de la matière. De l'état brut à l'œuvre d'art, découvrez notre processus de restauration.
+              </p>
+            </div>
           </div>
 
           {[
             { n: "I", t: "L'Essence", d: "Sélection rigoureuse des billes de bois précieux.", main: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?q=80&w=800", w: "w-[85vw] md:w-[480px]", h: "h-[500px] md:h-[650px]", info: "Matière première" },
-            { n: "II", t: "L'Analyse", d: "Diagnostic structurel et scan de la patine historique.", main: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=800", w: "w-[85vw] md:w-[600px]", h: "h-[450px] md:h-[600px]", info: "Étude microscopique" },
+            { n: "II", t: "L'Analyse", d: "Diagnostic structurel et scan de la patine historique.", main: "https://images.unsplash.com/photo-1505693314120-0d443867891c?q=80&w=800", w: "w-[85vw] md:w-[600px]", h: "h-[450px] md:h-[600px]", info: "Étude microscopique" },
             { n: "III", t: "Le Dessin", d: "Tracé géométrique pour les greffes complexes.", main: "https://images.unsplash.com/photo-1517705008128-361805f42e86?q=80&w=800", w: "w-[85vw] md:w-[500px]", h: "h-[400px] md:h-[550px]", info: "Perspective d'art" },
             { n: "IV", t: "La Cure", d: "Greffes invisibles et consolidation structurelle.", main: "https://images.unsplash.com/photo-1530018607912-eff2daa1bac4?q=80&w=800", w: "w-[85vw] md:w-[480px]", h: "h-[450px] md:h-[600px]", info: "Renaissance physique" },
             { n: "V", t: "L'Éclat", d: "Secret du vernis au tampon selon la tradition normande.", main: "https://images.unsplash.com/photo-1622372738946-62e02505feb3?q=80&w=800", w: "w-[85vw] md:w-[700px]", h: "h-[450px] md:h-[600px]", info: "Miroir de bois" }
           ].map((step, i) => (
             <div key={i} className={`process-card flex-shrink-0 relative ${step.w} flex flex-col justify-center group`}>
-                
-                {/* Numéro flottant "Architectural" - REDUIT SUR MOBILE */}
-                <div className="absolute -top-12 -left-4 md:-left-10 z-30 pointer-events-none select-none mix-blend-difference">
-                    <span className="font-serif text-[6rem] md:text-[12rem] leading-none text-stroke-1 italic">{step.n}</span>
-                </div>
 
-                {/* Conteneur Image */}
-                <div className={`img-box-process ${step.h} w-full border border-white/10 relative overflow-hidden transition-all duration-700 group-hover:border-white/30 z-10`}>
-                    <div className="absolute inset-0 z-10 bg-[#0D0D0D]/30 group-hover:bg-transparent transition-colors duration-700"></div>
-                    <img src={step.main} alt={step.t} className="p-img-inner w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 scale-100 will-change-transform" />
-                    
-                    {/* Tag technique au survol */}
-                    <div className="absolute bottom-6 right-6 z-20 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-700 delay-100">
-                        <span className="text-[10px] uppercase tracking-widest bg-[#111] px-4 py-2 border border-[#9C8268] text-white font-medium shadow-xl">{step.info}</span>
-                    </div>
-                </div>
+              {/* Numéro flottant "Architectural" - REDUIT SUR MOBILE */}
+              <div className="absolute -top-12 -left-4 md:-left-10 z-30 pointer-events-none select-none mix-blend-difference">
+                <span className="font-serif text-[6rem] md:text-[12rem] leading-none text-stroke-1 italic">{step.n}</span>
+              </div>
 
-                {/* Caption */}
-                <div className="p-caption mt-8 md:mt-12 relative z-10 text-white pl-4 md:pl-6 border-l border-white/10 group-hover:border-[#9C8268] transition-colors duration-700">
-                    <h3 className="text-3xl md:text-5xl font-light italic font-serif text-white mb-4 group-hover:translate-x-2 transition-transform duration-500">{step.t}</h3>
-                    <p className="text-[10px] uppercase tracking-[0.25em] opacity-40 leading-loose max-w-[300px] font-medium text-[#FAF9F6] group-hover:opacity-80 transition-opacity">{step.d}</p>
+              {/* Conteneur Image */}
+              <div className={`img-box-process ${step.h} w-full border border-white/10 relative overflow-hidden transition-all duration-700 group-hover:border-white/30 z-10`}>
+                <div className="absolute inset-0 z-10 bg-[#0D0D0D]/30 group-hover:bg-transparent transition-colors duration-700"></div>
+                <img src={step.main} alt={step.t} className="p-img-inner w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 scale-100 will-change-transform" />
+
+                {/* Tag technique au survol */}
+                <div className="absolute bottom-6 right-6 z-20 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-700 delay-100">
+                  <span className="text-[10px] uppercase tracking-widest bg-[#111] px-4 py-2 border border-[#9C8268] text-white font-medium shadow-xl">{step.info}</span>
                 </div>
+              </div>
+
+              {/* Caption */}
+              <div className="p-caption mt-8 md:mt-12 relative z-10 text-white pl-4 md:pl-6 border-l border-white/10 group-hover:border-[#9C8268] transition-colors duration-700">
+                <h3 className="text-3xl md:text-5xl font-light italic font-serif text-white mb-4 group-hover:translate-x-2 transition-transform duration-500">{step.t}</h3>
+                <p className="text-[10px] uppercase tracking-[0.25em] opacity-40 leading-loose max-w-[300px] font-medium text-[#FAF9F6] group-hover:opacity-80 transition-opacity">{step.d}</p>
+              </div>
             </div>
           ))}
 
           {/* UPDATE: Full screen width on mobile (100vw) to center content properly at end of scroll */}
           <div className="min-w-[100vw] md:min-w-[40vw] flex flex-col items-center justify-center border-l border-white/5 pl-0 md:pl-[8vw]">
-              <RotatingSymbol size={300} className="text-[#9C8268] opacity-20 scale-75 md:scale-100" text="L'HÉRITAGE DU TEMPS • TOUS À TABLE •" />
-              <span className="font-serif italic text-4xl opacity-30 mt-16 tracking-[0.5em] uppercase text-white">Perpétuité</span>
+            <RotatingSymbol size={300} className="text-[#9C8268] opacity-20 scale-75 md:scale-100" text="L'HÉRITAGE DU TEMPS • TOUS À TABLE •" />
+            <span className="font-serif italic text-4xl opacity-30 mt-16 tracking-[0.5em] uppercase text-white">Perpétuité</span>
           </div>
         </div>
       </section>
@@ -716,57 +737,57 @@ const App = ({ onEnterMarketplace }) => {
           >
             {/* Conteneur Interne pour l'effet de recul (Scale Down) */}
             <div
-                className="card-inner-content relative w-full h-full flex items-center justify-center border-t border-black/5 shadow-[-20px_-20px_60px_rgba(0,0,0,0.1)] origin-center will-change-transform"
+              className="card-inner-content relative w-full h-full flex items-center justify-center border-t border-black/5 shadow-[-20px_-20px_60px_rgba(0,0,0,0.1)] origin-center will-change-transform"
             >
-                {/* Background Title Faint - Opacité réduite */}
-                <div className="absolute inset-0 flex items-center justify-center font-serif text-[34vw] text-black/[0.015] pointer-events-none uppercase tracking-tighter italic text-[#1a1a1a]">
-                  {item.bgTitle}
+              {/* Background Title Faint - Opacité réduite */}
+              <div className="absolute inset-0 flex items-center justify-center font-serif text-[34vw] text-black/[0.015] pointer-events-none uppercase tracking-tighter italic text-[#1a1a1a]">
+                {item.bgTitle}
+              </div>
+
+              {/* GRILLE RESPONSIVE : Gap réduit sur mobile pour éviter l'overflow */}
+              <div className="max-w-7xl w-full grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-32 items-center relative z-10 text-[#1a1a1a] px-6 md:px-8 h-full md:h-auto py-8 md:py-0">
+
+                {/* SUBTITLE MOBILE - Placée avant l'image pour être au dessus sur mobile */}
+                <div className="w-full md:hidden flex justify-center pb-2 order-1">
+                  <span className="text-[10px] uppercase tracking-[0.8em] text-[#9C8268] font-bold italic underline underline-offset-8">
+                    {item.subtitle}
+                  </span>
                 </div>
 
-                {/* GRILLE RESPONSIVE : Gap réduit sur mobile pour éviter l'overflow */}
-                <div className="max-w-7xl w-full grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-32 items-center relative z-10 text-[#1a1a1a] px-6 md:px-8 h-full md:h-auto py-8 md:py-0">
-                  
-                  {/* SUBTITLE MOBILE - Placée avant l'image pour être au dessus sur mobile */}
-                  <div className="w-full md:hidden flex justify-center pb-2 order-1">
-                      <span className="text-[10px] uppercase tracking-[0.8em] text-[#9C8268] font-bold italic underline underline-offset-8">
-                        {item.subtitle}
-                      </span>
-                  </div>
-
-                  {/* Image Box : Hauteur contrainte sur mobile (35vh) pour laisser place au texte */}
-                  <div className="feat-img-box w-full h-[35vh] md:h-auto md:aspect-[4/5] shadow-2xl overflow-hidden rounded-sm order-2 md:order-1">
-                    <img src={item.img} alt={item.bgTitle} className="feat-img-anim w-full h-full object-cover will-change-transform" />
-                  </div>
-                  
-                  <div className="space-y-4 md:space-y-16 feat-text-anim order-3 md:order-2 flex flex-col justify-center">
-                    <div>
-                      {/* TITRE DESKTOP (Cache sur mobile) - Couleur d'origine #9C8268 */}
-                      <span className="hidden md:block text-[10px] uppercase tracking-[0.8em] text-[#9C8268] mb-12 font-bold italic underline underline-offset-8">
-                        {item.subtitle}
-                      </span>
-                      {/* TITRE RESPONSIVE : 4xl sur mobile, 7xl+ sur desktop */}
-                      <h2 className="font-serif text-4xl md:text-7xl lg:text-[8.5vw] leading-[0.95] md:leading-[0.85] font-light italic text-[#1a1a1a]">
-                          {/* Utilisation de map pour gérer les lignes multiples */}
-                          {item.title.map((line, i) => (
-                             <React.Fragment key={i}>
-                                 <RevealText text={line} />
-                             </React.Fragment>
-                          ))}
-                      </h2>
-                    </div>
-                    {/* DESCRIPTION RESPONSIVE : Texte plus petit sur mobile */}
-                    <p className="text-lg md:text-2xl font-light opacity-60 leading-snug md:leading-relaxed max-w-md italic text-[#1a1a1a]">
-                      {item.desc}
-                    </p>
-                    {/* BOUTON MODIFIÉ : RotatingButton */}
-                    <button onClick={onEnterMarketplace} className="flex items-center gap-4 md:gap-8 group text-[#1a1a1a] mt-4">
-                      <RotatingButton id={item.id} />
-                      <span className="text-[10px] md:text-[11px] uppercase tracking-[0.4em] md:tracking-[0.6em] font-medium text-[#1a1a1a]">
-                        Découvrir la Galerie
-                      </span>
-                    </button>
-                  </div>
+                {/* Image Box : Hauteur contrainte sur mobile (35vh) pour laisser place au texte */}
+                <div className="feat-img-box w-full h-[35vh] md:h-auto md:aspect-[4/5] shadow-2xl overflow-hidden rounded-sm order-2 md:order-1">
+                  <img src={item.img} alt={item.bgTitle} className="feat-img-anim w-full h-full object-cover will-change-transform" />
                 </div>
+
+                <div className="space-y-4 md:space-y-16 feat-text-anim order-3 md:order-2 flex flex-col justify-center">
+                  <div>
+                    {/* TITRE DESKTOP (Cache sur mobile) - Couleur d'origine #9C8268 */}
+                    <span className="hidden md:block text-[10px] uppercase tracking-[0.8em] text-[#9C8268] mb-12 font-bold italic underline underline-offset-8">
+                      {item.subtitle}
+                    </span>
+                    {/* TITRE RESPONSIVE : 4xl sur mobile, 7xl+ sur desktop */}
+                    <h2 className="font-serif text-4xl md:text-7xl lg:text-[8.5vw] leading-[0.95] md:leading-[0.85] font-light italic text-[#1a1a1a]">
+                      {/* Utilisation de map pour gérer les lignes multiples */}
+                      {item.title.map((line, i) => (
+                        <React.Fragment key={i}>
+                          <RevealText text={line} />
+                        </React.Fragment>
+                      ))}
+                    </h2>
+                  </div>
+                  {/* DESCRIPTION RESPONSIVE : Texte plus petit sur mobile */}
+                  <p className="text-lg md:text-2xl font-light opacity-60 leading-snug md:leading-relaxed max-w-md italic text-[#1a1a1a]">
+                    {item.desc}
+                  </p>
+                  {/* BOUTON MODIFIÉ : RotatingButton */}
+                  <button onClick={onEnterMarketplace} className="flex items-center gap-4 md:gap-8 group text-[#1a1a1a] mt-4">
+                    <RotatingButton id={item.id} />
+                    <span className="text-[10px] md:text-[11px] uppercase tracking-[0.4em] md:tracking-[0.6em] font-medium text-[#1a1a1a]">
+                      Découvrir la Galerie
+                    </span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         ))}
@@ -774,105 +795,105 @@ const App = ({ onEnterMarketplace }) => {
 
       {/* [SECTION 12: RENDU - DATA (REWORK STYLE LUMOSINE - ALIGNÉ)] */}
       <section className="data-section relative py-40 bg-[#111111] text-[#FAF9F6] overflow-hidden">
-        
+
         {/* Marquee stylisé : Ticker de luxe */}
         <div className="marquee-wrapper border-y border-white/5 bg-[#0a0a0a] py-12 mb-40">
-           <div className="flex whitespace-nowrap animate-marquee">
-             {[...Array(6)].map((_, i) => (
-               <div key={i} className="flex items-center gap-24 mx-12">
-                 <span className="font-serif text-5xl md:text-8xl font-light italic uppercase text-white tracking-[0.15em]">Patrimoine Durable</span>
-                 <Star size={32} className="text-[#9C8268] opacity-60" />
-                 <span className="font-serif text-5xl md:text-8xl font-light uppercase opacity-20 italic tracking-[0.15em] text-white">L'Excellence du geste</span>
-                 <Star size={32} className="text-[#9C8268] opacity-60" />
-               </div>
-             ))}
-           </div>
+          <div className="flex whitespace-nowrap animate-marquee">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="flex items-center gap-24 mx-12">
+                <span className="font-serif text-5xl md:text-8xl font-light italic uppercase text-white tracking-[0.15em]">Patrimoine Durable</span>
+                <Star size={32} className="text-[#9C8268] opacity-60" />
+                <span className="font-serif text-5xl md:text-8xl font-light uppercase opacity-20 italic tracking-[0.15em] text-white">L'Excellence du geste</span>
+                <Star size={32} className="text-[#9C8268] opacity-60" />
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Grille de données - Style Architectural (CORRIGÉ : TAILLES & ALIGNEMENT) */}
         <div className="max-w-[110rem] mx-auto px-12 md:px-[10vw]">
-           {/* AJOUT DE border-t POUR FERMER LA GRILLE */}
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 border-l border-t border-white/10">
-              {stats.map((stat, idx) => (
-                <div key={idx} className="stat-item p-12 md:p-16 border-r border-b border-white/10 group flex flex-col justify-between min-h-[300px] md:min-h-[400px]">
-                   {/* En-tête de la cellule */}
-                   <div className="flex justify-between items-start">
-                      <span className="text-[11px] uppercase tracking-[0.5em] font-bold opacity-30 group-hover:opacity-100 group-hover:text-[#9C8268] transition-all duration-700">Mesure 0{idx+1}</span>
-                      <Zap size={18} className="opacity-20 group-hover:opacity-100 group-hover:text-[#9C8268] transition-all duration-700" />
-                   </div>
-                   
-                   {/* Chiffres avec taille contrôlée pour éviter l'overflow */}
-                   <div className="my-16">
-                      <div className="flex items-baseline gap-2 flex-wrap">
-                        {/* Taille ajustée pour 4 colonnes : text-6xl -> xl:text-8xl */}
-                        <span className="stat-number font-serif text-6xl md:text-7xl xl:text-8xl leading-none font-light italic tracking-tighter" data-target={stat.value}>0</span>
-                        <span className="text-4xl md:text-5xl font-serif italic text-[#9C8268]">{stat.suffix}</span>
-                      </div>
-                      <p className="mt-6 text-sm md:text-base uppercase tracking-[0.3em] font-medium opacity-40 group-hover:opacity-90 transition-opacity duration-700 break-words">
-                        {stat.label}
-                      </p>
-                   </div>
-
-                   {/* Ligne progressive */}
-                   <div className="h-[2px] w-0 group-hover:w-full bg-[#9C8268] transition-all duration-1000 ease-in-out"></div>
+          {/* AJOUT DE border-t POUR FERMER LA GRILLE */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 border-l border-t border-white/10">
+            {stats.map((stat, idx) => (
+              <div key={idx} className="stat-item p-12 md:p-16 border-r border-b border-white/10 group flex flex-col justify-between min-h-[300px] md:min-h-[400px]">
+                {/* En-tête de la cellule */}
+                <div className="flex justify-between items-start">
+                  <span className="text-[11px] uppercase tracking-[0.5em] font-bold opacity-30 group-hover:opacity-100 group-hover:text-[#9C8268] transition-all duration-700">Mesure 0{idx + 1}</span>
+                  <Zap size={18} className="opacity-20 group-hover:opacity-100 group-hover:text-[#9C8268] transition-all duration-700" />
                 </div>
-              ))}
-           </div>
-           
-           <div className="mt-48 flex flex-col md:flex-row justify-between items-end gap-16">
-              <div className="max-w-2xl">
-                 <h3 className="font-serif text-5xl italic mb-10 text-[#9C8268]">La mesure de notre engagement.</h3>
-                 <p className="text-lg font-light opacity-40 leading-relaxed uppercase tracking-[0.2em]">
-                   Ces données ne sont pas que des chiffres, elles sont le reflet de milliers d'heures de passion dévouées à la transmission du patrimoine normand.
-                 </p>
+
+                {/* Chiffres avec taille contrôlée pour éviter l'overflow */}
+                <div className="my-16">
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    {/* Taille ajustée pour 4 colonnes : text-6xl -> xl:text-8xl */}
+                    <span className="stat-number font-serif text-6xl md:text-7xl xl:text-8xl leading-none font-light italic tracking-tighter" data-target={stat.value}>0</span>
+                    <span className="text-4xl md:text-5xl font-serif italic text-[#9C8268]">{stat.suffix}</span>
+                  </div>
+                  <p className="mt-6 text-sm md:text-base uppercase tracking-[0.3em] font-medium opacity-40 group-hover:opacity-90 transition-opacity duration-700 break-words">
+                    {stat.label}
+                  </p>
+                </div>
+
+                {/* Ligne progressive */}
+                <div className="h-[2px] w-0 group-hover:w-full bg-[#9C8268] transition-all duration-1000 ease-in-out"></div>
               </div>
-              <div className="flex flex-col items-end gap-6">
-                 <div className="w-52 h-[1px] bg-white/10"></div>
-                 <span className="text-[11px] uppercase tracking-[0.6em] opacity-30">Atelier Tous à Table © — Archive 2024</span>
-              </div>
-           </div>
+            ))}
+          </div>
+
+          <div className="mt-48 flex flex-col md:flex-row justify-between items-end gap-16">
+            <div className="max-w-2xl">
+              <h3 className="font-serif text-5xl italic mb-10 text-[#9C8268]">La mesure de notre engagement.</h3>
+              <p className="text-lg font-light opacity-40 leading-relaxed uppercase tracking-[0.2em]">
+                Ces données ne sont pas que des chiffres, elles sont le reflet de milliers d'heures de passion dévouées à la transmission du patrimoine normand.
+              </p>
+            </div>
+            <div className="flex flex-col items-end gap-6">
+              <div className="w-52 h-[1px] bg-white/10"></div>
+              <span className="text-[11px] uppercase tracking-[0.6em] opacity-30">Atelier Tous à Table © — Archive 2024</span>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* [SECTION 13: RENDU - TEAM (DIRECTION) - STICKY SCROLL SPLIT via GSAP PINNING] */}
       <section className="team-section relative w-full bg-[#FAF9F6] flex flex-col md:flex-row items-start z-10">
-        
+
         {/* COLONNE GAUCHE (TEXTE) */}
         <div className="w-full md:w-1/2 min-h-screen flex flex-col justify-center px-8 md:px-[6vw] space-y-24 text-[#1a1a1a] z-20">
-              {/* Ce wrapper sera épinglé par GSAP */}
-              <div className="team-text-wrapper h-screen flex flex-col justify-center">
-                  <div className="space-y-6 team-content-reveal">
-                     <span className="text-[12px] uppercase tracking-[1.4em] text-[#9C8268] block font-black italic">La Direction</span>
-                     <h2 className="font-serif text-7xl md:text-[8vw] xl:text-[9vw] leading-[0.9] font-light italic tracking-tight text-[#1a1a1a]">
-                         Jean <br /> Lefebvre
-                     </h2>
-                  </div>
-                  
-                  <p className="text-2xl font-light opacity-60 leading-relaxed italic border-l border-black/10 pl-10 mt-12 team-content-reveal">
-                    "Nous ne luttons pas contre le temps, nous le réapprivoisons. Chaque main possède une mémoire que les outils n'ont pas."
-                  </p>
-                  
-                  <div className="flex gap-16 pt-12 border-t border-black/5 items-center mt-12 team-content-reveal">
-                     <div>
-                         <span className="block text-[9px] uppercase tracking-widest opacity-30 mb-2 font-black">Expérience</span>
-                         <span className="font-serif text-6xl italic text-[#9C8268]">XXV Ans</span>
-                     </div>
-                     <div className="w-[1px] h-12 bg-black/5"></div>
-                     <Zap size={32} className="text-[#9C8268] opacity-60" />
-                  </div>
+          {/* Ce wrapper sera épinglé par GSAP */}
+          <div className="team-text-wrapper h-screen flex flex-col justify-center">
+            <div className="space-y-6 team-content-reveal">
+              <span className="text-[12px] uppercase tracking-[1.4em] text-[#9C8268] block font-black italic">La Direction</span>
+              <h2 className="font-serif text-7xl md:text-[8vw] xl:text-[9vw] leading-[0.9] font-light italic tracking-tight text-[#1a1a1a]">
+                Jean <br /> Lefebvre
+              </h2>
+            </div>
+
+            <p className="text-2xl font-light opacity-60 leading-relaxed italic border-l border-black/10 pl-10 mt-12 team-content-reveal">
+              "Nous ne luttons pas contre le temps, nous le réapprivoisons. Chaque main possède une mémoire que les outils n'ont pas."
+            </p>
+
+            <div className="flex gap-16 pt-12 border-t border-black/5 items-center mt-12 team-content-reveal">
+              <div>
+                <span className="block text-[9px] uppercase tracking-widest opacity-30 mb-2 font-black">Expérience</span>
+                <span className="font-serif text-6xl italic text-[#9C8268]">XXV Ans</span>
               </div>
+              <div className="w-[1px] h-12 bg-black/5"></div>
+              <Zap size={32} className="text-[#9C8268] opacity-60" />
+            </div>
+          </div>
         </div>
 
         {/* COLONNE DROITE (IMAGE) - SCROLLANTE */}
         <div className="w-full md:w-1/2 min-h-[200vh] flex flex-col items-center px-8 md:px-[4vw] pt-[20vh] pb-40 z-10 bg-[#FAF9F6]">
-             <div className="team-img-col relative w-full aspect-[3/4] md:aspect-[2/3] shadow-[0_80px_160px_rgba(0,0,0,0.15)] bg-stone-200">
-                <img
-                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1600"
-                    alt="Maître Ebéniste"
-                    className="w-full h-full object-cover grayscale"
-                />
-                <RotatingSymbol className="absolute -bottom-20 -right-20 text-white opacity-20 mix-blend-overlay" size={240} />
-             </div>
+          <div className="team-img-col relative w-full aspect-[3/4] md:aspect-[2/3] shadow-[0_80px_160px_rgba(0,0,0,0.15)] bg-stone-200">
+            <img
+              src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1600"
+              alt="Maître Ebéniste"
+              className="w-full h-full object-cover grayscale"
+            />
+            <RotatingSymbol className="absolute -bottom-20 -right-20 text-white opacity-20 mix-blend-overlay" size={240} />
+          </div>
         </div>
 
       </section>
@@ -880,41 +901,41 @@ const App = ({ onEnterMarketplace }) => {
       {/* [SECTION 13.5 : FAQ - Layout 4/8] */}
       <section className="faq-section py-60 px-8 md:px-[10vw] bg-[#F0F2EB] text-[#1a1a1a]">
         <div className="max-w-[90rem] mx-auto w-full grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16 items-start">
-          
+
           {/* Colonne Gauche: Questions (COMPACTE - 4 Cols) */}
           <div className="md:col-span-4 flex flex-col gap-0 w-full">
             <div className="mb-12">
-               <span className="text-[10px] uppercase tracking-[0.6em] text-[#9C8268] block mb-12 font-bold">Le Savoir</span>
-               <h2 className="font-serif text-5xl md:text-7xl font-light italic text-[#1a1a1a] leading-tight">
-                 Réponses <br/> Rapides
-               </h2>
+              <span className="text-[10px] uppercase tracking-[0.6em] text-[#9C8268] block mb-12 font-bold">Le Savoir</span>
+              <h2 className="font-serif text-5xl md:text-7xl font-light italic text-[#1a1a1a] leading-tight">
+                Réponses <br /> Rapides
+              </h2>
             </div>
-            
+
             <div className="flex flex-col gap-0 w-full">
-               {faqItems.map((item, index) => (
-                 <AccordionItem
-                   key={index}
-                   question={item.q}
-                   answer={item.a}
-                   isOpen={openFaqIndex === index}
-                   onClick={() => setOpenFaqIndex(openFaqIndex === index ? -1 : index)}
-                 />
-               ))}
+              {faqItems.map((item, index) => (
+                <AccordionItem
+                  key={index}
+                  question={item.q}
+                  answer={item.a}
+                  isOpen={openFaqIndex === index}
+                  onClick={() => setOpenFaqIndex(openFaqIndex === index ? -1 : index)}
+                />
+              ))}
             </div>
           </div>
 
           {/* Colonne Droite: Image Immersive (LARGE - 8 Cols) */}
           <div className="md:col-span-8 relative h-full min-h-[60vh] hidden md:block">
-             <div className="sticky top-20 w-full aspect-square overflow-hidden bg-white shadow-2xl">
-                <img
-                  src="https://images.unsplash.com/photo-1610701596007-11502861dcfa?q=80&w=1600"
-                  alt="Détail savoir-faire"
-                  className="w-full h-full object-cover scale-110 hover:scale-100 transition-transform duration-[2s] ease-out grayscale hover:grayscale-0"
-                />
-                <div className="absolute bottom-10 left-10 text-white mix-blend-difference pointer-events-none z-10">
-                    <span className="block text-[11px] uppercase tracking-widest font-bold">L'Atelier • Normandie</span>
-                </div>
-             </div>
+            <div className="sticky top-20 w-full aspect-square overflow-hidden bg-white shadow-2xl">
+              <img
+                src="https://images.unsplash.com/photo-1610701596007-11502861dcfa?q=80&w=1600"
+                alt="Détail savoir-faire"
+                className="w-full h-full object-cover scale-110 hover:scale-100 transition-transform duration-[2s] ease-out grayscale hover:grayscale-0"
+              />
+              <div className="absolute bottom-10 left-10 text-white mix-blend-difference pointer-events-none z-10">
+                <span className="block text-[11px] uppercase tracking-widest font-bold">L'Atelier • Normandie</span>
+              </div>
+            </div>
           </div>
 
         </div>
@@ -923,23 +944,23 @@ const App = ({ onEnterMarketplace }) => {
       {/* FOOTER */}
       <footer className="bg-[#111] text-white pt-60 pb-12 px-8 md:px-[10vw] relative z-10">
         <div className="flex flex-col md:flex-row justify-between items-start gap-40 mb-60 relative z-10 text-white">
-            <div className="max-w-5xl">
-                <span className="text-[10px] uppercase tracking-[1em] text-[#9C8268] mb-12 block italic font-black">Inquiry</span>
-                <h2 className="font-serif text-7xl md:text-[15vw] leading-[0.85] font-light italic hover:translate-x-12 transition-transform duration-1000 cursor-pointer text-white">Éveiller <br /> l'Immobile.</h2>
+          <div className="max-w-5xl">
+            <span className="text-[10px] uppercase tracking-[1em] text-[#9C8268] mb-12 block italic font-black">Inquiry</span>
+            <h2 className="font-serif text-7xl md:text-[15vw] leading-[0.85] font-light italic hover:translate-x-12 transition-transform duration-1000 cursor-pointer text-white">Éveiller <br /> l'Immobile.</h2>
+          </div>
+          <div className="flex flex-col gap-32">
+            <div className="space-y-12">
+              <a href="mailto:atelier@tousatable.fr" className="text-3xl md:text-5xl font-light italic hover:text-[#9C8268] transition-colors border-b border-white/5 pb-2">atelier@tousatable.fr</a>
             </div>
-            <div className="flex flex-col gap-32">
-                <div className="space-y-12">
-                    <a href="mailto:atelier@tousatable.fr" className="text-3xl md:text-5xl font-light italic hover:text-[#9C8268] transition-colors border-b border-white/5 pb-2">atelier@tousatable.fr</a>
-                </div>
-                <div className="flex gap-20 items-center opacity-40 hover:opacity-100 transition-opacity">
-                   <Instagram size={36} className="text-white" />
-                   <span className="text-[11px] uppercase tracking-[0.8em] italic font-medium">Journal de l'Artisan</span>
-                </div>
+            <div className="flex gap-20 items-center opacity-40 hover:opacity-100 transition-opacity">
+              <Instagram size={36} className="text-white" />
+              <span className="text-[11px] uppercase tracking-[0.8em] italic font-medium">Journal de l'Artisan</span>
             </div>
+          </div>
         </div>
         <div className="pt-32 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-12 opacity-20 text-[10px] uppercase tracking-[0.5em] font-light relative z-10">
-            <span>Tous à Table — Artisans du Patrimoine — Caen, FR — 2024</span>
-            <div className="flex gap-20 lowercase underline underline-offset-4 font-black tracking-widest"><span>privacy policy</span><span>legal mentions</span></div>
+          <span>Tous à Table — Artisans du Patrimoine — Caen, FR — 2024</span>
+          <div className="flex gap-20 lowercase underline underline-offset-4 font-black tracking-widest"><span>privacy policy</span><span>legal mentions</span></div>
         </div>
       </footer>
     </div>
