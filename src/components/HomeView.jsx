@@ -304,8 +304,8 @@ const App = ({ onEnterMarketplace }) => {
         const tlIntro = gsap.timeline({
           scrollTrigger: {
             trigger: ".process-wrapper",
-            start: "top 75%",
-            toggleActions: "play none none reverse" // Play est plus sûr que Restart ici
+            start: window.innerWidth < 768 ? "top 60%" : "top 75%", // Trigger ajusté pour mobile (plus tard)
+            toggleActions: "play none none reverse"
           }
         });
 
@@ -320,12 +320,22 @@ const App = ({ onEnterMarketplace }) => {
 
         // 2. Animation individuelle pour les suivantes (Horizontal Scroll)
         gsap.utils.toArray('.process-card').forEach((card, i) => {
-          if (i <= 1) return; // On saute les 2 premières gérées au dessus
+          if (i <= 1) return;
 
-          const triggerConfig = { trigger: card, containerAnimation: xAnim, start: "left 90%", toggleActions: "play none none reverse" };
+          const img = card.querySelector('.img-box-process');
 
-          gsap.from(card.querySelector('.img-box-process'), {
-            opacity: 0, scale: 0.95, y: 40, duration: 0.6, ease: "power2.out", scrollTrigger: triggerConfig
+          // Uniformisation avec les deux premières : on set l'état initial
+          gsap.set(img, { y: 40, opacity: 0, scale: 0.95 });
+
+          const triggerConfig = {
+            trigger: card,
+            containerAnimation: xAnim,
+            start: "left 100%", // Démarrage immédiat dès l'entrée dans l'écran (plus réactif)
+            toggleActions: "play none none reverse"
+          };
+
+          gsap.to(img, {
+            y: 0, opacity: 1, scale: 1, duration: 0.6, ease: "power2.out", scrollTrigger: triggerConfig
           });
         });
       }
