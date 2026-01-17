@@ -528,32 +528,31 @@ const App = ({ onEnterMarketplace }) => {
       <div className="three-container fixed inset-0 pointer-events-none z-0" ref={canvasRef}></div>
 
       {/* NAVIGATION */}
-      <header className="fixed top-0 left-0 w-full p-8 md:p-12 flex justify-between items-center z-[100] mix-blend-difference text-white">
+      <header className="fixed top-0 left-0 w-full p-8 md:p-12 flex justify-between items-center z-[210] mix-blend-difference text-white">
         <div className="flex items-center gap-3 cursor-pointer group" onClick={() => window.scrollTo({top:0, behavior:'smooth'})}>
           <Hammer size={18} className="group-hover:rotate-45 transition-transform duration-500" />
           <span className="font-serif text-xl tracking-widest uppercase font-light italic text-white">Tous à Table</span>
         </div>
         
         {/* BOUTON MENU ANIMÉ */}
-        <button onClick={() => setIsMenuOpen(true)} className="flex items-center gap-4 group focus:outline-none">
-          <span className="text-[9px] uppercase tracking-[0.4em] opacity-40 group-hover:opacity-100 transition-opacity text-white">Menu</span>
+        <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="flex items-center gap-4 group focus:outline-none">
+          <span className={`text-[9px] uppercase tracking-[0.4em] transition-opacity duration-500 ${isMenuOpen ? 'opacity-100' : 'opacity-40 group-hover:opacity-100'}`}>Menu</span>
           
-          {/* NOUVELLE ANIMATION SANDWICH - ÉLÉGANTE ET FLUIDE */}
-          <div className="flex flex-col gap-1.5 w-6 group-hover:gap-2.5 transition-all duration-500 ease-out">
-            <span className="w-full h-[1px] bg-white transition-all duration-500 group-hover:w-3/4 self-end"></span>
-            <span className="w-full h-[1px] bg-white transition-all duration-500"></span>
-            <span className="w-full h-[1px] bg-white transition-all duration-500 group-hover:w-1/2 self-end"></span>
+          {/* ANIMATION HAMBURGER -> CROIX */}
+          <div className="w-6 h-4 flex flex-col justify-between">
+            <span className={`block w-full h-[1px] bg-white transition-all duration-500 ease-in-out will-change-transform ${isMenuOpen ? 'rotate-45 translate-y-[7px]' : ''}`}></span>
+            <span className={`block w-full h-[1px] bg-white transition-all duration-500 ease-in-out will-change-transform ${isMenuOpen ? 'opacity-0' : 'opacity-100'}`}></span>
+            <span className={`block w-full h-[1px] bg-white transition-all duration-500 ease-in-out will-change-transform ${isMenuOpen ? '-rotate-45 -translate-y-[7px]' : ''}`}></span>
           </div>
         </button>
       </header>
 
       {/* MENU */}
       <div className={`fixed inset-0 z-[200] flex transition-all duration-1000 ${isMenuOpen ? 'visible' : 'invisible'}`}>
-        <div className={`absolute inset-0 bg-[#111]/95 backdrop-blur-xl transition-opacity duration-1000 ${isMenuOpen ? 'opacity-100' : 'opacity-0'}`} onClick={() => setIsMenuOpen(false)}></div>
+        <div className={`absolute inset-0 bg-[#111]/95 backdrop-blur-xl transition-opacity duration-1000 ${isMenuOpen ? 'opacity-100' : 'opacity-0'}`}></div>
         <div className={`relative h-full w-full flex flex-col items-center justify-center transform transition-transform duration-1000 ${isMenuOpen ? 'translate-y-0' : 'translate-y-full'}`}>
-          <X className="absolute top-12 right-12 cursor-pointer text-white/20 hover:text-white transition-all" size={32} onClick={() => setIsMenuOpen(false)} />
           <div className="flex flex-col items-center gap-12 text-white">
-            <button onClick={() => {}} className="font-serif text-5xl md:text-9xl font-light hover:italic hover:text-[#9C8268] transition-all bg-transparent border-none text-white cursor-pointer opacity-50 cursor-default">
+            <button onClick={() => handleNavigation('marketplace')} className="font-serif text-5xl md:text-9xl font-light hover:italic hover:text-[#9C8268] transition-all bg-transparent border-none text-white cursor-pointer">
               Marketplace
             </button>
             <button onClick={() => handleNavigation('.featured-section')} className="font-serif text-5xl md:text-9xl font-light hover:italic hover:text-[#9C8268] transition-all bg-transparent border-none text-white cursor-pointer">
