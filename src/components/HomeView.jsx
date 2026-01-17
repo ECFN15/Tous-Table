@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
-import { Hammer, Menu, X, ArrowRight, Instagram, ArrowDown, Star, Zap, Plus } from 'lucide-react';
+import { Hammer, Menu, X, ArrowRight, Instagram, ArrowDown, Star, Zap, Plus, Minus } from 'lucide-react';
 import * as THREE from 'three';
 
 // --- COMPOSANT : REVEAL TEXT (CORRIGÉ & ÉLARGI) ---
@@ -97,6 +97,23 @@ const App = ({ onEnterMarketplace }) => {
   
   // State pour la FAQ
   const [openFaqIndex, setOpenFaqIndex] = useState(0);
+
+  // --- NAVIGATION SMOOTH ---
+  const handleNavigation = (selector) => {
+    setIsMenuOpen(false);
+    setTimeout(() => {
+      const element = document.querySelector(selector);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      } else if (selector === 'marketplace') {
+         // Fallback si onEnterMarketplace est utilisé pour une autre logique
+         if(onEnterMarketplace) onEnterMarketplace();
+         // Sinon on scroll vers la section featured
+         const feat = document.querySelector('.featured-section');
+         if(feat) feat.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 500); // Petit délai pour laisser le menu se fermer
+  };
 
   // --- CHARGEMENT DYNAMIQUE DES SCRIPTS ---
   useEffect(() => {
@@ -516,9 +533,17 @@ const App = ({ onEnterMarketplace }) => {
           <Hammer size={18} className="group-hover:rotate-45 transition-transform duration-500" />
           <span className="font-serif text-xl tracking-widest uppercase font-light italic text-white">Tous à Table</span>
         </div>
+        
+        {/* BOUTON MENU ANIMÉ */}
         <button onClick={() => setIsMenuOpen(true)} className="flex items-center gap-4 group focus:outline-none">
           <span className="text-[9px] uppercase tracking-[0.4em] opacity-40 group-hover:opacity-100 transition-opacity text-white">Menu</span>
-          <Menu size={20} className="text-white" />
+          
+          {/* NOUVELLE ANIMATION SANDWICH - ÉLÉGANTE ET FLUIDE */}
+          <div className="flex flex-col gap-1.5 w-6 group-hover:gap-2.5 transition-all duration-500 ease-out">
+            <span className="w-full h-[1px] bg-white transition-all duration-500 group-hover:w-3/4 self-end"></span>
+            <span className="w-full h-[1px] bg-white transition-all duration-500"></span>
+            <span className="w-full h-[1px] bg-white transition-all duration-500 group-hover:w-1/2 self-end"></span>
+          </div>
         </button>
       </header>
 
@@ -528,11 +553,15 @@ const App = ({ onEnterMarketplace }) => {
         <div className={`relative h-full w-full flex flex-col items-center justify-center transform transition-transform duration-1000 ${isMenuOpen ? 'translate-y-0' : 'translate-y-full'}`}>
           <X className="absolute top-12 right-12 cursor-pointer text-white/20 hover:text-white transition-all" size={32} onClick={() => setIsMenuOpen(false)} />
           <div className="flex flex-col items-center gap-12 text-white">
-            {['La Philosophie', 'Galerie des Meubles', 'L\'Atelier', 'Contact'].map((item) => (
-              <a key={item} href="#" className="font-serif text-5xl md:text-9xl font-light hover:italic hover:text-[#9C8268] transition-all">
-                {item}
-              </a>
-            ))}
+            <button onClick={() => {}} className="font-serif text-5xl md:text-9xl font-light hover:italic hover:text-[#9C8268] transition-all bg-transparent border-none text-white cursor-pointer opacity-50 cursor-default">
+              Marketplace
+            </button>
+            <button onClick={() => handleNavigation('.featured-section')} className="font-serif text-5xl md:text-9xl font-light hover:italic hover:text-[#9C8268] transition-all bg-transparent border-none text-white cursor-pointer">
+              En vedette
+            </button>
+            <button onClick={() => handleNavigation('footer')} className="font-serif text-5xl md:text-9xl font-light hover:italic hover:text-[#9C8268] transition-all bg-transparent border-none text-white cursor-pointer">
+              Contact
+            </button>
           </div>
         </div>
       </div>
