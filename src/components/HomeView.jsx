@@ -158,7 +158,7 @@ const App = ({ onEnterMarketplace }) => {
     }, 20); // 100 * 20ms = 2000ms (2 secondes)
 
     // Logique de fin de chargement
-    const minTime = new Promise(resolve => setTimeout(resolve, 2200));
+    const minTime = new Promise(resolve => setTimeout(resolve, 2000));
     const resources = document.fonts.ready; // Attente des polices
 
     Promise.all([minTime, resources]).then(() => {
@@ -183,9 +183,22 @@ const App = ({ onEnterMarketplace }) => {
         })
           .to('.preloader-overlay', {
             yPercent: -100,
-            duration: 1.5, // SLOWER: Premium curtain lift (1.5s)
+            duration: 1.4, // Slightly adjusted for snappier feel
             ease: "power4.inOut"
-          });
+          }, "-=0.5") // Overlap with counter fade -> NO WHITE SCREEN DELAY
+          .to('.hero-section .reveal-inner', {
+            y: "0%",
+            duration: 1.4,
+            ease: "power4.out",
+            stagger: 0
+          }, "-=1.1") // Starts while curtain is lifting (early reveal)
+          .to('.hero-footer-element', {
+            opacity: 1,
+            y: 0,
+            duration: 1.2,
+            stagger: 0.2,
+            ease: "power3.out"
+          }, "-=1.0"); // Flows immediately after title starts
       }
     });
 
@@ -308,38 +321,12 @@ const App = ({ onEnterMarketplace }) => {
     return () => ctx.revert();
   }, [scriptsLoaded]);
 
-  // 2. TRIGGER: Play animation when loading finishes
-  useEffect(() => {
-    if (!isLoading && scriptsLoaded) {
-      // Allow a tiny frame for the preloader to clear fully
-      // "HARMONIZED" SEQUENCE: Curtain -> Pause -> Title -> Footer
+  // 2. TRIGGER: (LOGIC MOVED TO LOAD TIMELINE FOR BETTER SYNC)
+  // The separate useEffect for title/footer reveal has been removed to eliminate the delay gap.
 
-      // 1. Title Reveal (Starts after curtain is mostly up)
-      // Delay reduced to 0.2s per user request ("1.5 instead of 2")
-      gsap.to('.hero-section .reveal-inner', {
-        y: "0%",
-        duration: 1.4, // Keep slow/premium duration
-        ease: "power4.out",
-        stagger: 0,
-        delay: 0.2,
-        overwrite: true
-      });
-
-      // 2. Footer Reveal (Starts after title is mostly settled)
-      gsap.to('.hero-footer-element', {
-        opacity: 1,
-        y: 0,
-        duration: 1.2,
-        stagger: 0.2,
-        delay: 1.1, // Adjusted to follow title
-        ease: "power3.out",
-        overwrite: true
-      });
-    }
-  }, [isLoading, scriptsLoaded]);
 
   // --- GSAP ORCHESTRATION ---
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!scriptsLoaded) return;
     const { gsap, ScrollTrigger } = window;
 
@@ -403,49 +390,35 @@ const App = ({ onEnterMarketplace }) => {
           }
         });
 
-        // 1. Animation groupée via Timeline (Robustesse : set + to)
+        // UNIFIED ANIMATION LOOP (ALL cards use horizontal trigger)
         const cards = gsap.utils.toArray('.process-card');
-        const img1 = cards[0].querySelector('.img-box-process');
-        const img2 = cards[1].querySelector('.img-box-process');
 
-        // On force l'état initial (caché)
-        gsap.set([img1, img2], { y: 40, opacity: 0, scale: 0.95 });
-
-        const tlIntro = gsap.timeline({
-          scrollTrigger: {
-            trigger: ".process-wrapper",
-            start: window.innerWidth < 768 ? "top 60%" : "top 75%", // Trigger ajusté pour mobile (plus tard)
-            toggleActions: "play none none reverse"
-          }
-        });
-
-        tlIntro
-          .to(img1, {
-            y: 0, opacity: 1, scale: 1, duration: 0.4, ease: "power2.out"
-          })
-          .to(img2, {
-            y: 0, opacity: 1, scale: 1, duration: 0.4, ease: "power2.out"
-          }, ">+0.2");
-
-
-        // 2. Animation individuelle pour les suivantes (Horizontal Scroll)
-        gsap.utils.toArray('.process-card').forEach((card, i) => {
-          if (i <= 1) return;
-
+        cards.forEach((card, i) => {
           const img = card.querySelector('.img-box-process');
 
-          // Uniformisation avec les deux premières : on set l'état initial
+          // 1. Force Initial State (Hidden)
           gsap.set(img, { y: 40, opacity: 0, scale: 0.95 });
 
+          // 2. TRIGGER: Always use containerAnimation
+          // This ensures that even if Card 1 is off-screen on mobile, it waits for the horizontal scroll.
+          // On Desktop, if it's already on-screen, "left 100%" is already true, so it fires immediately.
           const triggerConfig = {
             trigger: card,
             containerAnimation: xAnim,
-            start: "left 100%", // Démarrage immédiat dès l'entrée dans l'écran (plus réactif)
+            start: "left 100%", // Trigger exactly when entering viewport
             toggleActions: "play none none reverse"
           };
 
+          // 3. Create Animation
           gsap.to(img, {
-            y: 0, opacity: 1, scale: 1, duration: 0.4, ease: "power2.out", scrollTrigger: triggerConfig
+            y: 0,
+            opacity: 1,
+            scale: 1,
+            duration: 0.5,
+            ease: "power2.out",
+            // Small stagger for the second card if it's visible simultaneously on desktop
+            delay: (i === 1 && window.innerWidth > 768) ? 0.2 : 0,
+            scrollTrigger: triggerConfig
           });
         });
       }
@@ -785,17 +758,17 @@ const App = ({ onEnterMarketplace }) => {
             <div key={i} className={`process-card flex-shrink-0 relative ${step.w} flex flex-col justify-center group`}>
 
               {/* Numéro flottant "Architectural" - REDUIT SUR MOBILE */}
-              <div className="absolute -top-12 -left-4 md:-left-10 z-30 pointer-events-none select-none mix-blend-difference">
+              <div className="absolute -top-12 -left-4 md:-left-10 z-30 pointer-events-none select-none text-[#9C8268] mix-blend-normal md:text-[#FAF9F6] md:mix-blend-difference">
                 <span className="font-serif text-[6rem] md:text-[12rem] leading-none text-stroke-1 italic">{step.n}</span>
               </div>
 
               {/* Conteneur Image */}
               <div className={`img-box-process ${step.h} w-full border border-white/10 relative overflow-hidden transition-all duration-700 group-hover:border-white/30 z-10`}>
-                <div className="absolute inset-0 z-10 bg-[#0D0D0D]/30 group-hover:bg-transparent transition-colors duration-700"></div>
-                <img src={step.main} alt={step.t} className="p-img-inner w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 scale-100 will-change-transform" />
+                <div className="absolute inset-0 z-10 bg-transparent md:bg-[#0D0D0D]/30 md:group-hover:bg-transparent transition-colors duration-700"></div>
+                <img src={step.main} alt={step.t} className="p-img-inner w-full h-full object-cover grayscale-0 md:grayscale md:group-hover:grayscale-0 transition-all duration-1000 scale-100 will-change-transform" />
 
                 {/* Tag technique au survol */}
-                <div className="absolute bottom-6 right-6 z-20 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-700 delay-100">
+                <div className="absolute bottom-6 right-6 z-20 opacity-100 translate-y-0 md:opacity-0 md:translate-y-4 md:group-hover:opacity-100 md:group-hover:translate-y-0 transition-all duration-700 delay-100">
                   <span className="text-[10px] uppercase tracking-widest bg-[#111] px-4 py-2 border border-[#9C8268] text-white font-medium shadow-xl">{step.info}</span>
                 </div>
               </div>
