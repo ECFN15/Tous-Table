@@ -1,0 +1,126 @@
+/* GLOBAL STYLES & UTILITIES */
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  margin: 0;
+  overflow-x: hidden;
+  background-color: #faf9f6;
+}
+
+.font-serif {
+  font-family: 'Cormorant Garamond', serif;
+}
+
+/* Custom Utilities from HomeView */
+#main-cursor {
+  position: fixed;
+  width: 6px;
+  height: 6px;
+  background: currentColor;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  mix-blend-mode: difference;
+}
+
+.will-change-transform {
+  will-change: transform;
+}
+
+.img-parallax {
+  position: relative;
+  overflow: hidden;
+}
+
+.img-parallax img {
+  transform: scale(1.1);
+  will-change: transform;
+  transition: transform 1.5s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.img-parallax:hover img {
+  transform: scale(1.05);
+}
+
+/* PROCESS STYLES */
+.img-box-process {
+  position: relative;
+  overflow: hidden;
+  background: #0D0D0D;
+}
+
+/* TEXT STROKE */
+.text-stroke-1 {
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.8);
+  color: transparent;
+  transition: all 0.5s ease;
+}
+
+.group:hover .text-stroke-1 {
+  -webkit-text-stroke: 0px;
+  color: #9C8268;
+  transform: translateY(-10px);
+}
+
+.team-mask-shutter {
+  position: absolute;
+  inset: 0;
+  background: #FAF9F6;
+  transform-origin: bottom;
+  z-index: 10;
+  transform: scaleY(1);
+}
+
+@keyframes spin-extremely-slow {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-extremely-slow {
+  animation: spin-extremely-slow 40s linear infinite;
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 12s linear infinite;
+}
+
+@keyframes marquee-fast {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee-fast 30s linear infinite;
+  display: flex;
+  width: max-content;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

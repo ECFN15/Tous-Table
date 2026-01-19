@@ -141,6 +141,57 @@ const App = ({ onEnterMarketplace }) => {
     });
   }, []);
 
+  // --- PRELOADER STATE ---
+  const [isLoading, setIsLoading] = useState(true);
+  const [counter, setCounter] = useState(0);
+
+  useEffect(() => {
+    // Compteur esthétique
+    const interval = setInterval(() => {
+      setCounter(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          return 100;
+        }
+        return prev + 1;
+      });
+    }, 20); // 100 * 20ms = 2000ms (2 secondes)
+
+    // Logique de fin de chargement
+    const minTime = new Promise(resolve => setTimeout(resolve, 2200));
+    const resources = document.fonts.ready; // Attente des polices
+
+    Promise.all([minTime, resources]).then(() => {
+      if (scriptsLoaded) {
+        // Blocage du scroll PENDANT le chargement
+        document.body.style.overflow = 'hidden';
+
+        // Animation de sortie du preloader
+        const tlLoader = window.gsap.timeline({
+          onComplete: () => {
+            setIsLoading(false);
+            document.body.style.overflow = ''; // Release scroll
+            // REFRESH AUTOMATIQUE: On laisse GSAP gérer, le force refresh manuel cause un lag visible.
+          }
+        });
+
+        tlLoader.to('.preloader-count', {
+          opacity: 0,
+          y: -20,
+          duration: 0.5,
+          ease: "power2.out"
+        })
+          .to('.preloader-overlay', {
+            yPercent: -100,
+            duration: 1.5, // SLOWER: Premium curtain lift (1.5s)
+            ease: "power4.inOut"
+          });
+      }
+    });
+
+    return () => clearInterval(interval);
+  }, [scriptsLoaded]);
+
   // --- INITIALISATION LENIS ---
   useEffect(() => {
     if (!scriptsLoaded) return;
@@ -149,11 +200,11 @@ const App = ({ onEnterMarketplace }) => {
     const isMobile = window.innerWidth < 1024;
 
     const lenis = new window.Lenis({
-      duration: isMobile ? 0.8 : 1.2, // Mobile: Durée courte pour arrêter l'inertie rapidement
+      duration: isMobile ? 0.5 : 1.2, // Mobile: Durée courte pour arrêter l'inertie rapidement
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
       smoothTouch: true, // IMPORTANT: Force Lenis à gérer le scroll tactile pour appliquer nos réglages
-      touchMultiplier: isMobile ? 0.45 : 2, // Mobile: Très faible sensibilité (scrolling "lourd")
+      touchMultiplier: isMobile ? 0.8 : 2, // Mobile: Sensibilité naturelle mais contrôlée
     });
 
     function raf(time) {
@@ -205,11 +256,14 @@ const App = ({ onEnterMarketplace }) => {
 
     let animationId;
     const animate = () => {
+      // OPTIM: Pause rendering if loading to free up CPU for init
+      // On utilise une ref ou check direct, ici on laisse tourner mais on réduit la charge si besoin
       mesh.rotation.x += 0.0008;
       mesh.rotation.y += 0.0012;
       renderer.render(scene, camera);
       animationId = requestAnimationFrame(animate);
     };
+    // Démarrage immédiat pour éviter l'effet de "toggling" ou d'absence au reveal
     animate();
 
     const handleResize = () => {
@@ -233,32 +287,63 @@ const App = ({ onEnterMarketplace }) => {
         canvasRef.current.removeChild(renderer.domElement);
       }
       geometry.dispose();
-      material.dispose();
       renderer.dispose();
     };
-  }, []);
+  }, []); // THREE.JS: Init ONCE on mount. Runs behind preloader. No dependency on isLoading to avoid re-init bugs.
+
+  // Ref to store the Hero timeline so we can play it later
+  // --- GSAP ORCHESTRATION (SIMPLIFIED & ROBUST) ---
+  const tlHeroRef = useRef(null); // Keep ref definition to avoid breaking other code if referenced, but we won't strictly use it for the timeline.
+
+  useLayoutEffect(() => {
+    if (!scriptsLoaded) return;
+
+    const ctx = gsap.context(() => {
+      // 1. SETUP: Force hidden state immediately
+      // Using 200% to ensure text fully clears the container padding (prevents "frozen top" glitch)
+      gsap.set('.hero-section .reveal-inner', { y: "200%" });
+      gsap.set('.hero-footer-element', { opacity: 0, y: 20 });
+    }, componentRef);
+
+    return () => ctx.revert();
+  }, [scriptsLoaded]);
+
+  // 2. TRIGGER: Play animation when loading finishes
+  useEffect(() => {
+    if (!isLoading && scriptsLoaded) {
+      // Allow a tiny frame for the preloader to clear fully
+      // "HARMONIZED" SEQUENCE: Curtain -> Pause -> Title -> Footer
+
+      // 1. Title Reveal (Starts after curtain is mostly up)
+      // Delay reduced to 0.2s per user request ("1.5 instead of 2")
+      gsap.to('.hero-section .reveal-inner', {
+        y: "0%",
+        duration: 1.4, // Keep slow/premium duration
+        ease: "power4.out",
+        stagger: 0,
+        delay: 0.2,
+        overwrite: true
+      });
+
+      // 2. Footer Reveal (Starts after title is mostly settled)
+      gsap.to('.hero-footer-element', {
+        opacity: 1,
+        y: 0,
+        duration: 1.2,
+        stagger: 0.2,
+        delay: 1.1, // Adjusted to follow title
+        ease: "power3.out",
+        overwrite: true
+      });
+    }
+  }, [isLoading, scriptsLoaded]);
 
   // --- GSAP ORCHESTRATION ---
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (!scriptsLoaded) return;
     const { gsap, ScrollTrigger } = window;
 
     const ctx = gsap.context(() => {
-      // 1. Entrée Hero
-      const tlHero = gsap.timeline({ defaults: { ease: "power3.out" } });
-      tlHero.to('.reveal-inner', {
-        y: 0,
-        stagger: 0.15,
-        duration: 1.6,
-        delay: 0.2
-      })
-        .from('.hero-footer-element', {
-          opacity: 0,
-          y: 20,
-          duration: 0.8, // Faster duration
-          stagger: 0.1
-        }, ">-0.2"); // Starts 0.2s before the end of the previous animation (almost after)
-
       // 2. Disparition 3D
       gsap.to('.three-container', {
         opacity: 0,
@@ -270,6 +355,7 @@ const App = ({ onEnterMarketplace }) => {
           scrub: true
         }
       });
+
 
       // 3. Themes Couleurs
       const themes = [
@@ -286,8 +372,8 @@ const App = ({ onEnterMarketplace }) => {
           trigger: theme.trigger,
           start: "top 80%",
           end: "bottom 20%",
-          onEnter: () => gsap.to('body', { backgroundColor: theme.bg, color: theme.color, duration: 0.8, ease: "power2.inOut" }),
-          onEnterBack: () => gsap.to('body', { backgroundColor: theme.bg, color: theme.color, duration: 0.8, ease: "power2.inOut" }),
+          onEnter: () => gsap.to(document.body, { backgroundColor: theme.bg, color: theme.color, duration: 0.8, ease: "power2.inOut" }),
+          onEnterBack: () => gsap.to(document.body, { backgroundColor: theme.bg, color: theme.color, duration: 0.8, ease: "power2.inOut" }),
         });
       });
 
@@ -309,7 +395,7 @@ const App = ({ onEnterMarketplace }) => {
           scrollTrigger: {
             trigger: ".process-wrapper",
             start: "top top",
-            end: () => "+=" + distanceToScroll,
+            end: () => "+=" + (distanceToScroll * 2.0),
             pin: true,
             scrub: 1,
             invalidateOnRefresh: true,
@@ -335,11 +421,11 @@ const App = ({ onEnterMarketplace }) => {
 
         tlIntro
           .to(img1, {
-            y: 0, opacity: 1, scale: 1, duration: 0.6, ease: "power2.out"
+            y: 0, opacity: 1, scale: 1, duration: 0.4, ease: "power2.out"
           })
           .to(img2, {
-            y: 0, opacity: 1, scale: 1, duration: 0.6, ease: "power2.out"
-          }, ">+0.3");
+            y: 0, opacity: 1, scale: 1, duration: 0.4, ease: "power2.out"
+          }, ">+0.2");
 
 
         // 2. Animation individuelle pour les suivantes (Horizontal Scroll)
@@ -359,7 +445,7 @@ const App = ({ onEnterMarketplace }) => {
           };
 
           gsap.to(img, {
-            y: 0, opacity: 1, scale: 1, duration: 0.6, ease: "power2.out", scrollTrigger: triggerConfig
+            y: 0, opacity: 1, scale: 1, duration: 0.4, ease: "power2.out", scrollTrigger: triggerConfig
           });
         });
       }
@@ -373,7 +459,7 @@ const App = ({ onEnterMarketplace }) => {
           scrollTrigger: {
             trigger: ".featured-section",
             start: "top top",
-            end: () => "+=" + (window.innerHeight * cards.length),
+            end: () => "+=" + (window.innerHeight * cards.length * 1.5),
             pin: true,
             scrub: 1,
             anticipatePin: 1
@@ -382,14 +468,33 @@ const App = ({ onEnterMarketplace }) => {
 
         cards.forEach((card, i) => {
           const img = card.querySelector('.feat-img-anim');
+          const text = card.querySelectorAll('.reveal-inner'); // Select text for timeline integration
+
           if (img) gsap.set(img, { scale: 1.2 });
 
-          if (i === 0) return;
+          if (i === 0) {
+            // For the first card (which is static), we need a separate trigger because it doesn't move in the timeline
+            ScrollTrigger.create({
+              trigger: card,
+              start: "top 60%",
+              onEnter: () => gsap.to(text, { y: 0, duration: 1.0, ease: "power3.out", stagger: 0.1 })
+            });
+            return;
+          }
 
           tlStack.fromTo(card,
             { yPercent: 100 },
-            { yPercent: 0, ease: "none", duration: 1 }
+            { yPercent: 0, ease: "none", duration: 1 },
+            ">+=0.5" // DELAY: "Freeze" effect - wait 0.5s before starting next card
           );
+
+          // REVEAL TEXT: Integrated into timeline to guarantee visibility when card arrives
+          tlStack.to(text, {
+            y: 0,
+            duration: 0.8,
+            ease: "power3.out",
+            stagger: 0.05
+          }, ">-0.5"); // Start revealing text slightly before card finishes settling
 
           const prevCard = cards[i - 1];
           const prevContent = prevCard.querySelector('.card-inner-content');
@@ -403,15 +508,7 @@ const App = ({ onEnterMarketplace }) => {
           }, "<");
         });
 
-        cards.forEach((card) => {
-          const text = card.querySelectorAll('.reveal-inner');
-          ScrollTrigger.create({
-            trigger: card,
-            containerAnimation: tlStack,
-            start: "top 60%",
-            onEnter: () => gsap.to(text, { y: 0, opacity: 1, duration: 0.8, stagger: 0.1 })
-          });
-        });
+        // (Removed separate ScrollTrigger loop for text)
 
         // EFFET TRANSPARENCE HEADER (AJOUTÉ ICI)
         ScrollTrigger.create({
@@ -531,53 +628,14 @@ const App = ({ onEnterMarketplace }) => {
 
   return (
     <div ref={componentRef} className="bg-[#FAF9F6] text-[#1a1a1a] transition-colors duration-700 antialiased">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Plus+Jakarta+Sans:wght@200;300;400;500;600&display=swap');
-        
-        body { font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; overflow-x: hidden; }
-        .font-serif { font-family: 'Cormorant Garamond', serif; }
-        
-        #main-cursor {
-          position: fixed; width: 6px; height: 6px; background: currentColor;
-          border-radius: 50%; pointer-events: none; z-index: 9999;
-          transform: translate(-50%, -50%); mix-blend-mode: difference;
-        }
 
-        .will-change-transform { will-change: transform; }
-        .img-parallax { position: relative; overflow: hidden; }
-        .img-parallax img { transform: scale(1.1); will-change: transform; transition: transform 1.5s cubic-bezier(0.19, 1, 0.22, 1); }
-        .img-parallax:hover img { transform: scale(1.05); }
 
-        /* PROCESS SYLES */
-        .img-box-process { position: relative; overflow: hidden; background: #0D0D0D; }
-        
-        /* CHIFFRES ROMAINS: Design "Bijou" Élégant */
-        .text-stroke-1 {
-           -webkit-text-stroke: 1px rgba(255,255,255,0.8); /* Contour blanc plus fin et net */
-           color: transparent;
-           transition: all 0.5s ease;
-        }
-        .group:hover .text-stroke-1 {
-           -webkit-text-stroke: 0px;
-           color: #9C8268; /* Devient or plein au survol */
-           transform: translateY(-10px); /* Léger mouvement d'élévation */
-        }
-
-        .team-mask-shutter { position: absolute; inset: 0; background: #FAF9F6; transform-origin: bottom; z-index: 10; transform: scaleY(1); }
-
-        @keyframes spin-extremely-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .animate-spin-extremely-slow { animation: spin-extremely-slow 40s linear infinite; }
-
-        /* Animation pour le bouton rotatif */
-        @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .animate-spin-slow { animation: spin-slow 12s linear infinite; }
-
-        @keyframes marquee-fast { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-        .animate-marquee { animation: marquee-fast 30s linear infinite; display: flex; width: max-content; }
-        
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-      `}</style>
+      {/* --- PRELOADER --- */}
+      <div className="preloader-overlay fixed inset-0 z-[9999] bg-[#FAF9F6] flex flex-col items-center justify-center text-[#1a1a1a]">
+        <div className="preloader-count font-serif text-8xl md:text-9xl italic font-light mix-blend-darken">
+          {counter}
+        </div>
+      </div>
 
       <div id="main-cursor" ref={cursorRef}></div>
       <div className="three-container fixed inset-0 pointer-events-none z-0" ref={canvasRef}></div>
@@ -630,14 +688,14 @@ const App = ({ onEnterMarketplace }) => {
           </div>
         </h1>
 
-        <div className="absolute bottom-20 md:bottom-12 left-0 w-full px-8 md:px-[10vw] flex flex-row justify-between items-end md:items-baseline">
-          <div className="hero-footer-element space-y-4 max-w-[150px] md:max-w-xs text-[#1a1a1a]">
+        <div className="absolute bottom-32 md:bottom-12 left-0 w-full px-8 md:px-[10vw] flex flex-row justify-between items-end md:items-baseline">
+          <div className="hero-footer-element space-y-4 max-w-[150px] md:max-w-xs text-[#1a1a1a] opacity-0 translate-y-5">
             <p className="text-[10px] uppercase tracking-[0.2em] md:tracking-[0.3em] opacity-60 leading-relaxed md:leading-loose font-medium">
               Restauration de mobilier <br /> de haute ébénisterie. <br /> Normandie, France.
             </p>
           </div>
 
-          <div className="hero-footer-element flex flex-col items-center gap-2 md:gap-4 text-[#1a1a1a] group cursor-pointer" onClick={() => {
+          <div className="hero-footer-element flex flex-col items-center gap-2 md:gap-4 text-[#1a1a1a] group cursor-pointer opacity-0 translate-y-5" onClick={() => {
             const manifesto = document.querySelector('.manifesto');
             if (manifesto) manifesto.scrollIntoView({ behavior: 'smooth' });
           }}>
@@ -681,7 +739,7 @@ const App = ({ onEnterMarketplace }) => {
             </div>
           </div>
 
-          <div className="manifesto-item md:col-span-12 mt-40 flex flex-col md:flex-row gap-20 items-center">
+          <div className="manifesto-item md:col-span-12 mt-12 md:mt-40 flex flex-col md:flex-row gap-20 items-center">
             <div className="md:w-3/5 img-parallax aspect-video shadow-2xl">
               <img src="https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1400" className="w-full h-full object-cover" alt="Commode ancienne" />
             </div>
@@ -703,7 +761,7 @@ const App = ({ onEnterMarketplace }) => {
 
       {/* [SECTION 10: PROCESS] */}
       <section className="process-wrapper h-screen bg-[#0D0D0D] text-[#FAF9F6] flex items-center overflow-hidden">
-        <div className="horizontal-content flex gap-16 md:gap-[8vw] pl-[5vw] md:pl-[10vw] pr-0 items-center relative will-change-transform">
+        <div className="horizontal-content flex gap-32 md:gap-[8vw] pl-[5vw] md:pl-[10vw] pr-0 items-center relative will-change-transform">
 
           {/* Titre Section */}
           <div className="min-w-[85vw] md:min-w-[40vw] relative flex flex-col justify-center h-[70vh] border-r border-white/5 pr-[8vw]">
@@ -782,7 +840,7 @@ const App = ({ onEnterMarketplace }) => {
               <div className="max-w-7xl w-full grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-32 items-center relative z-10 text-[#1a1a1a] px-6 md:px-8 h-full md:h-auto py-8 md:py-0">
 
                 {/* SUBTITLE MOBILE - Placée avant l'image pour être au dessus sur mobile */}
-                <div className="w-full md:hidden flex justify-center pb-2 order-1">
+                <div className="w-full md:hidden flex justify-center pb-2 order-1 mt-24">
                   <span className="text-[10px] uppercase tracking-[0.8em] text-[#9C8268] font-bold italic underline underline-offset-8">
                     {item.subtitle}
                   </span>
@@ -893,7 +951,7 @@ const App = ({ onEnterMarketplace }) => {
       <section className="team-section relative w-full bg-[#FAF9F6] flex flex-col md:flex-row items-start z-10">
 
         {/* COLONNE GAUCHE (TEXTE) */}
-        <div className="w-full md:w-1/2 min-h-screen flex flex-col justify-center px-8 md:px-[6vw] space-y-24 text-[#1a1a1a] z-20">
+        <div className="w-full md:w-1/2 min-h-[60vh] md:min-h-screen flex flex-col justify-center px-8 md:px-[6vw] space-y-12 md:space-y-24 text-[#1a1a1a] z-20">
           {/* Ce wrapper sera épinglé par GSAP */}
           <div className="team-text-wrapper h-screen flex flex-col justify-center">
             <div className="space-y-6 team-content-reveal">
@@ -933,7 +991,7 @@ const App = ({ onEnterMarketplace }) => {
       </section>
 
       {/* [SECTION 13.5 : FAQ - Layout 4/8] */}
-      <section className="faq-section py-60 px-8 md:px-[10vw] bg-[#F0F2EB] text-[#1a1a1a]">
+      <section className="faq-section py-24 md:py-60 px-8 md:px-[10vw] bg-[#F0F2EB] text-[#1a1a1a]">
         <div className="max-w-[90rem] mx-auto w-full grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16 items-start">
 
           {/* Colonne Gauche: Questions (COMPACTE - 4 Cols) */}

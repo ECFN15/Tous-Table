@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './app.jsx';
+import './index.css';
+import App from './App.jsx';
 
 // On récupère l'élément "root" de ton fichier index.html
 const rootElement = document.getElementById('root');
