@@ -127,7 +127,13 @@ body {
   display: none;
 }
 
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+/* PERFORMANCE OPTIMIZATION */
+.featured-card {
+  will-change: transform;
+  /* Promote to GPU layer for smoother scrolling */
+  transform: translateZ(0);
+}
+
+.process-card {
+  will-change: transform;
 }

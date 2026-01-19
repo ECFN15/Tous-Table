@@ -379,6 +379,7 @@ const App = ({ onEnterMarketplace }) => {
         const xAnim = gsap.to(horizontal, {
           x: -distanceToScroll,
           ease: "none",
+          force3D: true, // OPTIM: Force GPU acceleration for smoother large-area scrolling
           scrollTrigger: {
             trigger: ".process-wrapper",
             start: "top top",
@@ -474,9 +475,10 @@ const App = ({ onEnterMarketplace }) => {
 
           tlStack.to(prevContent, {
             scale: 0.90,
-            filter: "blur(5px)",
-            opacity: 1,
+            // filter: "blur(5px)", // REMOVED: Expensive performance cost causing lag
+            opacity: 1, // Keep opacity full as they stack (or reduce slightly if desired: 0.8)
             ease: "none",
+            force3D: true, // OPTIM: GPU acceleration
             duration: 1
           }, "<");
         });
@@ -652,7 +654,8 @@ const App = ({ onEnterMarketplace }) => {
       </div>
 
       {/* [SECTION 08: HERO] */}
-      <section className="hero-section relative h-screen flex flex-col justify-center px-8 md:px-[10vw] z-10">
+      {/* ADDED: px-6 for mobile safety, px-12 for tablet to prevent edge touching */}
+      <section className="hero-section relative h-screen flex flex-col justify-center px-6 md:px-12 lg:px-[10vw] z-10">
         <h1 className="font-serif text-[18vw] md:text-[12.5vw] leading-[0.8] uppercase flex flex-col font-light text-[#1a1a1a] mix-blend-multiply">
           <RevealText text="Le Geste" />
           <div className="flex items-center gap-4 self-end md:mr-[8vw]">
@@ -831,7 +834,8 @@ const App = ({ onEnterMarketplace }) => {
                       {item.subtitle}
                     </span>
                     {/* TITRE RESPONSIVE : 4xl sur mobile, 7xl+ sur desktop */}
-                    <h2 className="font-serif text-4xl md:text-7xl lg:text-[8.5vw] leading-[0.95] md:leading-[0.85] font-light italic text-[#1a1a1a]">
+                    {/* TITRE RESPONSIVE : 4xl sur mobile, 7xl sur tablet, et scaling fluide sur desktop */}
+                    <h2 className="font-serif text-4xl md:text-7xl lg:text-[7.5vw] xl:text-[8.5vw] leading-[0.95] md:leading-[0.85] font-light italic text-[#1a1a1a]">
                       {/* Utilisation de map pour gérer les lignes multiples */}
                       {item.title.map((line, i) => (
                         <React.Fragment key={i}>
@@ -1007,11 +1011,11 @@ const App = ({ onEnterMarketplace }) => {
       </section>
 
       {/* FOOTER */}
-      <footer className="bg-[#111] text-white pt-60 pb-12 px-8 md:px-[10vw] relative z-10">
+      <footer className="bg-[#111] text-white pt-60 pb-12 px-6 md:px-12 relative z-10">
         <div className="flex flex-col md:flex-row justify-between items-start gap-40 mb-60 relative z-10 text-white">
           <div className="max-w-5xl">
             <span className="text-[10px] uppercase tracking-[1em] text-[#9C8268] mb-12 block italic font-black">Inquiry</span>
-            <h2 className="font-serif text-7xl md:text-[15vw] leading-[0.85] font-light italic hover:translate-x-12 transition-transform duration-1000 cursor-pointer text-white">Éveiller <br /> l'Immobile.</h2>
+            <h2 className="font-serif text-7xl md:text-[12vw] lg:text-[15vw] leading-[0.85] font-light italic hover:translate-x-12 transition-transform duration-1000 cursor-pointer text-white">Éveiller <br /> l'Immobile.</h2>
           </div>
           <div className="flex flex-col gap-32">
             <div className="space-y-12">
