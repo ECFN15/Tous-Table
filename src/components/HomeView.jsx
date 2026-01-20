@@ -424,76 +424,53 @@ const App = ({ onEnterMarketplace }) => {
         });
       }
 
-      // 6. STICKY CARDS ANIMATIONS
-      const featuredSection = document.querySelector('.featured-section');
+      // 6. STICKY CARDS ANIMATIONS (CSS STICKY + SCALE EFFECT)
+      // Refactored to native Sticky for natural scroll feel + GSAP for depth (scale/brightness)
       const cards = gsap.utils.toArray('.featured-card');
 
-      if (featuredSection && cards.length > 0) {
-        const tlStack = gsap.timeline({
+      cards.forEach((card, i) => {
+        // Skip last card (nothing covers it)
+        if (i === cards.length - 1) return;
+
+        const nextCard = cards[i + 1];
+
+        gsap.to(card.querySelector('.card-inner-content'), {
+          scale: 0.90,
+          opacity: 0.4,
+          ease: "none",
           scrollTrigger: {
-            trigger: ".featured-section",
-            start: "top top",
-            end: () => "+=" + (window.innerHeight * cards.length * 1.5),
-            pin: true,
-            scrub: 1,
-            anticipatePin: 1
+            trigger: nextCard, // When NEXT card starts overlapping
+            start: "top bottom", // Start when next card hits bottom of screen
+            end: "top top",      // End when next card fully covers
+            scrub: true
           }
         });
 
-        cards.forEach((card, i) => {
-          const img = card.querySelector('.feat-img-anim');
-          const text = card.querySelectorAll('.reveal-inner'); // Select text for timeline integration
-
-          if (img) gsap.set(img, { scale: 1.2 });
-
-          if (i === 0) {
-            // For the first card (which is static), we need a separate trigger because it doesn't move in the timeline
-            ScrollTrigger.create({
-              trigger: card,
-              start: "top 60%",
-              onEnter: () => gsap.to(text, { y: 0, duration: 1.0, ease: "power3.out", stagger: 0.1 })
-            });
-            return;
-          }
-
-          tlStack.fromTo(card,
-            { yPercent: 100 },
-            { yPercent: 0, ease: "none", duration: 1 },
-            ">+=0.5" // DELAY: "Freeze" effect - wait 0.5s before starting next card
-          );
-
-          // REVEAL TEXT: Integrated into timeline to guarantee visibility when card arrives
-          tlStack.to(text, {
+        // REVEAL TEXT ANIMATION (Trigger when card appears)
+        // Since cards are sticky, we trigger when their natural top hits the viewport
+        const text = nextCard.querySelectorAll('.reveal-inner');
+        if (text.length > 0) {
+          gsap.to(text, {
             y: 0,
-            duration: 0.8,
+            duration: 1,
             ease: "power3.out",
-            stagger: 0.05
-          }, ">-0.5"); // Start revealing text slightly before card finishes settling
+            stagger: 0.05,
+            scrollTrigger: {
+              trigger: nextCard,
+              start: "top 85%", // Start animating slightly before it's fully up
+              toggleActions: "play none none reverse"
+            }
+          });
+        }
+      });
 
-          const prevCard = cards[i - 1];
-          const prevContent = prevCard.querySelector('.card-inner-content');
-
-          tlStack.to(prevContent, {
-            scale: 0.90,
-            // filter: "blur(5px)", // REMOVED: Expensive performance cost causing lag
-            opacity: 1, // Keep opacity full as they stack (or reduce slightly if desired: 0.8)
-            ease: "none",
-            force3D: true, // OPTIM: GPU acceleration
-            duration: 1
-          }, "<");
-        });
-
-        // (Removed separate ScrollTrigger loop for text)
-
-        // EFFET TRANSPARENCE HEADER (AJOUTÉ ICI)
+      // REVEAL TEXT FOR FIRST CARD (Which is already there)
+      const firstCardText = cards[0].querySelectorAll('.reveal-inner');
+      if (firstCardText.length > 0) {
         ScrollTrigger.create({
-          trigger: ".featured-section",
-          start: "top top",
-          end: () => "+=" + (window.innerHeight * cards.length),
-          onEnter: () => gsap.to("header", { opacity: 0.2, duration: 0.5, ease: "power2.out" }),
-          onLeave: () => gsap.to("header", { opacity: 1, duration: 0.5, ease: "power2.out" }),
-          onEnterBack: () => gsap.to("header", { opacity: 0.2, duration: 0.5, ease: "power2.out" }),
-          onLeaveBack: () => gsap.to("header", { opacity: 1, duration: 0.5, ease: "power2.out" })
+          trigger: cards[0],
+          start: "top 70%",
+          onEnter: () => gsap.to(firstCardText, { y: 0, duration: 1.0, ease: "power3.out", stagger: 0.1 })
         });
       }
 
@@ -799,12 +776,13 @@ const App = ({ onEnterMarketplace }) => {
         </div>
       </section>
 
-      {/* [SECTION 11: FEATURED (STACKING EFFECT GSAP PINNED)] */}
-      <section className="featured-section h-screen w-full relative overflow-hidden bg-white">
+      {/* [SECTION 11: FEATURED (CSS STICKY STACK)] 
+          Use normal flow (block) so it has real height. Cards are sticky inside. */}
+      <section className="featured-section w-full relative bg-white">
         {featuredItems.map((item, index) => (
           <div
             key={item.id}
-            className="featured-card absolute top-0 left-0 w-full h-full flex items-center justify-center overflow-hidden will-change-transform"
+            className="featured-card sticky top-0 w-full h-[100dvh] flex items-center justify-center overflow-hidden will-change-transform"
             style={{
               zIndex: index + 1,
               backgroundColor: item.bgColor
