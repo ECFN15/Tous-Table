@@ -616,7 +616,9 @@ const App = ({ onEnterMarketplace }) => {
       <div className="three-container fixed inset-0 pointer-events-none z-0" ref={canvasRef}></div>
 
       {/* NAVIGATION */}
-      <header className="fixed top-0 left-0 w-full p-8 md:p-12 flex justify-between items-center z-[210] mix-blend-difference text-white">
+      {/* NAVIGATION - FIXED SAFE AREA */
+      /* Increased to max(3rem) for tablets with thick status bars */}
+      <header className="fixed top-0 left-0 w-full p-8 md:p-12 pt-[max(3rem,env(safe-area-inset-top))] pr-[max(2rem,env(safe-area-inset-right))] pl-[max(2rem,env(safe-area-inset-left))] flex justify-between items-center z-[210] mix-blend-difference text-white">
         <div className="flex items-center gap-3 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
           <Hammer size={18} className="group-hover:rotate-45 transition-transform duration-500" />
           <span className="font-serif text-xl tracking-widest uppercase font-light italic text-white">Tous à Table</span>
@@ -653,13 +655,13 @@ const App = ({ onEnterMarketplace }) => {
         </div>
       </div>
 
-      {/* [SECTION 08: HERO] */}
-      {/* ADDED: px-6 for mobile safety, px-12 for tablet to prevent edge touching */}
-      <section className="hero-section relative h-screen flex flex-col justify-center px-6 md:px-12 lg:px-[10vw] z-10">
-        <h1 className="font-serif text-[18vw] md:text-[12.5vw] leading-[0.8] uppercase flex flex-col font-light text-[#1a1a1a] mix-blend-multiply">
+      {/* [SECTION 08: HERO] - Fixed vertical cropping with h-[100dvh] + SAFE AREAS */}
+      {/* Increased pb to 32 (8rem) on tablet to LIFT elements higher as requested */}
+      <section className="hero-section relative h-[100dvh] flex flex-col justify-center px-6 md:px-12 lg:px-[10vw] z-10 pb-12 md:pb-32">
+        {/* Title resized to 10.5vw (was 12.5) to free up vertical space for bottom text */}
+        <h1 className="font-serif text-[18vw] md:text-[10.5vw] leading-[0.8] uppercase flex flex-col font-light text-[#1a1a1a] mix-blend-multiply">
           <RevealText text="Le Geste" />
-          <div className="flex items-center gap-4 self-end md:mr-[8vw]">
-            {/* REMOVED SPAN as per previous request */}
+          <div className="flex items-center gap-4 self-end md:mr-[8vw] mt-2 md:mt-0">
             <RevealText text="& L'Âme" className="text-[#9C8268] italic pt-[0.25em] -mt-[0.25em]" />
           </div>
         </h1>
@@ -686,7 +688,8 @@ const App = ({ onEnterMarketplace }) => {
       </section>
 
       {/* [SECTION 09: MANIFESTO] */}
-      <section className="manifesto relative py-60 px-8 md:px-[10vw] bg-transparent">
+      {/* Reduced py-60 to py-32 for tablets (md) to avoid huge gaps */}
+      <section className="manifesto relative py-32 md:py-40 px-8 md:px-[10vw] bg-transparent">
         <div className="mb-48 max-w-3xl">
           <span className="text-[10px] uppercase tracking-[0.6em] text-[#9C8268] block mb-12">Héritage</span>
           <h2 className="font-serif text-5xl md:text-8xl leading-tight font-light italic text-[#1a1a1a]">
@@ -694,28 +697,30 @@ const App = ({ onEnterMarketplace }) => {
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-32 items-center">
-          <div className="manifesto-item md:col-span-6 space-y-12">
-            <div className="img-parallax aspect-[3/4] shadow-2xl">
+        {/* GRID LAYOUT - VERTICAL STACK SAFE MODE (<1536px)
+            Switched to 2XL for the grid. Below 2XL (laptops/desktops), it's a clean, centered vertical stack. */}
+        <div className="grid grid-cols-1 2xl:grid-cols-12 gap-20 2xl:gap-32 items-center">
+          <div className="manifesto-item 2xl:col-span-6 space-y-8 flex flex-col items-center 2xl:block 2xl:space-y-12 text-center 2xl:text-left">
+            <div className="img-parallax aspect-[3/4] shadow-2xl w-full max-w-xl 2xl:max-w-none mx-auto">
               <img src="https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=1200" className="w-full h-full object-cover" alt="Table en Chêne" />
             </div>
-            <div className="max-w-sm">
+            <div className="max-w-sm mx-auto 2xl:mx-0">
               <h3 className="font-serif text-4xl italic mb-4 text-[#1a1a1a]">Le Plateau d'Antan</h3>
               <p className="text-sm opacity-50 font-light leading-relaxed uppercase tracking-wider text-[#1a1a1a]">Chêne de pays — Finition à la cire d'abeille.</p>
             </div>
           </div>
 
-          <div className="manifesto-item md:col-span-4 md:col-start-9 md:mt-40 space-y-12">
-            <div className="img-parallax aspect-[4/5] shadow-2xl">
+          <div className="manifesto-item 2xl:col-span-4 2xl:col-start-9 2xl:mt-40 space-y-8 flex flex-col items-center 2xl:block 2xl:space-y-12 text-center 2xl:text-left">
+            <div className="img-parallax aspect-[4/5] shadow-2xl w-full max-w-xl 2xl:max-w-none mx-auto">
               <img src="https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=1200" className="w-full h-full object-cover" alt="Console de style" />
             </div>
-            <div className="text-right md:text-left">
+            <div className="text-center 2xl:text-left">
               <h3 className="font-serif text-3xl italic mb-4 text-[#1a1a1a]">La Console Royale</h3>
               <p className="text-[10px] uppercase tracking-widest opacity-40 text-[#1a1a1a]">Noyer sculpté — XIXème siècle.</p>
             </div>
           </div>
 
-          <div className="manifesto-item md:col-span-12 mt-12 md:mt-40 flex flex-col md:flex-row gap-20 items-center">
+          <div className="manifesto-item 2xl:col-span-12 mt-20 2xl:mt-40 flex flex-col 2xl:flex-row gap-12 2xl:gap-20 items-center">
             <div className="md:w-3/5 img-parallax aspect-video shadow-2xl">
               <img src="https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1400" className="w-full h-full object-cover" alt="Commode ancienne" />
             </div>
@@ -736,7 +741,8 @@ const App = ({ onEnterMarketplace }) => {
       </section>
 
       {/* [SECTION 10: PROCESS] */}
-      <section className="process-wrapper h-screen bg-[#0D0D0D] text-[#FAF9F6] flex items-center overflow-hidden">
+      {/* 100dvh prevents bar cutoff. min-h allows strict content to push boundaries if needed */}
+      <section className="process-wrapper h-[100dvh] min-h-[600px] bg-[#0D0D0D] text-[#FAF9F6] flex items-center overflow-hidden">
         <div className="horizontal-content flex gap-32 md:gap-[8vw] pl-[5vw] md:pl-[10vw] pr-0 items-center relative will-change-transform">
 
           {/* Titre Section */}
@@ -752,11 +758,11 @@ const App = ({ onEnterMarketplace }) => {
           </div>
 
           {[
-            { n: "I", t: "L'Essence", d: "Sélection rigoureuse des billes de bois précieux.", main: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?q=80&w=800", w: "w-[85vw] md:w-[480px]", h: "h-[500px] md:h-[650px]", info: "Matière première" },
-            { n: "II", t: "L'Analyse", d: "Diagnostic structurel et scan de la patine historique.", main: "https://images.unsplash.com/photo-1505693314120-0d443867891c?q=80&w=800", w: "w-[85vw] md:w-[600px]", h: "h-[450px] md:h-[600px]", info: "Étude microscopique" },
-            { n: "III", t: "Le Dessin", d: "Tracé géométrique pour les greffes complexes.", main: "https://images.unsplash.com/photo-1517705008128-361805f42e86?q=80&w=800", w: "w-[85vw] md:w-[500px]", h: "h-[400px] md:h-[550px]", info: "Perspective d'art" },
-            { n: "IV", t: "La Cure", d: "Greffes invisibles et consolidation structurelle.", main: "https://images.unsplash.com/photo-1530018607912-eff2daa1bac4?q=80&w=800", w: "w-[85vw] md:w-[480px]", h: "h-[450px] md:h-[600px]", info: "Renaissance physique" },
-            { n: "V", t: "L'Éclat", d: "Secret du vernis au tampon selon la tradition normande.", main: "https://images.unsplash.com/photo-1622372738946-62e02505feb3?q=80&w=800", w: "w-[85vw] md:w-[700px]", h: "h-[450px] md:h-[600px]", info: "Miroir de bois" }
+            { n: "I", t: "L'Essence", d: "Sélection rigoureuse des billes de bois précieux.", main: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?q=80&w=800", w: "w-[85vw] md:w-[480px]", h: "h-[500px] md:h-[500px]", info: "Matière première" },
+            { n: "II", t: "L'Analyse", d: "Diagnostic structurel et scan de la patine historique.", main: "https://images.unsplash.com/photo-1505693314120-0d443867891c?q=80&w=800", w: "w-[85vw] md:w-[600px]", h: "h-[450px] md:h-[500px]", info: "Étude microscopique" },
+            { n: "III", t: "Le Dessin", d: "Tracé géométrique pour les greffes complexes.", main: "https://images.unsplash.com/photo-1517705008128-361805f42e86?q=80&w=800", w: "w-[85vw] md:w-[500px]", h: "h-[400px] md:h-[450px]", info: "Perspective d'art" },
+            { n: "IV", t: "La Cure", d: "Greffes invisibles et consolidation structurelle.", main: "https://images.unsplash.com/photo-1530018607912-eff2daa1bac4?q=80&w=800", w: "w-[85vw] md:w-[480px]", h: "h-[450px] md:h-[500px]", info: "Renaissance physique" },
+            { n: "V", t: "L'Éclat", d: "Secret du vernis au tampon selon la tradition normande.", main: "https://images.unsplash.com/photo-1622372738946-62e02505feb3?q=80&w=800", w: "w-[85vw] md:w-[700px]", h: "h-[450px] md:h-[500px]", info: "Miroir de bois" }
           ].map((step, i) => (
             <div key={i} className={`process-card flex-shrink-0 relative ${step.w} flex flex-col justify-center group`}>
 
@@ -777,7 +783,8 @@ const App = ({ onEnterMarketplace }) => {
               </div>
 
               {/* Caption */}
-              <div className="p-caption mt-8 md:mt-12 relative z-10 text-white pl-4 md:pl-6 border-l border-white/10 group-hover:border-[#9C8268] transition-colors duration-700">
+              {/* Caption - Compacted margins for tablet (mt-8 instead of 12) */}
+              <div className="p-caption mt-6 md:mt-8 relative z-10 text-white pl-4 md:pl-6 border-l border-white/10 group-hover:border-[#9C8268] transition-colors duration-700">
                 <h3 className="text-3xl md:text-5xl font-light italic font-serif text-white mb-4 group-hover:translate-x-2 transition-transform duration-500">{step.t}</h3>
                 <p className="text-[10px] uppercase tracking-[0.25em] opacity-40 leading-loose max-w-[300px] font-medium text-[#FAF9F6] group-hover:opacity-80 transition-opacity">{step.d}</p>
               </div>
@@ -1011,25 +1018,40 @@ const App = ({ onEnterMarketplace }) => {
       </section>
 
       {/* FOOTER */}
-      <footer className="bg-[#111] text-white pt-60 pb-12 px-6 md:px-12 relative z-10">
-        <div className="flex flex-col md:flex-row justify-between items-start gap-40 mb-60 relative z-10 text-white">
-          <div className="max-w-5xl">
-            <span className="text-[10px] uppercase tracking-[1em] text-[#9C8268] mb-12 block italic font-black">Inquiry</span>
-            <h2 className="font-serif text-7xl md:text-[12vw] lg:text-[15vw] leading-[0.85] font-light italic hover:translate-x-12 transition-transform duration-1000 cursor-pointer text-white">Éveiller <br /> l'Immobile.</h2>
+      {/* FOOTER - RESPONSIVE REFACTOR */}
+      <footer className="bg-[#111] text-white pt-32 pb-12 px-8 md:px-12 relative z-10">
+        {/* Container: Vertical stack on mobile/tablet/laptopGap. Side-by-side ONLY on XL screens */}
+        <div className="flex flex-col xl:flex-row justify-between items-start gap-16 xl:gap-40 mb-32 relative z-10 text-white">
+
+          <div className="max-w-4xl">
+            <span className="text-[10px] uppercase tracking-[0.6em] text-[#9C8268] mb-8 block italic font-black">Inquiry</span>
+            {/* Title: Safe sizing. No weird VW units that blow up on tablets. */}
+            <h2 className="font-serif text-6xl md:text-8xl xl:text-9xl leading-[0.9] font-light italic hover:translate-x-6 transition-transform duration-500 cursor-pointer text-white break-words">
+              Éveiller <br /> l'Immobile.
+            </h2>
           </div>
-          <div className="flex flex-col gap-32">
-            <div className="space-y-12">
-              <a href="mailto:atelier@tousatable.fr" className="text-3xl md:text-5xl font-light italic hover:text-[#9C8268] transition-colors border-b border-white/5 pb-2">atelier@tousatable.fr</a>
+
+          <div className="flex flex-col gap-12 xl:gap-24 self-start xl:self-end">
+            <div className="space-y-4">
+              {/* Email: Responsive text size */}
+              <a href="mailto:atelier@tousatable.fr" className="block text-2xl md:text-4xl lg:text-5xl font-light italic hover:text-[#9C8268] transition-colors border-b border-white/5 pb-2">
+                atelier@tousatable.fr
+              </a>
             </div>
-            <div className="flex gap-20 items-center opacity-40 hover:opacity-100 transition-opacity">
-              <Instagram size={36} className="text-white" />
-              <span className="text-[11px] uppercase tracking-[0.8em] italic font-medium">Journal de l'Artisan</span>
+
+            <div className="flex gap-8 items-center opacity-40 hover:opacity-100 transition-opacity">
+              <Instagram size={28} className="text-white" />
+              <span className="text-[10px] uppercase tracking-[0.4em] italic font-medium">Journal de l'Artisan</span>
             </div>
           </div>
         </div>
-        <div className="pt-32 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-12 opacity-20 text-[10px] uppercase tracking-[0.5em] font-light relative z-10">
-          <span>Tous à Table — Artisans du Patrimoine — Caen, FR — 2024</span>
-          <div className="flex gap-20 lowercase underline underline-offset-4 font-black tracking-widest"><span>privacy policy</span><span>legal mentions</span></div>
+
+        <div className="pt-16 border-t border-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-8 opacity-40 text-[9px] uppercase tracking-[0.3em] font-light relative z-10">
+          <span className="leading-relaxed">Tous à Table — Artisans du Patrimoine — Caen, FR — 2024</span>
+          <div className="flex gap-12 lowercase underline underline-offset-4 font-bold tracking-widest">
+            <span className="cursor-pointer hover:text-white transition-colors">privacy policy</span>
+            <span className="cursor-pointer hover:text-white transition-colors">legal mentions</span>
+          </div>
         </div>
       </footer>
     </div>
