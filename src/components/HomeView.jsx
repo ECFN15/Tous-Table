@@ -68,9 +68,9 @@ const AccordionItem = ({ question, answer, isOpen, onClick }) => {
     <div className="border-b border-black/10 last:border-none">
       <button
         onClick={onClick}
-        className="w-full py-5 flex justify-between items-center text-left group hover:pl-4 transition-all duration-300"
+        className="w-full py-4 md:py-5 flex justify-between items-center text-left group hover:pl-4 transition-all duration-300"
       >
-        <h4 className="font-serif text-xl md:text-3xl text-[#1a1a1a] font-light italic pr-8">{question}</h4>
+        <h4 className="font-serif text-lg md:text-xl lg:text-2xl xl:text-3xl text-[#1a1a1a] font-light italic pr-6 md:pr-8">{question}</h4>
         <div className={`w-8 h-8 rounded-full border border-black/10 flex items-center justify-center transition-all duration-500 flex-shrink-0 ${isOpen ? 'bg-[#1a1a1a] text-white rotate-45' : 'bg-transparent text-[#1a1a1a] group-hover:bg-[#1a1a1a] group-hover:text-white'}`}>
           <Plus size={16} />
         </div>
@@ -80,7 +80,7 @@ const AccordionItem = ({ question, answer, isOpen, onClick }) => {
         style={{ height: isOpen ? contentRef.current?.scrollHeight : 0 }}
         className="overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
       >
-        <div className="pb-6 text-sm md:text-base text-[#1a1a1a]/60 leading-relaxed max-w-lg font-light">
+        <div className="pb-4 md:pb-6 text-sm md:text-base text-[#1a1a1a]/60 leading-relaxed max-w-lg font-light pr-8 md:pr-0">
           {answer}
         </div>
       </div>
@@ -97,6 +97,8 @@ const App = ({ onEnterMarketplace }) => {
 
   // State pour la FAQ
   const [openFaqIndex, setOpenFaqIndex] = useState(0);
+
+  const isMobile = typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
 
   // --- NAVIGATION SMOOTH ---
   const handleNavigation = (selector) => {
@@ -269,8 +271,11 @@ const App = ({ onEnterMarketplace }) => {
 
     let animationId;
     const animate = () => {
-      // OPTIM: Pause rendering if loading to free up CPU for init
-      // On utilise une ref ou check direct, ici on laisse tourner mais on réduit la charge si besoin
+      // OPTIM: Pause rendering if not in view to save GPU for Section 10
+      if (window._pauseThree) {
+        animationId = requestAnimationFrame(animate);
+        return;
+      }
       mesh.rotation.x += 0.0008;
       mesh.rotation.y += 0.0012;
       renderer.render(scene, camera);
@@ -331,7 +336,14 @@ const App = ({ onEnterMarketplace }) => {
     const { gsap, ScrollTrigger } = window;
 
     const ctx = gsap.context(() => {
-      // 2. Disparition 3D
+      // 2. Disparition 3D + PAUSE (Save GPU for Section 10)
+      ScrollTrigger.create({
+        trigger: ".hero-section",
+        start: "bottom top",
+        onEnter: () => { window._pauseThree = true; },
+        onLeaveBack: () => { window._pauseThree = false; }
+      });
+
       gsap.to('.three-container', {
         opacity: 0,
         y: -150,
@@ -372,54 +384,63 @@ const App = ({ onEnterMarketplace }) => {
         });
       });
 
-      // 5. Scroll Horizontal (PROCESS)
+      // 5. Scroll Horizontal (PROCESS) - HYBRID MODE (Desktop Only)
       const horizontal = document.querySelector('.horizontal-content');
       if (horizontal) {
-        const distanceToScroll = horizontal.scrollWidth - window.innerWidth;
-        const xAnim = gsap.to(horizontal, {
-          x: -distanceToScroll,
-          ease: "none",
-          force3D: true, // OPTIM: Force GPU acceleration for smoother large-area scrolling
-          scrollTrigger: {
-            trigger: ".process-wrapper",
-            start: "top top",
-            end: () => "+=" + (distanceToScroll * 2.0),
-            pin: true,
-            scrub: 1,
-            invalidateOnRefresh: true,
-            anticipatePin: 1
-          }
+        const mm = gsap.matchMedia();
+
+        mm.add("(min-width: 1920px)", () => {
+          const distanceToScroll = horizontal.scrollWidth - window.innerWidth;
+          const xAnim = gsap.to(horizontal, {
+            x: -distanceToScroll,
+            ease: "none",
+            force3D: true,
+            scrollTrigger: {
+              trigger: ".process-wrapper",
+              start: "top top",
+              end: () => "+=" + (distanceToScroll * 2.0),
+              pin: true,
+              scrub: 1,
+              invalidateOnRefresh: true,
+              anticipatePin: 1
+            }
+          });
+
+          // Animation des cartes (PC)
+          const cards = gsap.utils.toArray('.process-card');
+          cards.forEach((card, i) => {
+            const img = card.querySelector('.img-box-process');
+            gsap.set(img, { y: 40, opacity: 0, scale: 0.95 });
+            gsap.to(img, {
+              y: 0, opacity: 1, scale: 1,
+              duration: 0.5, ease: "power2.out",
+              delay: (i === 1) ? 0.2 : 0,
+              scrollTrigger: {
+                trigger: card,
+                containerAnimation: xAnim,
+                start: "left 100%",
+                toggleActions: "play none none reverse"
+              }
+            });
+          });
         });
 
-        // UNIFIED ANIMATION LOOP (ALL cards use horizontal trigger)
-        const cards = gsap.utils.toArray('.process-card');
-
-        cards.forEach((card, i) => {
-          const img = card.querySelector('.img-box-process');
-
-          // 1. Force Initial State (Hidden)
-          gsap.set(img, { y: 40, opacity: 0, scale: 0.95 });
-
-          // 2. TRIGGER: Always use containerAnimation
-          // This ensures that even if Card 1 is off-screen on mobile, it waits for the horizontal scroll.
-          // On Desktop, if it's already on-screen, "left 100%" is already true, so it fires immediately.
-          const triggerConfig = {
-            trigger: card,
-            containerAnimation: xAnim,
-            start: "left 100%", // Trigger exactly when entering viewport
-            toggleActions: "play none none reverse"
-          };
-
-          // 3. Create Animation
-          gsap.to(img, {
-            y: 0,
-            opacity: 1,
-            scale: 1,
-            duration: 0.5,
-            ease: "power2.out",
-            // Small stagger for the second card if it's visible simultaneously on desktop
-            delay: (i === 1 && window.innerWidth > 768) ? 0.2 : 0,
-            scrollTrigger: triggerConfig
+        mm.add("(max-width: 1919px)", () => {
+          // Animation des cartes (Mobile - Vertical) - OPTIMISÉ
+          const cards = gsap.utils.toArray('.process-card');
+          cards.forEach((card) => {
+            const img = card.querySelector('.img-box-process');
+            gsap.set(img, { y: 40, opacity: 0, scale: 0.95 });
+            gsap.to(img, {
+              y: 0, opacity: 1, scale: 1,
+              duration: 0.6, ease: "power3.out",
+              force3D: true,
+              scrollTrigger: {
+                trigger: card,
+                start: "top 90%",
+                toggleActions: "play none none reverse"
+              }
+            });
           });
         });
       }
@@ -698,10 +719,10 @@ const App = ({ onEnterMarketplace }) => {
           </div>
 
           <div className="manifesto-item 2xl:col-span-12 mt-20 2xl:mt-40 flex flex-col 2xl:flex-row gap-12 2xl:gap-20 items-center">
-            <div className="md:w-3/5 img-parallax aspect-video shadow-2xl">
+            <div className="w-full max-w-xl 2xl:max-w-none 2xl:w-3/5 img-parallax aspect-video shadow-2xl mx-auto 2xl:mx-0">
               <img src="https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1400" className="w-full h-full object-cover" alt="Commode ancienne" />
             </div>
-            <div className="md:w-2/5 space-y-8">
+            <div className="w-full max-w-lg 2xl:max-w-none 2xl:w-2/5 space-y-8 mx-auto 2xl:mx-0">
               <h3 className="font-serif text-5xl italic leading-tight text-[#1a1a1a]">La Renaissance <br /> d'un Chef-d'œuvre</h3>
               <p className="text-lg font-light opacity-60 leading-relaxed text-[#1a1a1a]">
                 Après 400 heures de restauration méticuleuse, cette pièce a retrouvé sa profondeur originelle. Un dialogue suspendu entre le XVIIIème et aujourd'hui.
@@ -718,60 +739,60 @@ const App = ({ onEnterMarketplace }) => {
       </section>
 
       {/* [SECTION 10: PROCESS] */}
-      {/* 100dvh prevents bar cutoff. min-h allows strict content to push boundaries if needed */}
-      <section className="process-wrapper h-[100dvh] min-h-[600px] bg-[#0D0D0D] text-[#FAF9F6] flex items-center overflow-hidden">
-        <div className="horizontal-content flex gap-32 md:gap-[8vw] pl-[5vw] md:pl-[10vw] pr-0 items-center relative will-change-transform">
+      {/* HYBRID: Vertical Zig-Zag until Big PC (1920px), Horizontal (h-[100dvh]) for 1920px+ */}
+      <section className="process-wrapper h-auto min-[1920px]:h-[100dvh] min-h-[600px] bg-[#0D0D0D] text-[#FAF9F6] flex items-center overflow-hidden py-32 min-[1920px]:py-0">
+        <div className="horizontal-content flex flex-col min-[1920px]:flex-row gap-32 min-[1920px]:gap-[12vw] px-4 md:px-12 min-[1920px]:px-0 min-[1920px]:pl-[10vw] min-[1920px]:pr-0 items-center relative min-[1920px]:will-change-transform w-full">
 
           {/* Titre Section */}
-          <div className="min-w-[85vw] md:min-w-[40vw] relative flex flex-col justify-center h-[70vh] border-r border-white/5 pr-[8vw]">
-            <RotatingSymbol className="absolute -top-20 -left-24 text-[#9C8268]" size={160} />
-            <div className="relative z-10">
+          <div className="w-full min-[1920px]:min-w-[40vw] relative flex flex-col items-center min-[1920px]:items-start justify-center mb-32 min-[1920px]:mb-0 border-b min-[1920px]:border-b-0 min-[1920px]:border-r border-white/5 pb-16 min-[1920px]:pb-0 min-[1920px]:pr-[8vw] text-center min-[1920px]:text-left mx-auto min-[1920px]:mx-0">
+            <RotatingSymbol className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 min-[1920px]:top-auto min-[1920px]:left-auto min-[1920px]:translate-x-0 min-[1920px]:translate-y-0 min-[1920px]:-top-20 min-[1920px]:-left-24 text-[#9C8268] opacity-10 min-[1920px]:opacity-100" size={isMobile ? 220 : 160} />
+            <div className="relative z-10 w-full px-4 md:px-0">
               <span className="text-[10px] uppercase tracking-[1.2em] text-[#9C8268] mb-8 block font-black">L'Alchimie</span>
-              <h2 className="font-serif text-5xl md:text-8xl lg:text-[12vw] leading-none font-light italic text-white">Le Rituel.</h2>
-              <p className="mt-12 text-base md:text-lg font-light opacity-50 max-w-md border-l border-[#9C8268] pl-6">
+              <h2 className="font-serif text-5xl md:text-8xl min-[1920px]:text-[12vw] leading-none font-light italic text-white px-2">Le Rituel.</h2>
+              <p className="mt-8 min-[1920px]:mt-12 text-base md:text-xl font-light opacity-50 max-w-lg min-[1920px]:border-l border-[#9C8268] min-[1920px]:pl-6 mx-auto min-[1920px]:mx-0 leading-relaxed">
                 Chaque étape est une célébration de la matière. De l'état brut à l'œuvre d'art, découvrez notre processus de restauration.
               </p>
             </div>
           </div>
 
           {[
-            { n: "I", t: "L'Essence", d: "Sélection rigoureuse des billes de bois précieux.", main: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?q=80&w=800", w: "w-[85vw] md:w-[480px]", h: "h-[500px] md:h-[500px]", info: "Matière première" },
-            { n: "II", t: "L'Analyse", d: "Diagnostic structurel et scan de la patine historique.", main: "https://images.unsplash.com/photo-1505693314120-0d443867891c?q=80&w=800", w: "w-[85vw] md:w-[600px]", h: "h-[450px] md:h-[500px]", info: "Étude microscopique" },
-            { n: "III", t: "Le Dessin", d: "Tracé géométrique pour les greffes complexes.", main: "https://images.unsplash.com/photo-1517705008128-361805f42e86?q=80&w=800", w: "w-[85vw] md:w-[500px]", h: "h-[400px] md:h-[450px]", info: "Perspective d'art" },
-            { n: "IV", t: "La Cure", d: "Greffes invisibles et consolidation structurelle.", main: "https://images.unsplash.com/photo-1530018607912-eff2daa1bac4?q=80&w=800", w: "w-[85vw] md:w-[480px]", h: "h-[450px] md:h-[500px]", info: "Renaissance physique" },
-            { n: "V", t: "L'Éclat", d: "Secret du vernis au tampon selon la tradition normande.", main: "https://images.unsplash.com/photo-1622372738946-62e02505feb3?q=80&w=800", w: "w-[85vw] md:w-[700px]", h: "h-[450px] md:h-[500px]", info: "Miroir de bois" }
+            { n: "I", t: "L'Essence", d: "Sélection rigoureuse des billes de bois précieux.", main: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?q=80&w=1200", w: "w-full md:max-w-[90vw] min-[1920px]:w-[580px]", h: "h-[450px] md:h-[600px] min-[1920px]:h-[500px]", info: "Matière première" },
+            { n: "II", t: "L'Analyse", d: "Diagnostic structurel et scan de la patine historique.", main: "https://images.unsplash.com/photo-1505693314120-0d443867891c?q=80&w=1200", w: "w-full md:max-w-[95vw] min-[1920px]:w-[750px]", h: "h-[400px] md:h-[600px] min-[1920px]:h-[500px]", info: "Étude microscopique" },
+            { n: "III", t: "Le Dessin", d: "Tracé géométrique pour les greffes complexes.", main: "https://images.unsplash.com/photo-1517705008128-361805f42e86?q=80&w=1200", w: "w-full md:max-w-[90vw] min-[1920px]:w-[650px]", h: "h-[350px] md:h-[550px] min-[1920px]:h-[450px]", info: "Perspective d'art" },
+            { n: "IV", t: "La Cure", d: "Greffes invisibles et consolidation structurelle.", main: "https://images.unsplash.com/photo-1530018607912-eff2daa1bac4?q=80&w=1200", w: "w-full md:max-w-[90vw] min-[1920px]:w-[600px]", h: "h-[400px] md:h-[600px] min-[1920px]:h-[500px]", info: "Renaissance physique" },
+            { n: "V", t: "L'Éclat", d: "Secret du vernis au tampon selon la tradition normande.", main: "https://images.unsplash.com/photo-1622372738946-62e02505feb3?q=80&w=1200", w: "w-full md:max-w-[95vw] min-[1920px]:w-[850px]", h: "h-[400px] md:h-[650px] min-[1920px]:h-[550px]", info: "Miroir de bois" }
           ].map((step, i) => (
-            <div key={i} className={`process-card flex-shrink-0 relative ${step.w} flex flex-col justify-center group`}>
+            <div key={i} className={`process-card flex-shrink-0 relative ${step.w} flex flex-col ${i % 2 === 0 ? 'md:flex-row-reverse' : 'md:flex-row'} min-[1920px]:flex-col items-center min-[1920px]:items-start justify-center gap-12 md:gap-20 min-[1920px]:gap-8 group mb-24 md:mb-48 min-[1920px]:mb-0 px-4 md:px-0`}>
 
-              {/* Numéro flottant "Architectural" - OPTIMIZED (No mix-blend-difference) */}
-              <div className="absolute -top-12 -left-4 md:-left-10 z-30 pointer-events-none select-none text-white/5 md:text-white/10">
-                <span className="font-serif text-[6rem] md:text-[12rem] leading-none text-stroke-1 italic">{step.n}</span>
+              {/* Numéro flottant "Architectural" */}
+              <div className={`absolute -top-12 min-[1920px]:-top-12 ${i % 2 === 0 ? 'right-4 md:right-0 min-[1920px]:left-0 min-[1920px]:right-auto' : 'left-4 md:left-0'} min-[1920px]:-left-12 z-30 pointer-events-none select-none text-[#9C8268]/20 min-[1920px]:text-white/10 min-[1920px]:group-hover:text-[#9C8268]/20 transition-colors duration-700`}>
+                <span className="font-serif text-[6rem] md:text-[8rem] min-[1920px]:text-[12rem] leading-none text-stroke-1 italic">{step.n}</span>
               </div>
 
               {/* Conteneur Image */}
-              <div className={`img-box-process ${step.h} w-full border border-white/10 relative overflow-hidden transition-all duration-700 group-hover:border-white/30 z-10`}>
-                <div className="absolute inset-0 z-10 bg-transparent md:bg-[#0D0D0D]/30 md:group-hover:bg-transparent transition-colors duration-700"></div>
-                <img src={step.main} alt={step.t} className="p-img-inner w-full h-full object-cover grayscale-0 md:grayscale md:group-hover:grayscale-0 transition-[filter,transform] duration-700 scale-100 will-change-[filter,transform]" />
+              <div className={`img-box-process ${step.h} w-full md:w-[65%] min-[1920px]:w-full border border-white/30 max-[1919px]:border-white/30 min-[1920px]:border-white/10 relative overflow-hidden transition-all duration-700 min-[1920px]:group-hover:border-white/30 z-10 mx-auto min-[1920px]:mx-0`}>
+                <div className="absolute inset-0 z-10 bg-transparent min-[1920px]:bg-[#0D0D0D]/30 min-[1920px]:group-hover:bg-transparent transition-colors duration-700"></div>
+                <img src={step.main} alt={step.t} className="p-img-inner w-full h-full object-cover grayscale-0 transition-[filter,transform] duration-700 scale-100 will-change-[filter,transform]" />
 
                 {/* Tag technique au survol */}
-                <div className="absolute bottom-6 right-6 z-20 opacity-100 translate-y-0 md:opacity-0 md:translate-y-4 md:group-hover:opacity-100 md:group-hover:translate-y-0 transition-all duration-700 delay-100">
+                <div className="absolute bottom-6 right-6 z-20 opacity-100 translate-y-0 min-[1920px]:opacity-0 min-[1920px]:translate-y-4 min-[1920px]:group-hover:opacity-100 min-[1920px]:group-hover:translate-y-0 transition-all duration-700 delay-100">
                   <span className="text-[10px] uppercase tracking-widest bg-[#111] px-4 py-2 border border-[#9C8268] text-white font-medium shadow-xl">{step.info}</span>
                 </div>
               </div>
 
               {/* Caption */}
-              {/* Caption - Compacted margins for tablet (mt-8 instead of 12) */}
-              <div className="p-caption mt-6 md:mt-8 relative z-10 text-white pl-4 md:pl-6 border-l border-white/10 group-hover:border-[#9C8268] transition-colors duration-700">
-                <h3 className="text-3xl md:text-5xl font-light italic font-serif text-white mb-4 group-hover:translate-x-2 transition-transform duration-500">{step.t}</h3>
-                <p className="text-[10px] uppercase tracking-[0.25em] opacity-40 leading-loose max-w-[300px] font-medium text-[#FAF9F6] group-hover:opacity-80 transition-opacity">{step.d}</p>
+              <div className={`p-caption mt-6 md:mt-0 min-[1920px]:mt-8 relative z-10 text-white md:w-[35%] min-[1920px]:w-full md:px-12 min-[1920px]:px-0 min-[1920px]:pl-6 border-l border-[#9C8268] max-[1919px]:border-[#9C8268] min-[1920px]:border-white/10 min-[1920px]:group-hover:border-[#9C8268] transition-colors duration-700 text-center ${i % 2 === 0 ? 'md:text-right min-[1920px]:text-left' : 'md:text-left min-[1920px]:text-left'}`}>
+                <h3 className="text-3xl md:text-5xl min-[1920px]:text-6xl font-light italic font-serif text-white mb-6 min-[1920px]:group-hover:translate-x-2 transition-transform duration-500">{step.t}</h3>
+                <p className="text-[10px] md:text-sm uppercase tracking-[0.25em] opacity-80 max-[1919px]:opacity-80 min-[1920px]:opacity-40 leading-loose max-w-[320px] font-medium text-[#FAF9F6] min-[1920px]:group-hover:opacity-80 transition-opacity mx-auto md:mx-0 inline-block">{step.d}</p>
               </div>
             </div>
           ))}
 
+
           {/* UPDATE: Full screen width on mobile (100vw) to center content properly at end of scroll */}
-          <div className="min-w-[100vw] md:min-w-[40vw] flex flex-col items-center justify-center border-l border-white/5 pl-0 md:pl-[8vw]">
-            <RotatingSymbol size={300} className="text-[#9C8268] opacity-20 scale-75 md:scale-100" text="L'HÉRITAGE DU TEMPS • TOUS À TABLE •" />
-            <span className="font-serif italic text-4xl opacity-30 mt-16 tracking-[0.5em] uppercase text-white">Perpétuité</span>
+          <div className="w-full min-[1920px]:min-w-[40vw] flex flex-col items-center justify-center border-t min-[1920px]:border-t-0 min-[1920px]:border-l border-white/5 pt-8 md:pt-12 min-[1920px]:pt-0 min-[1920px]:pl-[8vw] mt-8 md:mt-10 min-[1920px]:mt-0">
+            <RotatingSymbol size={isMobile ? 180 : 250} className="text-[#9C8268] opacity-20 scale-75 min-[1920px]:scale-100" text="L'HÉRITAGE DU TEMPS • TOUS À TABLE •" />
+            <span className="font-serif italic text-2xl md:text-3xl min-[1920px]:text-5xl opacity-30 mt-6 md:mt-8 min-[1920px]:mt-24 tracking-[0.5em] uppercase text-white">Perpétuité</span>
           </div>
         </div>
       </section>
@@ -910,27 +931,27 @@ const App = ({ onEnterMarketplace }) => {
       </section>
 
       {/* [SECTION 13: RENDU - TEAM (DIRECTION) - STICKY SCROLL SPLIT via GSAP PINNING] */}
-      <section className="team-section relative w-full bg-[#FAF9F6] flex flex-col md:flex-row items-start z-10">
+      <section className="team-section relative w-full bg-[#FAF9F6] flex flex-col md:flex-row items-start z-10 scroll-mt-24 py-12 md:py-16 lg:py-20">
 
         {/* COLONNE GAUCHE (TEXTE) */}
-        <div className="w-full md:w-1/2 min-h-[60vh] md:min-h-screen flex flex-col justify-center px-8 md:px-[6vw] space-y-12 md:space-y-24 text-[#1a1a1a] z-20">
+        <div className="w-full md:w-1/2 md:min-h-screen flex flex-col justify-center px-6 md:px-8 lg:px-[6vw] py-12 md:py-20 lg:py-0 space-y-8 md:space-y-12 lg:space-y-24 text-[#1a1a1a] z-20">
           {/* Ce wrapper sera épinglé par GSAP */}
-          <div className="team-text-wrapper h-screen flex flex-col justify-center">
-            <div className="space-y-6 team-content-reveal">
-              <span className="text-[12px] uppercase tracking-[1.4em] text-[#9C8268] block font-black italic">La Direction</span>
-              <h2 className="font-serif text-7xl md:text-[8vw] xl:text-[9vw] leading-[0.9] font-light italic tracking-tight text-[#1a1a1a]">
+          <div className="team-text-wrapper md:h-screen flex flex-col justify-center">
+            <div className="space-y-10 md:space-y-10 team-content-reveal">
+              <span className="text-[10px] md:text-[11px] lg:text-[12px] uppercase tracking-[1.2em] md:tracking-[1.4em] text-[#9C8268] block font-black italic">La Direction</span>
+              <h2 className="font-serif text-5xl md:text-6xl lg:text-7xl xl:text-[8vw] leading-[0.9] font-light italic tracking-tight text-[#1a1a1a]">
                 Jean <br /> Lefebvre
               </h2>
             </div>
 
-            <p className="text-2xl font-light opacity-60 leading-relaxed italic border-l border-black/10 pl-10 mt-12 team-content-reveal">
+            <p className="text-lg md:text-xl lg:text-2xl font-light opacity-60 leading-relaxed italic border-l border-black/10 pl-6 md:pl-8 lg:pl-10 mt-12 md:mt-10 lg:mt-12 team-content-reveal">
               "Nous ne luttons pas contre le temps, nous le réapprivoisons. Chaque main possède une mémoire que les outils n'ont pas."
             </p>
 
-            <div className="flex gap-16 pt-12 border-t border-black/5 items-center mt-12 team-content-reveal">
+            <div className="flex gap-16 pt-12 border-t border-black/5 items-center mt-14 md:mt-12 team-content-reveal">
               <div>
                 <span className="block text-[9px] uppercase tracking-widest opacity-30 mb-2 font-black">Expérience</span>
-                <span className="font-serif text-6xl italic text-[#9C8268]">XXV Ans</span>
+                <span className="font-serif text-4xl md:text-5xl lg:text-6xl italic text-[#9C8268]">XXV Ans</span>
               </div>
               <div className="w-[1px] h-12 bg-black/5"></div>
               <Zap size={32} className="text-[#9C8268] opacity-60" />
@@ -939,8 +960,8 @@ const App = ({ onEnterMarketplace }) => {
         </div>
 
         {/* COLONNE DROITE (IMAGE) - SCROLLANTE */}
-        <div className="w-full md:w-1/2 min-h-auto md:min-h-[200vh] flex flex-col items-center px-8 md:px-[4vw] pt-20 pb-20 md:pt-[20vh] md:pb-40 z-10 bg-[#FAF9F6]">
-          <div className="team-img-col relative w-full aspect-[3/4] md:aspect-[2/3] shadow-[0_80px_160px_rgba(0,0,0,0.15)] bg-stone-200">
+        <div className="w-full md:w-1/2 md:min-h-[200vh] flex flex-col items-center px-6 md:px-8 lg:px-[4vw] pt-0 pb-12 md:pt-[20vh] md:pb-40 z-10 bg-[#FAF9F6]">
+          <div className="team-img-col relative w-full md:max-h-none aspect-[3/4] md:aspect-[2/3] shadow-[0_80px_160px_rgba(0,0,0,0.15)] bg-stone-200">
             <img
               src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1600"
               alt="Maître Ebéniste"
@@ -953,14 +974,14 @@ const App = ({ onEnterMarketplace }) => {
       </section>
 
       {/* [SECTION 13.5 : FAQ - Layout 4/8] */}
-      <section className="faq-section py-24 md:py-60 px-8 md:px-[10vw] bg-[#F0F2EB] text-[#1a1a1a]">
+      <section className="faq-section py-16 md:py-32 lg:py-48 xl:py-60 px-6 md:px-8 lg:px-[10vw] bg-[#F0F2EB] text-[#1a1a1a] scroll-mt-24">
         <div className="max-w-[90rem] mx-auto w-full grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16 items-start">
 
           {/* Colonne Gauche: Questions (COMPACTE - 4 Cols) */}
           <div className="md:col-span-4 flex flex-col gap-0 w-full">
             <div className="mb-12">
               <span className="text-[10px] uppercase tracking-[0.6em] text-[#9C8268] block mb-12 font-bold">Le Savoir</span>
-              <h2 className="font-serif text-5xl md:text-7xl font-light italic text-[#1a1a1a] leading-tight">
+              <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light italic text-[#1a1a1a] leading-tight">
                 Réponses <br /> Rapides
               </h2>
             </div>
