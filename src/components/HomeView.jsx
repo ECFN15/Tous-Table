@@ -448,74 +448,74 @@ const App = ({ onEnterMarketplace }) => {
         });
       }
 
-      // 6. STICKY CARDS ANIMATIONS (CSS STICKY + SCALE EFFECT)
-      // Refactored to native Sticky for natural scroll feel + GSAP for depth (scale/brightness)
+      // 6. STACKING CARDS - GSAP Pin pour l'effet de SWIPE
       const cards = gsap.utils.toArray('.featured-card');
+      const totalCards = cards.length;
 
-      cards.forEach((card, i) => {
-        // Skip last card (nothing covers it)
-        if (i === cards.length - 1) return;
+      cards.forEach((card, index) => {
+        // PINNING - "Golden Config"
+        // Les cartes 1 à Avant-Dernière sont épinglées avec espacement pour laisser monter la suivante.
+        // La dernière carte n'est PAS épinglée, elle monte naturellement et tout défile ensuite.
+        const isLast = index === totalCards - 1;
 
-        const nextCard = cards[i + 1];
-
-        gsap.to(card.querySelector('.card-inner-content'), {
-          scale: 0.90,
-          opacity: 0.4,
-          ease: "none",
-          scrollTrigger: {
-            trigger: nextCard, // When NEXT card starts overlapping
-            start: "top bottom", // Start when next card hits bottom of screen
-            end: "top top",      // End when next card fully covers
-            scrub: true
-          }
-        });
-
-        // REVEAL TEXT ANIMATION (Trigger when card appears)
-        // Since cards are sticky, we trigger when their natural top hits the viewport
-        const text = nextCard.querySelectorAll('.reveal-inner');
-        if (text.length > 0) {
-          gsap.to(text, {
-            y: 0,
-            duration: 1,
-            ease: "power3.out",
-            stagger: 0.05,
-            scrollTrigger: {
-              trigger: nextCard,
-              start: "top 85%", // Start animating slightly before it's fully up
-              toggleActions: "play none none reverse"
-            }
+        if (!isLast) {
+          ScrollTrigger.create({
+            trigger: card,
+            start: "top top",
+            end: () => "+=" + card.offsetHeight, // DURATION EXACTE = HAUTEUR DE LA CARTE (Alignement parfait)
+            pin: true,
+            pinSpacing: false,
+            anticipatePin: 1,
+            onLeave: () => gsap.set(card, { autoAlpha: 0 }),
+            onEnterBack: () => gsap.set(card, { autoAlpha: 1 })
           });
+        }
+
+        // Animation de blur/scale quand une carte est recouverte
+        if (index < totalCards - 1) {
+          const cardVisual = card.querySelector('.card-visual');
+          if (cardVisual) {
+            gsap.to(cardVisual, {
+              scale: 0.95,
+              filter: "blur(4px)",
+              // Opacity removed to keep cards solid (fixes ghosting conflict)
+              // opacity: 0.7, 
+              ease: "none",
+              force3D: true, // GPU acceleration
+              scrollTrigger: {
+                trigger: card,
+                start: "top top",
+                end: () => "+=" + card.offsetHeight, // SYNC EXACT AVEC LE PIN
+                scrub: 0.3,
+                invalidateOnRefresh: true // Recalculate on resize
+              }
+            });
+          }
         }
       });
 
-      // REVEAL TEXT FOR FIRST CARD (Which is already there)
-      const firstCardText = cards[0].querySelectorAll('.reveal-inner');
-      if (firstCardText.length > 0) {
-        ScrollTrigger.create({
-          trigger: cards[0],
-          start: "top 70%",
-          onEnter: () => gsap.to(firstCardText, { y: 0, duration: 1.0, ease: "power3.out", stagger: 0.1 })
-        });
-      }
-
-      // ANIMATION FOR LAST CARD - Same opacity reduction + background color change
-      if (cards.length > 0) {
-        const lastCard = cards[cards.length - 1];
-        const lastCardContent = lastCard.querySelector('.card-inner-content');
-
-        // Content animation (same as others)
-        gsap.to(lastCardContent, {
-          scale: 0.90,
-          opacity: 0.4,
-          ease: "none",
-          scrollTrigger: {
-            trigger: lastCard,
-            start: "bottom bottom",
-            end: "bottom top",
-            scrub: true
-          }
-        });
-      }
+      // Reveal text pour chaque carte quand elle devient visible
+      cards.forEach((card, i) => {
+        const text = card.querySelectorAll('.reveal-inner');
+        if (text.length > 0) {
+          gsap.set(text, { y: "110%" });
+          ScrollTrigger.create({
+            trigger: card,
+            start: i === 0 ? "top 80%" : "top 50%",
+            onEnter: () => gsap.to(text, {
+              y: 0,
+              duration: 1,
+              ease: "power3.out",
+              stagger: 0.1
+            }),
+            onLeaveBack: () => gsap.to(text, {
+              y: "110%",
+              duration: 0.5,
+              ease: "power2.in"
+            })
+          });
+        }
+      });
 
       // 7. Data Counters (GSAP pour la Section 12)
       const statNumbers = gsap.utils.toArray('.stat-number');
@@ -699,7 +699,7 @@ const App = ({ onEnterMarketplace }) => {
           </div>
         </h1>
 
-        <div className="absolute bottom-32 md:bottom-12 left-0 w-full px-8 md:px-[10vw] flex flex-row justify-between items-end md:items-baseline">
+        <div className="absolute bottom-16 md:bottom-12 left-0 w-full px-8 md:px-[10vw] flex flex-row justify-between items-end md:items-baseline">
           <div className="hero-footer-element space-y-4 max-w-[150px] md:max-w-xs text-[#1a1a1a] opacity-0 translate-y-5">
             <p className="text-[10px] uppercase tracking-[0.2em] md:tracking-[0.3em] opacity-60 leading-relaxed md:leading-loose font-medium">
               Restauration de mobilier <br /> de haute ébénisterie. <br /> Normandie, France.
@@ -722,7 +722,7 @@ const App = ({ onEnterMarketplace }) => {
 
       {/* [SECTION 09: MANIFESTO] */}
       {/* Reduced py-60 to py-32 for tablets (md) to avoid huge gaps */}
-      <section className="manifesto relative py-32 md:py-40 px-8 md:px-[10vw] bg-transparent">
+      <section className="manifesto relative py-32 md:pt-40 md:pb-64 px-8 md:px-[10vw] bg-transparent">
         <div className="mb-48 max-w-3xl">
           <span className="text-[10px] uppercase tracking-[0.6em] text-[#9C8268] block mb-12">Héritage</span>
           <h2 className="font-serif text-5xl md:text-8xl leading-tight font-light italic text-[#1a1a1a]">
@@ -792,8 +792,8 @@ const App = ({ onEnterMarketplace }) => {
 
           {[
             { n: "I", t: "L'Essence", d: "Sélection rigoureuse des billes de bois précieux.", main: "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?q=80&w=1400", w: "w-full md:max-w-[90vw] min-[1920px]:w-[580px]", h: "h-[450px] md:h-[600px] min-[1920px]:h-[500px]", info: "Matière première" },
-            { n: "II", t: "L'Analyse", d: "Diagnostic structurel et scan de la patine historique.", main: "https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?q=80&w=1400", w: "w-full md:max-w-[95vw] min-[1920px]:w-[750px]", h: "h-[400px] md:h-[600px] min-[1920px]:h-[500px]", info: "Étude microscopique" },
-            { n: "III", t: "Le Dessin", d: "Tracé géométrique pour les greffes complexes.", main: "https://images.unsplash.com/photo-1609137144813-7d9921338f24?q=80&w=1400", w: "w-full md:max-w-[90vw] min-[1920px]:w-[650px]", h: "h-[350px] md:h-[550px] min-[1920px]:h-[450px]", info: "Perspective d'art" },
+            { n: "II", t: "L'Analyse", d: "Diagnostic structurel et scan de la patine historique.", main: "https://images.unsplash.com/photo-1644358686685-4ed525a59663?q=80&w=2000&auto=format&fit=crop", w: "w-full md:max-w-[95vw] min-[1920px]:w-[750px]", h: "h-[400px] md:h-[600px] min-[1920px]:h-[500px]", info: "Étude microscopique" },
+            { n: "III", t: "Le Dessin", d: "Tracé géométrique pour les greffes complexes.", main: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2000&auto=format&fit=crop", w: "w-full md:max-w-[90vw] min-[1920px]:w-[650px]", h: "h-[350px] md:h-[550px] min-[1920px]:h-[450px]", info: "Perspective d'art" },
             { n: "IV", t: "La Cure", d: "Greffes invisibles et consolidation structurelle.", main: "https://images.unsplash.com/photo-1600585152220-90363fe7e115?q=80&w=1400", w: "w-full md:max-w-[90vw] min-[1920px]:w-[600px]", h: "h-[400px] md:h-[600px] min-[1920px]:h-[500px]", info: "Renaissance physique" },
             { n: "V", t: "L'Éclat", d: "Secret du vernis au tampon selon la tradition normande.", main: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=1400", w: "w-full md:max-w-[95vw] min-[1920px]:w-[850px]", h: "h-[400px] md:h-[650px] min-[1920px]:h-[550px]", info: "Miroir de bois" }
           ].map((step, i) => (
@@ -832,93 +832,105 @@ const App = ({ onEnterMarketplace }) => {
         </div>
       </section>
 
-      {/* [SECTION 11: FEATURED (CSS STICKY STACK)] 
-          Use normal flow (block) so it has real height. Cards are sticky inside. */}
-      <section className="featured-section w-full relative bg-[#111111]">
-        {featuredItems.map((item, index) => (
-          <div
-            key={item.id}
-            className="featured-card sticky top-0 w-full h-[100dvh] md:h-screen flex items-center justify-center overflow-hidden will-change-transform"
-            style={{
-              zIndex: index + 1,
-              backgroundColor: item.bgColor
-            }}
-          >
-            {/* Conteneur Interne pour l'effet de recul (Scale Down) */}
+      {/* [SECTION 11: FEATURED - GSAP Stacking Cards with Swipe per Paris by Emily] */}
+      <section className="featured-section w-full relative bg-[#1a1a1a] pt-20 overflow-visible z-20 overflow-x-hidden" style={{ height: '410vh' }}>
+
+        {/* Transition Element - Texte avant les cartes */}
+        <div className="w-full h-16 md:h-20 flex items-center justify-center mb-8">
+          <span className="text-white/30 text-xs md:text-sm uppercase tracking-[0.5em] font-light">
+            Découvrez nos collections
+          </span>
+        </div>
+
+        {/* Container */}
+        <div className="flex flex-col">
+          {featuredItems.map((item, index) => (
             <div
-              className="card-inner-content relative w-full h-full flex items-center justify-center border-t border-black/5 shadow-[-20px_-20px_60px_rgba(0,0,0,0.1)] origin-center will-change-transform"
+              key={item.id}
+              className="featured-card w-full"
+              style={{ zIndex: 10 + index }}
             >
-              {/* Background Title Faint - Opacité réduite */}
+              {/* Card avec marges visuelles */}
               <div
-                className="absolute inset-0 flex items-center justify-center font-serif text-[34vw] pointer-events-none uppercase tracking-tighter italic"
-                style={{ color: item.faintColor }}
+                className="card-visual w-[96%] mx-auto h-[85vh] md:h-[90vh] mb-4 flex items-center justify-center overflow-hidden will-change-transform rounded-[24px] md:rounded-[40px] shadow-2xl"
+                style={{ backgroundColor: item.bgColor || '#FAF9F6' }}
               >
-                {item.bgTitle}
-              </div>
-
-              {/* GRILLE RESPONSIVE : Gap réduit sur mobile pour éviter l'overflow */}
-              <div className="max-w-7xl w-full grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-32 items-center relative z-10 px-6 md:px-8 h-full md:h-auto py-8 md:py-0">
-
-                {/* SUBTITLE MOBILE - Placée avant l'image pour être au dessus sur mobile */}
-                <div className="w-full md:hidden flex justify-center pb-2 order-1 mt-24">
-                  <span
-                    className="text-[10px] uppercase tracking-[0.8em] font-bold italic underline underline-offset-8"
-                    style={{ color: item.subColor }}
+                {/* Conteneur Interne pour l'effet de recul (Scale Down + Blur) */}
+                <div
+                  className="card-inner-content relative w-full h-full flex items-center justify-center will-change-[transform,filter,opacity]"
+                >
+                  {/* Background Title Faint */}
+                  <div
+                    className="absolute inset-0 flex items-center justify-center font-serif text-[34vw] pointer-events-none uppercase tracking-tighter italic"
+                    style={{ color: item.faintColor }}
                   >
-                    {item.subtitle}
-                  </span>
-                </div>
-
-                {/* Image Box : Hauteur contrainte sur mobile (35vh) pour laisser place au texte */}
-                <div className="feat-img-box w-full h-[35vh] md:h-auto md:aspect-[4/5] shadow-2xl overflow-hidden rounded-sm order-2 md:order-1">
-                  <img src={item.img} alt={item.bgTitle} className="feat-img-anim w-full h-full object-cover will-change-transform" />
-                </div>
-
-                <div className="space-y-4 md:space-y-16 feat-text-anim order-3 md:order-2 flex flex-col justify-center">
-                  <div>
-                    {/* TITRE DESKTOP (Cache sur mobile) - Couleur d'origine #9C8268 */}
-                    <span
-                      className="hidden md:block text-[10px] uppercase tracking-[0.8em] mb-12 font-bold italic underline underline-offset-8"
-                      style={{ color: item.subColor }}
-                    >
-                      {item.subtitle}
-                    </span>
-                    {/* TITRE RESPONSIVE : 4xl sur mobile, 7xl sur tablet, et scaling fluide sur desktop */}
-                    <h2
-                      className="font-serif text-4xl md:text-7xl lg:text-[7.5vw] xl:text-[8.5vw] leading-[0.95] md:leading-[0.85] font-light italic"
-                      style={{ color: item.textColor }}
-                    >
-                      {/* Utilisation de map pour gérer les lignes multiples */}
-                      {item.title.map((line, i) => (
-                        <React.Fragment key={i}>
-                          <RevealText text={line} />
-                        </React.Fragment>
-                      ))}
-                    </h2>
+                    {item.bgTitle}
                   </div>
-                  {/* DESCRIPTION RESPONSIVE : Texte plus petit sur mobile */}
-                  <p
-                    className="text-lg md:text-2xl font-light opacity-60 leading-snug md:leading-relaxed max-w-md italic"
-                    style={{ color: item.textColor }}
-                  >
-                    {item.desc}
-                  </p>
-                  {/* BOUTON MODIFIÉ : RotatingButton */}
-                  <button
-                    onClick={onEnterMarketplace}
-                    className="flex items-center gap-4 md:gap-8 group mt-4"
-                    style={{ color: item.textColor }}
-                  >
-                    <RotatingButton id={item.id} />
-                    <span className="text-[10px] md:text-[11px] uppercase tracking-[0.4em] md:tracking-[0.6em] font-medium">
-                      Découvrir la Galerie
-                    </span>
-                  </button>
+
+                  {/* GRILLE RESPONSIVE - Remonter le contenu sur mobile */}
+                  <div className="max-w-7xl w-full grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-32 items-center relative z-10 px-6 md:px-8 h-full md:h-auto py-4 md:py-0">
+
+                    {/* SUBTITLE MOBILE - Rapproché du header */}
+                    <div className="w-full md:hidden flex justify-center order-1 mt-12">
+                      <span
+                        className="text-[10px] uppercase tracking-[0.8em] font-bold italic underline underline-offset-8"
+                        style={{ color: item.subColor }}
+                      >
+                        {item.subtitle}
+                      </span>
+                    </div>
+
+                    {/* Image Box */}
+                    <div className="feat-img-box w-full h-[35vh] md:h-auto md:aspect-[4/5] shadow-2xl overflow-hidden rounded-sm order-2 md:order-1">
+                      <img src={item.img} alt={item.bgTitle} className="feat-img-anim w-full h-full object-cover will-change-transform" />
+                    </div>
+
+                    <div className="space-y-4 md:space-y-16 feat-text-anim order-3 md:order-2 flex flex-col justify-center">
+                      <div>
+                        {/* TITRE DESKTOP */}
+                        <span
+                          className="hidden md:block text-[10px] uppercase tracking-[0.8em] mb-12 font-bold italic underline underline-offset-8"
+                          style={{ color: item.subColor }}
+                        >
+                          {item.subtitle}
+                        </span>
+                        {/* TITRE */}
+                        <h2
+                          className="font-serif text-4xl md:text-7xl lg:text-[7.5vw] xl:text-[8.5vw] leading-[0.95] md:leading-[0.85] font-light italic"
+                          style={{ color: item.textColor }}
+                        >
+                          {item.title.map((line, i) => (
+                            <React.Fragment key={i}>
+                              <RevealText text={line} />
+                            </React.Fragment>
+                          ))}
+                        </h2>
+                      </div>
+                      {/* DESCRIPTION */}
+                      <p
+                        className="text-lg md:text-2xl font-light opacity-60 leading-snug md:leading-relaxed max-w-md italic"
+                        style={{ color: item.textColor }}
+                      >
+                        {item.desc}
+                      </p>
+                      {/* BOUTON */}
+                      <button
+                        onClick={onEnterMarketplace}
+                        className="flex items-center gap-4 md:gap-8 group mt-4"
+                        style={{ color: item.textColor }}
+                      >
+                        <RotatingButton id={item.id} />
+                        <span className="text-[10px] md:text-[11px] uppercase tracking-[0.4em] md:tracking-[0.6em] font-medium">
+                          Découvrir la Galerie
+                        </span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </section>
 
       {/* [SECTION 12: RENDU - DATA (REWORK STYLE LUMOSINE - ALIGNÉ)] */}
@@ -942,30 +954,32 @@ const App = ({ onEnterMarketplace }) => {
         <div className="max-w-[110rem] mx-auto px-12 md:px-[10vw]">
           {/* AJOUT DE border-t POUR FERMER LA GRILLE */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 border-l border-t border-white/10">
-            {stats.map((stat, idx) => (
-              <div key={idx} className="stat-item p-12 md:p-16 border-r border-b border-white/10 group flex flex-col justify-between min-h-[300px] md:min-h-[400px]">
-                {/* En-tête de la cellule */}
-                <div className="flex justify-between items-start">
-                  <span className="text-[11px] uppercase tracking-[0.5em] font-bold opacity-30 group-hover:opacity-100 group-hover:text-[#9C8268] transition-all duration-700">Mesure 0{idx + 1}</span>
-                  <Zap size={18} className="opacity-20 group-hover:opacity-100 group-hover:text-[#9C8268] transition-all duration-700" />
-                </div>
-
-                {/* Chiffres avec taille contrôlée pour éviter l'overflow */}
-                <div className="my-16">
-                  <div className="flex items-baseline gap-2 flex-wrap">
-                    {/* Taille ajustée pour 4 colonnes : text-6xl -> xl:text-8xl */}
-                    <span className="stat-number font-serif text-6xl md:text-7xl xl:text-8xl leading-none font-light italic tracking-tighter" data-target={stat.value}>0</span>
-                    <span className="text-4xl md:text-5xl font-serif italic text-[#9C8268]">{stat.suffix}</span>
+            {
+              stats.map((stat, idx) => (
+                <div key={idx} className="stat-item p-12 md:p-16 border-r border-b border-white/10 group flex flex-col justify-between min-h-[300px] md:min-h-[400px]">
+                  {/* En-tête de la cellule */}
+                  <div className="flex justify-between items-start">
+                    <span className="text-[11px] uppercase tracking-[0.5em] font-bold opacity-30 group-hover:opacity-100 group-hover:text-[#9C8268] transition-all duration-700">Mesure 0{idx + 1}</span>
+                    <Zap size={18} className="opacity-20 group-hover:opacity-100 group-hover:text-[#9C8268] transition-all duration-700" />
                   </div>
-                  <p className="mt-6 text-sm md:text-base uppercase tracking-[0.3em] font-medium opacity-40 group-hover:opacity-90 transition-opacity duration-700 break-words">
-                    {stat.label}
-                  </p>
-                </div>
 
-                {/* Ligne progressive */}
-                <div className="h-[2px] w-0 group-hover:w-full bg-[#9C8268] transition-all duration-1000 ease-in-out"></div>
-              </div>
-            ))}
+                  {/* Chiffres avec taille contrôlée pour éviter l'overflow */}
+                  <div className="my-16">
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                      {/* Taille ajustée pour 4 colonnes : text-6xl -> xl:text-8xl */}
+                      <span className="stat-number font-serif text-6xl md:text-7xl xl:text-8xl leading-none font-light italic tracking-tighter" data-target={stat.value}>0</span>
+                      <span className="text-4xl md:text-5xl font-serif italic text-[#9C8268]">{stat.suffix}</span>
+                    </div>
+                    <p className="mt-6 text-sm md:text-base uppercase tracking-[0.3em] font-medium opacity-40 group-hover:opacity-90 transition-opacity duration-700 break-words">
+                      {stat.label}
+                    </p>
+                  </div>
+
+                  {/* Ligne progressive */}
+                  <div className="h-[2px] w-0 group-hover:w-full bg-[#9C8268] transition-all duration-1000 ease-in-out"></div>
+                </div>
+              ))
+            }
           </div>
 
           <div className="mt-48 flex flex-col md:flex-row justify-between items-end gap-16">
@@ -990,7 +1004,7 @@ const App = ({ onEnterMarketplace }) => {
         <div className="w-full md:w-1/2 md:min-h-screen flex flex-col justify-center px-6 md:px-8 lg:px-[6vw] py-12 md:py-0 space-y-8 md:space-y-12 lg:space-y-24 text-[#1a1a1a] z-20">
           {/* Ce wrapper sera épinglé par GSAP */}
           {/* FIXED: PT=12vh (Très haut), PB=20vh (Espace vide bas forcé), Section hauteur naturelle */}
-          <div className="team-text-wrapper md:h-screen flex flex-col justify-start pt-[12vh] pb-[40vh] md:pb-[20vh]">
+          <div className="team-text-wrapper md:h-screen flex flex-col justify-start pt-16 md:pt-[12vh] pb-12 md:pb-[20vh]">
             <div className="space-y-10 md:space-y-10 team-content-reveal">
               <span className="text-[10px] md:text-[11px] lg:text-[12px] uppercase tracking-[1.2em] md:tracking-[1.4em] text-[#9C8268] block font-black italic">La Direction</span>
               <h2 className="font-serif text-5xl md:text-6xl lg:text-7xl xl:text-[8vw] leading-[0.9] font-light italic tracking-tight text-[#1a1a1a]">
@@ -1011,7 +1025,7 @@ const App = ({ onEnterMarketplace }) => {
               <Zap size={32} className="text-[#9C8268] opacity-60" />
             </div>
           </div>
-        </div>
+        </div >
 
         {/* COLONNE DROITE (IMAGE) - SCROLLANTE */}
         {/* FIXED: Suppression de min-h-[200vh]. La hauteur est maintenant dictée par l'image + padding. Le pin s'arrête dès que l'image est passée. */}
@@ -1026,10 +1040,10 @@ const App = ({ onEnterMarketplace }) => {
           </div>
         </div>
 
-      </section>
+      </section >
 
       {/* [SECTION 13.5 : FAQ - Layout 4/8] */}
-      <section className="faq-section py-16 md:py-32 lg:py-48 xl:py-60 px-6 md:px-8 lg:px-[10vw] bg-[#F0F2EB] text-[#1a1a1a] scroll-mt-24">
+      < section className="faq-section py-16 md:py-32 lg:py-48 xl:py-60 px-6 md:px-8 lg:px-[10vw] bg-[#F0F2EB] text-[#1a1a1a] scroll-mt-24" >
         <div className="max-w-[90rem] mx-auto w-full grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16 items-start">
 
           {/* Colonne Gauche: Questions (COMPACTE - 4 Cols) */}
@@ -1069,7 +1083,7 @@ const App = ({ onEnterMarketplace }) => {
           </div>
 
         </div>
-      </section>
+      </section >
 
       {/* FOOTER */}
       {/* FOOTER - RESPONSIVE REFACTOR */}
@@ -1108,7 +1122,7 @@ const App = ({ onEnterMarketplace }) => {
           </div>
         </div>
       </footer>
-    </div>
+    </div >
   );
 };
 
