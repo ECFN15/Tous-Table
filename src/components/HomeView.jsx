@@ -414,11 +414,14 @@ const App = ({ onEnterMarketplace }) => {
             gsap.to(img, {
               y: 0, opacity: 1, scale: 1,
               duration: 0.5, ease: "power2.out",
-              delay: (i === 1) ? 0.2 : 0,
+              // Delay spécifique pour la 2ème image (index 1) pour éviter l'apparition instantanée
+              delay: (i === 1) ? 0.5 : 0,
               scrollTrigger: {
                 trigger: card,
                 containerAnimation: xAnim,
-                start: "left 100%",
+                // On attend que la carte soit un peu plus rentrée (95%) pour déclencher
+                // Cela "naturelise" l'apparition comme pour les cartes 3, 4, 5
+                start: "left 95%",
                 toggleActions: "play none none reverse"
               }
             });
@@ -426,18 +429,18 @@ const App = ({ onEnterMarketplace }) => {
         });
 
         mm.add("(max-width: 1919px)", () => {
-          // Animation des cartes (Mobile - Vertical) - OPTIMISÉ
+          // Animation des cartes (Mobile - Vertical) - ULTRA-OPTIMISÉ INSTANT REVEAL
           const cards = gsap.utils.toArray('.process-card');
           cards.forEach((card) => {
             const img = card.querySelector('.img-box-process');
-            gsap.set(img, { y: 40, opacity: 0, scale: 0.95 });
+            gsap.set(img, { y: 20, opacity: 0, scale: 0.98 });
             gsap.to(img, {
               y: 0, opacity: 1, scale: 1,
-              duration: 0.6, ease: "power3.out",
+              duration: 0.25, ease: "power1.out",
               force3D: true,
               scrollTrigger: {
                 trigger: card,
-                start: "top 90%",
+                start: "top 100%",
                 toggleActions: "play none none reverse"
               }
             });
@@ -495,6 +498,25 @@ const App = ({ onEnterMarketplace }) => {
         });
       }
 
+      // ANIMATION FOR LAST CARD - Same opacity reduction + background color change
+      if (cards.length > 0) {
+        const lastCard = cards[cards.length - 1];
+        const lastCardContent = lastCard.querySelector('.card-inner-content');
+
+        // Content animation (same as others)
+        gsap.to(lastCardContent, {
+          scale: 0.90,
+          opacity: 0.4,
+          ease: "none",
+          scrollTrigger: {
+            trigger: lastCard,
+            start: "bottom bottom",
+            end: "bottom top",
+            scrub: true
+          }
+        });
+      }
+
       // 7. Data Counters (GSAP pour la Section 12)
       const statNumbers = gsap.utils.toArray('.stat-number');
       statNumbers.forEach(num => {
@@ -520,7 +542,8 @@ const App = ({ onEnterMarketplace }) => {
           end: "bottom bottom",
           pin: ".team-text-wrapper",
           pinSpacing: false,
-          scrub: true
+          anticipatePin: 1 // Garde l'anticipation pour éviter le saut au départ
+          // scrub: true SUPPRIMÉ : C'est lui qui causait le "lag/rollback" sur tablette
         });
       });
 
@@ -552,16 +575,22 @@ const App = ({ onEnterMarketplace }) => {
       title: ["Le Voltaire", "Signature"],
       desc: "\"Une renaissance historique pour l'époque contemporaine.\"",
       img: "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1200",
-      bgColor: "#FFFFFF"
+      bgColor: "#FFFEFA", // Carte 1 : Blanc Crème Lumineux
+      textColor: "#1a1a1a", // Noir Doux (Standard lisibilité)
+      subColor: "#9C8268",
+      faintColor: "rgba(0,0,0,0.03)"
     },
     {
       id: 2,
-      bgTitle: "Méridienne",
-      subtitle: "Collection Privée",
-      title: ["Méridienne", "Impériale"],
-      desc: "\"L'art du repos sublimé par un velours de soie restauré à la main.\"",
-      img: "https://images.unsplash.com/photo-1550581190-9c1c48d21d6c?q=80&w=1200",
-      bgColor: "#F3F4F6"
+      bgTitle: "Console",
+      subtitle: "Collection Permanente",
+      title: ["Console", "Héritage"],
+      desc: "\"Formes épurées et assemblage traditionnel. L'équilibre parfait entre passé et présent.\"",
+      img: "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=1200",
+      bgColor: "#FAF4EB", // Carte 2 : Écru Boisé (Très clair pour lisibilité max)
+      textColor: "#1a1a1a", // Identique carte 1
+      subColor: "#9C8268",
+      faintColor: "rgba(0,0,0,0.03)"
     },
     {
       id: 3,
@@ -570,7 +599,10 @@ const App = ({ onEnterMarketplace }) => {
       title: ["Le Secrétaire", "Secret"],
       desc: "\"Bois de rose et marqueterie complexe. Un gardien de correspondances oubliées.\"",
       img: "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?q=80&w=1200",
-      bgColor: "#E5E7EB"
+      bgColor: "#F2E6D8", // Carte 3 : Sable Fin (Chaud mais très lisible)
+      textColor: "#1a1a1a",
+      subColor: "#9C8268",
+      faintColor: "rgba(0,0,0,0.03)"
     },
     {
       id: 4,
@@ -579,7 +611,10 @@ const App = ({ onEnterMarketplace }) => {
       title: ["Bibliothèque", "Céleste"],
       desc: "\"Chêne massif et échelles en laiton. Une structure qui élève l'esprit.\"",
       img: "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?q=80&w=1200",
-      bgColor: "#D1D5DB"
+      bgColor: "#E6D0B8", // Carte 4 : Chêne Blanchi (Contraste ok avec noir, excellent avec texte)
+      textColor: "#1a1a1a",
+      subColor: "#9C8268",
+      faintColor: "rgba(0,0,0,0.04)"
     }
   ];
 
@@ -756,11 +791,11 @@ const App = ({ onEnterMarketplace }) => {
           </div>
 
           {[
-            { n: "I", t: "L'Essence", d: "Sélection rigoureuse des billes de bois précieux.", main: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?q=80&w=1200", w: "w-full md:max-w-[90vw] min-[1920px]:w-[580px]", h: "h-[450px] md:h-[600px] min-[1920px]:h-[500px]", info: "Matière première" },
-            { n: "II", t: "L'Analyse", d: "Diagnostic structurel et scan de la patine historique.", main: "https://images.unsplash.com/photo-1505693314120-0d443867891c?q=80&w=1200", w: "w-full md:max-w-[95vw] min-[1920px]:w-[750px]", h: "h-[400px] md:h-[600px] min-[1920px]:h-[500px]", info: "Étude microscopique" },
-            { n: "III", t: "Le Dessin", d: "Tracé géométrique pour les greffes complexes.", main: "https://images.unsplash.com/photo-1517705008128-361805f42e86?q=80&w=1200", w: "w-full md:max-w-[90vw] min-[1920px]:w-[650px]", h: "h-[350px] md:h-[550px] min-[1920px]:h-[450px]", info: "Perspective d'art" },
-            { n: "IV", t: "La Cure", d: "Greffes invisibles et consolidation structurelle.", main: "https://images.unsplash.com/photo-1530018607912-eff2daa1bac4?q=80&w=1200", w: "w-full md:max-w-[90vw] min-[1920px]:w-[600px]", h: "h-[400px] md:h-[600px] min-[1920px]:h-[500px]", info: "Renaissance physique" },
-            { n: "V", t: "L'Éclat", d: "Secret du vernis au tampon selon la tradition normande.", main: "https://images.unsplash.com/photo-1622372738946-62e02505feb3?q=80&w=1200", w: "w-full md:max-w-[95vw] min-[1920px]:w-[850px]", h: "h-[400px] md:h-[650px] min-[1920px]:h-[550px]", info: "Miroir de bois" }
+            { n: "I", t: "L'Essence", d: "Sélection rigoureuse des billes de bois précieux.", main: "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?q=80&w=1400", w: "w-full md:max-w-[90vw] min-[1920px]:w-[580px]", h: "h-[450px] md:h-[600px] min-[1920px]:h-[500px]", info: "Matière première" },
+            { n: "II", t: "L'Analyse", d: "Diagnostic structurel et scan de la patine historique.", main: "https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?q=80&w=1400", w: "w-full md:max-w-[95vw] min-[1920px]:w-[750px]", h: "h-[400px] md:h-[600px] min-[1920px]:h-[500px]", info: "Étude microscopique" },
+            { n: "III", t: "Le Dessin", d: "Tracé géométrique pour les greffes complexes.", main: "https://images.unsplash.com/photo-1609137144813-7d9921338f24?q=80&w=1400", w: "w-full md:max-w-[90vw] min-[1920px]:w-[650px]", h: "h-[350px] md:h-[550px] min-[1920px]:h-[450px]", info: "Perspective d'art" },
+            { n: "IV", t: "La Cure", d: "Greffes invisibles et consolidation structurelle.", main: "https://images.unsplash.com/photo-1600585152220-90363fe7e115?q=80&w=1400", w: "w-full md:max-w-[90vw] min-[1920px]:w-[600px]", h: "h-[400px] md:h-[600px] min-[1920px]:h-[500px]", info: "Renaissance physique" },
+            { n: "V", t: "L'Éclat", d: "Secret du vernis au tampon selon la tradition normande.", main: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=1400", w: "w-full md:max-w-[95vw] min-[1920px]:w-[850px]", h: "h-[400px] md:h-[650px] min-[1920px]:h-[550px]", info: "Miroir de bois" }
           ].map((step, i) => (
             <div key={i} className={`process-card flex-shrink-0 relative ${step.w} flex flex-col ${i % 2 === 0 ? 'md:flex-row-reverse' : 'md:flex-row'} min-[1920px]:flex-col items-center min-[1920px]:items-start justify-center gap-12 md:gap-20 min-[1920px]:gap-8 group mb-24 md:mb-48 min-[1920px]:mb-0 px-4 md:px-0`}>
 
@@ -771,17 +806,17 @@ const App = ({ onEnterMarketplace }) => {
 
               {/* Conteneur Image */}
               <div className={`img-box-process ${step.h} w-full md:w-[65%] min-[1920px]:w-full border border-white/30 max-[1919px]:border-white/30 min-[1920px]:border-white/10 relative overflow-hidden transition-all duration-700 min-[1920px]:group-hover:border-white/30 z-10 mx-auto min-[1920px]:mx-0`}>
-                <div className="absolute inset-0 z-10 bg-transparent min-[1920px]:bg-[#0D0D0D]/30 min-[1920px]:group-hover:bg-transparent transition-colors duration-700"></div>
-                <img src={step.main} alt={step.t} className="p-img-inner w-full h-full object-cover grayscale-0 transition-[filter,transform] duration-700 scale-100 will-change-[filter,transform]" />
+                <div className="absolute inset-0 z-10 bg-transparent min-[1920px]:bg-[#0D0D0D]/30 min-[1920px]:group-hover:bg-transparent transition-colors duration-150"></div>
+                <img src={step.main} alt={step.t} className="p-img-inner w-full h-full object-cover grayscale-0 transition-[filter,transform] duration-150 scale-100 will-change-[filter,transform]" />
 
                 {/* Tag technique au survol */}
-                <div className="absolute bottom-6 right-6 z-20 opacity-100 translate-y-0 min-[1920px]:opacity-0 min-[1920px]:translate-y-4 min-[1920px]:group-hover:opacity-100 min-[1920px]:group-hover:translate-y-0 transition-all duration-700 delay-100">
+                <div className="absolute bottom-6 right-6 z-20 opacity-100 translate-y-0 min-[1920px]:opacity-0 min-[1920px]:translate-y-4 min-[1920px]:group-hover:opacity-100 min-[1920px]:group-hover:translate-y-0 transition-all duration-300 delay-75">
                   <span className="text-[10px] uppercase tracking-widest bg-[#111] px-4 py-2 border border-[#9C8268] text-white font-medium shadow-xl">{step.info}</span>
                 </div>
               </div>
 
               {/* Caption */}
-              <div className={`p-caption mt-6 md:mt-0 min-[1920px]:mt-8 relative z-10 text-white md:w-[35%] min-[1920px]:w-full md:px-12 min-[1920px]:px-0 min-[1920px]:pl-6 border-l border-[#9C8268] max-[1919px]:border-[#9C8268] min-[1920px]:border-white/10 min-[1920px]:group-hover:border-[#9C8268] transition-colors duration-700 text-center ${i % 2 === 0 ? 'md:text-right min-[1920px]:text-left' : 'md:text-left min-[1920px]:text-left'}`}>
+              <div className={`p-caption mt-6 md:mt-0 min-[1920px]:mt-8 relative z-10 text-white md:w-[35%] min-[1920px]:w-full md:px-12 min-[1920px]:px-0 min-[1920px]:pl-6 border-l border-[#9C8268] max-[1919px]:border-[#9C8268] min-[1920px]:border-white/10 min-[1920px]:group-hover:border-[#9C8268] transition-colors duration-150 text-center ${i % 2 === 0 ? 'md:text-right min-[1920px]:text-left' : 'md:text-left min-[1920px]:text-left'}`}>
                 <h3 className="text-3xl md:text-5xl min-[1920px]:text-6xl font-light italic font-serif text-white mb-6 min-[1920px]:group-hover:translate-x-2 transition-transform duration-500">{step.t}</h3>
                 <p className="text-[10px] md:text-sm uppercase tracking-[0.25em] opacity-80 max-[1919px]:opacity-80 min-[1920px]:opacity-40 leading-loose max-w-[320px] font-medium text-[#FAF9F6] min-[1920px]:group-hover:opacity-80 transition-opacity mx-auto md:mx-0 inline-block">{step.d}</p>
               </div>
@@ -799,11 +834,11 @@ const App = ({ onEnterMarketplace }) => {
 
       {/* [SECTION 11: FEATURED (CSS STICKY STACK)] 
           Use normal flow (block) so it has real height. Cards are sticky inside. */}
-      <section className="featured-section w-full relative bg-white">
+      <section className="featured-section w-full relative bg-[#111111]">
         {featuredItems.map((item, index) => (
           <div
             key={item.id}
-            className="featured-card sticky top-0 w-full h-[100dvh] flex items-center justify-center overflow-hidden will-change-transform"
+            className="featured-card sticky top-0 w-full h-[100dvh] md:h-screen flex items-center justify-center overflow-hidden will-change-transform"
             style={{
               zIndex: index + 1,
               backgroundColor: item.bgColor
@@ -814,16 +849,22 @@ const App = ({ onEnterMarketplace }) => {
               className="card-inner-content relative w-full h-full flex items-center justify-center border-t border-black/5 shadow-[-20px_-20px_60px_rgba(0,0,0,0.1)] origin-center will-change-transform"
             >
               {/* Background Title Faint - Opacité réduite */}
-              <div className="absolute inset-0 flex items-center justify-center font-serif text-[34vw] text-black/[0.015] pointer-events-none uppercase tracking-tighter italic text-[#1a1a1a]">
+              <div
+                className="absolute inset-0 flex items-center justify-center font-serif text-[34vw] pointer-events-none uppercase tracking-tighter italic"
+                style={{ color: item.faintColor }}
+              >
                 {item.bgTitle}
               </div>
 
               {/* GRILLE RESPONSIVE : Gap réduit sur mobile pour éviter l'overflow */}
-              <div className="max-w-7xl w-full grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-32 items-center relative z-10 text-[#1a1a1a] px-6 md:px-8 h-full md:h-auto py-8 md:py-0">
+              <div className="max-w-7xl w-full grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-32 items-center relative z-10 px-6 md:px-8 h-full md:h-auto py-8 md:py-0">
 
                 {/* SUBTITLE MOBILE - Placée avant l'image pour être au dessus sur mobile */}
                 <div className="w-full md:hidden flex justify-center pb-2 order-1 mt-24">
-                  <span className="text-[10px] uppercase tracking-[0.8em] text-[#9C8268] font-bold italic underline underline-offset-8">
+                  <span
+                    className="text-[10px] uppercase tracking-[0.8em] font-bold italic underline underline-offset-8"
+                    style={{ color: item.subColor }}
+                  >
                     {item.subtitle}
                   </span>
                 </div>
@@ -836,12 +877,17 @@ const App = ({ onEnterMarketplace }) => {
                 <div className="space-y-4 md:space-y-16 feat-text-anim order-3 md:order-2 flex flex-col justify-center">
                   <div>
                     {/* TITRE DESKTOP (Cache sur mobile) - Couleur d'origine #9C8268 */}
-                    <span className="hidden md:block text-[10px] uppercase tracking-[0.8em] text-[#9C8268] mb-12 font-bold italic underline underline-offset-8">
+                    <span
+                      className="hidden md:block text-[10px] uppercase tracking-[0.8em] mb-12 font-bold italic underline underline-offset-8"
+                      style={{ color: item.subColor }}
+                    >
                       {item.subtitle}
                     </span>
-                    {/* TITRE RESPONSIVE : 4xl sur mobile, 7xl+ sur desktop */}
                     {/* TITRE RESPONSIVE : 4xl sur mobile, 7xl sur tablet, et scaling fluide sur desktop */}
-                    <h2 className="font-serif text-4xl md:text-7xl lg:text-[7.5vw] xl:text-[8.5vw] leading-[0.95] md:leading-[0.85] font-light italic text-[#1a1a1a]">
+                    <h2
+                      className="font-serif text-4xl md:text-7xl lg:text-[7.5vw] xl:text-[8.5vw] leading-[0.95] md:leading-[0.85] font-light italic"
+                      style={{ color: item.textColor }}
+                    >
                       {/* Utilisation de map pour gérer les lignes multiples */}
                       {item.title.map((line, i) => (
                         <React.Fragment key={i}>
@@ -851,13 +897,20 @@ const App = ({ onEnterMarketplace }) => {
                     </h2>
                   </div>
                   {/* DESCRIPTION RESPONSIVE : Texte plus petit sur mobile */}
-                  <p className="text-lg md:text-2xl font-light opacity-60 leading-snug md:leading-relaxed max-w-md italic text-[#1a1a1a]">
+                  <p
+                    className="text-lg md:text-2xl font-light opacity-60 leading-snug md:leading-relaxed max-w-md italic"
+                    style={{ color: item.textColor }}
+                  >
                     {item.desc}
                   </p>
                   {/* BOUTON MODIFIÉ : RotatingButton */}
-                  <button onClick={onEnterMarketplace} className="flex items-center gap-4 md:gap-8 group text-[#1a1a1a] mt-4">
+                  <button
+                    onClick={onEnterMarketplace}
+                    className="flex items-center gap-4 md:gap-8 group mt-4"
+                    style={{ color: item.textColor }}
+                  >
                     <RotatingButton id={item.id} />
-                    <span className="text-[10px] md:text-[11px] uppercase tracking-[0.4em] md:tracking-[0.6em] font-medium text-[#1a1a1a]">
+                    <span className="text-[10px] md:text-[11px] uppercase tracking-[0.4em] md:tracking-[0.6em] font-medium">
                       Découvrir la Galerie
                     </span>
                   </button>
@@ -934,9 +987,10 @@ const App = ({ onEnterMarketplace }) => {
       <section className="team-section relative w-full bg-[#FAF9F6] flex flex-col md:flex-row items-start z-10 scroll-mt-24 py-12 md:py-16 lg:py-20">
 
         {/* COLONNE GAUCHE (TEXTE) */}
-        <div className="w-full md:w-1/2 md:min-h-screen flex flex-col justify-center px-6 md:px-8 lg:px-[6vw] py-12 md:py-20 lg:py-0 space-y-8 md:space-y-12 lg:space-y-24 text-[#1a1a1a] z-20">
+        <div className="w-full md:w-1/2 md:min-h-screen flex flex-col justify-center px-6 md:px-8 lg:px-[6vw] py-12 md:py-0 space-y-8 md:space-y-12 lg:space-y-24 text-[#1a1a1a] z-20">
           {/* Ce wrapper sera épinglé par GSAP */}
-          <div className="team-text-wrapper md:h-screen flex flex-col justify-center">
+          {/* FIXED: PT=12vh (Très haut), PB=20vh (Espace vide bas forcé), Section hauteur naturelle */}
+          <div className="team-text-wrapper md:h-screen flex flex-col justify-start pt-[12vh] pb-[40vh] md:pb-[20vh]">
             <div className="space-y-10 md:space-y-10 team-content-reveal">
               <span className="text-[10px] md:text-[11px] lg:text-[12px] uppercase tracking-[1.2em] md:tracking-[1.4em] text-[#9C8268] block font-black italic">La Direction</span>
               <h2 className="font-serif text-5xl md:text-6xl lg:text-7xl xl:text-[8vw] leading-[0.9] font-light italic tracking-tight text-[#1a1a1a]">
@@ -960,7 +1014,8 @@ const App = ({ onEnterMarketplace }) => {
         </div>
 
         {/* COLONNE DROITE (IMAGE) - SCROLLANTE */}
-        <div className="w-full md:w-1/2 md:min-h-[200vh] flex flex-col items-center px-6 md:px-8 lg:px-[4vw] pt-0 pb-12 md:pt-[20vh] md:pb-40 z-10 bg-[#FAF9F6]">
+        {/* FIXED: Suppression de min-h-[200vh]. La hauteur est maintenant dictée par l'image + padding. Le pin s'arrête dès que l'image est passée. */}
+        <div className="w-full md:w-1/2 flex flex-col items-center px-6 md:px-8 lg:px-[4vw] pt-0 pb-12 md:py-32 z-10 bg-[#FAF9F6]">
           <div className="team-img-col relative w-full md:max-h-none aspect-[3/4] md:aspect-[2/3] shadow-[0_80px_160px_rgba(0,0,0,0.15)] bg-stone-200">
             <img
               src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1600"
