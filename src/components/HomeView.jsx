@@ -391,7 +391,8 @@ const App = ({ onEnterMarketplace }) => {
         const mm = gsap.matchMedia();
 
         mm.add("(min-width: 1920px)", () => {
-          const distanceToScroll = horizontal.scrollWidth - window.innerWidth;
+          // Add extra space so we can scroll past the 5th card and see black space
+          const distanceToScroll = horizontal.scrollWidth - window.innerWidth + 200;
           const xAnim = gsap.to(horizontal, {
             x: -distanceToScroll,
             ease: "none",
@@ -399,7 +400,7 @@ const App = ({ onEnterMarketplace }) => {
             scrollTrigger: {
               trigger: ".process-wrapper",
               start: "top top",
-              end: () => "+=" + (distanceToScroll * 2.0),
+              end: () => "+=" + (distanceToScroll * 3.5),
               pin: true,
               scrub: 1,
               invalidateOnRefresh: true,
@@ -713,7 +714,7 @@ const App = ({ onEnterMarketplace }) => {
       {/* [SECTION 10: PROCESS] */}
       {/* HYBRID: Vertical Zig-Zag until Big PC (1920px), Horizontal (h-[100dvh]) for 1920px+ */}
       <section className="process-wrapper h-auto min-[1920px]:h-[100dvh] min-h-[600px] bg-[#0D0D0D] text-[#FAF9F6] flex items-center overflow-hidden py-32 min-[1920px]:py-0">
-        <div className="horizontal-content flex flex-col min-[1920px]:flex-row gap-32 min-[1920px]:gap-[12vw] px-4 md:px-12 min-[1920px]:px-0 min-[1920px]:pl-[10vw] min-[1920px]:pr-0 items-center relative min-[1920px]:will-change-transform w-full">
+        <div className="horizontal-content flex flex-col min-[1920px]:flex-row gap-32 min-[1920px]:gap-[12vw] px-4 md:px-12 min-[1920px]:px-0 min-[1920px]:pl-[10vw] min-[1920px]:pr-[15vw] items-center relative min-[1920px]:will-change-transform w-full">
 
           {/* Titre Section */}
           <div className="w-full min-[1920px]:min-w-[40vw] relative flex flex-col items-center min-[1920px]:items-start justify-center mb-32 min-[1920px]:mb-0 border-b min-[1920px]:border-b-0 min-[1920px]:border-r border-white/5 pb-16 min-[1920px]:pb-0 min-[1920px]:pr-[8vw] text-center min-[1920px]:text-left mx-auto min-[1920px]:mx-0">
@@ -761,7 +762,10 @@ const App = ({ onEnterMarketplace }) => {
           ))}
 
 
-          {/* UPDATE: Full screen width on mobile (100vw) to center content properly at end of scroll */}
+
+
+          {/* SPACER: Extra space at the end for the 5th card to be fully visible on desktop */}
+          <div className="hidden min-[1920px]:block w-[50vw] h-full flex-shrink-0" aria-hidden="true"></div>
         </div>
       </section>
 

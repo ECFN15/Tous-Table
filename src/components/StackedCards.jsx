@@ -62,10 +62,23 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                                     end: "top 21px",
                                     scrub: 0.5,
                                     invalidateOnRefresh: true,
+                                    onLeave: () => {
+                                        // Hide the card completely when passed
+                                        gsap.set(prevVisual, {
+                                            opacity: 0
+                                        });
+                                    },
+                                    onEnterBack: () => {
+                                        // Show the card again when scrolling back
+                                        gsap.set(prevVisual, {
+                                            opacity: 1
+                                        });
+                                    },
                                     onLeaveBack: () => {
                                         gsap.set(prevVisual, {
                                             scale: 1,
-                                            filter: "blur(0px)"
+                                            filter: "blur(0px)",
+                                            opacity: 1
                                         });
                                     }
                                 }
