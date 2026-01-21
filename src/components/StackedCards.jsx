@@ -79,25 +79,27 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                         }
                     });
 
-                    // Last card exit: subtle width reduction (scaleX) - no blur
-                    // Like Paris By Emily style
+                    // Last card exit: Progressive width reduction (scaleX) - Paris By Emily style
+                    // Effect should be smooth and continue until the card is completely out of view
                     const lastCard = cards[cards.length - 1];
                     const lastVisual = lastCard?.querySelector('.card-visual');
                     const spacer = containerRef.current?.querySelector('.section-spacer');
 
                     if (lastVisual && spacer) {
                         gsap.to(lastVisual, {
-                            scaleX: 0.97, // Very subtle width reduction
-                            ease: "power1.out", // Smooth easing
+                            scaleX: 0.90, // More noticeable reduction like Paris By Emily
+                            scaleY: 0.96, // Slight Y reduction too for depth
+                            y: 60, // Slight upward movement as it shrinks
+                            ease: "none", // Linear for consistent progressive feel
                             force3D: true,
                             scrollTrigger: {
                                 trigger: spacer,
-                                start: "top 100%", // Start earlier
-                                end: "top 40%", // End later for progressive effect
-                                scrub: 0.8, // Smoother scrub
+                                start: "top 110%", // Start very early
+                                end: "top -30%", // Continue well past the spacer for long progressive effect
+                                scrub: 1.2, // Very smooth scrub
                                 invalidateOnRefresh: true,
                                 onLeaveBack: () => {
-                                    gsap.set(lastVisual, { scaleX: 1 });
+                                    gsap.set(lastVisual, { scaleX: 1, scaleY: 1, y: 0 });
                                 }
                             }
                         });
