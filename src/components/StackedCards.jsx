@@ -139,7 +139,7 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                 >
                     {/* VISUAL CARD - PBE "Magazine" Style */}
                     <div
-                        className="card-visual relative w-[90%] md:w-[92%] max-w-[1600px] h-[88vh] md:h-[90vh] bg-[#FAF9F6] rounded-[2.5rem] md:rounded-[4rem] overflow-hidden shadow-[0_20px_70px_rgba(0,0,0,0.15)] flex flex-col items-center border border-black/5"
+                        className="card-visual relative w-[90%] md:w-[97%] max-w-[1800px] h-[88vh] md:h-[90vh] bg-[#FAF9F6] rounded-[2.5rem] md:rounded-[4rem] overflow-hidden shadow-[0_20px_70px_rgba(0,0,0,0.15)] flex flex-col items-center"
                         style={{
                             backgroundColor: item.bgColor,
                             transformOrigin: '50% 100%'
