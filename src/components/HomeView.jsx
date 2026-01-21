@@ -140,6 +140,46 @@ const App = ({ onEnterMarketplace }) => {
       loadScript('https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js')
     ]).then(() => {
       window.gsap.registerPlugin(window.ScrollTrigger);
+
+      // PRE-WARM: Force GPU layer creation & position calculation
+      // This runs while the preloader is still visible, so user won't see any visual glitches
+      const warmUpAnimations = () => {
+        // 1. Force GPU layers on key animated elements
+        const animatedElements = document.querySelectorAll(
+          '.card-visual, .process-card, .manifesto-item, .team-section, .data-section'
+        );
+        animatedElements.forEach(el => {
+          if (el) {
+            el.style.willChange = 'transform, opacity';
+            el.style.transform = 'translate3d(0, 0, 0)';
+            el.style.backfaceVisibility = 'hidden';
+          }
+        });
+
+        // 2. Ghost scroll to trigger initial calculations (invisible under preloader)
+        window.scrollTo(0, 1);
+        requestAnimationFrame(() => {
+          window.scrollTo(0, 0);
+          // 3. First ScrollTrigger refresh to calculate all positions
+          if (window.ScrollTrigger) {
+            window.ScrollTrigger.refresh(true);
+          }
+        });
+
+        // 4. Pre-load critical images (first 2 featured cards)
+        const criticalImages = [
+          'https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1200',
+          'https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=1200'
+        ];
+        criticalImages.forEach(src => {
+          const img = new Image();
+          img.src = src;
+        });
+      };
+
+      // Execute warm-up after a short delay to let DOM stabilize
+      setTimeout(warmUpAnimations, 100);
+
       setScriptsLoaded(true);
     });
   }, []);
@@ -174,7 +214,13 @@ const App = ({ onEnterMarketplace }) => {
           onComplete: () => {
             setIsLoading(false);
             document.body.style.overflow = ''; // Release scroll
-            // REFRESH AUTOMATIQUE: On laisse GSAP gérer, le force refresh manuel cause un lag visible.
+
+            // FINAL REFRESH: Ensure all positions are exact after preloader exit
+            requestAnimationFrame(() => {
+              if (window.ScrollTrigger) {
+                window.ScrollTrigger.refresh(true);
+              }
+            });
           }
         });
 
