@@ -200,7 +200,7 @@ export default function App() {
   const cartTotal = cartItems.reduce((sum, item) => sum + (item.price || 0), 0);
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] text-stone-900 font-sans overflow-x-hidden selection:bg-amber-100">
+    <div className="min-h-screen bg-[#FAF9F6] text-stone-900 font-sans selection:bg-amber-100">
 
       {/* COMPOSANT PANIER */}
       <CartSidebar

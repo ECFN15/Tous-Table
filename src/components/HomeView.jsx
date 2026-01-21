@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import { Hammer, Menu, X, ArrowRight, Instagram, ArrowDown, Star, Zap, Plus, Minus } from 'lucide-react';
 import * as THREE from 'three';
+import StackedCards from './StackedCards'; // New Import
 
 // --- COMPOSANT : REVEAL TEXT (CORRIGÉ & ÉLARGI) ---
 const RevealText = ({ text, className, delay = 0 }) => {
   return (
-    <span className={`block overflow-hidden w-fit pb-[0.2em] pr-32 -mr-32 whitespace-nowrap ${className}`}>
+    <span className={`block overflow-hidden w-fit pb-[0.2em] pr-6 -mr-6 md:pr-32 md:-mr-32 whitespace-nowrap ${className}`}>
       <span
         className="reveal-inner inline-block translate-y-[110%] will-change-transform"
         data-delay={delay}
@@ -218,7 +219,7 @@ const App = ({ onEnterMarketplace }) => {
       duration: isMobile ? 0.5 : 1.2, // Mobile: Durée courte pour arrêter l'inertie rapidement
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
-      smoothTouch: true, // IMPORTANT: Force Lenis à gérer le scroll tactile pour appliquer nos réglages
+      smoothTouch: false, // DO NOT USE smoothTouch on mobile if you want native sticky/fixed behavior to work reliably
       touchMultiplier: isMobile ? 0.8 : 2, // Mobile: Sensibilité naturelle mais contrôlée
     });
 
@@ -448,74 +449,10 @@ const App = ({ onEnterMarketplace }) => {
         });
       }
 
-      // 6. STACKING CARDS - GSAP Pin pour l'effet de SWIPE
-      const cards = gsap.utils.toArray('.featured-card');
-      const totalCards = cards.length;
+      // 6. STACKING CARDS LOGIC REMOVED (Handled by StackedCards.jsx)
 
-      cards.forEach((card, index) => {
-        // PINNING - "Golden Config"
-        // Les cartes 1 à Avant-Dernière sont épinglées avec espacement pour laisser monter la suivante.
-        // La dernière carte n'est PAS épinglée, elle monte naturellement et tout défile ensuite.
-        const isLast = index === totalCards - 1;
-
-        if (!isLast) {
-          ScrollTrigger.create({
-            trigger: card,
-            start: "top top",
-            end: () => "+=" + card.offsetHeight, // DURATION EXACTE = HAUTEUR DE LA CARTE (Alignement parfait)
-            pin: true,
-            pinSpacing: false,
-            anticipatePin: 1,
-            onLeave: () => gsap.set(card, { autoAlpha: 0 }),
-            onEnterBack: () => gsap.set(card, { autoAlpha: 1 })
-          });
-        }
-
-        // Animation de blur/scale quand une carte est recouverte
-        if (index < totalCards - 1) {
-          const cardVisual = card.querySelector('.card-visual');
-          if (cardVisual) {
-            gsap.to(cardVisual, {
-              scale: 0.95,
-              filter: "blur(4px)",
-              // Opacity removed to keep cards solid (fixes ghosting conflict)
-              // opacity: 0.7, 
-              ease: "none",
-              force3D: true, // GPU acceleration
-              scrollTrigger: {
-                trigger: card,
-                start: "top top",
-                end: () => "+=" + card.offsetHeight, // SYNC EXACT AVEC LE PIN
-                scrub: 0.3,
-                invalidateOnRefresh: true // Recalculate on resize
-              }
-            });
-          }
-        }
-      });
-
-      // Reveal text pour chaque carte quand elle devient visible
-      cards.forEach((card, i) => {
-        const text = card.querySelectorAll('.reveal-inner');
-        if (text.length > 0) {
-          gsap.set(text, { y: "110%" });
-          ScrollTrigger.create({
-            trigger: card,
-            start: i === 0 ? "top 80%" : "top 50%",
-            onEnter: () => gsap.to(text, {
-              y: 0,
-              duration: 1,
-              ease: "power3.out",
-              stagger: 0.1
-            }),
-            onLeaveBack: () => gsap.to(text, {
-              y: "110%",
-              duration: 0.5,
-              ease: "power2.in"
-            })
-          });
-        }
-      });
+      // 6. STACKING CARDS LOGIC REMOVED (Handled by StackedCards.jsx)
+      // Legacy text reveal removed to prevent ReferenceError
 
       // 7. Data Counters (GSAP pour la Section 12)
       const statNumbers = gsap.utils.toArray('.stat-number');
@@ -825,119 +762,21 @@ const App = ({ onEnterMarketplace }) => {
 
 
           {/* UPDATE: Full screen width on mobile (100vw) to center content properly at end of scroll */}
-          <div className="w-full min-[1920px]:min-w-[40vw] flex flex-col items-center justify-center border-t min-[1920px]:border-t-0 min-[1920px]:border-l border-white/5 pt-8 md:pt-12 min-[1920px]:pt-0 min-[1920px]:pl-[8vw] mt-8 md:mt-10 min-[1920px]:mt-0">
-            <RotatingSymbol size={isMobile ? 180 : 250} className="text-[#9C8268] opacity-20 scale-75 min-[1920px]:scale-100" text="L'HÉRITAGE DU TEMPS • TOUS À TABLE •" />
-            <span className="font-serif italic text-2xl md:text-3xl min-[1920px]:text-5xl opacity-30 mt-6 md:mt-8 min-[1920px]:mt-24 tracking-[0.5em] uppercase text-white">Perpétuité</span>
-          </div>
         </div>
       </section>
 
-      {/* [SECTION 11: FEATURED - GSAP Stacking Cards with Swipe per Paris by Emily] */}
-      <section className="featured-section w-full relative bg-[#1a1a1a] pt-20 overflow-visible z-20 overflow-x-hidden" style={{ height: '410vh' }}>
+      {/* [SECTION 11: FEATURED - Stacked Cards (Paris Replica)] */}
+      <StackedCards
+        items={featuredItems}
+        onEnterMarketplace={onEnterMarketplace}
+      />
 
-        {/* Transition Element - Texte avant les cartes */}
-        <div className="w-full h-16 md:h-20 flex items-center justify-center mb-8">
-          <span className="text-white/30 text-xs md:text-sm uppercase tracking-[0.5em] font-light">
-            Découvrez nos collections
-          </span>
-        </div>
-
-        {/* Container */}
-        <div className="flex flex-col">
-          {featuredItems.map((item, index) => (
-            <div
-              key={item.id}
-              className="featured-card w-full"
-              style={{ zIndex: 10 + index }}
-            >
-              {/* Card avec marges visuelles */}
-              <div
-                className="card-visual w-[96%] mx-auto h-[85vh] md:h-[90vh] mb-4 flex items-center justify-center overflow-hidden will-change-transform rounded-[24px] md:rounded-[40px] shadow-2xl"
-                style={{ backgroundColor: item.bgColor || '#FAF9F6' }}
-              >
-                {/* Conteneur Interne pour l'effet de recul (Scale Down + Blur) */}
-                <div
-                  className="card-inner-content relative w-full h-full flex items-center justify-center will-change-[transform,filter,opacity]"
-                >
-                  {/* Background Title Faint */}
-                  <div
-                    className="absolute inset-0 flex items-center justify-center font-serif text-[34vw] pointer-events-none uppercase tracking-tighter italic"
-                    style={{ color: item.faintColor }}
-                  >
-                    {item.bgTitle}
-                  </div>
-
-                  {/* GRILLE RESPONSIVE - Remonter le contenu sur mobile */}
-                  <div className="max-w-7xl w-full grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-32 items-center relative z-10 px-6 md:px-8 h-full md:h-auto py-4 md:py-0">
-
-                    {/* SUBTITLE MOBILE - Rapproché du header */}
-                    <div className="w-full md:hidden flex justify-center order-1 mt-12">
-                      <span
-                        className="text-[10px] uppercase tracking-[0.8em] font-bold italic underline underline-offset-8"
-                        style={{ color: item.subColor }}
-                      >
-                        {item.subtitle}
-                      </span>
-                    </div>
-
-                    {/* Image Box */}
-                    <div className="feat-img-box w-full h-[35vh] md:h-auto md:aspect-[4/5] shadow-2xl overflow-hidden rounded-sm order-2 md:order-1">
-                      <img src={item.img} alt={item.bgTitle} className="feat-img-anim w-full h-full object-cover will-change-transform" />
-                    </div>
-
-                    <div className="space-y-4 md:space-y-16 feat-text-anim order-3 md:order-2 flex flex-col justify-center">
-                      <div>
-                        {/* TITRE DESKTOP */}
-                        <span
-                          className="hidden md:block text-[10px] uppercase tracking-[0.8em] mb-12 font-bold italic underline underline-offset-8"
-                          style={{ color: item.subColor }}
-                        >
-                          {item.subtitle}
-                        </span>
-                        {/* TITRE */}
-                        <h2
-                          className="font-serif text-4xl md:text-7xl lg:text-[7.5vw] xl:text-[8.5vw] leading-[0.95] md:leading-[0.85] font-light italic"
-                          style={{ color: item.textColor }}
-                        >
-                          {item.title.map((line, i) => (
-                            <React.Fragment key={i}>
-                              <RevealText text={line} />
-                            </React.Fragment>
-                          ))}
-                        </h2>
-                      </div>
-                      {/* DESCRIPTION */}
-                      <p
-                        className="text-lg md:text-2xl font-light opacity-60 leading-snug md:leading-relaxed max-w-md italic"
-                        style={{ color: item.textColor }}
-                      >
-                        {item.desc}
-                      </p>
-                      {/* BOUTON */}
-                      <button
-                        onClick={onEnterMarketplace}
-                        className="flex items-center gap-4 md:gap-8 group mt-4"
-                        style={{ color: item.textColor }}
-                      >
-                        <RotatingButton id={item.id} />
-                        <span className="text-[10px] md:text-[11px] uppercase tracking-[0.4em] md:tracking-[0.6em] font-medium">
-                          Découvrir la Galerie
-                        </span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
 
       {/* [SECTION 12: RENDU - DATA (REWORK STYLE LUMOSINE - ALIGNÉ)] */}
-      <section className="data-section relative py-40 bg-[#111111] text-[#FAF9F6] overflow-hidden">
+      < section className="data-section relative py-40 bg-[#111111] text-[#FAF9F6] overflow-hidden" >
 
         {/* Marquee stylisé : Ticker de luxe */}
-        <div className="marquee-wrapper border-y border-white/5 bg-[#0a0a0a] py-12 mb-40">
+        < div className="marquee-wrapper border-y border-white/5 bg-[#0a0a0a] py-12 mb-40" >
           <div className="flex whitespace-nowrap animate-marquee">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="flex items-center gap-24 mx-12">
@@ -948,12 +787,12 @@ const App = ({ onEnterMarketplace }) => {
               </div>
             ))}
           </div>
-        </div>
+        </div >
 
         {/* Grille de données - Style Architectural (CORRIGÉ : TAILLES & ALIGNEMENT) */}
-        <div className="max-w-[110rem] mx-auto px-12 md:px-[10vw]">
+        < div className="max-w-[110rem] mx-auto px-12 md:px-[10vw]" >
           {/* AJOUT DE border-t POUR FERMER LA GRILLE */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 border-l border-t border-white/10">
+          < div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 border-l border-t border-white/10" >
             {
               stats.map((stat, idx) => (
                 <div key={idx} className="stat-item p-12 md:p-16 border-r border-b border-white/10 group flex flex-col justify-between min-h-[300px] md:min-h-[400px]">
@@ -980,7 +819,7 @@ const App = ({ onEnterMarketplace }) => {
                 </div>
               ))
             }
-          </div>
+          </div >
 
           <div className="mt-48 flex flex-col md:flex-row justify-between items-end gap-16">
             <div className="max-w-2xl">
@@ -994,14 +833,14 @@ const App = ({ onEnterMarketplace }) => {
               <span className="text-[11px] uppercase tracking-[0.6em] opacity-30">Atelier Tous à Table © — Archive 2024</span>
             </div>
           </div>
-        </div>
-      </section>
+        </div >
+      </section >
 
       {/* [SECTION 13: RENDU - TEAM (DIRECTION) - STICKY SCROLL SPLIT via GSAP PINNING] */}
-      <section className="team-section relative w-full bg-[#FAF9F6] flex flex-col md:flex-row items-start z-10 scroll-mt-24 py-12 md:py-16 lg:py-20">
+      < section className="team-section relative w-full bg-[#FAF9F6] flex flex-col md:flex-row items-start z-10 scroll-mt-24 py-12 md:py-16 lg:py-20" >
 
         {/* COLONNE GAUCHE (TEXTE) */}
-        <div className="w-full md:w-1/2 md:min-h-screen flex flex-col justify-center px-6 md:px-8 lg:px-[6vw] py-12 md:py-0 space-y-8 md:space-y-12 lg:space-y-24 text-[#1a1a1a] z-20">
+        < div className="w-full md:w-1/2 md:min-h-screen flex flex-col justify-center px-6 md:px-8 lg:px-[6vw] py-12 md:py-0 space-y-8 md:space-y-12 lg:space-y-24 text-[#1a1a1a] z-20" >
           {/* Ce wrapper sera épinglé par GSAP */}
           {/* FIXED: PT=12vh (Très haut), PB=20vh (Espace vide bas forcé), Section hauteur naturelle */}
           <div className="team-text-wrapper md:h-screen flex flex-col justify-start pt-16 md:pt-[12vh] pb-12 md:pb-[20vh]">
