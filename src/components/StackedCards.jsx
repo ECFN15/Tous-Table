@@ -58,12 +58,14 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                                 y: 100, // Move down to hide behind current card
                                 filter: "blur(8px)",
                                 ease: "none",
+                                force3D: true, // GPU acceleration for smoother mobile performance
                                 scrollTrigger: {
                                     trigger: card,
                                     start: "top 70%",
                                     end: "top 21px",
                                     scrub: 0.5,
                                     invalidateOnRefresh: true,
+                                    fastScrollEnd: true, // Optimize for fast scrolling
                                     onLeaveBack: () => {
                                         // Reset to initial state when scrolling back up
                                         gsap.set(prevVisual, {
@@ -76,6 +78,30 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                             });
                         }
                     });
+
+                    // Last card exit: subtle width reduction (scaleX) - no blur
+                    // Like Paris By Emily style
+                    const lastCard = cards[cards.length - 1];
+                    const lastVisual = lastCard?.querySelector('.card-visual');
+                    const spacer = containerRef.current?.querySelector('.section-spacer');
+
+                    if (lastVisual && spacer) {
+                        gsap.to(lastVisual, {
+                            scaleX: 0.97, // Very subtle width reduction
+                            ease: "power1.out", // Smooth easing
+                            force3D: true,
+                            scrollTrigger: {
+                                trigger: spacer,
+                                start: "top 100%", // Start earlier
+                                end: "top 40%", // End later for progressive effect
+                                scrub: 0.8, // Smoother scrub
+                                invalidateOnRefresh: true,
+                                onLeaveBack: () => {
+                                    gsap.set(lastVisual, { scaleX: 1 });
+                                }
+                            }
+                        });
+                    }
                 }, containerRef);
 
                 // Refresh after creation to get correct positions
@@ -120,7 +146,7 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
             {/* Layout Action 2: mb-2 (Marquee glued to first card) */}
             <div className="w-full py-6 border-b border-[#1a1a1a]/10 mb-2 overflow-hidden">
                 <div className="whitespace-nowrap flex animate-marquee">
-                    {[...Array(10)].map((_, i) => (
+                    {[...Array(6)].map((_, i) => (
                         <div key={i} className="flex items-center gap-12 mx-6">
                             <span className="text-[10px] md:text-xs font-bold uppercase tracking-[0.3em] text-[#1a1a1a]">
                                 Découvrez notre collection
@@ -146,7 +172,9 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                         className="card-visual relative w-[90%] md:w-[97%] max-w-[1800px] h-[88vh] md:h-[90vh] bg-[#FAF9F6] rounded-[2.5rem] md:rounded-[4rem] overflow-hidden shadow-[0_20px_70px_rgba(0,0,0,0.15)] flex flex-col items-center"
                         style={{
                             backgroundColor: item.bgColor,
-                            transformOrigin: '50% 100%'
+                            transformOrigin: '50% 100%',
+                            willChange: 'transform, filter', // GPU acceleration hint
+                            contain: 'layout paint' // CSS containment for better isolation
                         }}
                     >
                         {/* 1. IMAGE ZONE (Top ~60%) */}
@@ -154,6 +182,8 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                             <img
                                 src={item.img}
                                 alt={item.title.join(' ')}
+                                loading="lazy"
+                                decoding="async"
                                 className="w-full h-full object-cover"
                             />
                             {/* Gradient Overlay for legibility */}
@@ -190,16 +220,16 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                             </button>
                         </div>
 
-                        {/* Background Texture */}
-                        <div className="absolute inset-0 pointer-events-none opacity-[0.03]"
+                        {/* Background Texture - Hidden on mobile for performance */}
+                        <div className="hidden md:block absolute inset-0 pointer-events-none opacity-[0.03]"
                             style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/cubes.png")' }}>
                         </div>
                     </div>
                 </div>
             ))}
 
-            {/* Spacer for final scroll */}
-            <div className="w-full h-[50vh] bg-[#E5E5E5]"></div>
+            {/* Minimal spacer - last card scrolls away naturally like Paris By Emily */}
+            <div className="section-spacer w-full h-[10vh] bg-[#E5E5E5]"></div>
         </section>
     );
 };
