@@ -51,9 +51,11 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                                 transformOrigin: "center top"
                             });
 
-                            // Create the animation
+                            // Create the animation - Paris By Emily style
+                            // Cards shrink + move down to create a wheel rotation effect
                             gsap.to(prevVisual, {
-                                scale: 0.95,
+                                scale: 0.80,
+                                y: 100, // Move down to hide behind current card
                                 filter: "blur(8px)",
                                 ease: "none",
                                 scrollTrigger: {
@@ -62,23 +64,12 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                                     end: "top 21px",
                                     scrub: 0.5,
                                     invalidateOnRefresh: true,
-                                    onLeave: () => {
-                                        // Hide the card completely when passed
-                                        gsap.set(prevVisual, {
-                                            opacity: 0
-                                        });
-                                    },
-                                    onEnterBack: () => {
-                                        // Show the card again when scrolling back
-                                        gsap.set(prevVisual, {
-                                            opacity: 1
-                                        });
-                                    },
                                     onLeaveBack: () => {
+                                        // Reset to initial state when scrolling back up
                                         gsap.set(prevVisual, {
                                             scale: 1,
-                                            filter: "blur(0px)",
-                                            opacity: 1
+                                            y: 0,
+                                            filter: "blur(0px)"
                                         });
                                     }
                                 }
