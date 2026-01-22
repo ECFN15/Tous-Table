@@ -142,7 +142,7 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
 
     return (
         // Layout Action 1: pt-32 (Large top padding)
-        <section className="relative w-full bg-[#E5E5E5] flex flex-col items-center gap-[20px] pt-32 pb-[10vh]" style={{ overflowX: 'clip' }} ref={containerRef}>
+        <section className="featured-section relative w-full bg-[#E5E5E5] flex flex-col items-center gap-[20px] pt-32 pb-[10vh]" style={{ overflowX: 'clip' }} ref={containerRef}>
 
             {/* MARQUEE */}
             {/* Layout Action 2: mb-2 (Marquee glued to first card) */}

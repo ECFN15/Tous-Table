@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { ShoppingBag } from 'lucide-react';
+import { ShoppingBag, Heart } from 'lucide-react';
 import { db, appId } from '../firebase/config';
 import { doc, updateDoc, increment } from 'firebase/firestore';
 import AuctionTimer from './ui/AuctionTimer';
 import CommentsModal from './ui/CommentsModal';
 
-const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, onSelectItem, onShowLogin }) => {
+const InstagramGallery = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, onSelectItem, onShowLogin }) => {
     const [filter, setFilter] = useState('fixed');
     const [activeCollection, setActiveCollection] = useState('furniture'); // 'furniture' | 'cutting_boards'
 
@@ -120,29 +120,54 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                             <div className="relative aspect-[3/4] md:aspect-[4/5] w-full overflow-hidden rounded-[1.5rem] md:rounded-[2rem] bg-white shadow-xl shadow-stone-200/50 transition-all duration-700 ease-premium group-hover:shadow-2xl group-hover:shadow-stone-300/60 group-hover:-translate-y-1">
                                 <img src={item.images?.[0] || item.imageUrl} alt={item.name} className="w-full h-full object-cover transition-transform duration-1000 ease-premium group-hover:scale-105" loading="lazy" />
 
-                                {/* --- SOCIAL ICONS INSTAGRAM STYLE --- */}
+                                {/* --- SOCIAL ICONS INSTAGRAM STYLE (LUCIDE + CUSTOM DIRECT) --- */}
                                 <div className="absolute right-3 bottom-16 md:bottom-20 flex flex-col items-center gap-4 z-20">
                                     {/* LIKE */}
                                     <button onClick={(e) => handleLike(e, item)} className="flex flex-col items-center gap-1 group/btn">
-                                        <svg aria-label="J’aime" className={`transition-all duration-300 drop-shadow-lg ${likedItems.includes(item.id) ? 'scale-110 active:scale-90' : 'hover:scale-110 active:scale-90'}`} color={likedItems.includes(item.id) ? '#ef4444' : '#ffffff'} fill={likedItems.includes(item.id) ? '#ef4444' : 'transparent'} height="26" role="img" viewBox="0 0 24 24" width="26" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}>
-                                            <path d="M16.792 3.904A4.989 4.989 0 0 1 21.5 9.122c0 3.072-2.652 4.956-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 0 1 4.708-5.218 4.21 4.21 0 0 1 3.675 1.941c.84 1.175.98 1.763 1.12 1.763s.278-.588 1.11-1.766a4.17 4.17 0 0 1 3.679-1.938m0-2a6.04 6.04 0 0 0-4.797 2.127 6.052 6.052 0 0 0-4.787-2.127A6.985 6.985 0 0 0 .5 9.122c0 3.61 2.55 5.827 5.015 7.97.283.246.569.494.853.747l1.027.918a44.998 44.998 0 0 0 3.518 3.018 2 2 0 0 0 2.174 0 45.263 45.263 0 0 0 3.626-3.115l.922-.824c.293-.26.59-.519.885-.774 2.334-2.025 4.98-4.32 4.98-7.94a6.985 6.985 0 0 0-6.708-7.218Z" stroke="currentColor" strokeWidth="2"></path>
-                                        </svg>
+                                        <Heart
+                                            size={26}
+                                            strokeWidth={1.5}
+                                            className={`transition-all duration-300 drop-shadow-md ${likedItems.includes(item.id) ? 'fill-red-500 text-red-500 scale-110' : 'text-white hover:scale-110'}`}
+                                            style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}
+                                        />
                                         <span className="text-[11px] font-bold text-white drop-shadow-md font-sans">{item.likeCount || 0}</span>
                                     </button>
 
                                     {/* COMMENTS */}
                                     <button onClick={(e) => handleCommentClick(e, item)} className="flex flex-col items-center gap-1 group/btn">
-                                        <svg aria-label="Commenter" className="transition-all duration-300 drop-shadow-lg hover:scale-110 active:scale-90" color="#ffffff" fill="transparent" height="26" role="img" viewBox="0 0 24 24" width="26" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}>
-                                            <path d="M20.656 17.008a9.993 9.993 0 1 0-3.59 3.615L22 22Z" fill="none" stroke="currentColor" strokeLinejoin="round" strokeWidth="2"></path>
+                                        <svg
+                                            width="26"
+                                            height="26"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="1.5"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            className="text-white transition-all duration-300 drop-shadow-md hover:scale-110"
+                                            style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}
+                                        >
+                                            <path d="M20.656 17.008a9.993 9.993 0 1 0-3.59 3.615L22 22Z" />
                                         </svg>
                                         <span className="text-[11px] font-bold text-white drop-shadow-md font-sans">{item.commentCount || 0}</span>
                                     </button>
 
-                                    {/* SHARE (ROUNDED DIRECT) */}
+                                    {/* SHARE (CUSTOM DIRECT ICON for Rounded Look) */}
                                     <button onClick={(e) => handleShare(e, item)} className="flex flex-col items-center gap-1 group/btn">
-                                        <svg aria-label="Partager" className="transition-all duration-300 drop-shadow-lg hover:scale-110 active:scale-90 hover:rotate-12" color="#ffffff" fill="transparent" height="26" role="img" viewBox="0 0 24 24" width="26" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}>
-                                            <line fill="none" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" x1="22" x2="9.218" y1="2" y2="10.083"></line>
-                                            <polygon fill="none" points="11.698 20.334 22 3.001 2 3.001 9.218 10.084 11.698 20.334" stroke="currentColor" strokeLinejoin="round" strokeWidth="2"></polygon>
+                                        <svg
+                                            width="24"
+                                            height="24"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="1.5"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            className="text-white transition-all duration-300 drop-shadow-md hover:scale-110 hover:rotate-12"
+                                            style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}
+                                        >
+                                            <path d="M22 2L11 13" />
+                                            <path d="M22 2l-7 20-4-9-9-4 20-7z" />
                                         </svg>
                                         <span className="text-[11px] font-bold text-white drop-shadow-md font-sans">{item.shareCount || 0}</span>
                                     </button>
@@ -154,7 +179,7 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                                             {item.auctionActive ? (
                                                 <div className="px-2 py-0.5 rounded-full bg-stone-900/80 backdrop-blur border border-white/10 flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#34C759] animate-pulse"></div><span className="text-[9px] font-mono tracking-widest"><AuctionTimer endDate={item.auctionEnd} /></span></div>
                                             ) : (
-                                                <div className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur border border-white/10"><span className="text-[10px] font-bold tracking-widest">{item.currentPrice || item.startingPrice} €</span></div>
+                                                <div className="px-4 py-1.5 rounded-full bg-white/20 backdrop-blur border border-white/10 flex items-center justify-center"><span className="text-[10px] font-bold tracking-widest pt-[1px]">{item.currentPrice || item.startingPrice} €</span></div>
                                             )}
                                         </div>
                                         <h3 className="font-serif text-xl md:text-2xl leading-tight line-clamp-2 drop-shadow-sm">{item.name}</h3>
@@ -170,4 +195,4 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
     );
 };
 
-export default GalleryView;
+export default InstagramGallery;

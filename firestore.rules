@@ -2,45 +2,42 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // On utilise {collectionName} pour que ça marche pour "furniture", "cutting_boards", etc.
+    // Fonction Admin SÉCURISÉE - Un seul email autorisé
+    function isArtisan() {
+      return request.auth != null && 
+             request.auth.token.email == 'matthis.fradin2@gmail.com';
+    }
+
+    // Collections produits (furniture, cutting_boards, etc.)
     match /artifacts/tat-made-in-normandie/public/data/{collectionName}/{itemId} {
       allow read: if true;
-
-      function isArtisan() {
-        return request.auth != null && 
-               (request.auth.token.email == 'matthis.fradin2@gmail.com' || 
-                request.auth.token.firebase.sign_in_provider == 'password');
-      }
-
-      allow create, delete: if isArtisan();
-      allow update: if isArtisan() || (
-        request.auth != null && 
-        request.resource.data.currentPrice > resource.data.currentPrice &&
-        request.resource.data.name == resource.data.name
-      );
+      // SEUL L'ADMIN PEUT CRÉER/MODIFIER/SUPPRIMER
+      // Les enchères passent par la Cloud Function (Admin SDK = bypass des règles)
+      allow create, update, delete: if isArtisan();
         
       match /bids/{bidId} {
         allow read: if true;
-        allow create: if request.auth != null;
+        // Création uniquement via Cloud Function (Admin SDK)
+        allow create: if false;
       }
 
-      // ACCÈS TÉLÉMÉTRIE & LOGS
+      // Logs - Authentification requise (anti-spam)
       match /logs/{logId} {
-        allow create: if true;
+        allow create: if request.auth != null;
         allow read, delete: if isArtisan();
       }
     }
 
-    // REGLES PANIER UTILISATEUR
+    // Panier utilisateur - Isolation par userId
     match /users/{userId}/cart/{cartItem} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // REGLES COMMANDES
+    // Commandes - Lecture/écriture restreinte
     match /orders/{orderId} {
       allow create: if request.auth != null;
-      allow read, update: if request.auth != null && (request.auth.uid == resource.data.userId || 
-                             request.auth.token.email == 'matthis.fradin2@gmail.com');
+      allow read, update: if request.auth != null && 
+        (request.auth.uid == resource.data.userId || isArtisan());
     }
   }
 }

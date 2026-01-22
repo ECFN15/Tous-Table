@@ -1,10 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { ChevronLeft, Award, Timer, Mail, Box, Ruler, History, Quote } from 'lucide-react';
-import { doc, onSnapshot, runTransaction, collection, query, orderBy, limit, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { doc, onSnapshot, collection, query, orderBy, limit } from 'firebase/firestore';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { db, appId } from '../firebase/config';
 import { getMillis, formatTime } from '../utils/time';
 import AuctionTimer from './ui/AuctionTimer';
 import ConfettiRain from './ui/ConfettiRain';
+
+// Initialiser les Cloud Functions
+const functions = getFunctions();
+const placeBidFunction = httpsCallable(functions, 'placeBid');
 
 const ProductDetail = ({ item, user, onBack, onAddToCart }) => {
   const [activeImg, setActiveImg] = useState(0);
@@ -24,43 +29,29 @@ const ProductDetail = ({ item, user, onBack, onAddToCart }) => {
     return onSnapshot(q, (snap) => setBidsHistory(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
   }, [item.id]);
 
+  // Appel sécurisé via Cloud Function
   const handleQuickBid = async (inc) => {
     if (bidLoading) return;
+    if (!user) {
+      setMsg({ type: 'error', text: 'Connectez-vous pour enchérir.' });
+      return;
+    }
+
     setBidLoading(true);
     try {
-      await runTransaction(db, async (transaction) => {
-        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'furniture', item.id);
-        const snap = await transaction.get(docRef);
-        if (!snap.exists()) throw "Produit introuvable.";
-
-        const data = snap.data();
-        const serverPrice = data.currentPrice || data.startingPrice;
-        const finalAmount = serverPrice + inc;
-
-        if (getMillis(data.auctionEnd) < Date.now()) throw "Vente terminée.";
-
-        let newEnd = data.auctionEnd;
-        if ((getMillis(data.auctionEnd) - Date.now()) < 120000) {
-          newEnd = Timestamp.fromMillis(Date.now() + 120000);
-        }
-
-        transaction.update(docRef, {
-          currentPrice: finalAmount,
-          bidCount: (data.bidCount || 0) + 1,
-          lastBidderId: user.uid,
-          lastBidderName: user.displayName || "Anonyme",
-          lastBidderEmail: user.email || "Non renseigné",
-          lastBidderPhoto: user.photoURL || "",
-          auctionEnd: newEnd,
-          lastBidAt: serverTimestamp()
-        });
-
-        const bidRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'furniture', item.id, 'bids'));
-        transaction.set(bidRef, { amount: finalAmount, increment: inc, bidderName: user.displayName || "Anonyme", timestamp: serverTimestamp() });
+      const result = await placeBidFunction({
+        itemId: item.id,
+        collectionName: 'furniture', // ou 'cutting_boards' selon le contexte
+        increment: inc
       });
-      setMsg({ type: 'success', text: `Offre validée !` });
+
+      if (result.data.success) {
+        setMsg({ type: 'success', text: `Offre validée ! Nouveau prix: ${result.data.newPrice}€` });
+      }
     } catch (e) {
-      setMsg({ type: 'error', text: e.toString() });
+      // Extraire le message d'erreur de la Cloud Function
+      const errorMessage = e.message || 'Erreur lors de l\'enchère.';
+      setMsg({ type: 'error', text: errorMessage });
     } finally {
       setBidLoading(false);
       setTimeout(() => setMsg(null), 3000);

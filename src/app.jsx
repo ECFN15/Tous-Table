@@ -15,12 +15,13 @@ import { getMillis } from './utils/time';
 
 // --- IMPORTS VUES ---
 import HomeView from './components/HomeView';
-import GalleryView from './components/GalleryView';
+import GalleryView from './components/InstagramGallery';
 import ProductDetail from './components/ProductDetail';
 
 import LoginView from './components/LoginView';
 import AdminForm from './components/AdminForm';
-import AdminOrders from './components/AdminOrders'; // New
+import AdminOrders from './components/AdminOrders';
+import AdminComments from './components/AdminComments'; // New
 import CartSidebar from './components/CartSidebar';
 import CheckoutView from './components/CheckoutView';
 import OrderSuccessModal from './components/OrderSuccessModal';
@@ -493,11 +494,19 @@ export default function App() {
               >
                 Planches à Découper
               </button>
+              <button
+                onClick={() => { setAdminCollection('comments'); setEditingItem(null); }}
+                className={`px-6 py-3 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${adminCollection === 'comments' ? 'bg-white shadow-sm text-stone-900' : 'text-stone-400 hover:text-stone-600'}`}
+              >
+                Commentaires
+              </button>
             </div>
 
             {/* CONTENU ADMIN */}
             {adminCollection === 'orders' ? (
               <AdminOrders />
+            ) : adminCollection === 'comments' ? (
+              <AdminComments />
             ) : (
               <>
                 {/* Formulaire Admin */}

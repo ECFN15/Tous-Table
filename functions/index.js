@@ -3,6 +3,7 @@ const admin = require('firebase-admin');
 const nodemailer = require('nodemailer');
 
 admin.initializeApp();
+const db = admin.firestore();
 
 // Configuration du transporteur Gmail
 // IMPORTANT: L'utilisateur devra configurer l'email et le mot de passe d'application
@@ -15,6 +16,109 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+// ============================================================
+// CLOUD FUNCTION: ENCHÈRES SÉCURISÉES
+// ============================================================
+exports.placeBid = functions.https.onCall(async (data, context) => {
+    // 1. Vérifier l'authentification
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'Vous devez être connecté pour enchérir.');
+    }
+
+    const { itemId, collectionName, increment } = data;
+    const userId = context.auth.uid;
+    const userEmail = context.auth.token.email || 'Non renseigné';
+    const userName = context.auth.token.name || 'Anonyme';
+    const userPhoto = context.auth.token.picture || '';
+
+    // 2. Validation des données
+    if (!itemId || typeof itemId !== 'string') {
+        throw new functions.https.HttpsError('invalid-argument', 'ID produit invalide.');
+    }
+    if (!collectionName || !['furniture', 'cutting_boards'].includes(collectionName)) {
+        throw new functions.https.HttpsError('invalid-argument', 'Collection invalide.');
+    }
+    if (!increment || typeof increment !== 'number' || increment < 5) {
+        throw new functions.https.HttpsError('invalid-argument', 'Incrément minimum: 5€.');
+    }
+    if (increment > 10000) {
+        throw new functions.https.HttpsError('invalid-argument', 'Incrément maximum: 10000€.');
+    }
+
+    const appId = 'tat-made-in-normandie';
+    const itemRef = db.doc(`artifacts/${appId}/public/data/${collectionName}/${itemId}`);
+
+    try {
+        const result = await db.runTransaction(async (transaction) => {
+            const snap = await transaction.get(itemRef);
+
+            if (!snap.exists) {
+                throw new functions.https.HttpsError('not-found', 'Produit introuvable.');
+            }
+
+            const itemData = snap.data();
+
+            // 3. Vérifier que l'enchère est active
+            if (!itemData.auctionActive) {
+                throw new functions.https.HttpsError('failed-precondition', 'Cette enchère n\'est pas active.');
+            }
+
+            const auctionEndMs = itemData.auctionEnd?.toMillis() || 0;
+            if (auctionEndMs < Date.now()) {
+                throw new functions.https.HttpsError('failed-precondition', 'Cette enchère est terminée.');
+            }
+
+            // 4. Calculer le nouveau prix
+            const currentPrice = itemData.currentPrice || itemData.startingPrice || 0;
+            const newPrice = currentPrice + increment;
+
+            // 5. Extension automatique si moins de 2 minutes restantes
+            let newEnd = itemData.auctionEnd;
+            if ((auctionEndMs - Date.now()) < 120000) {
+                newEnd = admin.firestore.Timestamp.fromMillis(Date.now() + 120000);
+            }
+
+            // 6. Mettre à jour le produit
+            transaction.update(itemRef, {
+                currentPrice: newPrice,
+                bidCount: (itemData.bidCount || 0) + 1,
+                lastBidderId: userId,
+                lastBidderName: userName,
+                lastBidderEmail: userEmail,
+                lastBidderPhoto: userPhoto,
+                auctionEnd: newEnd,
+                lastBidAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+
+            // 7. Ajouter l'enchère dans l'historique
+            const bidRef = db.collection(`artifacts/${appId}/public/data/${collectionName}/${itemId}/bids`).doc();
+            transaction.set(bidRef, {
+                amount: newPrice,
+                increment: increment,
+                bidderId: userId,
+                bidderName: userName,
+                bidderEmail: userEmail,
+                timestamp: admin.firestore.FieldValue.serverTimestamp()
+            });
+
+            return { newPrice, bidCount: (itemData.bidCount || 0) + 1 };
+        });
+
+        console.log(`Enchère placée: ${userEmail} +${increment}€ sur ${itemId}`);
+        return { success: true, newPrice: result.newPrice, bidCount: result.bidCount };
+
+    } catch (error) {
+        console.error('Erreur enchère:', error);
+        if (error instanceof functions.https.HttpsError) {
+            throw error;
+        }
+        throw new functions.https.HttpsError('internal', 'Erreur lors de l\'enchère.');
+    }
+});
+
+// ============================================================
+// CLOUD FUNCTION: EMAIL COMMANDES
+// ============================================================
 exports.onOrderCreated = functions.firestore
     .document('orders/{orderId}')
     .onCreate(async (snap, context) => {
@@ -93,3 +197,4 @@ exports.onOrderCreated = functions.firestore
             return snap.ref.update({ emailStatus: 'error', emailError: error.toString() });
         }
     });
+
