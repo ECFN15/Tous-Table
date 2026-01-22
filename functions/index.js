@@ -198,3 +198,72 @@ exports.onOrderCreated = functions.firestore
         }
     });
 
+// ============================================================
+// CLOUD FUNCTION: DYNAMIC META TAGS (SSR LÉGER)
+// ============================================================
+// Sert à afficher la bonne image/titre sur WhatsApp/Facebook
+exports.shareMeta = functions.https.onRequest(async (req, res) => {
+    const userAgent = req.headers['user-agent'] || '';
+    const productId = req.query.product;
+
+    // URL de base (à adapter si domaine perso)
+    const SITE_URL = 'https://tatmadeinnormandie.web.app';
+
+    // Fonction utilitaire pour récupérer le HTML de base
+    // On le fetch depuis le site live pour avoir les scripts/styles à jour
+    // (Alternativement on pourrait lire un fichier si uploadé avec les fonctions)
+    const getIndexHtml = async () => {
+        try {
+            // Utilisation de fetch natif (Node 18+)
+            const response = await fetch(`${SITE_URL}/index.html`);
+            return await response.text();
+        } catch (e) {
+            console.error("Erreur fetch index.html", e);
+            return `<!DOCTYPE html><html><head><title>Tous à Table</title></head><body><h1>Erreur chargement</h1></body></html>`;
+        }
+    };
+
+    let html = await getIndexHtml();
+
+    // Valeurs par défaut
+    let title = "Tous à Table - Made in Normandie";
+    let description = "Atelier d'ébénisterie d'art en Normandie. Créations uniques et sur-mesure.";
+    let image = `${SITE_URL}/assets/logo.png`; // Assurez-vous d'avoir une image par défaut
+    let url = SITE_URL;
+
+    // Si un produit est demandé
+    if (productId) {
+        try {
+            // Chercher dans Furniture OU Cutting Boards
+            // On fait les deux requêtes en parallèle pour la vitesse
+            const [furnSnap, boardSnap] = await Promise.all([
+                db.doc(`artifacts/tat-made-in-normandie/public/data/furniture/${productId}`).get(),
+                db.doc(`artifacts/tat-made-in-normandie/public/data/cutting_boards/${productId}`).get()
+            ]);
+
+            let item = null;
+            if (furnSnap.exists) item = furnSnap.data();
+            else if (boardSnap.exists) item = boardSnap.data();
+
+            if (item) {
+                title = `${item.name} | Tous à Table`;
+                description = `Découvrez cette pièce unique : ${item.name}. ${item.material ? item.material : ''} - ${item.currentPrice || item.startingPrice}€`;
+                // Prendre la première image ou imageUrl
+                image = (item.images && item.images.length > 0) ? item.images[0] : (item.imageUrl || image);
+                url = `${SITE_URL}/?product=${productId}`;
+            }
+        } catch (error) {
+            console.error("Erreur récupération produit pour meta tags:", error);
+        }
+    }
+
+    // Remplacement des placeholders
+    html = html.replace(/__OG_TITLE__/g, title);
+    html = html.replace(/__OG_DESCRIPTION__/g, description);
+    html = html.replace(/__OG_IMAGE__/g, image);
+    html = html.replace(/__OG_URL__/g, url);
+
+    // Cache Control (Court pour le HTML dynamique)
+    res.set('Cache-Control', 'public, max-age=300, s-maxage=600');
+    res.send(html);
+});

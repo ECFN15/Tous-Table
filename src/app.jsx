@@ -58,6 +58,32 @@ export default function App() {
   // Admin State
   const [adminCollection, setAdminCollection] = useState('furniture'); // 'furniture' | 'cutting_boards'
 
+  // Deep Linking State
+  const [pendingDeepLink, setPendingDeepLink] = useState(null);
+
+  // --- SCROLL HEADER LOGIC ---
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY < 10) {
+        setIsHeaderVisible(true);
+        setLastScrollY(currentScrollY);
+        return;
+      }
+      if (currentScrollY > lastScrollY && currentScrollY > 20) {
+        setIsHeaderVisible(false);
+      } else if (currentScrollY < lastScrollY) {
+        setIsHeaderVisible(true);
+      }
+      setLastScrollY(currentScrollY);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
+
   // --- CHARGEMENT ---
   useEffect(() => {
     // 1. Meubles (Données)
@@ -79,9 +105,14 @@ export default function App() {
       setIsAdmin(isRealAdmin);
 
       const params = new URLSearchParams(window.location.search);
+      const productId = params.get('product');
+
       if (params.get('admin') === 'true') {
         setIsSecretGateOpen(true);
         if (isRealAdmin) setView('admin'); else setView('login');
+      } else if (productId) {
+        // Deep Link détecté : on attend que les données chargent
+        setPendingDeepLink(productId);
       } else {
         if (params.get('page') === 'gallery') setView('gallery');
 
@@ -95,6 +126,23 @@ export default function App() {
     return () => { unsubData(); unsubBoards(); unsubAuth(); };
   }, []);
 
+  // --- TRAITEMENT DEEP LINK ---
+  useEffect(() => {
+    if (pendingDeepLink && (items.length > 0 || boardItems.length > 0)) {
+      const allItems = [...items, ...boardItems];
+      const targetItem = allItems.find(i => i.id === pendingDeepLink);
+
+      if (targetItem) {
+        console.log("Deep link activated for:", targetItem.name);
+        setSelectedItemId(pendingDeepLink);
+        setView('detail');
+        setPendingDeepLink(null); // Lien consommé
+        // Nettoyer l'URL sans recharger
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+  }, [items, boardItems, pendingDeepLink]);
+
   // --- CART SYNC ---
   useEffect(() => {
     if (user && !user.isAnonymous) {
@@ -102,13 +150,10 @@ export default function App() {
       // Removing orderBy for debugging to avoid index issues
       const q = query(collection(db, 'users', user.uid, 'cart'));
       const unsubCart = onSnapshot(q, (snap) => {
-        console.log("Cart update received, count:", snap.size);
         const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        console.log("Cart items:", items);
         setCartItems(items);
       }, (err) => {
         console.error("Cart sync error:", err);
-        // alert("Erreur lecture panier: " + err.message);
       });
       return () => unsubCart();
     } else {
@@ -194,6 +239,8 @@ export default function App() {
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#FAF9F6]"><div className="w-10 h-10 border-[3px] border-stone-200 border-t-stone-900 rounded-full animate-spin"></div></div>;
+
+
 
   // Active Admin List
   const currentAdminItems = adminCollection === 'furniture' ? items : boardItems;
@@ -380,8 +427,8 @@ export default function App() {
             </div>
           </div>
 
-          {/* NAVBAR GLOBALE */}
-          <nav className="fixed top-0 left-0 right-0 z-[100] px-4 md:px-12 py-6 md:py-8 flex justify-between items-center mix-blend-difference text-white transition-all duration-300">
+          {/* NAVBAR GLOBALE (Auto-Hide) */}
+          <nav className={`fixed top-0 left-0 right-0 z-[100] px-4 md:px-12 py-6 md:py-8 flex justify-between items-center mix-blend-difference text-white transition-transform duration-300 ease-in-out ${isHeaderVisible ? 'translate-y-0' : '-translate-y-full pointer-events-none'}`}>
             <div className="flex items-center gap-3 cursor-pointer group" onClick={() => { setView('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
               <div className="bg-white text-stone-900 p-1.5 rounded-lg shadow-md group-hover:rotate-6 transition-all"><Hammer size={20} /></div>
               <div><h1 className="text-lg font-black uppercase tracking-tighter leading-none">Tous à Table</h1><p className="text-[7px] font-black tracking-[0.3em] uppercase opacity-60">Atelier Normand</p></div>

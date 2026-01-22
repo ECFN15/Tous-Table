@@ -52,16 +52,51 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
 
     const handleShare = async (e, item) => {
         e.stopPropagation();
-        try {
-            const itemRef = doc(db, 'artifacts', appId, 'public', 'data', activeCollection, item.id);
-            await updateDoc(itemRef, { shareCount: increment(1) });
-        } catch (error) { console.error("Error updating share count:", error); }
+
+        let shareSuccessful = false;
+        // Création du lien spécifique vers le produit
+        const shareUrl = `${window.location.origin}/?product=${item.id}`;
 
         if (navigator.share) {
-            try { await navigator.share({ title: `Tous à Table - ${item.name}`, text: `Découvre cette pièce unique : ${item.name}`, url: window.location.href }); } catch (error) { console.log('Error sharing', error); }
+            try {
+                await navigator.share({
+                    title: `Tous à Table - ${item.name}`,
+                    text: `Découvre cette pièce unique : ${item.name}`,
+                    url: shareUrl
+                });
+                shareSuccessful = true; // Only true if user completed the share
+            } catch (error) {
+                // User cancelled the share dialog or error occurred
+                console.log('Share cancelled or failed:', error);
+            }
         } else {
-            navigator.clipboard.writeText(window.location.href);
+            // Fallback: clipboard copy always "succeeds"
+            navigator.clipboard.writeText(shareUrl);
             alert("Lien copié !");
+            shareSuccessful = true;
+        }
+
+        // --- STATS LOGIC SÉCURISÉE ---
+        // 1. Vérifie si l'utilisateur a déjà partagé cet item (localStorage)
+        // 2. Met à jour seulement si nouveau partage
+        if (shareSuccessful) {
+            const sharedItemsKey = 'tat_shared_items_v1';
+            const sharedItems = JSON.parse(localStorage.getItem(sharedItemsKey) || '[]');
+
+            if (!sharedItems.includes(item.id)) {
+                try {
+                    const itemRef = doc(db, 'artifacts', appId, 'public', 'data', activeCollection, item.id);
+                    await updateDoc(itemRef, { shareCount: increment(1) });
+
+                    // Marquer comme partagé localement
+                    sharedItems.push(item.id);
+                    localStorage.setItem(sharedItemsKey, JSON.stringify(sharedItems));
+                } catch (error) {
+                    console.error("Error updating share count:", error);
+                }
+            } else {
+                console.log("Stat not incremented: Item already shared by this user.");
+            }
         }
     };
 

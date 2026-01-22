@@ -11,14 +11,24 @@ service cloud.firestore {
     // Collections produits (furniture, cutting_boards, etc.)
     match /artifacts/tat-made-in-normandie/public/data/{collectionName}/{itemId} {
       allow read: if true;
-      // SEUL L'ADMIN PEUT CRÉER/MODIFIER/SUPPRIMER
-      // Les enchères passent par la Cloud Function (Admin SDK = bypass des règles)
-      allow create, update, delete: if isArtisan();
+      // SEUL L'ADMIN PEUT CRÉER/SUPPRIMER des produits
+      allow create, delete: if isArtisan();
+      // Mise à jour: Admin OU utilisateurs auth (pour likeCount, shareCount, commentCount)
+      allow update: if isArtisan() || request.auth != null;
         
       match /bids/{bidId} {
         allow read: if true;
         // Création uniquement via Cloud Function (Admin SDK)
         allow create: if false;
+      }
+
+      // Commentaires - Utilisateurs authentifiés peuvent créer/lire
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if request.auth != null;
+        // Suppression: propriétaire du commentaire ou admin
+        allow delete: if request.auth != null && 
+          (resource.data.userId == request.auth.uid || isArtisan());
       }
 
       // Logs - Authentification requise (anti-spam)

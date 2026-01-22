@@ -523,11 +523,13 @@ const App = ({ onEnterMarketplace }) => {
         scrollTrigger: { trigger: '.team-section', start: "top 60%" }
       });
 
-      // 9. Curseur
-      const moveCursor = (e) => {
-        gsap.to(cursorRef.current, { x: e.clientX, y: e.clientY, duration: 0.3, ease: "power2.out" });
-      };
-      window.addEventListener('mousemove', moveCursor);
+      // 9. Curseur (Desktop uniquement)
+      if (window.innerWidth >= 1024) {
+        const moveCursor = (e) => {
+          gsap.to(cursorRef.current, { x: e.clientX, y: e.clientY, duration: 0.3, ease: "power2.out" });
+        };
+        window.addEventListener('mousemove', moveCursor);
+      }
 
     }, componentRef);
     return () => ctx.revert();
@@ -612,7 +614,7 @@ const App = ({ onEnterMarketplace }) => {
         </div>
       </div>
 
-      <div id="main-cursor" ref={cursorRef}></div>
+      <div id="main-cursor" ref={cursorRef} className="hidden lg:block"></div>
       <div className="three-container fixed inset-0 pointer-events-none z-0" ref={canvasRef}></div>
 
       {/* NAVIGATION */}
