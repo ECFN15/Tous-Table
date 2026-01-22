@@ -190,13 +190,13 @@ const InstagramGallery = ({ items, boardItems = [], isAdmin, isSecretGateOpen, u
                                 {/* --- PRIX / TIMER (HAUT DROITE) --- */}
                                 <div className="absolute top-2 right-2 md:top-3 md:right-3 z-20 pointer-events-auto">
                                     {item.auctionActive ? (
-                                        <div className="px-2 py-0.5 md:px-2.5 md:py-1 rounded-full bg-stone-900/90 backdrop-blur-md border border-white/10 flex items-center gap-1 md:gap-1.5 shadow-sm">
+                                        <div className={`px-2 py-0.5 md:px-2.5 md:py-1 rounded-full shadow-md flex items-center gap-1 md:gap-1.5 transition-colors ${darkMode ? 'bg-white text-stone-900' : 'bg-[#1D1D1F] text-white'}`}>
                                             <div className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-[#34C759] animate-pulse"></div>
-                                            <span className="text-[9px] md:text-[10px] font-mono tracking-widest text-white"><AuctionTimer endDate={item.auctionEnd} /></span>
+                                            <span className="text-[9px] md:text-[10px] font-mono tracking-widest font-bold"><AuctionTimer endDate={item.auctionEnd} /></span>
                                         </div>
                                     ) : (
-                                        <div className="px-2 py-1 md:px-3 md:py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-sm">
-                                            <span className="text-[9px] md:text-[11px] font-black tracking-widest text-black">{item.currentPrice || item.startingPrice} €</span>
+                                        <div className={`px-2 py-1 md:px-3 md:py-1.5 rounded-full shadow-md flex items-center justify-center transition-all duration-300 hover:scale-105 ${darkMode ? 'bg-white text-stone-900' : 'bg-[#1D1D1F] text-white'}`}>
+                                            <span className="text-[9px] md:text-[11px] font-black tracking-widest">{item.currentPrice || item.startingPrice} €</span>
                                         </div>
                                     )}
                                 </div>

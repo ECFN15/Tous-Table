@@ -231,9 +231,10 @@ const App = ({ onEnterMarketplace }) => {
           ease: "power2.out"
         })
           .to('.preloader-overlay', {
-            yPercent: -100,
-            duration: 1.4, // Slightly adjusted for snappier feel
-            ease: "power4.inOut"
+            opacity: 0,
+            duration: 1.0,
+            ease: "power2.inOut",
+            pointerEvents: "none"
           }, "-=0.5") // Overlap with counter fade -> NO WHITE SCREEN DELAY
           .to('.hero-section .reveal-inner', {
             y: "0%",
