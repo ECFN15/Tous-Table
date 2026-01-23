@@ -96,6 +96,7 @@ const App = ({ onEnterMarketplace }) => {
   const cursorRef = useRef(null);
   const componentRef = useRef(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [menuInteracted, setMenuInteracted] = useState(false); // Prevents initial transition flash
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
   const [homepageImages, setHomepageImages] = useState({});
 
@@ -169,25 +170,58 @@ const App = ({ onEnterMarketplace }) => {
   ];
 
   // --- NAVIGATION SMOOTH ---
+  // --- NAVIGATION SMOOTH ---
   const handleNavigation = (selector) => {
+    // 1. Transition vers Marketplace (Cinematique Haute Performance)
+    if (selector === 'marketplace') {
+      const tl = window.gsap.timeline({
+        onComplete: () => {
+          if (onEnterMarketplace) {
+            onEnterMarketplace();
+          } else {
+            window.location.hash = 'gallery';
+          }
+          // On ferme le menu un peu plus tard pour laisser le temps au montage du composant suivant
+          setTimeout(() => setIsMenuOpen(false), 300);
+        }
+      });
+
+      // Animate Menu Items OUT - Vitesse & Fluidité (144fps feel)
+      tl.to('.menu-link', {
+        y: -60,            // Plus de mouvement vers le haut
+        opacity: 0,
+        skewY: 5,          // Sensation de vitesse
+        filter: "blur(8px)", // Motion blur simulé
+        scale: 0.95,       // Recul léger
+        duration: 0.5,     // Rapide
+        stagger: 0.04,     // Très rapproché
+        ease: "power4.in", // Démarrage lent, sortie EXPLOSIVE
+        force3D: true      // Force GPU
+      })
+        // Force Menu Background to opaque BLACK (Rideau net)
+        .to('.menu-overlay', {
+          opacity: 1,
+          backgroundColor: "#050505", // Noir Profond
+          backdropFilter: "blur(0px)", // On désactive le blur pour perf max
+          duration: 0.6,
+          ease: "expo.inOut", // Courbe très "Premium"
+          force3D: true
+        }, "-=0.4");
+
+      return;
+    }
+
+    // 2. Navigation Standard (Scroll interne)
     setIsMenuOpen(false);
     setTimeout(() => {
       const element = document.querySelector(selector);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
-      } else if (selector === 'marketplace') {
-        // Correctif: Si on change de page vers la marketplace, on l'appelle et on ARRETE là.
-        // On évite ainsi le code suivant qui scrolle vers la section featured.
-        if (onEnterMarketplace) {
-          onEnterMarketplace();
-          return;
-        }
-
-        // Fallback seulement si pas de fonction de navigation fournie
+      } else {
         const feat = document.querySelector('.featured-section');
         if (feat) feat.scrollIntoView({ behavior: 'smooth' });
       }
-    }, 500); // Petit délai pour laisser le menu se fermer
+    }, 500);
   };
 
   // --- CHARGEMENT DYNAMIQUE DES SCRIPTS ---
@@ -254,37 +288,34 @@ const App = ({ onEnterMarketplace }) => {
   // --- PRELOADER STATE ---
   const [isLoading, setIsLoading] = useState(() => {
     if (typeof window !== 'undefined') {
-      return !sessionStorage.getItem('site_loaded');
+      // Check if preloader has already run in this window session
+      if (window.hasShownPreloader) return false;
+      return true;
     }
     return true;
   });
-  const [counter, setCounter] = useState(() => {
-    if (typeof window !== 'undefined' && sessionStorage.getItem('site_loaded')) {
-      return 100;
-    }
-    return 0;
-  });
+  const [counter, setCounter] = useState(0);
 
   useEffect(() => {
-    const isAlreadyLoaded = typeof window !== 'undefined' && sessionStorage.getItem('site_loaded');
+    if (!scriptsLoaded) return;
 
-    if (isAlreadyLoaded) {
-      if (scriptsLoaded) {
-        setIsLoading(false);
-        // Instant or super fast reveal for hero when returning
-        window.gsap.to('.hero-section .reveal-inner', {
+    if (!isLoading) {
+      // If no preloader, trigger entrance animations immediately
+      if (window.gsap) {
+        const tlReveal = window.gsap.timeline();
+        tlReveal.to('.hero-section .reveal-inner', {
           y: "0%",
-          duration: 0.8,
-          ease: "power3.out",
-          stagger: 0.05
-        });
-        window.gsap.to('.hero-footer-element', {
-          opacity: 1,
-          y: 0,
-          duration: 0.8,
-          ease: "power3.out",
-          stagger: 0.1
-        });
+          duration: 1.4,
+          ease: "power4.out",
+          stagger: 0
+        })
+          .to('.hero-footer-element', {
+            opacity: 1,
+            y: 0,
+            duration: 1.2,
+            stagger: 0.2,
+            ease: "power3.out"
+          }, "-=1.0");
       }
       return;
     }
@@ -305,52 +336,50 @@ const App = ({ onEnterMarketplace }) => {
     const resources = document.fonts.ready; // Attente des polices
 
     Promise.all([minTime, resources]).then(() => {
-      if (scriptsLoaded) {
-        // Blocage du scroll PENDANT le chargement
-        document.body.style.overflow = 'hidden';
+      // Blocage du scroll PENDANT le chargement
+      document.body.style.overflow = 'hidden';
 
-        // Animation de sortie du preloader
-        const tlLoader = window.gsap.timeline({
-          onComplete: () => {
-            setIsLoading(false);
-            sessionStorage.setItem('site_loaded', 'true');
-            document.body.style.overflow = ''; // Release scroll
+      // Animation de sortie du preloader
+      const tlLoader = window.gsap.timeline({
+        onComplete: () => {
+          setIsLoading(false);
+          window.hasShownPreloader = true; // Mark as shown
+          document.body.style.overflow = ''; // Release scroll
 
-            // FINAL REFRESH: Ensure all positions are exact after preloader exit
-            requestAnimationFrame(() => {
-              if (window.ScrollTrigger) {
-                window.ScrollTrigger.refresh(true);
-              }
-            });
-          }
-        });
+          // FINAL REFRESH: Ensure all positions are exact after preloader exit
+          requestAnimationFrame(() => {
+            if (window.ScrollTrigger) {
+              window.ScrollTrigger.refresh(true);
+            }
+          });
+        }
+      });
 
-        tlLoader.to('.preloader-count', {
+      tlLoader.to('.preloader-count', {
+        opacity: 0,
+        y: -20,
+        duration: 0.5,
+        ease: "power2.out"
+      })
+        .to('.preloader-overlay', {
           opacity: 0,
-          y: -20,
-          duration: 0.5,
-          ease: "power2.out"
-        })
-          .to('.preloader-overlay', {
-            opacity: 0,
-            duration: 1.0,
-            ease: "power2.inOut",
-            pointerEvents: "none"
-          }, "-=0.5") // Overlap with counter fade -> NO WHITE SCREEN DELAY
-          .to('.hero-section .reveal-inner', {
-            y: "0%",
-            duration: 1.4,
-            ease: "power4.out",
-            stagger: 0
-          }, "-=1.1") // Starts while curtain is lifting (early reveal)
-          .to('.hero-footer-element', {
-            opacity: 1,
-            y: 0,
-            duration: 1.2,
-            stagger: 0.2,
-            ease: "power3.out"
-          }, "-=1.0"); // Flows immediately after title starts
-      }
+          duration: 1.0,
+          ease: "power2.inOut",
+          pointerEvents: "none"
+        }, "-=0.5") // Overlap with counter fade -> NO WHITE SCREEN DELAY
+        .to('.hero-section .reveal-inner', {
+          y: "0%",
+          duration: 1.4,
+          ease: "power4.out",
+          stagger: 0
+        }, "-=1.1") // Starts while curtain is lifting (early reveal)
+        .to('.hero-footer-element', {
+          opacity: 1,
+          y: 0,
+          duration: 1.2,
+          stagger: 0.2,
+          ease: "power3.out"
+        }, "-=1.0"); // Flows immediately after title starts
     });
 
     return () => clearInterval(interval);
@@ -681,7 +710,7 @@ const App = ({ onEnterMarketplace }) => {
         </div>
 
         {/* BOUTON MENU ANIMÉ */}
-        <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="flex items-center gap-4 group focus:outline-none">
+        <button onClick={() => { setIsMenuOpen(!isMenuOpen); setMenuInteracted(true); }} className="flex items-center gap-4 group focus:outline-none">
           <span className={`text-[9px] uppercase tracking-[0.4em] transition-opacity duration-500 ${isMenuOpen ? 'opacity-100' : 'opacity-40 group-hover:opacity-100'}`}>Menu</span>
 
           {/* ANIMATION HAMBURGER -> CROIX */}
@@ -693,18 +722,24 @@ const App = ({ onEnterMarketplace }) => {
         </button>
       </header>
 
-      {/* MENU */}
-      <div className={`fixed inset-0 z-[200] flex transition-all duration-1000 ${isMenuOpen ? 'visible' : 'invisible'}`}>
-        <div className={`absolute inset-0 bg-[#111]/95 backdrop-blur-xl transition-opacity duration-1000 ${isMenuOpen ? 'opacity-100' : 'opacity-0'}`}></div>
-        <div className={`relative h-full w-full flex flex-col items-center justify-center transform transition-transform duration-1000 ${isMenuOpen ? 'translate-y-0' : 'translate-y-full'}`}>
+      {/* MENU (HOME) - Hardened to prevent flash on refresh */}
+      <div
+        className={`fixed inset-0 z-[200] ${isMenuOpen ? 'visible' : (menuInteracted ? 'invisible pointer-events-none' : '')}`}
+        style={{ display: menuInteracted ? 'flex' : 'none' }}
+      >
+        <div
+          className={`menu-overlay absolute inset-0 bg-[#111]/95 backdrop-blur-xl ${menuInteracted ? 'transition-opacity duration-700 ease-in-out' : ''} ${isMenuOpen ? 'opacity-100' : 'opacity-0'}`}
+          onClick={() => setIsMenuOpen(false)}
+        ></div>
+        <div className={`relative h-full w-full flex flex-col items-center justify-center transform ${menuInteracted ? 'transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]' : ''} ${isMenuOpen ? 'translate-y-0' : 'translate-y-full'}`}>
           <div className="flex flex-col items-center gap-12 text-white">
-            <button onClick={() => handleNavigation('marketplace')} className="font-serif text-5xl md:text-9xl font-light hover:text-[#9C8268] transition-all bg-transparent border-none text-white cursor-pointer">
+            <button onClick={() => handleNavigation('marketplace')} className="menu-link font-serif text-5xl md:text-9xl font-light hover:text-[#9C8268] transition-all bg-transparent border-none text-white cursor-pointer">
               Marketplace
             </button>
-            <button onClick={() => handleNavigation('.featured-section')} className="font-serif text-5xl md:text-9xl font-light hover:text-[#9C8268] transition-all bg-transparent border-none text-white cursor-pointer">
+            <button onClick={() => handleNavigation('.featured-section')} className="menu-link font-serif text-5xl md:text-9xl font-light hover:text-[#9C8268] transition-all bg-transparent border-none text-white cursor-pointer">
               En vedette
             </button>
-            <button onClick={() => handleNavigation('footer')} className="font-serif text-5xl md:text-9xl font-light hover:text-[#9C8268] transition-all bg-transparent border-none text-white cursor-pointer">
+            <button onClick={() => handleNavigation('footer')} className="menu-link font-serif text-5xl md:text-9xl font-light hover:text-[#9C8268] transition-all bg-transparent border-none text-white cursor-pointer">
               Contact
             </button>
           </div>

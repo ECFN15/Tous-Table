@@ -44,6 +44,7 @@ export default function App() {
   // Cart State
   const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [cartInteracted, setCartInteracted] = useState(false); // Prevents initial flash
   const [showOrderSuccess, setShowOrderSuccess] = useState(false);
 
   // Navigation
@@ -305,15 +306,17 @@ export default function App() {
   return (
     <div className={`min-h-screen font-sans selection:bg-amber-100 transition-colors duration-500 ${darkMode ? 'bg-stone-900 text-white' : 'bg-[#FAF9F6] text-stone-900'}`}>
 
-      {/* COMPOSANT PANIER */}
-      <CartSidebar
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        cartItems={cartItems}
-        onRemoveItem={removeFromCart}
-        totalPrice={cartTotal}
-        onCheckout={() => { setIsCartOpen(false); setView('checkout'); window.scrollTo(0, 0); }}
-      />
+      {/* COMPOSANT PANIER - Uniquement sur la marketplace */}
+      {view === 'gallery' && (
+        <CartSidebar
+          isOpen={isCartOpen}
+          onClose={() => setIsCartOpen(false)}
+          cartItems={cartItems}
+          onRemoveItem={removeFromCart}
+          totalPrice={cartTotal}
+          onCheckout={() => { setIsCartOpen(false); setView('checkout'); window.scrollTo(0, 0); }}
+        />
+      )}
 
       {/* MODAL LOGIN (Pour la Marketplace) */}
       {showFullLogin && (
@@ -452,19 +455,25 @@ export default function App() {
       {/* --- NAVBAR & MENU GLOBAUX (NE S'AFFICHENT PAS SUR LA PAGE D'ACCUEIL) --- */}
       {view !== 'home' && (
         <>
-          {/* MENU LATERAL (OVERLAY) */}
-          <div className={`fixed inset-0 z-[110] transition-all duration-700 ${isMenuOpen ? 'visible' : 'invisible pointer-events-none'}`}>
-            <div className={`absolute inset-0 bg-stone-900/60 backdrop-blur-md transition-opacity duration-700 ${isMenuOpen ? 'opacity-100' : 'opacity-0'}`} onClick={() => setIsMenuOpen(false)}></div>
-            <div className={`absolute right-0 top-0 bottom-0 w-full md:w-[450px] shadow-2xl transition-all duration-700 ease-expo p-12 flex flex-col justify-between ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'} ${darkMode ? 'bg-stone-900 border-l border-stone-800' : 'bg-white'}`}>
+          {/* MENU LATERAL (OVERLAY) - Animations fluides restaurées */}
+          <div className={`fixed inset-0 z-[110] transition-all duration-300 ${isMenuOpen ? 'visible' : 'invisible pointer-events-none'}`}>
+            <div
+              className={`absolute inset-0 bg-stone-900/60 backdrop-blur-md transition-opacity duration-700 ease-in-out ${isMenuOpen ? 'opacity-100' : 'opacity-0'}`}
+              onClick={() => setIsMenuOpen(false)}
+            ></div>
+            <div className={`absolute right-0 top-0 bottom-0 w-full md:w-[450px] shadow-2xl transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] p-12 flex flex-col justify-between ${isMenuOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'} ${darkMode ? 'bg-stone-900 border-l border-stone-800' : 'bg-white'}`}>
               <div className="space-y-20">
-                <div className="flex justify-between items-center"><span className={`text-[10px] font-black uppercase tracking-[0.3em] ${darkMode ? 'text-stone-500' : 'text-stone-300'}`}>Menu</span><button onClick={() => setIsMenuOpen(false)} className={`w-12 h-12 rounded-full border flex items-center justify-center transition-colors ${darkMode ? 'border-stone-800 text-white hover:bg-stone-800' : 'border-stone-100 hover:bg-stone-50'}`}><X size={20} /></button></div>
+                <div className="flex justify-between items-center">
+                  <span className={`text-[10px] font-black uppercase tracking-[0.3em] transition-opacity duration-500 ${isMenuOpen ? 'opacity-100' : 'opacity-0'} ${darkMode ? 'text-stone-500' : 'text-stone-300'}`}>Menu</span>
+                  <button onClick={() => setIsMenuOpen(false)} className={`w-12 h-12 rounded-full border flex items-center justify-center transition-all duration-300 ${darkMode ? 'border-stone-800 text-white hover:bg-stone-800' : 'border-stone-100 hover:bg-stone-50'}`}><X size={20} /></button>
+                </div>
                 <nav className="flex flex-col gap-10">
-                  <button onClick={() => { setView('home'); setIsMenuOpen(false); window.scrollTo(0, 0); }} className={`text-5xl font-black tracking-tighter transition-all text-left ${darkMode ? 'text-white hover:text-amber-500' : 'text-stone-900 hover:text-amber-600'}`}>Accueil.</button>
-                  <button onClick={() => { setView('gallery'); setIsMenuOpen(false); window.scrollTo(0, 0); }} className={`text-5xl font-black tracking-tighter transition-all text-left ${darkMode ? 'text-white hover:text-amber-500' : 'text-stone-900 hover:text-amber-600'}`}>Marketplace.</button>
-                  {isAdmin && <button onClick={() => { setView('admin'); setIsMenuOpen(false); window.scrollTo(0, 0); }} className={`text-5xl font-black tracking-tighter transition-all text-left opacity-30 ${darkMode ? 'text-stone-600 hover:text-stone-300' : 'hover:text-stone-300'}`}>Admin.</button>}
+                  <button onClick={() => { window.hasShownPreloader = true; setView('home'); setIsMenuOpen(false); window.scrollTo(0, 0); }} className={`text-5xl font-black tracking-tighter transition-colors duration-100 text-left transform transition-transform duration-300 ${isMenuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'} ${darkMode ? 'text-white hover:text-amber-500' : 'text-stone-900 hover:text-amber-600'}`} style={{ transitionDelay: isMenuOpen ? '100ms' : '0ms' }}>Accueil.</button>
+                  <button onClick={() => { setView('gallery'); setIsMenuOpen(false); window.scrollTo(0, 0); }} className={`text-5xl font-black tracking-tighter transition-colors duration-100 text-left transform transition-transform duration-300 ${isMenuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'} ${darkMode ? 'text-white hover:text-amber-500' : 'text-stone-900 hover:text-amber-600'}`} style={{ transitionDelay: isMenuOpen ? '200ms' : '0ms' }}>Marketplace.</button>
+                  {isAdmin && <button onClick={() => { setView('admin'); setIsMenuOpen(false); window.scrollTo(0, 0); }} className={`text-5xl font-black tracking-tighter transition-colors duration-100 text-left opacity-30 transform transition-transform duration-300 ${isMenuOpen ? 'translate-x-0' : '-translate-x-8'} ${darkMode ? 'text-stone-600 hover:text-stone-300' : 'hover:text-stone-300'}`} style={{ transitionDelay: isMenuOpen ? '300ms' : '0ms' }}>Admin.</button>}
                 </nav>
               </div>
-              <div className={`space-y-6 pt-10 border-t ${darkMode ? 'border-stone-800' : 'border-stone-100'}`}>
+              <div className={`space-y-6 pt-10 border-t transition-opacity duration-500 ${isMenuOpen ? 'opacity-100' : 'opacity-0'} ${darkMode ? 'border-stone-800' : 'border-stone-100'}`} style={{ transitionDelay: isMenuOpen ? '400ms' : '0ms' }}>
                 {user && !user.isAnonymous && (
                   <div className="mb-4">
                     <p className={`text-xs font-bold flex items-center gap-2 ${darkMode ? 'text-white' : 'text-stone-900'}`}>
@@ -475,8 +484,8 @@ export default function App() {
                   </div>
                 )}
                 <div className="flex gap-6">
-                  <a href="#" className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${darkMode ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-stone-50 hover:bg-stone-900 hover:text-white'}`}><Instagram size={20} /></a>
-                  <a href="mailto:contact@tat.fr" className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${darkMode ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-stone-50 hover:bg-stone-900 hover:text-white'}`}><Mail size={20} /></a>
+                  <a href="#" className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${darkMode ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-stone-50 hover:bg-stone-900 hover:text-white'}`}><Instagram size={20} /></a>
+                  <a href="mailto:contact@tat.fr" className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${darkMode ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-stone-50 hover:bg-stone-900 hover:text-white'}`}><Mail size={20} /></a>
                 </div>
               </div>
             </div>
@@ -484,7 +493,7 @@ export default function App() {
 
           {/* NAVBAR GLOBALE (Auto-Hide) */}
           <nav className={`fixed top-0 left-0 right-0 z-[100] px-4 md:px-12 py-6 md:py-8 flex justify-between items-center mix-blend-difference text-white transition-transform duration-300 ease-in-out ${isHeaderVisible ? 'translate-y-0' : '-translate-y-full pointer-events-none'}`}>
-            <div className="flex items-center gap-2 md:gap-3 cursor-pointer group" onClick={() => { setView('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
+            <div className="flex items-center gap-2 md:gap-3 cursor-pointer group" onClick={() => { window.hasShownPreloader = true; setView('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
               <div className="bg-white text-stone-900 p-1 md:p-1.5 rounded-lg shadow-md group-hover:rotate-6 transition-all"><Hammer size={16} className="md:w-5 md:h-5" /></div>
               <div><h1 className="text-base md:text-lg font-black uppercase tracking-tighter leading-none">Tous à Table</h1><p className="text-[6px] md:text-[7px] font-black tracking-[0.3em] uppercase opacity-60">Atelier Normand</p></div>
             </div>
@@ -504,19 +513,21 @@ export default function App() {
                 <button onClick={() => setShowFullLogin(true)} className="flex items-center gap-2 px-2.5 py-1.5 md:px-5 md:py-3 rounded-full bg-white/10 backdrop-blur border border-white/20 hover:bg-white hover:text-stone-900 transition-all text-[9px] md:text-[10px] font-black uppercase tracking-widest mr-1 md:mr-2"><ShieldCheck size={12} className="md:w-3.5 md:h-3.5" /> <span className="hidden md:inline">Login</span></button>
               )}
 
-              {/* CART BUTTON */}
-              <button
-                onClick={() => setIsCartOpen(true)}
-                className="w-8 h-8 md:w-auto md:h-auto px-0 md:px-5 md:py-3 rounded-full bg-white/10 flex items-center justify-center gap-3 hover:bg-amber-500 hover:text-white backdrop-blur border border-white/20 transition-all group relative"
-              >
-                <ShoppingBag size={16} className="md:w-5 md:h-5" />
-                <span className="hidden md:block text-[10px] font-black uppercase tracking-widest">Panier</span>
-                {cartItems.length > 0 && (
-                  <span className="absolute -top-1 -right-1 md:top-1 md:right-1 w-3.5 h-3.5 md:w-5 md:h-5 bg-stone-900 text-white flex items-center justify-center text-[7px] md:text-[9px] font-black rounded-full border border-white">
-                    {cartItems.length}
-                  </span>
-                )}
-              </button>
+              {/* CART BUTTON - Uniquement sur marketplace, detail et checkout */}
+              {['gallery', 'detail', 'checkout'].includes(view) && (
+                <button
+                  onClick={() => setIsCartOpen(true)}
+                  className="w-8 h-8 md:w-auto md:h-auto px-0 md:px-5 md:py-3 rounded-full bg-white/10 flex items-center justify-center gap-3 hover:bg-amber-500 hover:text-white backdrop-blur border border-white/20 transition-all group relative"
+                >
+                  <ShoppingBag size={16} className="md:w-5 md:h-5" />
+                  <span className="hidden md:block text-[10px] font-black uppercase tracking-widest">Panier</span>
+                  {cartItems.length > 0 && (
+                    <span className="absolute -top-1 -right-1 md:top-1 md:right-1 w-3.5 h-3.5 md:w-5 md:h-5 bg-stone-900 text-white flex items-center justify-center text-[7px] md:text-[9px] font-black rounded-full border border-white">
+                      {cartItems.length}
+                    </span>
+                  )}
+                </button>
+              )}
 
               {/* DARK MODE TOGGLE */}
               <button
