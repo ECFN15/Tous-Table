@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../firebase/config';
-import { Upload, X, Save, Image as ImageIcon, Loader, Info, Check } from 'lucide-react';
+import { Upload, X, Save, Image as ImageIcon, Loader, Info, Check, Download } from 'lucide-react';
 import { compressImage } from '../utils/imageUtils';
 
 // CONFIGURATION DES IMAGES DU HOMEPAGE
@@ -122,6 +122,24 @@ const AdminHomepage = () => {
         e.stopPropagation();
     };
 
+    const handleDownload = async (url, filename) => {
+        try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = filename || 'image';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(blobUrl);
+        } catch (error) {
+            console.error("Error downloading image:", error);
+            alert("Erreur lors du téléchargement de l'image. Vérifiez votre connexion.");
+        }
+    };
+
     if (loading) return <div className="p-12 text-center animate-pulse text-stone-400">Chargement de la configuration...</div>;
 
     return (
@@ -204,6 +222,14 @@ const AdminHomepage = () => {
                                                 <Upload size={14} className="text-stone-400 group-hover/btn:text-stone-900" />
                                                 <span className="text-[10px] font-black uppercase text-stone-400 group-hover/btn:text-stone-900">Changer</span>
                                             </label>
+
+                                            <button
+                                                onClick={() => handleDownload(currentImage, `${item.key}.webp`)}
+                                                className="w-10 flex items-center justify-center rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-600 transition-colors"
+                                                title="Télécharger l'image"
+                                            >
+                                                <Download size={14} />
+                                            </button>
 
                                             {/* RESET BUTTON (If changed) */}
                                             {images[item.key] && (
