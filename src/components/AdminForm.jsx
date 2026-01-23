@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Upload, Trash2 } from 'lucide-react';
+import { Upload, Trash2, Download } from 'lucide-react';
 import { doc, addDoc, updateDoc, collection, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage, appId } from '../firebase/config';
 import { getMillis } from '../utils/time';
+import { compressImage } from '../utils/imageUtils'; // [NEW] Import compression utility
 
 const WOOD_TYPES = [
   "Acacia", "Acajou", "Bambou", "Bouleau", "Châtaignier",
@@ -39,6 +40,18 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture' }) => 
 
   // New state for custom material input
   const [isCustomMaterial, setIsCustomMaterial] = useState(false);
+
+  // [NEW] Metrics
+  const totalOriginalSize = galleryItems.reduce((acc, item) => acc + (item.originalSize || (item.file ? item.file.size : 0)), 0);
+  const [totalCompressedSize, setTotalCompressedSize] = useState(0);
+
+  const formatBytes = (bytes) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
 
   useEffect(() => {
     if (editData) {
@@ -86,6 +99,7 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture' }) => 
     });
     setGalleryItems([]);
     setIsCustomMaterial(false);
+    setTotalCompressedSize(0);
   };
 
   const processFiles = (files) => {
@@ -93,7 +107,9 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture' }) => 
       id: `new-${Date.now()}-${Math.random()}`,
       file: file,
       preview: URL.createObjectURL(file),
-      isExisting: false
+      originalSize: file.size, // Store original size for metrics
+      isExisting: false,
+      isCompressed: false
     }));
     setGalleryItems(prev => [...prev, ...newItems]);
   };
@@ -103,19 +119,88 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture' }) => 
     if (files.length > 0) processFiles(files);
   };
 
+  const handleOptimizeImages = async (e) => {
+    e.preventDefault(); // Prevent form submission if button is inside form
+    setMsg("⏳ Optimisation en cours...");
+    let newItems = [...galleryItems];
+    let newTotalSize = 0;
+    let anyCompressed = false;
+
+    for (let i = 0; i < newItems.length; i++) {
+      if (newItems[i].file && !newItems[i].isCompressed) {
+        try {
+          const compressed = await compressImage(newItems[i].file);
+          newItems[i].file = compressed;
+          newItems[i].isCompressed = true;
+          // Keep the preview as is, or update if we wanted to show webp specifically
+          newTotalSize += compressed.size;
+          anyCompressed = true;
+        } catch (error) {
+          console.error("Compression failed for", newItems[i].file.name, error);
+          newTotalSize += newItems[i].file.size; // Fallback
+        }
+      } else if (newItems[i].file) {
+        newTotalSize += newItems[i].file.size;
+      }
+    }
+
+    setGalleryItems(newItems);
+    setTotalCompressedSize(newTotalSize);
+    if (anyCompressed) setMsg("✅ Images optimisées !");
+  };
+
+  const handleDownloadImages = (e) => {
+    e.preventDefault();
+    let count = 0;
+    galleryItems.forEach((item, index) => {
+      if (item.file && item.isCompressed) {
+        setTimeout(() => {
+          const url = URL.createObjectURL(item.file);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = item.file.name;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(url), 100);
+        }, count * 500); // 500ms delay between each
+        count++;
+      }
+    });
+    setMsg(`✅ Téléchargement de ${count} images lancé !`);
+  };
+
   const addMeuble = async () => {
     if (!formData.name) { setMsg("⚠️ Nom requis"); return; }
-    setUploading(true); setMsg("⏳ Envoi...");
+    setUploading(true); setMsg("⏳ Optimisation & Envoi..."); // Updated message
     try {
       let finalImageUrls = [];
 
+      let accumulatedCompressedSize = 0;
       for (const item of galleryItems) {
         if (item.isExisting) {
           finalImageUrls.push(item.preview);
         } else if (item.file) {
-          const imageRef = ref(storage, `${collectionName}/${Date.now()}_${item.file.name}`);
-          await uploadBytes(imageRef, item.file);
+          let fileToUpload = item.file;
+          const originalSizeStr = formatBytes(item.originalSize || item.file.size);
+
+          if (!item.isCompressed) {
+            // Auto-compress if not done manually
+            setMsg(`⏳ Compression: ${item.file.name} (${originalSizeStr})...`);
+            fileToUpload = await compressImage(item.file);
+          }
+
+          const sizeStr = formatBytes(fileToUpload.size);
+          setMsg(`⏳ Upload: ${fileToUpload.name} (${originalSizeStr} -> ${sizeStr})...`);
+
+          const imageRef = ref(storage, `${collectionName}/${Date.now()}_${fileToUpload.name}`);
+          await uploadBytes(imageRef, fileToUpload);
           finalImageUrls.push(await getDownloadURL(imageRef));
+
+          if (!item.isCompressed) {
+            accumulatedCompressedSize += fileToUpload.size;
+            setTotalCompressedSize(accumulatedCompressedSize);
+          }
         }
       }
 
@@ -297,13 +382,45 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture' }) => 
           </div>
         </div>
       </div>
+
+      {/* Metrics Display */}
+      {(totalOriginalSize > 0 || totalCompressedSize > 0) && (
+        <div className="flex items-center justify-end px-6 pb-2 gap-4 mt-4">
+          <div className="text-[10px] font-mono text-stone-500">
+            <span>Poids initial: {formatBytes(totalOriginalSize)}</span>
+            {totalCompressedSize > 0 && <span className="text-emerald-600 font-bold ml-2">→ Optimisé: {formatBytes(totalCompressedSize)} (-{((1 - totalCompressedSize / totalOriginalSize) * 100).toFixed(0)}%)</span>}
+          </div>
+
+          {/* Optimization Button */}
+          {galleryItems.some(i => i.file && !i.isCompressed) && (
+            <button
+              onClick={handleOptimizeImages}
+              className="px-3 py-1 bg-amber-100 text-amber-800 rounded-lg text-[10px] font-black uppercase hover:bg-amber-200 transition-colors shadow-sm"
+            >
+              ⚡ Transformer en WebP
+            </button>
+          )}
+
+          {/* Download Button */}
+          {totalCompressedSize > 0 && (
+            <button
+              onClick={handleDownloadImages}
+              className="flex items-center gap-2 px-3 py-1 bg-emerald-100 text-emerald-800 rounded-lg text-[10px] font-black uppercase hover:bg-emerald-200 transition-colors shadow-sm"
+            >
+              <Download size={12} /> Télécharger
+            </button>
+          )}
+        </div>
+      )}
+
+
       <div className="flex flex-col items-end gap-3 border-t border-stone-100 pt-6 text-stone-900">
         {msg && <div className={`text-[9px] font-black uppercase px-4 py-2 rounded-full border shadow-sm ${msg.includes('✅') ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100'}`}>{msg}</div>}
         <button onClick={addMeuble} disabled={uploading} className="w-full md:w-auto px-16 py-5 bg-stone-900 text-white rounded-2xl font-black uppercase text-xs tracking-widest shadow-2xl hover:bg-stone-800 hover:translate-y-[-2px] active:translate-y-[1px] transition-all disabled:opacity-50 text-white">
           {editData ? "Confirmer les modifications" : "Publier l'ouvrage"}
         </button>
       </div>
-    </div>
+    </div >
   );
 }
 

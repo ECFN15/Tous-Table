@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import { Hammer, Menu, X, ArrowRight, Instagram, ArrowDown, Star, Zap, Plus, Minus } from 'lucide-react';
 import * as THREE from 'three';
 import StackedCards from './StackedCards'; // New Import
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase/config';
 
 // --- COMPOSANT : REVEAL TEXT (CORRIGÉ & ÉLARGI) ---
 const RevealText = ({ text, className, delay = 0 }) => {
@@ -95,11 +97,76 @@ const App = ({ onEnterMarketplace }) => {
   const componentRef = useRef(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
+  const [homepageImages, setHomepageImages] = useState({});
+
+  // --- FETCH DYNAMIC IMAGES ---
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'sys_metadata', 'homepage_images'), (doc) => {
+      if (doc.exists()) {
+        setHomepageImages(doc.data());
+      }
+    });
+    return () => unsub();
+  }, []);
 
   // State pour la FAQ
   const [openFaqIndex, setOpenFaqIndex] = useState(0);
 
   const isMobile = typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
+
+  // ... (Keep existing Navigation logic) ...
+
+  // --- DONNÉES UTILISANT LES IMAGES DYNAMIQUES ---
+  const featuredItems = [
+    {
+      id: 1,
+      bgTitle: "Voltaire",
+      subtitle: "Exposition Temporaire",
+      title: ["Le Voltaire", "Signature"],
+      desc: "\"Une renaissance historique pour l'époque contemporaine.\"",
+      img: homepageImages.featured_1 || "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1200",
+      bgColor: "#FFFEFA",
+      textColor: "#1a1a1a",
+      subColor: "#9C8268",
+      faintColor: "rgba(0,0,0,0.03)"
+    },
+    {
+      id: 2,
+      bgTitle: "Console",
+      subtitle: "Collection Permanente",
+      title: ["Console", "Héritage"],
+      desc: "\"Formes épurées et assemblage traditionnel. L'équilibre parfait entre passé et présent.\"",
+      img: homepageImages.featured_2 || "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=1200",
+      bgColor: "#FAF4EB",
+      textColor: "#1a1a1a",
+      subColor: "#9C8268",
+      faintColor: "rgba(0,0,0,0.03)"
+    },
+    {
+      id: 3,
+      bgTitle: "Secrétaire",
+      subtitle: "Pièce Unique",
+      title: ["Le Secrétaire", "Secret"],
+      desc: "\"Bois de rose et marqueterie complexe. Un gardien de correspondances oubliées.\"",
+      img: homepageImages.featured_3 || "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?q=80&w=1200",
+      bgColor: "#F2E6D8",
+      textColor: "#1a1a1a",
+      subColor: "#9C8268",
+      faintColor: "rgba(0,0,0,0.03)"
+    },
+    {
+      id: 4,
+      bgTitle: "Bibliothèque",
+      subtitle: "Nouvelle Acquisition",
+      title: ["Bibliothèque", "Céleste"],
+      desc: "\"Chêne massif et échelles en laiton. Une structure qui élève l'esprit.\"",
+      img: homepageImages.featured_4 || "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?q=80&w=1200",
+      bgColor: "#E6D0B8",
+      textColor: "#1a1a1a",
+      subColor: "#9C8268",
+      faintColor: "rgba(0,0,0,0.04)"
+    }
+  ];
 
   // --- NAVIGATION SMOOTH ---
   const handleNavigation = (selector) => {
@@ -536,57 +603,7 @@ const App = ({ onEnterMarketplace }) => {
     return () => ctx.revert();
   }, [scriptsLoaded]);
 
-  // DONNÉES AVEC 4 PIÈCES (TITRES REGROUPÉS)
-  const featuredItems = [
-    {
-      id: 1,
-      bgTitle: "Voltaire",
-      subtitle: "Exposition Temporaire",
-      title: ["Le Voltaire", "Signature"],
-      desc: "\"Une renaissance historique pour l'époque contemporaine.\"",
-      img: "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1200",
-      bgColor: "#FFFEFA", // Carte 1 : Blanc Crème Lumineux
-      textColor: "#1a1a1a", // Noir Doux (Standard lisibilité)
-      subColor: "#9C8268",
-      faintColor: "rgba(0,0,0,0.03)"
-    },
-    {
-      id: 2,
-      bgTitle: "Console",
-      subtitle: "Collection Permanente",
-      title: ["Console", "Héritage"],
-      desc: "\"Formes épurées et assemblage traditionnel. L'équilibre parfait entre passé et présent.\"",
-      img: "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=1200",
-      bgColor: "#FAF4EB", // Carte 2 : Écru Boisé (Très clair pour lisibilité max)
-      textColor: "#1a1a1a", // Identique carte 1
-      subColor: "#9C8268",
-      faintColor: "rgba(0,0,0,0.03)"
-    },
-    {
-      id: 3,
-      bgTitle: "Secrétaire",
-      subtitle: "Pièce Unique",
-      title: ["Le Secrétaire", "Secret"],
-      desc: "\"Bois de rose et marqueterie complexe. Un gardien de correspondances oubliées.\"",
-      img: "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?q=80&w=1200",
-      bgColor: "#F2E6D8", // Carte 3 : Sable Fin (Chaud mais très lisible)
-      textColor: "#1a1a1a",
-      subColor: "#9C8268",
-      faintColor: "rgba(0,0,0,0.03)"
-    },
-    {
-      id: 4,
-      bgTitle: "Bibliothèque",
-      subtitle: "Nouvelle Acquisition",
-      title: ["Bibliothèque", "Céleste"],
-      desc: "\"Chêne massif et échelles en laiton. Une structure qui élève l'esprit.\"",
-      img: "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?q=80&w=1200",
-      bgColor: "#E6D0B8", // Carte 4 : Chêne Blanchi (Contraste ok avec noir, excellent avec texte)
-      textColor: "#1a1a1a",
-      subColor: "#9C8268",
-      faintColor: "rgba(0,0,0,0.04)"
-    }
-  ];
+
 
   const stats = [
     { label: "Années d'excellence", value: "25", suffix: "+" },
@@ -705,7 +722,7 @@ const App = ({ onEnterMarketplace }) => {
         <div className="grid grid-cols-1 2xl:grid-cols-12 gap-20 2xl:gap-32 items-center">
           <div className="manifesto-item 2xl:col-span-6 space-y-8 flex flex-col items-center 2xl:block 2xl:space-y-12 text-center 2xl:text-left">
             <div className="img-parallax aspect-[3/4] shadow-2xl w-full max-w-xl 2xl:max-w-none mx-auto">
-              <img src="https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=1200" className="w-full h-full object-cover" alt="Table en Chêne" />
+              <img src={homepageImages['manifesto_1'] || "https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=1200"} className="w-full h-full object-cover" alt="Table en Chêne" />
             </div>
             <div className="max-w-sm mx-auto 2xl:mx-0">
               <h3 className="font-serif text-4xl italic mb-4 text-[#1a1a1a]">Le Plateau d'Antan</h3>
@@ -715,7 +732,7 @@ const App = ({ onEnterMarketplace }) => {
 
           <div className="manifesto-item 2xl:col-span-4 2xl:col-start-9 2xl:mt-40 space-y-8 flex flex-col items-center 2xl:block 2xl:space-y-12 text-center 2xl:text-left">
             <div className="img-parallax aspect-[4/5] shadow-2xl w-full max-w-xl 2xl:max-w-none mx-auto">
-              <img src="https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=1200" className="w-full h-full object-cover" alt="Console de style" />
+              <img src={homepageImages['manifesto_2'] || "https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=1200"} className="w-full h-full object-cover" alt="Console de style" />
             </div>
             <div className="text-center 2xl:text-left">
               <h3 className="font-serif text-3xl italic mb-4 text-[#1a1a1a]">La Console Royale</h3>
@@ -725,7 +742,7 @@ const App = ({ onEnterMarketplace }) => {
 
           <div className="manifesto-item 2xl:col-span-12 mt-20 2xl:mt-40 flex flex-col 2xl:flex-row gap-12 2xl:gap-20 items-center">
             <div className="w-full max-w-xl 2xl:max-w-none 2xl:w-3/5 img-parallax aspect-video shadow-2xl mx-auto 2xl:mx-0">
-              <img src="https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1400" className="w-full h-full object-cover" alt="Commode ancienne" />
+              <img src={homepageImages['manifesto_3'] || "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1400"} className="w-full h-full object-cover" alt="Commode ancienne" />
             </div>
             <div className="w-full max-w-lg 2xl:max-w-none 2xl:w-2/5 space-y-8 mx-auto 2xl:mx-0">
               <h3 className="font-serif text-5xl italic leading-tight text-[#1a1a1a]">La Renaissance <br /> d'un Chef-d'œuvre</h3>
@@ -761,11 +778,11 @@ const App = ({ onEnterMarketplace }) => {
           </div>
 
           {[
-            { n: "I", t: "L'Essence", d: "Sélection rigoureuse des billes de bois précieux.", main: "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?q=80&w=1400", w: "w-full md:max-w-[90vw] min-[1920px]:w-[580px]", h: "h-[450px] md:h-[600px] min-[1920px]:h-[500px]", info: "Matière première" },
-            { n: "II", t: "L'Analyse", d: "Diagnostic structurel et scan de la patine historique.", main: "https://images.unsplash.com/photo-1644358686685-4ed525a59663?q=80&w=2000&auto=format&fit=crop", w: "w-full md:max-w-[95vw] min-[1920px]:w-[750px]", h: "h-[400px] md:h-[600px] min-[1920px]:h-[500px]", info: "Étude microscopique" },
-            { n: "III", t: "Le Dessin", d: "Tracé géométrique pour les greffes complexes.", main: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2000&auto=format&fit=crop", w: "w-full md:max-w-[90vw] min-[1920px]:w-[650px]", h: "h-[350px] md:h-[550px] min-[1920px]:h-[450px]", info: "Perspective d'art" },
-            { n: "IV", t: "La Cure", d: "Greffes invisibles et consolidation structurelle.", main: "https://images.unsplash.com/photo-1600585152220-90363fe7e115?q=80&w=1400", w: "w-full md:max-w-[90vw] min-[1920px]:w-[600px]", h: "h-[400px] md:h-[600px] min-[1920px]:h-[500px]", info: "Renaissance physique" },
-            { n: "V", t: "L'Éclat", d: "Secret du vernis au tampon selon la tradition normande.", main: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=1400", w: "w-full md:max-w-[95vw] min-[1920px]:w-[850px]", h: "h-[400px] md:h-[650px] min-[1920px]:h-[550px]", info: "Miroir de bois" }
+            { n: "I", t: "L'Essence", d: "Sélection rigoureuse des billes de bois précieux.", main: homepageImages.process_1 || "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?q=80&w=1400", w: "w-full md:max-w-[90vw] min-[1920px]:w-[580px]", h: "h-[450px] md:h-[600px] min-[1920px]:h-[500px]", info: "Matière première" },
+            { n: "II", t: "L'Analyse", d: "Diagnostic structurel et scan de la patine historique.", main: homepageImages.process_2 || "https://images.unsplash.com/photo-1644358686685-4ed525a59663?q=80&w=2000&auto=format&fit=crop", w: "w-full md:max-w-[95vw] min-[1920px]:w-[750px]", h: "h-[400px] md:h-[600px] min-[1920px]:h-[500px]", info: "Étude microscopique" },
+            { n: "III", t: "Le Dessin", d: "Tracé géométrique pour les greffes complexes.", main: homepageImages.process_3 || "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2000&auto=format&fit=crop", w: "w-full md:max-w-[90vw] min-[1920px]:w-[650px]", h: "h-[350px] md:h-[550px] min-[1920px]:h-[450px]", info: "Perspective d'art" },
+            { n: "IV", t: "La Cure", d: "Greffes invisibles et consolidation structurelle.", main: homepageImages.process_4 || "https://images.unsplash.com/photo-1600585152220-90363fe7e115?q=80&w=1400", w: "w-full md:max-w-[90vw] min-[1920px]:w-[600px]", h: "h-[400px] md:h-[600px] min-[1920px]:h-[500px]", info: "Renaissance physique" },
+            { n: "V", t: "L'Éclat", d: "Secret du vernis au tampon selon la tradition normande.", main: homepageImages.process_5 || "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=1400", w: "w-full md:max-w-[95vw] min-[1920px]:w-[850px]", h: "h-[400px] md:h-[650px] min-[1920px]:h-[550px]", info: "Miroir de bois" }
           ].map((step, i) => (
             <div key={i} className={`process-card flex-shrink-0 relative ${step.w} flex flex-col ${i % 2 === 0 ? 'md:flex-row-reverse' : 'md:flex-row'} min-[1920px]:flex-col items-center min-[1920px]:items-start justify-center gap-12 md:gap-20 min-[1920px]:gap-8 group mb-24 md:mb-48 min-[1920px]:mb-0 px-4 md:px-0`}>
 
@@ -906,7 +923,7 @@ const App = ({ onEnterMarketplace }) => {
           <div className="w-full md:w-1/2 md:min-h-[160vh] lg:min-h-[150vh] flex flex-col justify-start px-6 md:px-8 lg:px-[4vw] py-16 md:pt-[15vh] md:pb-[20vh] lg:py-[15vh] bg-[#FAF9F6]">
             <div className="relative w-full aspect-[3/4] md:aspect-[2/3] shadow-[0_80px_160px_rgba(0,0,0,0.15)] bg-stone-200 overflow-hidden">
               <img
-                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1600"
+                src={homepageImages['team_main'] || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1600"}
                 alt="Maître Ebéniste"
                 className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000"
               />
@@ -948,7 +965,7 @@ const App = ({ onEnterMarketplace }) => {
             {/* Colonne Image (simple hover, pas de sticky) */}
             <div className="w-full aspect-square overflow-hidden bg-white shadow-2xl hidden md:block">
               <img
-                src="https://images.unsplash.com/photo-1610701596007-11502861dcfa?q=80&w=1600"
+                src={homepageImages['faq_main'] || "https://images.unsplash.com/photo-1610701596007-11502861dcfa?q=80&w=1600"}
                 alt="Détail savoir-faire"
                 className="w-full h-full object-cover scale-110 hover:scale-100 transition-transform duration-[2s] ease-out grayscale hover:grayscale-0"
               />

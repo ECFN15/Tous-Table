@@ -24,6 +24,7 @@ import AdminOrders from './components/AdminOrders';
 
 import AdminComments from './components/AdminComments'; // New
 import AdminDashboard from './components/AdminDashboard'; // New Dashboard
+import AdminHomepage from './components/AdminHomepage'; // New Homepage Manager
 import CartSidebar from './components/CartSidebar';
 import CheckoutView from './components/CheckoutView';
 import OrderSuccessModal from './components/OrderSuccessModal';
@@ -561,6 +562,12 @@ export default function App() {
                 Dashboard
               </button>
               <button
+                onClick={() => { setAdminCollection('homepage'); setEditingItem(null); }}
+                className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'homepage' ? 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600'}`}
+              >
+                Homepage
+              </button>
+              <button
                 onClick={() => { setAdminCollection('orders'); setEditingItem(null); }}
                 className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'orders' ? 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600'}`}
               >
@@ -590,6 +597,8 @@ export default function App() {
             {/* CONTENU ADMIN */}
             {adminCollection === 'dashboard' ? (
               <AdminDashboard user={user} />
+            ) : adminCollection === 'homepage' ? (
+              <AdminHomepage />
             ) : adminCollection === 'orders' ? (
               <AdminOrders />
             ) : adminCollection === 'comments' ? (
@@ -605,7 +614,7 @@ export default function App() {
                 />
 
                 {/* Liste Admin */}
-                <div className="grid gap-4 pt-10">
+                <div className="grid gap-4 pt-10 max-h-[700px] overflow-y-auto pr-2 custom-scrollbar">
                   {currentAdminItems.map(item => {
                     const isAuctionOver = item.auctionActive && item.auctionEnd && (getMillis(item.auctionEnd) < Date.now());
                     const hasWinner = isAuctionOver && item.lastBidderEmail;
@@ -660,8 +669,9 @@ export default function App() {
               </>
             )}
           </div>
-        )}
-      </main>
-    </div>
+        )
+        }
+      </main >
+    </div >
   );
 }
