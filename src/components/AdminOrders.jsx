@@ -35,7 +35,7 @@ const AdminOrders = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <h2 className="text-2xl font-black text-stone-900 tracking-tighter">Commandes ({orders.length})</h2>
                 <div className="flex gap-2 text-xs font-bold uppercase tracking-widest text-stone-400">
                     <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-amber-500"></div> En cours</span>

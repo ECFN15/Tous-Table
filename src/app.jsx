@@ -15,13 +15,15 @@ import { getMillis } from './utils/time';
 
 // --- IMPORTS VUES ---
 import HomeView from './components/HomeView';
-import GalleryView from './components/InstagramGallery';
+import GalleryView from './components/GalleryView';
 import ProductDetail from './components/ProductDetail';
 
 import LoginView from './components/LoginView';
 import AdminForm from './components/AdminForm';
 import AdminOrders from './components/AdminOrders';
+
 import AdminComments from './components/AdminComments'; // New
+import AdminDashboard from './components/AdminDashboard'; // New Dashboard
 import CartSidebar from './components/CartSidebar';
 import CheckoutView from './components/CheckoutView';
 import OrderSuccessModal from './components/OrderSuccessModal';
@@ -56,7 +58,7 @@ export default function App() {
   const [showAuthSuccess, setShowAuthSuccess] = useState(false);
 
   // Admin State
-  const [adminCollection, setAdminCollection] = useState('furniture'); // 'furniture' | 'cutting_boards'
+  const [adminCollection, setAdminCollection] = useState('dashboard'); // 'dashboard' | 'furniture' | 'cutting_boards' | 'orders' | 'comments'
 
   // Deep Linking State
   const [pendingDeepLink, setPendingDeepLink] = useState(null);
@@ -125,7 +127,7 @@ export default function App() {
       const params = new URLSearchParams(window.location.search);
       const productId = params.get('product');
 
-      if (params.get('admin') === 'true') {
+      if (params.get('admin') === 'true' || window.location.pathname === '/admin') {
         setIsSecretGateOpen(true);
         if (isRealAdmin) setView('admin'); else setView('login');
       } else if (productId) {
@@ -418,28 +420,28 @@ export default function App() {
           {/* MENU LATERAL (OVERLAY) */}
           <div className={`fixed inset-0 z-[110] transition-all duration-700 ${isMenuOpen ? 'visible' : 'invisible pointer-events-none'}`}>
             <div className={`absolute inset-0 bg-stone-900/60 backdrop-blur-md transition-opacity duration-700 ${isMenuOpen ? 'opacity-100' : 'opacity-0'}`} onClick={() => setIsMenuOpen(false)}></div>
-            <div className={`absolute right-0 top-0 bottom-0 w-full md:w-[450px] bg-white shadow-2xl transition-transform duration-700 ease-expo p-12 flex flex-col justify-between ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+            <div className={`absolute right-0 top-0 bottom-0 w-full md:w-[450px] shadow-2xl transition-all duration-700 ease-expo p-12 flex flex-col justify-between ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'} ${darkMode ? 'bg-stone-900 border-l border-stone-800' : 'bg-white'}`}>
               <div className="space-y-20">
-                <div className="flex justify-between items-center"><span className="text-[10px] font-black uppercase tracking-[0.3em] text-stone-300">Menu</span><button onClick={() => setIsMenuOpen(false)} className="w-12 h-12 rounded-full border border-stone-100 flex items-center justify-center hover:bg-stone-50"><X size={20} /></button></div>
+                <div className="flex justify-between items-center"><span className={`text-[10px] font-black uppercase tracking-[0.3em] ${darkMode ? 'text-stone-500' : 'text-stone-300'}`}>Menu</span><button onClick={() => setIsMenuOpen(false)} className={`w-12 h-12 rounded-full border flex items-center justify-center transition-colors ${darkMode ? 'border-stone-800 text-white hover:bg-stone-800' : 'border-stone-100 hover:bg-stone-50'}`}><X size={20} /></button></div>
                 <nav className="flex flex-col gap-10">
-                  <button onClick={() => { setView('home'); setIsMenuOpen(false); window.scrollTo(0, 0); }} className="text-5xl font-black tracking-tighter hover:text-amber-600 transition-all text-left">Accueil.</button>
-                  <button onClick={() => { setView('gallery'); setIsMenuOpen(false); window.scrollTo(0, 0); }} className="text-5xl font-black tracking-tighter hover:text-amber-600 transition-all text-left">Marketplace.</button>
-                  {isAdmin && <button onClick={() => { setView('admin'); setIsMenuOpen(false); window.scrollTo(0, 0); }} className="text-5xl font-black tracking-tighter hover:text-stone-300 transition-all text-left opacity-30">Admin.</button>}
+                  <button onClick={() => { setView('home'); setIsMenuOpen(false); window.scrollTo(0, 0); }} className={`text-5xl font-black tracking-tighter transition-all text-left ${darkMode ? 'text-white hover:text-amber-500' : 'text-stone-900 hover:text-amber-600'}`}>Accueil.</button>
+                  <button onClick={() => { setView('gallery'); setIsMenuOpen(false); window.scrollTo(0, 0); }} className={`text-5xl font-black tracking-tighter transition-all text-left ${darkMode ? 'text-white hover:text-amber-500' : 'text-stone-900 hover:text-amber-600'}`}>Marketplace.</button>
+                  {isAdmin && <button onClick={() => { setView('admin'); setIsMenuOpen(false); window.scrollTo(0, 0); }} className={`text-5xl font-black tracking-tighter transition-all text-left opacity-30 ${darkMode ? 'text-stone-600 hover:text-stone-300' : 'hover:text-stone-300'}`}>Admin.</button>}
                 </nav>
               </div>
-              <div className="space-y-6 pt-10 border-t border-stone-100">
+              <div className={`space-y-6 pt-10 border-t ${darkMode ? 'border-stone-800' : 'border-stone-100'}`}>
                 {user && !user.isAnonymous && (
                   <div className="mb-4">
-                    <p className="text-xs font-bold text-stone-900 flex items-center gap-2">
+                    <p className={`text-xs font-bold flex items-center gap-2 ${darkMode ? 'text-white' : 'text-stone-900'}`}>
                       {user.displayName || user.email}
                       {user.emailVerified && <span className="text-blue-500 text-[10px] bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">Vérifié</span>}
                     </p>
-                    <p className="text-[10px] text-stone-400 uppercase tracking-widest">Connecté</p>
+                    <p className={`text-[10px] uppercase tracking-widest ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>Connecté</p>
                   </div>
                 )}
                 <div className="flex gap-6">
-                  <a href="#" className="w-12 h-12 rounded-full bg-stone-50 flex items-center justify-center hover:bg-stone-900 hover:text-white transition-all"><Instagram size={20} /></a>
-                  <a href="mailto:contact@tat.fr" className="w-12 h-12 rounded-full bg-stone-50 flex items-center justify-center hover:bg-stone-900 hover:text-white transition-all"><Mail size={20} /></a>
+                  <a href="#" className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${darkMode ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-stone-50 hover:bg-stone-900 hover:text-white'}`}><Instagram size={20} /></a>
+                  <a href="mailto:contact@tat.fr" className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${darkMode ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-stone-50 hover:bg-stone-900 hover:text-white'}`}><Mail size={20} /></a>
                 </div>
               </div>
             </div>
@@ -550,35 +552,45 @@ export default function App() {
             <div className="flex justify-between items-center border-b border-stone-200/60 pb-8"><h2 className="text-4xl font-black tracking-tighter">Gestion Atelier</h2><button onClick={() => setView('gallery')} className="text-[10px] font-black border-2 border-stone-900 px-6 py-2 rounded-xl hover:bg-stone-900 hover:text-white transition-all">Retour</button></div>
 
             {/* Collection Switcher */}
-            <div className="flex gap-4 p-1 bg-stone-100 rounded-xl w-fit">
+            {/* Collection Switcher */}
+            <div className="flex flex-wrap md:flex-nowrap gap-2 md:gap-4 p-2 md:p-1 bg-[#FAF9F6] border-b md:border-none border-stone-200/50 md:bg-stone-100 md:rounded-xl w-full md:w-fit justify-center transition-all shadow-sm md:shadow-none">
+              <button
+                onClick={() => { setAdminCollection('dashboard'); setEditingItem(null); }}
+                className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'dashboard' ? 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600'}`}
+              >
+                Dashboard
+              </button>
               <button
                 onClick={() => { setAdminCollection('orders'); setEditingItem(null); }}
-                className={`px-6 py-3 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${adminCollection === 'orders' ? 'bg-white shadow-sm text-stone-900' : 'text-stone-400 hover:text-stone-600'}`}
+                className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'orders' ? 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600'}`}
               >
                 Commandes
               </button>
               <button
                 onClick={() => { setAdminCollection('furniture'); setEditingItem(null); }}
-                className={`px-6 py-3 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${adminCollection === 'furniture' ? 'bg-white shadow-sm text-stone-900' : 'text-stone-400 hover:text-stone-600'}`}
+                className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'furniture' ? 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600'}`}
               >
                 Mobilier
               </button>
               <button
                 onClick={() => { setAdminCollection('cutting_boards'); setEditingItem(null); }}
-                className={`px-6 py-3 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${adminCollection === 'cutting_boards' ? 'bg-white shadow-sm text-stone-900' : 'text-stone-400 hover:text-stone-600'}`}
+                className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'cutting_boards' ? 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600'}`}
               >
-                Planches à Découper
+                <span className="md:hidden">Planches</span>
+                <span className="hidden md:inline">Planches à Découper</span>
               </button>
               <button
                 onClick={() => { setAdminCollection('comments'); setEditingItem(null); }}
-                className={`px-6 py-3 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${adminCollection === 'comments' ? 'bg-white shadow-sm text-stone-900' : 'text-stone-400 hover:text-stone-600'}`}
+                className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'comments' ? 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600'}`}
               >
-                Commentaires
+                Avis
               </button>
             </div>
 
             {/* CONTENU ADMIN */}
-            {adminCollection === 'orders' ? (
+            {adminCollection === 'dashboard' ? (
+              <AdminDashboard user={user} />
+            ) : adminCollection === 'orders' ? (
               <AdminOrders />
             ) : adminCollection === 'comments' ? (
               <AdminComments />

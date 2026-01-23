@@ -141,7 +141,7 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture' }) => 
       let errorPrefix = "Erreur incomprise";
       if (err.message.includes("storage")) errorPrefix = "Erreur Stockage (Images)";
       else if (err.code === "permission-denied") errorPrefix = "Erreur Permissions (Règles Firebase non mises à jour ?)";
-      
+
       setMsg(`❌ ${errorPrefix}: ${err.message}`);
     } finally { setUploading(false); setTimeout(() => setMsg(""), 5000); }
   };
@@ -173,7 +173,7 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture' }) => 
   };
 
   return (
-    <div className="p-8 md:p-12 bg-white rounded-[3rem] border border-stone-200/60 shadow-2xl space-y-10 animate-in slide-in-from-top-4 text-stone-900">
+    <div className="p-5 md:p-12 bg-white rounded-3xl md:rounded-[3rem] border border-stone-200/60 shadow-2xl space-y-10 animate-in slide-in-from-top-4 text-stone-900">
       <div className="flex justify-between items-center border-b border-stone-100 pb-6 text-stone-900">
         <p className="text-xs font-black uppercase tracking-widest text-stone-900">{editData ? 'Modification en cours' : 'Nouvelle création'}</p>
         {editData && <button onClick={onCancelEdit} className="text-[10px] font-black text-red-500 uppercase hover:text-red-700 transition-colors">Annuler</button>}
