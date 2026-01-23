@@ -662,13 +662,13 @@ const App = ({ onEnterMarketplace }) => {
         <div className={`absolute inset-0 bg-[#111]/95 backdrop-blur-xl transition-opacity duration-1000 ${isMenuOpen ? 'opacity-100' : 'opacity-0'}`}></div>
         <div className={`relative h-full w-full flex flex-col items-center justify-center transform transition-transform duration-1000 ${isMenuOpen ? 'translate-y-0' : 'translate-y-full'}`}>
           <div className="flex flex-col items-center gap-12 text-white">
-            <button onClick={() => handleNavigation('marketplace')} className="font-serif text-5xl md:text-9xl font-light hover:italic hover:text-[#9C8268] transition-all bg-transparent border-none text-white cursor-pointer">
+            <button onClick={() => handleNavigation('marketplace')} className="font-serif text-5xl md:text-9xl font-light hover:text-[#9C8268] transition-all bg-transparent border-none text-white cursor-pointer">
               Marketplace
             </button>
-            <button onClick={() => handleNavigation('.featured-section')} className="font-serif text-5xl md:text-9xl font-light hover:italic hover:text-[#9C8268] transition-all bg-transparent border-none text-white cursor-pointer">
+            <button onClick={() => handleNavigation('.featured-section')} className="font-serif text-5xl md:text-9xl font-light hover:text-[#9C8268] transition-all bg-transparent border-none text-white cursor-pointer">
               En vedette
             </button>
-            <button onClick={() => handleNavigation('footer')} className="font-serif text-5xl md:text-9xl font-light hover:italic hover:text-[#9C8268] transition-all bg-transparent border-none text-white cursor-pointer">
+            <button onClick={() => handleNavigation('footer')} className="font-serif text-5xl md:text-9xl font-light hover:text-[#9C8268] transition-all bg-transparent border-none text-white cursor-pointer">
               Contact
             </button>
           </div>

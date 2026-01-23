@@ -43,10 +43,9 @@ const AdminOrders = ({ darkMode = false }) => {
                 </div>
             </div>
 
-            <div className="grid gap-4">
+            <div className={`grid gap-4 pr-2 overflow-y-auto scrollbar-thin ${darkMode ? 'scrollbar-thumb-stone-700 scrollbar-track-stone-900/20' : 'scrollbar-thumb-stone-200 scrollbar-track-stone-50'} max-h-[750px] custom-scrollbar`}>
                 {orders.map(order => (
                     <div key={order.id} className={`border rounded-3xl shadow-sm overflow-hidden hover:shadow-md transition-shadow ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
-
                         {/* Header de la commande */}
                         <div
                             onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}

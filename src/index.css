@@ -76,7 +76,6 @@ body,
 .group:hover .text-stroke-1 {
   -webkit-text-stroke: 0px;
   color: #9C8268;
-  transform: translateY(-10px);
 }
 
 .team-mask-shutter {
@@ -217,12 +216,20 @@ body,
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #d6d3d1;
-  /* stone-300 */
+  background-color: rgba(120, 113, 108, 0.3);
+  /* stone-500 with alpha */
   border-radius: 20px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #a8a29e;
-  /* stone-400 */
+  background-color: rgba(120, 113, 108, 0.5);
+}
+
+/* Dark mode specific overrides for scrollbar if needed */
+.dark-mode .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(168, 162, 158, 0.2);
+}
+
+.dark-mode .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(168, 162, 158, 0.4);
 }
