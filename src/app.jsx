@@ -598,11 +598,11 @@ export default function App() {
             {adminCollection === 'dashboard' ? (
               <AdminDashboard user={user} darkMode={darkMode} />
             ) : adminCollection === 'homepage' ? (
-              <AdminHomepage />
+              <AdminHomepage darkMode={darkMode} />
             ) : adminCollection === 'orders' ? (
-              <AdminOrders />
+              <AdminOrders darkMode={darkMode} />
             ) : adminCollection === 'comments' ? (
-              <AdminComments />
+              <AdminComments darkMode={darkMode} />
             ) : (
               <>
                 {/* Formulaire Admin */}
@@ -611,6 +611,7 @@ export default function App() {
                   editData={editingItem}
                   onCancelEdit={() => setEditingItem(null)}
                   collectionName={adminCollection}
+                  darkMode={darkMode}
                 />
 
                 {/* Liste Admin */}
@@ -624,27 +625,27 @@ export default function App() {
                         <div className="flex items-center justify-between relative z-10">
                           <div className="flex items-center gap-8">
                             <div className="relative">
-                              <img src={item.images?.[0] || item.imageUrl} className="w-20 h-20 rounded-2xl object-cover shadow-sm border border-white" alt="" />
-                              {hasWinner && <div className="absolute -top-2 -right-2 bg-amber-400 text-white p-1.5 rounded-full shadow-md border-2 border-white"><Trophy size={14} fill="currentColor" /></div>}
+                              <img src={item.images?.[0] || item.imageUrl} className={`w-20 h-20 rounded-2xl object-cover shadow-sm border ${darkMode ? 'border-stone-700' : 'border-white'}`} alt="" />
+                              {hasWinner && <div className={`absolute -top-2 -right-2 p-1.5 rounded-full shadow-md border-2 ${darkMode ? 'bg-amber-500 border-stone-800' : 'bg-amber-400 border-white'} text-white`}><Trophy size={14} fill="currentColor" /></div>}
                             </div>
 
                             <div className="space-y-2">
                               <div className="flex items-center gap-3">
-                                <span className="font-black text-xl text-stone-900">{item.name}</span>
-                                <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg ${item.status === 'published' ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-200 text-stone-500'}`}>
+                                <span className={`font-black text-xl ${darkMode ? 'text-white' : 'text-stone-900'}`}>{item.name}</span>
+                                <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg ${item.status === 'published' ? (darkMode ? 'bg-emerald-900/40 text-emerald-400' : 'bg-emerald-100 text-emerald-700') : (darkMode ? 'bg-stone-700 text-stone-500' : 'bg-stone-200 text-stone-500')}`}>
                                   {item.status === 'published' ? 'Public' : 'Brouillon'}
                                 </span>
                               </div>
 
                               {hasWinner ? (
-                                <div className="flex flex-col gap-1 bg-amber-50 border border-amber-200 px-4 py-2 rounded-xl animate-in slide-in-from-left-4 shadow-sm w-fit">
-                                  <p className="text-[10px] font-black uppercase tracking-widest text-amber-800 flex items-center gap-2">
+                                <div className={`flex flex-col gap-1 border border-amber-200 px-4 py-2 rounded-xl animate-in slide-in-from-left-4 shadow-sm w-fit ${darkMode ? 'bg-amber-950/20 border-amber-900/40' : 'bg-amber-50 border-amber-200'}`}>
+                                  <p className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${darkMode ? 'text-amber-400' : 'text-amber-800'}`}>
                                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
                                     Vainqueur
                                   </p>
                                   <div className="pl-3.5">
-                                    <p className="text-sm font-bold text-stone-800">{item.lastBidderName}</p>
-                                    <p className="text-xs text-stone-500 font-mono select-all flex items-center gap-1.5 hover:text-amber-700 transition-colors cursor-pointer" title="Copier">
+                                    <p className={`text-sm font-bold ${darkMode ? 'text-stone-200' : 'text-stone-800'}`}>{item.lastBidderName}</p>
+                                    <p className={`text-xs font-mono select-all flex items-center gap-1.5 transition-colors cursor-pointer ${darkMode ? 'text-stone-500 hover:text-amber-400' : 'text-stone-500 hover:text-amber-700'}`} title="Copier">
                                       <Mail size={12} /> {item.lastBidderEmail}
                                     </p>
                                   </div>
@@ -657,9 +658,9 @@ export default function App() {
                             </div>
                           </div>
                           <div className="flex gap-3">
-                            <button onClick={() => { setEditingItem(item); window.scrollTo(0, 0); }} className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-stone-900 shadow-sm border border-stone-100 hover:scale-110 transition-transform"><Pencil size={18} /></button>
-                            <button onClick={() => handleToggleStatus(item, adminCollection)} className={`w-12 h-12 rounded-full flex items-center justify-center shadow-sm transition-all hover:scale-110 ${item.status === 'published' ? 'bg-emerald-500 text-white shadow-emerald-200' : 'bg-stone-200 text-stone-400'}`}>{item.status === 'published' ? <Eye size={18} /> : <EyeOff size={18} />}</button>
-                            <button onClick={() => handleDeleteItem(null, item.id, adminCollection)} className="w-12 h-12 bg-red-50 text-red-500 rounded-full flex items-center justify-center shadow-sm border border-red-100 hover:bg-red-500 hover:text-white hover:scale-110 transition-all"><Trash2 size={18} /></button>
+                            <button onClick={() => { setEditingItem(item); window.scrollTo(0, 0); }} className={`w-12 h-12 rounded-full flex items-center justify-center shadow-sm border transition-all hover:scale-110 ${darkMode ? 'bg-stone-700 text-white border-stone-600' : 'bg-white text-stone-900 border-stone-100'}`}><Pencil size={18} /></button>
+                            <button onClick={() => handleToggleStatus(item, adminCollection)} className={`w-12 h-12 rounded-full flex items-center justify-center shadow-sm transition-all hover:scale-110 ${item.status === 'published' ? (darkMode ? 'bg-emerald-600 text-white shadow-emerald-900/40' : 'bg-emerald-500 text-white shadow-emerald-200') : (darkMode ? 'bg-stone-700 text-stone-500' : 'bg-stone-200 text-stone-400')}`}>{item.status === 'published' ? <Eye size={18} /> : <EyeOff size={18} />}</button>
+                            <button onClick={() => handleDeleteItem(null, item.id, adminCollection)} className={`w-12 h-12 rounded-full flex items-center justify-center shadow-sm border transition-all hover:scale-110 ${darkMode ? 'bg-red-950/40 text-red-500 border-red-900/40 hover:bg-red-500 hover:text-white' : 'bg-red-50 text-red-500 border-red-100 hover:bg-red-500 hover:text-white'}`}><Trash2 size={18} /></button>
                           </div>
                         </div>
                       </div>

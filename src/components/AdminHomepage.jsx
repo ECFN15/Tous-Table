@@ -48,7 +48,7 @@ const HOMEPAGE_CONFIG = [
     }
 ];
 
-const AdminHomepage = () => {
+const AdminHomepage = ({ darkMode = false }) => {
     const [images, setImages] = useState({});
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(null); // Key of the image currently uploading
@@ -157,8 +157,8 @@ const AdminHomepage = () => {
             <div className="space-y-16">
                 {HOMEPAGE_CONFIG.map((section, idx) => (
                     <div key={idx} className="space-y-6">
-                        <div className="px-4 border-l-4 border-stone-200 pl-4">
-                            <h3 className="text-xl font-black text-stone-900 uppercase tracking-widest">{section.section}</h3>
+                        <div className={`px-4 border-l-4 pl-4 ${darkMode ? 'border-stone-700' : 'border-stone-200'}`}>
+                            <h3 className={`text-xl font-black uppercase tracking-widest ${darkMode ? 'text-white' : 'text-stone-900'}`}>{section.section}</h3>
                             <p className="text-xs text-stone-400 font-bold uppercase tracking-wider mt-1">{section.description}</p>
                         </div>
 
@@ -170,20 +170,20 @@ const AdminHomepage = () => {
                                 return (
                                     <div
                                         key={item.key}
-                                        className="bg-white p-4 rounded-3xl border border-stone-100 shadow-sm hover:shadow-md transition-all group relative"
+                                        className={`p-4 rounded-3xl border shadow-sm hover:shadow-md transition-all group relative ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}
                                         onDrop={(e) => handleDrop(e, item.key)}
                                         onDragOver={handleDragOver}
                                     >
                                         {/* HEADER INFO */}
                                         <div className="mb-4">
-                                            <p className="font-bold text-stone-800 text-sm truncate" title={item.label}>{item.label}</p>
-                                            <span className="text-[10px] uppercase font-bold text-stone-400 bg-stone-50 px-2 py-1 rounded-md inline-block mt-1">
+                                            <p className={`font-bold text-sm truncate ${darkMode ? 'text-stone-200' : 'text-stone-800'}`} title={item.label}>{item.label}</p>
+                                            <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-md inline-block mt-1 ${darkMode ? 'text-stone-400 bg-stone-700' : 'text-stone-400 bg-stone-50'}`}>
                                                 {item.format}
                                             </span>
                                         </div>
 
                                         {/* PREVIEW IMAGE */}
-                                        <div className="aspect-square w-full bg-stone-100 rounded-2xl overflow-hidden relative mb-4 border border-stone-100">
+                                        <div className={`aspect-square w-full rounded-2xl overflow-hidden relative mb-4 border ${darkMode ? 'bg-stone-900 border-stone-700' : 'bg-stone-100 border-stone-100'}`}>
                                             <img
                                                 src={currentImage}
                                                 alt={item.label}
@@ -193,8 +193,8 @@ const AdminHomepage = () => {
                                             {/* LOADING OVERLAY */}
                                             {isUpdating && (
                                                 <div className="absolute inset-0 flex items-center justify-center flex-col gap-2">
-                                                    <Loader size={24} className="animate-spin text-stone-900" />
-                                                    <span className="text-[9px] font-black uppercase text-stone-900">Upload...</span>
+                                                    <Loader size={24} className={`animate-spin ${darkMode ? 'text-stone-200' : 'text-stone-900'}`} />
+                                                    <span className={`text-[9px] font-black uppercase ${darkMode ? 'text-stone-200' : 'text-stone-900'}`}>Upload...</span>
                                                 </div>
                                             )}
 
@@ -211,7 +211,7 @@ const AdminHomepage = () => {
 
                                         {/* ACTIONS */}
                                         <div className="flex gap-2">
-                                            <label className={`flex-1 py-3 rounded-xl border-2 border-dashed border-stone-200 hover:border-stone-900 hover:bg-stone-50 cursor-pointer flex items-center justify-center gap-2 transition-all group/btn ${isUpdating ? 'opacity-50 pointer-events-none' : ''}`}>
+                                            <label className={`flex-1 py-3 rounded-xl border-2 border-dashed flex items-center justify-center gap-2 transition-all group/btn ${isUpdating ? 'opacity-50 pointer-events-none' : ''} ${darkMode ? 'border-stone-700 hover:border-stone-500 hover:bg-stone-700' : 'border-stone-200 hover:border-stone-900 hover:bg-stone-50'} cursor-pointer`}>
                                                 <input
                                                     type="file"
                                                     className="hidden"
@@ -219,13 +219,13 @@ const AdminHomepage = () => {
                                                     onChange={(e) => handleFileChange(e.target.files[0], item.key)}
                                                     disabled={isUpdating}
                                                 />
-                                                <Upload size={14} className="text-stone-400 group-hover/btn:text-stone-900" />
-                                                <span className="text-[10px] font-black uppercase text-stone-400 group-hover/btn:text-stone-900">Changer</span>
+                                                <Upload size={14} className={`text-stone-400 ${darkMode ? 'group-hover/btn:text-stone-200' : 'group-hover/btn:text-stone-900'}`} />
+                                                <span className={`text-[10px] font-black uppercase text-stone-400 ${darkMode ? 'group-hover/btn:text-stone-200' : 'group-hover/btn:text-stone-900'}`}>Changer</span>
                                             </label>
 
                                             <button
                                                 onClick={() => handleDownload(currentImage, `${item.key}.webp`)}
-                                                className="w-10 flex items-center justify-center rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-600 transition-colors"
+                                                className={`w-10 flex items-center justify-center rounded-xl transition-colors ${darkMode ? 'bg-stone-700 text-stone-300 hover:bg-stone-600' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}
                                                 title="Télécharger l'image"
                                             >
                                                 <Download size={14} />
@@ -249,7 +249,7 @@ const AdminHomepage = () => {
                                                         // Actually, let's just re-set the default URL in DB.
                                                         await setDoc(docRef, { [item.key]: item.default }, { merge: true });
                                                     }}
-                                                    className="w-10 flex items-center justify-center rounded-xl bg-stone-100 hover:bg-red-50 hover:text-red-500 transition-colors"
+                                                    className={`w-10 flex items-center justify-center rounded-xl transition-colors ${darkMode ? 'bg-stone-700 text-stone-400 hover:bg-red-900/30 hover:text-red-400' : 'bg-stone-100 text-stone-600 hover:bg-red-50 hover:text-red-500'}`}
                                                     title="Rétablir défaut"
                                                 >
                                                     <X size={14} />
