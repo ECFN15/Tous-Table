@@ -301,6 +301,7 @@ const App = ({ onEnterMarketplace }) => {
 
     if (!isLoading) {
       // If no preloader, trigger entrance animations immediately
+      document.body.style.overflow = ''; // Ensure scroll is released
       if (window.gsap) {
         const tlReveal = window.gsap.timeline();
         tlReveal.to('.hero-section .reveal-inner', {

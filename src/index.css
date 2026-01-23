@@ -154,12 +154,6 @@ body,
   -webkit-backface-visibility: hidden;
 }
 
-/* Lazy content visibility for offscreen items */
-.gallery-card {
-  content-visibility: auto;
-  contain-intrinsic-size: 300px 400px;
-}
-
 /* Optimized image rendering */
 img {
   image-rendering: auto;
@@ -176,15 +170,9 @@ img {
   pointer-events: none !important;
 }
 
-/* Optimize scroll performance */
-@supports (scroll-behavior: smooth) {
-  html {
-    scroll-behavior: smooth;
-  }
-}
-
 /* Reduce motion for users who prefer it */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
