@@ -5,6 +5,33 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
+// --- COMPOSANT : BOUTON DÉCOUVRIR (MARTEAU FLOTTANT SANS FOND) ---
+const RotatingButton = ({ id }) => {
+    const pathId = `btnPath-${id}`;
+    return (
+        <div className="relative w-16 h-16 md:w-24 md:h-24 flex items-center justify-center select-none group-hover:scale-110 transition-transform duration-500">
+            {/* Texte rotatif */}
+            <div className="absolute inset-0 animate-spin-slow">
+                <svg width="100%" height="100%" viewBox="0 0 100 100">
+                    <defs>
+                        <path id={pathId} d="M 50, 50 m -34, 0 a 34,34 0 1,1 68,0 a 34,34 0 1,1 -68,0" fill="transparent" />
+                    </defs>
+                    <text className="text-[10px] uppercase font-bold tracking-[0.25em] fill-current text-[#1a1a1a]">
+                        <textPath xlinkHref={`#${pathId}`} startOffset="0%">
+                            TOUS À TABLE • TOUS À TABLE •
+                        </textPath>
+                    </text>
+                </svg>
+            </div>
+
+            {/* Marteau Central - SANS CERCLE BLANC */}
+            <div className="absolute inset-0 flex items-center justify-center">
+                <Hammer size={20} className="text-[#1a1a1a] md:w-6 md:h-6" strokeWidth={1.5} />
+            </div>
+        </div>
+    );
+};
+
 const StackedCards = ({ items, onEnterMarketplace }) => {
     const containerRef = useRef(null);
     const cardsRef = useRef([]);
@@ -186,8 +213,9 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                                 contain: 'layout paint' // CSS containment for better isolation
                             }}
                         >
-                            {/* 1. IMAGE ZONE (Top ~60%) */}
-                            <div className="relative w-full h-[58%] md:h-[62%] overflow-hidden">
+                            {/* 1. IMAGE ZONE (Top ~60% Mobile / ~55% Desktop) */}
+                            {/* Adjusted heights to give more room to text on desktop */}
+                            <div className="relative w-full h-[58%] md:h-[55%] overflow-hidden">
                                 <img
                                     src={item.img}
                                     alt={item.title.join(' ')}
@@ -198,34 +226,37 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                                 {/* Gradient Overlay for legibility */}
                                 <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/30 to-transparent opacity-80"></div>
 
-                                {/* PBE Style Badge */}
-                                <div className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 bg-[#1a1a1a] text-white px-5 py-2.5 rounded-full shadow-lg z-20">
-                                    <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] font-bold">
+                                {/* PBE Style Badge - RESPONSIVE ADJUSTMENTS */}
+                                <div className="absolute bottom-6 md:bottom-8 lg:bottom-10 left-1/2 -translate-x-1/2 bg-[#1a1a1a] text-white px-4 py-2 md:px-5 md:py-2.5 rounded-full shadow-lg z-20 whitespace-nowrap">
+                                    <span className="text-[9px] md:text-[10px] lg:text-xs uppercase tracking-[0.2em] font-bold">
                                         {item.subtitle}
                                     </span>
                                 </div>
                             </div>
 
-                            {/* 2. TEXT ZONE (Bottom ~40%) */}
-                            <div className="relative z-10 w-full h-[42%] md:h-[38%] flex flex-col items-center justify-start pt-2 md:pt-4 px-6 text-center -mt-8 md:-mt-12">
+                            {/* 2. TEXT ZONE (Bottom ~40% Mobile / ~45% Desktop) */}
+                            {/* Pulled up slightly more on desktop (-mt-16) to overlap image nicely */}
+                            <div className="relative z-10 w-full h-[42%] md:h-[45%] flex flex-col items-center justify-start pt-4 md:pt-8 lg:pt-10 px-6 md:px-12 text-center -mt-8 md:-mt-16">
 
-                                {/* Title */}
-                                <h2 className="font-serif text-5xl md:text-7xl lg:text-8xl leading-[0.9] text-[#1a1a1a] mix-blend-multiply mb-5 md:mb-8 drop-shadow-sm" style={{ color: item.textColor }}>
+                                {/* Title - RESPONSIVE TYPOGRAPHY (Adjusted max size to avoid overflow) */}
+                                <h2 className="font-serif text-[2.5rem] sm:text-5xl md:text-6xl lg:text-7xl xl:text-[5rem] leading-[1.0] md:leading-[0.9] text-[#1a1a1a] mix-blend-multiply mb-3 md:mb-4 lg:mb-6 drop-shadow-sm" style={{ color: item.textColor }}>
                                     {item.title[0]} <br />
                                     <span className="italic font-light">{item.title[1]}</span>
                                 </h2>
 
-                                {/* Description */}
-                                <p className="text-sm md:text-lg italic font-light max-w-sm md:max-w-xl leading-relaxed opacity-70 mb-auto" style={{ color: item.textColor }}>
+                                {/* Description - OPTIMIZED MEASURE & POSITION */}
+                                {/* MOBILE: mt-auto pushes it down, mb-4 keeps it close to button. DESKTOP: mt-0, mb-auto pushes button to bottom. */}
+                                <p className="text-xs sm:text-sm md:text-base lg:text-lg italic font-light max-w-[85%] sm:max-w-md md:max-w-lg lg:max-w-xl leading-relaxed opacity-80 md:opacity-70 mt-auto md:mt-0 mb-4 md:mb-auto" style={{ color: item.textColor }}>
                                     {item.desc}
                                 </p>
 
-                                {/* CTA Button */}
-                                <button onClick={onEnterMarketplace} className="flex items-center justify-center gap-4 group mb-8 md:mb-10 bg-[#1a1a1a] text-white px-8 py-4 rounded-full hover:scale-105 transition-transform duration-300 shadow-xl">
-                                    <span className="text-[10px] uppercase tracking-[0.2em] font-bold">
-                                        Découvrir la collection
+                                {/* BOUTON MODIFIÉ : RotatingButton + TEXTE - RESPONSIVE SPACING */}
+                                {/* MOBILE: mt-0 (gap handled by p mb-4). DESKTOP: keep mt margins. */}
+                                <button onClick={onEnterMarketplace} className="flex items-center gap-4 md:gap-5 lg:gap-6 group text-[#1a1a1a] mt-0 md:mt-6 lg:mt-8 mb-6 md:mb-8 flex-shrink-0">
+                                    <RotatingButton id={item.id} />
+                                    <span className="text-[9px] md:text-[10px] lg:text-[11px] uppercase tracking-[0.3em] md:tracking-[0.4em] lg:tracking-[0.5em] font-medium text-[#1a1a1a]">
+                                        Découvrir la Galerie
                                     </span>
-                                    <Hammer size={16} className="text-[#9C8268]" />
                                 </button>
                             </div>
 
