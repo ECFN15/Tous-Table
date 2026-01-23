@@ -89,7 +89,9 @@ const AdminHomepage = ({ darkMode = false }) => {
             setMsg('Upload vers Firebase...');
             const storagePath = `homepage/${key}_${Date.now()}.webp`;
             const storageRef = ref(storage, storagePath);
-            await uploadBytes(storageRef, compressedFile);
+            await uploadBytes(storageRef, compressedFile, {
+                cacheControl: 'public, max-age=31536000'
+            });
             const downloadUrl = await getDownloadURL(storageRef);
 
             // 3. Update Firestore

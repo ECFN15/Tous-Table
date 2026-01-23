@@ -47,7 +47,15 @@ export default function App() {
   const [showOrderSuccess, setShowOrderSuccess] = useState(false);
 
   // Navigation
-  const [view, setView] = useState('home'); // 'home', 'gallery', 'detail', 'login', 'admin'
+  const [view, setView] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash.replace('#', '');
+      if (['gallery', 'login', 'admin'].includes(hash)) return hash;
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('page') === 'gallery') return 'gallery';
+    }
+    return 'home';
+  }); // 'home', 'gallery', 'detail', 'login', 'admin'
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isSecretGateOpen, setIsSecretGateOpen] = useState(false);
@@ -127,15 +135,16 @@ export default function App() {
 
       const params = new URLSearchParams(window.location.search);
       const productId = params.get('product');
+      const hash = window.location.hash.replace('#', '');
 
-      if (params.get('admin') === 'true' || window.location.pathname === '/admin') {
+      if (params.get('admin') === 'true' || window.location.pathname === '/admin' || hash === 'admin') {
         setIsSecretGateOpen(true);
         if (isRealAdmin) setView('admin'); else setView('login');
       } else if (productId) {
         // Deep Link détecté : on attend que les données chargent
         setPendingDeepLink(productId);
       } else {
-        if (params.get('page') === 'gallery') setView('gallery');
+        if (params.get('page') === 'gallery' || hash === 'gallery') setView('gallery');
 
         if (!u) {
           signInAnonymously(auth).catch(err => console.error(err));
@@ -146,6 +155,31 @@ export default function App() {
 
     return () => { unsubData(); unsubBoards(); unsubAuth(); };
   }, []);
+
+  // --- PERSISTANCE NAVIGATION (HASH) ---
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (['home', 'gallery', 'admin', 'login'].includes(hash)) {
+        setView(hash);
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  useEffect(() => {
+    // Ne pas mettre à jour le hash pour 'detail' pour l'instant (géré par query params ?product=)
+    // Mais pour les vues principales, on synchronise
+    if (view !== 'detail' && view !== 'home') {
+      window.location.hash = view;
+    } else if (view === 'home') {
+      // Nettoyer le hash si on revient à l'accueil (optionnel)
+      if (window.location.hash) {
+        window.history.replaceState(null, null, ' ');
+      }
+    }
+  }, [view]);
 
   // --- TRAITEMENT DEEP LINK ---
   useEffect(() => {

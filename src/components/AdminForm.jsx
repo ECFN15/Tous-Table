@@ -194,7 +194,9 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
           setMsg(`⏳ Upload: ${fileToUpload.name} (${originalSizeStr} -> ${sizeStr})...`);
 
           const imageRef = ref(storage, `${collectionName}/${Date.now()}_${fileToUpload.name}`);
-          await uploadBytes(imageRef, fileToUpload);
+          await uploadBytes(imageRef, fileToUpload, {
+            cacheControl: 'public, max-age=31536000'
+          });
           finalImageUrls.push(await getDownloadURL(imageRef));
 
           if (!item.isCompressed) {

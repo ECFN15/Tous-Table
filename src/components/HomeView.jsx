@@ -252,10 +252,43 @@ const App = ({ onEnterMarketplace }) => {
   }, []);
 
   // --- PRELOADER STATE ---
-  const [isLoading, setIsLoading] = useState(true);
-  const [counter, setCounter] = useState(0);
+  const [isLoading, setIsLoading] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return !sessionStorage.getItem('site_loaded');
+    }
+    return true;
+  });
+  const [counter, setCounter] = useState(() => {
+    if (typeof window !== 'undefined' && sessionStorage.getItem('site_loaded')) {
+      return 100;
+    }
+    return 0;
+  });
 
   useEffect(() => {
+    const isAlreadyLoaded = typeof window !== 'undefined' && sessionStorage.getItem('site_loaded');
+
+    if (isAlreadyLoaded) {
+      if (scriptsLoaded) {
+        setIsLoading(false);
+        // Instant or super fast reveal for hero when returning
+        window.gsap.to('.hero-section .reveal-inner', {
+          y: "0%",
+          duration: 0.8,
+          ease: "power3.out",
+          stagger: 0.05
+        });
+        window.gsap.to('.hero-footer-element', {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          ease: "power3.out",
+          stagger: 0.1
+        });
+      }
+      return;
+    }
+
     // Compteur esthétique
     const interval = setInterval(() => {
       setCounter(prev => {
@@ -280,6 +313,7 @@ const App = ({ onEnterMarketplace }) => {
         const tlLoader = window.gsap.timeline({
           onComplete: () => {
             setIsLoading(false);
+            sessionStorage.setItem('site_loaded', 'true');
             document.body.style.overflow = ''; // Release scroll
 
             // FINAL REFRESH: Ensure all positions are exact after preloader exit
@@ -626,11 +660,13 @@ const App = ({ onEnterMarketplace }) => {
 
 
       {/* --- PRELOADER --- */}
-      <div className="preloader-overlay fixed inset-0 z-[9999] bg-[#FAF9F6] flex flex-col items-center justify-center text-[#1a1a1a]">
-        <div className="preloader-count font-serif text-8xl md:text-9xl italic font-light mix-blend-darken">
-          {counter}
+      {isLoading && (
+        <div className="preloader-overlay fixed inset-0 z-[9999] bg-[#FAF9F6] flex flex-col items-center justify-center text-[#1a1a1a]">
+          <div className="preloader-count font-serif text-8xl md:text-9xl italic font-light mix-blend-darken">
+            {counter}
+          </div>
         </div>
-      </div>
+      )}
 
       <div id="main-cursor" ref={cursorRef} className="hidden lg:block"></div>
       <div className="three-container fixed inset-0 pointer-events-none z-0" ref={canvasRef}></div>

@@ -220,8 +220,15 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                             style={{ animationDelay: `${index * 100}ms` }}
                         >
                             {/* ASPECT RATIO ADAPTATIF */}
-                            <div className={`relative w-full overflow-hidden rounded-[1.2rem] md:rounded-[2rem] transition-all duration-700 ease-premium ${darkMode ? 'bg-stone-900 shadow-lg shadow-black/50 group-hover:shadow-black/70' : 'bg-white shadow-lg shadow-stone-200/50 group-hover:shadow-stone-300/60 group-hover:shadow-xl'} ${viewMode === 'list' ? 'aspect-[4/5]' : 'aspect-[3/4] md:aspect-[4/5]'}`} style={{ WebkitMaskImage: '-webkit-radial-gradient(white, black)' }}>
-                                <img src={item.images?.[0] || item.imageUrl} alt={item.name} className="w-full h-full object-cover transition-transform duration-1000 ease-premium group-hover:scale-105" loading="lazy" />
+                            <div className={`relative w-full overflow-hidden rounded-[1.2rem] md:rounded-[2rem] transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${darkMode ? 'bg-stone-900 shadow-lg shadow-black/50 group-hover:shadow-black/70' : 'bg-white shadow-lg shadow-stone-200/50 group-hover:shadow-stone-300/60 group-hover:shadow-2xl'} ${viewMode === 'list' ? 'aspect-[4/5]' : 'aspect-[3/4] md:aspect-[4/5]'}`} style={{ WebkitMaskImage: '-webkit-radial-gradient(white, black)' }}>
+                                <img src={item.images?.[0] || item.imageUrl} alt={item.name} className="w-full h-full object-cover transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-110" loading="lazy" />
+
+                                {/* --- DÉCOUVRIR LABEL (HOVER REVEAL: UNIFIED SMOOTH GRAY) --- */}
+                                <div className="absolute inset-0 z-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-in-out pointer-events-none">
+                                    <div className="bg-stone-400/90 backdrop-blur-md border border-white/20 px-6 py-2.5 rounded-full shadow-2xl">
+                                        <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-white drop-shadow-md">Découvrir</span>
+                                    </div>
+                                </div>
 
                                 {/* --- DISPONIBILITÉ & STOCK (HAUT GAUCHE) --- */}
                                 <div className="absolute top-2 left-2 md:top-3 md:left-3 z-20 pointer-events-auto flex flex-col gap-1 items-start">
