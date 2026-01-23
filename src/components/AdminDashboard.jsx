@@ -8,7 +8,7 @@ import { collection, getDocs, writeBatch, doc, onSnapshot, query, orderBy, limit
 import { db, appId } from '../firebase/config';
 import { getMillis } from '../utils/time';
 
-const AdminDashboard = ({ user }) => {
+const AdminDashboard = ({ user, darkMode = false }) => {
     const [stats, setStats] = useState({
         totalRevenue: 0,
         totalOrders: 0,
@@ -181,6 +181,7 @@ const AdminDashboard = ({ user }) => {
                     trend={`Panier moyen : ${stats.averageOrderValue} €`}
                     trendColor="text-emerald-600"
                     bg="bg-emerald-50/50 border-emerald-100"
+                    darkMode={darkMode}
                 />
                 <KpiCard
                     title="Engagement Total"
@@ -188,6 +189,7 @@ const AdminDashboard = ({ user }) => {
                     icon={<TrendingUp size={20} className="text-amber-500" />}
                     trend={`${stats.totalLikes} Likes • ${stats.totalComments} Coms`}
                     bg="bg-amber-50/50 border-amber-100"
+                    darkMode={darkMode}
                 />
                 <KpiCard
                     title="Commandes"
@@ -195,6 +197,7 @@ const AdminDashboard = ({ user }) => {
                     icon={<ShoppingBag size={20} className="text-blue-500" />}
                     trend="Total cumulé"
                     bg="bg-blue-50/50 border-blue-100"
+                    darkMode={darkMode}
                 />
                 <KpiCard
                     title="Partages"
@@ -202,33 +205,34 @@ const AdminDashboard = ({ user }) => {
                     icon={<Share2 size={20} className="text-purple-500" />}
                     trend="Viralité"
                     bg="bg-purple-50/50 border-purple-100"
+                    darkMode={darkMode}
                 />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
                 {/* TOP TRENDING (Bar Chart styled) */}
-                <div className="lg:col-span-2 bg-white p-8 rounded-[2.5rem] border border-stone-100 shadow-sm">
+                <div className={`lg:col-span-2 p-8 rounded-[2.5rem] border shadow-sm ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
                     <div className="flex justify-between items-center mb-8">
                         <div>
-                            <h3 className="text-xl font-black text-stone-900 tracking-tight">Tendances Mobilier</h3>
+                            <h3 className={`text-xl font-black tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>Tendances Mobilier</h3>
                             <p className="text-xs text-stone-400 font-bold uppercase tracking-widest mt-1">Le top 5 de vos créations</p>
                         </div>
-                        <div className="p-2 bg-stone-50 rounded-full"><ArrowUpRight size={20} className="text-stone-400" /></div>
+                        <div className={`p-2 rounded-full ${darkMode ? 'bg-stone-700' : 'bg-stone-50'}`}><ArrowUpRight size={20} className="text-stone-400" /></div>
                     </div>
 
                     <div className="space-y-6">
                         {trendingItems.length === 0 ? (
-                            <p className="text-center text-stone-300 italic py-10">Pas assez de données pour le moment...</p>
+                            <p className={`text-center italic py-10 ${darkMode ? 'text-stone-500' : 'text-stone-300'}`}>Pas assez de données pour le moment...</p>
                         ) : (
                             trendingItems.map((item, idx) => {
                                 const maxScore = trendingItems[0]?.score || 1;
                                 const percent = (item.score / maxScore) * 100;
                                 return (
                                     <div key={item.id} className="relative group">
-                                        <div className="flex justify-between text-xs font-bold text-stone-600 mb-2 relative z-10">
+                                        <div className={`flex justify-between text-xs font-bold mb-2 relative z-10 ${darkMode ? 'text-stone-300' : 'text-stone-600'}`}>
                                             <span className="flex items-center gap-2">
-                                                <span className="w-5 h-5 rounded-full bg-stone-100 flex items-center justify-center text-[10px] text-stone-500">#{idx + 1}</span>
+                                                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${darkMode ? 'bg-stone-700 text-stone-400' : 'bg-stone-100 text-stone-500'}`}>#{idx + 1}</span>
                                                 {item.name}
                                             </span>
                                             <div className="flex gap-3 text-[10px] uppercase tracking-wide opacity-60">
@@ -237,9 +241,9 @@ const AdminDashboard = ({ user }) => {
                                                 <span className="flex items-center gap-1"><Share2 size={10} /> {item.shareCount || 0}</span>
                                             </div>
                                         </div>
-                                        <div className="h-3 w-full bg-stone-50 rounded-full overflow-hidden">
+                                        <div className={`h-3 w-full rounded-full overflow-hidden ${darkMode ? 'bg-stone-700' : 'bg-stone-50'}`}>
                                             <div
-                                                className="h-full bg-stone-900 rounded-full transition-all duration-1000 ease-out flex items-center justify-end px-2"
+                                                className={`h-full rounded-full transition-all duration-1000 ease-out flex items-center justify-end px-2 ${darkMode ? 'bg-white' : 'bg-stone-900'}`}
                                                 style={{ width: `${percent}%` }}
                                             >
                                             </div>
@@ -254,20 +258,20 @@ const AdminDashboard = ({ user }) => {
                 {/* RECENT ACTIVITY & ACTIONS */}
                 <div className="space-y-6">
                     {/* Recent Orders */}
-                    <div className="bg-white p-6 rounded-[2rem] border border-stone-100 shadow-sm">
-                        <h3 className="text-sm font-black text-stone-900 uppercase tracking-widest mb-4">Dernières Commandes</h3>
+                    <div className={`p-6 rounded-[2rem] border shadow-sm ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
+                        <h3 className={`text-sm font-black uppercase tracking-widest mb-4 ${darkMode ? 'text-white' : 'text-stone-900'}`}>Dernières Commandes</h3>
                         <div className="space-y-4">
                             {recentOrders.length === 0 ? <p className="text-xs text-stone-400">Aucune commande récente.</p> : (
                                 recentOrders.map(order => (
-                                    <div key={order.id} className="flex items-center gap-3 p-3 hover:bg-stone-50 rounded-xl transition-colors border border-transparent hover:border-stone-100">
-                                        <div className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center text-stone-500 font-bold text-xs">
+                                    <div key={order.id} className={`flex items-center gap-3 p-3 rounded-xl transition-colors border border-transparent ${darkMode ? 'hover:bg-stone-700 hover:border-stone-600' : 'hover:bg-stone-50 hover:border-stone-100'}`}>
+                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs ${darkMode ? 'bg-stone-700 text-stone-300' : 'bg-stone-100 text-stone-500'}`}>
                                             {order.shipping?.fullName?.[0] || '?'}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-bold text-stone-900 truncate">{order.shipping?.fullName || 'Client'}</p>
+                                            <p className={`text-sm font-bold truncate ${darkMode ? 'text-white' : 'text-stone-900'}`}>{order.shipping?.fullName || 'Client'}</p>
                                             <p className="text-[10px] text-stone-400">{new Date(getMillis(order.createdAt)).toLocaleDateString()}</p>
                                         </div>
-                                        <span className="text-xs font-black text-stone-900">{order.total}€</span>
+                                        <span className={`text-xs font-black ${darkMode ? 'text-white' : 'text-stone-900'}`}>{order.total}€</span>
                                     </div>
                                 ))
                             )}
@@ -275,18 +279,18 @@ const AdminDashboard = ({ user }) => {
                     </div>
 
                     {/* DANGER ZONE */}
-                    <div className="bg-red-50 p-6 rounded-[2rem] border border-red-100">
-                        <div className="flex items-center gap-3 mb-4 text-red-900">
+                    <div className={`p-6 rounded-[2rem] border ${darkMode ? 'bg-red-900/20 border-red-800' : 'bg-red-50 border-red-100'}`}>
+                        <div className={`flex items-center gap-3 mb-4 ${darkMode ? 'text-red-400' : 'text-red-900'}`}>
                             <AlertTriangle size={20} />
                             <h3 className="text-sm font-black uppercase tracking-widest">Zone de Danger</h3>
                         </div>
-                        <p className="text-xs text-red-400 mb-6 leading-relaxed">
+                        <p className={`text-xs mb-6 leading-relaxed ${darkMode ? 'text-red-300' : 'text-red-400'}`}>
                             Réinitialiser les compteurs de likes, commentaires et partages pour <strong>tous</strong> les articles. Cette action est irréversible.
                         </p>
                         <button
                             onClick={handleResetClick}
                             disabled={resetting}
-                            className="w-full py-4 bg-white text-red-500 border border-red-100 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-red-500 hover:text-white transition-all shadow-sm flex items-center justify-center gap-2"
+                            className={`w-full py-4 border rounded-xl font-black uppercase text-[10px] tracking-widest transition-all shadow-sm flex items-center justify-center gap-2 ${darkMode ? 'bg-stone-800 text-red-400 border-red-800 hover:bg-red-500 hover:text-white' : 'bg-white text-red-500 border-red-100 hover:bg-red-500 hover:text-white'}`}
                         >
                             {resetting ? <RefreshCw size={14} className="animate-spin" /> : <RefreshCw size={14} />}
                             {resetting ? 'Réinitialisation...' : 'Réinitialiser Stats'}
@@ -297,15 +301,15 @@ const AdminDashboard = ({ user }) => {
 
             {/* CONFIRMATION MODAL */}
             {isResetModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/50 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white rounded-[2rem] p-8 max-w-sm w-full shadow-2xl border border-stone-100 space-y-6 text-center animate-in zoom-in-95 duration-200">
-                        <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto text-red-500">
+                <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200 ${darkMode ? 'bg-black/70' : 'bg-stone-900/50'}`}>
+                    <div className={`rounded-[2rem] p-8 max-w-sm w-full shadow-2xl border space-y-6 text-center animate-in zoom-in-95 duration-200 ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
+                        <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto text-red-500 ${darkMode ? 'bg-red-900/30' : 'bg-red-50'}`}>
                             <AlertTriangle size={32} />
                         </div>
                         <div>
-                            <h3 className="text-xl font-black text-stone-900 mb-2">Êtes-vous sûr ?</h3>
-                            <p className="text-sm text-stone-500 leading-relaxed">
-                                Vous êtes sur le point de supprimer <span className="text-stone-900 font-bold">définitivement</span> tous les likes, commentaires et partages du site.
+                            <h3 className={`text-xl font-black mb-2 ${darkMode ? 'text-white' : 'text-stone-900'}`}>Êtes-vous sûr ?</h3>
+                            <p className={`text-sm leading-relaxed ${darkMode ? 'text-stone-300' : 'text-stone-500'}`}>
+                                Vous êtes sur le point de supprimer <span className={`font-bold ${darkMode ? 'text-white' : 'text-stone-900'}`}>définitivement</span> tous les likes, commentaires et partages du site.
                             </p>
                         </div>
                         <div className="flex flex-col gap-3">
@@ -319,7 +323,7 @@ const AdminDashboard = ({ user }) => {
                             <button
                                 onClick={() => setIsResetModalOpen(false)}
                                 disabled={resetting}
-                                className="w-full py-4 bg-white text-stone-400 rounded-xl font-bold uppercase text-xs tracking-widest hover:text-stone-600 transition-colors"
+                                className={`w-full py-4 rounded-xl font-bold uppercase text-xs tracking-widest transition-colors ${darkMode ? 'bg-stone-700 text-stone-400 hover:text-stone-200' : 'bg-white text-stone-400 hover:text-stone-600'}`}
                             >
                                 Annuler
                             </button>
@@ -332,14 +336,14 @@ const AdminDashboard = ({ user }) => {
 };
 
 // Sub-component for KPI
-const KpiCard = ({ title, value, icon, trend, trendColor = "text-stone-400", bg = "bg-white" }) => (
-    <div className={`p-6 rounded-[2rem] border ${bg.includes('white') ? 'border-stone-100 bg-white' : bg} shadow-sm transition-transform hover:-translate-y-1`}>
+const KpiCard = ({ title, value, icon, trend, trendColor = "text-stone-400", bg = "bg-white", darkMode = false }) => (
+    <div className={`p-6 rounded-[2rem] border shadow-sm transition-transform hover:-translate-y-1 ${darkMode ? 'bg-stone-800 border-stone-700' : (bg.includes('white') ? 'border-stone-100 bg-white' : bg)}`}>
         <div className="flex justify-between items-start mb-4">
-            <div className="p-3 bg-white rounded-2xl shadow-sm border border-stone-100/50">{icon}</div>
+            <div className={`p-3 rounded-2xl shadow-sm border ${darkMode ? 'bg-stone-700 border-stone-600' : 'bg-white border-stone-100/50'}`}>{icon}</div>
         </div>
         <div>
             <p className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-1">{title}</p>
-            <h4 className="text-3xl font-black text-stone-900 tracking-tighter mb-2">{value}</h4>
+            <h4 className={`text-3xl font-black tracking-tighter mb-2 ${darkMode ? 'text-white' : 'text-stone-900'}`}>{value}</h4>
             <p className={`text-[10px] font-bold ${trendColor}`}>{trend}</p>
         </div>
     </div>

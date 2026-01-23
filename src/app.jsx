@@ -549,46 +549,46 @@ export default function App() {
 
         {/* VUE: ADMIN DASHBOARD */}
         {view === 'admin' && isAdmin && (
-          <div className="max-w-6xl mx-auto px-4 py-32 space-y-16 animate-in fade-in text-stone-900">
-            <div className="flex justify-between items-center border-b border-stone-200/60 pb-8"><h2 className="text-4xl font-black tracking-tighter">Gestion Atelier</h2><button onClick={() => setView('gallery')} className="text-[10px] font-black border-2 border-stone-900 px-6 py-2 rounded-xl hover:bg-stone-900 hover:text-white transition-all">Retour</button></div>
+          <div className={`max-w-6xl mx-auto px-4 py-32 space-y-16 animate-in fade-in ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+            <div className={`flex justify-between items-center border-b pb-8 ${darkMode ? 'border-stone-700' : 'border-stone-200/60'}`}><h2 className="text-4xl font-black tracking-tighter">Gestion Atelier</h2><button onClick={() => setView('gallery')} className={`text-[10px] font-black border-2 px-6 py-2 rounded-xl transition-all ${darkMode ? 'border-white hover:bg-white hover:text-stone-900' : 'border-stone-900 hover:bg-stone-900 hover:text-white'}`}>Retour</button></div>
 
             {/* Collection Switcher */}
             {/* Collection Switcher */}
-            <div className="flex flex-wrap md:flex-nowrap gap-2 md:gap-4 p-2 md:p-1 bg-[#FAF9F6] border-b md:border-none border-stone-200/50 md:bg-stone-100 md:rounded-xl w-full md:w-fit justify-center transition-all shadow-sm md:shadow-none">
+            <div className={`flex flex-wrap md:flex-nowrap gap-2 md:gap-4 p-2 md:p-1 border-b md:border-none md:rounded-xl w-full md:w-fit justify-center transition-all shadow-sm md:shadow-none ${darkMode ? 'bg-stone-800 border-stone-700 md:bg-stone-800' : 'bg-[#FAF9F6] border-stone-200/50 md:bg-stone-100'}`}>
               <button
                 onClick={() => { setAdminCollection('dashboard'); setEditingItem(null); }}
-                className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'dashboard' ? 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600'}`}
+                className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'dashboard' ? (darkMode ? 'bg-white text-stone-900 border-white md:bg-stone-700 md:text-white md:border-none' : 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
               >
                 Dashboard
               </button>
               <button
                 onClick={() => { setAdminCollection('homepage'); setEditingItem(null); }}
-                className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'homepage' ? 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600'}`}
+                className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'homepage' ? (darkMode ? 'bg-white text-stone-900 border-white md:bg-stone-700 md:text-white md:border-none' : 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
               >
                 Homepage
               </button>
               <button
                 onClick={() => { setAdminCollection('orders'); setEditingItem(null); }}
-                className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'orders' ? 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600'}`}
+                className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'orders' ? (darkMode ? 'bg-white text-stone-900 border-white md:bg-stone-700 md:text-white md:border-none' : 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
               >
                 Commandes
               </button>
               <button
                 onClick={() => { setAdminCollection('furniture'); setEditingItem(null); }}
-                className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'furniture' ? 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600'}`}
+                className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'furniture' ? (darkMode ? 'bg-white text-stone-900 border-white md:bg-stone-700 md:text-white md:border-none' : 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
               >
                 Mobilier
               </button>
               <button
                 onClick={() => { setAdminCollection('cutting_boards'); setEditingItem(null); }}
-                className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'cutting_boards' ? 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600'}`}
+                className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'cutting_boards' ? (darkMode ? 'bg-white text-stone-900 border-white md:bg-stone-700 md:text-white md:border-none' : 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
               >
                 <span className="md:hidden">Planches</span>
                 <span className="hidden md:inline">Planches à Découper</span>
               </button>
               <button
                 onClick={() => { setAdminCollection('comments'); setEditingItem(null); }}
-                className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'comments' ? 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600'}`}
+                className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'comments' ? (darkMode ? 'bg-white text-stone-900 border-white md:bg-stone-700 md:text-white md:border-none' : 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
               >
                 Avis
               </button>
@@ -596,7 +596,7 @@ export default function App() {
 
             {/* CONTENU ADMIN */}
             {adminCollection === 'dashboard' ? (
-              <AdminDashboard user={user} />
+              <AdminDashboard user={user} darkMode={darkMode} />
             ) : adminCollection === 'homepage' ? (
               <AdminHomepage />
             ) : adminCollection === 'orders' ? (
@@ -620,7 +620,7 @@ export default function App() {
                     const hasWinner = isAuctionOver && item.lastBidderEmail;
 
                     return (
-                      <div key={item.id} className="bg-[#FAF9F6] p-5 rounded-[2.5rem] border border-stone-200 shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
+                      <div key={item.id} className={`p-5 rounded-[2.5rem] border shadow-sm hover:shadow-md transition-all relative overflow-hidden group ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-[#FAF9F6] border-stone-200'}`}>
                         <div className="flex items-center justify-between relative z-10">
                           <div className="flex items-center gap-8">
                             <div className="relative">

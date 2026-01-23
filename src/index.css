@@ -11,7 +11,6 @@ body,
   overflow-x: clip;
   /* FIX: 'clip' hides overflow WITHOUT breaking position: sticky (unlike 'hidden') */
   position: relative;
-  background-color: #faf9f6;
   -webkit-font-smoothing: antialiased;
   touch-action: pan-y;
   overscroll-behavior-x: none;
@@ -218,10 +217,12 @@ body,
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #d6d3d1; /* stone-300 */
+  background-color: #d6d3d1;
+  /* stone-300 */
   border-radius: 20px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #a8a29e; /* stone-400 */
+  background-color: #a8a29e;
+  /* stone-400 */
 }
