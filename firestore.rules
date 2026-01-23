@@ -13,8 +13,8 @@ service cloud.firestore {
       allow read: if true;
       // SEUL L'ADMIN PEUT CRÉER/SUPPRIMER des produits
       allow create, delete: if isArtisan();
-      // Mise à jour: Admin OU utilisateurs auth (pour likeCount, shareCount, commentCount)
-      allow update: if isArtisan() || request.auth != null;
+      // Mise à jour: SEUL L'ADMIN. Les likes/shares passent par Cloud Functions maintenant.
+      allow update: if isArtisan();
         
       match /bids/{bidId} {
         allow read: if true;

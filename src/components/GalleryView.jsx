@@ -63,6 +63,7 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
         const isLiked = likedItems.includes(item.id);
         const newLikestatus = !isLiked;
 
+        // 1. Optimistic UI Update (Client-side instant feedback)
         let newLikedItems;
         if (newLikestatus) newLikedItems = [...likedItems, item.id];
         else newLikedItems = likedItems.filter(id => id !== item.id);
@@ -70,10 +71,21 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
         setLikedItems(newLikedItems);
         localStorage.setItem('tat_liked_items_v2', JSON.stringify(newLikedItems));
 
+        // 2. Secure Server-Side Update
         try {
-            const itemRef = doc(db, 'artifacts', appId, 'public', 'data', activeCollection, item.id);
-            await updateDoc(itemRef, { likeCount: increment(newLikestatus ? 1 : -1) });
-        } catch (error) { console.error("Error updating like:", error); }
+            const { httpsCallable } = await import('firebase/functions');
+            const { functions } = await import('../firebase/config');
+            const toggleLike = httpsCallable(functions, 'toggleLike');
+
+            await toggleLike({
+                itemId: item.id,
+                collectionName: activeCollection
+            });
+            // The Firestore onSnapshot in parent component will update user's view with real count
+        } catch (error) {
+            console.error("Error toggling like:", error);
+            // Rollback if needed (optional but recommended for robust apps)
+        }
     };
 
     const handleCommentClick = (e, item) => {
@@ -108,23 +120,29 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
             shareSuccessful = true;
         }
 
-        // --- STATS LOGIC SÉCURISÉE ---
-        // 1. Vérifie si l'utilisateur a déjà partagé cet item (localStorage)
-        // 2. Met à jour seulement si nouveau partage
+        // --- STATS LOGIC SÉCURISÉE (VIA CLOUD FUNCTION) ---
         if (shareSuccessful) {
             const sharedItemsKey = 'tat_shared_items_v2';
             const sharedItems = JSON.parse(localStorage.getItem(sharedItemsKey) || '[]');
 
             if (!sharedItems.includes(item.id)) {
                 try {
-                    const itemRef = doc(db, 'artifacts', appId, 'public', 'data', activeCollection, item.id);
-                    await updateDoc(itemRef, { shareCount: increment(1) });
-
-                    // Marquer comme partagé localement
+                    // Mark locally immediately
                     sharedItems.push(item.id);
                     localStorage.setItem(sharedItemsKey, JSON.stringify(sharedItems));
+
+                    // Call Server Function
+                    const { httpsCallable } = await import('firebase/functions');
+                    const { functions } = await import('../firebase/config');
+                    const trackShare = httpsCallable(functions, 'trackShare');
+
+                    await trackShare({
+                        itemId: item.id,
+                        collectionName: activeCollection
+                    });
+
                 } catch (error) {
-                    console.error("Error updating share count:", error);
+                    console.error("Error tracking share:", error);
                 }
             } else {
                 console.log("Stat not incremented: Item already shared by this user.");

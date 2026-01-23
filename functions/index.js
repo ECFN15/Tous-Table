@@ -267,3 +267,104 @@ exports.shareMeta = functions.https.onRequest(async (req, res) => {
     res.set('Cache-Control', 'public, max-age=300, s-maxage=600');
     res.send(html);
 });
+
+// ============================================================
+// CLOUD FUNCTION: TOGGLE LIKE (SÉCURISÉ)
+// ============================================================
+exports.toggleLike = functions.https.onCall(async (data, context) => {
+    // 1. Authentification requise
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'Vous devez être connecté pour aimer un objet.');
+    }
+
+    const { itemId, collectionName } = data;
+    const userId = context.auth.uid;
+
+    if (!itemId || !collectionName) {
+        throw new functions.https.HttpsError('invalid-argument', 'Paramètres manquants.');
+    }
+
+    const appId = 'tat-made-in-normandie';
+    const itemRef = db.doc(`artifacts/${appId}/public/data/${collectionName}/${itemId}`);
+    // Sous-collection privée pour tracker qui a liké quoi (invisible du public)
+    const likeRef = itemRef.collection('likes').doc(userId);
+
+    try {
+        const result = await db.runTransaction(async (transaction) => {
+            const itemSnap = await transaction.get(itemRef);
+            if (!itemSnap.exists) {
+                throw new functions.https.HttpsError('not-found', 'Produit introuvable.');
+            }
+
+            const likeSnap = await transaction.get(likeRef);
+            let currentCount = itemSnap.data().likeCount || 0;
+            let isLiked = false;
+
+            if (likeSnap.exists) {
+                // DÉJÀ LIKÉ -> ON ENLÈVE (UNLIKE)
+                transaction.delete(likeRef);
+                currentCount = Math.max(0, currentCount - 1);
+                isLiked = false;
+            } else {
+                // PAS LIKÉ -> ON AJOUTE (LIKE)
+                transaction.set(likeRef, {
+                    likedAt: admin.firestore.FieldValue.serverTimestamp(),
+                    userId: userId
+                });
+                currentCount = currentCount + 1;
+                isLiked = true;
+            }
+
+            transaction.update(itemRef, { likeCount: currentCount });
+            return { newCount: currentCount, isLiked };
+        });
+
+        return result;
+    } catch (error) {
+        console.error("Erreur toggleLike:", error);
+        throw new functions.https.HttpsError('internal', "Impossible de modifier le like.");
+    }
+});
+
+// ============================================================
+// CLOUD FUNCTION: TRACK SHARE (SÉCURISÉ)
+// ============================================================
+exports.trackShare = functions.https.onCall(async (data, context) => {
+    // 1. Authentification requise
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'Connexion requise.');
+    }
+
+    const { itemId, collectionName } = data;
+    const userId = context.auth.uid;
+
+    const appId = 'tat-made-in-normandie';
+    const itemRef = db.doc(`artifacts/${appId}/public/data/${collectionName}/${itemId}`);
+    // Sous-collection pour éviter le spam (1 share comptabilisé par user)
+    const shareRef = itemRef.collection('shares').doc(userId);
+
+    try {
+        await db.runTransaction(async (transaction) => {
+            const shareSnap = await transaction.get(shareRef);
+
+            // Si déjà partagé, on ne fait rien (ou on pourrait ignorer)
+            if (shareSnap.exists) {
+                return;
+            }
+
+            // Sinon on incrémente (une seule fois par user)
+            transaction.set(shareRef, {
+                sharedAt: admin.firestore.FieldValue.serverTimestamp(),
+                userId: userId
+            });
+            transaction.update(itemRef, {
+                shareCount: admin.firestore.FieldValue.increment(1)
+            });
+        });
+
+        return { success: true };
+    } catch (error) {
+        console.error("Erreur trackShare:", error);
+        throw new functions.https.HttpsError('internal', "Erreur share.");
+    }
+});
