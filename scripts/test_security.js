@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, updateDoc, increment, addDoc, collection } from 'firebase/firestore';
+import { getFirestore, doc, updateDoc, increment, addDoc, collection, getDocs } from 'firebase/firestore';
 import { getAuth, signInAnonymously } from 'firebase/auth';
 
 // Configuration du PROJET (Celle du site public)
@@ -29,10 +29,20 @@ async function runHackingAttempts() {
     }
 
     const targetCollection = 'furniture'; // ou 'cutting_boards'
-    // ID d'un item existant (à adapter si besoin, ici un exemple ou on essaie de lister pour en trouver un, 
-    // mais pour le test on va supposer une attaque sur un ID générique ou tenter d'en créer un)
-    // Pour le test 'update', il faut un ID valide. On va essayer de taper sur un ID probablement existant ou échouer.
-    const targetId = 'table-chaine'; // Un ID qu'on a vu dans les logs précédents
+
+    console.log("🔍 Recherche d'une victime (un produit existant)...");
+    const collRef = collection(db, 'artifacts', 'tat-made-in-normandie', 'public', 'data', targetCollection);
+    const snapshot = await getDocs(collRef);
+
+    if (snapshot.empty) {
+        console.error("❌ Aucune victime trouvée (Collection vide).");
+        return;
+    }
+
+    const targetId = snapshot.docs[0].id;
+    const targetName = snapshot.docs[0].data().name || 'Produit Inconnu';
+    console.log(`🎯 Cible identifiée : ${targetName} (ID: ${targetId})`);
+
     const docRef = doc(db, 'artifacts', 'tat-made-in-normandie', 'public', 'data', targetCollection, targetId);
 
     console.log("\n--- TENTATIVE 1 : Le braquage de prix (Changer le prix à 1€) ---");
