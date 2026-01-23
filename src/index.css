@@ -146,6 +146,55 @@ body,
   will-change: transform;
 }
 
+/* MARKETPLACE PERFORMANCE */
+/* Force GPU compositing for gallery grid items */
+.transform-gpu {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Lazy content visibility for offscreen items */
+.gallery-card {
+  content-visibility: auto;
+  contain-intrinsic-size: 300px 400px;
+}
+
+/* Optimized image rendering */
+img {
+  image-rendering: auto;
+  -webkit-font-smoothing: subpixel-antialiased;
+}
+
+/* Reduce paint areas for hover states */
+.group:hover {
+  isolation: isolate;
+}
+
+/* Disable pointer events on decorative overlays */
+.pointer-events-none * {
+  pointer-events: none !important;
+}
+
+/* Optimize scroll performance */
+@supports (scroll-behavior: smooth) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* --- PREMIUM UI UTILITIES (2.0) --- */
 
 /* Smooth Easing for cleaner animations */

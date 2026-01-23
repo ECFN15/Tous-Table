@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { ShoppingBag, Heart, Grid, LayoutList } from 'lucide-react';
 import { db, appId } from '../firebase/config';
 import { doc, updateDoc, increment, onSnapshot } from 'firebase/firestore';
-import AuctionTimer from './ui/AuctionTimer';
-import CommentsModal from './ui/CommentsModal';
+const AuctionTimer = React.lazy(() => import('./ui/AuctionTimer'));
+const CommentsModal = React.lazy(() => import('./ui/CommentsModal'));
 
 const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, onSelectItem, onShowLogin, darkMode = false }) => {
     const [filter, setFilter] = useState('fixed');
@@ -48,17 +48,22 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
         return () => unsubscribe();
     }, []);
 
-    const currentItems = activeCollection === 'furniture' ? items : boardItems;
+    const currentItems = React.useMemo(() =>
+        activeCollection === 'furniture' ? items : boardItems,
+        [activeCollection, items, boardItems]
+    );
 
-    const filteredItems = currentItems.filter(i => {
-        const isVisible = i.status === 'published' || (isAdmin && isSecretGateOpen);
-        if (!isVisible) return false;
-        if (filter === 'auction') return i.auctionActive;
-        if (filter === 'fixed') return !i.auctionActive;
-        return true;
-    });
+    const filteredItems = React.useMemo(() => {
+        return currentItems.filter(i => {
+            const isVisible = i.status === 'published' || (isAdmin && isSecretGateOpen);
+            if (!isVisible) return false;
+            if (filter === 'auction') return i.auctionActive;
+            if (filter === 'fixed') return !i.auctionActive;
+            return true;
+        });
+    }, [currentItems, filter, isAdmin, isSecretGateOpen]);
 
-    const handleLike = async (e, item) => {
+    const handleLike = React.useCallback(async (e, item) => {
         e.stopPropagation();
         const isLiked = likedItems.includes(item.id);
         const newLikestatus = !isLiked;
@@ -86,15 +91,15 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
             console.error("Error toggling like:", error);
             // Rollback if needed (optional but recommended for robust apps)
         }
-    };
+    }, [likedItems, activeCollection]);
 
-    const handleCommentClick = (e, item) => {
+    const handleCommentClick = React.useCallback((e, item) => {
         e.stopPropagation();
         setSelectedItemForComments(item);
         setIsCommentModalOpen(true);
-    };
+    }, []);
 
-    const handleShare = async (e, item) => {
+    const handleShare = React.useCallback(async (e, item) => {
         e.stopPropagation();
 
         let shareSuccessful = false;
@@ -148,19 +153,21 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                 console.log("Stat not incremented: Item already shared by this user.");
             }
         }
-    };
+    }, [activeCollection]);
 
     return (
         <div className={`min-h-screen pb-32 transition-colors duration-500 ${darkMode ? 'bg-stone-900 text-white' : 'bg-[#F5F5F7] text-[#1D1D1F]'}`}>
 
-            <CommentsModal
-                isOpen={isCommentModalOpen}
-                onClose={() => setIsCommentModalOpen(false)}
-                itemId={selectedItemForComments?.id}
-                user={user}
-                isAdmin={isAdmin}
-                activeCollection={activeCollection}
-            />
+            <React.Suspense fallback={null}>
+                <CommentsModal
+                    isOpen={isCommentModalOpen}
+                    onClose={() => setIsCommentModalOpen(false)}
+                    itemId={selectedItemForComments?.id}
+                    user={user}
+                    isAdmin={isAdmin}
+                    activeCollection={activeCollection}
+                />
+            </React.Suspense>
 
             {/* --- HEADER --- */}
             <div className="pt-24 md:pt-32 pb-8 md:pb-12 px-5 sm:px-8 md:px-[8vw] xl:px-[12vw] flex flex-col lg:flex-row lg:items-end justify-between gap-6 lg:gap-10">
@@ -216,16 +223,25 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                         <div
                             key={item.id}
                             onClick={() => { if (item.auctionActive && user?.isAnonymous) onShowLogin(); else onSelectItem(item.id); }}
-                            className={`group relative flex flex-col cursor-pointer animate-in fade-in slide-in-from-bottom-12 duration-1000 fill-mode-backwards transform-gpu backface-hidden`}
-                            style={{ animationDelay: `${index * 100}ms` }}
+                            className={`group relative flex flex-col cursor-pointer animate-in fade-in slide-in-from-bottom-8 duration-700 fill-mode-backwards transform-gpu`}
+                            style={{
+                                animationDelay: index < 8 ? `${index * 50}ms` : '0ms',
+                                willChange: 'transform, opacity'
+                            }}
                         >
                             {/* ASPECT RATIO ADAPTATIF */}
-                            <div className={`relative w-full overflow-hidden rounded-[1.2rem] md:rounded-[2rem] transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${darkMode ? 'bg-stone-900 shadow-lg shadow-black/50 group-hover:shadow-black/70' : 'bg-white shadow-lg shadow-stone-200/50 group-hover:shadow-stone-300/60 group-hover:shadow-2xl'} ${viewMode === 'list' ? 'aspect-[4/5]' : 'aspect-[3/4] md:aspect-[4/5]'}`} style={{ WebkitMaskImage: '-webkit-radial-gradient(white, black)' }}>
-                                <img src={item.images?.[0] || item.imageUrl} alt={item.name} className="w-full h-full object-cover transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-110" loading="lazy" />
+                            <div className={`relative w-full overflow-hidden rounded-[1.2rem] md:rounded-[2rem] transition-transform duration-300 ease-out ${darkMode ? 'bg-stone-900 shadow-lg shadow-black/50 group-hover:shadow-black/70' : 'bg-white shadow-lg shadow-stone-200/50 group-hover:shadow-stone-300/60 group-hover:shadow-2xl'} ${viewMode === 'list' ? 'aspect-[4/5]' : 'aspect-[3/4] md:aspect-[4/5]'}`}>
+                                <img
+                                    src={item.images?.[0] || item.imageUrl}
+                                    alt={item.name}
+                                    className="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+                                    loading="lazy"
+                                    decoding="async"
+                                />
 
                                 {/* --- DÉCOUVRIR LABEL (HOVER REVEAL: UNIFIED SMOOTH GRAY) --- */}
-                                <div className="absolute inset-0 z-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-in-out pointer-events-none">
-                                    <div className="bg-stone-400/90 backdrop-blur-md border border-white/20 px-6 py-2.5 rounded-full shadow-2xl">
+                                <div className="absolute inset-0 z-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                                    <div className="bg-stone-500/80 backdrop-blur-sm border border-white/20 px-6 py-2.5 rounded-full shadow-xl">
                                         <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-white drop-shadow-md">Découvrir</span>
                                     </div>
                                 </div>
@@ -233,12 +249,12 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                                 {/* --- DISPONIBILITÉ & STOCK (HAUT GAUCHE) --- */}
                                 <div className="absolute top-2 left-2 md:top-3 md:left-3 z-20 pointer-events-auto flex flex-col gap-1 items-start">
                                     {/* BADGE DISPONIBILITÉ */}
-                                    <div className={`px-1.5 py-0.5 md:px-2.5 md:py-1 rounded-full backdrop-blur-md border shadow-sm flex items-center gap-1 md:gap-1.5 ${item.sold ? 'bg-red-50/90 border-red-100 text-red-600' : 'bg-emerald-50/90 border-emerald-100 text-emerald-700'}`}>
+                                    <div className={`px-1.5 py-0.5 md:px-2.5 md:py-1 rounded-full border shadow-sm flex items-center gap-1 md:gap-1.5 ${item.sold ? 'bg-red-50/95 border-red-100 text-red-600' : 'bg-emerald-50/95 border-emerald-100 text-emerald-700'}`}>
                                         <div className={`w-1 h-1 md:w-1.5 md:h-1.5 rounded-full ${item.sold ? 'bg-red-500' : 'bg-emerald-500 animate-pulse'}`}></div>
                                         <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest">{item.sold ? 'Vendu' : 'Disponible'}</span>
                                     </div>
                                     {/* STOCK */}
-                                    <div className={`px-1.5 py-0.5 md:px-2.5 md:py-1 rounded-full backdrop-blur-sm border shadow-sm flex items-center justify-center transition-colors ${darkMode ? 'bg-black/40 border-white/10' : 'bg-white/40 border-white/20'}`}>
+                                    <div className={`px-1.5 py-0.5 md:px-2.5 md:py-1 rounded-full border shadow-sm flex items-center justify-center transition-colors ${darkMode ? 'bg-black/60 border-white/10' : 'bg-white/80 border-white/30'}`}>
                                         <span className={`text-[7px] md:text-[8px] font-mono tracking-widest uppercase font-bold ${darkMode ? 'text-white/90' : 'text-stone-900'}`}>Stock {item.sold ? '0' : '1'}</span>
                                     </div>
                                 </div>
@@ -248,7 +264,11 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                                     {item.auctionActive ? (
                                         <div className={`px-2 py-0.5 md:px-2.5 md:py-1 rounded-full shadow-md flex items-center gap-1 md:gap-1.5 transition-colors ${darkMode ? 'bg-white text-stone-900' : 'bg-[#1D1D1F] text-white'}`}>
                                             <div className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-[#34C759] animate-pulse"></div>
-                                            <span className="text-[9px] md:text-[10px] font-mono tracking-widest font-bold"><AuctionTimer endDate={item.auctionEnd} /></span>
+                                            <span className="text-[9px] md:text-[10px] font-mono tracking-widest font-bold">
+                                                <React.Suspense fallback={<span>...</span>}>
+                                                    <AuctionTimer endDate={item.auctionEnd} />
+                                                </React.Suspense>
+                                            </span>
                                         </div>
                                     ) : (
                                         <div className={`px-2 py-1 md:px-3 md:py-1.5 rounded-full shadow-md flex items-center justify-center transition-all duration-300 relative overflow-hidden ${darkMode ? 'bg-white text-stone-900' : 'bg-[#1D1D1F] text-white'}`}>
@@ -258,33 +278,32 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                                 </div>
 
                                 {/* --- SOCIAL ICONS (RESPONSIVE & COMPACT) --- */}
-                                <div className={`absolute right-2 md:right-3 flex flex-col items-center z-20 transition-all duration-300 ${viewMode === 'list' ? 'bottom-20 gap-4 right-3 md:bottom-24 md:gap-6 md:right-4' : 'bottom-8 gap-1.5 md:bottom-16 md:gap-2.5'}`}>
+                                <div className={`absolute right-2 md:right-3 flex flex-col items-center z-20 ${viewMode === 'list' ? 'bottom-20 gap-4 right-3 md:bottom-24 md:gap-6 md:right-4' : 'bottom-8 gap-1.5 md:bottom-16 md:gap-2.5'}`}>
                                     {/* LIKE */}
                                     <button onClick={(e) => handleLike(e, item)} className="flex flex-col items-center gap-0.5 group/btn p-1">
                                         <Heart
                                             size={viewMode === 'list' ? 24 : 20}
                                             strokeWidth={1.5}
-                                            className={`md:w-[22px] md:h-[22px] lg:w-[28px] lg:h-[28px] transition-all duration-300 drop-shadow-md ${likedItems.includes(item.id) ? 'fill-red-500 text-red-500 scale-110' : 'text-white hover:scale-110'}`}
-                                            style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}
+                                            className={`md:w-[22px] md:h-[22px] lg:w-[28px] lg:h-[28px] drop-shadow-lg ${likedItems.includes(item.id) ? 'fill-red-500 text-red-500 scale-110' : 'text-white hover:scale-110'}`}
                                         />
-                                        <span className={`${viewMode === 'list' ? 'text-[10px]' : 'text-[8px]'} md:text-xs font-bold text-white drop-shadow-md font-sans leading-none`}>{item.likeCount || 0}</span>
+                                        <span className={`${viewMode === 'list' ? 'text-[10px]' : 'text-[8px]'} md:text-xs font-bold text-white drop-shadow-lg font-sans leading-none`}>{item.likeCount || 0}</span>
                                     </button>
 
                                     {/* COMMENTS */}
                                     <button onClick={(e) => handleCommentClick(e, item)} className="flex flex-col items-center gap-0.5 group/btn p-1">
-                                        <svg width={viewMode === 'list' ? 24 : 20} height={viewMode === 'list' ? 24 : 20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="md:w-[22px] md:h-[22px] lg:w-[28px] lg:h-[28px] text-white transition-all duration-300 drop-shadow-md hover:scale-110" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}>
+                                        <svg width={viewMode === 'list' ? 24 : 20} height={viewMode === 'list' ? 24 : 20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="md:w-[22px] md:h-[22px] lg:w-[28px] lg:h-[28px] text-white drop-shadow-lg hover:scale-110">
                                             <path d="M20.656 17.008a9.993 9.993 0 1 0-3.59 3.615L22 22Z" />
                                         </svg>
-                                        <span className={`${viewMode === 'list' ? 'text-[10px]' : 'text-[8px]'} md:text-xs font-bold text-white drop-shadow-md font-sans leading-none`}>{item.commentCount || 0}</span>
+                                        <span className={`${viewMode === 'list' ? 'text-[10px]' : 'text-[8px]'} md:text-xs font-bold text-white drop-shadow-lg font-sans leading-none`}>{item.commentCount || 0}</span>
                                     </button>
 
                                     {/* SHARE */}
                                     <button onClick={(e) => handleShare(e, item)} className="flex flex-col items-center gap-0.5 group/btn p-1">
-                                        <svg width={viewMode === 'list' ? 22 : 18} height={viewMode === 'list' ? 22 : 18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="md:w-[20px] md:h-[20px] lg:w-[26px] lg:h-[26px] text-white transition-all duration-300 drop-shadow-md hover:scale-110 hover:rotate-12" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}>
+                                        <svg width={viewMode === 'list' ? 22 : 18} height={viewMode === 'list' ? 22 : 18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="md:w-[20px] md:h-[20px] lg:w-[26px] lg:h-[26px] text-white drop-shadow-lg hover:scale-110 hover:rotate-12">
                                             <path d="M22 2L11 13" />
                                             <path d="M22 2l-7 20-4-9-9-4 20-7z" />
                                         </svg>
-                                        <span className={`${viewMode === 'list' ? 'text-[10px]' : 'text-[8px]'} md:text-xs font-bold text-white drop-shadow-md font-sans leading-none`}>{item.shareCount || 0}</span>
+                                        <span className={`${viewMode === 'list' ? 'text-[10px]' : 'text-[8px]'} md:text-xs font-bold text-white drop-shadow-lg font-sans leading-none`}>{item.shareCount || 0}</span>
                                     </button>
                                 </div>
 

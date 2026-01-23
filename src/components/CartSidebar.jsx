@@ -1,17 +1,23 @@
 import React from 'react';
 import { X, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
 
-const CartSidebar = ({ isOpen, onClose, cartItems, onRemoveItem, totalPrice, onCheckout }) => {
+const CartSidebar = ({ isOpen, onClose, cartItems, onRemoveItem, totalPrice, onCheckout, interacted }) => {
+    // We only want transitions AFTER the first interaction to avoid the "closing on mount" bug
+    const transitionEnabled = interacted || isOpen;
+    const baseTransition = transitionEnabled ? 'duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]' : 'duration-0';
+
     return (
-        <div className={`fixed inset-0 z-[120] transition-all duration-700 ${isOpen ? 'visible' : 'invisible pointer-events-none'}`}>
+        <div className={`fixed inset-0 z-[120] ${transitionEnabled ? 'transition-all' : ''} ${isOpen ? 'visible' : 'invisible pointer-events-none'} ${baseTransition}`}>
             {/* Backdrop */}
             <div
-                className={`absolute inset-0 bg-stone-900/40 backdrop-blur-sm transition-opacity duration-700 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
+                className={`absolute inset-0 bg-stone-900/60 backdrop-blur-sm transition-opacity ${baseTransition} ${isOpen ? 'opacity-100' : 'opacity-0'}`}
                 onClick={onClose}
             ></div>
 
             {/* Sidebar Panel */}
-            <div className={`absolute right-0 top-0 bottom-0 w-full md:w-[500px] bg-[#FAF9F6] shadow-2xl transition-transform duration-700 ease-expo p-8 flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+            <div
+                className={`absolute right-0 top-0 bottom-0 w-full md:w-[500px] bg-[#FAF9F6] shadow-2xl transition-transform ${baseTransition} transform-gpu p-8 flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+            >
 
                 {/* Header */}
                 <div className="flex justify-between items-center mb-10 border-b border-stone-200 pb-6">

@@ -249,6 +249,7 @@ export default function App() {
 
     try {
       await addDoc(collection(db, 'users', user.uid, 'cart'), cartItemData);
+      setCartInteracted(true);
       setIsCartOpen(true);
     } catch (e) {
       console.error("Error add cart", e);
@@ -306,17 +307,16 @@ export default function App() {
   return (
     <div className={`min-h-screen font-sans selection:bg-amber-100 transition-colors duration-500 ${darkMode ? 'bg-stone-900 text-white' : 'bg-[#FAF9F6] text-stone-900'}`}>
 
-      {/* COMPOSANT PANIER - Uniquement sur la marketplace */}
-      {view === 'gallery' && (
-        <CartSidebar
-          isOpen={isCartOpen}
-          onClose={() => setIsCartOpen(false)}
-          cartItems={cartItems}
-          onRemoveItem={removeFromCart}
-          totalPrice={cartTotal}
-          onCheckout={() => { setIsCartOpen(false); setView('checkout'); window.scrollTo(0, 0); }}
-        />
-      )}
+      {/* COMPOSANT PANIER - Global (Disponible dès que la navbar est visible) */}
+      <CartSidebar
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        cartItems={cartItems}
+        onRemoveItem={removeFromCart}
+        totalPrice={cartTotal}
+        onCheckout={() => { setIsCartOpen(false); setView('checkout'); window.scrollTo(0, 0); }}
+        interacted={cartInteracted}
+      />
 
       {/* MODAL LOGIN (Pour la Marketplace) */}
       {showFullLogin && (
@@ -516,7 +516,7 @@ export default function App() {
               {/* CART BUTTON - Uniquement sur marketplace, detail et checkout */}
               {['gallery', 'detail', 'checkout'].includes(view) && (
                 <button
-                  onClick={() => setIsCartOpen(true)}
+                  onClick={() => { setCartInteracted(true); setIsCartOpen(true); }}
                   className="w-8 h-8 md:w-auto md:h-auto px-0 md:px-5 md:py-3 rounded-full bg-white/10 flex items-center justify-center gap-3 hover:bg-amber-500 hover:text-white backdrop-blur border border-white/20 transition-all group relative"
                 >
                   <ShoppingBag size={16} className="md:w-5 md:h-5" />
