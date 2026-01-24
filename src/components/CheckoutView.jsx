@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
-import { ArrowLeft, CreditCard, Truck, CheckCircle, ShieldCheck, Mail, MapPin, Phone } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, CreditCard, Truck, CheckCircle, ShieldCheck, AlertCircle } from 'lucide-react';
+import { functions, db, appId } from '../firebase/config';
+import { httpsCallable } from 'firebase/functions';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 const CheckoutView = ({ cartItems, total, user, onBack, onPlaceOrder }) => {
     const [formData, setFormData] = useState({
@@ -14,19 +17,93 @@ const CheckoutView = ({ cartItems, total, user, onBack, onPlaceOrder }) => {
     const [paymentMethod, setPaymentMethod] = useState('stripe'); // 'stripe' | 'deferred'
     const [loading, setLoading] = useState(false);
 
+    // État pour les alertes temps réel
+    const [unavailableItems, setUnavailableItems] = useState([]);
+
+    // --- TEMPS RÉEL : SURVEILLANCE DU STOCK ---
+    useEffect(() => {
+        if (cartItems.length === 0) return;
+
+        const unsubscribes = cartItems.map(item => {
+            // Déterminer la collection (par défaut furniture si manquant, ou à adapter selon votre logique)
+            // Dans votre App.jsx, les items ont souvent 'collection' ou on doit la deviner.
+            // Pour être sûr, on suppose que item.originalCollection ou item.collection est passé, 
+            // sinon on tente de deviner ou on écoute les deux si possible.
+            // Simplification ici : on suppose 'furniture' par défaut ou on vérifie si l'item a l'info.
+            const collectionName = item.collectionName || 'furniture';
+
+            return onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', collectionName, item.originalId || item.id), (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.sold) {
+                        setUnavailableItems(prev => {
+                            if (prev.find(i => i.id === item.id)) return prev;
+                            return [...prev, { id: item.id, name: item.name }];
+                        });
+                    }
+                } else {
+                    // Item supprimé ?
+                    setUnavailableItems(prev => [...prev, { id: item.id, name: item.name, reason: 'deleted' }]);
+                }
+            });
+        });
+
+        return () => {
+            unsubscribes.forEach(unsub => unsub());
+        };
+    }, [cartItems]);
+
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (unavailableItems.length > 0) {
+            alert("Attention : Un article de votre panier n'est plus disponible.");
+            return;
+        }
+
         setLoading(true);
+
         try {
-            await onPlaceOrder({
-                shipping: formData,
-                paymentMethod,
-                items: cartItems,
-                total
+            // Appel à la Cloud Function sécurisée
+            const createOrder = httpsCallable(functions, 'createOrder');
+
+            // Préparation des items avec leur collection pour le backend
+            const itemsWithCol = cartItems.map(i => ({
+                ...i,
+                collectionName: i.collectionName || 'furniture' // Important pour le backend
+            }));
+
+            const result = await createOrder({
+                orderData: {
+                    shipping: formData,
+                    paymentMethod,
+                    items: itemsWithCol,
+                    total
+                }
             });
+
+            if (result.data.success) {
+                // Succès ! On notifie le parent pour vider le panier localement et afficher la modal
+                // On passe les infos pour que le parent puisse vider le panier
+                await onPlaceOrder({
+                    id: result.data.orderId,
+                    ...formData,
+                    paymentMethod,
+                    total
+                });
+            }
+
         } catch (error) {
             console.error("Order error:", error);
-            alert("Erreur lors de la commande: " + error.message);
+            // Gestion des erreurs spécifiques renvoyées par le backend
+            let msg = "Une erreur est survenue lors de la commande.";
+            if (error.message.includes('vendu')) {
+                msg = "Désolé, cet article vient d'être vendu à l'instant. Si la vente n'aboutit pas, il sera remis en ligne.";
+            } else if (error.message.includes('stock')) {
+                msg = "Stock insuffisant pour cet article.";
+            }
+            alert(msg);
         } finally {
             setLoading(false);
         }
@@ -35,6 +112,31 @@ const CheckoutView = ({ cartItems, total, user, onBack, onPlaceOrder }) => {
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
+
+    // Si un item devient indisponible, on affiche une modale bloquante ou un overlay
+    if (unavailableItems.length > 0) {
+        return (
+            <div className="min-h-screen bg-[#FAF9F6] pt-32 px-6 flex items-center justify-center">
+                <div className="bg-white p-8 rounded-3xl shadow-xl max-w-md text-center space-y-6 border border-stone-100">
+                    <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto">
+                        <AlertCircle size={32} />
+                    </div>
+                    <h2 className="text-2xl font-black text-stone-900">Trop tard !</h2>
+                    <p className="text-stone-500">
+                        {unavailableItems.length === 1
+                            ? `L'article "${unavailableItems[0].name}" vient d'être vendu à l'instant par un autre client.`
+                            : "Certains articles de votre panier viennent d'être vendus."}
+                    </p>
+                    <p className="text-xs text-stone-400">
+                        Ne vous inquiétez pas : si la commande de l'autre client n'aboutit pas (problème de paiement), l'article sera de nouveau disponible.
+                    </p>
+                    <button onClick={onBack} className="w-full py-4 bg-stone-900 text-white rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-stone-800">
+                        Retourner à la boutique
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-[#FAF9F6] pt-32 px-6 pb-20 animate-in fade-in duration-500">
@@ -140,11 +242,11 @@ const CheckoutView = ({ cartItems, total, user, onBack, onPlaceOrder }) => {
                         <button
                             type="submit"
                             form="checkout-form"
-                            disabled={loading}
+                            disabled={loading || unavailableItems.length > 0}
                             className="w-full py-6 bg-amber-500 text-white rounded-2xl font-black uppercase text-sm tracking-widest hover:bg-amber-400 shadow-xl transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3"
                         >
                             {loading ? (
-                                <>In progress...</>
+                                <>Traitement en cours...</>
                             ) : (
                                 <>Confirmer la commande <CheckCircle size={18} /></>
                             )}

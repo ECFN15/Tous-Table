@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShoppingBag, Heart, Grid, LayoutList } from 'lucide-react';
+import { ShoppingBag, Heart, Grid, LayoutList, ArrowRight } from 'lucide-react';
 import { db, appId } from '../firebase/config';
 import { doc, updateDoc, increment, onSnapshot } from 'firebase/firestore';
 const AuctionTimer = React.lazy(() => import('./ui/AuctionTimer'));
@@ -230,19 +230,23 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                             }}
                         >
                             {/* ASPECT RATIO ADAPTATIF */}
-                            <div className={`relative w-full overflow-hidden rounded-[1.2rem] md:rounded-[2rem] transition-transform duration-300 ease-out ${darkMode ? 'bg-stone-900 shadow-lg shadow-black/50 group-hover:shadow-black/70' : 'bg-white shadow-lg shadow-stone-200/50 group-hover:shadow-stone-300/60 group-hover:shadow-2xl'} ${viewMode === 'list' ? 'aspect-[4/5]' : 'aspect-[3/4] md:aspect-[4/5]'}`}>
+                            <div
+                                className={`relative w-full overflow-hidden rounded-[1.2rem] md:rounded-[2rem] transition-transform duration-300 ease-out ${darkMode ? 'bg-stone-900 ring-1 ring-stone-900 shadow-lg shadow-black/50 group-hover:shadow-black/70' : 'bg-white shadow-lg shadow-stone-200/50 group-hover:shadow-stone-300/60 group-hover:shadow-2xl'} ${viewMode === 'list' ? 'aspect-[4/5]' : 'aspect-[3/4] md:aspect-[4/5]'}`}
+                            >
                                 <img
                                     src={item.images?.[0] || item.imageUrl}
                                     alt={item.name}
-                                    className="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+                                    className="w-full h-full object-cover transform-gpu [backface-visibility:hidden] rounded-[inherit] transition-transform duration-300 ease-out group-hover:scale-105"
                                     loading="lazy"
                                     decoding="async"
                                 />
 
-                                {/* --- DÉCOUVRIR LABEL (HOVER REVEAL: UNIFIED SMOOTH GRAY) --- */}
-                                <div className="absolute inset-0 z-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                                    <div className="bg-stone-500/80 backdrop-blur-sm border border-white/20 px-6 py-2.5 rounded-full shadow-xl">
-                                        <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-white drop-shadow-md">Découvrir</span>
+                                {/* --- DÉCOUVRIR LABEL (HOVER REVEAL: MODERN PREMIUM ANIMATION) --- */}
+                                <div className="absolute inset-0 z-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none">
+                                    <div className="transform translate-y-8 group-hover:translate-y-0 transition-transform duration-500 cubic-bezier(0.34, 1.56, 0.64, 1) bg-white/90 dark:bg-stone-900/80 backdrop-blur-md border border-white/40 dark:border-white/10 px-5 py-3 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.12)] flex items-center gap-3 group/btn-inner">
+                                        <span className="text-[10px] md:text-xs font-bold uppercase tracking-[0.25em] text-stone-900 dark:text-white">Découvrir</span>
+                                        <div className="w-px h-3 bg-stone-300 dark:bg-white/20"></div>
+                                        <ArrowRight size={14} strokeWidth={2.5} className="text-stone-900 dark:text-white -ml-0.5 transform group-hover:translate-x-1 transition-transform duration-300" />
                                     </div>
                                 </div>
 
@@ -308,7 +312,7 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                                 </div>
 
                                 {/* --- TEXT OVERLAY --- */}
-                                <div className={`absolute inset-x-0 bottom-0 bg-gradient-to-t via-black/40 to-transparent z-10 text-white pointer-events-none ${darkMode ? 'from-black/95' : 'from-black/80'} ${viewMode === 'list' ? 'p-6 pt-32' : 'p-5 pt-28 pb-6'} flex flex-col justify-end`}>
+                                <div className={`absolute inset-x-0 bottom-0 bg-gradient-to-t via-black/40 to-transparent z-10 text-white pointer-events-none rounded-b-[inherit] ${darkMode ? 'from-black/95' : 'from-black/80'} ${viewMode === 'list' ? 'p-6 pt-32' : 'p-5 pt-28 pb-6'} flex flex-col justify-end`}>
                                     <div className="flex flex-col gap-0.5 md:gap-1">
                                         <h3 className={`font-serif leading-none drop-shadow-md pr-6 ${viewMode === 'list' ? 'text-2xl md:text-3xl' : 'text-[17px] line-clamp-2'}`}>{item.name}</h3>
                                         <p className="text-[8px] sm:text-[9px] text-white/90 font-bold uppercase tracking-widest truncate opacity-90">{item.material || 'Atelier Normand'}</p>

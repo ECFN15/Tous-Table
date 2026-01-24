@@ -91,7 +91,7 @@ const AccordionItem = ({ question, answer, isOpen, onClick }) => {
   );
 };
 
-const App = ({ onEnterMarketplace }) => {
+const App = ({ onEnterMarketplace, darkMode }) => {
   const canvasRef = useRef(null);
   const cursorRef = useRef(null);
   const componentRef = useRef(null);
@@ -169,10 +169,9 @@ const App = ({ onEnterMarketplace }) => {
     }
   ];
 
-  // --- NAVIGATION SMOOTH ---
-  // --- NAVIGATION SMOOTH ---
+  // --- NAVIGATION SMOOTH V2 ---
   const handleNavigation = (selector) => {
-    // 1. Transition vers Marketplace (Cinematique Haute Performance)
+    // 1. Transition vers Marketplace (PREMIUM CURTAIN REVEAL)
     if (selector === 'marketplace') {
       const tl = window.gsap.timeline({
         onComplete: () => {
@@ -181,32 +180,36 @@ const App = ({ onEnterMarketplace }) => {
           } else {
             window.location.hash = 'gallery';
           }
-          // On ferme le menu un peu plus tard pour laisser le temps au montage du composant suivant
-          setTimeout(() => setIsMenuOpen(false), 300);
+          // Fermeture propre après le changement de vue
+          setTimeout(() => setIsMenuOpen(false), 500);
         }
       });
 
-      // Animate Menu Items OUT - Vitesse & Fluidité (144fps feel)
+      // Etape 1: Départ élégant des liens (Stagger Up)
       tl.to('.menu-link', {
-        y: -60,            // Plus de mouvement vers le haut
+        y: -100,
         opacity: 0,
-        skewY: 5,          // Sensation de vitesse
-        filter: "blur(8px)", // Motion blur simulé
-        scale: 0.95,       // Recul léger
-        duration: 0.5,     // Rapide
-        stagger: 0.04,     // Très rapproché
-        ease: "power4.in", // Démarrage lent, sortie EXPLOSIVE
-        force3D: true      // Force GPU
+        duration: 0.6,
+        stagger: 0.05,
+        ease: "power3.in",
+        overwrite: true
       })
-        // Force Menu Background to opaque BLACK (Rideau net)
+
+        // Etape 2: Le fond du menu devient opaque et prend la couleur de la destination
+        // Ceci crée un "pont" visuel sans flash
         .to('.menu-overlay', {
+          backgroundColor: darkMode ? '#1c1917' : '#F5F5F7', // Match GalleryView bg
           opacity: 1,
-          backgroundColor: "#050505", // Noir Profond
-          backdropFilter: "blur(0px)", // On désactive le blur pour perf max
-          duration: 0.6,
-          ease: "expo.inOut", // Courbe très "Premium"
-          force3D: true
-        }, "-=0.4");
+          backdropFilter: "blur(0px)",
+          duration: 0.5,
+          ease: "power2.inOut"
+        }, "-=0.2")
+
+        // Etape 3: Expand overlay to ensure full coverage (Safety)
+        .to('.menu-container', {
+          // Si on avait un container contraint, on l'étendrait ici.
+          // Le menu actuel est déjà fixed inset-0, donc c'est bon.
+        }, "<");
 
       return;
     }
