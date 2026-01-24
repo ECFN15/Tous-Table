@@ -243,7 +243,7 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                                     className={`relative w-full overflow-hidden rounded-xl transition-all duration-300 ease-out group-hover:-translate-y-2 ${darkMode ? 'bg-[#1C1C1E] shadow-2xl shadow-black/50' : 'bg-white shadow-xl shadow-stone-200/50'} ${viewMode === 'list' ? 'aspect-[4/5]' : 'aspect-[3/4] md:aspect-[4/5]'}`}
                                 >
                                     {/* 1. IMAGE LAUNCHER (Top Section) */}
-                                    <div className="absolute inset-x-0 top-0 bottom-[88px] overflow-hidden">
+                                    <div className="absolute inset-x-0 top-0 bottom-[64px] md:bottom-[88px] overflow-hidden">
                                         <img
                                             src={item.images?.[0] || item.imageUrl}
                                             alt={item.name}
@@ -263,20 +263,20 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                                     {/* 2. STATUS BADGE V2 (Top Left - Revamp) */}
                                     <div className="absolute top-3 left-3 md:top-4 md:left-4 z-20">
                                         {item.auctionActive ? (
-                                            <div className={`px-2 py-1 md:px-4 md:py-1.5 rounded-full backdrop-blur-md border shadow-sm flex items-center gap-1.5 md:gap-2 ${darkMode ? 'bg-black/60 border-white/10 text-white' : 'bg-white/80 border-black/5 text-black'}`}>
+                                            <div className={`${viewMode === 'list' ? 'px-3 py-1.5' : 'px-1.5 py-0.5'} md:px-4 md:py-1.5 rounded-full backdrop-blur-md border shadow-sm flex items-center gap-1.5 md:gap-2 ${darkMode ? 'bg-black/60 border-white/10 text-white' : 'bg-white/80 border-black/5 text-black'}`}>
                                                 <div className="w-1.5 h-1.5 rounded-full bg-[#34C759] animate-pulse"></div>
-                                                <span className="text-[9px] md:text-[10px] font-mono font-bold tracking-widest">
+                                                <span className={`${viewMode === 'list' ? 'text-[10px]' : 'text-[8px]'} md:text-[10px] font-mono font-bold tracking-widest leading-none`}>
                                                     <React.Suspense fallback="..:..">
                                                         <AuctionTimer endDate={item.auctionEnd} />
                                                     </React.Suspense>
                                                 </span>
                                             </div>
                                         ) : (
-                                            <div className={`px-2 py-1 md:px-4 md:py-1.5 rounded-full flex items-center gap-1.5 md:gap-2 border backdrop-blur-md shadow-sm ${item.sold
+                                            <div className={`${viewMode === 'list' ? 'px-3 py-1.5' : 'px-1.5 py-0.5'} md:px-4 md:py-1.5 rounded-full flex items-center gap-1.5 md:gap-2 border backdrop-blur-md shadow-sm ${item.sold
                                                 ? 'bg-red-500/90 border-red-400 text-white'
                                                 : (darkMode ? 'bg-[#1C1C1E]/80 border-white/20 text-white' : 'bg-white/90 border-black/5 text-black')}`}>
-                                                <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${item.sold ? 'bg-white' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse'}`}></div>
-                                                <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest leading-none pt-0.5">
+                                                <div className={`${viewMode === 'list' ? 'w-2 h-2' : 'w-1.5 h-1.5'} md:w-2 md:h-2 rounded-full ${item.sold ? 'bg-white' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse'}`}></div>
+                                                <span className={`${viewMode === 'list' ? 'text-[10px]' : 'text-[8px]'} md:text-[10px] font-black uppercase tracking-widest leading-none pt-0.5`}>
                                                     {item.sold ? 'Vendu' : 'Disponible'}
                                                 </span>
                                             </div>
@@ -286,16 +286,20 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
 
 
                                     {/* 4. SOCIAL ACTIONS (Right Side - Floating) */}
-                                    <div className="absolute top-3 right-3 md:top-20 md:right-4 flex flex-col gap-2 md:gap-5 z-20">
-                                        <button onClick={(e) => handleLike(e, item)} className={`p-1.5 md:p-2.5 rounded-full backdrop-blur-md border transition-all hover:scale-110 active:scale-95 group/icon ${likedItems.includes(item.id) ? 'bg-red-500 border-red-500 text-white' : (darkMode ? 'bg-black/40 border-white/10 text-white hover:bg-black/60' : 'bg-white/60 border-white/40 text-black hover:bg-white/90')}`}>
-                                            <Heart className={`w-3.5 h-3.5 md:w-4 md:h-4 ${likedItems.includes(item.id) ? 'fill-current' : ''}`} />
+                                    <div className={`absolute ${viewMode === 'list' ? 'top-[15%] right-4 gap-10' : 'top-4 right-3 gap-3.5'} md:top-24 md:right-4 flex flex-col md:gap-6 z-20`}>
+                                        <button onClick={(e) => handleLike(e, item)} className={`${viewMode === 'list' ? 'p-2.5' : 'p-1.5'} md:p-2.5 rounded-full backdrop-blur-md border transition-all hover:scale-110 active:scale-95 group/icon ${likedItems.includes(item.id) ? 'bg-red-500 border-red-500 text-white' : (darkMode ? 'bg-black/40 border-white/10 text-white hover:bg-black/60' : 'bg-white/60 border-white/40 text-black hover:bg-white/90')}`}>
+                                            <Heart className={`${viewMode === 'list' ? 'w-4 h-4' : 'w-3.5 h-3.5'} md:w-4 md:h-4 ${likedItems.includes(item.id) ? 'fill-current' : ''}`} />
                                         </button>
-                                        <button onClick={(e) => handleCommentClick(e, item)} className={`p-1.5 md:p-2.5 rounded-full backdrop-blur-md border transition-all hover:scale-110 active:scale-95 group/icon ${darkMode ? 'bg-black/40 border-white/10 text-white hover:bg-black/60' : 'bg-white/60 border-white/40 text-black hover:bg-white/90'}`}>
-                                            <span className="text-[8px] md:text-[10px] font-bold absolute -top-1 -right-1 bg-white text-black w-3.5 h-3.5 md:w-4 md:h-4 flex items-center justify-center rounded-full shadow-sm border border-black/10">{item.commentCount || 0}</span>
-                                            <svg className="w-3.5 h-3.5 md:w-4 md:h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+
+                                        <button onClick={(e) => handleCommentClick(e, item)} className={`${viewMode === 'list' ? 'p-2.5' : 'p-1.5'} md:p-2.5 rounded-full backdrop-blur-md border transition-all hover:scale-110 active:scale-95 group/icon ${darkMode ? 'bg-black/40 border-white/10 text-white hover:bg-black/60' : 'bg-white/60 border-white/40 text-black hover:bg-white/90'}`}>
+                                            <span className={`${viewMode === 'list' ? 'text-[9px] w-4 h-4' : 'text-[8px] w-3.5 h-3.5'} md:text-[10px] md:w-4 md:h-4 font-bold absolute -top-1 -right-1 bg-white text-black flex items-center justify-center rounded-full shadow-sm border border-black/10`}>
+                                                {item.commentCount || 0}
+                                            </span>
+                                            <svg className={`${viewMode === 'list' ? 'w-4 h-4' : 'w-3.5 h-3.5'} md:w-4 md:h-4`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
                                         </button>
-                                        <button onClick={(e) => handleShare(e, item)} className={`p-1.5 md:p-2.5 rounded-full backdrop-blur-md border transition-all hover:scale-110 active:scale-95 group/icon ${darkMode ? 'bg-black/40 border-white/10 text-white hover:bg-black/60' : 'bg-white/60 border-white/40 text-black hover:bg-white/90'}`}>
-                                            <svg className="w-3.5 h-3.5 md:w-4 md:h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+
+                                        <button onClick={(e) => handleShare(e, item)} className={`${viewMode === 'list' ? 'p-2.5' : 'p-1.5'} md:p-2.5 rounded-full backdrop-blur-md border transition-all hover:scale-110 active:scale-95 group/icon ${darkMode ? 'bg-black/40 border-white/10 text-white hover:bg-black/60' : 'bg-white/60 border-white/40 text-black hover:bg-white/90'}`}>
+                                            <svg className={`${viewMode === 'list' ? 'w-4 h-4' : 'w-3.5 h-3.5'} md:w-4 md:h-4`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
                                         </button>
                                     </div>
 
@@ -303,7 +307,7 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                                     <div className={`absolute bottom-0 inset-x-0 h-auto min-h-[64px] md:h-[88px] px-3 py-2.5 md:px-6 md:py-4 flex items-center justify-between border-t transition-colors duration-300 z-10 ${darkMode ? 'bg-[#1C1C1E] border-white/5' : 'bg-white border-black/5'}`}>
                                         {/* Left: Name & Material */}
                                         <div className="flex flex-col gap-0.5 md:gap-1 max-w-[65%]">
-                                            <h3 className={`font-mono font-medium text-[12px] md:text-base leading-snug truncate ${darkMode ? 'text-white' : 'text-[#1D1D1F]'}`}>
+                                            <h3 className={`font-mono font-medium ${viewMode === 'list' ? 'text-[13px]' : 'text-[11px]'} md:text-base leading-snug truncate ${darkMode ? 'text-white' : 'text-[#1D1D1F]'}`}>
                                                 {item.name}
                                             </h3>
                                             <p className={`text-[9px] md:text-[10px] font-mono font-medium uppercase tracking-widest ${darkMode ? 'text-white/60' : 'text-[#1D1D1F]/70'}`}>
@@ -314,11 +318,11 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                                         {/* Right: Stock & Price */}
                                         <div className="flex flex-col items-end justify-center gap-0.5 md:gap-1">
                                             {/* Stock Label */}
-                                            <div className={`px-1.5 py-[2px] md:px-2 md:py-[3px] rounded-[4px] border text-[7px] md:text-[8px] font-mono font-bold uppercase tracking-wider ${darkMode ? 'border-white/20 text-emerald-400 bg-emerald-400/10' : 'border-black/10 text-emerald-700 bg-emerald-50'}`}>
+                                            <div className={`${viewMode === 'list' ? 'px-2 py-[2px] text-[7.5px]' : 'px-1.5 py-[1px] text-[6.5px]'} md:px-2 md:py-[3px] rounded-[3px] border font-mono font-bold uppercase tracking-wider ${darkMode ? 'border-white/20 text-emerald-400 bg-emerald-400/10' : 'border-black/10 text-emerald-700 bg-emerald-50'}`}>
                                                 {item.sold ? 'Rupture' : `Stock ${item.stock || 1}`}
                                             </div>
                                             {/* Price */}
-                                            <div className={`font-mono font-medium text-[12px] md:text-base tracking-tight ${darkMode ? 'text-white' : 'text-[#1D1D1F]'}`}>
+                                            <div className={`font-mono font-medium ${viewMode === 'list' ? 'text-[13px]' : 'text-[11px]'} md:text-base tracking-tight ${darkMode ? 'text-white' : 'text-[#1D1D1F]'}`}>
                                                 {item.currentPrice || item.startingPrice} €
                                             </div>
                                         </div>
