@@ -186,25 +186,31 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                             <span className={`text-[10px] font-bold uppercase tracking-widest ${darkMode ? 'text-white/80' : 'text-black/60'}`}>Marketplace Live</span>
                         </div>
                         <h2 className={`font-serif text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-medium tracking-tight leading-[0.9] transition-colors ${darkMode ? 'text-white' : 'text-[#1D1D1F]'}`}>
-                            La Galerie<span className="text-[#9C8268]">.</span>
+                            La Galerie<span className="text-[#FAF9F6] dark:text-[#FAF9F6] drop-shadow-[0_0_10px_rgba(250,249,246,0.3)] scale-110 inline-block transform translate-x-1">.</span>
                         </h2>
                     </div>
 
-                    <div className={`flex p-1.5 rounded-full w-full sm:w-fit self-start lg:self-end animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100 overflow-x-auto no-scrollbar transition-colors ${darkMode ? 'bg-white/10' : 'bg-[#E8E8ED]'}`}>
-                        <button onClick={() => { setActiveCollection('furniture'); setFilter('fixed'); }} className={`relative flex-1 sm:flex-none px-6 sm:px-8 py-3 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap ${activeCollection === 'furniture' ? (darkMode ? 'bg-stone-800 text-white shadow-sm' : 'bg-white text-black shadow-sm') : (darkMode ? 'text-white/40 hover:text-white/80 hover:bg-white/5' : 'text-black/40 hover:text-black/70 hover:bg-black/5')} ${activeCollection === 'furniture' ? 'scale-100' : ''}`}>Mobilier</button>
-                        <button onClick={() => { setActiveCollection('cutting_boards'); setFilter('fixed'); }} className={`relative flex-1 sm:flex-none px-6 sm:px-8 py-3 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap ${activeCollection === 'cutting_boards' ? (darkMode ? 'bg-stone-800 text-white shadow-sm' : 'bg-white text-black shadow-sm') : (darkMode ? 'text-white/40 hover:text-white/80 hover:bg-white/5' : 'text-black/40 hover:text-black/70 hover:bg-black/5')} ${activeCollection === 'cutting_boards' ? 'scale-100' : ''}`}>Planches</button>
+                    <div className={`flex p-1.5 rounded-full w-full sm:w-fit self-start lg:self-end animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100 overflow-x-auto no-scrollbar shadow-xl transition-all ${darkMode ? 'bg-black/40 backdrop-blur-md border border-white/10' : 'bg-white/40 backdrop-blur-md border border-white/60'}`}>
+                        <button onClick={() => { setActiveCollection('furniture'); setFilter('fixed'); }} className={`relative flex-1 sm:flex-none px-6 sm:px-8 py-3 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap ${activeCollection === 'furniture' ? (darkMode ? 'bg-stone-800 text-white shadow-lg' : 'bg-white text-stone-900 shadow-lg') : (darkMode ? 'text-white/50 hover:text-white/90 hover:bg-white/5' : 'text-stone-900/40 hover:text-stone-900/80 hover:bg-black/5')} ${activeCollection === 'furniture' ? 'scale-100' : 'scale-95'}`}>Mobilier</button>
+                        <button onClick={() => { setActiveCollection('cutting_boards'); setFilter('fixed'); }} className={`relative flex-1 sm:flex-none px-6 sm:px-8 py-3 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap ${activeCollection === 'cutting_boards' ? (darkMode ? 'bg-stone-800 text-white shadow-lg' : 'bg-white text-stone-900 shadow-lg') : (darkMode ? 'text-white/50 hover:text-white/90 hover:bg-white/5' : 'text-stone-900/40 hover:text-stone-900/80 hover:bg-black/5')} ${activeCollection === 'cutting_boards' ? 'scale-100' : 'scale-95'}`}>Planches</button>
                     </div>
                 </div>
 
                 {/* --- FILTRES & VIEW TOGGLE --- */}
                 <div className="px-5 sm:px-8 md:px-[8vw] xl:px-[12vw] mb-6 md:mb-12 flex flex-row items-center justify-between gap-4 animate-in fade-in duration-1000 delay-200">
 
-                    {/* Filtres TYPE */}
+                    {/* Filtres TYPE - Restored separate pills style */}
                     <div className="flex-1 overflow-x-auto no-scrollbar mask-linear-fade">
                         {activeCollection === 'furniture' && (
                             <div className="flex gap-2 md:gap-3">
                                 {['fixed', 'auction'].map((f) => (
-                                    <button key={f} onClick={() => setFilter(f)} className={`px-4 py-2 md:px-5 md:py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all duration-300 whitespace-nowrap ${filter === f ? (darkMode ? 'bg-white text-black border-white shadow-lg shadow-white/10' : 'bg-[#1D1D1F] text-white border-[#1D1D1F] shadow-lg shadow-black/10') : (darkMode ? 'bg-transparent text-white/40 border-white/20 hover:border-white/40 hover:text-white/90' : 'bg-transparent text-black/40 border-black/10 hover:border-black/30 hover:text-black/80')}`}>{f === 'fixed' ? 'Immédiat' : 'Enchères'}</button>
+                                    <button
+                                        key={f}
+                                        onClick={() => setFilter(f)}
+                                        className={`px-4 py-2 md:px-5 md:py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all duration-300 whitespace-nowrap ${filter === f ? (darkMode ? 'bg-white text-black border-white shadow-lg shadow-white/10' : 'bg-[#1D1D1F] text-white border-[#1D1D1F] shadow-lg shadow-black/10') : (darkMode ? 'bg-white/5 text-white/50 border-white/20 hover:border-white/90' : 'bg-black/5 text-black/50 border-black/10 hover:border-black/80')}`}
+                                    >
+                                        {f === 'fixed' ? 'Immédiat' : 'Enchères'}
+                                    </button>
                                 ))}
                             </div>
                         )}
@@ -263,20 +269,20 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                                     {/* 2. STATUS BADGE V2 (Top Left - Revamp) */}
                                     <div className="absolute top-3 left-3 md:top-4 md:left-4 z-20">
                                         {item.auctionActive ? (
-                                            <div className={`${viewMode === 'list' ? 'px-3 py-1.5' : 'px-1.5 py-0.5'} md:px-4 md:py-1.5 rounded-full backdrop-blur-md border shadow-sm flex items-center gap-1.5 md:gap-2 ${darkMode ? 'bg-black/60 border-white/10 text-white' : 'bg-white/80 border-black/5 text-black'}`}>
+                                            <div className={`${viewMode === 'list' ? 'px-3 py-1.5' : 'px-2.5 py-1.5'} md:px-4 md:py-1.5 rounded-full backdrop-blur-md border shadow-sm flex items-center gap-2 ${darkMode ? 'bg-black/60 border-white/10 text-white' : 'bg-white/80 border-black/5 text-black'}`}>
                                                 <div className="w-1.5 h-1.5 rounded-full bg-[#34C759] animate-pulse"></div>
-                                                <span className={`${viewMode === 'list' ? 'text-[10px]' : 'text-[8px]'} md:text-[10px] font-mono font-bold tracking-widest leading-none`}>
+                                                <span className={`${viewMode === 'list' ? 'text-[10px]' : 'text-[9px]'} md:text-[10px] font-mono font-bold tracking-wider leading-none`}>
                                                     <React.Suspense fallback="..:..">
                                                         <AuctionTimer endDate={item.auctionEnd} />
                                                     </React.Suspense>
                                                 </span>
                                             </div>
                                         ) : (
-                                            <div className={`${viewMode === 'list' ? 'px-3 py-1.5' : 'px-1.5 py-0.5'} md:px-4 md:py-1.5 rounded-full flex items-center gap-1.5 md:gap-2 border backdrop-blur-md shadow-sm ${item.sold
+                                            <div className={`${viewMode === 'list' ? 'px-3 py-1.5' : 'px-2.5 py-1.5'} md:px-4 md:py-1.5 rounded-full flex items-center gap-2 border backdrop-blur-md shadow-sm ${item.sold
                                                 ? 'bg-red-500/90 border-red-400 text-white'
                                                 : (darkMode ? 'bg-[#1C1C1E]/80 border-white/20 text-white' : 'bg-white/90 border-black/5 text-black')}`}>
                                                 <div className={`${viewMode === 'list' ? 'w-2 h-2' : 'w-1.5 h-1.5'} md:w-2 md:h-2 rounded-full ${item.sold ? 'bg-white' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse'}`}></div>
-                                                <span className={`${viewMode === 'list' ? 'text-[10px]' : 'text-[8px]'} md:text-[10px] font-black uppercase tracking-widest leading-none pt-0.5`}>
+                                                <span className={`${viewMode === 'list' ? 'text-[10px]' : 'text-[9.5px]'} md:text-[10px] font-bold uppercase tracking-wider leading-none`}>
                                                     {item.sold ? 'Vendu' : 'Disponible'}
                                                 </span>
                                             </div>
@@ -310,7 +316,7 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                                             <h3 className={`font-mono font-medium ${viewMode === 'list' ? 'text-[13px]' : 'text-[11px]'} md:text-base leading-snug truncate ${darkMode ? 'text-white' : 'text-[#1D1D1F]'}`}>
                                                 {item.name}
                                             </h3>
-                                            <p className={`text-[9px] md:text-[10px] font-mono font-medium uppercase tracking-widest ${darkMode ? 'text-white/60' : 'text-[#1D1D1F]/70'}`}>
+                                            <p className={`text-[12px] md:text-[13px] font-mono font-medium uppercase tracking-widest ${darkMode ? 'text-white/60' : 'text-[#1D1D1F]/70'}`}>
                                                 {item.material || 'Atelier Normand'}
                                             </p>
                                         </div>
@@ -318,7 +324,7 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                                         {/* Right: Stock & Price */}
                                         <div className="flex flex-col items-end justify-center gap-0.5 md:gap-1">
                                             {/* Stock Label */}
-                                            <div className={`${viewMode === 'list' ? 'px-2 py-[2px] text-[7.5px]' : 'px-1.5 py-[1px] text-[6.5px]'} md:px-2 md:py-[3px] rounded-[3px] border font-mono font-bold uppercase tracking-wider ${darkMode ? 'border-white/20 text-emerald-400 bg-emerald-400/10' : 'border-black/10 text-emerald-700 bg-emerald-50'}`}>
+                                            <div className={`${viewMode === 'list' ? 'px-2.5 py-1 text-[9px]' : 'px-2 py-0.5 text-[8.5px]'} md:px-2 md:py-1 md:text-[10px] rounded-[4px] border font-mono font-bold uppercase tracking-wider ${darkMode ? 'border-white/20 text-emerald-400 bg-emerald-400/10' : 'border-black/10 text-emerald-700 bg-emerald-50'}`}>
                                                 {item.sold ? 'Rupture' : `Stock ${item.stock || 1}`}
                                             </div>
                                             {/* Price */}

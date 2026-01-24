@@ -708,9 +708,12 @@ const App = ({ onEnterMarketplace, darkMode }) => {
       {/* NAVIGATION - FIXED SAFE AREA */
       /* Increased to max(3rem) for tablets with thick status bars */}
       <header className="fixed top-0 left-0 w-full p-8 md:p-12 pt-[max(3rem,env(safe-area-inset-top))] pr-[max(2rem,env(safe-area-inset-right))] pl-[max(2rem,env(safe-area-inset-left))] flex justify-between items-center z-[210] mix-blend-difference text-white">
-        <div className="flex items-center gap-3 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+        <div className="flex items-center gap-3 md:gap-4 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
           <Hammer size={18} className="group-hover:rotate-45 transition-transform duration-500" />
-          <span className="font-serif text-xl tracking-widest uppercase font-light italic text-white">Tous à Table</span>
+          <div className="flex flex-col">
+            <h1 className="font-serif text-xl md:text-2xl tracking-widest uppercase font-light italic text-white leading-none">Tous à Table</h1>
+            <p className="font-serif italic text-[14px] md:text-[18px] tracking-[0.08em] text-white/80 leading-none mt-2">Atelier Normand</p>
+          </div>
         </div>
 
         {/* BOUTON MENU ANIMÉ */}

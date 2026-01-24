@@ -484,37 +484,45 @@ export default function App() {
           </div>
 
           {/* NAVBAR GLOBALE (Auto-Hide) */}
-          <nav className={`fixed top-0 left-0 right-0 z-[100] px-4 md:px-12 py-6 md:py-8 flex justify-between items-center mix-blend-difference text-white transition-transform duration-300 ease-in-out ${isHeaderVisible ? 'translate-y-0' : '-translate-y-full pointer-events-none'}`}>
-            <div className="flex items-center gap-2 md:gap-3 cursor-pointer group" onClick={() => { window.hasShownPreloader = true; setView('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
-              <div className="bg-white text-stone-900 p-1 md:p-1.5 rounded-lg shadow-md group-hover:rotate-6 transition-all"><Hammer size={16} className="md:w-5 md:h-5" /></div>
-              <div><h1 className="text-base md:text-lg font-black uppercase tracking-tighter leading-none">Tous à Table</h1><p className="text-[6px] md:text-[7px] font-black tracking-[0.3em] uppercase opacity-60">Atelier Normand</p></div>
+          <nav className={`fixed top-0 left-0 right-0 z-[100] px-4 md:px-12 py-6 md:py-8 flex justify-between items-center transition-all duration-500 ease-in-out ${isHeaderVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}>
+            {/* Subtle header gradient overlay for readability */}
+            <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black/20 to-transparent pointer-events-none -z-10"></div>
+
+            <div className="flex items-center gap-3 md:gap-4 cursor-pointer group" onClick={() => { window.hasShownPreloader = true; setView('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
+              <div className={`w-11 h-11 md:w-14 md:h-14 rounded-xl flex items-center justify-center backdrop-blur-2xl border shadow-xl transition-all group-hover:rotate-6 ${darkMode ? 'bg-white/20 border-white/20 text-white' : 'bg-white border-black/5 text-stone-900'}`}>
+                <Hammer size={20} className="md:w-7 md:h-7" />
+              </div>
+              <div className="flex flex-col justify-center">
+                <h1 className="text-xl md:text-2xl font-black uppercase tracking-tighter leading-none text-white drop-shadow-sm">Tous à Table</h1>
+                <p className="font-serif italic text-[16px] md:text-[20px] tracking-[0.08em] text-white/95 leading-none mt-2 ml-0.5">Atelier Normand</p>
+              </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className={`flex items-center gap-4 ${darkMode ? 'text-white' : 'text-stone-900'}`}>
               {user && !user.isAnonymous ? (
                 <div className="flex items-center gap-2 md:gap-4 mr-1 md:mr-2">
                   <div className="text-right hidden md:block">
-                    <div className="flex items-center justify-end gap-2">
-                      <p className="text-[10px] font-black uppercase tracking-widest">{user.displayName || 'Client'}</p>
-                      {user.emailVerified && <ShieldCheck size={14} strokeWidth={3} title="Compte Vérifié" />}
+                    <div className="flex items-center justify-end gap-2 text-stone-900">
+                      <p className={`text-[10px] font-black uppercase tracking-widest ${darkMode ? 'text-white' : 'text-stone-900'}`}>{user.displayName || 'Client'}</p>
+                      {user.emailVerified && <ShieldCheck size={14} strokeWidth={3} className={darkMode ? 'text-blue-400' : 'text-blue-600'} title="Compte Vérifié" />}
                     </div>
                   </div>
-                  <button onClick={() => { signOut(auth); }} className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white hover:text-stone-900 backdrop-blur border border-white/20 transition-all"><LogOut size={14} className="md:w-4 md:h-4" /></button>
+                  <button onClick={() => { signOut(auth); }} className={`w-8 h-8 md:w-11 md:h-11 rounded-full flex items-center justify-center backdrop-blur-2xl border shadow-xl transition-all ${darkMode ? 'bg-white/15 border-white/20 text-white hover:bg-white hover:text-stone-900 shadow-white/5' : 'bg-white/80 border-black/10 text-stone-900 hover:bg-stone-900 hover:text-white shadow-black/5'}`}><LogOut size={14} className="md:w-[18px] md:h-[18px]" /></button>
                 </div>
               ) : !isSecretGateOpen && (
-                <button onClick={() => setShowFullLogin(true)} className="flex items-center gap-2 px-2.5 py-1.5 md:px-5 md:py-3 rounded-full bg-white/10 backdrop-blur border border-white/20 hover:bg-white hover:text-stone-900 transition-all text-[9px] md:text-[10px] font-black uppercase tracking-widest mr-1 md:mr-2"><ShieldCheck size={12} className="md:w-3.5 md:h-3.5" /> <span className="hidden md:inline">Login</span></button>
+                <button onClick={() => setShowFullLogin(true)} className={`flex items-center gap-2 px-3 py-2 md:px-6 md:py-3.5 rounded-full backdrop-blur-2xl border shadow-xl transition-all text-[9.5px] md:text-[10.5px] font-bold uppercase tracking-widest mr-1 md:mr-2 ${darkMode ? 'bg-white/15 border-white/20 text-white hover:bg-white hover:text-stone-900 shadow-white/5' : 'bg-white/80 border-black/10 text-stone-900 hover:bg-stone-900 hover:text-white shadow-black/5'}`}><ShieldCheck size={14} className="md:w-4 md:h-4" /> <span className="hidden md:inline">Connexion</span></button>
               )}
 
               {/* CART BUTTON - Uniquement sur marketplace, detail et checkout */}
               {['gallery', 'detail', 'checkout'].includes(view) && (
                 <button
                   onClick={() => { setCartInteracted(true); setIsCartOpen(true); }}
-                  className="w-8 h-8 md:w-auto md:h-auto px-0 md:px-5 md:py-3 rounded-full bg-white/10 flex items-center justify-center gap-3 hover:bg-amber-500 hover:text-white backdrop-blur border border-white/20 transition-all group relative"
+                  className={`w-8 h-8 md:w-auto md:h-auto px-0 md:px-6 md:py-3.5 rounded-full flex items-center justify-center gap-3 backdrop-blur-2xl border shadow-xl transition-all group relative ${darkMode ? 'bg-white/15 border-white/20 text-white hover:bg-amber-500 hover:text-white shadow-white/5' : 'bg-white/80 border-black/10 text-stone-900 hover:bg-amber-500 hover:text-white shadow-black/5'}`}
                 >
-                  <ShoppingBag size={16} className="md:w-5 md:h-5" />
-                  <span className="hidden md:block text-[10px] font-black uppercase tracking-widest">Panier</span>
+                  <ShoppingBag size={16} className="md:w-[18px] md:h-[18px]" />
+                  <span className="hidden md:block text-[9.5px] md:text-[10.5px] font-bold uppercase tracking-widest">Panier</span>
                   {cartItems.length > 0 && (
-                    <span className="absolute -top-1 -right-1 md:top-1 md:right-1 w-3.5 h-3.5 md:w-5 md:h-5 bg-stone-900 text-white flex items-center justify-center text-[7px] md:text-[9px] font-black rounded-full border border-white">
+                    <span className="absolute -top-1 -right-1 md:top-1 md:right-1 w-3.5 h-3.5 md:w-5 md:h-5 bg-amber-500 text-white flex items-center justify-center text-[7px] md:text-[9.5px] font-black rounded-full border-2 border-white shadow-md">
                       {cartItems.length}
                     </span>
                   )}
@@ -524,13 +532,13 @@ export default function App() {
               {/* DARK MODE TOGGLE */}
               <button
                 onClick={() => setDarkMode(!darkMode)}
-                className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-amber-500 hover:text-white backdrop-blur border border-white/20 transition-all ml-1 md:ml-0"
+                className={`w-8 h-8 md:w-11 md:h-11 rounded-full flex items-center justify-center backdrop-blur-2xl border shadow-xl transition-all ml-1 md:ml-0 ${darkMode ? 'bg-white/15 border-white/20 text-white hover:bg-amber-500 hover:text-white shadow-white/5' : 'bg-white/80 border-black/10 text-stone-900 hover:bg-amber-500 hover:text-white shadow-black/5'}`}
                 title={darkMode ? 'Mode Clair' : 'Mode Sombre'}
               >
-                {darkMode ? <Sun size={14} className="md:w-[18px] md:h-[18px]" /> : <Moon size={14} className="md:w-[18px] md:h-[18px]" />}
+                {darkMode ? <Sun size={14} className="md:w-5 md:h-5" /> : <Moon size={14} className="md:w-5 md:h-5" />}
               </button>
 
-              <button onClick={() => setIsMenuOpen(true)} className="w-8 h-8 md:w-auto md:h-auto px-0 md:px-6 md:py-3 rounded-full bg-white/10 flex items-center justify-center gap-4 hover:bg-white hover:text-stone-900 backdrop-blur border border-white/20 group transition-all ml-1 md:ml-0"><span className="hidden md:block text-[10px] font-black uppercase tracking-widest">Menu</span><Menu size={16} className="md:w-5 md:h-5" /></button>
+              <button onClick={() => setIsMenuOpen(true)} className={`w-8 h-8 md:w-auto md:h-auto px-0 md:px-7 md:py-3.5 rounded-full flex items-center justify-center gap-4 backdrop-blur-2xl border shadow-xl group transition-all ml-1 md:ml-0 ${darkMode ? 'bg-white/15 border-white/20 text-white hover:bg-white hover:text-stone-900 shadow-white/5' : 'bg-white/80 border-black/10 text-stone-900 hover:bg-stone-900 hover:text-white shadow-black/5'}`}><span className="hidden md:block text-[9.5px] md:text-[10.5px] font-bold uppercase tracking-widest">Menu</span><Menu size={16} className="md:w-[18px] md:h-[18px]" /></button>
             </div>
           </nav>
         </>
