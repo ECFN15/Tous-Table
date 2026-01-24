@@ -150,12 +150,14 @@ exports.createOrder = functions.https.onCall(async (data, context) => {
             for (const item of orderData.items) {
                 // Déterminer la collection (par défaut furniture si manquant)
                 const colName = item.collectionName || 'furniture';
-                const itemRef = db.doc(`artifacts/${appId}/public/data/${colName}/${item.id || item.originalId}`);
+                // CRITICAL FIX: Utiliser originalId (ID du meuble) et non id (ID du panier)
+                const realItemId = item.originalId || item.id;
+                const itemRef = db.doc(`artifacts/${appId}/public/data/${colName}/${realItemId}`);
 
                 const itemSnap = await transaction.get(itemRef);
 
                 if (!itemSnap.exists) {
-                    throw new functions.https.HttpsError('not-found', `L'article ${item.name} n'existe plus.`);
+                    throw new functions.https.HttpsError('not-found', `L'article "${item.name}" n'existe plus (ID: ${realItemId}).`);
                 }
 
                 if (itemSnap.data().sold) {
@@ -170,7 +172,8 @@ exports.createOrder = functions.https.onCall(async (data, context) => {
             // Étape B : VERROUILLAGE (MARK AS SOLD)
             for (const item of orderData.items) {
                 const colName = item.collectionName || 'furniture';
-                const itemRef = db.doc(`artifacts/${appId}/public/data/${colName}/${item.id || item.originalId}`);
+                const realItemId = item.originalId || item.id;
+                const itemRef = db.doc(`artifacts/${appId}/public/data/${colName}/${realItemId}`);
 
                 transaction.update(itemRef, {
                     sold: true,

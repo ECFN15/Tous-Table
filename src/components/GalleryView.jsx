@@ -229,101 +229,98 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                                 willChange: 'transform, opacity'
                             }}
                         >
-                            {/* ASPECT RATIO ADAPTATIF */}
+                            {/* NEW CARD STRUCTURE (NFT STYLE) */}
                             <div
-                                className={`relative w-full overflow-hidden rounded-[1.2rem] md:rounded-[2rem] transition-transform duration-300 ease-out ${darkMode ? 'bg-stone-900 ring-1 ring-stone-900 shadow-lg shadow-black/50 group-hover:shadow-black/70' : 'bg-white shadow-lg shadow-stone-200/50 group-hover:shadow-stone-300/60 group-hover:shadow-2xl'} ${viewMode === 'list' ? 'aspect-[4/5]' : 'aspect-[3/4] md:aspect-[4/5]'}`}
+                                className={`relative w-full overflow-hidden rounded-xl transition-all duration-300 ease-out group-hover:-translate-y-2 ${darkMode ? 'bg-[#1C1C1E] shadow-2xl shadow-black/50' : 'bg-white shadow-xl shadow-stone-200/50'} ${viewMode === 'list' ? 'aspect-[4/5]' : 'aspect-[3/4] md:aspect-[4/5]'}`}
                             >
-                                <img
-                                    src={item.images?.[0] || item.imageUrl}
-                                    alt={item.name}
-                                    className="w-full h-full object-cover transform-gpu [backface-visibility:hidden] rounded-[inherit] transition-transform duration-300 ease-out group-hover:scale-105"
-                                    loading="lazy"
-                                    decoding="async"
-                                />
-
-                                {/* --- DÉCOUVRIR LABEL (HOVER REVEAL: MODERN PREMIUM ANIMATION) --- */}
-                                <div className="absolute inset-0 z-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none">
-                                    <div className="transform translate-y-8 group-hover:translate-y-0 transition-transform duration-500 cubic-bezier(0.34, 1.56, 0.64, 1) bg-white/90 dark:bg-stone-900/80 backdrop-blur-md border border-white/40 dark:border-white/10 px-5 py-3 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.12)] flex items-center gap-3 group/btn-inner">
-                                        <span className="text-[10px] md:text-xs font-bold uppercase tracking-[0.25em] text-stone-900 dark:text-white">Découvrir</span>
-                                        <div className="w-px h-3 bg-stone-300 dark:bg-white/20"></div>
-                                        <ArrowRight size={14} strokeWidth={2.5} className="text-stone-900 dark:text-white -ml-0.5 transform group-hover:translate-x-1 transition-transform duration-300" />
+                                {/* 1. IMAGE LAUNCHER (Top Section) */}
+                                <div className="absolute inset-x-0 top-0 bottom-[88px] overflow-hidden">
+                                    <img
+                                        src={item.images?.[0] || item.imageUrl}
+                                        alt={item.name}
+                                        className="w-full h-full object-cover transform-gpu transition-transform duration-700 ease-out group-hover:scale-110"
+                                        loading="lazy"
+                                        decoding="async"
+                                    />
+                                    {/* DÉCOUVRIR OVERLAY (Clean Hover) */}
+                                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                        <div className="bg-white/90 dark:bg-black/80 backdrop-blur-md px-6 py-3 rounded-full flex items-center gap-3 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300">
+                                            <span className="text-[10px] uppercase font-bold tracking-widest text-black dark:text-white">Découvrir</span>
+                                            <ArrowRight size={14} className="text-black dark:text-white" />
+                                        </div>
                                     </div>
                                 </div>
 
-                                {/* --- DISPONIBILITÉ & STOCK (HAUT GAUCHE) --- */}
-                                <div className="absolute top-2 left-2 md:top-3 md:left-3 z-20 pointer-events-auto flex flex-col gap-1 items-start">
-                                    {/* BADGE DISPONIBILITÉ */}
-                                    <div className={`px-1.5 py-0.5 md:px-2.5 md:py-1 rounded-full border shadow-sm flex items-center gap-1 md:gap-1.5 ${item.sold ? 'bg-red-50/95 border-red-100 text-red-600' : 'bg-emerald-50/95 border-emerald-100 text-emerald-700'}`}>
-                                        <div className={`w-1 h-1 md:w-1.5 md:h-1.5 rounded-full ${item.sold ? 'bg-red-500' : 'bg-emerald-500 animate-pulse'}`}></div>
-                                        <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest">{item.sold ? 'Vendu' : 'Disponible'}</span>
-                                    </div>
-                                    {/* STOCK */}
-                                    <div className={`px-1.5 py-0.5 md:px-2.5 md:py-1 rounded-full border shadow-sm flex items-center justify-center transition-colors ${darkMode ? 'bg-black/60 border-white/10' : 'bg-white/80 border-white/30'}`}>
-                                        <span className={`text-[7px] md:text-[8px] font-mono tracking-widest uppercase font-bold ${darkMode ? 'text-white/90' : 'text-stone-900'}`}>Stock {item.sold ? '0' : '1'}</span>
-                                    </div>
-                                </div>
-
-                                {/* --- PRIX / TIMER (HAUT DROITE) --- */}
-                                <div className="absolute top-2 right-2 md:top-3 md:right-3 z-20 pointer-events-auto">
+                                {/* 2. STATUS BADGE V2 (Top Left - Revamp) */}
+                                <div className="absolute top-4 left-4 z-20">
                                     {item.auctionActive ? (
-                                        <div className={`px-2 py-0.5 md:px-2.5 md:py-1 rounded-full shadow-md flex items-center gap-1 md:gap-1.5 transition-colors ${darkMode ? 'bg-white text-stone-900' : 'bg-[#1D1D1F] text-white'}`}>
-                                            <div className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-[#34C759] animate-pulse"></div>
-                                            <span className="text-[9px] md:text-[10px] font-mono tracking-widest font-bold">
-                                                <React.Suspense fallback={<span>...</span>}>
+                                        <div className={`px-4 py-1.5 rounded-full backdrop-blur-md border shadow-sm flex items-center gap-2 ${darkMode ? 'bg-black/60 border-white/10 text-white' : 'bg-white/80 border-black/5 text-black'}`}>
+                                            <div className="w-1.5 h-1.5 rounded-full bg-[#34C759] animate-pulse"></div>
+                                            <span className="text-[10px] font-mono font-bold tracking-widest">
+                                                <React.Suspense fallback="..:..">
                                                     <AuctionTimer endDate={item.auctionEnd} />
                                                 </React.Suspense>
                                             </span>
                                         </div>
                                     ) : (
-                                        <div className={`px-2 py-1 md:px-3 md:py-1.5 rounded-full shadow-md flex items-center justify-center transition-all duration-300 relative overflow-hidden ${darkMode ? 'bg-white text-stone-900' : 'bg-[#1D1D1F] text-white'}`}>
-                                            <span className="text-[9px] md:text-[11px] font-black tracking-widest">{item.currentPrice || item.startingPrice} €</span>
+                                        <div className={`px-4 py-1.5 rounded-full flex items-center gap-2 border backdrop-blur-md shadow-sm ${item.sold
+                                            ? 'bg-red-500/90 border-red-400 text-white'
+                                            : (darkMode ? 'bg-[#1C1C1E]/80 border-white/20 text-white' : 'bg-white/90 border-black/5 text-black')}`}>
+                                            <div className={`w-2 h-2 rounded-full ${item.sold ? 'bg-white' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse'}`}></div>
+                                            <span className="text-[10px] font-black uppercase tracking-widest leading-none pt-0.5">
+                                                {item.sold ? 'Vendu' : 'Disponible'}
+                                            </span>
                                         </div>
                                     )}
                                 </div>
 
-                                {/* --- SOCIAL ICONS (RESPONSIVE & COMPACT) --- */}
-                                <div className={`absolute right-2 md:right-3 flex flex-col items-center z-20 ${viewMode === 'list' ? 'bottom-20 gap-4 right-3 md:bottom-24 md:gap-6 md:right-4' : 'bottom-8 gap-1.5 md:bottom-16 md:gap-2.5'}`}>
-                                    {/* LIKE */}
-                                    <button onClick={(e) => handleLike(e, item)} className="flex flex-col items-center gap-0.5 group/btn p-1">
-                                        <Heart
-                                            size={viewMode === 'list' ? 24 : 20}
-                                            strokeWidth={1.5}
-                                            className={`md:w-[22px] md:h-[22px] lg:w-[28px] lg:h-[28px] drop-shadow-lg ${likedItems.includes(item.id) ? 'fill-red-500 text-red-500 scale-110' : 'text-white hover:scale-110'}`}
-                                        />
-                                        <span className={`${viewMode === 'list' ? 'text-[10px]' : 'text-[8px]'} md:text-xs font-bold text-white drop-shadow-lg font-sans leading-none`}>{item.likeCount || 0}</span>
-                                    </button>
 
-                                    {/* COMMENTS */}
-                                    <button onClick={(e) => handleCommentClick(e, item)} className="flex flex-col items-center gap-0.5 group/btn p-1">
-                                        <svg width={viewMode === 'list' ? 24 : 20} height={viewMode === 'list' ? 24 : 20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="md:w-[22px] md:h-[22px] lg:w-[28px] lg:h-[28px] text-white drop-shadow-lg hover:scale-110">
-                                            <path d="M20.656 17.008a9.993 9.993 0 1 0-3.59 3.615L22 22Z" />
-                                        </svg>
-                                        <span className={`${viewMode === 'list' ? 'text-[10px]' : 'text-[8px]'} md:text-xs font-bold text-white drop-shadow-lg font-sans leading-none`}>{item.commentCount || 0}</span>
-                                    </button>
 
-                                    {/* SHARE */}
-                                    <button onClick={(e) => handleShare(e, item)} className="flex flex-col items-center gap-0.5 group/btn p-1">
-                                        <svg width={viewMode === 'list' ? 22 : 18} height={viewMode === 'list' ? 22 : 18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="md:w-[20px] md:h-[20px] lg:w-[26px] lg:h-[26px] text-white drop-shadow-lg hover:scale-110 hover:rotate-12">
-                                            <path d="M22 2L11 13" />
-                                            <path d="M22 2l-7 20-4-9-9-4 20-7z" />
-                                        </svg>
-                                        <span className={`${viewMode === 'list' ? 'text-[10px]' : 'text-[8px]'} md:text-xs font-bold text-white drop-shadow-lg font-sans leading-none`}>{item.shareCount || 0}</span>
+                                {/* 4. SOCIAL ACTIONS (Right Side - Floating) */}
+                                <div className="absolute top-20 right-4 flex flex-col gap-5 z-20">
+                                    <button onClick={(e) => handleLike(e, item)} className={`p-2.5 rounded-full backdrop-blur-md border transition-all hover:scale-110 active:scale-95 group/icon ${likedItems.includes(item.id) ? 'bg-red-500 border-red-500 text-white' : (darkMode ? 'bg-black/40 border-white/10 text-white hover:bg-black/60' : 'bg-white/60 border-white/40 text-black hover:bg-white/90')}`}>
+                                        <Heart size={16} className={`${likedItems.includes(item.id) ? 'fill-current' : ''}`} />
+                                    </button>
+                                    <button onClick={(e) => handleCommentClick(e, item)} className={`p-2.5 rounded-full backdrop-blur-md border transition-all hover:scale-110 active:scale-95 group/icon ${darkMode ? 'bg-black/40 border-white/10 text-white hover:bg-black/60' : 'bg-white/60 border-white/40 text-black hover:bg-white/90'}`}>
+                                        <span className="text-[10px] font-bold absolute -top-1 -right-1 bg-white text-black w-4 h-4 flex items-center justify-center rounded-full shadow-sm border border-black/10">{item.commentCount || 0}</span>
+                                        <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                                    </button>
+                                    <button onClick={(e) => handleShare(e, item)} className={`p-2.5 rounded-full backdrop-blur-md border transition-all hover:scale-110 active:scale-95 group/icon ${darkMode ? 'bg-black/40 border-white/10 text-white hover:bg-black/60' : 'bg-white/60 border-white/40 text-black hover:bg-white/90'}`}>
+                                        <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
                                     </button>
                                 </div>
 
-                                {/* --- TEXT OVERLAY --- */}
-                                <div className={`absolute inset-x-0 bottom-0 bg-gradient-to-t via-black/40 to-transparent z-10 text-white pointer-events-none rounded-b-[inherit] ${darkMode ? 'from-black/95' : 'from-black/80'} ${viewMode === 'list' ? 'p-6 pt-32' : 'p-5 pt-28 pb-6'} flex flex-col justify-end`}>
-                                    <div className="flex flex-col gap-0.5 md:gap-1">
-                                        <h3 className={`font-serif leading-none drop-shadow-md pr-6 ${viewMode === 'list' ? 'text-2xl md:text-3xl' : 'text-[17px] line-clamp-2'}`}>{item.name}</h3>
-                                        <p className="text-[8px] sm:text-[9px] text-white/90 font-bold uppercase tracking-widest truncate opacity-90">{item.material || 'Atelier Normand'}</p>
+                                {/* 5. COLOR ZONE FOOTER (Info Panel) */}
+                                <div className={`absolute bottom-0 inset-x-0 h-[88px] px-6 py-4 flex items-center justify-between border-t transition-colors duration-300 z-10 ${darkMode ? 'bg-[#1C1C1E] border-white/5' : 'bg-white border-black/5'}`}>
+                                    {/* Left: Name & Material */}
+                                    <div className="flex flex-col gap-1 max-w-[65%]">
+                                        <h3 className={`font-mono font-medium text-[15px] md:text-base leading-snug truncate ${darkMode ? 'text-white' : 'text-[#1D1D1F]'}`}>
+                                            {item.name}
+                                        </h3>
+                                        <p className={`text-[10px] font-mono font-medium uppercase tracking-widest ${darkMode ? 'text-white/60' : 'text-[#1D1D1F]/70'}`}>
+                                            {item.material || 'Atelier Normand'}
+                                        </p>
+                                    </div>
+
+                                    {/* Right: Stock & Price */}
+                                    <div className="flex flex-col items-end justify-center gap-1">
+                                        {/* Stock Label */}
+                                        <div className={`px-2 py-[3px] rounded-[4px] border text-[8px] font-mono font-bold uppercase tracking-wider mb-0.5 ${darkMode ? 'border-white/20 text-emerald-400 bg-emerald-400/10' : 'border-black/10 text-emerald-700 bg-emerald-50'}`}>
+                                            {item.sold ? 'Rupture' : `Stock ${item.stock || 1}`}
+                                        </div>
+                                        {/* Price */}
+                                        <div className={`font-mono font-medium text-[15px] md:text-base tracking-tight ${darkMode ? 'text-white' : 'text-[#1D1D1F]'}`}>
+                                            {item.currentPrice || item.startingPrice} €
+                                        </div>
                                     </div>
                                 </div>
+
                             </div>
                         </div>
                     ))
                 )}
             </div>
-        </div>
+        </div >
     );
 };
 

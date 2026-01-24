@@ -102,6 +102,9 @@ const CheckoutView = ({ cartItems, total, user, onBack, onPlaceOrder }) => {
                 msg = "Désolé, cet article vient d'être vendu à l'instant. Si la vente n'aboutit pas, il sera remis en ligne.";
             } else if (error.message.includes('stock')) {
                 msg = "Stock insuffisant pour cet article.";
+            } else if (error.message) {
+                // Affiche le message d'erreur précis du backend (ex: "L'article n'existe plus")
+                msg = error.message;
             }
             alert(msg);
         } finally {
@@ -121,14 +124,14 @@ const CheckoutView = ({ cartItems, total, user, onBack, onPlaceOrder }) => {
                     <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto">
                         <AlertCircle size={32} />
                     </div>
-                    <h2 className="text-2xl font-black text-stone-900">Trop tard !</h2>
+                    <h2 className="text-2xl font-black text-stone-900">Oups, victime de son succès...</h2>
                     <p className="text-stone-500">
                         {unavailableItems.length === 1
-                            ? `L'article "${unavailableItems[0].name}" vient d'être vendu à l'instant par un autre client.`
-                            : "Certains articles de votre panier viennent d'être vendus."}
+                            ? `L'article "${unavailableItems[0].name}" vient tout juste d'être réservé par un autre passionné.`
+                            : "Certains articles de votre panier viennent d'être réservés par d'autres passionnés."}
                     </p>
                     <p className="text-xs text-stone-400">
-                        Ne vous inquiétez pas : si la commande de l'autre client n'aboutit pas (problème de paiement), l'article sera de nouveau disponible.
+                        Gardez l'œil ouvert : si la commande n'est pas finalisée dans les prochaines minutes, il sera remis en ligne ici même.
                     </p>
                     <button onClick={onBack} className="w-full py-4 bg-stone-900 text-white rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-stone-800">
                         Retourner à la boutique

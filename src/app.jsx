@@ -265,17 +265,9 @@ export default function App() {
   const handlePlaceOrder = async (orderData) => {
     if (!user) return;
 
-    // 1. Create Order
-    const dbOrder = {
-      ...orderData,
-      userId: user.uid,
-      userEmail: user.email,
-      createdAt: serverTimestamp(),
-      status: orderData.paymentMethod === 'deferred' ? 'pending_payment' : 'pending_stripe'
-    };
-
-    // Add items details to order for persistence
-    const orderRef = await addDoc(collection(db, 'orders'), dbOrder);
+    // 1. Create Order - REMOVED (Handled by Cloud Function createOrder)
+    // The order is securely created server-side to manage stock transactions.
+    // We just need to clear the local cart now.
 
     // 2. Clear Cart (Batch)
     // Note: In a real app we would use a batch, but loop is fine for small carts
