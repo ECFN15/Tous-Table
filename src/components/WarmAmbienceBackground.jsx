@@ -9,14 +9,16 @@ const WarmAmbienceBackground = ({ darkMode }) => {
 
         // --- CONFIGURATION ---
         const PALETTE = {
-            bgTop: darkMode ? new THREE.Color('#1a1612') : new THREE.Color('#fdfcf8'),
-            bgBottom: darkMode ? new THREE.Color('#2d241c') : new THREE.Color('#f4f1ea'),
-            accent1: darkMode ? new THREE.Color('#d97706') : new THREE.Color('#fbbf24'),
-            accent2: darkMode ? new THREE.Color('#92400e') : new THREE.Color('#d97706'),
-            dust: darkMode ? new THREE.Color('#fff7ed') : new THREE.Color('#fde68a'),
+            // Dark Mode: PRESERVED (User loved this)
+            // Deep Espresso -> Warm Stone + Golden Ambers
+            bgTop: darkMode ? new THREE.Color('#1a1612') : new THREE.Color('#fff9ee'), // Light: Warm Cream/Yellow tint
+            bgBottom: darkMode ? new THREE.Color('#2d241c') : new THREE.Color('#fbeccb'), // Light: Warm Honey/Sand
+            accent1: darkMode ? new THREE.Color('#d97706') : new THREE.Color('#f59e0b'), // Light: Vibrant Orange-Gold
+            accent2: darkMode ? new THREE.Color('#92400e') : new THREE.Color('#b45309'), // Light: Deep Amber/Brown
+            dust: darkMode ? new THREE.Color('#fff7ed') : new THREE.Color('#d97706'), // Light: Golden Dust
         };
 
-        // Mobile Optimization: Reduce load on small screens
+        // Mobile Optimization
         const isMobile = window.innerWidth < 768;
         const PIXEL_RATIO = Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2);
 
@@ -27,7 +29,8 @@ const WarmAmbienceBackground = ({ darkMode }) => {
         renderer.setPixelRatio(PIXEL_RATIO);
         containerRef.current.appendChild(renderer.domElement);
 
-        // --- LIQUID SHADER (PASSIVE & SMOOTH) ---
+        // --- LIQUID SHADER (REVERTED TO SMOOTHER VERSION) ---
+        // Slower, simpler noise flow as requested ("je préféré avant")
         const fragmentShader = `
         uniform float time;
         uniform vec2 resolution;
@@ -38,7 +41,6 @@ const WarmAmbienceBackground = ({ darkMode }) => {
         
         varying vec2 vUv;
 
-        // Optimized Simplex Noise
         vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
         vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
         vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
@@ -69,27 +71,24 @@ const WarmAmbienceBackground = ({ darkMode }) => {
 
         void main() {
             vec2 st = gl_FragCoord.xy / resolution.xy;
-            // Aspect Ratio Fix for consistent pattern size
             st.x *= resolution.x / resolution.y;
             
-            // Ultra-Slow Flow
+            // Ultra-Slow Flow (Restored)
             float t = time * 0.08; 
             
-            // Layer 1: Base Liquid (Creamy/Woody)
             float n1 = snoise(st * 0.8 + vec2(t * 0.2, t * 0.1));
-            
-            // Layer 2: Detail Flow (Amber)
             float n2 = snoise(st * 2.0 - vec2(t * 0.15, 0.0));
             
-            // Composite: Soft, blurred transitions (No sharp lines)
             float flow = mix(n1, n2, 0.5);
             
-            // Color Ramp
-            vec3 bg = mix(cBot, cTop, gl_FragCoord.y / resolution.y); // Vertical Grade
+            // Base Gradient
+            vec3 bg = mix(cBot, cTop, gl_FragCoord.y / resolution.y); 
             
-            // Add soft accents based on noise
-            bg = mix(bg, cAcc1, smoothstep(0.3, 0.8, flow) * 0.15); // Golden Highlights
-            bg = mix(bg, cAcc2, smoothstep(-0.6, -0.2, flow) * 0.1); // Deep Shadows
+            // Soft Accents (Restored simpler mixing logic)
+            // Accent 1 (Gold/Orange)
+            bg = mix(bg, cAcc1, smoothstep(0.3, 0.8, flow) * 0.15); 
+            // Accent 2 (Deep Brown/Amber)
+            bg = mix(bg, cAcc2, smoothstep(-0.6, -0.2, flow) * 0.1); 
             
             // Subtle grain
             float grain = fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453);
@@ -115,28 +114,28 @@ const WarmAmbienceBackground = ({ darkMode }) => {
         });
 
         // Background Plane
+        const pCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
+        pCamera.position.z = 20;
+
         const bgPlane = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
-        // Push back 
-        bgPlane.position.z = -1;
+        bgPlane.position.z = -10;
         scene.add(bgPlane);
 
 
-        // --- PARTICLES (Passive Dust) ---
-        // Floating calmly without interaction
-
-        const pCount = isMobile ? 80 : 150; // Reduce count on mobile
+        // --- PARTICLES (Passive Calm) ---
+        const pCount = isMobile ? 80 : 150;
         const pGeo = new THREE.BufferGeometry();
         const pPos = new Float32Array(pCount * 3);
-        const pData = new Float32Array(pCount * 3); // scale, speed, phase
+        const pData = new Float32Array(pCount * 3);
 
         for (let i = 0; i < pCount; i++) {
-            pPos[i * 3] = (Math.random() - 0.5) * 40;     // X spread
-            pPos[i * 3 + 1] = (Math.random() - 0.5) * 40;   // Y spread
-            pPos[i * 3 + 2] = (Math.random() - 0.5) * 5;    // Z depth
+            pPos[i * 3] = (Math.random() - 0.5) * 40;
+            pPos[i * 3 + 1] = (Math.random() - 0.5) * 40;
+            pPos[i * 3 + 2] = (Math.random() - 0.5) * 5;
 
-            pData[i * 3] = Math.random();                 // Scale
-            pData[i * 3 + 1] = 0.2 + Math.random() * 0.3;   // Speed (Slow)
-            pData[i * 3 + 2] = Math.random() * Math.PI * 2; // Phase
+            pData[i * 3] = Math.random();
+            pData[i * 3 + 1] = 0.2 + Math.random() * 0.3;   // Slow gentle speed
+            pData[i * 3 + 2] = Math.random() * Math.PI * 2;
         }
 
         pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
@@ -161,16 +160,14 @@ const WarmAmbienceBackground = ({ darkMode }) => {
                 float speed = aData.y;
                 float phase = aData.z;
                 
-                // Continuous Drift
+                // Continuous Drift (Restored gentle vertical flow)
                 pos.y += mod(time * speed + phase * 5.0, 40.0) - 20.0;
-                pos.x += sin(time * 0.2 + phase) * 2.0; // Gentle sway
+                pos.x += sin(time * 0.2 + phase) * 2.0; 
                 
                 vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
                 gl_Position = projectionMatrix * mvPosition;
                 
-                // Adaptive size based on screen
                 gl_PointSize = (15.0 * scale + 5.0) * (1.0 / -mvPosition.z);
-                
                 vAlpha = 0.3 + 0.3 * sin(time * 1.5 + phase);
             }
         `,
@@ -181,61 +178,31 @@ const WarmAmbienceBackground = ({ darkMode }) => {
                 vec2 coord = gl_PointCoord - vec2(0.5);
                 float dist = length(coord);
                 if(dist > 0.5) discard;
-                
-                // Soft gradient
                 float glow = 1.0 - (dist * 2.0);
                 glow = pow(glow, 2.0);
-                
                 gl_FragColor = vec4(color, vAlpha * glow);
             }
         `
         });
 
-        // Use Perspective Camera for Particles to get parallax depth naturally if we moved camera
-        // But since we removed interaction, we can just render them on top with specific camera or 
-        // simply use the Ortho camera but with z-scale? No, Perspective is better for "depth" feeling.
-
-        // We'll use a separate camera for particles to layer them correctly over full screen bg
-        const pCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
-        pCamera.position.z = 20;
-
         const particles = new THREE.Points(pGeo, pMat);
         scene.add(particles);
 
 
-        // --- ANIMATION LOOP ---
+        // --- ANIMATION ---
         const clock = new THREE.Clock();
         let frame;
 
         const animate = () => {
             frame = requestAnimationFrame(animate);
             const t = clock.getElapsedTime();
-
             uniforms.time.value = t;
             pMat.uniforms.time.value = t;
-
-            // Render BG (Ortho)
-            // Actually we can reuse one camera if we place bg far back.
-            // Let's stick to dual-camera composition logic? 
-            // No, simplest is to put BG plane at z=-10 of perspective camera and scale it up.
-            // But shader uses UVs anyway.
-
-            // Let's just use the Perspective Camera for everything to be consistent.
-            // We need to scale the BG plane to fill the frustum at z=-1.
-
-            // Render
             renderer.render(scene, pCamera);
         };
 
-        // Correctly scale the background plane to always fill screen behind particles
         const updateBgSize = () => {
-            const dist = 21; // Camera 20 - Plane at -1 = 21 dist? No, lets put plane at -10. 
-            // Camera z=20. Plane z=-10. Dist = 30.
-            // Let's put plane at 0 and camera at 20. Dist 20.
-
-            bgPlane.position.z = -10;
-            const d = 30; // 20 - (-10)
-
+            const d = 30;
             const vFOV = THREE.MathUtils.degToRad(75);
             const height = 2 * Math.tan(vFOV / 2) * d;
             const width = height * (window.innerWidth / window.innerHeight);
@@ -244,13 +211,12 @@ const WarmAmbienceBackground = ({ darkMode }) => {
             bgPlane.geometry = new THREE.PlaneGeometry(width, height);
         };
 
-        updateBgSize(); // Init
+        updateBgSize();
         animate();
 
         const handleResize = () => {
             updateBgSize();
             uniforms.resolution.value.set(window.innerWidth, window.innerHeight);
-
             pCamera.aspect = window.innerWidth / window.innerHeight;
             pCamera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -269,7 +235,7 @@ const WarmAmbienceBackground = ({ darkMode }) => {
         <div
             ref={containerRef}
             className="fixed inset-0 z-0"
-            style={{ background: darkMode ? '#1a1612' : '#fcfbf9' }}
+            style={{ background: darkMode ? '#1a1612' : '#fff9ee' }}
         />
     );
 };
