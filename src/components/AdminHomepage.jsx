@@ -126,7 +126,8 @@ const AdminHomepage = ({ darkMode = false }) => {
 
     const handleDownload = async (url, filename) => {
         try {
-            const response = await fetch(url);
+            const response = await fetch(url, { mode: 'cors' });
+            if (!response.ok) throw new Error('Network response was not ok');
             const blob = await response.blob();
             const blobUrl = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -137,8 +138,9 @@ const AdminHomepage = ({ darkMode = false }) => {
             document.body.removeChild(link);
             window.URL.revokeObjectURL(blobUrl);
         } catch (error) {
-            console.error("Error downloading image:", error);
-            alert("Erreur lors du téléchargement de l'image. Vérifiez votre connexion.");
+            console.warn("Download failed (likely CORS), falling back to new tab:", error);
+            // Fallback: Open in new tab which allows user to "Save As"
+            window.open(url, '_blank');
         }
     };
 
