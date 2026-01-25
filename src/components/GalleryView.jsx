@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShoppingBag, Heart, Grid, LayoutList, ArrowRight } from 'lucide-react';
+import { ShoppingBag, Heart, Grid, LayoutList, ArrowRight, Gavel } from 'lucide-react';
 import { db, appId } from '../firebase/config';
 import { doc, updateDoc, increment, onSnapshot } from 'firebase/firestore';
 const AuctionTimer = React.lazy(() => import('./ui/AuctionTimer'));
@@ -179,51 +179,48 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                 </React.Suspense>
 
                 {/* --- HEADER --- */}
-                <div className="pt-24 md:pt-32 pb-8 md:pb-12 px-5 sm:px-8 md:px-[8vw] xl:px-[12vw] flex flex-col lg:flex-row lg:items-end justify-between gap-6 lg:gap-10">
-                    <div className="space-y-4 md:space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700 max-w-2xl">
-                        <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full backdrop-blur-md border w-fit shadow-sm transition-colors ${darkMode ? 'bg-white/10 border-white/10' : 'bg-white/60 border-black/5'}`}>
+                <div className="pt-16 md:pt-32 pb-4 md:pb-12 px-5 sm:px-8 md:px-[8vw] xl:px-[12vw] flex flex-col lg:flex-row lg:items-end justify-between gap-3 lg:gap-10">
+                    <div className="space-y-2 md:space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700 max-w-2xl">
+                        <div className={`inline-flex items-center gap-2 px-2 py-0.5 rounded-full backdrop-blur-md border w-fit shadow-sm transition-colors ${darkMode ? 'bg-white/10 border-white/10' : 'bg-white/60 border-black/5'}`}>
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span className={`text-[10px] font-bold uppercase tracking-widest ${darkMode ? 'text-white/80' : 'text-black/60'}`}>Marketplace Live</span>
+                            <span className={`text-[8px] md:text-[9px] font-bold uppercase tracking-widest ${darkMode ? 'text-white/80' : 'text-black/60'}`}>Marketplace Live</span>
                         </div>
-                        <h2 className={`font-serif text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-medium tracking-tight leading-[0.9] transition-colors ${darkMode ? 'text-white' : 'text-[#1D1D1F]'}`}>
+                        <h2 className={`font-serif text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-medium tracking-tight leading-[0.9] transition-colors ${darkMode ? 'text-white' : 'text-[#1D1D1F]'}`}>
                             La Galerie<span className="text-[#FAF9F6] dark:text-[#FAF9F6] drop-shadow-[0_0_10px_rgba(250,249,246,0.3)] scale-110 inline-block transform translate-x-1">.</span>
                         </h2>
-                    </div>
-
-                    <div className={`flex p-1.5 rounded-full w-full sm:w-fit self-start lg:self-end animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100 overflow-x-auto no-scrollbar shadow-xl transition-all ${darkMode ? 'bg-black/40 backdrop-blur-md border border-white/10' : 'bg-white/40 backdrop-blur-md border border-white/60'}`}>
-                        <button onClick={() => { setActiveCollection('furniture'); setFilter('fixed'); }} className={`relative flex-1 sm:flex-none px-6 sm:px-8 py-3 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap ${activeCollection === 'furniture' ? (darkMode ? 'bg-stone-800 text-white shadow-lg' : 'bg-white text-stone-900 shadow-lg') : (darkMode ? 'text-white/50 hover:text-white/90 hover:bg-white/5' : 'text-stone-900/40 hover:text-stone-900/80 hover:bg-black/5')} ${activeCollection === 'furniture' ? 'scale-100' : 'scale-95'}`}>Mobilier</button>
-                        <button onClick={() => { setActiveCollection('cutting_boards'); setFilter('fixed'); }} className={`relative flex-1 sm:flex-none px-6 sm:px-8 py-3 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap ${activeCollection === 'cutting_boards' ? (darkMode ? 'bg-stone-800 text-white shadow-lg' : 'bg-white text-stone-900 shadow-lg') : (darkMode ? 'text-white/50 hover:text-white/90 hover:bg-white/5' : 'text-stone-900/40 hover:text-stone-900/80 hover:bg-black/5')} ${activeCollection === 'cutting_boards' ? 'scale-100' : 'scale-95'}`}>Planches</button>
                     </div>
                 </div>
 
                 {/* --- FILTRES & VIEW TOGGLE --- */}
-                <div className="px-5 sm:px-8 md:px-[8vw] xl:px-[12vw] mb-6 md:mb-12 flex flex-row items-center justify-between gap-4 animate-in fade-in duration-1000 delay-200">
+                <div className="px-5 sm:px-8 md:px-[8vw] xl:px-[12vw] mb-4 md:mb-12 flex flex-row items-center justify-between gap-4 animate-in fade-in duration-1000 delay-200">
 
-                    {/* Filtres TYPE - Restored separate pills style */}
-                    <div className="flex-1 overflow-x-auto no-scrollbar mask-linear-fade">
-                        {activeCollection === 'furniture' && (
-                            <div className="flex gap-2 md:gap-3">
-                                {['fixed', 'auction'].map((f) => (
-                                    <button
-                                        key={f}
-                                        onClick={() => setFilter(f)}
-                                        className={`px-4 py-2 md:px-5 md:py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all duration-300 whitespace-nowrap ${filter === f ? (darkMode ? 'bg-white text-black border-white shadow-lg shadow-white/10' : 'bg-[#1D1D1F] text-white border-[#1D1D1F] shadow-lg shadow-black/10') : (darkMode ? 'bg-white/5 text-white/50 border-white/20 hover:border-white/90' : 'bg-black/5 text-black/50 border-black/10 hover:border-black/80')}`}
-                                    >
-                                        {f === 'fixed' ? 'Immédiat' : 'Enchères'}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
+                    {/* SWITCHER COLLECTION (Moved from Header) */}
+                    <div className={`flex p-1 rounded-full w-fit shadow-lg transition-all ${darkMode ? 'bg-stone-800 border border-white/5' : 'bg-white/80 backdrop-blur-md border border-black/5'}`}>
+                        <button onClick={() => { setActiveCollection('furniture'); setFilter('fixed'); }} className={`px-4 md:px-6 py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap ${activeCollection === 'furniture' ? (darkMode ? 'bg-stone-700 text-white shadow-md' : 'bg-stone-900 text-white shadow-md') : (darkMode ? 'text-white/40 hover:text-white/80' : 'text-stone-900/40 hover:text-stone-900/80')}`}>Mobilier</button>
+                        <button onClick={() => { setActiveCollection('cutting_boards'); setFilter('fixed'); }} className={`px-4 md:px-6 py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap ${activeCollection === 'cutting_boards' ? (darkMode ? 'bg-stone-700 text-white shadow-md' : 'bg-stone-900 text-white shadow-md') : (darkMode ? 'text-white/40 hover:text-white/80' : 'text-stone-900/40 hover:text-stone-900/80')}`}>Planches</button>
                     </div>
 
-                    {/* VIEW SWITCHER */}
-                    <div className={`flex p-1 rounded-xl shadow-sm border shrink-0 transition-colors ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-200'}`}>
-                        <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? (darkMode ? 'bg-stone-700 text-white shadow-inner' : 'bg-stone-100 text-black shadow-inner') : (darkMode ? 'text-stone-500 hover:text-stone-300' : 'text-stone-400 hover:text-stone-600')}`}>
-                            <Grid size={18} />
-                        </button>
-                        <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? (darkMode ? 'bg-stone-700 text-white shadow-inner' : 'bg-stone-100 text-black shadow-inner') : (darkMode ? 'text-stone-500 hover:text-stone-300' : 'text-stone-400 hover:text-stone-600')}`}>
-                            <LayoutList size={18} />
-                        </button>
+                    {/* VIEW SWITCHER + AUCTION */}
+                    <div className="flex items-center gap-2">
+                        <div className={`flex p-0.5 rounded-lg shadow-sm border shrink-0 transition-colors ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-200'}`}>
+                            <button
+                                onClick={() => setFilter(filter === 'auction' ? 'fixed' : 'auction')}
+                                className={`p-1.5 rounded-md transition-all relative group ${filter === 'auction' ? (darkMode ? 'bg-amber-500 text-white shadow-inner' : 'bg-stone-900 text-white shadow-inner') : (darkMode ? 'text-stone-500 hover:text-stone-300' : 'text-stone-400 hover:text-stone-600')}`}
+                                title="Enchères"
+                            >
+                                <Gavel size={14} />
+                                <span className={`absolute -top-2.5 -left-1 text-[9px] font-black font-mono transition-colors ${filter === 'auction' ? (darkMode ? 'text-white' : 'text-stone-900') : (darkMode ? 'text-amber-500' : 'text-stone-900')}`}>
+                                    2
+                                </span>
+                            </button>
+                            <div className="w-px h-4 bg-stone-200 dark:bg-stone-700 mx-1 self-center opacity-50"></div>
+                            <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-md transition-all ${viewMode === 'grid' ? (darkMode ? 'bg-stone-700 text-white shadow-inner' : 'bg-stone-100 text-black shadow-inner') : (darkMode ? 'text-stone-500 hover:text-stone-300' : 'text-stone-400 hover:text-stone-600')}`}>
+                                <Grid size={14} />
+                            </button>
+                            <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-md transition-all ${viewMode === 'list' ? (darkMode ? 'bg-stone-700 text-white shadow-inner' : 'bg-stone-100 text-black shadow-inner') : (darkMode ? 'text-stone-500 hover:text-stone-300' : 'text-stone-400 hover:text-stone-600')}`}>
+                                <LayoutList size={14} />
+                            </button>
+                        </div>
                     </div>
                 </div>
 

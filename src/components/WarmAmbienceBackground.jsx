@@ -121,11 +121,16 @@ const WarmAmbienceBackground = ({ darkMode }) => {
 
 
         // 2. THE SIGN (Midground Anchor)
+        const signScale = isMobile ? 0.45 : 1.0;
+        const signWidth = 10 * signScale;
+        const signHeight = 2.8 * signScale;
+        const signYBase = isMobile ? 7.2 : 5.5;
+
         const signGroup = new THREE.Group();
-        signGroup.position.set(0, 5.5, 0);
+        signGroup.position.set(0, signYBase, 0);
         scene.add(signGroup);
 
-        const boxGeo = new THREE.BoxGeometry(10, 2.8, 0.4);
+        const boxGeo = new THREE.BoxGeometry(signWidth, signHeight, 0.4);
         const boxMat = new THREE.MeshStandardMaterial({
             map: woodTex,
             roughness: 0.6, // More polished/waxed look
@@ -140,8 +145,8 @@ const WarmAmbienceBackground = ({ darkMode }) => {
         // Ropes
         const ropeMat = new THREE.MeshStandardMaterial({ color: 0x3e2723, roughness: 0.8 });
         const ropeGeo = new THREE.CylinderGeometry(0.04, 0.04, 20);
-        const r1 = new THREE.Mesh(ropeGeo, ropeMat); r1.position.set(-4.5, 10, 0);
-        const r2 = new THREE.Mesh(ropeGeo, ropeMat); r2.position.set(4.5, 10, 0);
+        const r1 = new THREE.Mesh(ropeGeo, ropeMat); r1.position.set(-signWidth * 0.45, 10, 0);
+        const r2 = new THREE.Mesh(ropeGeo, ropeMat); r2.position.set(signWidth * 0.45, 10, 0);
         signGroup.add(r1); signGroup.add(r2);
 
 
@@ -263,9 +268,9 @@ const WarmAmbienceBackground = ({ darkMode }) => {
 
             camera.position.x += (targetX - camera.position.x) * 0.03;
             camera.position.y += (targetY - camera.position.y) * 0.03;
-            camera.lookAt(0, 2, 0);
+            camera.lookAt(0, isMobile ? 4 : 2, 0);
 
-            signGroup.position.y = 5.5 + Math.sin(time * 0.4) * 0.15;
+            signGroup.position.y = signYBase + Math.sin(time * 0.4) * 0.15;
             signGroup.rotation.z = Math.sin(time * 0.25) * 0.015;
             signGroup.rotation.x = Math.sin(time * 0.2) * 0.03;
 

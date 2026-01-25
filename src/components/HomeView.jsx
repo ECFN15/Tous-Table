@@ -707,12 +707,14 @@ const App = ({ onEnterMarketplace, darkMode }) => {
       {/* NAVIGATION */}
       {/* NAVIGATION - FIXED SAFE AREA */
       /* Increased to max(3rem) for tablets with thick status bars */}
-      <header className="fixed top-0 left-0 w-full p-8 md:p-12 pt-[max(3rem,env(safe-area-inset-top))] pr-[max(2rem,env(safe-area-inset-right))] pl-[max(2rem,env(safe-area-inset-left))] flex justify-between items-center z-[210] mix-blend-difference text-white">
-        <div className="flex items-center gap-3 md:gap-4 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-          <Hammer size={18} className="group-hover:rotate-45 transition-transform duration-500" />
+      <header className="fixed top-0 left-0 w-full p-5 md:p-12 pt-[max(2rem,env(safe-area-inset-top))] pr-[max(1.5rem,env(safe-area-inset-right))] pl-[max(1.5rem,env(safe-area-inset-left))] flex justify-between items-center z-[210] mix-blend-difference text-white">
+        <div className="flex items-center gap-1.5 md:gap-4 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+          <div className="w-[28px] h-[28px] md:w-14 md:h-14 rounded-lg md:rounded-xl flex items-center justify-center border border-white/30 group-hover:rotate-6 transition-all duration-500 shadow-lg">
+            <Hammer size={12} strokeWidth={1.5} className="md:w-7 md:h-7" />
+          </div>
           <div className="flex flex-col">
-            <h1 className="font-serif text-xl md:text-2xl tracking-widest uppercase font-light italic text-white leading-none">Tous à Table</h1>
-            <p className="font-serif italic text-[14px] md:text-[18px] tracking-[0.08em] text-white/80 leading-none mt-2">Atelier Normand</p>
+            <h1 className="font-serif text-[13px] md:text-2xl tracking-tight md:tracking-widest uppercase font-light italic text-white leading-none">Tous à Table</h1>
+            <p className="font-serif italic text-[9px] md:text-[18px] tracking-[0.05em] md:tracking-[0.1em] text-white/80 leading-none mt-1">Atelier Normand</p>
           </div>
         </div>
 
