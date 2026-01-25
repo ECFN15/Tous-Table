@@ -121,10 +121,10 @@ const WarmAmbienceBackground = ({ darkMode }) => {
 
 
         // 2. THE SIGN (Midground Anchor)
-        const signScale = isMobile ? 0.45 : 1.0;
+        const signScale = isMobile ? 0.53 : 1.0;
         const signWidth = 10 * signScale;
         const signHeight = 2.8 * signScale;
-        const signYBase = isMobile ? 7.2 : 5.5;
+        const signYBase = isMobile ? 9.6 : 5.5;
 
         const signGroup = new THREE.Group();
         signGroup.position.set(0, signYBase, 0);

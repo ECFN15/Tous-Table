@@ -179,7 +179,7 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                 </React.Suspense>
 
                 {/* --- HEADER --- */}
-                <div className="pt-16 md:pt-32 pb-4 md:pb-12 px-5 sm:px-8 md:px-[8vw] xl:px-[12vw] flex flex-col lg:flex-row lg:items-end justify-between gap-3 lg:gap-10">
+                <div className="pt-14 md:pt-32 pb-16 md:pb-12 px-5 sm:px-8 md:px-[8vw] xl:px-[12vw] flex flex-col lg:flex-row lg:items-end justify-between gap-3 lg:gap-10">
                     <div className="space-y-2 md:space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700 max-w-2xl">
                         <div className={`inline-flex items-center gap-2 px-2 py-0.5 rounded-full backdrop-blur-md border w-fit shadow-sm transition-colors ${darkMode ? 'bg-white/10 border-white/10' : 'bg-white/60 border-black/5'}`}>
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -192,12 +192,12 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                 </div>
 
                 {/* --- FILTRES & VIEW TOGGLE --- */}
-                <div className="px-5 sm:px-8 md:px-[8vw] xl:px-[12vw] mb-4 md:mb-12 flex flex-row items-center justify-between gap-4 animate-in fade-in duration-1000 delay-200">
+                <div className="px-5 sm:px-8 md:px-[8vw] xl:px-[12vw] mb-6 md:mb-12 flex flex-row items-center justify-between gap-4 animate-in fade-in duration-1000 delay-200">
 
                     {/* SWITCHER COLLECTION (Moved from Header) */}
                     <div className={`flex p-1 rounded-full w-fit shadow-lg transition-all ${darkMode ? 'bg-stone-800 border border-white/5' : 'bg-white/80 backdrop-blur-md border border-black/5'}`}>
-                        <button onClick={() => { setActiveCollection('furniture'); setFilter('fixed'); }} className={`px-4 md:px-6 py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap ${activeCollection === 'furniture' ? (darkMode ? 'bg-stone-700 text-white shadow-md' : 'bg-stone-900 text-white shadow-md') : (darkMode ? 'text-white/40 hover:text-white/80' : 'text-stone-900/40 hover:text-stone-900/80')}`}>Mobilier</button>
-                        <button onClick={() => { setActiveCollection('cutting_boards'); setFilter('fixed'); }} className={`px-4 md:px-6 py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap ${activeCollection === 'cutting_boards' ? (darkMode ? 'bg-stone-700 text-white shadow-md' : 'bg-stone-900 text-white shadow-md') : (darkMode ? 'text-white/40 hover:text-white/80' : 'text-stone-900/40 hover:text-stone-900/80')}`}>Planches</button>
+                        <button onClick={() => { setActiveCollection('furniture'); setFilter('fixed'); }} className={`px-4 md:px-6 py-1.5 md:py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap ${activeCollection === 'furniture' ? (darkMode ? 'bg-stone-700 text-white shadow-md' : 'bg-stone-900 text-white shadow-md') : (darkMode ? 'text-white/40 hover:text-white/80' : 'text-stone-900/40 hover:text-stone-900/80')}`}>Mobilier</button>
+                        <button onClick={() => { setActiveCollection('cutting_boards'); setFilter('fixed'); }} className={`px-4 md:px-6 py-1.5 md:py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap ${activeCollection === 'cutting_boards' ? (darkMode ? 'bg-stone-700 text-white shadow-md' : 'bg-stone-900 text-white shadow-md') : (darkMode ? 'text-white/40 hover:text-white/80' : 'text-stone-900/40 hover:text-stone-900/80')}`}>Planches</button>
                     </div>
 
                     {/* VIEW SWITCHER + AUCTION */}
@@ -310,10 +310,10 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                                     <div className={`absolute bottom-0 inset-x-0 h-auto min-h-[64px] md:h-[88px] px-3 py-2.5 md:px-6 md:py-4 flex items-center justify-between border-t transition-colors duration-300 z-10 ${darkMode ? 'bg-[#1C1C1E] border-white/5' : 'bg-white border-black/5'}`}>
                                         {/* Left: Name & Material */}
                                         <div className="flex flex-col gap-0.5 md:gap-1 max-w-[65%]">
-                                            <h3 className={`font-mono font-medium ${viewMode === 'list' ? 'text-[13px]' : 'text-[11px]'} md:text-base leading-snug truncate ${darkMode ? 'text-white' : 'text-[#1D1D1F]'}`}>
+                                            <h3 className={`font-mono font-medium ${viewMode === 'list' ? 'text-[12px]' : 'text-[10.5px]'} md:text-base leading-snug truncate ${darkMode ? 'text-white' : 'text-[#1D1D1F]'}`}>
                                                 {item.name}
                                             </h3>
-                                            <p className={`text-[12px] md:text-[13px] font-mono font-medium uppercase tracking-widest ${darkMode ? 'text-white/60' : 'text-[#1D1D1F]/70'}`}>
+                                            <p className={`text-[10px] md:text-[13px] font-mono font-medium uppercase tracking-widest ${darkMode ? 'text-white/60' : 'text-[#1D1D1F]/70'}`}>
                                                 {item.material || 'Atelier Normand'}
                                             </p>
                                         </div>
@@ -321,11 +321,11 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                                         {/* Right: Stock & Price */}
                                         <div className="flex flex-col items-end justify-center gap-0.5 md:gap-1">
                                             {/* Stock Label */}
-                                            <div className={`${viewMode === 'list' ? 'px-2.5 py-1 text-[9px]' : 'px-2 py-0.5 text-[8.5px]'} md:px-2 md:py-1 md:text-[10px] rounded-[4px] border font-mono font-bold uppercase tracking-wider ${darkMode ? 'border-white/20 text-emerald-400 bg-emerald-400/10' : 'border-black/10 text-emerald-700 bg-emerald-50'}`}>
+                                            <div className={`${viewMode === 'list' ? 'px-2 py-0.5 text-[8px]' : 'px-1.5 py-0.5 text-[7.5px]'} md:px-2 md:py-1 md:text-[10px] rounded-[3px] border font-mono font-bold uppercase tracking-wider ${darkMode ? 'border-white/10 text-emerald-400 bg-emerald-400/5' : 'border-black/5 text-emerald-700 bg-emerald-50/50'}`}>
                                                 {item.sold ? 'Rupture' : `Stock ${item.stock || 1}`}
                                             </div>
                                             {/* Price */}
-                                            <div className={`font-mono font-medium ${viewMode === 'list' ? 'text-[13px]' : 'text-[11px]'} md:text-base tracking-tight ${darkMode ? 'text-white' : 'text-[#1D1D1F]'}`}>
+                                            <div className={`font-mono font-medium ${viewMode === 'list' ? 'text-[12px]' : 'text-[10.5px]'} md:text-base tracking-tight ${darkMode ? 'text-white' : 'text-[#1D1D1F]'}`}>
                                                 {item.currentPrice || item.startingPrice} €
                                             </div>
                                         </div>
