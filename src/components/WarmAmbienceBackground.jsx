@@ -99,43 +99,171 @@ const WarmAmbienceBackground = ({ darkMode }) => {
             // A. Dark Stroke (Thinner for elegance)
             ctx.lineWidth = 1.0;
             ctx.strokeStyle = 'rgba(0,0,0, 0.5)';
-            ctx.strokeText("TOUS À TABLE", 512, 115); // Adjusted Y slightly for balance
+            ctx.strokeText("TOUS À TABLE", 512, 98); // Centering Y: 98
 
             // B. Gold Fill
             ctx.fillStyle = goldGrad;
-            ctx.fillText("TOUS À TABLE", 512, 115);
+            ctx.fillText("TOUS À TABLE", 512, 98);
 
-            // 2. ICON: Hammer Badge (To the LEFT)
+            // 2. ICON: Metal Plate with Engraved Hammer (To the LEFT)
             ctx.save();
-            ctx.translate(240, 115);
+            ctx.translate(150, 128); // Y=128 (True vertical center of 256px canvas)
 
-            // A. Rounded Rectangle (Badge)
-            const badgeSize = 64;
-            const r = 16;
-            ctx.strokeStyle = goldGrad;
-            ctx.lineWidth = 2.5;
+            // A. The Metal Plate (Gold Fill)
+            const badgeSize = 96; // BIGGER (was 64)
+            const r = 14;
 
+            // Shadow for the plate
+            ctx.shadowColor = 'rgba(0,0,0, 0.6)';
+            ctx.shadowBlur = 5;
+            ctx.shadowOffsetX = 3;
+            ctx.shadowOffsetY = 3;
+
+            ctx.fillStyle = goldGrad;
             ctx.beginPath();
             ctx.roundRect(-badgeSize / 2, -badgeSize / 2, badgeSize, badgeSize, r);
-            ctx.stroke();
+            ctx.fill();
 
-            // B. Hammer Icon (Outlined)
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            ctx.lineWidth = 2.5;
-            ctx.strokeStyle = goldGrad;
+            // Remove shadow for internal details
+            ctx.shadowColor = 'transparent';
+
+            // B. Rivets (Screws) in corners
+            ctx.fillStyle = 'rgba(60, 40, 30, 0.8)'; // Dark rusty
+            const screwOffset = 36;
+            const screwRadio = 3;
+            [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([x, y]) => {
+                ctx.beginPath();
+                ctx.arc(x * screwOffset, y * screwOffset, screwRadio, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // C. The Hammer (Engraved / Stamped)
+            ctx.fillStyle = 'rgba(45, 20, 10, 0.9)';
 
             ctx.rotate(-Math.PI / 4);
-
-            // Head
             ctx.beginPath();
-            ctx.rect(-12, -18, 24, 12);
+
+            // Handle (Thick - Solid)
+            ctx.rect(-5, -6, 10, 36);
+
+            // Head (Solid Block)
+            ctx.rect(-21, -27, 42, 21);
+
+            ctx.fill();
+
+            // Add fine detail line (Light Highlight)
+            ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(0, -6); ctx.lineTo(0, 30); // Handle highlight
+            ctx.moveTo(-21, -27); ctx.lineTo(21, -27); // Head highlight
             ctx.stroke();
 
-            // Handle
+            ctx.restore();
+
+            // 3. ICON RIGHT: Metal Plate with Hand Saw (Geometric / Flaticon Style)
+            ctx.save();
+            ctx.translate(874, 128); // Symmetrical to Left (150) -> 1024 - 150 = 874
+
+            // A. The Metal Plate (Identical properties)
+            // badgeSize = 96, r = 14
+
+            // Shadow
+            ctx.shadowColor = 'rgba(0,0,0, 0.6)';
+            ctx.shadowBlur = 5;
+            ctx.shadowOffsetX = 3;
+            ctx.shadowOffsetY = 3;
+
+            ctx.fillStyle = goldGrad;
             ctx.beginPath();
-            ctx.moveTo(0, -6);
-            ctx.lineTo(0, 18);
+            ctx.roundRect(-48, -48, 96, 96, 14);
+            ctx.fill();
+
+            ctx.shadowColor = 'transparent';
+
+            // B. Rivets
+            ctx.fillStyle = 'rgba(60, 40, 30, 0.8)';
+            [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([x, y]) => {
+                ctx.beginPath();
+                ctx.arc(x * 36, y * 36, 3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // C. Hand Saw Icon (Geometric / Flaticon Style)
+            // Dark Burnt color
+            ctx.fillStyle = 'rgba(45, 20, 10, 0.9)';
+
+            // Angle: Blade down-left, Handle up-right
+            ctx.rotate(Math.PI / 6);
+
+            ctx.beginPath();
+
+            // --- BLADE ---
+            // A simple Trapezoid with teeth
+            // Spine
+            ctx.moveTo(15, -12); // Start at handle
+            ctx.lineTo(-35, -5); // Tip top (Tapered)
+
+            // Front Tip
+            ctx.lineTo(-35, 5);  // Tip bottom
+
+            // Bottom Edge (TEETH - Sharp Zigzag)
+            // Linear interpolation from Tip(-35, 5) to Heel(15, 20)
+            const startX = -35; const startY = 5;
+            const endX = 15; const endY = 20;
+            const teeth = 8;
+
+            const dx = (endX - startX) / teeth;
+            const dy = (endY - startY) / teeth;
+
+            for (let i = 0; i < teeth; i++) {
+                const cx = startX + dx * i;
+                const cy = startY + dy * i;
+                // Tooth: Vertical down -> Diagonal up
+                ctx.lineTo(cx + dx * 0.2, cy + dy + 2); // Point
+                ctx.lineTo(cx + dx, cy + dy);         // Valley
+            }
+
+            // Close Blade at Handle
+            ctx.lineTo(15, -12);
+            ctx.fill();
+
+            // --- HANDLE (Angular Geometric) ---
+            // Distinct blocky shape wrapping the end
+            ctx.beginPath();
+            ctx.moveTo(15, -15); // Top-front corner
+            ctx.lineTo(35, -15); // Top-back corner (flat)
+            ctx.lineTo(42, -5);  // Angled back top
+            ctx.lineTo(40, 20);  // Back edge down
+            ctx.lineTo(25, 25);  // Bottom-back corner
+            ctx.lineTo(15, 20);  // Bottom-front corner (Heel)
+            ctx.lineTo(10, 5);   // Inner notch? 
+            ctx.lineTo(15, -15); // Close
+            ctx.fill();
+
+            // --- HANDLE CUTOUT ---
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.beginPath();
+            // Upright rounded rect / Slot
+            const slotX = 26;
+            const slotY = -2;
+            const slotW = 6;
+            const slotH = 16;
+            ctx.roundRect(slotX, slotY, slotW, slotH, 3);
+            ctx.fill();
+            ctx.globalCompositeOperation = 'source-over';
+
+            // --- HIGHLIGHTS ---
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            // Spine highlight
+            ctx.moveTo(15, -12);
+            ctx.lineTo(-35, -5);
+            ctx.stroke();
+            // Handle highlight
+            ctx.beginPath();
+            ctx.moveTo(15, -15); ctx.lineTo(35, -15);
             ctx.stroke();
 
             ctx.restore();
@@ -144,9 +272,9 @@ const WarmAmbienceBackground = ({ darkMode }) => {
             ctx.font = 'bold italic 40px "Times New Roman", serif'; // Original font
 
             // Same crisp gold style
-            ctx.strokeText("Atelier Normand", 512, 175);
+            ctx.strokeText("Atelier Normand", 512, 158); // Centering Y: 158
             ctx.fillStyle = goldGrad;
-            ctx.fillText("Atelier Normand", 512, 175);
+            ctx.fillText("Atelier Normand", 512, 158);
 
             // Clear shadows
             ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
@@ -290,6 +418,151 @@ const WarmAmbienceBackground = ({ darkMode }) => {
         scene.add(bokehSystem);
 
 
+
+        // 6. FLOATING FURNITURE (Background Decor)
+        const furnitureGroup = new THREE.Group();
+        scene.add(furnitureGroup);
+
+        const furnitureMat = new THREE.MeshBasicMaterial({
+            color: darkMode ? 0xffffff : 0x2d1b14, // Very Dark Wood for Light Mode
+            wireframe: true,
+            transparent: true,
+            opacity: darkMode ? 0.15 : 0.15 // Increased visibility
+        });
+
+        // Helper for consistent structural style
+        const createLeg = (x, z, h, w = 0.08) => {
+            const leg = new THREE.Mesh(new THREE.BoxGeometry(w, h, w), furnitureMat);
+            leg.position.set(x, -h / 2, z);
+            return leg;
+        };
+        const createPlank = (w, h, d, y = 0) => {
+            const plank = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), furnitureMat);
+            plank.position.y = y;
+            return plank;
+        };
+
+        const createChair = () => {
+            const g = new THREE.Group();
+            // Legs
+            const hLeg = 1.0;
+            [[-0.5, -0.5], [0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]].forEach(([x, z]) => {
+                g.add(createLeg(x, z, hLeg));
+            });
+            // Seat (Thin plank)
+            g.add(createPlank(1.2, 0.05, 1.2, 0));
+            // Backrest (Spindles)
+            const backTop = createPlank(1.2, 0.1, 0.1, 1.0);
+            backTop.position.z = -0.55;
+            g.add(backTop);
+
+            // Vertical spindles for back
+            for (let i = 1; i < 4; i++) {
+                const spLabel = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.0), furnitureMat);
+                spLabel.position.set(-0.6 + i * 0.4, 0.5, -0.55);
+                g.add(spLabel);
+            }
+
+            // Crossbars (Traverses)
+            const cb1 = createPlank(1.0, 0.04, 0.04, -0.5); cb1.position.z = -0.5;
+            const cb2 = createPlank(1.0, 0.04, 0.04, -0.5); cb2.position.z = 0.5;
+            g.add(cb1); g.add(cb2);
+
+            return g;
+        };
+
+        const createTable = () => {
+            const g = new THREE.Group();
+            // Farm Table: Thick legs, long top
+            const hLeg = 1.6;
+            [[-1.5, -0.8], [1.5, -0.8], [-1.5, 0.8], [1.5, 0.8]].forEach(([x, z]) => {
+                g.add(createLeg(x, z, hLeg, 0.15));
+            });
+            // Top
+            g.add(createPlank(3.4, 0.1, 1.8, 0));
+            // Center Traverse
+            const trav = createPlank(2.8, 0.06, 0.06, -hLeg / 2);
+            g.add(trav);
+            return g;
+        };
+
+        const createBench = () => {
+            const g = new THREE.Group();
+            const hLeg = 0.9;
+            // 6 Legs for a long bench
+            [[-2, -0.4], [0, -0.4], [2, -0.4], [-2, 0.4], [0, 0.4], [2, 0.4]].forEach(([x, z]) => {
+                g.add(createLeg(x, z, hLeg, 0.1));
+            });
+            // Top
+            g.add(createPlank(4.2, 0.08, 1.0, 0));
+            return g;
+        }
+
+        const createDresser = () => {  // "Dressoir" / Sideboard
+            const g = new THREE.Group();
+            // Body Box (Wireframe shows edges nicely)
+            const body = new THREE.Mesh(new THREE.BoxGeometry(3.0, 1.5, 1.0), furnitureMat);
+            body.position.y = 0;
+            g.add(body);
+            // Legs
+            [[-1.4, 0.4], [1.4, 0.4], [-1.4, -0.4], [1.4, -0.4]].forEach(([x, z]) => {
+                const l = createLeg(x, z, 0.5);
+                l.position.y = -1.0; // below body
+                g.add(l);
+            });
+            // Drawers (Inner Boxes)
+            const d1 = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.4, 1.02), furnitureMat);
+            d1.position.set(-0.9, 0.4, 0);
+            const d2 = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.4, 1.02), furnitureMat);
+            d2.position.set(0, 0.4, 0);
+            const d3 = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.4, 1.02), furnitureMat);
+            d3.position.set(0.9, 0.4, 0);
+            g.add(d1); g.add(d2); g.add(d3);
+
+            return g;
+        }
+
+        const furnitureItems = [];
+        // High count for dense "attic" feel
+        const itemCount = 35;
+        for (let i = 0; i < itemCount; i++) {
+            const type = Math.random();
+            let item;
+            if (type < 0.3) item = createChair();
+            else if (type < 0.55) item = createTable();
+            else if (type < 0.8) item = createBench();
+            else item = createDresser();
+
+            // Depth calculation: -50 (far) to +5 (very close)
+            // We want more items in the back, fewer in front to avoid cluttering the view
+            const zPos = -40 + Math.random() * 50; // [-40, 10]
+
+            // Parallax factor (optional logic later, for now scale)
+            // Closer items (zPos higher) -> Bigger Scale
+            // Map [-40, 10] -> Scale [0.5, 2.5]
+            const scaleFactor = THREE.MathUtils.mapLinear(zPos, -40, 10, 0.6, 2.2);
+
+            item.position.set(
+                (Math.random() - 0.5) * 90, // Wide spread
+                (Math.random() - 0.5) * 50, // Vertical spread
+                zPos
+            );
+
+            // Random rotation
+            item.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+
+            item.scale.set(scaleFactor, scaleFactor, scaleFactor);
+
+            furnitureGroup.add(item);
+            furnitureItems.push({
+                mesh: item,
+                // Speed inversely proportional to scale (mass)? Or simple random.
+                speed: (Math.random() * 0.002) + 0.0005,
+                axis: new THREE.Vector3(Math.random(), Math.random(), Math.random()).normalize()
+            });
+        }
+
+
         // 5. LIGHTING (CONTRAST & VOLUME)
         // Key concept: Low Ambient, High Directional = Drama/Relief
 
@@ -352,6 +625,13 @@ const WarmAmbienceBackground = ({ darkMode }) => {
             dustGeo.attributes.position.needsUpdate = true;
 
             bokehSystem.rotation.z = Math.sin(time * 0.1) * 0.05;
+
+            // Furniture Animation
+            furnitureGroup.rotation.y = Math.sin(time * 0.05) * 0.1;
+            furnitureItems.forEach(item => {
+                item.mesh.rotateOnAxis(item.axis, item.speed);
+                item.mesh.position.y += Math.sin(time + item.mesh.position.x) * 0.005;
+            });
 
             renderer.render(scene, camera);
         };
