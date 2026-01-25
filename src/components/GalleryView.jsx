@@ -209,9 +209,6 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                                 title="Enchères"
                             >
                                 <Gavel size={14} />
-                                <span className={`absolute -top-2.5 -left-1 text-[9px] font-black font-mono transition-colors ${filter === 'auction' ? (darkMode ? 'text-white' : 'text-stone-900') : (darkMode ? 'text-amber-500' : 'text-stone-900')}`}>
-                                    2
-                                </span>
                             </button>
                             <div className="w-px h-4 bg-stone-200 dark:bg-stone-700 mx-1 self-center opacity-50"></div>
                             <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-md transition-all ${viewMode === 'grid' ? (darkMode ? 'bg-stone-700 text-white shadow-inner' : 'bg-stone-100 text-black shadow-inner') : (darkMode ? 'text-stone-500 hover:text-stone-300' : 'text-stone-400 hover:text-stone-600')}`}>

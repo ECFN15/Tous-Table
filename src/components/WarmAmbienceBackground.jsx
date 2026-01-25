@@ -77,13 +77,33 @@ const WarmAmbienceBackground = ({ darkMode }) => {
             }
             // Branding - Burnt & Carved
             ctx.globalAlpha = 1.0;
-            ctx.fillStyle = 'rgba(20,5,0,0.85)';
-            ctx.shadowColor = 'rgba(255,255,255,0.15)'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 2; // Bevel effect
+
+            // 1. "TOUS À TABLE" - Deep Burn with Golden Hour Highlight
+            ctx.fillStyle = 'rgba(10,5,0,0.95)'; // Deep warm black
+            // Rich Amber Highlight (Sun hitting the bottom edge of the carving)
+            ctx.shadowColor = '#f59e0b'; // Amber/Gold
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetY = 2;
+
             ctx.font = '900 90px "Courier New", monospace';
             ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             ctx.fillText("TOUS À TABLE", 512, 110);
-            ctx.font = 'italic 40px "Times New Roman", serif';
-            ctx.fillStyle = 'rgba(60,30,10,0.9)';
+
+            // 2. "Atelier Normand" - Copper/Bronze Inlay style
+            ctx.font = 'bold italic 40px "Times New Roman", serif';
+
+            // Create a copper gradient for the text fill
+            const copperGrad = ctx.createLinearGradient(400, 0, 624, 0);
+            copperGrad.addColorStop(0, '#92400e'); // Darker Bronze
+            copperGrad.addColorStop(0.5, '#f59e0b'); // Bright Gold/Amber center
+            copperGrad.addColorStop(1, '#92400e');
+
+            ctx.fillStyle = copperGrad;
+            // Subtle dark drop shadow to lift the "inlay" slightly or define borders
+            ctx.shadowColor = 'rgba(0,0,0,0.5)';
+            ctx.shadowBlur = 2;
+            ctx.shadowOffsetY = 1;
+
             ctx.fillText("Atelier Normand", 512, 180);
 
             const t = new THREE.CanvasTexture(c);
