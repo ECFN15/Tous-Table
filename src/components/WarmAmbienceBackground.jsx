@@ -290,11 +290,18 @@ const WarmAmbienceBackground = ({ darkMode }) => {
         animate();
 
         const handleResize = () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
+            if (!containerRef.current) return;
+
+            const w = containerRef.current.clientWidth;
+            const h = containerRef.current.clientHeight;
+
+            camera.aspect = w / h;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(w, h);
         };
         window.addEventListener('resize', handleResize);
+        // Initial size
+        handleResize();
 
         return () => {
             cancelAnimationFrame(frame);
@@ -311,7 +318,7 @@ const WarmAmbienceBackground = ({ darkMode }) => {
     return (
         <div
             ref={containerRef}
-            className="fixed inset-0 z-0 transition-opacity duration-1000 ease-out"
+            className="fixed top-0 left-0 w-full h-[120vh] md:h-screen z-0 transition-opacity duration-1000 ease-out"
             style={{
                 background: darkMode ? '#1a120b' : '#fdf6e3'
             }}
