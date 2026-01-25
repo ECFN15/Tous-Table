@@ -688,8 +688,16 @@ const App = ({ onEnterMarketplace, darkMode }) => {
     { q: "Livrez-vous à l'international ?", a: "Oui, nous organisons l'expédition sécurisée de nos pièces dans le monde entier, avec des caisses de transport sur-mesure pour garantir une protection optimale." }
   ];
 
+  const SEO = React.lazy(() => import('./SEO'));
+
   return (
     <div ref={componentRef} className="bg-[#FAF9F6] text-[#1a1a1a] transition-colors duration-700 antialiased">
+      <React.Suspense fallback={null}>
+        <SEO
+          title="Tous à Table - Atelier d'Ébénisterie en Normandie"
+          description="Créations uniques et restauration de mobilier d'art. L'excellence du savoir-faire normand au service de votre intérieur."
+        />
+      </React.Suspense>
 
 
       {/* --- PRELOADER --- */}

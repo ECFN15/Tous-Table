@@ -2,10 +2,12 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Fonction Admin SÉCURISÉE - Un seul email autorisé (Case Insensitive)
+    // Fonction Admin SÉCURISÉE - Supporte Email (Legacy) OU Custom Claim (Recommended)
     function isArtisan() {
-      return request.auth != null && 
-             request.auth.token.email.lower() == 'matthis.fradin2@gmail.com';
+      return request.auth != null && (
+        request.auth.token.email.lower() == 'matthis.fradin2@gmail.com' ||
+        request.auth.token.admin == true
+      );
     }
 
     // Collections produits (furniture, cutting_boards, etc.)
@@ -45,7 +47,8 @@ service cloud.firestore {
 
     // Commandes - Lecture/écriture restreinte
     match /orders/{orderId} {
-      allow create: if request.auth != null;
+      // Création UNIQUEMENT via Cloud Function (createOrder) pour garantir le stock
+      allow create: if false;
       allow read, update: if request.auth != null && 
         (request.auth.uid == resource.data.userId || isArtisan());
     }

@@ -78,33 +78,78 @@ const WarmAmbienceBackground = ({ darkMode }) => {
             // Branding - Burnt & Carved
             ctx.globalAlpha = 1.0;
 
-            // 1. "TOUS À TABLE" - Deep Burn with Golden Hour Highlight
-            ctx.fillStyle = 'rgba(10,5,0,0.95)'; // Deep warm black
-            // Rich Amber Highlight (Sun hitting the bottom edge of the carving)
-            ctx.shadowColor = '#f59e0b'; // Amber/Gold
-            ctx.shadowBlur = 0;
+            // Texture for the inlay (GOLD / BRASS)
+            const goldGrad = ctx.createLinearGradient(0, 50, 0, 200);
+            goldGrad.addColorStop(0, '#8a6e3e');   // Shadowy bronze
+            goldGrad.addColorStop(0.3, '#fddb92'); // Bright shine
+            goldGrad.addColorStop(0.5, '#d4af37'); // Classic gold
+            goldGrad.addColorStop(0.8, '#fddb92'); // Shine
+            goldGrad.addColorStop(1, '#8a6e3e');   // Shadowy bronze
+
+            // 1. "TOUS À TABLE"
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            // "Plus raffiné": Reduced size (90->64px) and weight (900->Bold)
+            ctx.font = 'bold 64px "Courier New", monospace';
+
+            // Subtle Drop Shadow (clean, no heavy blur)
+            ctx.shadowColor = 'rgba(0,0,0, 0.4)';
+            ctx.shadowBlur = 2;
             ctx.shadowOffsetY = 2;
 
-            ctx.font = '900 90px "Courier New", monospace';
-            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.fillText("TOUS À TABLE", 512, 110);
+            // A. Dark Stroke (Thinner for elegance)
+            ctx.lineWidth = 1.0;
+            ctx.strokeStyle = 'rgba(0,0,0, 0.5)';
+            ctx.strokeText("TOUS À TABLE", 512, 115); // Adjusted Y slightly for balance
 
-            // 2. "Atelier Normand" - Copper/Bronze Inlay style
-            ctx.font = 'bold italic 40px "Times New Roman", serif';
+            // B. Gold Fill
+            ctx.fillStyle = goldGrad;
+            ctx.fillText("TOUS À TABLE", 512, 115);
 
-            // Create a copper gradient for the text fill
-            const copperGrad = ctx.createLinearGradient(400, 0, 624, 0);
-            copperGrad.addColorStop(0, '#92400e'); // Darker Bronze
-            copperGrad.addColorStop(0.5, '#f59e0b'); // Bright Gold/Amber center
-            copperGrad.addColorStop(1, '#92400e');
+            // 2. ICON: Hammer Badge (To the LEFT)
+            ctx.save();
+            ctx.translate(240, 115);
 
-            ctx.fillStyle = copperGrad;
-            // Subtle dark drop shadow to lift the "inlay" slightly or define borders
-            ctx.shadowColor = 'rgba(0,0,0,0.5)';
-            ctx.shadowBlur = 2;
-            ctx.shadowOffsetY = 1;
+            // A. Rounded Rectangle (Badge)
+            const badgeSize = 64;
+            const r = 16;
+            ctx.strokeStyle = goldGrad;
+            ctx.lineWidth = 2.5;
 
-            ctx.fillText("Atelier Normand", 512, 180);
+            ctx.beginPath();
+            ctx.roundRect(-badgeSize / 2, -badgeSize / 2, badgeSize, badgeSize, r);
+            ctx.stroke();
+
+            // B. Hammer Icon (Outlined)
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = goldGrad;
+
+            ctx.rotate(-Math.PI / 4);
+
+            // Head
+            ctx.beginPath();
+            ctx.rect(-12, -18, 24, 12);
+            ctx.stroke();
+
+            // Handle
+            ctx.beginPath();
+            ctx.moveTo(0, -6);
+            ctx.lineTo(0, 18);
+            ctx.stroke();
+
+            ctx.restore();
+
+            // 3. "Atelier Normand"
+            ctx.font = 'bold italic 40px "Times New Roman", serif'; // Original font
+
+            // Same crisp gold style
+            ctx.strokeText("Atelier Normand", 512, 175);
+            ctx.fillStyle = goldGrad;
+            ctx.fillText("Atelier Normand", 512, 175);
+
+            // Clear shadows
+            ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
 
             const t = new THREE.CanvasTexture(c);
             t.colorSpace = THREE.SRGBColorSpace;
@@ -151,7 +196,7 @@ const WarmAmbienceBackground = ({ darkMode }) => {
         signGroup.position.set(0, signYBase, 0);
         scene.add(signGroup);
 
-        const boxGeo = new THREE.BoxGeometry(signWidth, signHeight, 0.4);
+        const boxGeo = new THREE.PlaneGeometry(signWidth, signHeight);
         const boxMat = new THREE.MeshStandardMaterial({
             map: woodTex,
             roughness: 0.6, // More polished/waxed look
@@ -166,8 +211,8 @@ const WarmAmbienceBackground = ({ darkMode }) => {
         // Ropes
         const ropeMat = new THREE.MeshStandardMaterial({ color: 0x3e2723, roughness: 0.8 });
         const ropeGeo = new THREE.CylinderGeometry(0.04, 0.04, 20);
-        const r1 = new THREE.Mesh(ropeGeo, ropeMat); r1.position.set(-signWidth * 0.45, 10, 0);
-        const r2 = new THREE.Mesh(ropeGeo, ropeMat); r2.position.set(signWidth * 0.45, 10, 0);
+        const r1 = new THREE.Mesh(ropeGeo, ropeMat); r1.position.set(-signWidth * 0.45, 10, -0.1);
+        const r2 = new THREE.Mesh(ropeGeo, ropeMat); r2.position.set(signWidth * 0.45, 10, -0.1);
         signGroup.add(r1); signGroup.add(r2);
 
 

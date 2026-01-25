@@ -339,10 +339,10 @@ exports.shareMeta = functions.https.onRequest(async (req, res) => {
         }
     }
 
-    html = html.replace(/__OG_TITLE__/g, title);
-    html = html.replace(/__OG_DESCRIPTION__/g, description);
-    html = html.replace(/__OG_IMAGE__/g, image);
-    html = html.replace(/__OG_URL__/g, url);
+    html = html.replace(/content="Tous à Table - Made in Normandie"/g, `content="${title}"`);
+    html = html.replace(/content="Atelier d'ébénisterie d'art en Normandie. Créations uniques et sur-mesure."/g, `content="${description}"`);
+    html = html.replace(/content="https:\/\/tatmadeinnormandie.web.app\/assets\/logo.png"/g, `content="${image}"`);
+    html = html.replace(/content="https:\/\/tatmadeinnormandie.web.app"/g, `content="${url}"`);
 
     res.set('Cache-Control', 'public, max-age=300, s-maxage=600');
     res.send(html);
@@ -407,5 +407,34 @@ exports.trackShare = functions.https.onCall(async (data, context) => {
         return { success: true };
     } catch (error) {
         throw new functions.https.HttpsError('internal', "Error sharing");
+    }
+});
+
+// ============================================================
+// CLOUD FUNCTION: ADMIN ROLE (TEMPORARY SETUP TOOL)
+// ============================================================
+exports.grantAdminRole = functions.https.onCall(async (data, context) => {
+    // 1. Vérifier que l'appelant est authentifié
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'Vous devez être connecté.');
+    }
+
+    // 2. Vérifier que l'email est BIEN celui de l'admin (hardcodé pour sécurité bootstrap)
+    const email = context.auth.token.email;
+    if (email !== 'matthis.fradin2@gmail.com') {
+        throw new functions.https.HttpsError('permission-denied', 'Email non autorisé.');
+    }
+
+    try {
+        // 3. Assigner le Custom Claim { admin: true }
+        await admin.auth().setCustomUserClaims(context.auth.uid, { admin: true });
+
+        return {
+            success: true,
+            message: `Rôle Admin attribué avec succès à ${email}. Veuillez vous déconnecter/reconnecter.`
+        };
+    } catch (error) {
+        console.error('Erreur attribution rôle:', error);
+        throw new functions.https.HttpsError('internal', "Erreur interne.");
     }
 });

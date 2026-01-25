@@ -6,6 +6,7 @@ import { db, appId } from '../firebase/config';
 import { getMillis, formatTime } from '../utils/time';
 import AuctionTimer from './ui/AuctionTimer';
 import ConfettiRain from './ui/ConfettiRain';
+const SEO = React.lazy(() => import('./SEO'));
 
 // Initialiser les Cloud Functions
 const functions = getFunctions();
@@ -58,8 +59,41 @@ const ProductDetail = ({ item, user, onBack, onAddToCart }) => {
     }
   };
 
+  // --- SCHEMA.ORG (SEO) ---
+  const productSchema = useMemo(() => {
+    return {
+      "@context": "https://schema.org/",
+      "@type": "Product",
+      "name": item.name,
+      "image": images,
+      "description": item.description,
+      "brand": {
+        "@type": "Brand",
+        "name": "Tous à Table - Atelier Normand"
+      },
+      "offers": {
+        "@type": "Offer",
+        "url": `${window.location.origin}/?product=${item.id}`,
+        "priceCurrency": "EUR",
+        "price": item.currentPrice || item.startingPrice,
+        "availability": !item.sold ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+        "itemCondition": "https://schema.org/RefurbishedCondition"
+      }
+    };
+  }, [item, images]);
+
   return (
     <div className="max-w-6xl mx-auto animate-in fade-in duration-500 pb-20">
+      <React.Suspense fallback={null}>
+        <SEO
+          title={`${item.name} - Tous à Table`}
+          description={item.description || `Découvrez cette pièce unique : ${item.name}.`}
+          image={item.images?.[0] || item.imageUrl}
+          url={`/?product=${item.id}`}
+          schema={productSchema}
+        />
+      </React.Suspense>
+
       {isWinner && <ConfettiRain />}
 
       <button onClick={onBack} className="mb-8 flex items-center gap-2 text-stone-400 hover:text-stone-900 font-bold text-[10px] uppercase tracking-widest transition-colors">
@@ -69,7 +103,7 @@ const ProductDetail = ({ item, user, onBack, onAddToCart }) => {
       <div className="grid md:grid-cols-2 gap-12 lg:gap-16 text-stone-900">
         <div className="space-y-8">
           <div className="aspect-square rounded-[2.5rem] overflow-hidden bg-white border border-stone-200/60 shadow-2xl relative">
-            <img src={images[activeImg]} className="w-full h-full object-cover" alt="" />
+            <img src={images[activeImg]} className="w-full h-full object-cover" alt={item.name} />
             {item.auctionActive && (
               <div className="absolute bottom-6 left-6 bg-white/95 backdrop-blur px-4 py-2 rounded-2xl shadow-xl border border-stone-100 text-stone-900">
                 <AuctionTimer endDate={item.auctionEnd} onFinished={() => setForceWinnerCheck(true)} />
@@ -79,7 +113,7 @@ const ProductDetail = ({ item, user, onBack, onAddToCart }) => {
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide px-1">
             {images.map((img, idx) => (
               <button key={idx} onClick={() => setActiveImg(idx)} className={`w-14 h-14 rounded-xl overflow-hidden border-2 flex-shrink-0 transition-all ${activeImg === idx ? 'border-amber-500 shadow-md scale-105' : 'border-transparent opacity-60 hover:opacity-100'}`}>
-                <img src={img} className="w-full h-full object-cover" alt="" />
+                <img src={img} className="w-full h-full object-cover" alt={`${item.name} - Vue ${idx + 1}`} />
               </button>
             ))}
           </div>
@@ -102,7 +136,7 @@ const ProductDetail = ({ item, user, onBack, onAddToCart }) => {
             <div className="flex gap-2">
               <span className="bg-amber-100/50 text-amber-800 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border border-amber-200/50">Lot n°{item.id.substring(0, 4)}</span>
             </div>
-            <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-stone-900 leading-tight">{item.name}</h2>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-stone-900 leading-tight">{item.name}</h1>
           </div>
 
           <div className={`p-8 rounded-[3rem] border transition-all duration-700 ${isWinner ? 'bg-emerald-50 border-emerald-200 shadow-xl scale-[1.02]' : 'bg-white border-stone-200 shadow-xl'}`}>

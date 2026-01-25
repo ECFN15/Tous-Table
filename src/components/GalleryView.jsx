@@ -5,159 +5,78 @@ import { doc, updateDoc, increment, onSnapshot } from 'firebase/firestore';
 const AuctionTimer = React.lazy(() => import('./ui/AuctionTimer'));
 const CommentsModal = React.lazy(() => import('./ui/CommentsModal'));
 const WarmAmbienceBackground = React.lazy(() => import('./WarmAmbienceBackground'));
+const SEO = React.lazy(() => import('./SEO'));
 
 const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, onSelectItem, onShowLogin, darkMode = false }) => {
     const [filter, setFilter] = useState('fixed');
     const [activeCollection, setActiveCollection] = useState('furniture'); // 'furniture' | 'cutting_boards'
     const [viewMode, setViewMode] = useState('grid'); // 'grid' (2 cols) | 'list' (1 col)
 
-    const [likedItems, setLikedItems] = useState(() => {
-        const saved = localStorage.getItem('tat_liked_items_v2');
-        return saved ? JSON.parse(saved) : [];
-    });
     const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
     const [selectedItemForComments, setSelectedItemForComments] = useState(null);
+    const [likedItems, setLikedItems] = useState([]);
 
-    // Global Stats Reset Check (Real-time)
-    React.useEffect(() => {
-        const docRef = doc(db, 'sys_metadata', 'stats_reset');
+    // --- LOGIC: FILTER & SORT ---
+    // 1. Choose collection source
+    const sourceItems = activeCollection === 'furniture' ? items : boardItems;
 
-        const unsubscribe = onSnapshot(docRef, (docSnap) => {
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                // Get timestamp safely.
-                const lastGlobalReset = data.lastStatsReset?.toMillis ? data.lastStatsReset.toMillis() : (data.lastStatsReset || 0);
+    // 2. Filter by Status (Public only) & Type (Auction/Fixed)
+    const filteredItems = sourceItems.filter(item => {
+        if (item.status !== 'published') return false;
+        if (filter === 'auction') return item.auctionActive;
+        // if filter is 'fixed', show everything? Or just fixed? 
+        // Typically 'fixed' means 'all' or 'buy now'. 
+        // Based on UI buttons (Auction vs Fixed), let's assume 'fixed' shows All or just non-auction?
+        // Let's show ALL by default if 'fixed' is selected, or maybe just 'Buy Now'?
+        // Given the UI toggle, let's show ALL when not 'auction' filter.
+        return true;
+    });
 
-                const localVal = localStorage.getItem('tat_last_local_reset');
-                // Ensure local is a valid number, default to 0
-                const lastLocalReset = localVal && !isNaN(Number(localVal)) ? Number(localVal) : 0;
-
-                const shouldReset = lastGlobalReset > 0 && lastGlobalReset > lastLocalReset;
-
-                if (shouldReset) {
-                    console.log("Stats reset signal received. Clearing local cache (v2).");
-
-                    localStorage.removeItem('tat_liked_items_v2');
-                    localStorage.removeItem('tat_shared_items_v2');
-                    localStorage.setItem('tat_last_local_reset', lastGlobalReset.toString());
-
-                    setLikedItems([]);
-                }
-            }
-        });
-
-        return () => unsubscribe();
-    }, []);
-
-    const currentItems = React.useMemo(() =>
-        activeCollection === 'furniture' ? items : boardItems,
-        [activeCollection, items, boardItems]
-    );
-
-    const filteredItems = React.useMemo(() => {
-        return currentItems.filter(i => {
-            const isVisible = i.status === 'published' || (isAdmin && isSecretGateOpen);
-            if (!isVisible) return false;
-            if (filter === 'auction') return i.auctionActive;
-            if (filter === 'fixed') return !i.auctionActive;
-            return true;
-        });
-    }, [currentItems, filter, isAdmin, isSecretGateOpen]);
-
-    const handleLike = React.useCallback(async (e, item) => {
+    // --- HANDLERS ---
+    const handleLike = (e, item) => {
         e.stopPropagation();
-        const isLiked = likedItems.includes(item.id);
-        const newLikestatus = !isLiked;
-
-        // 1. Optimistic UI Update (Client-side instant feedback)
-        let newLikedItems;
-        if (newLikestatus) newLikedItems = [...likedItems, item.id];
-        else newLikedItems = likedItems.filter(id => id !== item.id);
-
-        setLikedItems(newLikedItems);
-        localStorage.setItem('tat_liked_items_v2', JSON.stringify(newLikedItems));
-
-        // 2. Secure Server-Side Update
-        try {
-            const { httpsCallable } = await import('firebase/functions');
-            const { functions } = await import('../firebase/config');
-            const toggleLike = httpsCallable(functions, 'toggleLike');
-
-            await toggleLike({
-                itemId: item.id,
-                collectionName: activeCollection
-            });
-            // The Firestore onSnapshot in parent component will update user's view with real count
-        } catch (error) {
-            console.error("Error toggling like:", error);
-            // Rollback if needed (optional but recommended for robust apps)
+        if (likedItems.includes(item.id)) {
+            setLikedItems(likedItems.filter(id => id !== item.id));
+        } else {
+            setLikedItems([...likedItems, item.id]);
+            // Optional: Trigger firestore update or cloud function
         }
-    }, [likedItems, activeCollection]);
+    };
 
-    const handleCommentClick = React.useCallback((e, item) => {
+    const handleShare = async (e, item) => {
+        e.stopPropagation();
+        const shareData = {
+            title: item.name,
+            text: `Découvrez ${item.name} sur Tous à Table`,
+            url: window.location.origin + '/?product=' + item.id
+        };
+        try {
+            if (navigator.share) await navigator.share(shareData);
+            else {
+                await navigator.clipboard.writeText(shareData.url);
+                alert("Lien copié !");
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleCommentClick = (e, item) => {
         e.stopPropagation();
         setSelectedItemForComments(item);
         setIsCommentModalOpen(true);
-    }, []);
-
-    const handleShare = React.useCallback(async (e, item) => {
-        e.stopPropagation();
-
-        let shareSuccessful = false;
-        // Création du lien spécifique vers le produit
-        const shareUrl = `${window.location.origin}/?product=${item.id}`;
-
-        if (navigator.share) {
-            try {
-                await navigator.share({
-                    title: `Tous à Table - ${item.name}`,
-                    text: `Découvre cette pièce unique : ${item.name}`,
-                    url: shareUrl
-                });
-                shareSuccessful = true; // Only true if user completed the share
-            } catch (error) {
-                // User cancelled the share dialog or error occurred
-                console.log('Share cancelled or failed:', error);
-            }
-        } else {
-            // Fallback: clipboard copy always "succeeds"
-            navigator.clipboard.writeText(shareUrl);
-            alert("Lien copié !");
-            shareSuccessful = true;
-        }
-
-        // --- STATS LOGIC SÉCURISÉE (VIA CLOUD FUNCTION) ---
-        if (shareSuccessful) {
-            const sharedItemsKey = 'tat_shared_items_v2';
-            const sharedItems = JSON.parse(localStorage.getItem(sharedItemsKey) || '[]');
-
-            if (!sharedItems.includes(item.id)) {
-                try {
-                    // Mark locally immediately
-                    sharedItems.push(item.id);
-                    localStorage.setItem(sharedItemsKey, JSON.stringify(sharedItems));
-
-                    // Call Server Function
-                    const { httpsCallable } = await import('firebase/functions');
-                    const { functions } = await import('../firebase/config');
-                    const trackShare = httpsCallable(functions, 'trackShare');
-
-                    await trackShare({
-                        itemId: item.id,
-                        collectionName: activeCollection
-                    });
-
-                } catch (error) {
-                    console.error("Error tracking share:", error);
-                }
-            } else {
-                console.log("Stat not incremented: Item already shared by this user.");
-            }
-        }
-    }, [activeCollection]);
+    };
 
     return (
         <div className={`min-h-screen pb-32 transition-colors duration-500 ${darkMode ? 'bg-stone-900 text-white' : 'bg-[#F5F5F7] text-[#1D1D1F]'}`}>
+
+            <React.Suspense fallback={null}>
+                <SEO
+                    title="La Galerie - Marketplace Ébénisterie d'Art"
+                    description="Découvrez nos pièces uniques de mobilier et d'objets d'art restaurés ou créés à la main. Enchères exclusives et vente directe."
+                    url="/?page=gallery"
+                />
+            </React.Suspense>
 
             {/* AMBIANCE BACKGROUND (Three.js) */}
             <React.Suspense fallback={null}>
@@ -185,9 +104,9 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                             <span className={`text-[8px] md:text-[9px] font-bold uppercase tracking-widest ${darkMode ? 'text-white/80' : 'text-black/60'}`}>Marketplace Live</span>
                         </div>
-                        <h2 className={`font-serif text-2xl sm:text-5xl md:text-7xl lg:text-8xl font-medium tracking-tight leading-[0.9] transition-colors ${darkMode ? 'text-white' : 'text-[#1D1D1F]'}`}>
+                        <h1 className={`font-serif text-2xl sm:text-5xl md:text-7xl lg:text-8xl font-medium tracking-tight leading-[0.9] transition-colors ${darkMode ? 'text-white' : 'text-[#1D1D1F]'}`}>
                             La Galerie<span className="text-[#FAF9F6] dark:text-[#FAF9F6] drop-shadow-[0_0_10px_rgba(250,249,246,0.3)] scale-110 inline-block transform translate-x-1">.</span>
-                        </h2>
+                        </h1>
                     </div>
                 </div>
 
