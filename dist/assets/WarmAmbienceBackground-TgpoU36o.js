@@ -1,0 +1,33 @@
+import{r as A,C as r,k as de,F as le,P as he,W as ue,l as we,m as me,n as pe,p as fe,t as j,B as ge,M as C,G as ve,v as be,w as N,x as ye,y as V,z as P,A as Me,N as xe,D as I,E as Se,H as Ae,I as Ce,j as Pe,J as ze,K as Y}from"./index-CgdrAXvv.js";const Ee=({darkMode:n})=>{const c=A.useRef(null),v=A.useRef({x:0,y:0});return A.useEffect(()=>{const l=w=>{v.current.x=w.clientX/window.innerWidth*2-1,v.current.y=-(w.clientY/window.innerHeight)*2+1};return window.addEventListener("mousemove",l),()=>window.removeEventListener("mousemove",l)},[]),A.useEffect(()=>{if(!c.current)return;const l={bgGradientTop:n?new r("#1a120b"):new r("#fdf6e3"),bgGradientBot:n?new r("#2d1b14"):new r("#d4a373"),firefly:n?new r("#fbbf24"):new r("#b45309"),dust:n?new r("#ffffff"):new r("#78350f"),foliage:n?new r("#022c22"):new r("#422006")},w=window.innerWidth<768,O=Math.min(window.devicePixelRatio,w?1.5:2),i=new de,X=n?1708555:16577766,q=n?.035:.012;i.fog=new le(X,q);const o=new he(45,window.innerWidth/window.innerHeight,.1,100);o.position.set(0,0,20);const d=new ue({alpha:!0,antialias:!0,powerPreference:"high-performance"});d.setSize(window.innerWidth,window.innerHeight),d.setPixelRatio(O),d.shadowMap.enabled=!0,d.shadowMap.type=we,c.current.appendChild(d.domElement);const J=(()=>{const t=document.createElement("canvas");t.width=1024,t.height=256;const e=t.getContext("2d"),f=e.createLinearGradient(0,0,0,256);f.addColorStop(0,"#5d4037"),f.addColorStop(1,"#3e2723"),e.fillStyle=f,e.fillRect(0,0,1024,256),e.globalAlpha=.25,e.strokeStyle="#100500",e.lineWidth=3;for(let s=0;s<150;s++){e.beginPath();const a=Math.random()*256;e.moveTo(0,a),e.bezierCurveTo(300,a+Math.random()*100-50,700,a+Math.random()*100-50,1024,a),e.stroke()}e.globalAlpha=1,e.fillStyle="rgba(20,5,0,0.85)",e.shadowColor="rgba(255,255,255,0.15)",e.shadowBlur=0,e.shadowOffsetY=2,e.font='900 90px "Courier New", monospace',e.textAlign="center",e.textBaseline="middle",e.fillText("TOUS À TABLE",512,110),e.font='italic 40px "Times New Roman", serif',e.fillStyle="rgba(60,30,10,0.9)",e.fillText("Atelier Normand",512,180);const u=new me(t);return u.colorSpace=pe,u})(),K=new fe(60,32,32),Q=new j({side:ge,vertexShader:"varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",fragmentShader:`
+                uniform vec3 top, bot;
+                varying vec2 vUv;
+                void main() {
+                    // Rich Gradient
+                    vec3 col = mix(bot, top, vUv.y);
+                    
+                    // Vignette for depth (Darker corners)
+                    vec2 uv = vUv * 2.0 - 1.0;
+                    float dist = length(uv);
+                    // Subtle darkening at edges
+                    col *= smoothstep(1.5, 0.4, dist); 
+                    
+                    gl_FragColor = vec4(col, 1.0);
+                }
+            `,uniforms:{top:{value:l.bgGradientTop},bot:{value:l.bgGradientBot}}}),Z=new C(K,Q);i.add(Z);const R=w?.53:1,z=10*R,$=2.8*R,F=w?9.6:5.5,h=new ve;h.position.set(0,F,0),i.add(h);const ee=new be(z,$,.4),te=new N({map:J,roughness:.6,metalness:.1,color:16777215}),b=new C(ee,te);b.castShadow=!0,b.receiveShadow=!0,h.add(b);const L=new N({color:4073251,roughness:.8}),B=new ye(.04,.04,20),W=new C(B,L);W.position.set(-z*.45,10,0);const U=new C(B,L);U.position.set(z*.45,10,0),h.add(W),h.add(U);const y=150,g=new V,M=new Float32Array(y*3),p=new Float32Array(y*3);for(let t=0;t<y;t++)M[t*3]=(Math.random()-.5)*50,M[t*3+1]=(Math.random()-.5)*40,M[t*3+2]=(Math.random()-.5)*30,p[t*3]=Math.random()*10,p[t*3+1]=.2+Math.random()*.3,p[t*3+2]=Math.random();g.setAttribute("position",new P(M,3)),g.setAttribute("aData",new P(p,3));const oe=new Me({color:l.dust,size:.25,transparent:!0,opacity:.8,blending:xe,sizeAttenuation:!0}),ne=new I(g,oe);i.add(ne);const G=20,E=new V,x=new Float32Array(G*3),k=new Float32Array(G);for(let t=0;t<G;t++){const e=Math.random()>.5?1:-1;x[t*3]=e*(12+Math.random()*12),x[t*3+1]=(Math.random()-.5)*25,x[t*3+2]=14+Math.random()*4,k[t]=15+Math.random()*25}E.setAttribute("position",new P(x,3)),E.setAttribute("size",new P(k,1));const ae=new j({uniforms:{color:{value:l.foliage},opacity:{value:.5}},transparent:!0,depthWrite:!1,vertexShader:`
+                attribute float size;
+                void main() {
+                    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                    gl_Position = projectionMatrix * mvPosition;
+                    gl_PointSize = size * (300.0 / -mvPosition.z);
+                }
+            `,fragmentShader:`
+                uniform vec3 color;
+                uniform float opacity;
+                void main() {
+                    vec2 coord = gl_PointCoord - vec2(0.5);
+                    float d = length(coord);
+                    if(d > 0.5) discard;
+                    float blur = smoothstep(0.5, 0.0, d);
+                    gl_FragColor = vec4(color, blur * opacity);
+                }
+            `}),D=new I(E,ae);i.add(D);const ie=.4,se=new Se(16777215,ie);i.add(se);const re=n?1.5:2.8,m=new Ae(l.firefly,re);m.position.set(12,15,12),m.castShadow=!0,m.shadow.mapSize.width=2048,m.shadow.mapSize.height=2048,m.shadow.bias=-1e-4,m.shadow.radius=2,i.add(m);const S=new Ce(16775910,3);S.position.set(-10,10,15),S.target=b,S.castShadow=!0,i.add(S);const ce=new ze;c.current.style.opacity=0,setTimeout(()=>c.current.style.opacity=1,100);let H;const _=()=>{H=requestAnimationFrame(_);const t=ce.getElapsedTime(),e=v.current.x*.8,f=v.current.y*.8;o.position.x+=(e-o.position.x)*.03,o.position.y+=(f-o.position.y)*.03,o.lookAt(0,w?4:2,0),h.position.y=F+Math.sin(t*.4)*.15,h.rotation.z=Math.sin(t*.25)*.015,h.rotation.x=Math.sin(t*.2)*.03;const u=g.attributes.position.array;for(let s=0;s<y;s++){const a=s*3;u[a+1]+=p[s*3+1]*.02,u[a+1]>20&&(u[a+1]=-20),u[a]+=Math.sin(t+p[s*3])*.01}g.attributes.position.needsUpdate=!0,D.rotation.z=Math.sin(t*.1)*.05,d.render(i,o)};_();const T=()=>{if(!c.current)return;const t=c.current.clientWidth,e=c.current.clientHeight;if(o.aspect=t/e,t<768){const s=2*Math.atan(Math.tan(Y.degToRad(45)/2)*.5625),a=2*Math.atan(Math.tan(s/2)/o.aspect);o.fov=Y.radToDeg(a)}else o.fov=45;o.updateProjectionMatrix(),d.setSize(t,e)};return window.addEventListener("resize",T),T(),()=>{var t;cancelAnimationFrame(H),window.removeEventListener("resize",T),(t=c.current)==null||t.removeChild(d.domElement),d.dispose(),i.traverse(e=>{e.geometry&&e.geometry.dispose(),e.material&&e.material.dispose()})}},[n]),Pe.jsx("div",{ref:c,className:"fixed top-0 left-0 w-full h-[120vh] md:h-screen z-0 transition-opacity duration-1000 ease-out",style:{background:n?"#1a120b":"#fdf6e3"}})};export{Ee as default};

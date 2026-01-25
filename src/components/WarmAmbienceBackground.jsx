@@ -296,6 +296,26 @@ const WarmAmbienceBackground = ({ darkMode }) => {
             const h = containerRef.current.clientHeight;
 
             camera.aspect = w / h;
+
+            // FIX: Lock Horizontal FOV on mobile to ensure the 'pancarte' (sign) size stays consistent 
+            // regardless of vertical safe-areas/browser-bars (Samsung vs Apple).
+            // Currently, changing height changes the object size with fixed Vertical FOV. 
+            // We switch to fixed Horizontal FOV logic for mobile.
+            if (w < 768) {
+                const targetAspect = 9 / 16; // Standard Mobile Baseline
+                const baseVFov = 45;
+
+                // Calculate ideal Horizontal FOV in radians
+                const baseHFovRad = 2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(baseVFov) / 2) * targetAspect);
+
+                // Calculate new Vertical FOV needed to match that Horizontal FOV at the current Aspect Ratio
+                const newVFovRad = 2 * Math.atan(Math.tan(baseHFovRad / 2) / camera.aspect);
+
+                camera.fov = THREE.MathUtils.radToDeg(newVFovRad);
+            } else {
+                camera.fov = 45; // Reset to default for desktop
+            }
+
             camera.updateProjectionMatrix();
             renderer.setSize(w, h);
         };
