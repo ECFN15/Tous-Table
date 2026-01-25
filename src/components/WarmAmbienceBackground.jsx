@@ -124,7 +124,8 @@ const WarmAmbienceBackground = ({ darkMode }) => {
         const signScale = isMobile ? 0.53 : 1.0;
         const signWidth = 10 * signScale;
         const signHeight = 2.8 * signScale;
-        const signYBase = isMobile ? 9.6 : 5.5;
+        // Make signYBase mutable to adjust for dynamic FOV changes
+        let signYBase = isMobile ? 9.6 : 5.5;
 
         const signGroup = new THREE.Group();
         signGroup.position.set(0, signYBase, 0);
@@ -270,7 +271,9 @@ const WarmAmbienceBackground = ({ darkMode }) => {
             camera.position.y += (targetY - camera.position.y) * 0.03;
             camera.lookAt(0, isMobile ? 4 : 2, 0);
 
-            signGroup.position.y = signYBase + Math.sin(time * 0.4) * 0.15;
+            // Use the dynamic signYBase
+            // Reduced amplitude from 0.15 to 0.08 to keep it more stable
+            signGroup.position.y = signYBase + Math.sin(time * 0.5) * 0.08;
             signGroup.rotation.z = Math.sin(time * 0.25) * 0.015;
             signGroup.rotation.x = Math.sin(time * 0.2) * 0.03;
 
@@ -312,8 +315,38 @@ const WarmAmbienceBackground = ({ darkMode }) => {
                 const newVFovRad = 2 * Math.atan(Math.tan(baseHFovRad / 2) / camera.aspect);
 
                 camera.fov = THREE.MathUtils.radToDeg(newVFovRad);
+
+                // --- DYNAMIC POSITIONING CORRECTION ---
+                // When FOV increases (to adapt to a taller screen without browser bars), the top of the viewport moves UP.
+                // We need to move the sign UP to keep it at the same relative visual distance from the top header.
+
+                // 1. Calculate World Y of the top edge of frustum at depth 0
+                // Use the LookAt target Y to factor in camera tilt.
+                // Mobile LookAt Y = 4. Camera Y = 0. Camera Z = 20.
+                // Angle to LookAt target = atan(4/20) approx 11.3 deg.
+                const lookAtY = 4;
+                const camZ = 20;
+
+                // Angle of the camera center relative to flat horizon
+                const tiltAngle = Math.atan(lookAtY / camZ);
+
+                // Top edge angle = tiltAngle + half_vertical_fov
+                const topEdgeAngle = tiltAngle + (newVFovRad / 2);
+
+                // Top Edge Y Position relative to camera (Y=0)
+                const topEdgeY = camZ * Math.tan(topEdgeAngle);
+
+                // 2. Define the desired "Margin" from top. 
+                // Based on initial calibration: FOV 45, Aspect 9/16 => TopEdge ~13.4. signYBase ~9.6.
+                // Adjusted offset to 4.0 to raise it slightly above the buttons.
+                const desiredOffsetFromTop = 4.0;
+
+                signYBase = topEdgeY - desiredOffsetFromTop;
+
             } else {
                 camera.fov = 45; // Reset to default for desktop
+                // Desktop logic if needed, currently assumes fixed behavior
+                // signYBase is initialized to 5.5 and doesn't need dynamic shift as FOV is constant
             }
 
             camera.updateProjectionMatrix();
