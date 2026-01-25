@@ -272,8 +272,8 @@ const WarmAmbienceBackground = ({ darkMode }) => {
             camera.lookAt(0, isMobile ? 4 : 2, 0);
 
             // Use the dynamic signYBase
-            // Reduced amplitude from 0.15 to 0.08 to keep it more stable
-            signGroup.position.y = signYBase + Math.sin(time * 0.5) * 0.08;
+            // Reduced amplitude further to 0.05 for very subtle floating
+            signGroup.position.y = signYBase + Math.sin(time * 0.5) * 0.05;
             signGroup.rotation.z = Math.sin(time * 0.25) * 0.015;
             signGroup.rotation.x = Math.sin(time * 0.2) * 0.03;
 
@@ -338,8 +338,8 @@ const WarmAmbienceBackground = ({ darkMode }) => {
 
                 // 2. Define the desired "Margin" from top. 
                 // Based on initial calibration: FOV 45, Aspect 9/16 => TopEdge ~13.4. signYBase ~9.6.
-                // Adjusted offset to 4.0 to raise it slightly above the buttons.
-                const desiredOffsetFromTop = 4.0;
+                // Adjusted offset to 4.3: The "Sweet Spot" between covering text (4.0) and hiding behind buttons (4.5).
+                const desiredOffsetFromTop = 4.3;
 
                 signYBase = topEdgeY - desiredOffsetFromTop;
 
