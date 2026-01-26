@@ -199,21 +199,13 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         overwrite: true
       })
 
-        // Étape 2: Le fond du menu devient totalement opaque (Noir d'abord pour masquer le fond)
+        // Étape 2: Le fond du menu devient totalement opaque (Noir pur)
         .to('.menu-overlay', {
           backgroundColor: '#000',
           opacity: 1,
           duration: 0.4,
           ease: "power2.inOut"
-        }, "-=0.4")
-
-        // Étape 3: Transition douce du noir vers la couleur cible (fdf6e3)
-        // On allonge un peu cette phase pour laisser la Marketplace se stabiliser en z-index 0
-        .to('.menu-overlay', {
-          backgroundColor: darkMode ? '#1a120b' : '#fdf6e3',
-          duration: 1.2,
-          ease: "expo.inOut"
-        });
+        }, "-=0.4");
 
       return;
     }

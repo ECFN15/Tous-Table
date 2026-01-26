@@ -72,15 +72,23 @@ export default function App() {
 
   // Transition State
   const [isPreparingGallery, setIsPreparingGallery] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const startGalleryTransition = () => {
     setIsPreparingGallery(true);
+    setIsTransitioning(true);
   };
 
   const completeGalleryTransition = () => {
+    // We swap the view while the curtain is opaque
     setView('gallery');
     setIsPreparingGallery(false);
     window.scrollTo(0, 0);
+
+    // Lift the curtain after a short delay to ensure rendering
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, 400);
   };
 
   // Deep Linking State
@@ -302,6 +310,8 @@ export default function App() {
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#FAF9F6]"><div className="w-10 h-10 border-[3px] border-stone-200 border-t-stone-900 rounded-full animate-spin"></div></div>;
 
+  // Active Admin List
+
 
 
   // Active Admin List
@@ -310,8 +320,15 @@ export default function App() {
   const cartTotal = cartItems.reduce((sum, item) => sum + (item.price || 0), 0);
 
   return (
-    <div className={`min-h-screen font-sans selection:bg-amber-100 transition-colors duration-500 ${darkMode ? 'bg-stone-900 text-white' : 'bg-[#fdf6e3] text-stone-900'}`}>
-      {loading && <div className="fixed inset-0 z-[999] flex items-center justify-center bg-[#fdf6e3]"><div className="w-10 h-10 border-[3px] border-stone-200 border-t-stone-900 rounded-full animate-spin"></div></div>}
+    <div className={`min-h-screen font-sans selection:bg-amber-100 transition-colors duration-500 ${darkMode ? 'bg-stone-900 text-white' : 'bg-[#FAF9F6] text-stone-900'}`}>
+
+      {/* RIDEAU DE TRANSITION GLOBAL (Masque le switch de page) */}
+      <div
+        className={`fixed inset-0 z-[2000] pointer-events-none transition-opacity duration-700 ease-in-out ${isTransitioning ? 'opacity-100' : 'opacity-0'}`}
+        style={{ backgroundColor: darkMode ? '#111' : '#000' }}
+      ></div>
+
+      {loading && <div className="fixed inset-0 z-[999] flex items-center justify-center bg-[#FAF9F6]"><div className="w-10 h-10 border-[3px] border-stone-200 border-t-stone-900 rounded-full animate-spin"></div></div>}
 
       {/* COMPOSANT PANIER - Global (Disponible dès que la navbar est visible) */}
       <CartSidebar

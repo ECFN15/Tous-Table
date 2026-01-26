@@ -23,13 +23,13 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
     // 2. Filter by Status (Public only) & Type (Auction/Fixed)
     const filteredItems = sourceItems.filter(item => {
         if (item.status !== 'published') return false;
-        if (filter === 'auction') return item.auctionActive;
-        // if filter is 'fixed', show everything? Or just fixed? 
-        // Typically 'fixed' means 'all' or 'buy now'. 
-        // Based on UI buttons (Auction vs Fixed), let's assume 'fixed' shows All or just non-auction?
-        // Let's show ALL by default if 'fixed' is selected, or maybe just 'Buy Now'?
-        // Given the UI toggle, let's show ALL when not 'auction' filter.
-        return true;
+
+        // Séparation stricte : Enchères vs Vente Directe
+        if (filter === 'auction') {
+            return item.auctionActive === true;
+        } else {
+            return !item.auctionActive;
+        }
     });
 
     // --- HANDLERS ---
@@ -68,7 +68,7 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
     };
 
     return (
-        <div className={`min-h-screen pb-32 transition-colors duration-500 ${darkMode ? 'bg-stone-900 text-white' : 'bg-[#fdf6e3] text-[#1D1D1F]'}`}>
+        <div className={`min-h-screen pb-32 transition-colors duration-500 ${darkMode ? 'bg-stone-900 text-white' : 'bg-[#FAF9F6] text-[#1D1D1F]'}`}>
 
             <React.Suspense fallback={null}>
                 <SEO

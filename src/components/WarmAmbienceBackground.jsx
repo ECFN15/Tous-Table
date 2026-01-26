@@ -25,7 +25,7 @@ const WarmAmbienceBackground = ({ darkMode }) => {
         const PALETTE = {
             // Light: "Golden Hour Workshop" - Rich, Saturated, Authentic
             // We move away from "Pale White" to "Warm Amber/Honey" and "Deep Earth".
-            bgGradientTop: darkMode ? new THREE.Color('#1a120b') : new THREE.Color('#fdf6e3'), // Warm Solar White
+            bgGradientTop: darkMode ? new THREE.Color('#1a120b') : new THREE.Color('#FAF9F6'), // Ivory White
             bgGradientBot: darkMode ? new THREE.Color('#2d1b14') : new THREE.Color('#d4a373'), // Deep Latte/Earth (Grounding)
 
             // Particles/Magic
@@ -322,6 +322,7 @@ const WarmAmbienceBackground = ({ darkMode }) => {
 
         const signGroup = new THREE.Group();
         signGroup.position.set(0, signYBase, 0);
+        signGroup.visible = window.innerWidth >= 1700;
         scene.add(signGroup);
 
         const boxGeo = new THREE.PlaneGeometry(signWidth, signHeight);
@@ -694,6 +695,9 @@ const WarmAmbienceBackground = ({ darkMode }) => {
                 // signYBase is initialized to 5.5 and doesn't need dynamic shift as FOV is constant
             }
 
+            // DYNAMIC VISIBILITY: Only show sign if width >= 1700px
+            signGroup.visible = w >= 1700;
+
             camera.updateProjectionMatrix();
             renderer.setSize(w, h);
         };
@@ -718,7 +722,7 @@ const WarmAmbienceBackground = ({ darkMode }) => {
             ref={containerRef}
             className="fixed top-0 left-0 w-full h-[120vh] md:h-screen z-0 transition-opacity duration-1000 ease-out"
             style={{
-                background: darkMode ? '#1a120b' : '#fdf6e3'
+                background: darkMode ? '#1a120b' : '#FAF9F6'
             }}
         />
     );
