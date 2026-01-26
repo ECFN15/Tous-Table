@@ -7,6 +7,8 @@ import {
 import { collection, getDocs, writeBatch, doc, onSnapshot, query, orderBy, limit, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db, appId } from '../firebase/config';
 import { getMillis } from '../utils/time';
+import * as XLSX from 'xlsx';
+
 
 const AdminDashboard = ({ user, darkMode = false }) => {
     const [stats, setStats] = useState({
@@ -22,6 +24,10 @@ const AdminDashboard = ({ user, darkMode = false }) => {
     const [loading, setLoading] = useState(true);
     const [resetting, setResetting] = useState(false);
     const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+    const [isOrderResetModalOpen, setIsOrderResetModalOpen] = useState(false);
+    const [resettingOrders, setResettingOrders] = useState(false);
+    const [allOrders, setAllOrders] = useState([]);
+
 
     useEffect(() => {
         // --- AUTO-SETUP ADMIN ROLE (TEMPORARY) ---
@@ -87,6 +93,7 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                     .slice(0, 5);
 
                 setTrendingItems(trending);
+                setAllOrders(orders);
                 setStats({
                     totalRevenue: revenue,
                     totalOrders: orderCount,
@@ -96,6 +103,7 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                     totalShares: shares
                 });
                 setLoading(false);
+
 
             } catch (error) {
                 console.error("Error fetching dashboard data:", error);
@@ -133,8 +141,7 @@ const AdminDashboard = ({ user, darkMode = false }) => {
             // 2. Commit the reset of counters first
             await batch.commit();
 
-            // 3. Delete ALL comments in sub-collections (Batched in chunks of 500 ideally, but doing simpler here for now)
-            // Note: Client-side deletion of subcollections is expensive. For a unified "Reset", we must iterate them.
+            // 3. Delete ALL comments in sub-collections
             const deleteCommentsForDocs = async (docs, collectionName) => {
                 for (const d of docs) {
                     const commentsRef = collection(db, 'artifacts', appId, 'public', 'data', collectionName, d.id, 'comments');
@@ -152,22 +159,19 @@ const AdminDashboard = ({ user, darkMode = false }) => {
             await deleteCommentsForDocs(furnitureSnap.docs, 'furniture');
             await deleteCommentsForDocs(boardSnap.docs, 'cutting_boards');
 
-            // 4. Force clear LOCAL STORAGE for the Admin (helps visualize the reset immediately)
+            // 4. Force clear LOCAL STORAGE
             localStorage.removeItem('tat_liked_items_v2');
             localStorage.removeItem('tat_shared_items_v2');
 
-            // 5. [NEW] Set Global Reset Signal for all other users
-            // This writes a timestamp that other clients will check to know if they should wipe their local cache
-            // 5. [NEW] Set Global Reset Signal for all other users
-            // This writes a timestamp that other clients will check to know if they should wipe their local cache
+            // 5. Set Global Reset Signal
             await setDoc(doc(db, 'sys_metadata', 'stats_reset'), {
                 lastStatsReset: serverTimestamp(),
                 resetBy: user?.email || 'admin'
             }, { merge: true });
 
-            // Update local state to reflect zero
+            // Update local state
             setStats(prev => ({ ...prev, totalLikes: 0, totalComments: 0, totalShares: 0 }));
-            setTrendingItems([]); // No more trending if all 0
+            setTrendingItems([]);
 
             setIsResetModalOpen(false);
             alert(`Succès ! ${count} articles ont été réinitialisés.`);
@@ -178,6 +182,75 @@ const AdminDashboard = ({ user, darkMode = false }) => {
             setResetting(false);
         }
     };
+
+    const handleResetOrdersClick = () => {
+        setIsOrderResetModalOpen(true);
+    };
+
+
+    const exportToExcel = (orders) => {
+        const data = orders.map(order => ({
+            'ID Commande': order.id,
+            'Date': new Date(getMillis(order.createdAt)).toLocaleString(),
+            'Client': order.shipping?.fullName || 'N/A',
+            'Email': order.shipping?.email || 'N/A',
+            'Téléphone': order.shipping?.phone || 'N/A',
+            'Adresse': `${order.shipping?.address || ''}, ${order.shipping?.city || ''} ${order.shipping?.postalCode || ''}`,
+            'Total': `${order.total} €`,
+            'Statut': order.status || 'N/A',
+            'Articles': order.items?.map(item => `${item.name} (x${item.quantity})`).join(', ') || ''
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Commandes");
+        XLSX.writeFile(wb, `Recapitulatif_Commandes_${new Date().toISOString().split('T')[0]}.xlsx`);
+    };
+
+    const confirmResetOrders = async () => {
+        setResettingOrders(true);
+        try {
+            // 1. Export to Excel first
+            exportToExcel(allOrders);
+
+            // 2. Batch delete all orders
+            const ordersSnapshot = await getDocs(collection(db, 'orders'));
+            const chunks = [];
+            let currentChunk = writeBatch(db);
+            let count = 0;
+
+            for (const doc of ordersSnapshot.docs) {
+                currentChunk.delete(doc.ref);
+                count++;
+                if (count % 500 === 0) {
+                    chunks.push(currentChunk.commit());
+                    currentChunk = writeBatch(db);
+                }
+            }
+            if (count % 500 !== 0) chunks.push(currentChunk.commit());
+
+            await Promise.all(chunks);
+
+            // 3. Reset local state
+            setStats(prev => ({
+                ...prev,
+                totalRevenue: 0,
+                totalOrders: 0,
+                averageOrderValue: 0
+            }));
+            setRecentOrders([]);
+            setAllOrders([]);
+            setIsOrderResetModalOpen(false);
+
+            alert(`Succès ! ${count} commandes ont été sauvegardées en Excel et supprimées de la base.`);
+        } catch (error) {
+            console.error("Order reset error:", error);
+            alert("Erreur lors de la réinitialisation des commandes :" + error.message);
+        } finally {
+            setResettingOrders(false);
+        }
+    };
+
 
     if (loading) return <div className="p-12 text-center text-stone-400 font-bold animate-pulse">Chargement des données...</div>;
 
@@ -297,16 +370,28 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                             <h3 className="text-sm font-black uppercase tracking-widest">Zone de Danger</h3>
                         </div>
                         <p className={`text-xs mb-6 leading-relaxed ${darkMode ? 'text-red-300' : 'text-red-400'}`}>
-                            Réinitialiser les compteurs de likes, commentaires et partages pour <strong>tous</strong> les articles. Cette action est irréversible.
+                            Gestion critique des données : Réinitialisation des interactions (likes/coms) ou purge archivée des commandes. Ces actions sont <strong>définitives</strong>.
                         </p>
-                        <button
-                            onClick={handleResetClick}
-                            disabled={resetting}
-                            className={`w-full py-4 border rounded-xl font-black uppercase text-[10px] tracking-widest transition-all shadow-sm flex items-center justify-center gap-2 ${darkMode ? 'bg-stone-800 text-red-400 border-red-800 hover:bg-red-500 hover:text-white' : 'bg-white text-red-500 border-red-100 hover:bg-red-500 hover:text-white'}`}
-                        >
-                            {resetting ? <RefreshCw size={14} className="animate-spin" /> : <RefreshCw size={14} />}
-                            {resetting ? 'Réinitialisation...' : 'Réinitialiser Stats'}
-                        </button>
+                        <div className="space-y-3">
+                            <button
+                                onClick={handleResetClick}
+                                disabled={resetting || resettingOrders}
+                                className={`w-full py-4 border rounded-xl font-black uppercase text-[10px] tracking-widest transition-all shadow-sm flex items-center justify-center gap-2 ${darkMode ? 'bg-stone-800 text-red-400 border-red-800 hover:bg-red-500 hover:text-white' : 'bg-white text-red-500 border-red-100 hover:bg-red-500 hover:text-white'}`}
+                            >
+                                {resetting ? <RefreshCw size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+                                {resetting ? 'Réinitialisation...' : 'Réinitialiser Stats'}
+                            </button>
+
+                            <button
+                                onClick={handleResetOrdersClick}
+                                disabled={resetting || resettingOrders}
+                                className={`w-full py-4 border rounded-xl font-black uppercase text-[10px] tracking-widest transition-all shadow-sm flex items-center justify-center gap-2 ${darkMode ? 'bg-stone-800 text-red-400 border-red-800 hover:bg-red-500 hover:text-white' : 'bg-white text-red-500 border-red-100 hover:bg-red-500 hover:text-white'}`}
+                            >
+                                {resettingOrders ? <RefreshCw size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+                                {resettingOrders ? 'Archivage & Purge Commandes' : 'Réinitialiser Commandes'}
+                            </button>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -343,6 +428,40 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                     </div>
                 </div>
             )}
+            {/* ORDER RESET CONFIRMATION MODAL */}
+            {isOrderResetModalOpen && (
+
+                <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200 ${darkMode ? 'bg-black/70' : 'bg-stone-900/50'}`}>
+                    <div className={`rounded-[2rem] p-8 max-w-sm w-full shadow-2xl border space-y-6 text-center animate-in zoom-in-95 duration-200 ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
+                        <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto text-red-500 ${darkMode ? 'bg-red-900/30' : 'bg-red-50'}`}>
+                            <AlertTriangle size={32} />
+                        </div>
+                        <div>
+                            <h3 className={`text-xl font-black mb-2 ${darkMode ? 'text-white' : 'text-stone-900'}`}>Purge des Commandes</h3>
+                            <p className={`text-sm leading-relaxed ${darkMode ? 'text-stone-300' : 'text-stone-500'}`}>
+                                Cette action va <span className={`font-bold ${darkMode ? 'text-white' : 'text-stone-900'}`}>EXPORTER</span> toutes les commandes en Excel, puis les <span className={`font-bold ${darkMode ? 'text-white' : 'text-stone-900'}`}>SUPPRIMER</span> définitivement de la base.
+                            </p>
+                        </div>
+                        <div className="flex flex-col gap-3">
+                            <button
+                                onClick={confirmResetOrders}
+                                disabled={resettingOrders}
+                                className="w-full py-4 bg-red-500 text-white rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-red-600 transition-colors shadow-lg shadow-red-200 flex items-center justify-center gap-2"
+                            >
+                                {resettingOrders ? <RefreshCw size={14} className="animate-spin" /> : 'Exporter & Tout Effacer'}
+                            </button>
+                            <button
+                                onClick={() => setIsOrderResetModalOpen(false)}
+                                disabled={resettingOrders}
+                                className={`w-full py-4 rounded-xl font-bold uppercase text-xs tracking-widest transition-colors ${darkMode ? 'bg-stone-700 text-stone-400 hover:text-stone-200' : 'bg-white text-stone-400 hover:text-stone-600'}`}
+                            >
+                                Annuler
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 };

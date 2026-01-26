@@ -188,24 +188,21 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         }
       });
 
-      // Étape 1: Les liens s'envolent et s'effacent (Staggered)
+      // Sortie Éclair (Snappy Exit)
       tl.to('.menu-link', {
-        y: -150,
+        y: -100,
         opacity: 0,
-        scale: 0.9,
-        duration: 0.8,
-        stagger: 0.1,
-        ease: "power4.in",
+        duration: 0.4,
+        stagger: 0.05,
+        ease: "expo.in",
         overwrite: true
       })
-
-        // Étape 2: Le fond du menu devient totalement opaque (Noir pur)
         .to('.menu-overlay', {
           backgroundColor: '#000',
           opacity: 1,
-          duration: 0.4,
+          duration: 0.3,
           ease: "power2.inOut"
-        }, "-=0.4");
+        }, "-=0.25");
 
       return;
     }

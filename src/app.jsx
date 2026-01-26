@@ -88,7 +88,7 @@ export default function App() {
     // Lift the curtain after a short delay to ensure rendering
     setTimeout(() => {
       setIsTransitioning(false);
-    }, 400);
+    }, 200);
   };
 
   // Deep Linking State
@@ -324,7 +324,7 @@ export default function App() {
 
       {/* RIDEAU DE TRANSITION GLOBAL (Masque le switch de page) */}
       <div
-        className={`fixed inset-0 z-[2000] pointer-events-none transition-opacity duration-700 ease-in-out ${isTransitioning ? 'opacity-100' : 'opacity-0'}`}
+        className={`fixed inset-0 z-[2000] pointer-events-none transition-opacity duration-400 ease-in-out ${isTransitioning ? 'opacity-100' : 'opacity-0'}`}
         style={{ backgroundColor: darkMode ? '#111' : '#000' }}
       ></div>
 
