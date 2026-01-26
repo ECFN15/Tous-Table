@@ -295,6 +295,9 @@ const App = ({ onEnterMarketplace, darkMode }) => {
   useEffect(() => {
     if (!scriptsLoaded) return;
 
+    const { gsap } = window;
+    if (!gsap) return;
+
     // Lock scroll during preloader
     document.body.style.overflow = 'hidden';
 
@@ -310,40 +313,76 @@ const App = ({ onEnterMarketplace, darkMode }) => {
 
       // 0. Initial Setup
       gsap.set('.preloader-content', { opacity: 0 });
-      gsap.set('.preloader-text', { y: "100%" });
-      gsap.set('.hero-section .reveal-inner', { y: "110%" }); // Ensure hidden before reveal
+      gsap.set('.preloader-char', { y: 40, opacity: 0, filter: "blur(10px)" });
+      gsap.set('.preloader-icon', { scale: 0.8, opacity: 0, filter: "blur(5px)" });
+      gsap.set('.hero-section .reveal-inner', { y: "115%", rotate: 2 }); // Légère rotation pour plus de dynamisme
 
-      // 1. Intro Sequence
-      tl.to('.preloader-content', { opacity: 1, duration: 0.8, ease: "power2.out" })
-        .to('.preloader-text', { y: "0%", duration: 1.0, ease: "power3.out" }, "-=0.4")
+      // 1. Intro Sequence - Plus "Atmosphérique"
+      tl.to('.preloader-content', { opacity: 1, duration: 0.5 })
+        .to('.preloader-icon', {
+          scale: 1,
+          opacity: 1,
+          filter: "blur(0px)",
+          duration: 1.5,
+          ease: "expo.out"
+        }, "-=0.2")
+        .to('.preloader-char', {
+          y: 0,
+          opacity: 1,
+          filter: "blur(0px)",
+          duration: 1.2,
+          stagger: 0.05,
+          ease: "expo.out"
+        }, "-=1.0")
 
-        // Hold for presence
-        .to({}, { duration: 1.2 })
+        // Petite pulsation élégante avant sortie
+        .to('.preloader-content', {
+          scale: 1.05,
+          opacity: 0.8,
+          duration: 2,
+          ease: "sine.inOut"
+        }, "-=0.2")
 
-        // 2. Curtain Up (Exit)
+        // 2. Curtain Exit - Plus rapide et tranchant (Luxury style)
+        .addLabel("exit", "+=0.1")
+        .to('.preloader-secondary-bg', {
+          yPercent: -100,
+          duration: 1.2,
+          ease: "expo.inOut"
+        }, "exit")
         .to('.preloader-overlay', {
           yPercent: -100,
-          duration: 1.5,
-          ease: "power3.inOut"
-        }, "exit")
+          duration: 1.2,
+          ease: "expo.inOut"
+        }, "exit+=0.05")
 
-        // 3. Hero Content Reveal (Synced)
-        // Starts slightly before the curtain finishes for immediate continuity
+        // 3. Hero Content Reveal - SYNCHRO FLUIDE
+        // On attend que le rideau soit presque parti pour lancer le titre
         .to('.hero-section .reveal-inner', {
           y: "0%",
-          duration: 1.4,
-          ease: "power4.out",
-          stagger: 0.1
-        }, "exit+=0.4")
+          rotate: 0,
+          duration: 1.8,
+          ease: "expo.out",
+          stagger: 0.12,
+          force3D: true // Force le GPU pour éviter les saccades
+        }, "exit+=0.8")
 
         .to('.hero-footer-element', {
           opacity: 1,
           y: 0,
-          duration: 1.2,
+          duration: 1.5,
           stagger: 0.2,
           ease: "power3.out"
-        }, "-=1.0");
+        }, "exit+=1.2")
 
+        // 4. Finalisation - On décale le refresh pour éviter de saccader l'anim du titre
+        .add(() => {
+          setIsLoading(false);
+          document.body.style.overflow = '';
+          setTimeout(() => {
+            if (window.ScrollTrigger) window.ScrollTrigger.refresh(true);
+          }, 500); // Laisse le titre finir son mouvement avant de stresser le CPU
+        });
     });
 
     return () => ctx.revert();
@@ -665,17 +704,34 @@ const App = ({ onEnterMarketplace, darkMode }) => {
 
       {/* --- PREMIUM PRELOADER (LUMOSINE STYLE) --- */}
       {isLoading && (
-        <div className="preloader-overlay fixed inset-0 z-[9999] bg-[#1a1a1a] flex flex-col items-center justify-center text-[#FAF9F6]">
-          {/* Content Container */}
-          <div className="preloader-content flex flex-col items-center gap-6">
-            <Hammer size={48} strokeWidth={1} className="text-[#9C8268]" />
-            <div className="overflow-hidden">
-              <h2 className="preloader-text font-serif text-3xl md:text-5xl italic font-light tracking-widest translate-y-[100%]">
-                TOUS À TABLE
-              </h2>
+        <>
+          {/* Secondary background for depth */}
+          <div className="preloader-secondary-bg fixed inset-0 z-[9998] bg-[#9C8268]/20 pointer-events-none"></div>
+
+          <div className="preloader-overlay fixed inset-0 z-[9999] bg-[#1a1a1a] flex flex-col items-center justify-center text-[#FAF9F6]">
+            {/* Content Container */}
+            <div className="preloader-content flex flex-col items-center gap-8">
+              <div className="preloader-icon">
+                <Hammer size={56} strokeWidth={1} className="text-[#9C8268] drop-shadow-[0_0_15px_rgba(156,130,104,0.3)]" />
+              </div>
+              <div className="overflow-hidden flex gap-[0.2em] px-4">
+                {"TOUS À TABLE".split("").map((char, i) => (
+                  <span
+                    key={i}
+                    className="preloader-char font-serif text-4xl md:text-6xl italic font-light tracking-[0.2em] inline-block will-change-transform"
+                  >
+                    {char === " " ? "\u00A0" : char}
+                  </span>
+                ))}
+              </div>
+              <div className="mt-8 flex items-center gap-4 opacity-20">
+                <div className="w-12 h-[1px] bg-[#9C8268]"></div>
+                <span className="text-[8px] uppercase tracking-[0.5em] font-bold">Artisan ébéniste</span>
+                <div className="w-12 h-[1px] bg-[#9C8268]"></div>
+              </div>
             </div>
           </div>
-        </div>
+        </>
       )}
 
       <div id="main-cursor" ref={cursorRef} className="hidden lg:block"></div>
