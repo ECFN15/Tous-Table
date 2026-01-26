@@ -297,7 +297,7 @@ export default function App() {
   const cartTotal = cartItems.reduce((sum, item) => sum + (item.price || 0), 0);
 
   return (
-    <div className={`min-h-screen font-sans selection:bg-amber-100 transition-colors duration-500 ${darkMode ? 'bg-stone-900 text-white' : 'bg-[#FAF9F6] text-stone-900'}`}>
+    <div className={`min-h-screen font-sans selection:bg-amber-100 transition-colors duration-500 ${darkMode ? 'bg-stone-900 text-white' : 'bg-[#fdf6e3] text-stone-900'}`}>
 
       {/* COMPOSANT PANIER - Global (Disponible dès que la navbar est visible) */}
       <CartSidebar
@@ -548,7 +548,10 @@ export default function App() {
       <main>
         {/* VUE: ACCUEIL */}
         {view === 'home' && (
-          <HomeView onEnterMarketplace={() => { setView('gallery'); window.scrollTo(0, 0); }} darkMode={darkMode} />
+          <HomeView
+            onEnterMarketplace={() => { setView('gallery'); window.scrollTo(0, 0); }}
+            darkMode={darkMode}
+          />
         )}
 
         {/* VUE: GALERIE (MARKETPLACE) */}

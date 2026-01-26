@@ -4,7 +4,7 @@ import { db, appId } from '../firebase/config';
 import { doc, updateDoc, increment, onSnapshot } from 'firebase/firestore';
 const AuctionTimer = React.lazy(() => import('./ui/AuctionTimer'));
 const CommentsModal = React.lazy(() => import('./ui/CommentsModal'));
-const WarmAmbienceBackground = React.lazy(() => import('./WarmAmbienceBackground'));
+import WarmAmbienceBackground from './WarmAmbienceBackground';
 const SEO = React.lazy(() => import('./SEO'));
 
 const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, onSelectItem, onShowLogin, darkMode = false }) => {
@@ -68,7 +68,7 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
     };
 
     return (
-        <div className={`min-h-screen pb-32 transition-colors duration-500 ${darkMode ? 'bg-stone-900 text-white' : 'bg-[#F5F5F7] text-[#1D1D1F]'}`}>
+        <div className={`min-h-screen pb-32 transition-colors duration-500 ${darkMode ? 'bg-stone-900 text-white' : 'bg-[#fdf6e3] text-[#1D1D1F]'}`}>
 
             <React.Suspense fallback={null}>
                 <SEO
@@ -79,9 +79,7 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
             </React.Suspense>
 
             {/* AMBIANCE BACKGROUND (Three.js) */}
-            <React.Suspense fallback={null}>
-                <WarmAmbienceBackground darkMode={darkMode} />
-            </React.Suspense>
+            <WarmAmbienceBackground darkMode={darkMode} />
 
             {/* CONTENT WRAPPER */}
             <div className="relative z-10">

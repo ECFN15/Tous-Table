@@ -171,45 +171,44 @@ const App = ({ onEnterMarketplace, darkMode }) => {
 
   // --- NAVIGATION SMOOTH V2 ---
   const handleNavigation = (selector) => {
-    // 1. Transition vers Marketplace (PREMIUM CURTAIN REVEAL)
+    // 1. Transition vers Marketplace (Sync avec le Menu & App.jsx)
     if (selector === 'marketplace') {
-      const tl = window.gsap.timeline({
+      const { gsap } = window;
+      if (!gsap) {
+        onEnterMarketplace();
+        return;
+      }
+
+      const tl = gsap.timeline({
         onComplete: () => {
-          if (onEnterMarketplace) {
-            onEnterMarketplace();
-          } else {
-            window.location.hash = 'gallery';
-          }
-          // Fermeture propre après le changement de vue
-          setTimeout(() => setIsMenuOpen(false), 500);
+          if (onEnterMarketplace) onEnterMarketplace();
         }
       });
 
-      // Etape 1: Départ élégant des liens (Stagger Up)
+      // Étape 1: Les liens s'envolent et s'effacent (Staggered)
       tl.to('.menu-link', {
-        y: -100,
+        y: -120,
         opacity: 0,
-        duration: 0.6,
-        stagger: 0.05,
-        ease: "power3.in",
+        duration: 0.7,
+        stagger: 0.1,
+        ease: "power4.in",
         overwrite: true
       })
 
-        // Etape 2: Le fond du menu devient opaque et prend la couleur de la destination
-        // Ceci crée un "pont" visuel sans flash
+        // Étape 2: Le fond du menu devient totalement opaque (Noir d'abord pour masquer le fond)
         .to('.menu-overlay', {
-          backgroundColor: darkMode ? '#1c1917' : '#F5F5F7', // Match GalleryView bg
+          backgroundColor: '#111',
           opacity: 1,
-          backdropFilter: "blur(0px)",
-          duration: 0.5,
+          duration: 0.4,
           ease: "power2.inOut"
-        }, "-=0.2")
+        }, "-=0.5")
 
-        // Etape 3: Expand overlay to ensure full coverage (Safety)
-        .to('.menu-container', {
-          // Si on avait un container contraint, on l'étendrait ici.
-          // Le menu actuel est déjà fixed inset-0, donc c'est bon.
-        }, "<");
+        // Étape 3: Transition douce du noir vers la couleur cible (fdf6e3)
+        .to('.menu-overlay', {
+          backgroundColor: darkMode ? '#1a120b' : '#fdf6e3',
+          duration: 0.8,
+          ease: "power2.inOut"
+        });
 
       return;
     }
