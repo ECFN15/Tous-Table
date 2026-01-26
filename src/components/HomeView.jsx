@@ -288,38 +288,65 @@ const App = ({ onEnterMarketplace, darkMode }) => {
     });
   }, []);
 
-  // --- HERO ANIMATION (NO PRELOADER) ---
+  // --- PRELOADER STATE ---
+  const [isLoading, setIsLoading] = useState(true);
+
+  // --- PRELOADER & HERO ENTRANCE ---
   useEffect(() => {
     if (!scriptsLoaded) return;
 
-    document.body.style.overflow = ''; // Ensure scroll is accessible
+    // Lock scroll during preloader
+    document.body.style.overflow = 'hidden';
 
-    if (window.gsap) {
-      // Small delay to ensure layout is settled
-      const timer = setTimeout(() => {
-        const tlReveal = window.gsap.timeline();
-        tlReveal.to('.hero-section .reveal-inner', {
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline({
+        onComplete: () => {
+          setIsLoading(false);
+          document.body.style.overflow = '';
+          // Ensure ScrollTrigger is refreshed after layout settles
+          if (window.ScrollTrigger) window.ScrollTrigger.refresh();
+        }
+      });
+
+      // 0. Initial Setup
+      gsap.set('.preloader-content', { opacity: 0 });
+      gsap.set('.preloader-text', { y: "100%" });
+      gsap.set('.hero-section .reveal-inner', { y: "110%" }); // Ensure hidden before reveal
+
+      // 1. Intro Sequence
+      tl.to('.preloader-content', { opacity: 1, duration: 0.8, ease: "power2.out" })
+        .to('.preloader-text', { y: "0%", duration: 1.0, ease: "power3.out" }, "-=0.4")
+
+        // Hold for presence
+        .to({}, { duration: 1.2 })
+
+        // 2. Curtain Up (Exit)
+        .to('.preloader-overlay', {
+          yPercent: -100,
+          duration: 1.5,
+          ease: "power3.inOut"
+        }, "exit")
+
+        // 3. Hero Content Reveal (Synced)
+        // Starts slightly before the curtain finishes for immediate continuity
+        .to('.hero-section .reveal-inner', {
           y: "0%",
           duration: 1.4,
           ease: "power4.out",
-          stagger: 0
-        })
-          .to('.hero-footer-element', {
-            opacity: 1,
-            y: 0,
-            duration: 1.2,
-            stagger: 0.2,
-            ease: "power3.out"
-          }, "-=1.0");
+          stagger: 0.1
+        }, "exit+=0.4")
 
-        // Refresh ScrollTrigger
-        if (window.ScrollTrigger) {
-          window.ScrollTrigger.refresh(true);
-        }
-      }, 100);
+        .to('.hero-footer-element', {
+          opacity: 1,
+          y: 0,
+          duration: 1.2,
+          stagger: 0.2,
+          ease: "power3.out"
+        }, "-=1.0");
 
-      return () => clearTimeout(timer);
-    }
+    });
+
+    return () => ctx.revert();
   }, [scriptsLoaded]);
 
   // --- INITIALISATION LENIS ---
@@ -634,6 +661,22 @@ const App = ({ onEnterMarketplace, darkMode }) => {
 
 
 
+
+
+      {/* --- PREMIUM PRELOADER (LUMOSINE STYLE) --- */}
+      {isLoading && (
+        <div className="preloader-overlay fixed inset-0 z-[9999] bg-[#1a1a1a] flex flex-col items-center justify-center text-[#FAF9F6]">
+          {/* Content Container */}
+          <div className="preloader-content flex flex-col items-center gap-6">
+            <Hammer size={48} strokeWidth={1} className="text-[#9C8268]" />
+            <div className="overflow-hidden">
+              <h2 className="preloader-text font-serif text-3xl md:text-5xl italic font-light tracking-widest translate-y-[100%]">
+                TOUS À TABLE
+              </h2>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div id="main-cursor" ref={cursorRef} className="hidden lg:block"></div>
       <div className="three-container fixed inset-0 pointer-events-none z-0" ref={canvasRef}></div>
