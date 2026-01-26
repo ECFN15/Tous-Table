@@ -194,7 +194,7 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                         ref={el => cardsRef.current[index] = el}
                         // Last card: top far away so it never "sticks" - flows smoothly
                         // Other cards: sticky at 21px from top
-                        className={`sticky ${isLastCard ? 'top-[-100vh]' : 'top-[21px]'} w-full min-h-[70vh] md:h-screen flex flex-col items-center justify-start pt-0`}
+                        className={`sticky ${isLastCard ? 'top-[-100vh]' : 'top-[21px]'} w-full min-h-[70vh] flex flex-col items-center justify-start pt-0`}
                         style={{
                             zIndex: index + 10,
                             willChange: 'transform', // GPU layer hint
