@@ -1,20 +1,25 @@
 import React, { useState } from 'react';
 import { ShoppingBag, Heart, Grid, LayoutList, ArrowRight, Gavel } from 'lucide-react';
-import { db, appId } from '../firebase/config';
+import { db, appId, functions } from '../firebase/config';
 import { doc, updateDoc, increment, onSnapshot } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
 const AuctionTimer = React.lazy(() => import('./ui/AuctionTimer'));
-const CommentsModal = React.lazy(() => import('./ui/CommentsModal'));
 import WarmAmbienceBackground from './WarmAmbienceBackground';
 const SEO = React.lazy(() => import('./SEO'));
 
-const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, onSelectItem, onShowLogin, darkMode = false }) => {
+const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, onSelectItem, onShowLogin, onShowComments, darkMode = false }) => {
     const [filter, setFilter] = useState('fixed');
     const [activeCollection, setActiveCollection] = useState('furniture'); // 'furniture' | 'cutting_boards'
     const [viewMode, setViewMode] = useState('grid'); // 'grid' (2 cols) | 'list' (1 col)
+    const [likedItems, setLikedItems] = useState(() => {
+        const saved = localStorage.getItem('tat_liked_items_v2');
+        return saved ? JSON.parse(saved) : [];
+    });
 
-    const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
-    const [selectedItemForComments, setSelectedItemForComments] = useState(null);
-    const [likedItems, setLikedItems] = useState([]);
+    // Save liked items to localStorage
+    React.useEffect(() => {
+        localStorage.setItem('tat_liked_items_v2', JSON.stringify(likedItems));
+    }, [likedItems]);
 
     // --- LOGIC: FILTER & SORT ---
     // 1. Choose collection source
@@ -33,13 +38,39 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
     });
 
     // --- HANDLERS ---
-    const handleLike = (e, item) => {
+    const handleLike = async (e, item) => {
         e.stopPropagation();
-        if (likedItems.includes(item.id)) {
-            setLikedItems(likedItems.filter(id => id !== item.id));
+        if (!user) {
+            onShowLogin();
+            return;
+        }
+
+        const isLiked = likedItems.includes(item.id);
+
+        // Optimistic UI update
+        if (isLiked) {
+            setLikedItems(prev => prev.filter(id => id !== item.id));
         } else {
-            setLikedItems([...likedItems, item.id]);
-            // Optional: Trigger firestore update or cloud function
+            setLikedItems(prev => [...prev, item.id]);
+        }
+
+        try {
+            const toggleLikeFn = httpsCallable(functions, 'toggleLike');
+
+            const result = await toggleLikeFn({
+                itemId: item.id,
+                collectionName: activeCollection
+            });
+            console.log("Toggle like result:", result.data);
+        } catch (err) {
+            console.error("Error toggling like:", err);
+            alert("Erreur lors de l'action. Vérifiez votre connexion.");
+            // Rollback on error
+            if (isLiked) {
+                setLikedItems(prev => [...prev, item.id]);
+            } else {
+                setLikedItems(prev => prev.filter(id => id !== item.id));
+            }
         }
     };
 
@@ -56,6 +87,11 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                 await navigator.clipboard.writeText(shareData.url);
                 alert("Lien copié !");
             }
+
+            // Track share in background
+            const trackShareFn = httpsCallable(functions, 'trackShare');
+            trackShareFn({ itemId: item.id, collectionName: activeCollection });
+
         } catch (err) {
             console.error(err);
         }
@@ -63,12 +99,11 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
 
     const handleCommentClick = (e, item) => {
         e.stopPropagation();
-        setSelectedItemForComments(item);
-        setIsCommentModalOpen(true);
+        onShowComments(item, activeCollection);
     };
 
     return (
-        <div className={`min-h-screen pb-32 transition-colors duration-500 ${darkMode ? 'bg-stone-900 text-white' : 'bg-[#FAF9F6] text-[#1D1D1F]'}`}>
+        <div className={`min-h-screen pb-32 transition-colors duration-500 ${darkMode ? 'bg-[#0a0807] text-white' : 'bg-[#fdf8f0] text-[#1D1D1F]'}`}>
 
             <React.Suspense fallback={null}>
                 <SEO
@@ -83,17 +118,6 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
 
             {/* CONTENT WRAPPER */}
             <div className="relative z-10">
-
-                <React.Suspense fallback={null}>
-                    <CommentsModal
-                        isOpen={isCommentModalOpen}
-                        onClose={() => setIsCommentModalOpen(false)}
-                        itemId={selectedItemForComments?.id}
-                        user={user}
-                        isAdmin={isAdmin}
-                        activeCollection={activeCollection}
-                    />
-                </React.Suspense>
 
                 {/* --- HEADER --- */}
                 <div className="pt-14 md:pt-32 pb-16 md:pb-12 px-5 sm:px-8 md:px-[8vw] xl:px-[12vw] flex flex-col lg:flex-row lg:items-end justify-between gap-3 lg:gap-10">
@@ -205,6 +229,9 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                                     {/* 4. SOCIAL ACTIONS (Right Side - Floating) */}
                                     <div className={`absolute ${viewMode === 'list' ? 'top-[15%] right-4 gap-10' : 'top-4 right-3 gap-3.5'} md:top-24 md:right-4 flex flex-col md:gap-6 z-20`}>
                                         <button onClick={(e) => handleLike(e, item)} className={`${viewMode === 'list' ? 'p-2.5' : 'p-1.5'} md:p-2.5 rounded-full backdrop-blur-md border transition-all hover:scale-110 active:scale-95 group/icon ${likedItems.includes(item.id) ? 'bg-red-500 border-red-500 text-white' : (darkMode ? 'bg-black/40 border-white/10 text-white hover:bg-black/60' : 'bg-white/60 border-white/40 text-black hover:bg-white/90')}`}>
+                                            <span className={`${viewMode === 'list' ? 'text-[9px] w-4 h-4' : 'text-[8px] w-3.5 h-3.5'} md:text-[10px] md:w-4 md:h-4 font-bold absolute -top-1 -right-1 ${likedItems.includes(item.id) ? 'bg-white text-red-500' : 'bg-white text-black'} flex items-center justify-center rounded-full shadow-sm border border-black/10`}>
+                                                {item.likeCount || 0}
+                                            </span>
                                             <Heart className={`${viewMode === 'list' ? 'w-4 h-4' : 'w-3.5 h-3.5'} md:w-4 md:h-4 ${likedItems.includes(item.id) ? 'fill-current' : ''}`} />
                                         </button>
 
@@ -216,6 +243,9 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                                         </button>
 
                                         <button onClick={(e) => handleShare(e, item)} className={`${viewMode === 'list' ? 'p-2.5' : 'p-1.5'} md:p-2.5 rounded-full backdrop-blur-md border transition-all hover:scale-110 active:scale-95 group/icon ${darkMode ? 'bg-black/40 border-white/10 text-white hover:bg-black/60' : 'bg-white/60 border-white/40 text-black hover:bg-white/90'}`}>
+                                            <span className={`${viewMode === 'list' ? 'text-[9px] w-4 h-4' : 'text-[8px] w-3.5 h-3.5'} md:text-[10px] md:w-4 md:h-4 font-bold absolute -top-1 -right-1 bg-white text-black flex items-center justify-center rounded-full shadow-sm border border-black/10`}>
+                                                {item.shareCount || 0}
+                                            </span>
                                             <svg className={`${viewMode === 'list' ? 'w-4 h-4' : 'w-3.5 h-3.5'} md:w-4 md:h-4`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
                                         </button>
                                     </div>

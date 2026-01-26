@@ -28,6 +28,7 @@ import AdminHomepage from './components/AdminHomepage'; // New Homepage Manager
 import CartSidebar from './components/CartSidebar';
 import CheckoutView from './components/CheckoutView';
 import OrderSuccessModal from './components/OrderSuccessModal';
+const CommentsModal = React.lazy(() => import('./components/ui/CommentsModal'));
 
 
 
@@ -73,6 +74,11 @@ export default function App() {
   // Transition State
   const [isPreparingGallery, setIsPreparingGallery] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Comments State (Global)
+  const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
+  const [selectedItemForComments, setSelectedItemForComments] = useState(null);
+  const [commentCollection, setCommentCollection] = useState('furniture');
 
   const startGalleryTransition = () => {
     setIsPreparingGallery(true);
@@ -517,16 +523,13 @@ export default function App() {
 
           {/* NAVBAR GLOBALE (Auto-Hide) */}
           <nav className={`fixed top-0 left-0 right-0 z-[100] px-3 md:px-12 py-3 md:py-8 flex justify-between items-center transition-all duration-500 ease-in-out ${isHeaderVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}>
-            {/* Subtle header gradient overlay for readability */}
-            <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/20 to-transparent pointer-events-none -z-10"></div>
-
             <div className="flex items-center gap-1.5 md:gap-4 cursor-pointer group" onClick={() => { window.hasShownPreloader = true; setView('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
               <div className={`w-[28px] h-[28px] md:w-11 md:h-11 rounded-lg md:rounded-xl flex items-center justify-center backdrop-blur-2xl border transition-all group-hover:rotate-6 ${darkMode ? 'bg-white/10 border-white/20 text-white' : 'bg-white border-black/5 text-stone-900'}`}>
                 <Hammer size={12} strokeWidth={1.5} className="md:w-5 md:h-5" />
               </div>
               <div className="flex flex-col justify-center">
-                <h1 className="text-[13px] md:text-xl font-bold uppercase tracking-tight md:tracking-widest leading-none text-white">Tous à Table</h1>
-                <p className="font-serif italic text-[9px] md:text-[15px] tracking-[0.05em] md:tracking-[0.1em] text-white/80 leading-none mt-1 md:mt-2 ml-0.5">Atelier Normand</p>
+                <h1 className={`text-[13px] md:text-xl font-bold uppercase tracking-tight md:tracking-widest leading-none transition-colors ${darkMode ? 'text-white' : 'text-stone-900'}`}>Tous à Table</h1>
+                <p className={`font-serif italic text-[11px] md:text-[18px] tracking-[0.05em] md:tracking-[0.1em] leading-none mt-1 md:mt-2 ml-0.5 transition-colors ${darkMode ? 'text-white/80' : 'text-stone-900/80'}`}>Atelier Normand</p>
               </div>
             </div>
 
@@ -601,6 +604,7 @@ export default function App() {
               isAdmin={isAdmin} isSecretGateOpen={isSecretGateOpen} user={user}
               onShowLogin={() => setShowFullLogin(true)}
               onSelectItem={(id) => { setSelectedItemId(id); setView('detail'); window.scrollTo(0, 0); }}
+              onShowComments={(item, col) => { setSelectedItemForComments(item); setCommentCollection(col); setIsCommentModalOpen(true); }}
               darkMode={darkMode}
             />
           </div>
@@ -614,6 +618,12 @@ export default function App() {
               user={user}
               onBack={() => { setView('gallery'); setSelectedItemId(null); }}
               onAddToCart={addToCart}
+              onShowComments={(item) => {
+                const col = items.find(i => i.id === item.id) ? 'furniture' : 'cutting_boards';
+                setSelectedItemForComments(item);
+                setCommentCollection(col);
+                setIsCommentModalOpen(true);
+              }}
             />
           </div>
         )}
@@ -631,6 +641,18 @@ export default function App() {
 
         {/* MODAL SUCCESS ORDER */}
         {showOrderSuccess && <OrderSuccessModal onClose={() => setShowOrderSuccess(false)} />}
+
+        {/* MODAL COMMENTAIRES (GLOBAL) */}
+        <React.Suspense fallback={null}>
+          <CommentsModal
+            isOpen={isCommentModalOpen}
+            onClose={() => setIsCommentModalOpen(false)}
+            itemId={selectedItemForComments?.id}
+            user={user}
+            isAdmin={isAdmin}
+            activeCollection={commentCollection}
+          />
+        </React.Suspense>
 
         {/* VUE: LOGIN ADMIN */}
         {view === 'login' && isSecretGateOpen && <LoginView onSuccess={() => setView('admin')} />}

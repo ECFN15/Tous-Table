@@ -25,15 +25,17 @@ const WarmAmbienceBackground = ({ darkMode }) => {
         const PALETTE = {
             // Light: "Golden Hour Workshop" - Rich, Saturated, Authentic
             // We move away from "Pale White" to "Warm Amber/Honey" and "Deep Earth".
-            bgGradientTop: darkMode ? new THREE.Color('#1a120b') : new THREE.Color('#FAF9F6'), // Ivory White
-            bgGradientBot: darkMode ? new THREE.Color('#2d1b14') : new THREE.Color('#d4a373'), // Deep Latte/Earth (Grounding)
+            // Previous: bgGradientTop: darkMode ? new THREE.Color('#1a120b') : new THREE.Color('#FAF9F6'),
+            // Previous: bgGradientBot: darkMode ? new THREE.Color('#2d1b14') : new THREE.Color('#d4a373'),
+            bgGradientTop: darkMode ? new THREE.Color('#0a0807') : new THREE.Color('#fdf5e6'), // Deep Charcoal / Warm Old Lace
+            bgGradientBot: darkMode ? new THREE.Color('#1f1814') : new THREE.Color('#c19a6b'), // Dark Umber / Rich Wood Sand
 
             // Particles/Magic
-            firefly: darkMode ? new THREE.Color('#fbbf24') : new THREE.Color('#b45309'), // Deep Amber in light mode
-            dust: darkMode ? new THREE.Color('#ffffff') : new THREE.Color('#78350f'), // Dark Oak dust in light mode
+            firefly: darkMode ? new THREE.Color('#fbbf24') : new THREE.Color('#e67e22'), // More vibrant orange in light mode
+            dust: darkMode ? new THREE.Color('#ffffff') : new THREE.Color('#8b4513'), // Richer brown for dust
 
             // Foliage shadows (blurred in foreground)
-            foliage: darkMode ? new THREE.Color('#022c22') : new THREE.Color('#422006'), // Dark Brown/Green
+            foliage: darkMode ? new THREE.Color('#022c22') : new THREE.Color('#3d2b1f'), // Deep forest / Dark bark
         };
 
         const isMobile = window.innerWidth < 768;
@@ -41,9 +43,9 @@ const WarmAmbienceBackground = ({ darkMode }) => {
 
         // 1. SCENE & CAMERA
         const scene = new THREE.Scene();
-        // Fog: "Golden Mist" in light mode, not white.
-        const fogColor = darkMode ? 0x1a120b : 0xfcf4e6;
-        const fogDensity = darkMode ? 0.035 : 0.012; // Very clear in light mode for contrast
+        // Fog: "Golden Mist" in light mode, aligned with top gradient.
+        const fogColor = darkMode ? 0x0a0807 : 0xfdf5e6;
+        const fogDensity = darkMode ? 0.04 : 0.015; // Slightly denser for better depth
         scene.fog = new THREE.FogExp2(fogColor, fogDensity);
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);

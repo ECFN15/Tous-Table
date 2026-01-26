@@ -1,23 +1,27 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronLeft, Award, Timer, Mail, Box, Ruler, History, Quote } from 'lucide-react';
-import { doc, onSnapshot, collection, query, orderBy, limit } from 'firebase/firestore';
-import { getFunctions, httpsCallable } from 'firebase/functions';
-import { db, appId } from '../firebase/config';
+import { ChevronLeft, Award, Mail, Box, Ruler, History, Quote, Heart, MessageCircle, Share2 } from 'lucide-react';
+import { db, appId, functions } from '../firebase/config';
+import { httpsCallable } from 'firebase/functions';
 import { getMillis, formatTime } from '../utils/time';
 import AuctionTimer from './ui/AuctionTimer';
 import ConfettiRain from './ui/ConfettiRain';
 const SEO = React.lazy(() => import('./SEO'));
 
-// Initialiser les Cloud Functions
-const functions = getFunctions();
 const placeBidFunction = httpsCallable(functions, 'placeBid');
 
-const ProductDetail = ({ item, user, onBack, onAddToCart }) => {
+const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments }) => {
   const [activeImg, setActiveImg] = useState(0);
   const [bidLoading, setBidLoading] = useState(false);
   const [msg, setMsg] = useState(null);
   const [bidsHistory, setBidsHistory] = useState([]);
-  const [forceWinnerCheck, setForceWinnerCheck] = useState(false);
+  const [likedItems, setLikedItems] = useState(() => {
+    const saved = localStorage.getItem('tat_liked_items_v2');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('tat_liked_items_v2', JSON.stringify(likedItems));
+  }, [likedItems]);
 
   if (!item) return null;
 
@@ -57,6 +61,40 @@ const ProductDetail = ({ item, user, onBack, onAddToCart }) => {
       setBidLoading(false);
       setTimeout(() => setMsg(null), 3000);
     }
+  };
+
+  const handleLike = async () => {
+    if (!user) return;
+    const isLiked = likedItems.includes(item.id);
+    if (isLiked) setLikedItems(prev => prev.filter(id => id !== item.id));
+    else setLikedItems(prev => [...prev, item.id]);
+
+    try {
+      const toggleLikeFn = httpsCallable(functions, 'toggleLike');
+      const col = item.collectionName || (item.id.includes('board') ? 'cutting_boards' : 'furniture');
+      await toggleLikeFn({ itemId: item.id, collectionName: col });
+    } catch (e) {
+      if (isLiked) setLikedItems(prev => [...prev, item.id]);
+      else setLikedItems(prev => prev.filter(id => id !== item.id));
+    }
+  };
+
+  const handleShare = async () => {
+    const col = item.collectionName || (item.id.includes('board') ? 'cutting_boards' : 'furniture');
+    const shareData = {
+      title: item.name,
+      text: `Découvrez ${item.name} sur Tous à Table`,
+      url: window.location.origin + '/?product=' + item.id
+    };
+    try {
+      if (navigator.share) await navigator.share(shareData);
+      else {
+        await navigator.clipboard.writeText(shareData.url);
+        alert("Lien copié !");
+      }
+      const trackShareFn = httpsCallable(functions, 'trackShare');
+      trackShareFn({ itemId: item.id, collectionName: col });
+    } catch (e) { }
   };
 
   // --- SCHEMA.ORG (SEO) ---
@@ -101,6 +139,7 @@ const ProductDetail = ({ item, user, onBack, onAddToCart }) => {
       </button>
 
       <div className="grid md:grid-cols-2 gap-12 lg:gap-16 text-stone-900">
+        {/* Colonne Gauche: Images & Story */}
         <div className="space-y-8">
           <div className="aspect-square rounded-[2.5rem] overflow-hidden bg-white border border-stone-200/60 shadow-2xl relative">
             <img src={images[activeImg]} className="w-full h-full object-cover" alt={item.name} />
@@ -131,12 +170,39 @@ const ProductDetail = ({ item, user, onBack, onAddToCart }) => {
           </div>
         </div>
 
+        {/* Colonne Droite: Actions & Stats */}
         <div className="space-y-8 px-1">
           <div className="space-y-3 text-stone-900">
             <div className="flex gap-2">
               <span className="bg-amber-100/50 text-amber-800 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border border-amber-200/50">Lot n°{item.id.substring(0, 4)}</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-stone-900 leading-tight">{item.name}</h1>
+
+            <div className="flex flex-wrap items-center gap-4 md:gap-6 pt-2">
+              <button
+                onClick={handleLike}
+                className="flex items-center gap-2 text-stone-400 hover:text-red-500 transition-colors group/stat"
+              >
+                <Heart size={16} className={likedItems.includes(item.id) ? "text-red-500 fill-red-500" : "group-hover/stat:scale-110 transition-transform"} />
+                <span className="text-xs font-black">{item.likeCount || 0} <span className="hidden sm:inline">Likes</span></span>
+              </button>
+              <button
+                onClick={() => onShowComments(item)}
+                className="flex items-center gap-2 text-stone-400 hover:text-amber-600 transition-colors group/stat"
+              >
+                <div className="relative">
+                  <MessageCircle size={16} className={item.commentCount > 0 ? "text-amber-500 fill-amber-500/10" : "group-hover/stat:scale-110 transition-transform"} />
+                </div>
+                <span className="text-xs font-black">{item.commentCount || 0} <span className="hidden sm:inline">Avis</span></span>
+              </button>
+              <button
+                onClick={handleShare}
+                className="flex items-center gap-2 text-stone-400 hover:text-purple-500 transition-colors group/stat"
+              >
+                <Share2 size={16} className={item.shareCount > 0 ? "text-purple-500" : "group-hover/stat:scale-110 transition-transform"} />
+                <span className="text-xs font-black">{item.shareCount || 0} <span className="hidden sm:inline">Partages</span></span>
+              </button>
+            </div>
           </div>
 
           <div className={`p-8 rounded-[3rem] border transition-all duration-700 ${isWinner ? 'bg-emerald-50 border-emerald-200 shadow-xl scale-[1.02]' : 'bg-white border-stone-200 shadow-xl'}`}>
