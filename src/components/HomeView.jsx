@@ -288,24 +288,15 @@ const App = ({ onEnterMarketplace, darkMode }) => {
     });
   }, []);
 
-  // --- PRELOADER STATE ---
-  const [isLoading, setIsLoading] = useState(() => {
-    if (typeof window !== 'undefined') {
-      // Check if preloader has already run in this window session
-      if (window.hasShownPreloader) return false;
-      return true;
-    }
-    return true;
-  });
-  const [counter, setCounter] = useState(0);
-
+  // --- HERO ANIMATION (NO PRELOADER) ---
   useEffect(() => {
     if (!scriptsLoaded) return;
 
-    if (!isLoading) {
-      // If no preloader, trigger entrance animations immediately
-      document.body.style.overflow = ''; // Ensure scroll is released
-      if (window.gsap) {
+    document.body.style.overflow = ''; // Ensure scroll is accessible
+
+    if (window.gsap) {
+      // Small delay to ensure layout is settled
+      const timer = setTimeout(() => {
         const tlReveal = window.gsap.timeline();
         tlReveal.to('.hero-section .reveal-inner', {
           y: "0%",
@@ -320,73 +311,15 @@ const App = ({ onEnterMarketplace, darkMode }) => {
             stagger: 0.2,
             ease: "power3.out"
           }, "-=1.0");
-      }
-      return;
+
+        // Refresh ScrollTrigger
+        if (window.ScrollTrigger) {
+          window.ScrollTrigger.refresh(true);
+        }
+      }, 100);
+
+      return () => clearTimeout(timer);
     }
-
-    // Compteur esthétique
-    const interval = setInterval(() => {
-      setCounter(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          return 100;
-        }
-        return prev + 1;
-      });
-    }, 20); // 100 * 20ms = 2000ms (2 secondes)
-
-    // Logique de fin de chargement
-    const minTime = new Promise(resolve => setTimeout(resolve, 2000));
-    const resources = document.fonts.ready; // Attente des polices
-
-    Promise.all([minTime, resources]).then(() => {
-      // Blocage du scroll PENDANT le chargement
-      document.body.style.overflow = 'hidden';
-
-      // Animation de sortie du preloader
-      const tlLoader = window.gsap.timeline({
-        onComplete: () => {
-          setIsLoading(false);
-          window.hasShownPreloader = true; // Mark as shown
-          document.body.style.overflow = ''; // Release scroll
-
-          // FINAL REFRESH: Ensure all positions are exact after preloader exit
-          requestAnimationFrame(() => {
-            if (window.ScrollTrigger) {
-              window.ScrollTrigger.refresh(true);
-            }
-          });
-        }
-      });
-
-      tlLoader.to('.preloader-count', {
-        opacity: 0,
-        y: -20,
-        duration: 0.5,
-        ease: "power2.out"
-      })
-        .to('.preloader-overlay', {
-          opacity: 0,
-          duration: 1.0,
-          ease: "power2.inOut",
-          pointerEvents: "none"
-        }, "-=0.5") // Overlap with counter fade -> NO WHITE SCREEN DELAY
-        .to('.hero-section .reveal-inner', {
-          y: "0%",
-          duration: 1.4,
-          ease: "power4.out",
-          stagger: 0
-        }, "-=1.1") // Starts while curtain is lifting (early reveal)
-        .to('.hero-footer-element', {
-          opacity: 1,
-          y: 0,
-          duration: 1.2,
-          stagger: 0.2,
-          ease: "power3.out"
-        }, "-=1.0"); // Flows immediately after title starts
-    });
-
-    return () => clearInterval(interval);
   }, [scriptsLoaded]);
 
   // --- INITIALISATION LENIS ---
@@ -700,14 +633,7 @@ const App = ({ onEnterMarketplace, darkMode }) => {
       </React.Suspense>
 
 
-      {/* --- PRELOADER --- */}
-      {isLoading && (
-        <div className="preloader-overlay fixed inset-0 z-[9999] bg-[#FAF9F6] flex flex-col items-center justify-center text-[#1a1a1a]">
-          <div className="preloader-count font-serif text-8xl md:text-9xl italic font-light mix-blend-darken">
-            {counter}
-          </div>
-        </div>
-      )}
+
 
       <div id="main-cursor" ref={cursorRef} className="hidden lg:block"></div>
       <div className="three-container fixed inset-0 pointer-events-none z-0" ref={canvasRef}></div>
@@ -716,14 +642,9 @@ const App = ({ onEnterMarketplace, darkMode }) => {
       {/* NAVIGATION - FIXED SAFE AREA */
       /* Increased to max(3rem) for tablets with thick status bars */}
       <header className="fixed top-0 left-0 w-full p-5 md:p-12 pt-[max(2rem,env(safe-area-inset-top))] pr-[max(1.5rem,env(safe-area-inset-right))] pl-[max(1.5rem,env(safe-area-inset-left))] flex justify-between items-center z-[210] mix-blend-difference text-white">
-        <div className="flex items-center gap-1.5 md:gap-4 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-          <div className="w-[28px] h-[28px] md:w-14 md:h-14 rounded-lg md:rounded-xl flex items-center justify-center border border-white/30 group-hover:rotate-6 transition-all duration-500 shadow-lg">
-            <Hammer size={12} strokeWidth={1.5} className="md:w-7 md:h-7" />
-          </div>
-          <div className="flex flex-col">
-            <h1 className="font-serif text-[13px] md:text-2xl tracking-tight md:tracking-widest uppercase font-light italic text-white leading-none">Tous à Table</h1>
-            <p className="font-serif italic text-[9px] md:text-[18px] tracking-[0.05em] md:tracking-[0.1em] text-white/80 leading-none mt-1">Atelier Normand</p>
-          </div>
+        <div className="flex items-center gap-3 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+          <Hammer size={18} className="group-hover:rotate-45 transition-transform duration-500" />
+          <span className="font-serif text-xl tracking-widest uppercase font-light italic text-white">Tous à Table</span>
         </div>
 
         {/* BOUTON MENU ANIMÉ */}
