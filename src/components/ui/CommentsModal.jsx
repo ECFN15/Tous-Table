@@ -50,11 +50,10 @@ const CommentsModal = ({ isOpen, onClose, itemId, user, isAdmin, activeCollectio
                 isAdmin: isAdmin || false
             });
 
-            // Increment comment count on parent
-            const itemRef = doc(db, 'artifacts', appId, 'public', 'data', activeCollection, itemId);
-            await updateDoc(itemRef, {
-                commentCount: increment(1)
-            });
+
+            // Increment comment count is handled by Cloud Function Trigger
+            // const itemRef = doc(db, 'artifacts', appId, 'public', 'data', activeCollection, itemId);
+            // await updateDoc(itemRef, { commentCount: increment(1) });
 
             setNewComment('');
         } catch (error) {
@@ -70,12 +69,9 @@ const CommentsModal = ({ isOpen, onClose, itemId, user, isAdmin, activeCollectio
         try {
             await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', activeCollection, itemId, 'comments', commentId));
 
-            // Decrement comment count? (Optional but consistent)
-            const itemRef = doc(db, 'artifacts', appId, 'public', 'data', activeCollection, itemId);
-            await updateDoc(itemRef, {
-                commentCount: increment(-1)
-            });
-
+            // Decrement handled by Trigger
+            // const itemRef = doc(db, 'artifacts', appId, 'public', 'data', activeCollection, itemId);
+            // await updateDoc(itemRef, { commentCount: increment(-1) });
         } catch (e) {
             console.error(e);
         }
@@ -109,8 +105,8 @@ const CommentsModal = ({ isOpen, onClose, itemId, user, isAdmin, activeCollectio
                         comments.map((msg) => (
                             <div key={msg.id} className={`flex flex-col gap-1 ${msg.userId === user?.uid ? 'items-end' : 'items-start'} group`}>
                                 <div className={`max-w-[85%] p-4 rounded-2xl text-sm leading-relaxed relative ${msg.userId === user?.uid
-                                        ? 'bg-[#1D1D1F] text-white rounded-tr-sm'
-                                        : 'bg-white border border-stone-100 shadow-sm text-[#1D1D1F] rounded-tl-sm'
+                                    ? 'bg-[#1D1D1F] text-white rounded-tr-sm'
+                                    : 'bg-white border border-stone-100 shadow-sm text-[#1D1D1F] rounded-tl-sm'
                                     }`}>
                                     <p>{msg.text}</p>
 

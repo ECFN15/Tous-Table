@@ -5,7 +5,8 @@ import {
     DollarSign, ShoppingBag, ArrowUpRight, AlertTriangle, RefreshCw
 } from 'lucide-react';
 import { collection, getDocs, writeBatch, doc, onSnapshot, query, orderBy, limit, setDoc, serverTimestamp } from 'firebase/firestore';
-import { db, appId } from '../firebase/config';
+import { httpsCallable } from 'firebase/functions';
+import { db, appId, functions } from '../firebase/config';
 import { getMillis } from '../utils/time';
 import * as XLSX from 'xlsx';
 
@@ -155,49 +156,16 @@ const AdminDashboard = ({ user, darkMode = false }) => {
     const confirmReset = async () => {
         setResetting(true);
         try {
-            const batch = writeBatch(db);
-            const furnitureSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'furniture'));
-            const boardSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'cutting_boards'));
+            // Call the robust Cloud Function
+            const resetStatsFn = httpsCallable(functions, 'resetAllStats');
+            const result = await resetStatsFn();
+            const count = result.data.count || 0;
 
-            let count = 0;
-            const resetFields = { likeCount: 0, commentCount: 0, shareCount: 0 };
-
-            // 1. Reset metrics on parent documents
-            furnitureSnap.forEach(d => {
-                batch.update(doc(db, 'artifacts', appId, 'public', 'data', 'furniture', d.id), resetFields);
-                count++;
-            });
-            boardSnap.forEach(d => {
-                batch.update(doc(db, 'artifacts', appId, 'public', 'data', 'cutting_boards', d.id), resetFields);
-                count++;
-            });
-
-            // 2. Commit the reset of counters first
-            await batch.commit();
-
-            // 3. Delete ALL comments in sub-collections
-            const deleteCommentsForDocs = async (docs, collectionName) => {
-                for (const d of docs) {
-                    const commentsRef = collection(db, 'artifacts', appId, 'public', 'data', collectionName, d.id, 'comments');
-                    const commentsSnap = await getDocs(commentsRef);
-                    const deleteBatch = writeBatch(db);
-                    let deleteCount = 0;
-                    commentsSnap.forEach(c => {
-                        deleteBatch.delete(c.ref);
-                        deleteCount++;
-                    });
-                    if (deleteCount > 0) await deleteBatch.commit();
-                }
-            };
-
-            await deleteCommentsForDocs(furnitureSnap.docs, 'furniture');
-            await deleteCommentsForDocs(boardSnap.docs, 'cutting_boards');
-
-            // 4. Force clear LOCAL STORAGE
+            // Force clear LOCAL STORAGE
             localStorage.removeItem('tat_liked_items_v2');
             localStorage.removeItem('tat_shared_items_v2');
 
-            // 5. Set Global Reset Signal
+            // Set Global Reset Signal
             await setDoc(doc(db, 'sys_metadata', 'stats_reset'), {
                 lastStatsReset: serverTimestamp(),
                 resetBy: user?.email || 'admin'
@@ -208,10 +176,10 @@ const AdminDashboard = ({ user, darkMode = false }) => {
             setTrendingItems([]);
 
             setIsResetModalOpen(false);
-            alert(`Succès ! ${count} articles ont été réinitialisés.`);
+            alert(`Succès ! ${count} opérations de nettoyage effectuées. Les compteurs sont remis à zéro.`);
         } catch (error) {
             console.error("Reset error:", error);
-            alert("Erreur lors de la réinitialisation :" + error.message);
+            alert("Erreur lors de la réinitialisation : " + (error.message || "Erreur inconnue"));
         } finally {
             setResetting(false);
         }

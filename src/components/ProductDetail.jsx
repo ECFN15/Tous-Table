@@ -9,19 +9,17 @@ const SEO = React.lazy(() => import('./SEO'));
 
 const placeBidFunction = httpsCallable(functions, 'placeBid');
 
+import { useRealtimeUserLikes } from '../hooks/useRealtimeUserLikes'; // Import
+
 const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments }) => {
   const [activeImg, setActiveImg] = useState(0);
   const [bidLoading, setBidLoading] = useState(false);
   const [msg, setMsg] = useState(null);
   const [bidsHistory, setBidsHistory] = useState([]);
-  const [likedItems, setLikedItems] = useState(() => {
-    const saved = localStorage.getItem('tat_liked_items_v2');
-    return saved ? JSON.parse(saved) : [];
-  });
 
-  useEffect(() => {
-    localStorage.setItem('tat_liked_items_v2', JSON.stringify(likedItems));
-  }, [likedItems]);
+  // HOOK TEMPS RÉEL
+  const { likedItemIds, toggleLike } = useRealtimeUserLikes(user);
+  const isLiked = likedItemIds.includes(item.id);
 
   if (!item) return null;
 
@@ -64,19 +62,12 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments }) => {
   };
 
   const handleLike = async () => {
-    if (!user) return;
-    const isLiked = likedItems.includes(item.id);
-    if (isLiked) setLikedItems(prev => prev.filter(id => id !== item.id));
-    else setLikedItems(prev => [...prev, item.id]);
-
-    try {
-      const toggleLikeFn = httpsCallable(functions, 'toggleLike');
-      const col = item.collectionName || (item.id.includes('board') ? 'cutting_boards' : 'furniture');
-      await toggleLikeFn({ itemId: item.id, collectionName: col });
-    } catch (e) {
-      if (isLiked) setLikedItems(prev => [...prev, item.id]);
-      else setLikedItems(prev => prev.filter(id => id !== item.id));
+    if (!user) {
+      setMsg({ type: 'error', text: 'Connectez-vous pour liker.' });
+      return;
     }
+    const col = item.collectionName || (item.id.includes('board') ? 'cutting_boards' : 'furniture');
+    await toggleLike(item.id, col);
   };
 
   const handleShare = async () => {
@@ -183,7 +174,7 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments }) => {
                 onClick={handleLike}
                 className="flex items-center gap-2 text-stone-400 hover:text-red-500 transition-colors group/stat"
               >
-                <Heart size={16} className={likedItems.includes(item.id) ? "text-red-500 fill-red-500" : "group-hover/stat:scale-110 transition-transform"} />
+                <Heart size={16} className={isLiked ? "text-red-500 fill-red-500" : "group-hover/stat:scale-110 transition-transform"} />
                 <span className="text-xs font-black">{item.likeCount || 0} <span className="hidden sm:inline">Likes</span></span>
               </button>
               <button

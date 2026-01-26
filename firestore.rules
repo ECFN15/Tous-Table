@@ -13,27 +13,36 @@ service cloud.firestore {
     // Collections produits (furniture, cutting_boards, etc.)
     match /artifacts/tat-made-in-normandie/public/data/{collectionName}/{itemId} {
       allow read: if true;
-      // SEUL L'ADMIN PEUT CRÉER/SUPPRIMER des produits
-      allow create, delete: if isArtisan();
-      // Mise à jour: SEUL L'ADMIN. Les likes/shares passent par Cloud Functions maintenant.
-      allow update: if isArtisan();
+      // SEUL L'ADMIN PEUT CRÉER/SUPPRIMER/MODIFIER des produits
+      allow write: if isArtisan();
         
       match /bids/{bidId} {
         allow read: if true;
-        // Création uniquement via Cloud Function (Admin SDK)
-        allow create: if false;
+        allow create: if false; // Via Cloud Function uniquement
       }
 
-      // Commentaires - Utilisateurs authentifiés peuvent créer/lire
+      // Commentaires - Utilisateurs authentifiés peuvent créer/lire/supprimer LEURS commentaires
       match /comments/{commentId} {
         allow read: if true;
         allow create: if request.auth != null;
-        // Suppression: propriétaire du commentaire ou admin
-        allow delete: if request.auth != null && 
-          (resource.data.userId == request.auth.uid || isArtisan());
+        allow delete: if request.auth != null && (resource.data.userId == request.auth.uid || isArtisan());
       }
 
-      // Logs - Authentification requise (anti-spam)
+      // Likes - Utilisateurs authentifiés peuvent créer/lire/supprimer LEUR like
+      // L'ID du document DOIT être l'UID de l'utilisateur pour garantir l'unicité (1 like par user)
+      match /likes/{userId} {
+        allow read: if true;
+        allow create: if request.auth != null && request.auth.uid == userId;
+        allow delete: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Shares
+      match /shares/{userId} {
+        allow read: if true;
+        allow create: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Logs
       match /logs/{logId} {
         allow create: if request.auth != null;
         allow read, delete: if isArtisan();

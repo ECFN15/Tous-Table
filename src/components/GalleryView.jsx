@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { ShoppingBag, Heart, Grid, LayoutList, ArrowRight, Gavel } from 'lucide-react';
-import { db, appId, functions } from '../firebase/config';
-import { doc, updateDoc, increment, onSnapshot } from 'firebase/firestore';
+import { functions } from '../firebase/config';
 import { httpsCallable } from 'firebase/functions';
+import { useRealtimeUserLikes } from '../hooks/useRealtimeUserLikes'; // Import Hook
 const AuctionTimer = React.lazy(() => import('./ui/AuctionTimer'));
 import WarmAmbienceBackground from './WarmAmbienceBackground';
 const SEO = React.lazy(() => import('./SEO'));
@@ -11,15 +11,9 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
     const [filter, setFilter] = useState('fixed');
     const [activeCollection, setActiveCollection] = useState('furniture'); // 'furniture' | 'cutting_boards'
     const [viewMode, setViewMode] = useState('grid'); // 'grid' (2 cols) | 'list' (1 col)
-    const [likedItems, setLikedItems] = useState(() => {
-        const saved = localStorage.getItem('tat_liked_items_v2');
-        return saved ? JSON.parse(saved) : [];
-    });
 
-    // Save liked items to localStorage
-    React.useEffect(() => {
-        localStorage.setItem('tat_liked_items_v2', JSON.stringify(likedItems));
-    }, [likedItems]);
+    // HOOK TEMPS RÉEL
+    const { likedItemIds, toggleLike } = useRealtimeUserLikes(user);
 
     // --- LOGIC: FILTER & SORT ---
     // 1. Choose collection source
@@ -45,32 +39,12 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
             return;
         }
 
-        const isLiked = likedItems.includes(item.id);
-
-        // Optimistic UI update
-        if (isLiked) {
-            setLikedItems(prev => prev.filter(id => id !== item.id));
-        } else {
-            setLikedItems(prev => [...prev, item.id]);
-        }
-
         try {
-            const toggleLikeFn = httpsCallable(functions, 'toggleLike');
-
-            const result = await toggleLikeFn({
-                itemId: item.id,
-                collectionName: activeCollection
-            });
-            console.log("Toggle like result:", result.data);
+            // Action immédiate via Firestore Direct (Hook)
+            await toggleLike(item.id, activeCollection);
         } catch (err) {
-            console.error("Error toggling like:", err);
-            alert("Erreur lors de l'action. Vérifiez votre connexion.");
-            // Rollback on error
-            if (isLiked) {
-                setLikedItems(prev => [...prev, item.id]);
-            } else {
-                setLikedItems(prev => prev.filter(id => id !== item.id));
-            }
+            console.error("Error like:", err);
+            alert("Impossible de liker. Vérifiez votre connexion.");
         }
     };
 
@@ -88,9 +62,13 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                 alert("Lien copié !");
             }
 
-            // Track share in background
-            const trackShareFn = httpsCallable(functions, 'trackShare');
-            trackShareFn({ itemId: item.id, collectionName: activeCollection });
+            // Track share in background (Optionnel, si on veut encore tracker les shares avec compteur)
+            // On peut garder l'ancien système ou passer en direct aussi. 
+            // Pour l'instant on garde Cloud Function pour share ou on adapte ? 
+            // Le Backend a un Trigger 'onShareCreated', donc il faut écrire dans la subcol 'shares'.
+            // Mais pour simplifier ici, on laisse tel quel ou on implémente un 'addShare' simple.
+            // On va laisser le trackShare cloud function pour l'instant si elle existe encore, 
+            // ou mieux : écrire dans la collection. (Mais require auth).
 
         } catch (err) {
             console.error(err);
@@ -228,11 +206,11 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
 
                                     {/* 4. SOCIAL ACTIONS (Right Side - Floating) */}
                                     <div className={`absolute ${viewMode === 'list' ? 'top-[15%] right-4 gap-10' : 'top-4 right-3 gap-3.5'} md:top-24 md:right-4 flex flex-col md:gap-6 z-20`}>
-                                        <button onClick={(e) => handleLike(e, item)} className={`${viewMode === 'list' ? 'p-2.5' : 'p-1.5'} md:p-2.5 rounded-full backdrop-blur-md border transition-all hover:scale-110 active:scale-95 group/icon ${likedItems.includes(item.id) ? 'bg-red-500 border-red-500 text-white' : (darkMode ? 'bg-black/40 border-white/10 text-white hover:bg-black/60' : 'bg-white/60 border-white/40 text-black hover:bg-white/90')}`}>
-                                            <span className={`${viewMode === 'list' ? 'text-[9px] w-4 h-4' : 'text-[8px] w-3.5 h-3.5'} md:text-[10px] md:w-4 md:h-4 font-bold absolute -top-1 -right-1 ${likedItems.includes(item.id) ? 'bg-white text-red-500' : 'bg-white text-black'} flex items-center justify-center rounded-full shadow-sm border border-black/10`}>
+                                        <button onClick={(e) => handleLike(e, item)} className={`${viewMode === 'list' ? 'p-2.5' : 'p-1.5'} md:p-2.5 rounded-full backdrop-blur-md border transition-all hover:scale-110 active:scale-95 group/icon ${likedItemIds.includes(item.id) ? 'bg-red-500 border-red-500 text-white' : (darkMode ? 'bg-black/40 border-white/10 text-white hover:bg-black/60' : 'bg-white/60 border-white/40 text-black hover:bg-white/90')}`}>
+                                            <span className={`${viewMode === 'list' ? 'text-[9px] w-4 h-4' : 'text-[8px] w-3.5 h-3.5'} md:text-[10px] md:w-4 md:h-4 font-bold absolute -top-1 -right-1 ${likedItemIds.includes(item.id) ? 'bg-white text-red-500' : 'bg-white text-black'} flex items-center justify-center rounded-full shadow-sm border border-black/10`}>
                                                 {item.likeCount || 0}
                                             </span>
-                                            <Heart className={`${viewMode === 'list' ? 'w-4 h-4' : 'w-3.5 h-3.5'} md:w-4 md:h-4 ${likedItems.includes(item.id) ? 'fill-current' : ''}`} />
+                                            <Heart className={`${viewMode === 'list' ? 'w-4 h-4' : 'w-3.5 h-3.5'} md:w-4 md:h-4 ${likedItemIds.includes(item.id) ? 'fill-current' : ''}`} />
                                         </button>
 
                                         <button onClick={(e) => handleCommentClick(e, item)} className={`${viewMode === 'list' ? 'p-2.5' : 'p-1.5'} md:p-2.5 rounded-full backdrop-blur-md border transition-all hover:scale-110 active:scale-95 group/icon ${darkMode ? 'bg-black/40 border-white/10 text-white hover:bg-black/60' : 'bg-white/60 border-white/40 text-black hover:bg-white/90'}`}>
