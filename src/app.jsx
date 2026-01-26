@@ -339,6 +339,7 @@ export default function App() {
         totalPrice={cartTotal}
         onCheckout={() => { setIsCartOpen(false); setView('checkout'); window.scrollTo(0, 0); }}
         interacted={cartInteracted}
+        darkMode={darkMode}
       />
 
       {/* MODAL LOGIN (Pour la Marketplace) */}
@@ -520,12 +521,12 @@ export default function App() {
             <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/20 to-transparent pointer-events-none -z-10"></div>
 
             <div className="flex items-center gap-1.5 md:gap-4 cursor-pointer group" onClick={() => { window.hasShownPreloader = true; setView('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
-              <div className={`w-[28px] h-[28px] md:w-14 md:h-14 rounded-lg md:rounded-xl flex items-center justify-center backdrop-blur-2xl border transition-all group-hover:rotate-6 ${darkMode ? 'bg-white/10 border-white/20 text-white' : 'bg-white border-black/5 text-stone-900'}`}>
-                <Hammer size={12} strokeWidth={1.5} className="md:w-7 md:h-7" />
+              <div className={`w-[28px] h-[28px] md:w-11 md:h-11 rounded-lg md:rounded-xl flex items-center justify-center backdrop-blur-2xl border transition-all group-hover:rotate-6 ${darkMode ? 'bg-white/10 border-white/20 text-white' : 'bg-white border-black/5 text-stone-900'}`}>
+                <Hammer size={12} strokeWidth={1.5} className="md:w-5 md:h-5" />
               </div>
               <div className="flex flex-col justify-center">
-                <h1 className="text-[13px] md:text-2xl font-bold uppercase tracking-tight md:tracking-widest leading-none text-white">Tous à Table</h1>
-                <p className="font-serif italic text-[9px] md:text-[20px] tracking-[0.05em] md:tracking-[0.1em] text-white/80 leading-none mt-1 md:mt-2 ml-0.5">Atelier Normand</p>
+                <h1 className="text-[13px] md:text-xl font-bold uppercase tracking-tight md:tracking-widest leading-none text-white">Tous à Table</h1>
+                <p className="font-serif italic text-[9px] md:text-[15px] tracking-[0.05em] md:tracking-[0.1em] text-white/80 leading-none mt-1 md:mt-2 ml-0.5">Atelier Normand</p>
               </div>
             </div>
 

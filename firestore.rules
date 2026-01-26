@@ -45,18 +45,18 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Commandes - Lecture/écriture restreinte
+    // Commandes - Accès Admin Total
     match /orders/{orderId} {
-      // Création UNIQUEMENT via Cloud Function (createOrder) pour garantir le stock
-      allow create: if false;
-      allow read, update: if request.auth != null && 
-        (request.auth.uid == resource.data.userId || isArtisan());
+      allow read, write: if request.auth != null && request.auth.token.email == 'matthis.fradin2@gmail.com';
+      // Pour les clients
+      allow read: if request.auth != null && (request.auth.uid == resource.data.userId);
+      allow create: if false; // Toujours via Cloud Function uniquement
     }
 
-    // System Metadata (Global Reset Signal)
+    // System Metadata
     match /sys_metadata/{docId} {
       allow read: if true;
-      allow write: if isArtisan();
+      allow write: if request.auth != null && request.auth.token.email == 'matthis.fradin2@gmail.com';
     }
   }
 }

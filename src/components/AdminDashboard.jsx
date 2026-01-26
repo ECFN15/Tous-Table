@@ -103,8 +103,6 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                     totalShares: shares
                 });
                 setLoading(false);
-
-
             } catch (error) {
                 console.error("Error fetching dashboard data:", error);
                 setLoading(false);
@@ -113,6 +111,42 @@ const AdminDashboard = ({ user, darkMode = false }) => {
 
         fetchData();
     }, []); // Run once on mount
+
+
+    const refreshStats = async () => {
+        setLoading(true);
+        try {
+            const ordersSnapshot = await getDocs(collection(db, 'orders'));
+            let revenue = 0;
+            let orderCount = 0;
+            const orders = [];
+
+            ordersSnapshot.forEach(doc => {
+                const data = doc.data();
+                if (data.status !== 'cancelled') {
+                    revenue += (data.total || 0);
+                    orderCount++;
+                }
+                orders.push({ id: doc.id, ...data });
+            });
+
+            const sortedOrders = orders.sort((a, b) => getMillis(b.createdAt) - getMillis(a.createdAt)).slice(0, 5);
+            setRecentOrders(sortedOrders);
+            setAllOrders(orders);
+
+            setStats(prev => ({
+                ...prev,
+                totalRevenue: revenue,
+                totalOrders: orderCount,
+                averageOrderValue: orderCount > 0 ? Math.round(revenue / orderCount) : 0
+            }));
+        } catch (error) {
+            console.error("Refresh stats error:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
 
     const handleResetClick = () => {
         setIsResetModalOpen(true);
@@ -231,7 +265,7 @@ const AdminDashboard = ({ user, darkMode = false }) => {
 
             await Promise.all(chunks);
 
-            // 3. Reset local state
+            // 3. Reset local state immediately
             setStats(prev => ({
                 ...prev,
                 totalRevenue: 0,
@@ -241,6 +275,9 @@ const AdminDashboard = ({ user, darkMode = false }) => {
             setRecentOrders([]);
             setAllOrders([]);
             setIsOrderResetModalOpen(false);
+
+            // 4. Force a refresh of the whole data just in case
+            await refreshStats();
 
             alert(`Succès ! ${count} commandes ont été sauvegardées en Excel et supprimées de la base.`);
         } catch (error) {

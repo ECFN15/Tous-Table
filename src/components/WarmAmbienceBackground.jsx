@@ -78,13 +78,25 @@ const WarmAmbienceBackground = ({ darkMode }) => {
             // Branding - Burnt & Carved
             ctx.globalAlpha = 1.0;
 
-            // Texture for the inlay (GOLD / BRASS)
-            const goldGrad = ctx.createLinearGradient(0, 50, 0, 200);
+            // Texture for the inlay (GOLD / BRASS) - HIGH CONTRAST METAL
+            const goldGrad = ctx.createLinearGradient(0, 0, 1024, 256); // Diagonal gradient
             goldGrad.addColorStop(0, '#8a6e3e');   // Shadowy bronze
-            goldGrad.addColorStop(0.3, '#fddb92'); // Bright shine
-            goldGrad.addColorStop(0.5, '#d4af37'); // Classic gold
-            goldGrad.addColorStop(0.8, '#fddb92'); // Shine
+            goldGrad.addColorStop(0.15, '#d4af37'); // Classic gold
+            goldGrad.addColorStop(0.25, '#fef9c3'); // White-hot shine
+            goldGrad.addColorStop(0.35, '#d4af37'); // Classic gold
+            goldGrad.addColorStop(0.5, '#8a6e3e');   // Shadowy bronze
+            goldGrad.addColorStop(0.65, '#d4af37'); // Classic gold
+            goldGrad.addColorStop(0.75, '#fef9c3'); // White-hot shine
+            goldGrad.addColorStop(0.85, '#d4af37'); // Classic gold
             goldGrad.addColorStop(1, '#8a6e3e');   // Shadowy bronze
+
+            // 0. REFINED INNER FRAME (Double gold line)
+            ctx.strokeStyle = goldGrad;
+            ctx.lineWidth = 3;
+            ctx.strokeRect(20, 20, 984, 216);
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.strokeRect(18, 18, 988, 220); // Fine highlight edge
 
             // 1. "TOUS À TABLE"
             ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -336,6 +348,60 @@ const WarmAmbienceBackground = ({ darkMode }) => {
         signMesh.castShadow = true;
         signMesh.receiveShadow = true;
         signGroup.add(signMesh);
+
+        // --- PREMIUM GOLD FRAME ---
+        const frameThickness = 0.12 * signScale;
+        const framePadding = 0.02 * signScale; // Small gap between wood and gold for depth
+        const frameDepth = 0.15 * signScale;
+
+        const goldMat = new THREE.MeshStandardMaterial({
+            color: 0xd4af37,
+            metalness: 1.0,
+            roughness: 0.1,
+            envMapIntensity: 1.5
+        });
+
+        // Top & Bottom Horizontal bars
+        const hBarGeo = new THREE.BoxGeometry(signWidth + (frameThickness * 2), frameThickness, frameDepth);
+        const topBar = new THREE.Mesh(hBarGeo, goldMat);
+        topBar.position.set(0, (signHeight / 2) + (frameThickness / 2) + framePadding, frameDepth / 2);
+        signGroup.add(topBar);
+
+        const bottomBar = new THREE.Mesh(hBarGeo, goldMat);
+        bottomBar.position.set(0, -(signHeight / 2) - (frameThickness / 2) - framePadding, frameDepth / 2);
+        signGroup.add(bottomBar);
+
+        // Left & Right Vertical bars
+        const vBarGeo = new THREE.BoxGeometry(frameThickness, signHeight + (framePadding * 2), frameDepth);
+        const leftBar = new THREE.Mesh(vBarGeo, goldMat);
+        leftBar.position.set(-(signWidth / 2) - (frameThickness / 2) - framePadding, 0, frameDepth / 2);
+        signGroup.add(leftBar);
+
+        const rightBar = new THREE.Mesh(vBarGeo, goldMat);
+        rightBar.position.set((signWidth / 2) + (frameThickness / 2) + framePadding, 0, frameDepth / 2);
+        signGroup.add(rightBar);
+
+        // Decorative Corner Rivets (Spheres half-embedded)
+        const rivetGeo = new THREE.SphereGeometry(frameThickness * 0.6, 16, 16);
+        const rivetPositions = [
+            [-(signWidth / 2 + frameThickness / 2 + framePadding), (signHeight / 2 + frameThickness / 2 + framePadding)],
+            [(signWidth / 2 + frameThickness / 2 + framePadding), (signHeight / 2 + frameThickness / 2 + framePadding)],
+            [-(signWidth / 2 + frameThickness / 2 + framePadding), -(signHeight / 2 + frameThickness / 2 + framePadding)],
+            [(signWidth / 2 + frameThickness / 2 + framePadding), -(signHeight / 2 + frameThickness / 2 + framePadding)]
+        ];
+
+        rivetPositions.forEach(([x, y]) => {
+            const rivet = new THREE.Mesh(rivetGeo, goldMat);
+            rivet.position.set(x, y, frameDepth);
+            rivet.scale.set(1, 1, 0.4); // Flat dome
+            signGroup.add(rivet);
+        });
+
+        // Add a "Glint" light that moves around the frame
+        const glintLight = new THREE.PointLight(0xffffff, 5.0, 10);
+        glintLight.position.set(0, 0, 2);
+        signGroup.add(glintLight);
+        // We'll animate this light in the animate loop
 
         // Ropes
         const ropeMat = new THREE.MeshStandardMaterial({ color: 0x3e2723, roughness: 0.8 });
@@ -615,6 +681,16 @@ const WarmAmbienceBackground = ({ darkMode }) => {
             signGroup.position.y = signYBase + Math.sin(time * 0.5) * 0.05;
             signGroup.rotation.z = Math.sin(time * 0.25) * 0.015;
             signGroup.rotation.x = Math.sin(time * 0.2) * 0.03;
+
+            // Animate Glint Light for metallic reflections
+            if (glintLight) {
+                const glintSpeed = 1.2;
+                const glintRadiusX = (signWidth / 2) + frameThickness;
+                const glintRadiusY = (signHeight / 2) + frameThickness;
+                glintLight.position.x = Math.cos(time * glintSpeed) * glintRadiusX;
+                glintLight.position.y = Math.sin(time * glintSpeed * 0.8) * glintRadiusY;
+                glintLight.intensity = 5.0 + Math.sin(time * 2) * 2; // Pulsing shine
+            }
 
             const positions = dustGeo.attributes.position.array;
             for (let i = 0; i < dustCount; i++) {
