@@ -70,6 +70,19 @@ export default function App() {
   // Admin State
   const [adminCollection, setAdminCollection] = useState('dashboard'); // 'dashboard' | 'furniture' | 'cutting_boards' | 'orders' | 'comments'
 
+  // Transition State
+  const [isPreparingGallery, setIsPreparingGallery] = useState(false);
+
+  const startGalleryTransition = () => {
+    setIsPreparingGallery(true);
+  };
+
+  const completeGalleryTransition = () => {
+    setView('gallery');
+    setIsPreparingGallery(false);
+    window.scrollTo(0, 0);
+  };
+
   // Deep Linking State
   const [pendingDeepLink, setPendingDeepLink] = useState(null);
 
@@ -298,6 +311,7 @@ export default function App() {
 
   return (
     <div className={`min-h-screen font-sans selection:bg-amber-100 transition-colors duration-500 ${darkMode ? 'bg-stone-900 text-white' : 'bg-[#fdf6e3] text-stone-900'}`}>
+      {loading && <div className="fixed inset-0 z-[999] flex items-center justify-center bg-[#fdf6e3]"><div className="w-10 h-10 border-[3px] border-stone-200 border-t-stone-900 rounded-full animate-spin"></div></div>}
 
       {/* COMPOSANT PANIER - Global (Disponible dès que la navbar est visible) */}
       <CartSidebar
@@ -547,23 +561,31 @@ export default function App() {
       {/* --- CONTENU PRINCIPAL --- */}
       <main>
         {/* VUE: ACCUEIL */}
-        {view === 'home' && (
-          <HomeView
-            onEnterMarketplace={() => { setView('gallery'); window.scrollTo(0, 0); }}
-            darkMode={darkMode}
-          />
+        {(view === 'home' || isPreparingGallery) && (
+          <div className={view === 'home' ? 'contents' : 'hidden'}>
+            <HomeView
+              onEnterMarketplace={completeGalleryTransition}
+              onStartMarketplaceTransition={startGalleryTransition}
+              darkMode={darkMode}
+            />
+          </div>
         )}
 
         {/* VUE: GALERIE (MARKETPLACE) */}
-        {view === 'gallery' && (
-          <GalleryView
-            items={items}
-            boardItems={boardItems}
-            isAdmin={isAdmin} isSecretGateOpen={isSecretGateOpen} user={user}
-            onShowLogin={() => setShowFullLogin(true)}
-            onSelectItem={(id) => { setSelectedItemId(id); setView('detail'); window.scrollTo(0, 0); }}
-            darkMode={darkMode}
-          />
+        {(view === 'gallery' || isPreparingGallery) && (
+          <div
+            className={view === 'gallery' ? 'contents animate-in fade-in duration-500' : 'fixed inset-0 pointer-events-none opacity-0 z-0'}
+            style={{ display: (view === 'gallery' || isPreparingGallery) ? 'block' : 'none' }}
+          >
+            <GalleryView
+              items={items}
+              boardItems={boardItems}
+              isAdmin={isAdmin} isSecretGateOpen={isSecretGateOpen} user={user}
+              onShowLogin={() => setShowFullLogin(true)}
+              onSelectItem={(id) => { setSelectedItemId(id); setView('detail'); window.scrollTo(0, 0); }}
+              darkMode={darkMode}
+            />
+          </div>
         )}
 
         {/* VUE: DETAIL PRODUIT */}

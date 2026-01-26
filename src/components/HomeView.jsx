@@ -91,7 +91,7 @@ const AccordionItem = ({ question, answer, isOpen, onClick }) => {
   );
 };
 
-const App = ({ onEnterMarketplace, darkMode }) => {
+const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => {
   const canvasRef = useRef(null);
   const cursorRef = useRef(null);
   const componentRef = useRef(null);
@@ -179,6 +179,9 @@ const App = ({ onEnterMarketplace, darkMode }) => {
         return;
       }
 
+      // SIGNAL PRELOAD: On pré-monte la Marketplace en arrière-plan
+      if (onStartMarketplaceTransition) onStartMarketplaceTransition();
+
       const tl = gsap.timeline({
         onComplete: () => {
           if (onEnterMarketplace) onEnterMarketplace();
@@ -187,9 +190,10 @@ const App = ({ onEnterMarketplace, darkMode }) => {
 
       // Étape 1: Les liens s'envolent et s'effacent (Staggered)
       tl.to('.menu-link', {
-        y: -120,
+        y: -150,
         opacity: 0,
-        duration: 0.7,
+        scale: 0.9,
+        duration: 0.8,
         stagger: 0.1,
         ease: "power4.in",
         overwrite: true
@@ -197,17 +201,18 @@ const App = ({ onEnterMarketplace, darkMode }) => {
 
         // Étape 2: Le fond du menu devient totalement opaque (Noir d'abord pour masquer le fond)
         .to('.menu-overlay', {
-          backgroundColor: '#111',
+          backgroundColor: '#000',
           opacity: 1,
           duration: 0.4,
           ease: "power2.inOut"
-        }, "-=0.5")
+        }, "-=0.4")
 
         // Étape 3: Transition douce du noir vers la couleur cible (fdf6e3)
+        // On allonge un peu cette phase pour laisser la Marketplace se stabiliser en z-index 0
         .to('.menu-overlay', {
           backgroundColor: darkMode ? '#1a120b' : '#fdf6e3',
-          duration: 0.8,
-          ease: "power2.inOut"
+          duration: 1.2,
+          ease: "expo.inOut"
         });
 
       return;
