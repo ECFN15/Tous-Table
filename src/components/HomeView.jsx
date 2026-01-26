@@ -288,7 +288,9 @@ const App = ({ onEnterMarketplace, darkMode }) => {
   }, []);
 
   // --- PRELOADER STATE ---
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(() => {
+    return typeof window !== 'undefined' ? !window.hasShownPreloader : true;
+  });
 
   // --- PRELOADER & HERO ENTRANCE ---
   useEffect(() => {
@@ -297,6 +299,40 @@ const App = ({ onEnterMarketplace, darkMode }) => {
     const { gsap } = window;
     if (!gsap) return;
 
+    // If preloader already shown, just animate hero immediately
+    if (window.hasShownPreloader) {
+      document.body.style.overflow = '';
+      setIsLoading(false);
+
+      // Reset background state for instant landing
+      gsap.set(document.body, {
+        backgroundColor: darkMode ? '#1a1a1a' : '#FAF9F6',
+        color: darkMode ? '#FAF9F6' : '#1a1a1a'
+      });
+      gsap.set('.three-container', { opacity: 1, y: 0 });
+      window._pauseThree = false;
+
+      const tl = gsap.timeline();
+      tl.set('.hero-section .reveal-inner', { y: "115%", rotate: 2 });
+      tl.to('.hero-section .reveal-inner', {
+        y: "0%",
+        rotate: 0,
+        duration: 1.5,
+        ease: "expo.out",
+        stagger: 0.1,
+        force3D: true
+      })
+        .to('.hero-footer-element', {
+          opacity: 1,
+          y: 0,
+          duration: 1,
+          stagger: 0.1,
+          ease: "power3.out"
+        }, "-=1.0");
+
+      return;
+    }
+
     // Lock scroll during preloader
     document.body.style.overflow = 'hidden';
 
@@ -304,6 +340,7 @@ const App = ({ onEnterMarketplace, darkMode }) => {
       const tl = gsap.timeline({
         onComplete: () => {
           setIsLoading(false);
+          window.hasShownPreloader = true; // Mark as shown
           document.body.style.overflow = '';
           // Ensure ScrollTrigger is refreshed after layout settles
           if (window.ScrollTrigger) window.ScrollTrigger.refresh();
@@ -413,6 +450,7 @@ const App = ({ onEnterMarketplace, darkMode }) => {
   // --- THREE.JS BACKGROUND ---
   useEffect(() => {
     if (!canvasRef.current) return;
+    window._pauseThree = false; // Reset GPU throttle on mount
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 100);
