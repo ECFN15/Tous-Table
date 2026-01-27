@@ -497,12 +497,12 @@ const AppContent = () => {
           {/* NAVBAR GLOBALE (Auto-Hide) */}
           <nav className={`fixed top-0 left-0 right-0 z-[100] px-3 md:px-12 py-3 md:py-8 flex justify-between items-center transition-all duration-500 ease-in-out ${isHeaderVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}>
             <div className="flex items-center gap-1.5 md:gap-3 cursor-pointer group" onClick={() => { window.hasShownPreloader = true; setView('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
-              <div className={`w-[28px] h-[28px] md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center backdrop-blur-2xl border transition-all group-hover:rotate-6 ${darkMode ? 'bg-white/10 border-white/20 text-white' : 'bg-white/80 border-[#2c1810]/10 text-[#2c1810]'}`}>
+              <div className={`w-[28px] h-[28px] md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center backdrop-blur-2xl border transition-all group-hover:rotate-6 ${darkMode ? 'bg-white/10 border-white/20 text-white' : 'bg-white/90 border-[#1a0f0a]/10 text-[#1a0f0a]'}`}>
                 <Hammer size={12} strokeWidth={1.5} className="md:w-4 md:h-4" />
               </div>
               <div className="flex flex-col justify-center">
-                <h1 className={`text-[13px] md:text-lg font-bold uppercase tracking-tight md:tracking-widest leading-none transition-colors ${darkMode ? 'text-white' : 'text-[#2c1810]'}`}>Tous à Table</h1>
-                <p className={`font-serif italic text-[11px] md:text-[14px] tracking-[0.05em] md:tracking-[0.1em] leading-none mt-0.5 md:mt-1 ml-0.5 transition-colors ${darkMode ? 'text-white/80' : 'text-[#2c1810]/80'}`}>Atelier Normand</p>
+                <h1 className={`text-[13px] md:text-lg font-bold uppercase tracking-tight md:tracking-widest leading-none transition-colors ${darkMode ? 'text-white' : 'text-[#1a0f0a]'}`}>Tous à Table</h1>
+                <p className={`font-serif italic text-[11px] md:text-[14px] tracking-[0.05em] md:tracking-[0.1em] leading-none mt-0.5 md:mt-1 ml-0.5 transition-colors ${darkMode ? 'text-white/80' : 'text-[#1a0f0a] opacity-90'}`}>Atelier Normand</p>
               </div>
             </div>
 
@@ -510,9 +510,9 @@ const AppContent = () => {
               {user && !user.isAnonymous ? (
                 <div className="flex items-center gap-1.5 md:gap-4 mr-0.5 md:mr-2">
                   <div className="text-right hidden md:block">
-                    <div className="flex items-center justify-end gap-2 text-[#2c1810]">
-                      <p className={`text-[10px] font-black uppercase tracking-widest ${darkMode ? 'text-white' : 'text-[#2c1810]'}`}>{user.displayName || 'Client'}</p>
-                      {user.emailVerified && <ShieldCheck size={14} strokeWidth={3} className={darkMode ? 'text-blue-400' : 'text-[#1d4ed8]'} title="Compte Vérifié" />}
+                    <div className="flex items-center justify-end gap-2 text-[#1a0f0a]">
+                      <p className={`text-[10px] font-black uppercase tracking-widest ${darkMode ? 'text-white' : 'text-[#1a0f0a]'}`}>{user.displayName || 'Client'}</p>
+                      {user.emailVerified && <ShieldCheck size={14} strokeWidth={3} className={darkMode ? 'text-white' : 'text-[#1a0f0a]'} title="Compte Vérifié" />}
                     </div>
                   </div>
                   <button onClick={() => { logout(); }} className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center backdrop-blur-2xl border shadow-xl transition-all ${darkMode ? 'bg-white/15 border-white/20 text-white hover:bg-white hover:text-stone-900 shadow-white/5' : 'bg-white/80 border-black/10 text-stone-900 hover:bg-stone-900 hover:text-white shadow-black/5'}`}><LogOut size={12} className="md:w-[15px] md:h-[15px]" /></button>
