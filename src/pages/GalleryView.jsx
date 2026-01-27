@@ -170,6 +170,11 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                                     <div className="absolute inset-x-0 top-0 bottom-[64px] md:bottom-[88px] overflow-hidden">
                                         <img
                                             src={item.thumbnailUrl || item.thumbnails?.[0] || item.images?.[0] || item.imageUrl}
+                                            srcSet={`
+                                                ${item.thumbnailUrl || item.thumbnails?.[0] || item.images?.[0] || item.imageUrl} 500w,
+                                                ${item.images?.[0] || item.imageUrl} 1200w
+                                            `}
+                                            sizes="(max-width: 768px) 90vw, (max-width: 1200px) 33vw, 25vw"
                                             alt={item.name}
                                             className="w-full h-full object-cover transform-gpu transition-transform duration-700 ease-out group-hover:scale-110"
                                             loading="lazy"
