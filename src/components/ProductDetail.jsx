@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { ChevronLeft, Award, Mail, Box, Ruler, History, Quote, Heart, MessageCircle, Share2 } from 'lucide-react';
+import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { db, appId, functions } from '../firebase/config';
 import { httpsCallable } from 'firebase/functions';
 import { getMillis, formatTime } from '../utils/time';
@@ -27,10 +28,23 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments }) => {
   const isAuctionOver = item.auctionActive && getMillis(item.auctionEnd) < Date.now();
   const isWinner = isAuctionOver && user && item.lastBidderId === user.uid;
 
+  // Determine collection name
+  const collectionName = useMemo(() => item.collectionName || (item.id.includes('board') ? 'cutting_boards' : 'furniture'), [item]);
+
   useEffect(() => {
-    const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'furniture', item.id, 'bids'), orderBy('timestamp', 'desc'), limit(10));
-    return onSnapshot(q, (snap) => setBidsHistory(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
-  }, [item.id]);
+    if (!item.auctionActive) return;
+
+    try {
+      const q = query(
+        collection(db, 'artifacts', appId, 'public', 'data', collectionName, item.id, 'bids'),
+        orderBy('timestamp', 'desc'),
+        limit(10)
+      );
+      return onSnapshot(q, (snap) => setBidsHistory(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+    } catch (err) {
+      console.error("Error subscribing to bids:", err);
+    }
+  }, [item.id, collectionName, item.auctionActive]);
 
   // Appel sécurisé via Cloud Function
   const handleQuickBid = async (inc) => {
