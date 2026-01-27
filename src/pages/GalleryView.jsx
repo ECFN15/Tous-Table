@@ -98,17 +98,21 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
             <div className="relative z-10">
 
                 {/* --- HEADER --- */}
-                <div className="pt-14 md:pt-28 pb-16 md:pb-12 px-5 sm:px-8 md:px-[8vw] xl:px-[12vw] flex flex-col lg:flex-row lg:items-end justify-between gap-3 lg:gap-10">
-                    <div className="space-y-2 md:space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700 max-w-2xl">
+                {/* --- HEADER --- */}
+                {/* Mobile: pt-28 (112px) for better vertical centering, pb-6 to push filters down slightly */}
+                <div className="pt-28 md:pt-28 pb-6 md:pb-12 px-5 sm:px-8 md:px-[8vw] xl:px-[12vw] flex flex-col lg:flex-row lg:items-end justify-between gap-3 lg:gap-10">
+                    <div className="space-y-1 md:space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700 max-w-2xl">
                         {/* BADGE REMOVED HERE */}
-                        <h1 className={`font-serif text-2xl sm:text-5xl md:text-7xl lg:text-8xl font-medium tracking-tight leading-[0.9] transition-colors ${darkMode ? 'text-white' : 'text-[#1a0f0a] mix-blend-multiply opacity-100'}`}>
+                        {/* Mobile: Larger Title (text-5xl) to fill the space */}
+                        <h1 className={`font-serif text-5xl sm:text-5xl md:text-7xl lg:text-8xl font-medium tracking-tight leading-[0.9] transition-colors ${darkMode ? 'text-white' : 'text-[#1a0f0a] mix-blend-multiply opacity-100'}`}>
                             La Galerie<span className="text-[#FAF9F6] dark:text-[#FAF9F6] drop-shadow-[0_0_10px_rgba(250,249,246,0.3)] scale-110 inline-block transform translate-x-1">.</span>
                         </h1>
                     </div>
                 </div>
 
                 {/* --- FILTRES & VIEW TOGGLE --- */}
-                <div className="px-5 sm:px-8 md:px-[8vw] xl:px-[12vw] mb-6 md:mb-12 flex flex-row items-center justify-between gap-4 animate-in fade-in duration-1000 delay-200">
+                {/* Mobile: Increased margin bottom (mb-8) to separate from cards */}
+                <div className="px-5 sm:px-8 md:px-[8vw] xl:px-[12vw] mb-8 md:mb-12 flex flex-row items-center justify-between gap-4 animate-in fade-in duration-1000 delay-200">
 
                     {/* SWITCHER COLLECTION (Moved from Header) */}
                     <div className={`flex p-1 rounded-full w-fit shadow-lg transition-all ${darkMode ? 'bg-stone-800 border border-white/5' : 'bg-white/80 backdrop-blur-md border border-black/5'}`}>
