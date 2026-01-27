@@ -50,10 +50,12 @@ Le projet a été restructuré pour séparer clairement les responsabilités (Ja
 
 ## 🎨 2. Design System & UX
 
-*   **Ambiance** : Luxe, Artisanat, Terroir Normand, Minimalisme "Lumnos".
-*   **Couleurs** :
-    *   Fond : `#FAF9F6` (Beige Crème / "Off-White") ou `#1a1a1a` (Noir Profond en Dark Mode).
-    *   Accents : `#9C8268` (Doré/Bois), Noir mat.
+*   **Ambiance** : "Chocolat & Bois", Luxe, Artisanat, Terroir Normand, Minimalisme "Lumnos".
+*   **Couleurs (Palette "Atelier")** :
+    *   **Fond Principal** : Dégradé Teck/Noyer (`#e0d0c1` à `#8b5e3c`) en Light Mode. Noir Profond (`#1C1C1E`) en Dark Mode.
+    *   **Cartes & Surfaces** : `#FAF9F6` (Blanc cassé / Coquille d'œuf) avec ombres portées noires (`shadow-black/10`) et bordure subtile (`border-white/60`).
+    *   **Textes & Titres** : `#1a0f0a` (Chocolat Noir 95%) pour un contraste élégant sans la dureté du noir pur.
+    *   **Accents** : Vert Émeraude (`#047857`) pour les validations, Ambre (`#f59e0b`) pour les actions.
 *   **Typographie** : Polices avec empattement (Serif) pour les titres, Sans-Serif épuré pour le texte.
 *   **Animations** :
     *   **GSAP** : Utilisé pour les transitions fluides (ScrollTrigger sur la Home).
