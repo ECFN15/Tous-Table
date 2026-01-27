@@ -75,10 +75,13 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
       });
 
       const initialImages = editData.images || (editData.imageUrl ? [editData.imageUrl] : []);
+      const initialThumbnails = editData.thumbnails || [];
+
       setGalleryItems(initialImages.map((url, idx) => ({
         id: `existing-${idx}-${Date.now()}`,
         file: null,
         preview: url,
+        thumbnail: initialThumbnails[idx] || null, // Store existing thumbnail if any
         isExisting: true
       })));
     } else { resetForm(); }
@@ -175,29 +178,39 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
     setUploading(true); setMsg("⏳ Optimisation & Envoi..."); // Updated message
     try {
       let finalImageUrls = [];
+      let finalThumbnailUrls = []; // [NEW] Thumbnails array
 
       let accumulatedCompressedSize = 0;
       for (const item of galleryItems) {
         if (item.isExisting) {
           finalImageUrls.push(item.preview);
+          finalThumbnailUrls.push(item.thumbnail || null); // Keep existing thumb or null
         } else if (item.file) {
           let fileToUpload = item.file;
           const originalSizeStr = formatBytes(item.originalSize || item.file.size);
 
+          // 1. Full Size (High Res)
           if (!item.isCompressed) {
-            // Auto-compress if not done manually
-            setMsg(`⏳ Compression: ${item.file.name} (${originalSizeStr})...`);
-            fileToUpload = await compressImage(item.file);
+            setMsg(`⏳ Compression HD: ${item.file.name}...`);
+            fileToUpload = await compressImage(item.file); // Default 1920
           }
 
-          const sizeStr = formatBytes(fileToUpload.size);
-          setMsg(`⏳ Upload: ${fileToUpload.name} (${originalSizeStr} -> ${sizeStr})...`);
-
-          const imageRef = ref(storage, `${collectionName}/${Date.now()}_${fileToUpload.name}`);
-          await uploadBytes(imageRef, fileToUpload, {
-            cacheControl: 'public, max-age=31536000'
-          });
+          const imageRef = ref(storage, `${collectionName}/${Date.now()}_HD_${fileToUpload.name}`);
+          await uploadBytes(imageRef, fileToUpload, { cacheControl: 'public, max-age=31536000' });
           finalImageUrls.push(await getDownloadURL(imageRef));
+
+          // 2. Thumbnail (Low Res) [NEW]
+          try {
+            setMsg(`⏳ Création Miniature: ${item.file.name}...`);
+            // Creates a 500px wide version, heavily compressed (quality 0.7)
+            const thumbFile = await compressImage(item.file, 0.7, 500);
+            const thumbRef = ref(storage, `${collectionName}/${Date.now()}_THUMB_${thumbFile.name}`);
+            await uploadBytes(thumbRef, thumbFile, { cacheControl: 'public, max-age=31536000' });
+            finalThumbnailUrls.push(await getDownloadURL(thumbRef));
+          } catch (thumbnailErr) {
+            console.error("Thumbnail generation failed, pushing null", thumbnailErr);
+            finalThumbnailUrls.push(null); // Fallback to null
+          }
 
           if (!item.isCompressed) {
             accumulatedCompressedSize += fileToUpload.size;
@@ -209,7 +222,9 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
       const data = {
         ...formData,
         images: finalImageUrls,
+        thumbnails: finalThumbnailUrls, // [NEW] Save thumbnails
         imageUrl: finalImageUrls[0] || "",
+        thumbnailUrl: finalThumbnailUrls[0] || "", // [NEW] Main thumbnail
         currentPrice: Number(formData.startingPrice),
         startingPrice: Number(formData.startingPrice),
         durationMinutes: Number(formData.durationMinutes),

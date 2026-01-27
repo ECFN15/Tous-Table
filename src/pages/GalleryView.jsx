@@ -164,7 +164,7 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                                     {/* 1. IMAGE LAUNCHER (Top Section) */}
                                     <div className="absolute inset-x-0 top-0 bottom-[64px] md:bottom-[88px] overflow-hidden">
                                         <img
-                                            src={item.images?.[0] || item.imageUrl}
+                                            src={item.thumbnailUrl || item.thumbnails?.[0] || item.images?.[0] || item.imageUrl}
                                             alt={item.name}
                                             className="w-full h-full object-cover transform-gpu transition-transform duration-700 ease-out group-hover:scale-110"
                                             loading="lazy"

@@ -76,6 +76,13 @@ Le backend est géré par **Firebase Cloud Functions** (dans `/functions`).
 
 ## 🚀 4. Workflow de Déploiement
 
+### 📸 Optimisation des Images (Nouveau - Janvier 2026)
+Le système gère automatiquement deux versions des images lors de l'upload via l'Admin :
+1.  **HD (High Definition)** : `_HD_` dans le nom. Utilisée pour la page détail produit (Zoom possible).
+2.  **Thumbnail (Miniature)** : `_THUMB_` dans le nom (~500px). Utilisée pour les grilles (Galerie) afin d'économiser la bande passante et accélérer le chargement mobile.
+
+L'optimisation WebP se fait côté client avant l'envoi.
+
 Pour mettre le site en ligne sur **https://tatmadeinnormandie.web.app** :
 
 1.  **Construction** (Optimisation du code) :
