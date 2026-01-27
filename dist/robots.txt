@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://tatmadeinnormandie.web.app/sitemap.xml

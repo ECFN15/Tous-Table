@@ -72,3 +72,7 @@ node_modules/
 service-account.json
 *.json.key
 credentials/
+
+# Build directory
+dist/
+build/
