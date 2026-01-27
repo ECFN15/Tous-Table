@@ -81,7 +81,7 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
     };
 
     return (
-        <div className={`min-h-screen pb-32 transition-colors duration-500 ${darkMode ? 'bg-[#0a0807] text-white' : 'bg-[#fdf8f0] text-[#1D1D1F]'}`}>
+        <div className={`min-h-screen pb-32 transition-colors duration-500 ${darkMode ? 'bg-[#0a0807] text-white' : 'bg-[#e0d0c1] text-[#1D1D1F]'}`}>
 
             <React.Suspense fallback={null}>
                 <SEO

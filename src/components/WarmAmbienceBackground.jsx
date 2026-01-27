@@ -27,12 +27,12 @@ const WarmAmbienceBackground = ({ darkMode }) => {
             // We move away from "Pale White" to "Warm Amber/Honey" and "Deep Earth".
             // Previous: bgGradientTop: darkMode ? new THREE.Color('#1a120b') : new THREE.Color('#FAF9F6'),
             // Previous: bgGradientBot: darkMode ? new THREE.Color('#2d1b14') : new THREE.Color('#d4a373'),
-            bgGradientTop: darkMode ? new THREE.Color('#0a0807') : new THREE.Color('#fdf5e6'), // Deep Charcoal / Warm Old Lace
-            bgGradientBot: darkMode ? new THREE.Color('#1f1814') : new THREE.Color('#c19a6b'), // Dark Umber / Rich Wood Sand
+            bgGradientTop: darkMode ? new THREE.Color('#0a0807') : new THREE.Color('#e0d0c1'), // Deep Charcoal / Light Walnut (Grayish Beige)
+            bgGradientBot: darkMode ? new THREE.Color('#1f1814') : new THREE.Color('#8b5e3c'), // Dark Umber / Deep Teak (Rich Brown)
 
             // Particles/Magic
-            firefly: darkMode ? new THREE.Color('#fbbf24') : new THREE.Color('#e67e22'), // More vibrant orange in light mode
-            dust: darkMode ? new THREE.Color('#ffffff') : new THREE.Color('#8b4513'), // Richer brown for dust
+            firefly: darkMode ? new THREE.Color('#fbbf24') : new THREE.Color('#d97706'), // Vibrant orange / Amber
+            dust: darkMode ? new THREE.Color('#ffffff') : new THREE.Color('#4a3728'), // Dark Brown (Wenge) for dust vs White
 
             // Foliage shadows (blurred in foreground)
             foliage: darkMode ? new THREE.Color('#022c22') : new THREE.Color('#3d2b1f'), // Deep forest / Dark bark
@@ -174,7 +174,7 @@ const WarmAmbienceBackground = ({ darkMode }) => {
         scene.add(furnitureGroup);
 
         const furnitureMat = new THREE.MeshBasicMaterial({
-            color: darkMode ? 0xffffff : 0x2d1b14, // Very Dark Wood for Light Mode
+            color: darkMode ? 0xffffff : 0x3e2723, // Wenge (Very Dark Brown) for Light Mode wireframes
             wireframe: true,
             transparent: true,
             opacity: darkMode ? 0.15 : 0.15 // Increased visibility
@@ -410,7 +410,7 @@ const WarmAmbienceBackground = ({ darkMode }) => {
             ref={containerRef}
             className="fixed top-0 left-0 w-full h-[120vh] md:h-screen z-0 transition-opacity duration-1000 ease-out"
             style={{
-                background: darkMode ? '#1a120b' : '#FAF9F6'
+                background: darkMode ? '#1a120b' : '#e0d0c1'
             }}
         />
     );
