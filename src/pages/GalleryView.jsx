@@ -100,11 +100,8 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                 {/* --- HEADER --- */}
                 <div className="pt-14 md:pt-32 pb-16 md:pb-12 px-5 sm:px-8 md:px-[8vw] xl:px-[12vw] flex flex-col lg:flex-row lg:items-end justify-between gap-3 lg:gap-10">
                     <div className="space-y-2 md:space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700 max-w-2xl">
-                        <div className={`inline-flex items-center gap-2 px-2 py-0.5 rounded-full backdrop-blur-md border w-fit shadow-sm transition-colors ${darkMode ? 'bg-white/10 border-white/10' : 'bg-white/60 border-black/5'}`}>
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span className={`text-[8px] md:text-[9px] font-bold uppercase tracking-widest ${darkMode ? 'text-white/80' : 'text-black/60'}`}>Marketplace Live</span>
-                        </div>
-                        <h1 className={`font-serif text-2xl sm:text-5xl md:text-7xl lg:text-8xl font-medium tracking-tight leading-[0.9] transition-colors ${darkMode ? 'text-white' : 'text-[#2c1810] mix-blend-multiply opacity-90'}`}>
+                        {/* BADGE REMOVED HERE */}
+                        <h1 className={`font-serif text-2xl sm:text-5xl md:text-7xl lg:text-8xl font-medium tracking-tight leading-[0.9] transition-colors ${darkMode ? 'text-white' : 'text-[#1a0f0a] mix-blend-multiply opacity-100'}`}>
                             La Galerie<span className="text-[#FAF9F6] dark:text-[#FAF9F6] drop-shadow-[0_0_10px_rgba(250,249,246,0.3)] scale-110 inline-block transform translate-x-1">.</span>
                         </h1>
                     </div>
