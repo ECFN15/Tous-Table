@@ -14,19 +14,19 @@ import { auth, db, appId, googleProvider, facebookProvider, twitterProvider, app
 import { getMillis } from './utils/time';
 
 // --- IMPORTS VUES ---
-import HomeView from './components/HomeView';
-import GalleryView from './components/GalleryView';
-import ProductDetail from './components/ProductDetail';
+import HomeView from './pages/HomeView';
+import GalleryView from './pages/GalleryView';
+import ProductDetail from './pages/ProductDetail';
 
-import LoginView from './components/LoginView';
-import AdminForm from './components/AdminForm';
-import AdminOrders from './components/AdminOrders';
+import LoginView from './pages/LoginView';
+import AdminForm from './features/admin/AdminForm';
+import AdminOrders from './features/admin/AdminOrders';
 
-import AdminComments from './components/AdminComments'; // New
-import AdminDashboard from './components/AdminDashboard'; // New Dashboard
-import AdminHomepage from './components/AdminHomepage'; // New Homepage Manager
+import AdminComments from './features/admin/AdminComments'; // New
+import AdminDashboard from './features/admin/AdminDashboard'; // New Dashboard
+import AdminHomepage from './features/admin/AdminHomepage'; // New Homepage Manager
 import CartSidebar from './components/CartSidebar';
-import CheckoutView from './components/CheckoutView';
+import CheckoutView from './pages/CheckoutView';
 import OrderSuccessModal from './components/OrderSuccessModal';
 const CommentsModal = React.lazy(() => import('./components/ui/CommentsModal'));
 
