@@ -99,14 +99,18 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
 
                 {/* --- HEADER --- */}
                 {/* --- HEADER --- */}
-                {/* Mobile: pt-28 (112px) for better vertical centering, pb-6 to push filters down slightly */}
-                <div className="pt-28 md:pt-28 pb-6 md:pb-12 px-5 sm:px-8 md:px-[8vw] xl:px-[12vw] flex flex-col lg:flex-row lg:items-end justify-between gap-3 lg:gap-10">
+                {/* Mobile: pt-20 (80px) to move title UP, making room for subtitle without pushing cards down */}
+                <div className="pt-20 md:pt-28 pb-6 md:pb-12 px-5 sm:px-8 md:px-[8vw] xl:px-[12vw] flex flex-col lg:flex-row lg:items-end justify-between gap-3 lg:gap-10">
                     <div className="space-y-1 md:space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700 max-w-2xl">
                         {/* BADGE REMOVED HERE */}
-                        {/* Mobile: Larger Title (text-5xl) to fill the space */}
+                        {/* Mobile: Larger Title (text-5xl) */}
                         <h1 className={`font-serif text-5xl sm:text-5xl md:text-7xl lg:text-8xl font-medium tracking-tight leading-[0.9] transition-colors ${darkMode ? 'text-white' : 'text-[#1a0f0a] mix-blend-multiply opacity-100'}`}>
                             La Galerie<span className="text-[#FAF9F6] dark:text-[#FAF9F6] drop-shadow-[0_0_10px_rgba(250,249,246,0.3)] scale-110 inline-block transform translate-x-1">.</span>
                         </h1>
+                        {/* NEW SUBTITLE */}
+                        <p className={`font-serif italic text-lg sm:text-xl tracking-wide opacity-80 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-100 ${darkMode ? 'text-white/80' : 'text-[#1a0f0a]/80'}`}>
+                            {activeCollection === 'furniture' ? 'Nos Meubles de Ferme' : 'Nos Planches à Découper'}
+                        </p>
                     </div>
                 </div>
 
