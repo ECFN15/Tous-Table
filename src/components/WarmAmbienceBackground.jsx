@@ -95,26 +95,41 @@ const WarmAmbienceBackground = ({ darkMode }) => {
 
 
         // 3. ATMOSPHERIC PARTICLES
-        const dustCount = 150;
+        const dustCount = 200; // Increased count for better density
         const dustGeo = new THREE.BufferGeometry();
         const dustPos = new Float32Array(dustCount * 3);
         const dustData = new Float32Array(dustCount * 3);
+        const dustColors = new Float32Array(dustCount * 3);
+
+        const dustColorDark = PALETTE.dust;
+        // Light Mode: "Sawdust" (Golden Brown) | Dark Mode: Gold/Amber
+        const dustColorLight = darkMode ? new THREE.Color('#fbbf24') : new THREE.Color('#A67B5B');
+
         for (let i = 0; i < dustCount; i++) {
             dustPos[i * 3] = (Math.random() - 0.5) * 50;
             dustPos[i * 3 + 1] = (Math.random() - 0.5) * 40;
             dustPos[i * 3 + 2] = (Math.random() - 0.5) * 30;
+
             dustData[i * 3] = Math.random() * 10;
             dustData[i * 3 + 1] = 0.2 + Math.random() * 0.3;
             dustData[i * 3 + 2] = Math.random();
+
+            // Randomly assign dark or light color
+            const color = Math.random() > 0.4 ? dustColorDark : dustColorLight;
+            dustColors[i * 3] = color.r;
+            dustColors[i * 3 + 1] = color.g;
+            dustColors[i * 3 + 2] = color.b;
         }
         dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
         dustGeo.setAttribute('aData', new THREE.BufferAttribute(dustData, 3));
+        dustGeo.setAttribute('color', new THREE.BufferAttribute(dustColors, 3));
+
         const dustMat = new THREE.PointsMaterial({
-            color: PALETTE.dust,
-            size: 0.25,
+            vertexColors: true, // IMPORTANT: Enable individual particle colors
+            size: 0.3, // Slightly larger
             transparent: true,
-            opacity: 0.8, // High visibility
-            blending: THREE.NormalBlending, // "Solid" specks
+            opacity: 0.9,
+            blending: THREE.NormalBlending,
             sizeAttenuation: true
         });
         const dustSystem = new THREE.Points(dustGeo, dustMat);
