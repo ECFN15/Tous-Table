@@ -98,7 +98,7 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
             <div className="relative z-10">
 
                 {/* --- HEADER --- */}
-                <div className="pt-14 md:pt-32 pb-16 md:pb-12 px-5 sm:px-8 md:px-[8vw] xl:px-[12vw] flex flex-col lg:flex-row lg:items-end justify-between gap-3 lg:gap-10">
+                <div className="pt-14 md:pt-28 pb-16 md:pb-12 px-5 sm:px-8 md:px-[8vw] xl:px-[12vw] flex flex-col lg:flex-row lg:items-end justify-between gap-3 lg:gap-10">
                     <div className="space-y-2 md:space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700 max-w-2xl">
                         {/* BADGE REMOVED HERE */}
                         <h1 className={`font-serif text-2xl sm:text-5xl md:text-7xl lg:text-8xl font-medium tracking-tight leading-[0.9] transition-colors ${darkMode ? 'text-white' : 'text-[#1a0f0a] mix-blend-multiply opacity-100'}`}>

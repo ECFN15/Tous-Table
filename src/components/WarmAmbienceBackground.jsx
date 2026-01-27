@@ -304,29 +304,78 @@ const WarmAmbienceBackground = ({ darkMode }) => {
             return g;
         }
 
+        const createRoundTable = () => {
+            const g = new THREE.Group();
+            // Round Top (Cylinder with high segments)
+            const radius = 1.4;
+            const top = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, 0.1, 32), furnitureMat);
+            top.position.y = 0;
+            g.add(top);
+
+            // 4 Legs inset
+            const hLeg = 1.4;
+            const legDist = 0.8; // Distance from center
+            const angles = [0, Math.PI / 2, Math.PI, -Math.PI / 2];
+
+            angles.forEach(angle => {
+                const x = Math.cos(angle) * legDist;
+                const z = Math.sin(angle) * legDist;
+                const leg = createLeg(x, z, hLeg, 0.12);
+                g.add(leg);
+            });
+
+            // X-Brace at bottom for detail
+            const brace1 = createPlank(1.8, 0.05, 0.05, -hLeg + 0.3);
+            brace1.rotation.y = Math.PI / 4;
+            const brace2 = createPlank(1.8, 0.05, 0.05, -hLeg + 0.3);
+            brace2.rotation.y = -Math.PI / 4;
+            g.add(brace1); g.add(brace2);
+
+            return g;
+        };
+
         const furnitureItems = [];
-        // High count for dense "attic" feel
-        const itemCount = 35;
+        const itemCount = 30; // Slightly reduced count to allow bigger items to breathe
+
         for (let i = 0; i < itemCount; i++) {
             const type = Math.random();
             let item;
-            if (type < 0.3) item = createChair();
-            else if (type < 0.55) item = createTable();
-            else if (type < 0.8) item = createBench();
-            else item = createDresser();
+            // Equal chance distribution + new Round Table
+            if (type < 0.25) item = createChair();
+            else if (type < 0.5) item = createTable();
+            else if (type < 0.75) item = createBench();
+            else item = createRoundTable(); // New!
 
-            // Depth calculation: -50 (far) to +5 (very close)
-            // We want more items in the back, fewer in front to avoid cluttering the view
-            const zPos = -40 + Math.random() * 50; // [-40, 10]
+            // IMPROVED DEPTH LOGIC:
+            // 20% in Foreground (Close to camera, blurry, big)
+            // 80% in Background (Far away, crisp context)
+            const isForeground = Math.random() < 0.2;
+            let zPos;
 
-            // Parallax factor (optional logic later, for now scale)
-            // Closer items (zPos higher) -> Bigger Scale
-            // Map [-40, 10] -> Scale [0.5, 2.5]
-            const scaleFactor = THREE.MathUtils.mapLinear(zPos, -40, 10, 0.6, 2.2);
+            if (isForeground) {
+                // Camera is at z=20. Foreground items should be between z=5 and z=15.
+                zPos = 5 + Math.random() * 10;
+            } else {
+                // Background: Push them further back for depth
+                zPos = -45 + Math.random() * 35; // [-45, -10]
+            }
+
+            // Parallax factor / Scale based on depth
+            // Closer items appear slightly larger naturally, but we boost scale slightly for style
+            const scaleFactor = THREE.MathUtils.mapLinear(zPos, -45, 15, 0.8, 1.8);
+
+            // Spread Logic: Foreground items pushed more to sides to avoid blocking center view
+            const xRange = isForeground ? 110 : 80; // Wider spread in foreground
+            let xPos = (Math.random() - 0.5) * xRange;
+
+            // If foreground, ensure it's not dead center (blocking view)
+            if (isForeground && Math.abs(xPos) < 20) {
+                xPos = xPos > 0 ? 25 : -25;
+            }
 
             item.position.set(
-                (Math.random() - 0.5) * 90, // Wide spread
-                (Math.random() - 0.5) * 50, // Vertical spread
+                xPos,
+                (Math.random() - 0.5) * 55, // Random Height
                 zPos
             );
 
@@ -338,8 +387,8 @@ const WarmAmbienceBackground = ({ darkMode }) => {
             furnitureGroup.add(item);
             furnitureItems.push({
                 mesh: item,
-                // Speed inversely proportional to scale (mass)? Or simple random.
-                speed: (Math.random() * 0.002) + 0.0005,
+                // Foreground items move slightly faster (parallax effect)
+                speed: ((Math.random() * 0.001) + 0.0002) * (isForeground ? 1.5 : 1.0),
                 axis: new THREE.Vector3(Math.random(), Math.random(), Math.random()).normalize()
             });
         }
