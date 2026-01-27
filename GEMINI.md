@@ -32,12 +32,16 @@ Le projet a été restructuré pour séparer clairement les responsabilités (Ja
     *   `ProductDetail.jsx` : Fiche produit détaillée (Enchères/Achat).
     *   `LoginView.jsx` : Connexion Admin.
     *   `CheckoutView.jsx` : Tunnel de paiement.
+*   **`contexts/`** : Gestion des états globaux.
+    *   `AuthContext.jsx` : Gestion centralisée de l'authentification.
+*   **`Router.jsx`** : Gestion centralisée de la navigation et des transitions de pages.
 *   **`features/admin/`** : Le Back-Office (Administration).
     *   `AdminDashboard.jsx` : Vue d'ensemble (Stats, Graphiques).
     *   `AdminForm.jsx` : Création/Édition de meubles.
     *   `AdminOrders.jsx` : Gestion des commandes.
     *   `AdminComments.jsx` : Modération des commentaires.
     *   `AdminHomepage.jsx` : Gestion des images de la page d'accueil.
+    *   `components/` : Sous-composants admin (ex: `AdminImageCard.jsx` pour l'upload).
 *   **`components/`** : Briques UI réutilisables (Boutons, Cards, Navbar, etc.).
 *   **`hooks/`** : Logique métier partagée (ex: `useRealtimeUserLikes.js` pour les likes).
 *   **`firebase/`** : Configuration (`config.js`) et initialisation.
