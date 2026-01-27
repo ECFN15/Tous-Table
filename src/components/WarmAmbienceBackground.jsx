@@ -101,9 +101,15 @@ const WarmAmbienceBackground = ({ darkMode }) => {
         const dustData = new Float32Array(dustCount * 3);
         const dustColors = new Float32Array(dustCount * 3);
 
-        const dustColorDark = PALETTE.dust;
-        // Light Mode: "Sawdust" (Golden Brown) | Dark Mode: Gold/Amber
-        const dustColorLight = darkMode ? new THREE.Color('#fbbf24') : new THREE.Color('#A67B5B');
+        // Palette Essences (Light Mode)
+        const colorWenge = new THREE.Color('#3E2723'); // Foncé
+        const colorNoyer = new THREE.Color('#8D6E63'); // Médium Chaud
+        const colorTeck = new THREE.Color('#BCAAA4');  // Clair (Beige grisé, plus doux)
+
+        // Palette Essences (Dark Mode - Gold/Amber variations)
+        const colorDark1 = new THREE.Color('#fbbf24');
+        const colorDark2 = new THREE.Color('#d97706');
+        const colorDark3 = new THREE.Color('#b45309');
 
         for (let i = 0; i < dustCount; i++) {
             dustPos[i * 3] = (Math.random() - 0.5) * 50;
@@ -114,8 +120,19 @@ const WarmAmbienceBackground = ({ darkMode }) => {
             dustData[i * 3 + 1] = 0.2 + Math.random() * 0.3;
             dustData[i * 3 + 2] = Math.random();
 
-            // Randomly assign dark or light color
-            const color = Math.random() > 0.4 ? dustColorDark : dustColorLight;
+            // Randomly assign one of the 3 wood essences
+            const rand = Math.random();
+            let color;
+            if (darkMode) {
+                if (rand < 0.33) color = colorDark1;
+                else if (rand < 0.66) color = colorDark2;
+                else color = colorDark3;
+            } else {
+                if (rand < 0.33) color = colorWenge;
+                else if (rand < 0.66) color = colorNoyer;
+                else color = colorTeck;
+            }
+
             dustColors[i * 3] = color.r;
             dustColors[i * 3 + 1] = color.g;
             dustColors[i * 3 + 2] = color.b;
@@ -189,7 +206,7 @@ const WarmAmbienceBackground = ({ darkMode }) => {
         scene.add(furnitureGroup);
 
         const furnitureMat = new THREE.MeshBasicMaterial({
-            color: darkMode ? 0xffffff : 0x3e2723, // Wenge (Very Dark Brown) for Light Mode wireframes
+            color: darkMode ? 0xffffff : 0x5D4037, // Smoked Oak (Lighter Brown) for better visibility
             wireframe: true,
             transparent: true,
             opacity: darkMode ? 0.15 : 0.15 // Increased visibility
