@@ -108,7 +108,7 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                             La Galerie<span className="text-[#FAF9F6] dark:text-[#FAF9F6] drop-shadow-[0_0_10px_rgba(250,249,246,0.3)] scale-110 inline-block transform translate-x-1">.</span>
                         </h1>
                         {/* NEW SUBTITLE */}
-                        <p className={`font-serif italic text-xl md:text-3xl tracking-wide opacity-60 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-100 ${darkMode ? 'text-white' : 'text-[#1a0f0a]'}`}>
+                        <p className={`font-serif italic text-xl md:text-3xl tracking-wide opacity-75 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-100 ${darkMode ? 'text-white/75' : 'text-[#FAF9F6] drop-shadow-sm'}`}>
                             {activeCollection === 'furniture' ? 'Nos Meubles de Ferme' : 'Nos Planches à Découper'}
                         </p>
                     </div>
@@ -120,8 +120,8 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
 
                     {/* SWITCHER COLLECTION (Moved from Header) */}
                     <div className={`flex p-1 rounded-full w-fit shadow-lg transition-all ${darkMode ? 'bg-stone-800 border border-white/5' : 'bg-white/80 backdrop-blur-md border border-black/5'}`}>
-                        <button onClick={() => { setActiveCollection('furniture'); setFilter('fixed'); }} className={`px-4 md:px-6 py-1.5 md:py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap ${activeCollection === 'furniture' ? (darkMode ? 'bg-stone-700 text-white shadow-md' : 'bg-stone-900 text-white shadow-md') : (darkMode ? 'text-white/40 hover:text-white/80' : 'text-stone-900/40 hover:text-stone-900/80')}`}>Mobilier</button>
-                        <button onClick={() => { setActiveCollection('cutting_boards'); setFilter('fixed'); }} className={`px-4 md:px-6 py-1.5 md:py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap ${activeCollection === 'cutting_boards' ? (darkMode ? 'bg-stone-700 text-white shadow-md' : 'bg-stone-900 text-white shadow-md') : (darkMode ? 'text-white/40 hover:text-white/80' : 'text-stone-900/40 hover:text-stone-900/80')}`}>Planches</button>
+                        <button onClick={() => { setActiveCollection('furniture'); setFilter('fixed'); }} className={`px-4 md:px-6 py-1.5 md:py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap ${activeCollection === 'furniture' ? (darkMode ? 'bg-stone-700 text-white shadow-md' : 'bg-[#1a0f0a] text-white shadow-md') : (darkMode ? 'text-white/40 hover:text-white/80' : 'text-stone-900/40 hover:text-stone-900/80')}`}>Mobilier</button>
+                        <button onClick={() => { setActiveCollection('cutting_boards'); setFilter('fixed'); }} className={`px-4 md:px-6 py-1.5 md:py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap ${activeCollection === 'cutting_boards' ? (darkMode ? 'bg-stone-700 text-white shadow-md' : 'bg-[#1a0f0a] text-white shadow-md') : (darkMode ? 'text-white/40 hover:text-white/80' : 'text-stone-900/40 hover:text-stone-900/80')}`}>Planches</button>
                     </div>
 
                     {/* VIEW SWITCHER + AUCTION */}

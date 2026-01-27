@@ -78,9 +78,7 @@ const AdminComments = ({ darkMode = false }) => {
                 createdAt: serverTimestamp()
             });
 
-            // Increment count
-            const itemRef = doc(db, 'artifacts', appId, 'public', 'data', selectedItemCollection, selectedItemId);
-            await updateDoc(itemRef, { commentCount: increment(1) });
+            // NO MANUAL INCREMENT HERE - Cloud Function 'onCommentCreated' handles it.
 
             setReplyText('');
         } catch (error) {
@@ -94,9 +92,7 @@ const AdminComments = ({ darkMode = false }) => {
         try {
             await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', selectedItemCollection, selectedItemId, 'comments', commentId));
 
-            // Decrement count
-            const itemRef = doc(db, 'artifacts', appId, 'public', 'data', selectedItemCollection, selectedItemId);
-            await updateDoc(itemRef, { commentCount: increment(-1) });
+            // NO MANUAL DECREMENT HERE - Cloud Function 'onCommentDeleted' handles it.
 
         } catch (error) { console.error(error); }
     };

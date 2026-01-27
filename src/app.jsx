@@ -501,8 +501,8 @@ const AppContent = () => {
                 <Hammer size={12} strokeWidth={1.5} className="md:w-4 md:h-4" />
               </div>
               <div className="flex flex-col justify-center">
-                <h1 className={`text-[13px] md:text-lg font-bold uppercase tracking-tight md:tracking-widest leading-none transition-colors ${darkMode ? 'text-white' : 'text-[#1a0f0a]'}`}>Tous à Table</h1>
-                <p className={`font-serif italic text-[11px] md:text-[14px] tracking-[0.05em] md:tracking-[0.1em] leading-none mt-0.5 md:mt-1 ml-0.5 transition-colors ${darkMode ? 'text-white/80' : 'text-[#1a0f0a] opacity-90'}`}>Atelier Normand</p>
+                <h1 className={`text-[13px] md:text-lg font-bold uppercase tracking-tight md:tracking-widest leading-none transition-colors ${darkMode ? 'text-white' : 'text-[#FAF9F6] drop-shadow-sm'}`}>Tous à Table</h1>
+                <p className={`font-serif italic text-[11px] md:text-[14px] tracking-[0.05em] md:tracking-[0.1em] leading-none mt-0.5 md:mt-1 ml-0.5 transition-colors ${darkMode ? 'text-white/80' : 'text-[#FAF9F6] opacity-75'}`}>Atelier Normand</p>
               </div>
             </div>
 
