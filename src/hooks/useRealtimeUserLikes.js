@@ -9,36 +9,53 @@ import { db, appId } from '../firebase/config';
  * Garantit que si un like est supprimé (par l'user ou l'admin trigger), l'UI se met à jour.
  */
 export const useRealtimeUserLikes = (user) => {
-    const [likedItemIds, setLikedItemIds] = useState([]);
+    // 1. Initial State from LocalStorage (Sync on mount)
+    const [likedItemIds, setLikedItemIds] = useState(() => {
+        try {
+            const saved = localStorage.getItem('tat_liked_items_v2');
+            return saved ? JSON.parse(saved) : [];
+        } catch (e) {
+            return [];
+        }
+    });
+
+    // Save to LocalStorage whenever state changes
+    useEffect(() => {
+        localStorage.setItem('tat_liked_items_v2', JSON.stringify(likedItemIds));
+    }, [likedItemIds]);
 
     useEffect(() => {
         if (!user) {
-            setLikedItemIds([]);
+            // Keep local state for anonymous if needed, or clear? 
+            // Better keep it to avoid flashing if user is just reconnecting
             return;
         }
 
-        // 1. Écoute les likes de l'utilisateur (Collection Group)
+        // 2. Listen to Firestore (Source of Truth)
+        // If index exists, it will update state. If not, we rely on LocalStorage initial state.
         const q = query(collectionGroup(db, 'likes'), where('userId', '==', user.uid));
 
         const unsubscribeLikes = onSnapshot(q, (snapshot) => {
             const ids = snapshot.docs.map(doc => doc.ref.parent.parent.id);
+            // We trust the server if it answers
             setLikedItemIds(ids);
         }, (error) => {
-            console.error("Erreur listener likes (Index manquant ?):", error);
+            // If error (Missing Index), we silently fail and keep LocalStorage state
+            console.warn("Firestore Likes Sync skipped (Index likely missing), using LocalStorage persistence.", error.code);
         });
 
-        // 2. Écoute le signal de RESET GLOBAL (depuis l'Admin)
-        // Cela permet de vider instantanément le state local même si la propagation Firestore est lente
+        // 3. Listen for GLOBAL RESET (Admin)
         const resetDocRef = doc(db, 'sys_metadata', 'stats_reset');
         const unsubscribeReset = onSnapshot(resetDocRef, (snap) => {
             if (snap.exists()) {
                 const data = snap.data();
-                // Si un reset a eu lieu récemment (moins de 10s), on force le vide
                 if (data.lastStatsReset) {
                     const resetTime = data.lastStatsReset.toMillis();
                     const now = Date.now();
-                    if (now - resetTime < 10000) { // 10 secondes de fenêtre
+                    // If reset happened recently (< 10s), force clear everything
+                    if (now - resetTime < 10000) {
                         setLikedItemIds([]);
+                        localStorage.removeItem('tat_liked_items_v2');
                     }
                 }
             }
@@ -51,22 +68,19 @@ export const useRealtimeUserLikes = (user) => {
     }, [user]);
 
     /**
-     * Ajoute ou retire un like.
-     * @param {string} itemId - ID du produit
-     * @param {string} collectionName - 'furniture' ou 'cutting_boards'
+     * Add or Remove Like
      */
     const toggleLike = async (itemId, collectionName) => {
         if (!user) return;
 
         const isLiked = likedItemIds.includes(itemId);
 
-        // --- OPTIMISTIC UPDATE (UI Rouge Immédiate) ---
-        // On met à jour l'état LOCAL tout de suite, sans attendre Firestore.
-        // Cela garantit que le bouton devient rouge même si l'index manque ou que le réseau est lent.
-        setLikedItemIds(prev => {
-            if (prev.includes(itemId)) return prev.filter(id => id !== itemId);
-            return [...prev, itemId];
-        });
+        // OPTIMISTIC UPDATE
+        const newIds = isLiked
+            ? likedItemIds.filter(id => id !== itemId)
+            : [...likedItemIds, itemId];
+
+        setLikedItemIds(newIds); // Triggers useEffect -> LocalStorage save
 
         const likeRef = doc(db, 'artifacts', appId, 'public', 'data', collectionName, itemId, 'likes', user.uid);
 
@@ -80,14 +94,10 @@ export const useRealtimeUserLikes = (user) => {
                 });
             }
         } catch (error) {
-            console.error("Erreur lors du like (Revert):", error);
-            // Revert en cas de vraie erreur technique (ex: permission)
-            // Note: On ne revert PAS si c'est juste un problème d'index de lecture (le write fonctionne souvent)
-            setLikedItemIds(prev => {
-                if (isLiked) return [...prev, itemId]; // On remet si c'était liké
-                return prev.filter(id => id !== itemId); // On retire si c'était pas liké
-            });
-            alert("Une erreur est survenue lors du like.");
+            console.error("Like Error (Reverting):", error);
+            // Revert state if REAL error (not just listener error)
+            setLikedItemIds(prev => isLiked ? [...prev, itemId] : prev.filter(id => id !== itemId));
+            alert("Erreur de connexion. Action annulée.");
         }
     };
 
