@@ -104,7 +104,7 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                             <span className={`text-[8px] md:text-[9px] font-bold uppercase tracking-widest ${darkMode ? 'text-white/80' : 'text-black/60'}`}>Marketplace Live</span>
                         </div>
-                        <h1 className={`font-serif text-2xl sm:text-5xl md:text-7xl lg:text-8xl font-medium tracking-tight leading-[0.9] transition-colors ${darkMode ? 'text-white' : 'text-[#1D1D1F]'}`}>
+                        <h1 className={`font-serif text-2xl sm:text-5xl md:text-7xl lg:text-8xl font-medium tracking-tight leading-[0.9] transition-colors ${darkMode ? 'text-white' : 'text-[#2c1810] mix-blend-multiply opacity-90'}`}>
                             La Galerie<span className="text-[#FAF9F6] dark:text-[#FAF9F6] drop-shadow-[0_0_10px_rgba(250,249,246,0.3)] scale-110 inline-block transform translate-x-1">.</span>
                         </h1>
                     </div>
@@ -159,7 +159,7 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                             >
                                 {/* NEW CARD STRUCTURE (NFT STYLE) */}
                                 <div
-                                    className={`relative w-full overflow-hidden rounded-xl transition-all duration-300 ease-out group-hover:-translate-y-2 ${darkMode ? 'bg-[#1C1C1E] shadow-2xl shadow-black/50' : 'bg-white shadow-xl shadow-stone-200/50'} ${viewMode === 'list' ? 'aspect-[4/5]' : 'aspect-[3/4] md:aspect-[4/5]'}`}
+                                    className={`relative w-full overflow-hidden rounded-xl transition-all duration-300 ease-out group-hover:-translate-y-2 ${darkMode ? 'bg-[#1C1C1E] shadow-2xl shadow-black/50' : 'bg-[#FAF9F6] shadow-xl shadow-black/10'} ${viewMode === 'list' ? 'aspect-[4/5]' : 'aspect-[3/4] md:aspect-[4/5]'}`}
                                 >
                                     {/* 1. IMAGE LAUNCHER (Top Section) */}
                                     <div className="absolute inset-x-0 top-0 bottom-[64px] md:bottom-[88px] overflow-hidden">
@@ -229,7 +229,7 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                                     </div>
 
                                     {/* 5. COLOR ZONE FOOTER (Info Panel) */}
-                                    <div className={`absolute bottom-0 inset-x-0 h-auto min-h-[64px] md:h-[88px] px-3 py-2.5 md:px-6 md:py-4 flex items-center justify-between border-t transition-colors duration-300 z-10 ${darkMode ? 'bg-[#1C1C1E] border-white/5' : 'bg-white border-black/5'}`}>
+                                    <div className={`absolute bottom-0 inset-x-0 h-auto min-h-[64px] md:h-[88px] px-3 py-2.5 md:px-6 md:py-4 flex items-center justify-between border-t transition-colors duration-300 z-10 ${darkMode ? 'bg-[#1C1C1E] border-white/5' : 'bg-[#FAF9F6] border-black/5'}`}>
                                         {/* Left: Name & Material */}
                                         <div className="flex flex-col gap-0.5 md:gap-1 max-w-[65%]">
                                             <h3 className={`font-mono font-medium ${viewMode === 'list' ? 'text-[12px]' : 'text-[10.5px]'} md:text-base leading-snug truncate ${darkMode ? 'text-white' : 'text-[#1D1D1F]'}`}>
