@@ -270,7 +270,7 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                     icon={<DollarSign size={20} className="text-emerald-500" />}
                     trend={`Panier moyen : ${stats.averageOrderValue} €`}
                     trendColor="text-emerald-600"
-                    bg="bg-emerald-50/50 border-emerald-100"
+                    bg="bg-emerald-50/50 ring-1 ring-inset ring-emerald-100"
                     darkMode={darkMode}
                 />
                 <KpiCard
@@ -278,7 +278,7 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                     value={stats.totalLikes + stats.totalComments + stats.totalShares}
                     icon={<TrendingUp size={20} className="text-amber-500" />}
                     trend={`${stats.totalLikes} Likes • ${stats.totalComments} Coms`}
-                    bg="bg-amber-50/50 border-amber-100"
+                    bg="bg-amber-50/50 ring-1 ring-inset ring-amber-100"
                     darkMode={darkMode}
                 />
                 <KpiCard
@@ -286,7 +286,7 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                     value={stats.totalOrders}
                     icon={<ShoppingBag size={20} className="text-blue-500" />}
                     trend="Total cumulé"
-                    bg="bg-blue-50/50 border-blue-100"
+                    bg="bg-blue-50/50 ring-1 ring-inset ring-blue-100"
                     darkMode={darkMode}
                 />
                 <KpiCard
@@ -294,7 +294,7 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                     value={stats.totalShares}
                     icon={<Share2 size={20} className="text-purple-500" />}
                     trend="Viralité"
-                    bg="bg-purple-50/50 border-purple-100"
+                    bg="bg-purple-50/50 ring-1 ring-inset ring-purple-100"
                     darkMode={darkMode}
                 />
             </div>
@@ -302,7 +302,7 @@ const AdminDashboard = ({ user, darkMode = false }) => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
                 {/* TOP TRENDING (Bar Chart styled) */}
-                <div className={`lg:col-span-2 p-8 rounded-[2.5rem] border shadow-sm ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
+                <div className={`lg:col-span-2 p-8 rounded-[2.5rem] shadow-sm transform-gpu backface-hidden will-change-transform overflow-hidden ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : 'bg-white ring-1 ring-inset ring-stone-100'}`}>
                     <div className="flex justify-between items-center mb-8">
                         <div>
                             <h3 className={`text-xl font-black tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>Tendances Mobilier</h3>
@@ -348,12 +348,12 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                 {/* RECENT ACTIVITY & ACTIONS */}
                 <div className="space-y-6">
                     {/* Recent Orders */}
-                    <div className={`p-6 rounded-[2rem] border shadow-sm ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
+                    <div className={`p-6 rounded-[2rem] shadow-sm transform-gpu backface-hidden will-change-transform overflow-hidden ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : 'bg-white ring-1 ring-inset ring-stone-100'}`}>
                         <h3 className={`text-sm font-black uppercase tracking-widest mb-4 ${darkMode ? 'text-white' : 'text-stone-900'}`}>Dernières Commandes</h3>
                         <div className="space-y-4">
                             {recentOrders.length === 0 ? <p className="text-xs text-stone-400">Aucune commande récente.</p> : (
                                 recentOrders.map(order => (
-                                    <div key={order.id} className={`flex items-center gap-3 p-3 rounded-xl transition-colors border border-transparent ${darkMode ? 'hover:bg-stone-700 hover:border-stone-600' : 'hover:bg-stone-50 hover:border-stone-100'}`}>
+                                    <div key={order.id} className={`flex items-center gap-3 p-3 rounded-xl transition-colors ring-1 ring-inset ring-transparent ${darkMode ? 'hover:bg-stone-700 hover:ring-stone-600' : 'hover:bg-stone-50 hover:ring-stone-100'}`}>
                                         <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs ${darkMode ? 'bg-stone-700 text-stone-300' : 'bg-stone-100 text-stone-500'}`}>
                                             {order.shipping?.fullName?.[0] || '?'}
                                         </div>
@@ -369,7 +369,7 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                     </div>
 
                     {/* DANGER ZONE */}
-                    <div className={`p-6 rounded-[2rem] border ${darkMode ? 'bg-red-900/20 border-red-800' : 'bg-red-50 border-red-100'}`}>
+                    <div className={`p-6 rounded-[2rem] ring-1 ring-inset transform-gpu backface-hidden will-change-transform overflow-hidden ${darkMode ? 'bg-red-900/20 ring-red-900/40' : 'bg-red-50 ring-red-100'}`}>
                         <div className={`flex items-center gap-3 mb-4 ${darkMode ? 'text-red-400' : 'text-red-900'}`}>
                             <AlertTriangle size={20} />
                             <h3 className="text-sm font-black uppercase tracking-widest">Zone de Danger</h3>
@@ -473,9 +473,9 @@ const AdminDashboard = ({ user, darkMode = false }) => {
 
 // Sub-component for KPI
 const KpiCard = ({ title, value, icon, trend, trendColor = "text-stone-400", bg = "bg-white", darkMode = false }) => (
-    <div className={`p-6 rounded-[2rem] border shadow-sm transition-transform hover:-translate-y-1 ${darkMode ? 'bg-stone-800 border-stone-700' : (bg.includes('white') ? 'border-stone-100 bg-white' : bg)}`}>
+    <div className={`p-6 rounded-[2rem] shadow-sm transition-all duration-300 hover:scale-[1.02] transform-gpu backface-hidden will-change-transform overflow-hidden ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : (bg.includes('white') ? 'ring-1 ring-inset ring-stone-100 bg-white' : bg)}`}>
         <div className="flex justify-between items-start mb-4">
-            <div className={`p-3 rounded-2xl shadow-sm border ${darkMode ? 'bg-stone-700 border-stone-600' : 'bg-white border-stone-100/50'}`}>{icon}</div>
+            <div className={`p-3 rounded-2xl shadow-sm ring-1 ring-inset ${darkMode ? 'bg-stone-700 ring-stone-600' : 'bg-white ring-stone-100/50'}`}>{icon}</div>
         </div>
         <div>
             <p className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-1">{title}</p>

@@ -1,6 +1,6 @@
 ---
 project_name: "Tous à Table - Atelier Normand"
-last_updated: "2026-01-27"
+last_updated: "2026-01-28"
 description: "Site e-commerce et vitrine pour un atelier d'ébénisterie d'art. Vente de meubles (enchères/achat direct) et planches à découper."
 stack:
   frontend: "React + Vite"
@@ -41,9 +41,12 @@ Le projet a été restructuré pour séparer clairement les responsabilités (Ja
     *   `AdminOrders.jsx` : Gestion des commandes.
     *   `AdminComments.jsx` : Modération des commentaires.
     *   `AdminHomepage.jsx` : Gestion des images de la page d'accueil.
+    *   `AdminStudio.jsx` : Gestion des Thèmes et du Design System en direct.
     *   `components/` : Sous-composants admin (ex: `AdminImageCard.jsx` pour l'upload).
 *   **`components/`** : Briques UI réutilisables (Boutons, Cards, Navbar, etc.).
-*   **`hooks/`** : Logique métier partagée (ex: `useRealtimeUserLikes.js` pour les likes).
+*   **`hooks/`** : Logique métier partagée.
+    *   `useLiveTheme.js` : Hook central pour la gestion des thèmes dynamiques (Firestore).
+    *   `useRealtimeUserLikes.js` : Gestion temps réel des likes.
 *   **`firebase/`** : Configuration (`config.js`) et initialisation.
 
 ---
@@ -57,6 +60,10 @@ Le projet a été restructuré pour séparer clairement les responsabilités (Ja
     *   **Textes & Titres** : `#1a0f0a` (Chocolat Noir 95%) pour un contraste élégant sans la dureté du noir pur.
     *   **Accents** : Vert Émeraude (`#047857`) pour les validations, Ambre (`#f59e0b`) pour les actions.
 *   **Typographie** : Polices avec empattement (Serif) pour les titres, Sans-Serif épuré pour le texte.
+*   **Studio & Thèmes Dynamiques (Nouveau - Janvier 2026)** :
+    *   Accessible via `AdminStudio`, permet de changer l'ambiance de la Marketplace sans coder.
+    *   **Mode Standard** : Si activé, désactive tous les thèmes et utilise le design "original" (hardcoded).
+    *   **Mode Forcé** : Pour chaque thème, l'admin peut forcer "Light", "Dark" ou "Auto". Si forcé, le toggle Dark Mode du header disparait pour les utilisateurs afin de garantir la cohérence artistique choisie.
 *   **Animations** :
     *   **GSAP** : Utilisé pour les transitions fluides (ScrollTrigger sur la Home).
     *   **Three.js** : Objet 3D (Nœud Torus) en fond sur la Home.
@@ -110,4 +117,17 @@ Pour mettre le site en ligne sur **https://tatmadeinnormandie.web.app** :
 
 ---
 
-*Dernière mise à jour par l'IA : Session de restructuration du 27/01/2026. Tout est propre et fonctionnel.*
+## 🛠️ 6. Solutions Techniques & Troubleshooting (Important)
+
+### 🖥️ Artefacts de rendu (Lignes clignotantes / Flickering)
+**Problème rencontré** : Sur le Dashboard et le Studio, des lignes blanches fines ou des scintillements apparaissaient lors du survol des cartes en Dark Mode.
+**Cause** : Conflit de rendu "Sub-pixel" entre les bordures classiques (`border`) et les translations CSS (`translate-y`) sur des éléments non accélérés par le GPU.
+**Solution Appliquée** :
+1.  **Remplacer `border` par `ring`** : Utiliser `ring-1 ring-inset` (box-shadow) au lieu de `border` pour éviter les recalculs de géométrie.
+2.  **Hardware Acceleration** : Ajouter les classes `transform-gpu backface-hidden will-change-transform` sur les conteneurs animés.
+3.  **Éviter `translate`** : Préférer `hover:scale` (zoom) à `hover:translate` (déplacement) pour les interactions, car le scaling est mieux géré par le compositeur GPU.
+4.  **Overflow** : Ajouter `overflow-hidden` sur les cartes arrondies pour "clipper" les artefacts de bordure.
+
+---
+
+*Dernière mise à jour par l'IA : Session du 28/01/2026. Ajout Studio, Thèmes et Fix Rendu GPU.*

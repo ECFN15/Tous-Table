@@ -96,7 +96,7 @@ const AdminStudio = ({ darkMode }) => {
                     <div
                         key={theme.id}
                         onClick={() => handleSelectTheme(theme.id)}
-                        className={`group relative p-4 md:p-6 rounded-3xl border-2 text-left transition-all hover:scale-[1.02] cursor-pointer ${activeThemeIdLocal === theme.id && !activeStandard ? (darkMode ? 'border-amber-500 bg-stone-800' : 'border-amber-400 bg-white shadow-xl shadow-amber-100') : (darkMode ? 'border-stone-800 bg-stone-900 hover:border-stone-600' : 'border-stone-100 bg-white hover:border-stone-200 shadow-sm')}`}
+                        className={`group relative p-4 md:p-6 rounded-3xl ring-2 ring-inset text-left transition-all hover:scale-[1.02] cursor-pointer transform-gpu backface-hidden will-change-transform ${activeThemeIdLocal === theme.id && !activeStandard ? (darkMode ? 'ring-amber-500 bg-stone-800' : 'ring-amber-400 bg-white shadow-xl shadow-amber-100') : (darkMode ? 'ring-stone-800 bg-stone-900 hover:ring-stone-600' : 'ring-stone-100 bg-white hover:ring-stone-200 shadow-sm')}`}
                     >
                         {activeThemeIdLocal === theme.id && !activeStandard && (
                             <div className="absolute top-4 right-4 bg-amber-500 text-white text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-widest flex items-center gap-1">
