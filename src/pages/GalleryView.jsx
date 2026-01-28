@@ -7,6 +7,8 @@ const AuctionTimer = React.lazy(() => import('../components/ui/AuctionTimer'));
 import WarmAmbienceBackground from '../components/WarmAmbienceBackground';
 const SEO = React.lazy(() => import('../components/SEO'));
 
+import { useLiveTheme } from '../hooks/useLiveTheme'; // IMPORTED
+
 const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, onSelectItem, onShowLogin, onShowComments, darkMode = false }) => {
     const [filter, setFilter] = useState('fixed');
     const [activeCollection, setActiveCollection] = useState('furniture'); // 'furniture' | 'cutting_boards'
@@ -14,6 +16,7 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
 
     // HOOK TEMPS RÉEL
     const { likedItemIds, toggleLike } = useRealtimeUserLikes(user);
+    const { palette } = useLiveTheme(darkMode); // CONNECTED
 
     // --- LOGIC: FILTER & SORT ---
     // 1. Choose collection source
@@ -81,7 +84,13 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
     };
 
     return (
-        <div className={`min-h-screen pb-32 transition-colors duration-500 ${darkMode ? 'bg-[#0a0807] text-white' : 'bg-[#e0d0c1] text-[#1D1D1F]'}`}>
+        <div
+            className="min-h-screen pb-32 transition-colors duration-500"
+            style={{
+                backgroundColor: palette.bgGradientTop,
+                color: palette.textBody
+            }}
+        >
 
             <React.Suspense fallback={null}>
                 <SEO
@@ -104,11 +113,20 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                     <div className="space-y-1 md:space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700 max-w-2xl">
                         {/* BADGE REMOVED HERE */}
                         {/* Mobile: Larger Title (text-5xl) */}
-                        <h1 className={`font-serif text-5xl sm:text-5xl md:text-7xl lg:text-8xl font-medium tracking-tight leading-[0.9] transition-colors ${darkMode ? 'text-white' : 'text-[#1a0f0a] mix-blend-multiply opacity-100'}`}>
-                            La Galerie<span className="text-[#FAF9F6] dark:text-[#FAF9F6] drop-shadow-[0_0_10px_rgba(250,249,246,0.3)] scale-110 inline-block transform translate-x-1">.</span>
+                        <h1
+                            className="font-serif text-5xl sm:text-5xl md:text-7xl lg:text-8xl font-medium tracking-tight leading-[0.9] transition-colors"
+                            style={{
+                                color: palette.textTitle,
+                                mixBlendMode: palette.titleBlendMode
+                            }}
+                        >
+                            La Galerie<span className="scale-110 inline-block transform translate-x-1" style={{ color: palette.textSubtitle }}>.</span>
                         </h1>
                         {/* NEW SUBTITLE */}
-                        <p className={`font-serif italic text-xl md:text-3xl tracking-wide opacity-75 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-100 ${darkMode ? 'text-white/75' : 'text-[#FAF9F6] drop-shadow-sm'}`}>
+                        <p
+                            className="font-serif italic text-xl md:text-3xl tracking-wide opacity-75 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-100"
+                            style={{ color: palette.textSubtitle }}
+                        >
                             {activeCollection === 'furniture' ? 'Nos Meubles de Ferme' : 'Nos Planches à Découper'}
                         </p>
                     </div>
@@ -119,26 +137,75 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                 <div className="px-5 sm:px-8 md:px-[8vw] xl:px-[12vw] mb-8 md:mb-12 flex flex-row items-center justify-between gap-4 animate-in fade-in duration-1000 delay-200">
 
                     {/* SWITCHER COLLECTION (Moved from Header) */}
-                    <div className={`flex p-1 rounded-full w-fit shadow-lg transition-all ${darkMode ? 'bg-stone-800 border border-white/5' : 'bg-white/80 backdrop-blur-md border border-black/5'}`}>
-                        <button onClick={() => { setActiveCollection('furniture'); setFilter('fixed'); }} className={`px-4 md:px-6 py-1.5 md:py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap ${activeCollection === 'furniture' ? (darkMode ? 'bg-stone-700 text-white shadow-md' : 'bg-[#1a0f0a] text-white shadow-md') : (darkMode ? 'text-white/40 hover:text-white/80' : 'text-stone-900/40 hover:text-stone-900/80')}`}>Mobilier</button>
-                        <button onClick={() => { setActiveCollection('cutting_boards'); setFilter('fixed'); }} className={`px-4 md:px-6 py-1.5 md:py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap ${activeCollection === 'cutting_boards' ? (darkMode ? 'bg-stone-700 text-white shadow-md' : 'bg-[#1a0f0a] text-white shadow-md') : (darkMode ? 'text-white/40 hover:text-white/80' : 'text-stone-900/40 hover:text-stone-900/80')}`}>Planches</button>
+                    <div
+                        className="flex p-1 rounded-full w-fit shadow-lg transition-all backdrop-blur-md border"
+                        style={{
+                            backgroundColor: palette.switcherBg,
+                            borderColor: palette.switcherBorder
+                        }}
+                    >
+                        <button
+                            onClick={() => { setActiveCollection('furniture'); setFilter('fixed'); }}
+                            className="px-4 md:px-6 py-1.5 md:py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap shadow-sm"
+                            style={{
+                                backgroundColor: activeCollection === 'furniture' ? palette.btnActiveBg : 'transparent',
+                                color: activeCollection === 'furniture' ? palette.btnActiveText : palette.btnInactiveText
+                            }}
+                        >
+                            Mobilier
+                        </button>
+                        <button
+                            onClick={() => { setActiveCollection('cutting_boards'); setFilter('fixed'); }}
+                            className="px-4 md:px-6 py-1.5 md:py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap shadow-sm group"
+                            style={{
+                                backgroundColor: activeCollection === 'cutting_boards' ? palette.btnActiveBg : 'transparent',
+                                color: activeCollection === 'cutting_boards' ? palette.btnActiveText : palette.btnInactiveText,
+                                transform: activeCollection === 'cutting_boards' ? 'scale(1.02)' : 'scale(1)'
+                            }}
+                        >
+                            Planches
+                        </button>
                     </div>
 
                     {/* VIEW SWITCHER + AUCTION */}
                     <div className="flex items-center gap-2">
-                        <div className={`flex p-0.5 rounded-lg shadow-sm border shrink-0 transition-colors ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-200'}`}>
+                        <div
+                            className="flex p-0.5 rounded-lg shadow-sm border shrink-0 transition-colors"
+                            style={{
+                                backgroundColor: palette.viewSwitcherBg,
+                                borderColor: palette.switcherBorder
+                            }}
+                        >
                             <button
                                 onClick={() => setFilter(filter === 'auction' ? 'fixed' : 'auction')}
-                                className={`p-1.5 rounded-md transition-all relative group ${filter === 'auction' ? (darkMode ? 'bg-amber-500 text-white shadow-inner' : 'bg-stone-900 text-white shadow-inner') : (darkMode ? 'text-stone-500 hover:text-stone-300' : 'text-stone-400 hover:text-stone-600')}`}
+                                className="p-1.5 rounded-md transition-all relative group"
+                                style={{
+                                    backgroundColor: filter === 'auction' ? palette.accent : 'transparent',
+                                    color: filter === 'auction' ? palette.btnActiveText : palette.btnInactiveText
+                                }}
                                 title="Enchères"
                             >
                                 <Gavel size={14} />
                             </button>
-                            <div className="w-px h-4 bg-stone-200 dark:bg-stone-700 mx-1 self-center opacity-50"></div>
-                            <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-md transition-all ${viewMode === 'grid' ? (darkMode ? 'bg-stone-700 text-white shadow-inner' : 'bg-stone-100 text-black shadow-inner') : (darkMode ? 'text-stone-500 hover:text-stone-300' : 'text-stone-400 hover:text-stone-600')}`}>
+                            <div className="w-px h-4 mx-1 self-center opacity-30" style={{ backgroundColor: palette.textBody }}></div>
+                            <button
+                                onClick={() => setViewMode('grid')}
+                                className="p-1.5 rounded-md transition-all"
+                                style={{
+                                    backgroundColor: viewMode === 'grid' ? palette.btnActiveBg : 'transparent',
+                                    color: viewMode === 'grid' ? palette.btnActiveText : palette.btnInactiveText
+                                }}
+                            >
                                 <Grid size={14} />
                             </button>
-                            <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-md transition-all ${viewMode === 'list' ? (darkMode ? 'bg-stone-700 text-white shadow-inner' : 'bg-stone-100 text-black shadow-inner') : (darkMode ? 'text-stone-500 hover:text-stone-300' : 'text-stone-400 hover:text-stone-600')}`}>
+                            <button
+                                onClick={() => setViewMode('list')}
+                                className="p-1.5 rounded-md transition-all"
+                                style={{
+                                    backgroundColor: viewMode === 'list' ? palette.btnActiveBg : 'transparent',
+                                    color: viewMode === 'list' ? palette.btnActiveText : palette.btnInactiveText
+                                }}
+                            >
                                 <LayoutList size={14} />
                             </button>
                         </div>
@@ -164,7 +231,11 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                             >
                                 {/* NEW CARD STRUCTURE (NFT STYLE) */}
                                 <div
-                                    className={`relative w-full overflow-hidden rounded-xl transition-all duration-300 ease-out group-hover:-translate-y-2 ${darkMode ? 'bg-[#1C1C1E] shadow-2xl shadow-black/50' : 'bg-[#FAF9F6] shadow-xl shadow-black/10'} ${viewMode === 'list' ? 'aspect-[4/5]' : 'aspect-[3/4] md:aspect-[4/5]'}`}
+                                    className={`relative w-full overflow-hidden rounded-xl transition-all duration-300 ease-out group-hover:-translate-y-2 ${viewMode === 'list' ? 'aspect-[4/5]' : 'aspect-[3/4] md:aspect-[4/5]'}`}
+                                    style={{
+                                        backgroundColor: palette.cardBg,
+                                        boxShadow: palette.cardShadow
+                                    }}
                                 >
                                     {/* 1. IMAGE LAUNCHER (Top Section) */}
                                     <div className="absolute inset-x-0 top-0 bottom-[64px] md:bottom-[88px] overflow-hidden">
@@ -192,7 +263,14 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                                     {/* 2. STATUS BADGE V2 (Top Left - Revamp) */}
                                     <div className="absolute top-3 left-3 md:top-4 md:left-4 z-20">
                                         {item.auctionActive ? (
-                                            <div className={`${viewMode === 'list' ? 'px-3 py-1.5' : 'px-2.5 py-1.5'} md:px-4 md:py-1.5 rounded-full backdrop-blur-md border shadow-sm flex items-center gap-2 ${darkMode ? 'bg-black/60 border-white/10 text-white' : 'bg-white/80 border-black/5 text-black'}`}>
+                                            <div
+                                                className={`${viewMode === 'list' ? 'px-3 py-1.5' : 'px-2.5 py-1.5'} md:px-4 md:py-1.5 rounded-full backdrop-blur-md border shadow-sm flex items-center gap-2`}
+                                                style={{
+                                                    backgroundColor: palette.isDark ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.8)',
+                                                    borderColor: palette.switcherBorder,
+                                                    color: palette.isDark ? '#ffffff' : '#000000'
+                                                }}
+                                            >
                                                 <div className="w-1.5 h-1.5 rounded-full bg-[#34C759] animate-pulse"></div>
                                                 <span className={`${viewMode === 'list' ? 'text-[10px]' : 'text-[9px]'} md:text-[10px] font-mono font-bold tracking-wider leading-none`}>
                                                     <React.Suspense fallback="..:..">
@@ -201,9 +279,14 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                                                 </span>
                                             </div>
                                         ) : (
-                                            <div className={`${viewMode === 'list' ? 'px-3 py-1.5' : 'px-2.5 py-1.5'} md:px-4 md:py-1.5 rounded-full flex items-center gap-2 border backdrop-blur-md shadow-sm ${item.sold
-                                                ? 'bg-red-500/90 border-red-400 text-white'
-                                                : (darkMode ? 'bg-[#1C1C1E]/80 border-white/20 text-white' : 'bg-white/90 border-black/5 text-black')}`}>
+                                            <div
+                                                className={`${viewMode === 'list' ? 'px-3 py-1.5' : 'px-2.5 py-1.5'} md:px-4 md:py-1.5 rounded-full flex items-center gap-2 border backdrop-blur-md shadow-sm`}
+                                                style={{
+                                                    backgroundColor: item.sold ? 'rgba(239, 68, 68, 0.9)' : (palette.isDark ? 'rgba(28, 28, 30, 0.8)' : 'rgba(255, 255, 255, 0.9)'),
+                                                    borderColor: item.sold ? 'rgba(248, 113, 113, 1)' : palette.switcherBorder,
+                                                    color: item.sold ? '#ffffff' : palette.textBody
+                                                }}
+                                            >
                                                 <div className={`${viewMode === 'list' ? 'w-2 h-2' : 'w-1.5 h-1.5'} md:w-2 md:h-2 rounded-full ${item.sold ? 'bg-white' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse'}`}></div>
                                                 <span className={`${viewMode === 'list' ? 'text-[10px]' : 'text-[9.5px]'} md:text-[10px] font-bold uppercase tracking-wider leading-none`}>
                                                     {item.sold ? 'Vendu' : 'Disponible'}
@@ -216,21 +299,51 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
 
                                     {/* 4. SOCIAL ACTIONS (Right Side - Floating) */}
                                     <div className={`absolute ${viewMode === 'list' ? 'top-[15%] right-4 gap-10' : 'top-4 right-3 gap-3.5'} md:top-24 md:right-4 flex flex-col md:gap-6 z-20`}>
-                                        <button onClick={(e) => handleLike(e, item)} className={`${viewMode === 'list' ? 'p-2.5' : 'p-1.5'} md:p-2.5 rounded-full backdrop-blur-md border transition-all hover:scale-110 active:scale-95 group/icon ${likedItemIds.includes(item.id) ? 'bg-red-500 border-red-500 text-white shadow-lg shadow-red-500/40 transform scale-105' : (darkMode ? 'bg-black/40 border-white/10 text-white hover:bg-black/60' : 'bg-white/60 border-white/40 text-black hover:bg-white/90')}`}>
-                                            <span className={`${viewMode === 'list' ? 'text-[9px] w-4 h-4' : 'text-[8px] w-3.5 h-3.5'} md:text-[10px] md:w-4 md:h-4 font-bold absolute -top-1 -right-1 ${likedItemIds.includes(item.id) ? 'bg-white text-red-500' : 'bg-white text-black'} flex items-center justify-center rounded-full shadow-sm border border-black/10 transition-colors`}>
+                                        <button
+                                            onClick={(e) => handleLike(e, item)}
+                                            className={`${viewMode === 'list' ? 'p-2.5' : 'p-1.5'} md:p-2.5 rounded-full backdrop-blur-md border transition-all hover:scale-110 active:scale-95 group/icon`}
+                                            style={{
+                                                backgroundColor: likedItemIds.includes(item.id) ? '#ef4444' : (palette.isDark ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.6)'),
+                                                borderColor: likedItemIds.includes(item.id) ? '#ef4444' : (palette.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.4)'),
+                                                color: likedItemIds.includes(item.id) ? '#ffffff' : (palette.isDark ? '#ffffff' : '#000000')
+                                            }}
+                                        >
+                                            <span
+                                                className={`${viewMode === 'list' ? 'text-[9px] w-4 h-4' : 'text-[8px] w-3.5 h-3.5'} md:text-[10px] md:w-4 md:h-4 font-bold absolute -top-1 -right-1 flex items-center justify-center rounded-full shadow-sm border border-black/10 transition-colors`}
+                                                style={{
+                                                    backgroundColor: '#ffffff',
+                                                    color: likedItemIds.includes(item.id) ? '#ef4444' : '#000000'
+                                                }}
+                                            >
                                                 {item.likeCount || 0}
                                             </span>
                                             <Heart className={`${viewMode === 'list' ? 'w-4 h-4' : 'w-3.5 h-3.5'} md:w-4 md:h-4 ${likedItemIds.includes(item.id) ? 'fill-current' : ''}`} />
                                         </button>
 
-                                        <button onClick={(e) => handleCommentClick(e, item)} className={`${viewMode === 'list' ? 'p-2.5' : 'p-1.5'} md:p-2.5 rounded-full backdrop-blur-md border transition-all hover:scale-110 active:scale-95 group/icon ${darkMode ? 'bg-black/40 border-white/10 text-white hover:bg-black/60' : 'bg-white/60 border-white/40 text-black hover:bg-white/90'}`}>
+                                        <button
+                                            onClick={(e) => handleCommentClick(e, item)}
+                                            className={`${viewMode === 'list' ? 'p-2.5' : 'p-1.5'} md:p-2.5 rounded-full backdrop-blur-md border transition-all hover:scale-110 active:scale-95 group/icon`}
+                                            style={{
+                                                backgroundColor: palette.isDark ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.6)',
+                                                borderColor: palette.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.4)',
+                                                color: palette.isDark ? '#ffffff' : '#000000'
+                                            }}
+                                        >
                                             <span className={`${viewMode === 'list' ? 'text-[9px] w-4 h-4' : 'text-[8px] w-3.5 h-3.5'} md:text-[10px] md:w-4 md:h-4 font-bold absolute -top-1 -right-1 bg-white text-black flex items-center justify-center rounded-full shadow-sm border border-black/10`}>
                                                 {item.commentCount || 0}
                                             </span>
                                             <svg className={`${viewMode === 'list' ? 'w-4 h-4' : 'w-3.5 h-3.5'} md:w-4 md:h-4`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
                                         </button>
 
-                                        <button onClick={(e) => handleShare(e, item)} className={`${viewMode === 'list' ? 'p-2.5' : 'p-1.5'} md:p-2.5 rounded-full backdrop-blur-md border transition-all hover:scale-110 active:scale-95 group/icon ${darkMode ? 'bg-black/40 border-white/10 text-white hover:bg-black/60' : 'bg-white/60 border-white/40 text-black hover:bg-white/90'}`}>
+                                        <button
+                                            onClick={(e) => handleShare(e, item)}
+                                            className={`${viewMode === 'list' ? 'p-2.5' : 'p-1.5'} md:p-2.5 rounded-full backdrop-blur-md border transition-all hover:scale-110 active:scale-95 group/icon`}
+                                            style={{
+                                                backgroundColor: palette.isDark ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.6)',
+                                                borderColor: palette.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.4)',
+                                                color: palette.isDark ? '#ffffff' : '#000000'
+                                            }}
+                                        >
                                             <span className={`${viewMode === 'list' ? 'text-[9px] w-4 h-4' : 'text-[8px] w-3.5 h-3.5'} md:text-[10px] md:w-4 md:h-4 font-bold absolute -top-1 -right-1 bg-white text-black flex items-center justify-center rounded-full shadow-sm border border-black/10`}>
                                                 {item.shareCount || 0}
                                             </span>
@@ -239,13 +352,25 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                                     </div>
 
                                     {/* 5. COLOR ZONE FOOTER (Info Panel) */}
-                                    <div className={`absolute bottom-0 inset-x-0 h-auto min-h-[64px] md:h-[88px] px-3 py-2.5 md:px-6 md:py-4 flex items-center justify-between border-t transition-colors duration-300 z-10 ${darkMode ? 'bg-[#1C1C1E] border-white/5' : 'bg-[#FAF9F6] border-black/5'}`}>
+                                    <div
+                                        className="absolute bottom-0 inset-x-0 h-auto min-h-[64px] md:h-[88px] px-3 py-2.5 md:px-6 md:py-4 flex items-center justify-between border-t transition-colors duration-300 z-10"
+                                        style={{
+                                            backgroundColor: palette.cardBg,
+                                            borderColor: palette.switcherBorder
+                                        }}
+                                    >
                                         {/* Left: Name & Material */}
                                         <div className="flex flex-col gap-0.5 md:gap-1 max-w-[65%]">
-                                            <h3 className={`font-mono font-medium ${viewMode === 'list' ? 'text-[12px]' : 'text-[10.5px]'} md:text-base leading-snug truncate ${darkMode ? 'text-white' : 'text-[#1D1D1F]'}`}>
+                                            <h3
+                                                className={`font-mono font-medium ${viewMode === 'list' ? 'text-[12px]' : 'text-[10.5px]'} md:text-base leading-snug truncate`}
+                                                style={{ color: palette.textBody }}
+                                            >
                                                 {item.name}
                                             </h3>
-                                            <p className={`text-[10px] md:text-[13px] font-mono font-medium uppercase tracking-widest ${darkMode ? 'text-white/60' : 'text-[#1D1D1F]/70'}`}>
+                                            <p
+                                                className="text-[10px] md:text-[13px] font-mono font-medium uppercase tracking-widest opacity-70"
+                                                style={{ color: palette.textBody }}
+                                            >
                                                 {item.material || 'Atelier Normand'}
                                             </p>
                                         </div>
@@ -253,11 +378,21 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                                         {/* Right: Stock & Price */}
                                         <div className="flex flex-col items-end justify-center gap-0.5 md:gap-1">
                                             {/* Stock Label */}
-                                            <div className={`${viewMode === 'list' ? 'px-2 py-0.5 text-[8px]' : 'px-1.5 py-0.5 text-[7.5px]'} md:px-2 md:py-1 md:text-[10px] rounded-[3px] border font-mono font-bold uppercase tracking-wider ${darkMode ? 'border-white/10 text-emerald-400 bg-emerald-400/5' : 'border-black/5 text-emerald-700 bg-emerald-50/50'}`}>
+                                            <div
+                                                className={`${viewMode === 'list' ? 'px-2 py-0.5 text-[8px]' : 'px-1.5 py-0.5 text-[7.5px]'} md:px-2 md:py-1 md:text-[10px] rounded-[3px] border font-mono font-bold uppercase tracking-wider`}
+                                                style={{
+                                                    borderColor: palette.switcherBorder,
+                                                    color: palette.statusValid,
+                                                    backgroundColor: `${palette.statusValid}10` // 10% opacity
+                                                }}
+                                            >
                                                 {item.sold ? 'Rupture' : `Stock ${item.stock || 1}`}
                                             </div>
                                             {/* Price */}
-                                            <div className={`font-mono font-medium ${viewMode === 'list' ? 'text-[12px]' : 'text-[10.5px]'} md:text-base tracking-tight ${darkMode ? 'text-white' : 'text-[#1D1D1F]'}`}>
+                                            <div
+                                                className={`font-mono font-medium ${viewMode === 'list' ? 'text-[12px]' : 'text-[10.5px]'} md:text-base tracking-tight`}
+                                                style={{ color: palette.textBody }}
+                                            >
                                                 {item.currentPrice || item.startingPrice} €
                                             </div>
                                         </div>

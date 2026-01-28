@@ -1,8 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
+import { useLiveTheme } from '../hooks/useLiveTheme';
 
 const WarmAmbienceBackground = ({ darkMode }) => {
     const containerRef = useRef(null);
+    const { palette } = useLiveTheme(darkMode); // Dynamic Palette
+
     // Mouse tracking for parallax
     const mouseRef = useRef({ x: 0, y: 0 });
 
@@ -22,30 +25,15 @@ const WarmAmbienceBackground = ({ darkMode }) => {
         // --- CONCEPT: "L'ATELIER DANS LA CLAIRIERE" (The Workshop in the Glade) ---
         // A fully 3D scene with depth, blurred foregrounds, and atmospheric lighting.
 
-        const PALETTE = {
-            // Light: "Golden Hour Workshop" - Rich, Saturated, Authentic
-            // We move away from "Pale White" to "Warm Amber/Honey" and "Deep Earth".
-            // Previous: bgGradientTop: darkMode ? new THREE.Color('#1a120b') : new THREE.Color('#FAF9F6'),
-            // Previous: bgGradientBot: darkMode ? new THREE.Color('#2d1b14') : new THREE.Color('#d4a373'),
-            bgGradientTop: darkMode ? new THREE.Color('#0a0807') : new THREE.Color('#e0d0c1'), // Deep Charcoal / Light Walnut (Grayish Beige)
-            bgGradientBot: darkMode ? new THREE.Color('#1f1814') : new THREE.Color('#8b5e3c'), // Dark Umber / Deep Teak (Rich Brown)
-
-            // Particles/Magic
-            firefly: darkMode ? new THREE.Color('#fbbf24') : new THREE.Color('#d97706'), // Vibrant orange / Amber
-            dust: darkMode ? new THREE.Color('#ffffff') : new THREE.Color('#4a3728'), // Dark Brown (Wenge) for dust vs White
-
-            // Foliage shadows (blurred in foreground)
-            foliage: darkMode ? new THREE.Color('#022c22') : new THREE.Color('#3d2b1f'), // Deep forest / Dark bark
-        };
 
         const isMobile = window.innerWidth < 768;
         const PIXEL_RATIO = Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2);
 
         // 1. SCENE & CAMERA
         const scene = new THREE.Scene();
-        // Fog: "Golden Mist" in light mode, aligned with top gradient.
-        const fogColor = darkMode ? 0x0a0807 : 0xfdf5e6;
-        const fogDensity = darkMode ? 0.04 : 0.015; // Slightly denser for better depth
+        // Fog: Dynamic from Palette
+        const fogColor = new THREE.Color(palette.fogColor);
+        const fogDensity = palette.fogDensity;
         scene.fog = new THREE.FogExp2(fogColor, fogDensity);
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
@@ -85,7 +73,7 @@ const WarmAmbienceBackground = ({ darkMode }) => {
                     gl_FragColor = vec4(col, 1.0);
                 }
             `,
-            uniforms: { top: { value: PALETTE.bgGradientTop }, bot: { value: PALETTE.bgGradientBot } }
+            uniforms: { top: { value: new THREE.Color(palette.bgGradientTop) }, bot: { value: new THREE.Color(palette.bgGradientBot) } }
         });
         const bgMesh = new THREE.Mesh(bgGeo, bgMat);
         scene.add(bgMesh);
@@ -101,15 +89,11 @@ const WarmAmbienceBackground = ({ darkMode }) => {
         const dustData = new Float32Array(dustCount * 3);
         const dustColors = new Float32Array(dustCount * 3);
 
-        // Palette Essences (Light Mode)
-        const colorWenge = new THREE.Color('#3E2723'); // Foncé
-        const colorNoyer = new THREE.Color('#8D6E63'); // Médium Chaud
-        const colorTeck = new THREE.Color('#BCAAA4');  // Clair (Beige grisé, plus doux)
-
-        // Palette Essences (Dark Mode - Gold/Amber variations)
-        const colorDark1 = new THREE.Color('#fbbf24');
-        const colorDark2 = new THREE.Color('#d97706');
-        const colorDark3 = new THREE.Color('#b45309');
+        // Palette Essences (Dynamic from Theme)
+        // Check if particleColors exists, otherwise fallback
+        const particlePalette = palette.particleColors && palette.particleColors.length > 0
+            ? palette.particleColors.map(c => new THREE.Color(c))
+            : [new THREE.Color('#3E2723'), new THREE.Color('#8D6E63')];
 
         for (let i = 0; i < dustCount; i++) {
             dustPos[i * 3] = (Math.random() - 0.5) * 50;
@@ -120,18 +104,9 @@ const WarmAmbienceBackground = ({ darkMode }) => {
             dustData[i * 3 + 1] = 0.2 + Math.random() * 0.3;
             dustData[i * 3 + 2] = Math.random();
 
-            // Randomly assign one of the 3 wood essences
-            const rand = Math.random();
-            let color;
-            if (darkMode) {
-                if (rand < 0.33) color = colorDark1;
-                else if (rand < 0.66) color = colorDark2;
-                else color = colorDark3;
-            } else {
-                if (rand < 0.33) color = colorWenge;
-                else if (rand < 0.66) color = colorNoyer;
-                else color = colorTeck;
-            }
+            // Randomly assign one of the theme colors
+            const randIndex = Math.floor(Math.random() * particlePalette.length);
+            const color = particlePalette[randIndex];
 
             dustColors[i * 3] = color.r;
             dustColors[i * 3 + 1] = color.g;
@@ -171,7 +146,7 @@ const WarmAmbienceBackground = ({ darkMode }) => {
 
         const bokehMat = new THREE.ShaderMaterial({
             uniforms: {
-                color: { value: PALETTE.foliage },
+                color: { value: new THREE.Color(palette.foliage) },
                 opacity: { value: 0.5 } // More visible depth
             },
             transparent: true,
@@ -206,7 +181,7 @@ const WarmAmbienceBackground = ({ darkMode }) => {
         scene.add(furnitureGroup);
 
         const furnitureMat = new THREE.MeshBasicMaterial({
-            color: darkMode ? 0xffffff : 0x5D4037, // Smoked Oak (Lighter Brown) for better visibility
+            color: new THREE.Color(palette.furniture), // Dynamic furniture color
             wireframe: true,
             transparent: true,
             opacity: darkMode ? 0.15 : 0.15 // Increased visibility
@@ -404,7 +379,7 @@ const WarmAmbienceBackground = ({ darkMode }) => {
 
         // Sun: "Key light"
         const sunIntensity = darkMode ? 1.5 : 2.8; // Very bright sun
-        const sunLight = new THREE.DirectionalLight(PALETTE.firefly, sunIntensity);
+        const sunLight = new THREE.DirectionalLight(new THREE.Color(palette.firefly), sunIntensity);
         sunLight.position.set(12, 15, 12); // Sharp angle
         sunLight.castShadow = true;
         sunLight.shadow.mapSize.width = 2048;
@@ -484,14 +459,14 @@ const WarmAmbienceBackground = ({ darkMode }) => {
                 if (o.material) o.material.dispose();
             });
         };
-    }, [darkMode]);
+    }, [darkMode, palette]);
 
     return (
         <div
             ref={containerRef}
             className="fixed top-0 left-0 w-full h-[120vh] md:h-screen z-0 transition-opacity duration-1000 ease-out"
             style={{
-                background: darkMode ? '#1a120b' : '#e0d0c1'
+                background: palette.bgGradientTop
             }}
         />
     );

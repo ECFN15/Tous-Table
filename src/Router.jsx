@@ -10,7 +10,8 @@ import AdminOrders from './features/admin/AdminOrders';
 import AdminComments from './features/admin/AdminComments';
 import AdminDashboard from './features/admin/AdminDashboard';
 import AdminHomepage from './features/admin/AdminHomepage';
-import { Pencil, Eye, EyeOff, Trash2, Trophy, Mail } from 'lucide-react';
+import AdminStudio from './features/admin/AdminStudio'; // NEW
+import { Pencil, Eye, EyeOff, Trash2, Trophy, Mail, Palette } from 'lucide-react';
 import { getMillis } from './utils/time';
 import { useAuth } from './contexts/AuthContext';
 import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
@@ -152,6 +153,12 @@ const AppRouter = ({
                     {/* Collection Switcher */}
                     <div className={`flex flex-wrap md:flex-nowrap gap-2 md:gap-4 p-2 md:p-1 border-b md:border-none md:rounded-xl w-full md:w-fit justify-center transition-all shadow-sm md:shadow-none ${darkMode ? 'bg-stone-800 border-stone-700 md:bg-stone-800' : 'bg-[#FAF9F6] border-stone-200/50 md:bg-stone-100'}`}>
                         <button
+                            onClick={() => { setAdminCollection('studio'); setEditingItem(null); }}
+                            className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center justify-center gap-2 ${adminCollection === 'studio' ? (darkMode ? 'bg-white text-stone-900 border-white md:bg-stone-700 md:text-white md:border-none' : 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
+                        >
+                            <Palette size={14} className="md:w-3.5" /> <span className="hidden md:inline">Studio</span>
+                        </button>
+                        <button
                             onClick={() => { setAdminCollection('dashboard'); setEditingItem(null); }}
                             className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'dashboard' ? (darkMode ? 'bg-white text-stone-900 border-white md:bg-stone-700 md:text-white md:border-none' : 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
                         >
@@ -198,7 +205,10 @@ const AppRouter = ({
                     ) : adminCollection === 'orders' ? (
                         <AdminOrders darkMode={darkMode} />
                     ) : adminCollection === 'comments' ? (
+
                         <AdminComments darkMode={darkMode} />
+                    ) : adminCollection === 'studio' ? (
+                        <AdminStudio darkMode={darkMode} />
                     ) : (
                         <>
                             {/* Formulaire Admin */}
