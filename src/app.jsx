@@ -11,6 +11,7 @@ import {
 // --- IMPORTS CONFIG & UTILS ---
 import { auth, db, appId, googleProvider, facebookProvider, twitterProvider, appleProvider, microsoftProvider } from './firebase/config';
 import { getMillis } from './utils/time';
+import { useLiveTheme } from './hooks/useLiveTheme'; // Import hook for forcedMode check
 
 // --- IMPORTS VUES ---
 import AppRouter from './Router';
@@ -99,6 +100,20 @@ const AppContent = () => {
     }
     return false;
   });
+
+  // Check for forced mode
+  const { forcedMode } = useLiveTheme(darkMode);
+  // Only hide toggle if strictly Light or Dark is forced. If 'auto' (default), show toggle.
+  const isModeForced = forcedMode === 'light' || forcedMode === 'dark';
+
+  // Effective Dark Mode Logic (Sync State)
+  useEffect(() => {
+    if (forcedMode === 'dark') {
+      setDarkMode(true);
+    } else if (forcedMode === 'light') {
+      setDarkMode(false);
+    }
+  }, [forcedMode]);
 
   // Apply dark mode class to document
   useEffect(() => {
@@ -538,13 +553,16 @@ const AppContent = () => {
               )}
 
               {/* DARK MODE TOGGLE */}
-              <button
-                onClick={() => setDarkMode(!darkMode)}
-                className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center backdrop-blur-2xl border shadow-xl transition-all ml-0.5 md:ml-0 ${darkMode ? 'bg-white/15 border-white/20 text-white hover:bg-amber-500 hover:text-white shadow-white/5' : 'bg-white/80 border-black/10 text-stone-900 hover:bg-amber-500 hover:text-white shadow-black/5'}`}
-                title={darkMode ? 'Mode Clair' : 'Mode Sombre'}
-              >
-                {darkMode ? <Sun size={12} className="md:w-[15px] md:h-[15px]" /> : <Moon size={12} className="md:w-[15px] md:h-[15px]" />}
-              </button>
+              {/* DARK MODE TOGGLE - Hidden if Forced */}
+              {!isModeForced && (
+                <button
+                  onClick={() => setDarkMode(!darkMode)}
+                  className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center backdrop-blur-2xl border shadow-xl transition-all ml-0.5 md:ml-0 ${darkMode ? 'bg-white/15 border-white/20 text-white hover:bg-amber-500 hover:text-white shadow-white/5' : 'bg-white/80 border-black/10 text-stone-900 hover:bg-amber-500 hover:text-white shadow-black/5'}`}
+                  title={darkMode ? 'Mode Clair' : 'Mode Sombre'}
+                >
+                  {darkMode ? <Sun size={12} className="md:w-[15px] md:h-[15px]" /> : <Moon size={12} className="md:w-[15px] md:h-[15px]" />}
+                </button>
+              )}
 
               <button onClick={() => setIsMenuOpen(true)} className={`w-8 h-8 md:w-auto md:h-auto px-0 md:px-6 md:py-2.5 rounded-full flex items-center justify-center gap-3 backdrop-blur-2xl border shadow-xl group transition-all ml-0.5 md:ml-0 ${darkMode ? 'bg-white/15 border-white/20 text-white hover:bg-white hover:text-stone-900 shadow-white/5' : 'bg-white/80 border-black/10 text-stone-900 hover:bg-stone-900 hover:text-white shadow-black/5'}`}><span className="hidden md:block text-[9.5px] md:text-[11px] font-bold uppercase tracking-widest">Menu</span><Menu size={14} className="md:w-[15px] md:h-[15px]" /></button>
             </div>

@@ -3,44 +3,57 @@ import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { THEMES } from '../../theme/themeRegistry';
 import { useLiveTheme } from '../../hooks/useLiveTheme';
-import { Check, Palette, RotateCcw } from 'lucide-react';
+import { Check, Palette, RotateCcw, Sun, Moon, Smartphone } from 'lucide-react';
 
 const AdminStudio = ({ darkMode }) => {
-    const { isStandardMode, currentThemeId } = useLiveTheme(darkMode);
+    const { isStandardMode, currentThemeId, forcedMode } = useLiveTheme(darkMode);
 
-    // We keep local state for immediate UI feedback (optimistic UI), 
-    // but the source of truth is the hook/Firestore.
     const [activeStandard, setActiveStandard] = useState(isStandardMode);
     const [activeThemeIdLocal, setActiveThemeIdLocal] = useState(currentThemeId);
+    const [activeForcedMode, setActiveForcedMode] = useState(forcedMode);
 
-    // Sync local state when remote state changes
     useEffect(() => {
         setActiveStandard(isStandardMode);
         setActiveThemeIdLocal(currentThemeId);
-    }, [isStandardMode, currentThemeId]);
+        setActiveForcedMode(forcedMode);
+    }, [isStandardMode, currentThemeId, forcedMode]);
 
-    const saveSettings = async (standard, themeId) => {
+    const saveSettings = async (standard, themeId, mode = 'auto') => {
         try {
             await setDoc(doc(db, 'sys_metadata', 'theme_settings'), {
                 isStandardMode: standard,
                 activeThemeId: themeId,
+                forcedMode: mode,
                 updatedAt: Date.now()
             }, { merge: true });
         } catch (err) {
             console.error("Failed to save theme settings:", err);
-            alert("Erreur lors de la sauvegarde du thème.");
+            alert("Erreur lors de la sauvegarde.");
         }
     };
 
     const handleToggleStandard = (val) => {
         setActiveStandard(val);
-        saveSettings(val, activeThemeIdLocal);
+        // Reset forced mode to auto when toggling standard, or keep previous?
+        // User request focused on custom themes. Let's keep it simple.
+        saveSettings(val, activeThemeIdLocal, 'auto');
     };
 
     const handleSelectTheme = (themeId) => {
         setActiveThemeIdLocal(themeId);
-        setActiveStandard(false); // Selecting a theme automatically disables Standard Mode
-        saveSettings(false, themeId);
+        setActiveStandard(false);
+        // Default to auto when switching themes, or keep current forced mode?
+        // Safe to reset to auto to avoid confusion.
+        setActiveForcedMode('auto');
+        saveSettings(false, themeId, 'auto');
+    };
+
+    const handleForceMode = (e, themeId, mode) => {
+        e.stopPropagation(); // Prevent card click
+        setActiveThemeIdLocal(themeId);
+        setActiveStandard(false);
+        setActiveForcedMode(mode);
+        saveSettings(false, themeId, mode);
     };
 
     return (
@@ -80,10 +93,10 @@ const AdminStudio = ({ darkMode }) => {
             {/* THEMES GRID */}
             <div className={`grid md:grid-cols-2 gap-4 ${activeStandard ? 'opacity-50 pointer-events-none grayscale' : 'opacity-100'}`}>
                 {THEMES.map(theme => (
-                    <button
+                    <div
                         key={theme.id}
                         onClick={() => handleSelectTheme(theme.id)}
-                        className={`group relative p-4 md:p-6 rounded-3xl border-2 text-left transition-all hover:scale-[1.02] ${activeThemeIdLocal === theme.id && !activeStandard ? (darkMode ? 'border-amber-500 bg-stone-800' : 'border-amber-400 bg-white shadow-xl shadow-amber-100') : (darkMode ? 'border-stone-800 bg-stone-900 hover:border-stone-600' : 'border-stone-100 bg-white hover:border-stone-200 shadow-sm')}`}
+                        className={`group relative p-4 md:p-6 rounded-3xl border-2 text-left transition-all hover:scale-[1.02] cursor-pointer ${activeThemeIdLocal === theme.id && !activeStandard ? (darkMode ? 'border-amber-500 bg-stone-800' : 'border-amber-400 bg-white shadow-xl shadow-amber-100') : (darkMode ? 'border-stone-800 bg-stone-900 hover:border-stone-600' : 'border-stone-100 bg-white hover:border-stone-200 shadow-sm')}`}
                     >
                         {activeThemeIdLocal === theme.id && !activeStandard && (
                             <div className="absolute top-4 right-4 bg-amber-500 text-white text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-widest flex items-center gap-1">
@@ -110,10 +123,31 @@ const AdminStudio = ({ darkMode }) => {
                                 </div>
                             </div>
                         </div>
-                    </button>
+                        {/* Force Mode Controls */}
+                        <div className={`mt-6 flex items-center justify-between gap-2 p-1 rounded-xl transition-all duration-300 ${activeThemeIdLocal === theme.id && !activeStandard ? 'opacity-100' : 'opacity-40 group-hover:opacity-100'} ${darkMode ? 'bg-stone-950/50' : 'bg-stone-100'}`}>
+                            <button
+                                onClick={(e) => handleForceMode(e, theme.id, 'light')}
+                                className={`flex-1 py-2 rounded-lg flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-wider transition-all ${activeThemeIdLocal === theme.id && activeForcedMode === 'light' ? 'bg-white text-stone-900 shadow-md' : 'text-stone-400 hover:text-stone-600'}`}
+                            >
+                                <Sun size={14} /> Light
+                            </button>
+                            <button
+                                onClick={(e) => handleForceMode(e, theme.id, 'auto')}
+                                className={`flex-1 py-2 rounded-lg flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-wider transition-all ${activeThemeIdLocal === theme.id && activeForcedMode === 'auto' ? (darkMode ? 'bg-stone-700 text-white shadow-md' : 'bg-white text-stone-900 shadow-md') : 'text-stone-400 hover:text-stone-600'}`}
+                            >
+                                <Smartphone size={14} /> Auto
+                            </button>
+                            <button
+                                onClick={(e) => handleForceMode(e, theme.id, 'dark')}
+                                className={`flex-1 py-2 rounded-lg flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-wider transition-all ${activeThemeIdLocal === theme.id && activeForcedMode === 'dark' ? 'bg-stone-800 text-white shadow-md' : 'text-stone-400 hover:text-stone-600'}`}
+                            >
+                                <Moon size={14} /> Dark
+                            </button>
+                        </div>
+                    </div>
                 ))}
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 
