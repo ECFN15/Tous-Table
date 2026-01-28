@@ -231,7 +231,7 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                             >
                                 {/* NEW CARD STRUCTURE (NFT STYLE) */}
                                 <div
-                                    className={`relative w-full overflow-hidden rounded-xl transition-all duration-300 ease-out group-hover:-translate-y-2 ${viewMode === 'list' ? 'aspect-[4/5]' : 'aspect-[3/4] md:aspect-[4/5]'}`}
+                                    className={`relative w-full overflow-hidden rounded-xl transition-all duration-300 ease-out group-hover:-translate-y-2 backdrop-blur-xl ${viewMode === 'list' ? 'aspect-[4/5]' : 'aspect-[3/4] md:aspect-[4/5]'}`}
                                     style={{
                                         backgroundColor: palette.cardBg,
                                         boxShadow: palette.cardShadow
@@ -353,10 +353,9 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
 
                                     {/* 5. COLOR ZONE FOOTER (Info Panel) */}
                                     <div
-                                        className="absolute bottom-0 inset-x-0 h-auto min-h-[64px] md:h-[88px] px-3 py-2.5 md:px-6 md:py-4 flex items-center justify-between border-t transition-colors duration-300 z-10"
+                                        className="absolute bottom-0 inset-x-0 h-auto min-h-[64px] md:h-[88px] px-3 py-2.5 md:px-6 md:py-4 flex items-center justify-between transition-colors duration-300 z-10"
                                         style={{
-                                            backgroundColor: palette.cardBg,
-                                            borderColor: palette.switcherBorder
+                                            backgroundColor: palette.cardBg
                                         }}
                                     >
                                         {/* Left: Name & Material */}

@@ -11,8 +11,10 @@ const SEO = React.lazy(() => import('../components/SEO'));
 const placeBidFunction = httpsCallable(functions, 'placeBid');
 
 import { useRealtimeUserLikes } from '../hooks/useRealtimeUserLikes'; // Import
+import { useLiveTheme } from '../hooks/useLiveTheme';
 
-const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments }) => {
+const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMode }) => {
+  const { palette } = useLiveTheme(darkMode);
   const [activeImg, setActiveImg] = useState(0);
   const [bidLoading, setBidLoading] = useState(false);
   const [msg, setMsg] = useState(null);
@@ -139,36 +141,36 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments }) => {
 
       {isWinner && <ConfettiRain />}
 
-      <button onClick={onBack} className="mb-8 flex items-center gap-2 text-stone-400 hover:text-stone-900 font-bold text-[10px] uppercase tracking-widest transition-colors">
+      <button onClick={onBack} className="mb-8 flex items-center gap-2 font-bold text-[10px] uppercase tracking-widest transition-colors" style={{ color: palette.textSubtitle }}>
         <ChevronLeft size={14} /> Retour collection
       </button>
 
-      <div className="grid md:grid-cols-2 gap-12 lg:gap-16 text-stone-900">
+      <div className="grid md:grid-cols-2 gap-12 lg:gap-16" style={{ color: palette.textBody }}>
         {/* Colonne Gauche: Images & Story */}
         <div className="space-y-8">
-          <div className="aspect-square rounded-[2.5rem] overflow-hidden bg-white border border-stone-200/60 shadow-2xl relative">
+          <div className="aspect-square rounded-[2.5rem] overflow-hidden border shadow-2xl relative" style={{ backgroundColor: palette.cardBg, borderColor: palette.switcherBorder }}>
             <img src={images[activeImg]} className="w-full h-full object-cover" alt={item.name} />
             {item.auctionActive && (
-              <div className="absolute bottom-6 left-6 bg-white/95 backdrop-blur px-4 py-2 rounded-2xl shadow-xl border border-stone-100 text-stone-900">
+              <div className="absolute bottom-6 left-6 backdrop-blur px-4 py-2 rounded-2xl shadow-xl border" style={{ backgroundColor: palette.switcherBg, borderColor: palette.switcherBorder, color: palette.textBody }}>
                 <AuctionTimer endDate={item.auctionEnd} onFinished={() => setForceWinnerCheck(true)} />
               </div>
             )}
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide px-1">
             {images.map((img, idx) => (
-              <button key={idx} onClick={() => setActiveImg(idx)} className={`w-14 h-14 rounded-xl overflow-hidden border-2 flex-shrink-0 transition-all ${activeImg === idx ? 'border-amber-500 shadow-md scale-105' : 'border-transparent opacity-60 hover:opacity-100'}`}>
+              <button key={idx} onClick={() => setActiveImg(idx)} className={`w-14 h-14 rounded-xl overflow-hidden border-2 flex-shrink-0 transition-all ${activeImg === idx ? 'shadow-md scale-105' : 'border-transparent opacity-60 hover:opacity-100'}`} style={{ borderColor: activeImg === idx ? palette.accent : 'transparent' }}>
                 <img src={img} className="w-full h-full object-cover" alt={`${item.name} - Vue ${idx + 1}`} />
               </button>
             ))}
           </div>
 
-          <div className="p-8 rounded-[2.5rem] bg-stone-50/50 border border-stone-200/40 shadow-sm relative overflow-hidden group">
-            <Quote size={32} className="absolute -top-2 -right-2 text-stone-100 group-hover:text-amber-100 transition-colors" />
+          <div className="p-8 rounded-[2.5rem] border shadow-sm relative overflow-hidden group" style={{ backgroundColor: palette.cardBg, borderColor: palette.switcherBorder }}>
+            <Quote size={32} className="absolute -top-2 -right-2 transition-colors opacity-10" style={{ color: palette.textBody }} />
             <div className="relative z-10">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 mb-6 flex items-center gap-2">
-                <span className="w-4 h-px bg-stone-300"></span> L'histoire de la pièce
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-6 flex items-center gap-2" style={{ color: palette.textSubtitle }}>
+                <span className="w-4 h-px" style={{ backgroundColor: palette.textSubtitle }}></span> L'histoire de la pièce
               </p>
-              <p className="text-sm text-stone-600 leading-snug font-medium whitespace-pre-wrap">
+              <p className="text-sm leading-snug font-medium whitespace-pre-wrap" style={{ color: palette.textBody }}>
                 {item.description}
               </p>
             </div>
@@ -177,48 +179,51 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments }) => {
 
         {/* Colonne Droite: Actions & Stats */}
         <div className="space-y-8 px-1">
-          <div className="space-y-3 text-stone-900">
+          <div className="space-y-3" style={{ color: palette.textBody }}>
             <div className="flex gap-2">
-              <span className="bg-amber-100/50 text-amber-800 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border border-amber-200/50">Lot n°{item.id.substring(0, 4)}</span>
+              <span className="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border" style={{ backgroundColor: `${palette.accent}20`, borderColor: `${palette.accent}40`, color: palette.accent }}>Lot n°{item.id.substring(0, 4)}</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-stone-900 leading-tight">{item.name}</h1>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-tight" style={{ color: palette.textTitle }}>{item.name}</h1>
 
             <div className="flex flex-wrap items-center gap-4 md:gap-6 pt-2">
               <button
                 onClick={handleLike}
-                className="flex items-center gap-2 text-stone-400 hover:text-red-500 transition-colors group/stat"
+                className="flex items-center gap-2 transition-colors group/stat hover:opacity-80"
+                style={{ color: palette.textSubtitle }}
               >
-                <Heart size={16} className={isLiked ? "text-red-500 fill-red-500" : "group-hover/stat:scale-110 transition-transform"} />
+                <Heart size={16} className={isLiked ? "fill-current text-red-500" : "group-hover/stat:scale-110 transition-transform"} style={{ color: isLiked ? '#ef4444' : palette.textSubtitle }} />
                 <span className="text-xs font-black">{item.likeCount || 0} <span className="hidden sm:inline">Likes</span></span>
               </button>
               <button
                 onClick={() => onShowComments(item)}
-                className="flex items-center gap-2 text-stone-400 hover:text-amber-600 transition-colors group/stat"
+                className="flex items-center gap-2 transition-colors group/stat hover:opacity-80"
+                style={{ color: palette.textSubtitle }}
               >
                 <div className="relative">
-                  <MessageCircle size={16} className={item.commentCount > 0 ? "text-amber-500 fill-amber-500/10" : "group-hover/stat:scale-110 transition-transform"} />
+                  <MessageCircle size={16} className={item.commentCount > 0 ? "fill-current" : "group-hover/stat:scale-110 transition-transform"} style={{ color: item.commentCount > 0 ? palette.accent : palette.textSubtitle }} />
                 </div>
                 <span className="text-xs font-black">{item.commentCount || 0} <span className="hidden sm:inline">Avis</span></span>
               </button>
               <button
                 onClick={handleShare}
-                className="flex items-center gap-2 text-stone-400 hover:text-purple-500 transition-colors group/stat"
+                className="flex items-center gap-2 transition-colors group/stat hover:opacity-80"
+                style={{ color: palette.textSubtitle }}
               >
-                <Share2 size={16} className={item.shareCount > 0 ? "text-purple-500" : "group-hover/stat:scale-110 transition-transform"} />
+                <Share2 size={16} className={item.shareCount > 0 ? "" : "group-hover/stat:scale-110 transition-transform"} style={{ color: item.shareCount > 0 ? '#a855f7' : palette.textSubtitle }} />
                 <span className="text-xs font-black">{item.shareCount || 0} <span className="hidden sm:inline">Partages</span></span>
               </button>
             </div>
           </div>
 
-          <div className={`p-8 rounded-[3rem] border transition-all duration-700 ${isWinner ? 'bg-emerald-50 border-emerald-200 shadow-xl scale-[1.02]' : 'bg-white border-stone-200 shadow-xl'}`}>
-            <div className="flex justify-between items-end mb-8 text-stone-900">
+          <div className={`p-8 rounded-[3rem] border transition-all duration-700 ${isWinner ? 'scale-[1.02] shadow-xl' : 'shadow-xl'}`} style={{ backgroundColor: palette.cardBg, borderColor: palette.switcherBorder }}>
+            <div className="flex justify-between items-end mb-8" style={{ color: palette.textBody }}>
               <div className="space-y-0.5">
-                <p className="text-[9px] font-black text-stone-400 uppercase tracking-widest">{item.auctionActive ? 'Offre actuelle' : 'Prix fixe'}</p>
-                <p className="text-5xl font-black tracking-tighter transition-all">{item.currentPrice || item.startingPrice} €</p>
+                <p className="text-[9px] font-black uppercase tracking-widest opacity-60">Offre actuelle</p>
+                <p className="text-5xl font-black tracking-tighter transition-all" style={{ color: palette.textTitle }}>{item.currentPrice || item.startingPrice} €</p>
               </div>
               {item.auctionActive && (
                 <div className="text-right space-y-1">
-                  <p className="text-[9px] font-black text-stone-400 uppercase tracking-widest">Mises</p>
+                  <p className="text-[9px] font-black opacity-60 uppercase tracking-widest">Mises</p>
                   <p className="text-2xl font-black">{item.bidCount || 0}</p>
                 </div>
               )}

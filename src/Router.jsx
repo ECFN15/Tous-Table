@@ -112,6 +112,7 @@ const AppRouter = ({
                             setCommentCollection(col);
                             setIsCommentModalOpen(true);
                         }}
+                        darkMode={darkMode}
                     />
                 </div>
             )}
