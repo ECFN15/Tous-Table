@@ -264,32 +264,32 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                                     <div className="absolute top-3 left-3 md:top-4 md:left-4 z-20">
                                         {item.auctionActive ? (
                                             <div
-                                                className={`${viewMode === 'list' ? 'px-3 py-1.5' : 'px-2.5 py-1.5'} md:px-4 md:py-1.5 rounded-full backdrop-blur-md border shadow-sm flex items-center gap-2`}
+                                                className={`${viewMode === 'list' ? 'px-3 py-1.5 gap-2' : 'px-2.5 py-1 gap-1.5'} md:px-4 md:py-1.5 md:gap-2 rounded-full backdrop-blur-md border shadow-sm flex items-center`}
                                                 style={{
                                                     backgroundColor: palette.isDark ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.8)',
                                                     borderColor: palette.switcherBorder,
                                                     color: palette.isDark ? '#ffffff' : '#000000'
                                                 }}
                                             >
-                                                <div className="w-1.5 h-1.5 rounded-full bg-[#34C759] animate-pulse"></div>
+                                                <div className={`${viewMode === 'list' ? 'w-1.5 h-1.5' : 'w-1.5 h-1.5'} md:w-1.5 md:h-1.5 rounded-full bg-[#34C759] animate-pulse`}></div>
                                                 <span className={`${viewMode === 'list' ? 'text-[10px]' : 'text-[9px]'} md:text-[10px] font-mono font-bold tracking-wider leading-none`}>
                                                     <React.Suspense fallback="..:..">
                                                         <AuctionTimer endDate={item.auctionEnd} />
                                                     </React.Suspense>
                                                 </span>
                                             </div>
-                                        ) : (
+                                        ) : item.sold && (
                                             <div
-                                                className={`${viewMode === 'list' ? 'px-3 py-1.5' : 'px-2.5 py-1.5'} md:px-4 md:py-1.5 rounded-full flex items-center gap-2 border backdrop-blur-md shadow-sm`}
+                                                className={`${viewMode === 'list' ? 'px-3 py-1.5 gap-2' : 'px-2.5 py-1 gap-1.5'} md:px-4 md:py-1.5 md:gap-2 rounded-full flex items-center border backdrop-blur-md shadow-sm`}
                                                 style={{
-                                                    backgroundColor: item.sold ? 'rgba(239, 68, 68, 0.9)' : (palette.isDark ? 'rgba(28, 28, 30, 0.8)' : 'rgba(255, 255, 255, 0.9)'),
-                                                    borderColor: item.sold ? 'rgba(248, 113, 113, 1)' : palette.switcherBorder,
-                                                    color: item.sold ? '#ffffff' : palette.textBody
+                                                    backgroundColor: 'rgba(239, 68, 68, 0.9)',
+                                                    borderColor: 'rgba(248, 113, 113, 1)',
+                                                    color: '#ffffff'
                                                 }}
                                             >
-                                                <div className={`${viewMode === 'list' ? 'w-2 h-2' : 'w-1.5 h-1.5'} md:w-2 md:h-2 rounded-full ${item.sold ? 'bg-white' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse'}`}></div>
-                                                <span className={`${viewMode === 'list' ? 'text-[10px]' : 'text-[9.5px]'} md:text-[10px] font-bold uppercase tracking-wider leading-none`}>
-                                                    {item.sold ? 'Vendu' : 'Disponible'}
+                                                <div className={`${viewMode === 'list' ? 'w-2 h-2' : 'w-1.5 h-1.5'} md:w-2 md:h-2 rounded-full bg-white`}></div>
+                                                <span className={`${viewMode === 'list' ? 'text-[10px]' : 'text-[9px]'} md:text-[10px] font-bold uppercase tracking-wider leading-none`}>
+                                                    Vendu
                                                 </span>
                                             </div>
                                         )}
@@ -375,21 +375,21 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                                         </div>
 
                                         {/* Right: Stock & Price */}
-                                        <div className="flex flex-col items-end justify-center gap-0.5 md:gap-1">
+                                        <div className="flex flex-col items-end justify-center gap-0.5 md:gap-1 text-right">
                                             {/* Stock Label */}
                                             <div
-                                                className={`${viewMode === 'list' ? 'px-2 py-0.5 text-[8px]' : 'px-1.5 py-0.5 text-[7.5px]'} md:px-2 md:py-1 md:text-[10px] rounded-[3px] border font-mono font-bold uppercase tracking-wider`}
+                                                className={`${viewMode === 'list' ? 'px-2 py-0.5 text-[8px]' : 'px-1.5 py-0.5 text-[7.5px]'} md:px-2 md:py-1 md:text-[10px] rounded-[3px] border font-mono font-bold uppercase tracking-wider tabular-nums`}
                                                 style={{
-                                                    borderColor: palette.switcherBorder,
-                                                    color: palette.statusValid,
-                                                    backgroundColor: `${palette.statusValid}10` // 10% opacity
+                                                    borderColor: item.sold ? '#ef444440' : palette.switcherBorder,
+                                                    color: item.sold ? '#ef4444' : palette.statusValid,
+                                                    backgroundColor: item.sold ? '#ef444415' : `${palette.statusValid}10`
                                                 }}
                                             >
                                                 {item.sold ? 'Rupture' : `Stock ${item.stock || 1}`}
                                             </div>
                                             {/* Price */}
                                             <div
-                                                className={`font-mono font-medium ${viewMode === 'list' ? 'text-[12px]' : 'text-[10.5px]'} md:text-base tracking-tight`}
+                                                className={`font-mono font-medium ${viewMode === 'list' ? 'text-[12px]' : 'text-[10.5px]'} md:text-base tracking-tight tabular-nums`}
                                                 style={{ color: palette.textBody }}
                                             >
                                                 {item.currentPrice || item.startingPrice} €

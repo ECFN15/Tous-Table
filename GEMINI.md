@@ -64,10 +64,18 @@ Le projet a été restructuré pour séparer clairement les responsabilités (Ja
     *   Accessible via `AdminStudio`, permet de changer l'ambiance de la Marketplace sans coder.
     *   **Mode Standard** : Si activé, désactive tous les thèmes et utilise le design "original" (hardcoded).
     *   **Mode Forcé** : Pour chaque thème, l'admin peut forcer "Light", "Dark" ou "Auto". Si forcé, le toggle Dark Mode du header disparait pour les utilisateurs afin de garantir la cohérence artistique choisie.
+
 *   **Animations** :
     *   **GSAP** : Utilisé pour les transitions fluides (ScrollTrigger sur la Home).
     *   **Three.js** : Objet 3D (Nœud Torus) en fond sur la Home.
     *   **Lenis** : Smooth Scroll (défilement doux).
+*   **UX Mobile & Badges (Mise à jour Janvier 2026)** :
+    *   **Grille Mobile (2 colonnes)** : Optimisation de l'espace avec des badges réduits (Police 9px, Padding fin) pour ne pas obstruer les photos.
+    *   **Logique de Statut** :
+        *   **Enchère** : Badge Vert à impulsion avec Timer.
+        *   **Vendu** : Badge Rouge "VENDU" (Aussi marqué "RUPTURE" en rouge au niveau du stock).
+        *   **Disponible** : PAS de badge (implicite) pour épurer l'interface, sauf mention "STOCK X" en vert discret en bas de carte.
+        *   **Alignement** : Prix et Stock rigoureusement alignés à droite (`text-right` + `tabular-nums`) pour une symétrie parfaite sur tous les écrans.
 
 ---
 
