@@ -146,7 +146,7 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                     >
                         <button
                             onClick={() => { setActiveCollection('furniture'); setFilter('fixed'); }}
-                            className="px-4 md:px-6 py-1.5 md:py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap shadow-sm"
+                            className={`px-4 md:px-6 py-1.5 md:py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap ${activeCollection === 'furniture' ? 'shadow-sm' : ''}`}
                             style={{
                                 backgroundColor: activeCollection === 'furniture' ? palette.btnActiveBg : 'transparent',
                                 color: activeCollection === 'furniture' ? palette.btnActiveText : palette.btnInactiveText
@@ -156,7 +156,7 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                         </button>
                         <button
                             onClick={() => { setActiveCollection('cutting_boards'); setFilter('fixed'); }}
-                            className="px-4 md:px-6 py-1.5 md:py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap shadow-sm group"
+                            className={`px-4 md:px-6 py-1.5 md:py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap group ${activeCollection === 'cutting_boards' ? 'shadow-sm' : ''}`}
                             style={{
                                 backgroundColor: activeCollection === 'cutting_boards' ? palette.btnActiveBg : 'transparent',
                                 color: activeCollection === 'cutting_boards' ? palette.btnActiveText : palette.btnInactiveText,
