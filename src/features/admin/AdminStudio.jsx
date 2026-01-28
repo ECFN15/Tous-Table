@@ -106,8 +106,8 @@ const AdminStudio = ({ darkMode }) => {
 
                         <div className="flex gap-4">
                             {/* Color Preview Block */}
-                            <div className="w-20 h-20 rounded-2xl shadow-inner shrink-0" style={{ backgroundColor: theme.previewColor }}>
-                                <div className="w-full h-full bg-gradient-to-br from-white/20 to-black/10"></div>
+                            <div className="w-20 h-20 rounded-2xl shadow-sm shrink-0" style={{ backgroundColor: theme.previewColor }}>
+                                {/* Clean preview without overlays */}
                             </div>
 
                             <div>

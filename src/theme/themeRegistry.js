@@ -299,6 +299,239 @@ export const THEMES = [
             fogDensity: 0.05,
             isDark: true
         }
+    },
+    // --- SAISONS ---
+    {
+        id: 'spring',
+        name: 'Printemps Floral',
+        description: 'Douceur et renaissance. Pastels rosés, vert tendre et lumière matinale.',
+        previewColor: '#f472b6', // Pink
+        light: {
+            bgGradientTop: '#fff1f2', // Rose very light
+            bgGradientBot: '#fbcfe8', // Pink 200
+            textBody: '#831843', // Pink 900
+            textTitle: '#831843',
+            textSubtitle: '#db2777', // Pink 600
+            titleBlendMode: 'multiply',
+            cardBg: 'rgba(255, 255, 255, 0.6)',
+            cardShadow: '0 10px 25px -5px rgba(219, 39, 119, 0.15)',
+            switcherBg: '#fdf2f8',
+            switcherBorder: '#fbcfe8',
+            btnActiveBg: '#db2777',
+            btnActiveText: '#ffffff',
+            btnInactiveText: '#9d174d',
+            viewSwitcherBg: '#ffffff',
+            accent: '#be185d',
+            statusValid: '#10b981',
+            firefly: '#ec4899', // Pink Fireflies
+            dust: '#f472b6',
+            foliage: '#831843',
+            furniture: '#9d174d',
+            particleColors: ['#f472b6', '#fbcfe8', '#fce7f3'],
+            fogColor: '#fff1f2',
+            fogDensity: 0.02,
+            isDark: false
+        },
+        dark: {
+            bgGradientTop: '#3f0c23', // Dark Rose
+            bgGradientBot: '#831843', // Deep Pink
+            textBody: '#fce7f3',
+            textTitle: '#fce7f3',
+            textSubtitle: '#f9a8d4',
+            titleBlendMode: 'normal',
+            cardBg: 'rgba(63, 12, 35, 0.6)',
+            cardShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+            switcherBg: '#500724',
+            switcherBorder: '#831843',
+            btnActiveBg: '#db2777',
+            btnActiveText: '#ffffff',
+            btnInactiveText: '#fbcfe8',
+            viewSwitcherBg: '#3f0c23',
+            accent: '#f472b6',
+            statusValid: '#34d399',
+            firefly: '#f472b6',
+            dust: '#fce7f3',
+            foliage: '#3f0c23',
+            furniture: '#831843',
+            particleColors: ['#f472b6', '#db2777', '#be185d'],
+            fogColor: '#3f0c23',
+            fogDensity: 0.04,
+            isDark: true
+        }
+    },
+    {
+        id: 'summer',
+        name: 'Été Zénith',
+        description: 'Chaleur vibrante. Ciel azur, sable chaud et soleil éclatant.',
+        previewColor: '#f59e0b', // Amber
+        light: {
+            bgGradientTop: '#fffbeb', // Amber 50
+            bgGradientBot: '#fcd34d', // Amber 300
+            textBody: '#b45309', // Amber 700
+            textTitle: '#78350f', // Amber 900
+            textSubtitle: '#d97706', // Amber 600
+            titleBlendMode: 'multiply',
+            cardBg: 'rgba(255, 255, 255, 0.5)',
+            cardShadow: '0 10px 25px -5px rgba(245, 158, 11, 0.2)',
+            switcherBg: '#fff7ed',
+            switcherBorder: '#fde68a',
+            btnActiveBg: '#d97706',
+            btnActiveText: '#ffffff',
+            btnInactiveText: '#b45309',
+            viewSwitcherBg: '#ffffff',
+            accent: '#f59e0b',
+            statusValid: '#059669',
+            firefly: '#ef4444', // Red/Orange heat
+            dust: '#f59e0b',
+            foliage: '#78350f',
+            furniture: '#92400e',
+            particleColors: ['#f59e0b', '#fbbf24', '#fcd34d'],
+            fogColor: '#fffbeb',
+            fogDensity: 0.015,
+            isDark: false
+        },
+        dark: {
+            bgGradientTop: '#451a03', // Dark Amber/Brown
+            bgGradientBot: '#92400e', // Amber 800
+            textBody: '#fef3c7',
+            textTitle: '#fef3c7',
+            textSubtitle: '#fcd34d',
+            titleBlendMode: 'normal',
+            cardBg: 'rgba(69, 26, 3, 0.6)',
+            cardShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+            switcherBg: '#451a03',
+            switcherBorder: '#92400e',
+            btnActiveBg: '#d97706',
+            btnActiveText: '#ffffff',
+            btnInactiveText: '#fde68a',
+            viewSwitcherBg: '#451a03',
+            accent: '#fbbf24',
+            statusValid: '#34d399',
+            firefly: '#fbbf24',
+            dust: '#fef3c7',
+            foliage: '#451a03',
+            furniture: '#92400e',
+            particleColors: ['#f59e0b', '#fbbf24', '#d97706'],
+            fogColor: '#451a03',
+            fogDensity: 0.03,
+            isDark: true
+        }
+    },
+    {
+        id: 'autumn',
+        name: 'Automne Doré',
+        description: 'Feuilles mortes et cocooning. Rouille, orange brûlé et tons terreux.',
+        previewColor: '#ea580c', // Orange
+        light: {
+            bgGradientTop: '#fff7ed', // Orange 50
+            bgGradientBot: '#fdba74', // Orange 300
+            textBody: '#7c2d12', // Orange 900
+            textTitle: '#7c2d12',
+            textSubtitle: '#c2410c', // Orange 700
+            titleBlendMode: 'multiply',
+            cardBg: 'rgba(255, 255, 255, 0.6)',
+            cardShadow: '0 10px 25px -5px rgba(234, 88, 12, 0.15)',
+            switcherBg: '#ffedd5',
+            switcherBorder: '#fed7aa',
+            btnActiveBg: '#c2410c',
+            btnActiveText: '#ffffff',
+            btnInactiveText: '#9a3412',
+            viewSwitcherBg: '#ffffff',
+            accent: '#ea580c',
+            statusValid: '#15803d',
+            firefly: '#c2410c',
+            dust: '#ea580c',
+            foliage: '#7c2d12',
+            furniture: '#9a3412',
+            particleColors: ['#c2410c', '#ea580c', '#fdba74'],
+            fogColor: '#fff7ed',
+            fogDensity: 0.02,
+            isDark: false
+        },
+        dark: {
+            bgGradientTop: '#431407', // Dark Rust
+            bgGradientBot: '#9a3412', // Rust Not too bright
+            textBody: '#ffedd5',
+            textTitle: '#ffedd5',
+            textSubtitle: '#fdba74',
+            titleBlendMode: 'normal',
+            cardBg: 'rgba(67, 20, 7, 0.6)',
+            cardShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+            switcherBg: '#431407',
+            switcherBorder: '#9a3412',
+            btnActiveBg: '#ea580c',
+            btnActiveText: '#ffffff',
+            btnInactiveText: '#fdba74',
+            viewSwitcherBg: '#431407',
+            accent: '#f97316',
+            statusValid: '#4ade80',
+            firefly: '#fdba74',
+            dust: '#ffedd5',
+            foliage: '#431407',
+            furniture: '#9a3412',
+            particleColors: ['#ea580c', '#f97316', '#fb923c'],
+            fogColor: '#431407',
+            fogDensity: 0.04,
+            isDark: true
+        }
+    },
+    {
+        id: 'winter',
+        name: 'Hiver Polaire',
+        description: 'Silence glacé. Blanc pur, gris bleuté et atmosphère cristalline.',
+        previewColor: '#94a3b8', // Slate
+        light: {
+            bgGradientTop: '#f8fafc', // Slate 50
+            bgGradientBot: '#cbd5e1', // Slate 300
+            textBody: '#0f172a', // Slate 900
+            textTitle: '#0f172a',
+            textSubtitle: '#334155', // Slate 700
+            titleBlendMode: 'multiply',
+            cardBg: 'rgba(255, 255, 255, 0.8)',
+            cardShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.1)',
+            switcherBg: '#f1f5f9',
+            switcherBorder: '#cbd5e1',
+            btnActiveBg: '#334155',
+            btnActiveText: '#ffffff',
+            btnInactiveText: '#64748b',
+            viewSwitcherBg: '#ffffff',
+            accent: '#475569',
+            statusValid: '#059669',
+            firefly: '#e2e8f0', // Snowflakes
+            dust: '#94a3b8',
+            foliage: '#0f172a',
+            furniture: '#1e293b',
+            particleColors: ['#e2e8f0', '#cbd5e1', '#ffffff'],
+            fogColor: '#f8fafc',
+            fogDensity: 0.03,
+            isDark: false
+        },
+        dark: {
+            bgGradientTop: '#020617', // Slate 950
+            bgGradientBot: '#1e293b', // Slate 800
+            textBody: '#f8fafc',
+            textTitle: '#f8fafc',
+            textSubtitle: '#94a3b8', // Slate 400
+            titleBlendMode: 'normal',
+            cardBg: 'rgba(15, 23, 42, 0.6)',
+            cardShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+            switcherBg: '#020617',
+            switcherBorder: '#1e293b',
+            btnActiveBg: '#475569',
+            btnActiveText: '#ffffff',
+            btnInactiveText: '#94a3b8',
+            viewSwitcherBg: '#020617',
+            accent: '#cbd5e1',
+            statusValid: '#34d399',
+            firefly: '#ffffff', // Bright Snow
+            dust: '#e2e8f0',
+            foliage: '#020617',
+            furniture: '#1e293b',
+            particleColors: ['#ffffff', '#f1f5f9', '#e2e8f0'],
+            fogColor: '#020617',
+            fogDensity: 0.05,
+            isDark: true
+        }
     }
 ];
 
