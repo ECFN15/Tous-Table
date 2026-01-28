@@ -124,7 +124,7 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                         </h1>
                         {/* NEW SUBTITLE */}
                         <p
-                            className="font-serif italic text-xl md:text-3xl tracking-wide opacity-75 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-100"
+                            className="font-serif italic text-xl md:text-3xl tracking-wide animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-100"
                             style={{ color: palette.textSubtitle }}
                         >
                             {activeCollection === 'furniture' ? 'Nos Meubles de Ferme' : 'Nos Planches à Découper'}

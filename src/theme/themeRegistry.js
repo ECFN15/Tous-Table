@@ -70,7 +70,7 @@ export const THEMES = [
             bgGradientBot: '#0288D1', // Deep Sky Blue
             textBody: '#01579B', // Deepest Blue
             textTitle: '#01579B',
-            textSubtitle: '#0288D1',
+            textSubtitle: '#01579B', // Increased contrast (was #0288D1)
             titleBlendMode: 'normal',
             cardBg: 'rgba(255, 255, 255, 0.45)', // GLASS EFFECT
             cardShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.15)', // Soft Blue Shadow
@@ -130,7 +130,7 @@ export const THEMES = [
             bgGradientBot: '#166534', // Green 700
             textBody: '#064E3B',
             textTitle: '#064E3B',
-            textSubtitle: '#15803D',
+            textSubtitle: '#14532D', // Increased contrast (was #15803D)
             titleBlendMode: 'multiply',
             cardBg: 'rgba(255, 255, 255, 0.7)',
             cardShadow: '0 10px 15px -3px rgba(22, 101, 52, 0.1)',
