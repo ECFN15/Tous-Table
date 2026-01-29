@@ -286,11 +286,17 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMo
             </div>
           </div>
 
-          <div className={`p-8 rounded-[3rem] ring-1 ring-inset overflow-hidden transition-all duration-700 transform-gpu backface-hidden ${isWinner ? 'scale-[1.02] shadow-xl' : 'shadow-xl'}`} style={{ backgroundColor: palette.cardBg, '--tw-ring-color': palette.switcherBorder }}>
-            <div className="flex justify-between items-end mb-8" style={{ color: palette.textBody }}>
+          <div className={`p-8 rounded-[3rem] ring-1 ring-inset overflow-hidden transition-all duration-700 transform-gpu backface-hidden ${isWinner ? 'scale-[1.02] shadow-[0_0_30px_-5px_rgba(16,185,129,0.3)]' : 'shadow-xl'}`}
+            style={{
+              backgroundColor: palette.cardBg,
+              '--tw-ring-color': isWinner ? '#10b981' : palette.switcherBorder,
+              color: palette.textBody
+            }}
+          >
+            <div className="flex justify-between items-end mb-8">
               <div className="space-y-0.5">
                 <p className="text-[9px] font-black uppercase tracking-widest opacity-60">Offre actuelle</p>
-                <p className="text-5xl font-black tracking-tighter transition-all" style={{ color: palette.textTitle }}>{item.currentPrice || item.startingPrice} €</p>
+                <p className="text-5xl font-black tracking-tighter transition-all" style={{ color: isWinner ? '#10b981' : palette.textTitle }}>{item.currentPrice || item.startingPrice} €</p>
               </div>
               {item.auctionActive ? (
                 <div className="text-right space-y-1">
