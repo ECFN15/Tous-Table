@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
-import { Package, Clock, CheckCircle, Trash2, Mail, ChevronDown, ChevronUp } from 'lucide-react';
+import { Package, Clock, CheckCircle, Trash2, Mail, ChevronDown, ChevronUp, Download } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 const AdminOrders = ({ darkMode = false }) => {
     const [orders, setOrders] = useState([]);
@@ -33,10 +34,44 @@ const AdminOrders = ({ darkMode = false }) => {
         return new Date(timestamp.seconds * 1000).toLocaleString('fr-FR');
     };
 
+    const exportToExcel = () => {
+        const data = orders.map(order => ({
+            'ID Commande': order.id,
+            'Date': order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR') : 'N/A',
+            'Heure': order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleTimeString('fr-FR') : 'N/A',
+            'Client': order.shipping?.fullName || 'N/A',
+            'Email': order.shipping?.email || 'N/A',
+            'Téléphone': order.shipping?.phone || 'N/A',
+            'Adresse': `${order.shipping?.address || ''}, ${order.shipping?.postalCode || ''} ${order.shipping?.city || ''}`,
+            'Méthode Paiement': order.paymentMethod === 'deferred' ? 'Différé' : 'Carte (Stripe)',
+            'Statut': order.status === 'completed' ? 'Traitée' : 'En attente',
+            'Total (€)': order.total,
+            'Articles': order.items?.map(i => `${i.quantity || 1}x ${i.name}`).join(', ') || ''
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Commandes");
+
+        // Auto-width columns
+        const wscols = Object.keys(data[0] || {}).map(() => ({ wch: 20 }));
+        ws['!cols'] = wscols;
+
+        XLSX.writeFile(wb, `Commandes_Atelier_Normand_${new Date().toISOString().split('T')[0]}.xlsx`);
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <h2 className={`text-2xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>Commandes ({orders.length})</h2>
+                <div className="flex items-center gap-4">
+                    <h2 className={`text-2xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>Commandes ({orders.length})</h2>
+                    <button
+                        onClick={exportToExcel}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors ${darkMode ? 'bg-stone-800 text-stone-200 hover:bg-stone-700' : 'bg-white text-stone-600 hover:bg-stone-100 border'}`}
+                    >
+                        <Download size={14} /> Export Excel
+                    </button>
+                </div>
                 <div className="flex gap-2 text-xs font-bold uppercase tracking-widest text-stone-400">
                     <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-amber-500"></div> En cours</span>
                     <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-emerald-500"></div> Terminées</span>
