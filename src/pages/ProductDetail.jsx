@@ -148,21 +148,52 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMo
       <div className="grid md:grid-cols-2 gap-12 lg:gap-16" style={{ color: palette.textBody }}>
         {/* Colonne Gauche: Images & Story */}
         <div className="space-y-8">
-          <div className="aspect-square rounded-[2.5rem] overflow-hidden ring-1 ring-inset shadow-2xl relative transform-gpu backface-hidden" style={{ backgroundColor: palette.cardBg, '--tw-ring-color': palette.switcherBorder }}>
-            <img src={images[activeImg]} className="w-full h-full object-cover" alt={item.name} />
+          <div className="aspect-square rounded-[2.5rem] overflow-hidden ring-1 ring-inset shadow-2xl relative transform-gpu backface-hidden group cursor-pointer" style={{ backgroundColor: palette.cardBg, '--tw-ring-color': palette.switcherBorder }} onClick={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            if (x < rect.width / 2) {
+              setActiveImg(prev => prev === 0 ? images.length - 1 : prev - 1);
+            } else {
+              setActiveImg(prev => prev === images.length - 1 ? 0 : prev + 1);
+            }
+          }}>
+            <img src={images[activeImg]} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt={item.name} />
+
+            {/* Hover Navigation Arrows */}
+            {images.length > 1 && (
+              <>
+                <div className="absolute top-1/2 left-4 -translate-y-1/2 p-3 rounded-full bg-black/20 text-white backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-black/40">
+                  <ChevronLeft size={24} />
+                </div>
+                <div className="absolute top-1/2 right-4 -translate-y-1/2 p-3 rounded-full bg-black/20 text-white backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-black/40 rotate-180">
+                  <ChevronLeft size={24} />
+                </div>
+              </>
+            )}
+
             {item.auctionActive && (
               <div className="absolute bottom-6 left-6 backdrop-blur px-4 py-2 rounded-2xl shadow-xl ring-1 ring-inset" style={{ backgroundColor: palette.switcherBg, '--tw-ring-color': palette.switcherBorder, color: palette.textBody }}>
                 <AuctionTimer endDate={item.auctionEnd} onFinished={() => setForceWinnerCheck(true)} />
               </div>
             )}
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide px-1">
-            {images.map((img, idx) => (
-              <button key={idx} onClick={() => setActiveImg(idx)} className={`w-14 h-14 rounded-xl overflow-hidden border-2 flex-shrink-0 transition-all ${activeImg === idx ? 'shadow-md scale-105' : 'border-transparent opacity-60 hover:opacity-100'}`} style={{ borderColor: activeImg === idx ? palette.accent : 'transparent' }}>
-                <img src={img} className="w-full h-full object-cover" alt={`${item.name} - Vue ${idx + 1}`} />
-              </button>
-            ))}
-          </div>
+          {/* Modern Image Navigation Pager */}
+          {images.length > 1 && (
+            <div className="flex justify-center gap-2 mt-4">
+              {images.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setActiveImg(idx)}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${activeImg === idx ? 'w-8' : 'w-2 hover:w-4'}`}
+                  style={{
+                    backgroundColor: activeImg === idx ? palette.accent : palette.switcherBorder,
+                    opacity: activeImg === idx ? 1 : 0.4
+                  }}
+                  aria-label={`Voir image ${idx + 1}`}
+                />
+              ))}
+            </div>
+          )}
 
           <div className="p-8 rounded-[2.5rem] ring-1 ring-inset shadow-sm relative overflow-hidden group transform-gpu backface-hidden" style={{ backgroundColor: palette.cardBg, '--tw-ring-color': palette.switcherBorder }}>
             <Quote size={32} className="absolute -top-2 -right-2 transition-colors opacity-10" style={{ color: palette.textBody }} />
@@ -296,13 +327,19 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMo
           )}
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="p-5 rounded-2xl bg-stone-50/80 ring-1 ring-inset ring-stone-200/50 shadow-sm text-stone-900 group hover:bg-white transition-colors">
-              <p className="text-[9px] font-black text-stone-400 uppercase flex items-center gap-2 group-hover:text-amber-600 transition-colors"><Box size={12} /> Matières</p>
-              <p className="text-xs font-bold text-stone-700 mt-1">{item.material || "Non spécifié"}</p>
+            <div className="p-6 rounded-[2rem] ring-1 ring-inset shadow-sm group transform-gpu backface-hidden" style={{ backgroundColor: palette.cardBg, '--tw-ring-color': palette.switcherBorder }}>
+              <p className="text-[9px] font-black uppercase tracking-widest flex items-center gap-2 mb-2" style={{ color: palette.textSubtitle }}>
+                <Box size={14} className="opacity-50" /> Matières
+              </p>
+              <p className="text-sm font-bold leading-tight" style={{ color: palette.textBody }}>
+                {item.material || "Non spécifié"}
+              </p>
             </div>
-            <div className="p-5 rounded-2xl bg-stone-50/80 ring-1 ring-inset ring-stone-200/50 shadow-sm text-stone-900 group hover:bg-white transition-colors">
-              <p className="text-[9px] font-black text-stone-400 uppercase flex items-center gap-2 group-hover:text-amber-600 transition-colors"><Ruler size={12} /> Dimensions</p>
-              <p className="text-xs font-bold text-stone-700 mt-1">
+            <div className="p-6 rounded-[2rem] ring-1 ring-inset shadow-sm group transform-gpu backface-hidden" style={{ backgroundColor: palette.cardBg, '--tw-ring-color': palette.switcherBorder }}>
+              <p className="text-[9px] font-black uppercase tracking-widest flex items-center gap-2 mb-2" style={{ color: palette.textSubtitle }}>
+                <Ruler size={14} className="opacity-50" /> Dimensions
+              </p>
+              <p className="text-sm font-bold leading-tight" style={{ color: palette.textBody }}>
                 {item.width && item.depth && item.height
                   ? `${item.width} x ${item.depth} x ${item.height} cm`
                   : (item.dimensions || "Non spécifié")}
