@@ -82,7 +82,7 @@ Le projet a été restructuré pour séparer clairement les responsabilités (Ja
 ## ⚡ 2b. Optimisations & Scalabilité (Janvier 2026)
 
 ### 📊 Admin Commandes (Scalabilité)
-*   **Pagination Intelligente** : Pour éviter de charger des milliers de commandes et faire exploser la facture Firebase (Reads), l'Admin ne charge désormais que les **50 dernières commandes** par défaut (`limit(50)`).
+*   **Pagination Intelligente** : Pour éviter de charger des milliers de commandes et faire exploser la facture Firebase (Reads), l'Admin ne charge désormais que les **10 dernières commandes** par défaut (`limit(10)`).
 *   **Load More** : Un bouton "Charger les commandes plus anciennes" en bas de liste permet de charger les 50 suivantes à la demande.
 *   **Export Excel** : Ajout d'une fonctionnalité d'export complète (`xlsx` / SheetJS) générant un fichier `.xlsx` propre avec toutes les données clients et articles, formaté pour la comptabilité.
 
@@ -92,6 +92,14 @@ Le projet a été restructuré pour séparer clairement les responsabilités (Ja
     *   Clic **Droit** (ou > 50% largeur) : Image suivante.
 *   **Indicateurs "Pills"** : Remplacement des miniatures par une barre de navigation moderne (traits arrondis) sous l'image pour alléger le design tout en gardant le contexte (Position X/Y).
 *   **Theming Dynamique** : Les blocs "Matières" et "Dimensions" utilisent désormais les tokens du thème (`palette.cardBg`, `palette.switcherBorder`) pour une cohérence parfaite avec le Studio.
+
+### 🔎 Admin Listes & Recherche (Architecture Hybride)
+*   **Composant Unifié** : Création de `AdminItemList.jsx` pour gérer uniformément les collections "Mobilier" et "Planches à Découper".
+*   **Stratégie de Chargement Hybride** :
+    *   **Par Défaut (Pagination)** : Charge uniquement les **10 derniers éléments** via l'index `createdAt` pour un affichage instantané.
+    *   **Bouton "Load More"** : Permet de charger les **50 suivants** à la demande.
+    *   **Mode Recherche "Active Load"** : Dès que l'admin tape une recherche, le système charge **tout le catalogue** de la collection en une fois (optimisé pour < 2000 items) et bascule en filtrage client-side.
+*   **Avantage** : Cela permet une **recherche floue ("Fuzzy") et multi-termes** (ex: "Table chene" trouve "Grande Table en Chêne") sans dépendre d'un moteur de recherche tiers payant (Algolia/Typesense), tout en gardant les coûts Firebase au minimum pour la navigation standard.
 
 ---
 
@@ -164,4 +172,4 @@ Pour mettre le site en ligne sur **https://tatmadeinnormandie.web.app** :
 
 ---
 
-*Dernière mise à jour par l'IA : Session du 29/01/2026. Ajout Pagination Admin, Export Excel et UX Produit.*
+*Dernière mise à jour par l'IA : Session du 29/01/2026. Ajout Pagination Admin, Export Excel et UX Produit & Recherche Hybride.*
