@@ -10,11 +10,37 @@ service cloud.firestore {
       );
     }
 
+    // Validation Helpers
+    // ---------------------------------------------------------
+    // Fonction de Validation des Produits (Schema Enforcement)
+    function isValidProduct() {
+      let data = request.resource.data;
+      return 
+        // 1. Informations Textuelles
+        data.name is string && data.name.size() > 0 && data.name.size() < 140 &&
+        data.description is string && data.description.size() < 10000 &&
+        
+        // 2. Données Financières (Nombres obligatoires)
+        (data.currentPrice is number || data.currentPrice is float) &&
+        (data.startingPrice is number || data.startingPrice is float) &&
+        
+        // 3. Structure d'Images
+        (data.images is list) &&
+        (!("thumbnails" in data) || data.thumbnails is list) && // Optionnel pour rétrocompatibilité
+        
+        // 4. Logique Enchère
+        (data.auctionActive is bool);
+    }
+
     // Collections produits (furniture, cutting_boards, etc.)
     match /artifacts/tat-made-in-normandie/public/data/{collectionName}/{itemId} {
       allow read: if true;
-      // SEUL L'ADMIN PEUT CRÉER/SUPPRIMER/MODIFIER des produits
-      allow write: if isArtisan();
+      
+      // ADMIN : Création et Modification avec VALIDATION STRICTE
+      allow create, update: if isArtisan() && isValidProduct();
+      
+      // ADMIN : Suppression sans validation de payload
+      allow delete: if isArtisan();
         
       match /bids/{bidId} {
         allow read: if true;

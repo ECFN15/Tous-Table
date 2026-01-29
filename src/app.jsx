@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import {
-  onSnapshot, collection, doc, updateDoc, deleteDoc, serverTimestamp, addDoc, query, orderBy
+  onSnapshot, collection, doc, updateDoc, deleteDoc, serverTimestamp, addDoc, query, orderBy, getDocs, writeBatch
 } from 'firebase/firestore';
 // Auth imports removed (handled in Context)
 import {
@@ -162,6 +162,41 @@ const AppContent = () => {
     const params = new URLSearchParams(window.location.search);
     const productId = params.get('product');
     const hash = window.location.hash.replace('#', '');
+
+    // --- STRIPE SUCCESS HANDLING ---
+    if (params.get('order_success') === 'true' && user && !user.isAnonymous) {
+
+      const clearCartAfterStripe = async () => {
+        // 1. Déclencher l'UI succès immédiatement
+        setShowOrderSuccess(true);
+        setView('gallery');
+
+        // 2. Nettoyer l'URL pour éviter de re-déclencher au F5
+        window.history.replaceState({}, document.title, '/?page=gallery#gallery');
+
+        // 3. Vider le panier Firestore réellement
+        try {
+          const cartRef = collection(db, 'users', user.uid, 'cart');
+          const snapshot = await getDocs(cartRef);
+
+          const batch = writeBatch(db);
+          snapshot.docs.forEach((doc) => {
+            batch.delete(doc.ref);
+          });
+          await batch.commit();
+
+          // Mettre à jour l'état local aussi pour être sûr
+          setCartItems([]);
+
+        } catch (e) {
+          console.error("Erreur nettoyage panier post-paiement:", e);
+        }
+      };
+
+      clearCartAfterStripe();
+    }
+    // -------------------------------
+
 
     if (params.get('admin') === 'true' || window.location.pathname === '/admin' || hash === 'admin') {
       setIsSecretGateOpen(true);

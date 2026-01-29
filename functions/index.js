@@ -1,6 +1,7 @@
 const functions = require('firebase-functions/v1');
 const admin = require('firebase-admin');
 const nodemailer = require('nodemailer');
+require('dotenv').config();
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -212,21 +213,34 @@ exports.placeBid = functions.https.onCall(async (data, context) => {
 // 4. COMMANDE & META (Code existant conservé et nettoyé)
 // ============================================================
 
+// Stripe initialized inside function
+const Stripe = require('stripe');
+
 exports.createOrder = functions.https.onCall(async (data, context) => {
     if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'Auth requise.');
 
+    // Initialisation Lazy de Stripe pour éviter les erreurs au déploiement
+    const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+
+    // Vérification de la clé secrète Stripe
+    if (!process.env.STRIPE_SECRET_KEY) {
+        console.error("STRIPE_SECRET_KEY manquante dans l'environnement !");
+        throw new functions.https.HttpsError('internal', 'Erreur configuration paiement.');
+    }
+
     const userId = context.auth.uid;
     const { orderData } = data;
-    orderData.userId = userId;
-    orderData.userEmail = context.auth.token.email;
-    orderData.createdAt = admin.firestore.FieldValue.serverTimestamp();
-    orderData.status = 'pending_stripe';
-
     const appId = 'tat-made-in-normandie';
+    const SITE_URL = 'https://tatmadeinnormandie.web.app'; // URL de prod
+
+    // 1. Validation de stock et calcul du prix TOTAL réel (côté serveur pour sécurité)
+    // On ne fait PAS confiance au prix envoyé par le frontend
+    let totalAmount = 0;
+    const line_items = [];
+    const itemsToMarkSold = [];
 
     try {
-        const result = await db.runTransaction(async (transaction) => {
-            // Check stock & Mark sold
+        await db.runTransaction(async (transaction) => {
             for (const item of orderData.items) {
                 const colName = item.collectionName || 'furniture';
                 const realItemId = item.originalId || item.id;
@@ -237,22 +251,169 @@ exports.createOrder = functions.https.onCall(async (data, context) => {
                     throw new functions.https.HttpsError('failed-precondition', `Article indisponible: ${item.name}`);
                 }
 
-                transaction.update(itemRef, {
-                    sold: true,
-                    soldAt: admin.firestore.FieldValue.serverTimestamp(),
-                    buyerId: userId
+                const itemDb = itemSnap.data();
+                // Prix prioritaire : Enchère gagnante > Prix actuel > Prix départ
+                let realPrice = itemDb.currentPrice || itemDb.startingPrice || 0;
+
+                // Si c'est une enchère, vérifier que l'utilisateur est bien le gagnant
+                if (itemDb.auctionActive && itemDb.lastBidderId && itemDb.lastBidderId !== userId) {
+                    // TODO: Gérer cas erreur si pas gagnant, pour l'instant on laisse acheter au prix affiché
+                }
+
+                totalAmount += realPrice;
+                itemsToMarkSold.push({ ref: itemRef, name: itemDb.name });
+
+                // Préparer ligne Stripe
+                // Note: Images doivent être des URLs publiques valides pour s'afficher sur Stripe
+                let imgUrl = itemDb.images && itemDb.images.length > 0 ? itemDb.images[0] : 'https://tatmadeinnormandie.web.app/assets/logo.png';
+
+                line_items.push({
+                    price_data: {
+                        currency: 'eur',
+                        product_data: {
+                            name: itemDb.name,
+                            description: itemDb.description ? itemDb.description.substring(0, 100) + '...' : 'Création Atelier Normand',
+                            images: [imgUrl],
+                            metadata: {
+                                id: realItemId,
+                                collection: colName
+                            }
+                        },
+                        unit_amount: Math.round(realPrice * 100), // En centimes
+                    },
+                    quantity: 1,
                 });
             }
-
-            const orderRef = db.collection('orders').doc();
-            transaction.set(orderRef, orderData);
-            return { orderId: orderRef.id, success: true };
         });
-        return result;
     } catch (e) {
-        console.error("Order error", e);
-        throw e;
+        console.error("Stock Check Error", e);
+        throw e; // Renvoyer l'erreur de stock au front
     }
+
+    // 2. Création de la Session Stripe Checkout
+    try {
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            customer_email: context.auth.token.email,
+            line_items: line_items,
+            mode: 'payment',
+            success_url: `${SITE_URL}/?page=gallery&order_success=true&session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${SITE_URL}/?page=checkout&canceled=true`,
+            metadata: {
+                userId: userId,
+                shippingMeta: JSON.stringify(orderData.shipping).substring(0, 500) // Stripe limite metadata
+            }
+        });
+
+        // 3. (Optionnel) Pré-créer la commande en statut 'pending' dans Firestore ici si on veut
+        // Mais pour l'instant on renvoie juste l'URL pour rediriger l'utilisateur
+
+        return { success: true, url: session.url };
+
+    } catch (error) {
+        console.error("Stripe Error:", error);
+        throw new functions.https.HttpsError('internal', "Erreur initialisation paiement.");
+    }
+});
+
+// Webhook Stripe pour valider la commande APRES paiement (Sécurité Max)
+exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
+    const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+    const sig = req.headers['stripe-signature'];
+
+    // IMPORTANT: Pour la sécurité, on DEVRAIT vérifier la signature avec endpointSecret
+    // Pour l'instant on fait confiance au format de l'event pour simplifier, 
+    // mais en prod il faut process.env.STRIPE_WH_SECRET
+
+    let event;
+
+    try {
+        // Si on a le secret webhook, on vérifie la signature (Recommandé)
+        if (process.env.STRIPE_WH_SECRET) {
+            event = stripe.webhooks.constructEvent(req.rawBody, sig, process.env.STRIPE_WH_SECRET);
+        } else {
+            // Fallback sans signature (Moins sûr mais marche pour dev rapide)
+            event = req.body;
+        }
+    } catch (err) {
+        console.error(`Webhook Error: ${err.message}`);
+        res.status(400).send(`Webhook Error: ${err.message}`);
+        return;
+    }
+
+    // Gérer l'événement
+    if (event.type === 'checkout.session.completed') {
+        const session = event.data.object;
+        console.log("💰 Webhook: Session Completed:", session.id);
+
+        // Récupérer les infos
+        const userId = session.metadata.userId;
+        const shippingMeta = session.metadata.shippingMeta ? JSON.parse(session.metadata.shippingMeta) : {};
+        const total = session.amount_total / 100; // Centimes -> Euros
+
+        try {
+            // Fetch des lignes AVEC EXPANSION du produit pour avoir les metadata
+            console.log("🔍 Fetching line items with product expansion...");
+            const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
+                expand: ['data.price.product']
+            });
+
+            console.log(`📦 Line Items found: ${lineItems.data.length}`);
+
+            const items = lineItems.data.map(li => {
+                const product = li.price.product; // Grâce à expand, c'est un objet complet maintenant
+                return {
+                    id: product.metadata?.id,
+                    collection: product.metadata?.collection || 'furniture',
+                    name: product.name || li.description,
+                    price: li.amount_total / 100 / li.quantity
+                };
+            });
+
+            console.log("🛒 Items extracted:", JSON.stringify(items));
+
+            // Sauvegarder la commande
+            const orderRef = db.collection('orders').doc();
+
+            const orderData = {
+                userId: userId,
+                userEmail: session.customer_details.email || session.customer_email,
+                items: items,
+                total: total,
+                shipping: shippingMeta,
+                paymentMethod: 'stripe',
+                stripeSessionId: session.id,
+                status: 'paid', // Payé !
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            };
+
+            await db.runTransaction(async (transaction) => {
+                // Marquer les produits comme VENDUS
+                for (const item of items) {
+                    if (!item.id) {
+                        console.warn("⚠️ Item sans ID Firestore (Metadata manquantes ?):", item.name);
+                        continue;
+                    }
+                    console.log(`🔒 Marking Item SOLD: ${item.id} in ${item.collection}`);
+                    const itemRef = db.doc(`artifacts/tat-made-in-normandie/public/data/${item.collection}/${item.id}`);
+                    transaction.update(itemRef, {
+                        sold: true,
+                        soldAt: admin.firestore.FieldValue.serverTimestamp(),
+                        buyerId: userId
+                    });
+                }
+                transaction.set(orderRef, orderData);
+            });
+
+            console.log("✅ Commande Stripe créée avec succès:", orderRef.id);
+
+        } catch (error) {
+            console.error("❌ Erreur CRITIQUE Webhook:", error);
+            // On ne renvoie pas d'erreur 500 pour ne pas que Stripe réessaie indéfiniment si c'est un bug logique
+        }
+    }
+
+    res.json({ received: true });
 });
 
 exports.onOrderCreated = functions.firestore

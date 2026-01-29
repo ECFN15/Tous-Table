@@ -84,14 +84,18 @@ const CheckoutView = ({ cartItems, total, user, onBack, onPlaceOrder }) => {
             });
 
             if (result.data.success) {
-                // Succès ! On notifie le parent pour vider le panier localement et afficher la modal
-                // On passe les infos pour que le parent puisse vider le panier
-                await onPlaceOrder({
-                    id: result.data.orderId,
-                    ...formData,
-                    paymentMethod,
-                    total
-                });
+                if (result.data.url) {
+                    // Redirection vers Stripe
+                    window.location.href = result.data.url;
+                } else {
+                    // Succès direct (Paiement différé)
+                    await onPlaceOrder({
+                        id: result.data.orderId,
+                        ...formData,
+                        paymentMethod,
+                        total
+                    });
+                }
             }
 
         } catch (error) {
@@ -99,17 +103,16 @@ const CheckoutView = ({ cartItems, total, user, onBack, onPlaceOrder }) => {
             // Gestion des erreurs spécifiques renvoyées par le backend
             let msg = "Une erreur est survenue lors de la commande.";
             if (error.message.includes('vendu')) {
-                msg = "Désolé, cet article vient d'être vendu à l'instant. Si la vente n'aboutit pas, il sera remis en ligne.";
+                msg = "Désolé, cet article vient d'être vendu à l'instant.";
             } else if (error.message.includes('stock')) {
                 msg = "Stock insuffisant pour cet article.";
             } else if (error.message) {
-                // Affiche le message d'erreur précis du backend (ex: "L'article n'existe plus")
                 msg = error.message;
             }
             alert(msg);
-        } finally {
-            setLoading(false);
+            setLoading(false); // Stop loading only on error, otherwise we wait for redirect
         }
+        // Finally block removed because we want to keep loading state during redirect
     };
 
     const handleChange = (e) => {
@@ -159,19 +162,19 @@ const CheckoutView = ({ cartItems, total, user, onBack, onPlaceOrder }) => {
                             <div className="bg-white p-8 rounded-3xl border border-stone-100 shadow-sm space-y-4">
                                 <h3 className="text-xs font-black uppercase tracking-widest text-stone-400 flex items-center gap-2 mb-4"><ShieldCheck size={14} /> Coordonnées</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <input name="fullName" value={formData.fullName} onChange={handleChange} placeholder="Nom complet" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-sm outline-none focus:ring-2 ring-stone-900" required />
-                                    <input name="phone" value={formData.phone} onChange={handleChange} placeholder="Téléphone" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-sm outline-none focus:ring-2 ring-stone-900" required />
+                                    <input name="fullName" value={formData.fullName} onChange={handleChange} placeholder="Nom complet" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-sm outline-none focus:ring-2 ring-stone-900 text-stone-900 placeholder:text-stone-400" required />
+                                    <input name="phone" value={formData.phone} onChange={handleChange} placeholder="Téléphone" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-sm outline-none focus:ring-2 ring-stone-900 text-stone-900 placeholder:text-stone-400" required />
                                 </div>
-                                <input name="email" value={formData.email} onChange={handleChange} placeholder="Email" type="email" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-sm outline-none focus:ring-2 ring-stone-900" required />
+                                <input name="email" value={formData.email} onChange={handleChange} placeholder="Email" type="email" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-sm outline-none focus:ring-2 ring-stone-900 text-stone-900 placeholder:text-stone-400" required />
                             </div>
 
                             {/* GROUPE 2 : ADRESSE */}
                             <div className="bg-white p-8 rounded-3xl border border-stone-100 shadow-sm space-y-4">
                                 <h3 className="text-xs font-black uppercase tracking-widest text-stone-400 flex items-center gap-2 mb-4"><Truck size={14} /> Adresse de livraison</h3>
-                                <input name="address" value={formData.address} onChange={handleChange} placeholder="Adresse (Rue, complément...)" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-sm outline-none focus:ring-2 ring-stone-900" required />
+                                <input name="address" value={formData.address} onChange={handleChange} placeholder="Adresse (Rue, complément...)" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-sm outline-none focus:ring-2 ring-stone-900 text-stone-900 placeholder:text-stone-400" required />
                                 <div className="grid grid-cols-2 gap-4">
-                                    <input name="zip" value={formData.zip} onChange={handleChange} placeholder="Code Postal" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-sm outline-none focus:ring-2 ring-stone-900" required />
-                                    <input name="city" value={formData.city} onChange={handleChange} placeholder="Ville" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-sm outline-none focus:ring-2 ring-stone-900" required />
+                                    <input name="zip" value={formData.zip} onChange={handleChange} placeholder="Code Postal" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-sm outline-none focus:ring-2 ring-stone-900 text-stone-900 placeholder:text-stone-400" required />
+                                    <input name="city" value={formData.city} onChange={handleChange} placeholder="Ville" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-sm outline-none focus:ring-2 ring-stone-900 text-stone-900 placeholder:text-stone-400" required />
                                 </div>
                             </div>
 

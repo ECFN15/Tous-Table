@@ -148,10 +148,10 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMo
       <div className="grid md:grid-cols-2 gap-12 lg:gap-16" style={{ color: palette.textBody }}>
         {/* Colonne Gauche: Images & Story */}
         <div className="space-y-8">
-          <div className="aspect-square rounded-[2.5rem] overflow-hidden border shadow-2xl relative" style={{ backgroundColor: palette.cardBg, borderColor: palette.switcherBorder }}>
+          <div className="aspect-square rounded-[2.5rem] overflow-hidden ring-1 ring-inset shadow-2xl relative transform-gpu backface-hidden" style={{ backgroundColor: palette.cardBg, '--tw-ring-color': palette.switcherBorder }}>
             <img src={images[activeImg]} className="w-full h-full object-cover" alt={item.name} />
             {item.auctionActive && (
-              <div className="absolute bottom-6 left-6 backdrop-blur px-4 py-2 rounded-2xl shadow-xl border" style={{ backgroundColor: palette.switcherBg, borderColor: palette.switcherBorder, color: palette.textBody }}>
+              <div className="absolute bottom-6 left-6 backdrop-blur px-4 py-2 rounded-2xl shadow-xl ring-1 ring-inset" style={{ backgroundColor: palette.switcherBg, '--tw-ring-color': palette.switcherBorder, color: palette.textBody }}>
                 <AuctionTimer endDate={item.auctionEnd} onFinished={() => setForceWinnerCheck(true)} />
               </div>
             )}
@@ -164,7 +164,7 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMo
             ))}
           </div>
 
-          <div className="p-8 rounded-[2.5rem] border shadow-sm relative overflow-hidden group" style={{ backgroundColor: palette.cardBg, borderColor: palette.switcherBorder }}>
+          <div className="p-8 rounded-[2.5rem] ring-1 ring-inset shadow-sm relative overflow-hidden group transform-gpu backface-hidden" style={{ backgroundColor: palette.cardBg, '--tw-ring-color': palette.switcherBorder }}>
             <Quote size={32} className="absolute -top-2 -right-2 transition-colors opacity-10" style={{ color: palette.textBody }} />
             <div className="relative z-10">
               <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-6 flex items-center gap-2" style={{ color: palette.textSubtitle }}>
@@ -215,7 +215,7 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMo
             </div>
           </div>
 
-          <div className={`p-8 rounded-[3rem] border transition-all duration-700 ${isWinner ? 'scale-[1.02] shadow-xl' : 'shadow-xl'}`} style={{ backgroundColor: palette.cardBg, borderColor: palette.switcherBorder }}>
+          <div className={`p-8 rounded-[3rem] ring-1 ring-inset overflow-hidden transition-all duration-700 transform-gpu backface-hidden ${isWinner ? 'scale-[1.02] shadow-xl' : 'shadow-xl'}`} style={{ backgroundColor: palette.cardBg, '--tw-ring-color': palette.switcherBorder }}>
             <div className="flex justify-between items-end mb-8" style={{ color: palette.textBody }}>
               <div className="space-y-0.5">
                 <p className="text-[9px] font-black uppercase tracking-widest opacity-60">Offre actuelle</p>
@@ -291,11 +291,11 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMo
           )}
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="p-5 rounded-2xl bg-stone-50/80 border border-stone-200/50 shadow-sm text-stone-900 group hover:bg-white transition-colors">
+            <div className="p-5 rounded-2xl bg-stone-50/80 ring-1 ring-inset ring-stone-200/50 shadow-sm text-stone-900 group hover:bg-white transition-colors">
               <p className="text-[9px] font-black text-stone-400 uppercase flex items-center gap-2 group-hover:text-amber-600 transition-colors"><Box size={12} /> Matières</p>
               <p className="text-xs font-bold text-stone-700 mt-1">{item.material || "Non spécifié"}</p>
             </div>
-            <div className="p-5 rounded-2xl bg-stone-50/80 border border-stone-200/50 shadow-sm text-stone-900 group hover:bg-white transition-colors">
+            <div className="p-5 rounded-2xl bg-stone-50/80 ring-1 ring-inset ring-stone-200/50 shadow-sm text-stone-900 group hover:bg-white transition-colors">
               <p className="text-[9px] font-black text-stone-400 uppercase flex items-center gap-2 group-hover:text-amber-600 transition-colors"><Ruler size={12} /> Dimensions</p>
               <p className="text-xs font-bold text-stone-700 mt-1">
                 {item.width && item.depth && item.height
