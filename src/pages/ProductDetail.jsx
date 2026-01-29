@@ -22,19 +22,28 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMo
 
   // HOOK TEMPS RÉEL
   const { likedItemIds, toggleLike } = useRealtimeUserLikes(user);
-  const isLiked = likedItemIds.includes(item.id);
 
-  if (!item) return null;
+  // MISSING STATE CORRECTION
+  const [forceWinnerCheck, setForceWinnerCheck] = useState(false);
 
-  const images = useMemo(() => item.images || [item.imageUrl], [item.images, item.imageUrl]);
-  const isAuctionOver = item.auctionActive && getMillis(item.auctionEnd) < Date.now();
-  const isWinner = isAuctionOver && user && item.lastBidderId === user.uid;
+  // 1. SAFEGUARD "isLiked"
+  const isLiked = item ? likedItemIds.includes(item.id) : false;
 
-  // Determine collection name
-  const collectionName = useMemo(() => item.collectionName || (item.id.includes('board') ? 'cutting_boards' : 'furniture'), [item]);
+  // 2. HOOKS (MUST RUN BEFORE ANY RETURN)
+  const images = useMemo(() => {
+    if (!item) return [];
+    const imgs = item.images || (item.imageUrl ? [item.imageUrl] : []);
+    return Array.isArray(imgs) ? imgs : [item.imageUrl || ""];
+  }, [item]);
+
+  const collectionName = useMemo(() => {
+    if (!item) return 'furniture';
+    return item.collectionName || ((item.id && item.id.includes('board')) ? 'cutting_boards' : 'furniture');
+  }, [item]);
 
   useEffect(() => {
-    if (!item.auctionActive) return;
+    // Only subscribe if item exists AND is auction
+    if (!item?.auctionActive) return;
 
     try {
       const q = query(
@@ -46,7 +55,38 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMo
     } catch (err) {
       console.error("Error subscribing to bids:", err);
     }
-  }, [item.id, collectionName, item.auctionActive]);
+  }, [item?.id, collectionName, item?.auctionActive]);
+
+  // 3. SAFE DERIVED VARIABLES
+  const isAuctionOver = item?.auctionActive && getMillis(item.auctionEnd) < Date.now();
+  const isWinner = isAuctionOver && user && item?.lastBidderId === user.uid;
+
+  // 4. EARLY RETURN (Only AFTER all hooks)
+  // 4. EARLY RETURN (Only AFTER all hooks)
+  if (!item) return (
+    <div className="min-h-[60vh] flex flex-col items-center justify-center gap-6 pt-32 text-center animate-in fade-in duration-500">
+      <div className="p-6 rounded-full bg-stone-100 mb-4 animate-pulse">
+        <Box size={40} className="text-stone-400" />
+      </div>
+      <div className="space-y-2">
+        <h2 className="text-xl md:text-2xl font-black uppercase tracking-widest" style={{ color: palette?.textTitle || '#000' }}>
+          Produit Introuvable
+        </h2>
+        <p className="max-w-md text-sm font-medium opacity-60 mx-auto" style={{ color: palette?.textBody || '#555' }}>
+          Ce meuble semble avoir été déplacé ou vendu. <br />Il se peut que les données soient en cours de chargement.
+        </p>
+      </div>
+      <button
+        onClick={onBack}
+        className="px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all hover:scale-105 hover:shadow-lg bg-stone-900 text-white"
+      >
+        Retour à la Galerie
+      </button>
+      <div className="text-[10px] font-mono opacity-30 mt-8">
+        Debug ID: {user?.uid ? 'User Connected' : 'Guest'}
+      </div>
+    </div>
+  );
 
   // Appel sécurisé via Cloud Function
   const handleQuickBid = async (inc) => {
@@ -305,20 +345,37 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMo
 
           {item.auctionActive && bidsHistory.length > 0 && (
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-stone-400">
+              <div className="flex items-center gap-2" style={{ color: palette.textSubtitle }}>
                 <History size={14} />
                 <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Activité</h3>
               </div>
-              <div className="space-y-2 max-h-48 md:max-h-60 overflow-y-auto pr-2 scrollbar-hide border-l-2 border-stone-100 pl-4">
+
+              {/* Dynamic Scrollbar Styling */}
+              <style>{`
+                .themed-scrollbar::-webkit-scrollbar { width: 4px; }
+                .themed-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                .themed-scrollbar::-webkit-scrollbar-thumb { background-color: ${palette.switcherBorder}; border-radius: 10px; }
+                .themed-scrollbar { scrollbar-width: thin; scrollbar-color: ${palette.switcherBorder} transparent; }
+              `}</style>
+
+              <div className="themed-scrollbar space-y-2 max-h-48 md:max-h-60 overflow-y-auto pr-2 border-l-2 pl-4" style={{ borderColor: palette.switcherBorder }}>
                 {bidsHistory.map((bid, i) => (
-                  <div key={bid.id} className={`flex items-center justify-between p-3 md:p-4 rounded-2xl border transition-all ${i === 0 ? 'bg-white border-amber-200 shadow-md scale-[1.02]' : 'bg-white/40 border-stone-100 opacity-60'}`}>
+                  <div
+                    key={bid.id}
+                    className={`flex items-center justify-between p-3 md:p-4 rounded-2xl border transition-all ${i === 0 ? 'shadow-md scale-[1.02]' : 'opacity-60'}`}
+                    style={{
+                      backgroundColor: i === 0 ? palette.cardBg : palette.switcherBg,
+                      borderColor: i === 0 ? palette.accent : palette.switcherBorder,
+                      color: palette.textBody
+                    }}
+                  >
                     <div className="flex items-center gap-2 md:gap-3">
-                      <div className={`w-1.5 h-1.5 rounded-full ${i === 0 ? 'bg-amber-500 animate-pulse' : 'bg-stone-300'}`} />
-                      <span className="text-[10px] font-bold text-stone-700 truncate max-w-[80px] md:max-w-none">{bid.bidderName}</span>
+                      <div className={`w-1.5 h-1.5 rounded-full ${i === 0 ? 'animate-pulse' : ''}`} style={{ backgroundColor: i === 0 ? palette.accent : palette.textSubtitle }} />
+                      <span className="text-[10px] font-bold truncate max-w-[80px] md:max-w-none" style={{ color: palette.textBody }}>{bid.bidderName}</span>
                     </div>
-                    <div className="flex items-center gap-3 md:gap-4 text-stone-900 flex-shrink-0 font-mono">
-                      <span className="text-[10px] font-black text-emerald-600">+{bid.increment || '??'} €</span>
-                      <span className="text-[8px] font-bold text-stone-300">{formatTime(bid.timestamp)}</span>
+                    <div className="flex items-center gap-3 md:gap-4 flex-shrink-0 font-mono">
+                      <span className="text-[10px] font-black" style={{ color: palette.statusValid }}>+{bid.increment || '??'} €</span>
+                      <span className="text-[8px] font-bold opacity-50" style={{ color: palette.textBody }}>{formatTime(bid.timestamp)}</span>
                     </div>
                   </div>
                 ))}

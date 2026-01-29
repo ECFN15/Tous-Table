@@ -171,6 +171,13 @@ Pour mettre le site en ligne sur **https://tatmadeinnormandie.web.app** :
 3.  **Éviter `translate`** : Préférer `hover:scale` (zoom) à `hover:translate` (déplacement) pour les interactions, car le scaling est mieux géré par le compositeur GPU.
 4.  **Overflow** : Ajouter `overflow-hidden` sur les cartes arrondies pour "clipper" les artefacts de bordure.
 
+### 🐛 Écran Blanc sur Fiche Produit (Enchères)
+**Symptôme** : Crash total de l'application (Ecran blanc) lors du clic sur un meuble en enchère.
+**Causes Identifiées** :
+1.  **React Hook Ordering** : Une condition de sortie `if (!item) return` était placée *avant* les Hooks (`useMemo`, `useEffect`). En React, les Hooks doivent toujours être exécutés dans le même ordre. Si le produit n'était pas chargé, le `return` empêchait les Hooks suivants de s'exécuter, causant une erreur fatale au rendu suivant.
+2.  **Variable d'État Manquante** : Le composant utilisait `setForceWinnerCheck` (pour l'actualisation fin d'enchère) sans l'avoir définie via `useState`.
+**Correctif** : Restructuration complète de `ProductDetail.jsx` pour déclarer tous les Hooks en premier (avec des sécurités internes) et ajout de la variable d'état manquante.
+
 ---
 
 *Dernière mise à jour par l'IA : Session du 29/01/2026. Ajout Pagination Admin, Export Excel, UX Produit, Recherche Hybride & Tuning Preloader.*
