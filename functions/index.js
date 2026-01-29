@@ -11,7 +11,10 @@ const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: process.env.GMAIL_EMAIL,
-        pass: process.env.GMAIL_PASSWORD
+        pass: (process.env.GMAIL_PASSWORD || '').replace(/\s/g, '')
+    },
+    tls: {
+        rejectUnauthorized: false
     }
 });
 
@@ -303,7 +306,61 @@ exports.createOrder = functions.https.onCall(async (data, context) => {
         throw e; // Renvoyer l'erreur de stock au front
     }
 
-    // 2. Création de la Session Stripe Checkout
+    // 2. Gestion du Paiement Différé (MANUAL)
+    if (orderData.paymentMethod === 'manual') {
+        const orderRef = db.collection('orders').doc();
+        const finalOrder = {
+            ...orderData,
+            total: totalAmount,
+            status: 'pending_payment', // En attente de virement/chèque
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            stripeSessionId: null
+        };
+
+        try {
+            await db.runTransaction(async (transaction) => {
+                // Marquer les produits comme VENDUS ou DECREMENTER le stock
+                const stockTrackerManual = {};
+
+                for (const item of orderData.items) {
+                    const colName = item.collectionName || 'furniture';
+                    const realItemId = item.originalId || item.id;
+                    const itemRef = db.doc(`artifacts/${appId}/public/data/${colName}/${realItemId}`);
+
+                    const itemDoc = await transaction.get(itemRef);
+                    if (!itemDoc.exists) throw "Item not found";
+
+                    const currentStock = itemDoc.data().stock !== undefined ? Number(itemDoc.data().stock) : 1;
+
+                    const alreadyTaken = stockTrackerManual[realItemId] || 0;
+                    const newStock = Math.max(0, currentStock - 1 - alreadyTaken);
+
+                    const updates = {
+                        stock: newStock,
+                        buyerId: userId
+                    };
+
+                    if (newStock === 0) {
+                        updates.sold = true;
+                        updates.soldAt = admin.firestore.FieldValue.serverTimestamp();
+                    }
+
+                    transaction.update(itemRef, updates);
+                    stockTrackerManual[realItemId] = alreadyTaken + 1;
+                }
+                transaction.set(orderRef, finalOrder);
+            });
+
+            // Email confirmation (via Trigger onOrderCreated)
+            return { success: true, orderId: orderRef.id };
+
+        } catch (e) {
+            console.error("Manual Order Error", e);
+            throw new functions.https.HttpsError('internal', "Erreur enregistrement commande.");
+        }
+    }
+
+    // 3. Création de la Session Stripe Checkout (Si pas manuel)
     try {
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
@@ -317,51 +374,6 @@ exports.createOrder = functions.https.onCall(async (data, context) => {
                 shippingMeta: JSON.stringify(orderData.shipping).substring(0, 500) // Stripe limite metadata
             }
         });
-
-        // 4. Gestion du Paiement Différé (MANUAL)
-        if (orderData.paymentMethod === 'manual') {
-            const orderRef = db.collection('orders').doc();
-            const finalOrder = {
-                ...orderData,
-                total: totalAmount,
-                status: 'pending_payment', // En attente de virement/chèque
-                createdAt: admin.firestore.FieldValue.serverTimestamp(),
-                stripeSessionId: null
-            };
-
-            try {
-                await db.runTransaction(async (transaction) => {
-                    // Marquer les produits comme VENDUS ou DECREMENTER le stock
-                    for (const item of itemsToMarkSold) {
-                        const itemDoc = await transaction.get(item.ref);
-                        if (!itemDoc.exists) throw "Item not found";
-
-                        const currentStock = itemDoc.data().stock !== undefined ? Number(itemDoc.data().stock) : 1;
-                        const newStock = Math.max(0, currentStock - 1); // On décrémente de 1
-
-                        const updates = {
-                            stock: newStock,
-                            buyerId: userId
-                        };
-
-                        if (newStock === 0) {
-                            updates.sold = true;
-                            updates.soldAt = admin.firestore.FieldValue.serverTimestamp();
-                        }
-
-                        transaction.update(item.ref, updates);
-                    }
-                    transaction.set(orderRef, finalOrder);
-                });
-
-                // Email confirmation (via Trigger onOrderCreated)
-                return { success: true, orderId: orderRef.id };
-
-            } catch (e) {
-                console.error("Manual Order Error", e);
-                throw new functions.https.HttpsError('internal', "Erreur enregistrement commande.");
-            }
-        }
 
         return { success: true, url: session.url };
 
@@ -496,7 +508,15 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
 exports.onOrderCreated = functions.firestore
     .document('orders/{orderId}')
     .onCreate(async (snap, context) => {
+        console.log("⚡ onOrderCreated TRIGGERED! ID:", context.params.orderId);
+
         const order = snap.data();
+        console.log("📧 Config Check:", {
+            hasEmail: !!process.env.GMAIL_EMAIL,
+            userEmail: order.userEmail,
+            total: order.total
+        });
+
         if (!process.env.GMAIL_EMAIL) {
             console.error("❌ Email non configuré (GMAIL_EMAIL manquant).");
             return;
@@ -607,4 +627,61 @@ exports.grantAdminRole = functions.https.onCall(async (data, context) => {
     if (context.auth.token.email !== 'matthis.fradin2@gmail.com') return { error: 'Unauthorized' };
     await admin.auth().setCustomUserClaims(context.auth.uid, { admin: true });
     return { success: true };
+});
+
+// ============================================================
+// 6. OUTIL DE DIAGNOSTIC (EMAIL)
+// ============================================================
+exports.sendTestEmail = functions.https.onCall(async (data, context) => {
+    // 1. Sécurité : Admin seulement
+    if (!context.auth || !context.auth.token.admin) {
+        if (!context.auth || context.auth.token.email !== 'matthis.fradin2@gmail.com') {
+            throw new functions.https.HttpsError('permission-denied', 'Réservé à l\'administrateur.');
+        }
+    }
+
+    const debugInfo = {
+        hasEmailEnv: !!process.env.GMAIL_EMAIL,
+        hasPassEnv: !!process.env.GMAIL_PASSWORD,
+        emailConfigured: process.env.GMAIL_EMAIL,
+        nodeCwd: process.cwd()
+    };
+
+    console.log("🔍 Diagnostic Email:", debugInfo);
+
+    if (!process.env.GMAIL_EMAIL || !process.env.GMAIL_PASSWORD) {
+        return {
+            success: false,
+            error: "Variables d'environnement GMAIL manquantes.",
+            debug: debugInfo
+        };
+    }
+
+    const mailOptions = {
+        from: `Tous à Table Test <${process.env.GMAIL_EMAIL}>`,
+        to: process.env.GMAIL_EMAIL, // S'envoyer à soi-même
+        subject: '🧪 Test Technique - Tous à Table',
+        html: `
+            <h1>Ceci est un email de test</h1>
+            <p>Si vous recevez ceci, la configuration SMTP fonctionne (Nodemailer + Gmail).</p>
+            <p><b>Heure :</b> ${new Date().toISOString()}</p>
+            <p><b>Compte utilisé :</b> ${process.env.GMAIL_EMAIL}</p>
+        `
+    };
+
+    try {
+        const info = await transporter.sendMail(mailOptions);
+        console.log("✅ Email de test envoyé:", info.response);
+        return { success: true, messageId: info.messageId, response: info.response, debug: debugInfo };
+    } catch (error) {
+        console.error("❌ Erreur Test Email:", error);
+        return {
+            success: false,
+            error: error.message,
+            stack: error.stack,
+            code: error.code,
+            command: error.command,
+            debug: debugInfo
+        };
+    }
 });

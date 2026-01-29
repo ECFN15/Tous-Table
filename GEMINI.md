@@ -127,6 +127,16 @@ Pour mettre le site en ligne sur **https://tatmadeinnormandie.web.app** :
 
 ## 🛠️ 6. Solutions Techniques & Troubleshooting (Important)
 
+### 📧 Problème : Emails non envoyés (Confirmation commande / Admin)
+**Symptôme** : Les commandes passent mais aucun mail n'est reçu (ni client, ni admin). L'outil "Diagnostics Système" du Dashboard Admin affiche une erreur `535 5.7.8 Username and Password not accepted`.
+**Cause** : Le "Mot de passe d'application" Google du compte émetteur (`functions/.env`) a expiré ou a été révoqué par sécurité.
+**Solution** :
+1.  Aller sur [Google App Passwords](https://myaccount.google.com/apppasswords) avec le compte `matthis.fradin2@gmail.com`.
+2.  Supprimer l'ancien mot de passe et en générer un nouveau (Nom: "Firebase").
+3.  Mettre à jour `functions/.env` : `GMAIL_PASSWORD="votre-nouveau-code-16-caracteres"`.
+4.  Redéployer : `firebase deploy --only functions`.
+5.  Valider via le bouton "Diagnostics" du Dashboard Admin.
+
 ### 🖥️ Artefacts de rendu (Lignes clignotantes / Flickering)
 **Problème rencontré** : Sur le Dashboard et le Studio, des lignes blanches fines ou des scintillements apparaissaient lors du survol des cartes en Dark Mode.
 **Cause** : Conflit de rendu "Sub-pixel" entre les bordures classiques (`border`) et les translations CSS (`translate-y`) sur des éléments non accélérés par le GPU.

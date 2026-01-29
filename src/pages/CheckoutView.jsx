@@ -202,12 +202,12 @@ const CheckoutView = ({ cartItems, total, user, onBack, onPlaceOrder }) => {
 
                                     <button
                                         type="button"
-                                        onClick={() => setPaymentMethod('deferred')}
-                                        className={`p-4 rounded-xl border flex items-center justify-between transition-all ${paymentMethod === 'deferred' ? 'border-amber-500 bg-amber-50 ring-1 ring-amber-500' : 'border-stone-200 bg-stone-50 hover:bg-stone-100'}`}
+                                        onClick={() => setPaymentMethod('manual')}
+                                        className={`p-4 rounded-xl border flex items-center justify-between transition-all ${paymentMethod === 'manual' ? 'border-amber-500 bg-amber-50 ring-1 ring-amber-500' : 'border-stone-200 bg-stone-50 hover:bg-stone-100'}`}
                                     >
                                         <div className="flex items-center gap-3">
-                                            <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === 'deferred' ? 'border-amber-500' : 'border-stone-300'}`}>
-                                                {paymentMethod === 'deferred' && <div className="w-2 h-2 rounded-full bg-amber-500"></div>}
+                                            <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === 'manual' ? 'border-amber-500' : 'border-stone-300'}`}>
+                                                {paymentMethod === 'manual' && <div className="w-2 h-2 rounded-full bg-amber-500"></div>}
                                             </div>
                                             <div className="text-left">
                                                 <span className="font-bold text-stone-900 text-sm block">Paiement différé / manuel</span>
@@ -259,7 +259,7 @@ const CheckoutView = ({ cartItems, total, user, onBack, onPlaceOrder }) => {
                         </button>
                         <p className="text-center text-[10px] text-stone-400 font-medium">
                             En confirmant, vous acceptez nos CGV. <br />
-                            {paymentMethod === 'deferred' ? "Un email vous sera envoyé pour le paiement." : "Vous allez être redirigé vers Stripe."}
+                            {paymentMethod === 'manual' ? "Un email vous sera envoyé pour le paiement." : "Vous allez être redirigé vers Stripe."}
                         </p>
                     </div>
                 </div>

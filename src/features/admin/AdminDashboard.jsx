@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     TrendingUp, Users, Heart, MessageCircle, Share2,
-    DollarSign, ShoppingBag, ArrowUpRight, AlertTriangle, RefreshCw
+    DollarSign, ShoppingBag, ArrowUpRight, AlertTriangle, RefreshCw, Mail
 } from 'lucide-react';
 import { collection, getDocs, writeBatch, doc, onSnapshot, query, orderBy, limit, setDoc, serverTimestamp } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
@@ -366,6 +366,37 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                                 ))
                             )}
                         </div>
+                    </div>
+
+                    {/* SYSTEM DIAGNOSTICS */}
+                    <div className={`p-6 rounded-[2rem] shadow-sm transform-gpu backface-hidden will-change-transform overflow-hidden ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : 'bg-white ring-1 ring-inset ring-stone-100'} mb-6`}>
+                        <h3 className={`text-sm font-black uppercase tracking-widest mb-4 ${darkMode ? 'text-white' : 'text-stone-900'}`}>Diagnostics Système</h3>
+                        <p className="text-xs text-stone-400 mb-4">Vérifiez l'état des services externes (Email, Paiement, etc.).</p>
+
+                        <button
+                            onClick={async () => {
+                                const confirm = window.confirm("Envoyer un email de test à l'admin ?");
+                                if (!confirm) return;
+
+                                try {
+                                    alert("Envoi en cours...");
+                                    const sendTestFn = httpsCallable(functions, 'sendTestEmail');
+                                    const res = await sendTestFn();
+                                    console.log("TEST EMAIL RESULT:", res.data);
+                                    if (res.data.success) {
+                                        alert("✅ Succès !\nEmail envoyé.\nRéponse SMTP: " + res.data.response);
+                                    } else {
+                                        alert("❌ Échec.\nErreur: " + res.data.error + "\nVoir console pour détails.");
+                                    }
+                                } catch (e) {
+                                    console.error(e);
+                                    alert("Erreur critique: " + e.message);
+                                }
+                            }}
+                            className={`w-full py-3 border rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all shadow-sm flex items-center justify-center gap-2 ${darkMode ? 'bg-stone-700 text-stone-300 border-stone-600 hover:bg-stone-600 hover:text-white' : 'bg-stone-50 text-stone-600 border-stone-200 hover:bg-stone-100 hover:text-stone-900'}`}
+                        >
+                            <Mail size={14} /> Tester Email (Admin)
+                        </button>
                     </div>
 
                     {/* DANGER ZONE */}
