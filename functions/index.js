@@ -241,17 +241,30 @@ exports.createOrder = functions.https.onCall(async (data, context) => {
 
     try {
         await db.runTransaction(async (transaction) => {
+            const stockTracker = {}; // [NEW] Track usage within this transaction
+
             for (const item of orderData.items) {
                 const colName = item.collectionName || 'furniture';
                 const realItemId = item.originalId || item.id;
                 const itemRef = db.doc(`artifacts/${appId}/public/data/${colName}/${realItemId}`);
-                const itemSnap = await transaction.get(itemRef);
 
-                if (!itemSnap.exists || itemSnap.data().sold) {
-                    throw new functions.https.HttpsError('failed-precondition', `Article indisponible: ${item.name}`);
+                // Note: Firestore Transaction cache reads, so 2nd get() is cheap/consistent
+                const itemSnap = await transaction.get(itemRef);
+                const itemDb = itemSnap.data();
+
+                // Gestion du Stock (Compatibilité ancien format où stock n'existe pas => 1)
+                const currentDbStock = itemDb.stock !== undefined ? Number(itemDb.stock) : 1;
+
+                // [NEW] Logic to handle multiple copies of same item in cart
+                const alreadyTaken = stockTracker[realItemId] || 0;
+                const availableStock = currentDbStock - alreadyTaken;
+
+                if (!itemSnap.exists || itemDb.sold || availableStock <= 0) {
+                    throw new functions.https.HttpsError('failed-precondition', `Article indisponible (Stock épuisé): ${itemDb.name}`);
                 }
 
-                const itemDb = itemSnap.data();
+                stockTracker[realItemId] = alreadyTaken + 1; // Mark 1 taken
+
                 // Prix prioritaire : Enchère gagnante > Prix actuel > Prix départ
                 let realPrice = itemDb.currentPrice || itemDb.startingPrice || 0;
 
@@ -305,14 +318,56 @@ exports.createOrder = functions.https.onCall(async (data, context) => {
             }
         });
 
-        // 3. (Optionnel) Pré-créer la commande en statut 'pending' dans Firestore ici si on veut
-        // Mais pour l'instant on renvoie juste l'URL pour rediriger l'utilisateur
+        // 4. Gestion du Paiement Différé (MANUAL)
+        if (orderData.paymentMethod === 'manual') {
+            const orderRef = db.collection('orders').doc();
+            const finalOrder = {
+                ...orderData,
+                total: totalAmount,
+                status: 'pending_payment', // En attente de virement/chèque
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                stripeSessionId: null
+            };
+
+            try {
+                await db.runTransaction(async (transaction) => {
+                    // Marquer les produits comme VENDUS ou DECREMENTER le stock
+                    for (const item of itemsToMarkSold) {
+                        const itemDoc = await transaction.get(item.ref);
+                        if (!itemDoc.exists) throw "Item not found";
+
+                        const currentStock = itemDoc.data().stock !== undefined ? Number(itemDoc.data().stock) : 1;
+                        const newStock = Math.max(0, currentStock - 1); // On décrémente de 1
+
+                        const updates = {
+                            stock: newStock,
+                            buyerId: userId
+                        };
+
+                        if (newStock === 0) {
+                            updates.sold = true;
+                            updates.soldAt = admin.firestore.FieldValue.serverTimestamp();
+                        }
+
+                        transaction.update(item.ref, updates);
+                    }
+                    transaction.set(orderRef, finalOrder);
+                });
+
+                // Email confirmation (via Trigger onOrderCreated)
+                return { success: true, orderId: orderRef.id };
+
+            } catch (e) {
+                console.error("Manual Order Error", e);
+                throw new functions.https.HttpsError('internal', "Erreur enregistrement commande.");
+            }
+        }
 
         return { success: true, url: session.url };
 
     } catch (error) {
-        console.error("Stripe Error:", error);
-        throw new functions.https.HttpsError('internal', "Erreur initialisation paiement.");
+        console.error("Order Error:", error);
+        throw new functions.https.HttpsError('internal', "Erreur initialisation commande.");
     }
 });
 
@@ -366,7 +421,8 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
                     id: product.metadata?.id,
                     collection: product.metadata?.collection || 'furniture',
                     name: product.name || li.description,
-                    price: li.amount_total / 100 / li.quantity
+                    price: li.amount_total / 100 / li.quantity,
+                    quantity: li.quantity || 1 // [NEW] Gestion quantité
                 };
             });
 
@@ -388,19 +444,40 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
             };
 
             await db.runTransaction(async (transaction) => {
-                // Marquer les produits comme VENDUS
+                // Marquer les produits comme VENDUS ou DECREMENTER stock
                 for (const item of items) {
                     if (!item.id) {
                         console.warn("⚠️ Item sans ID Firestore (Metadata manquantes ?):", item.name);
                         continue;
                     }
-                    console.log(`🔒 Marking Item SOLD: ${item.id} in ${item.collection}`);
+
                     const itemRef = db.doc(`artifacts/tat-made-in-normandie/public/data/${item.collection}/${item.id}`);
-                    transaction.update(itemRef, {
-                        sold: true,
-                        soldAt: admin.firestore.FieldValue.serverTimestamp(),
+                    const itemDoc = await transaction.get(itemRef);
+
+                    if (!itemDoc.exists) {
+                        console.warn("❌ Item introuvable en base:", item.id);
+                        continue;
+                    }
+
+                    const currentStock = itemDoc.data().stock !== undefined ? Number(itemDoc.data().stock) : 1;
+                    const qtyPurchased = item.quantity || 1;
+                    const newStock = Math.max(0, currentStock - qtyPurchased);
+
+                    console.log(`📉 Stock Update for ${item.id}: ${currentStock} -> ${newStock}`);
+
+                    const updates = {
+                        stock: newStock,
                         buyerId: userId
-                    });
+                    };
+
+                    // Si stock atteint 0, on marque VENDU
+                    if (newStock === 0) {
+                        updates.sold = true;
+                        updates.soldAt = admin.firestore.FieldValue.serverTimestamp();
+                        console.log(`🔒 Item SOLD OUT: ${item.id}`);
+                    }
+
+                    transaction.update(itemRef, updates);
                 }
                 transaction.set(orderRef, orderData);
             });
@@ -420,20 +497,77 @@ exports.onOrderCreated = functions.firestore
     .document('orders/{orderId}')
     .onCreate(async (snap, context) => {
         const order = snap.data();
-        if (!process.env.GMAIL_EMAIL) return;
+        if (!process.env.GMAIL_EMAIL) {
+            console.error("❌ Email non configuré (GMAIL_EMAIL manquant).");
+            return;
+        }
 
-        const mailOptions = {
-            from: `Tous à Table <${process.env.GMAIL_EMAIL}>`,
-            to: process.env.GMAIL_EMAIL,
-            subject: `Nouvelle commande ! (${order.total}€)`,
-            html: `<p>Client: ${order.shipping.fullName}</p><p>Total: ${order.total}€</p>`
+        const adminEmail = process.env.GMAIL_EMAIL;
+        const clientEmail = order.userEmail;
+
+        // --- 1. EMAIL ADMIN ---
+        const itemsHtml = (order.items || []).map(i =>
+            `<li>${i.quantity || 1}x <b>${i.name}</b> - ${i.price}€</li>`
+        ).join('');
+
+        const shippingInfo = order.shipping ?
+            `${order.shipping.address}, ${order.shipping.city} (${order.shipping.postalCode})` : "Non spécifié";
+
+        const adminMailOptions = {
+            from: `Tous à Table Robot <${adminEmail}>`,
+            to: adminEmail,
+            subject: `💰 Nouvelle Commande : ${order.total}€ (${order.shipping?.fullName})`,
+            html: `
+                <h2>Nouvelle commande reçue !</h2>
+                <p><b>Client :</b> ${order.shipping?.fullName} (${clientEmail})</p>
+                <p><b>Total :</b> ${order.total}€</p>
+                <p><b>Paiement :</b> ${order.paymentMethod === 'stripe' ? 'Carte Bancaire (Validé)' : 'Différé (À encaisser)'}</p>
+                <hr/>
+                <h3>Articles :</h3>
+                <ul>${itemsHtml}</ul>
+                <hr/>
+                <h3>Livraison :</h3>
+                <p>${shippingInfo}</p>
+                <p><a href="https://tatmadeinnormandie.web.app/admin">Aller au Dashboard</a></p>
+            `
         };
 
+        // --- 2. EMAIL CLIENT ---
+        const clientMailOptions = clientEmail ? {
+            from: `Tous à Table <${adminEmail}>`,
+            to: clientEmail,
+            subject: `Confirmation de votre commande`,
+            html: `
+                <div style="font-family: sans-serif; color: #333;">
+                    <h1 style="color: #d97706;">Merci pour votre commande !</h1>
+                    <p>Bonjour ${order.shipping?.fullName || ''},</p>
+                    <p>Nous avons bien reçu votre commande <b>#${snap.id.slice(0, 8)}</b>.</p>
+                    <p>Nous allons préparer votre colis avec le plus grand soin.</p>
+                    
+                    <div style="background: #f5f5f4; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                        <h3 style="margin-top:0;">Récapitulatif</h3>
+                        <ul>${itemsHtml}</ul>
+                        <p><strong>Total : ${order.total}€</strong></p>
+                    </div>
+
+                    <p>Adresse de livraison :<br/>${shippingInfo}</p>
+                    <p>À très vite,<br/><i>L'équipe Tous à Table</i></p>
+                </div>
+            `
+        } : null;
+
         try {
-            await transporter.sendMail(mailOptions);
-            // Email client... (simplifié pour concision, à remettre si besoin complet)
+            await transporter.sendMail(adminMailOptions);
+            console.log("✅ Email Admin envoyé.");
+
+            if (clientMailOptions) {
+                await transporter.sendMail(clientMailOptions);
+                console.log("✅ Email Client envoyé à", clientEmail);
+            } else {
+                console.warn("⚠️ Pas d'email client trouvé pour envoyer la confirmation.");
+            }
         } catch (e) {
-            console.error(e);
+            console.error("❌ Erreur Envoi Email:", e);
         }
     });
 

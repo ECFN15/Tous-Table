@@ -148,12 +148,12 @@ const AppContent = () => {
   useEffect(() => {
     // 1. Meubles (Données)
     const unsubData = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'furniture'), (snap) => {
-      setItems(snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => getMillis(b.createdAt) - getMillis(a.createdAt)));
+      setItems(snap.docs.map(d => ({ id: d.id, collectionName: 'furniture', ...d.data() })).sort((a, b) => getMillis(b.createdAt) - getMillis(a.createdAt)));
     });
 
     // 2. Planches (Données)
     const unsubBoards = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'cutting_boards'), (snap) => {
-      setBoardItems(snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => getMillis(b.createdAt) - getMillis(a.createdAt)));
+      setBoardItems(snap.docs.map(d => ({ id: d.id, collectionName: 'cutting_boards', ...d.data() })).sort((a, b) => getMillis(b.createdAt) - getMillis(a.createdAt)));
     });
 
     // 3. Auth Listener (Removed - Handled by AuthProvider)
@@ -291,14 +291,25 @@ const AppContent = () => {
       return;
     }
 
+    // [NEW] Check Stock Limit
+    const currentStock = item.stock !== undefined ? Number(item.stock) : 1;
+    const inCartCount = cartItems.filter(c => c.originalId === item.id).length;
+
+    if (inCartCount >= currentStock) {
+      alert(`Stock insuffisant. Il ne reste que ${currentStock} exemplaire(s) disponible(s).`);
+      return;
+    }
+
     const cartItemData = {
       originalId: item.id,
+      collectionName: item.collectionName || 'furniture', // [NEW] Save collection
       name: item.name,
       price: item.currentPrice || item.startingPrice,
       image: item.images?.[0] || item.imageUrl,
       material: item.material || 'Bois',
       addedAt: serverTimestamp()
     };
+
 
     try {
       await addDoc(collection(db, 'users', user.uid, 'cart'), cartItemData);

@@ -221,12 +221,17 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMo
                 <p className="text-[9px] font-black uppercase tracking-widest opacity-60">Offre actuelle</p>
                 <p className="text-5xl font-black tracking-tighter transition-all" style={{ color: palette.textTitle }}>{item.currentPrice || item.startingPrice} €</p>
               </div>
-              {item.auctionActive && (
+              {item.auctionActive ? (
                 <div className="text-right space-y-1">
                   <p className="text-[9px] font-black opacity-60 uppercase tracking-widest">Mises</p>
                   <p className="text-2xl font-black">{item.bidCount || 0}</p>
                 </div>
-              )}
+              ) : (item.stock > 1 && (
+                <div className="text-right space-y-1">
+                  <p className="text-[9px] font-black opacity-60 uppercase tracking-widest">En Stock</p>
+                  <p className="text-2xl font-black text-emerald-600">{item.stock}</p>
+                </div>
+              ))}
             </div>
 
             {isWinner ? (

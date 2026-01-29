@@ -24,6 +24,7 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
     width: '',
     depth: '',
     height: '',
+    stock: '', // [NEW] Stock management (empty by default)
     auctionActive: false,
     durationMinutes: 0
   });
@@ -65,6 +66,7 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
         name: editData.name || '',
         description: editData.description || '',
         startingPrice: editData.startingPrice || 0,
+        stock: editData.stock !== undefined ? editData.stock : '', // [NEW] Load stock
         material: material,
         dimensions: editData.dimensions || '',
         width: editData.width || '',
@@ -92,6 +94,7 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
       name: '',
       description: '',
       startingPrice: 0,
+      stock: '', // [NEW] Reset stock
       material: '',
       dimensions: '',
       width: '',
@@ -227,10 +230,15 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
         thumbnailUrl: finalThumbnailUrls[0] || "", // [NEW] Main thumbnail
         currentPrice: Number(formData.startingPrice),
         startingPrice: Number(formData.startingPrice),
+        stock: parseInt(formData.stock) || 1, // [NEW] Save Stock
+        sold: (parseInt(formData.stock) || 1) <= 0, // [NEW] Auto-update sold status based on stock
+        soldAt: (parseInt(formData.stock) || 1) <= 0 ? (editData?.soldAt || Timestamp.now()) : null, // [NEW] Set/Clear sold date
         durationMinutes: Number(formData.durationMinutes),
         auctionEnd: formData.auctionActive ? Timestamp.fromMillis(Date.now() + (Number(formData.durationMinutes) * 60000)) : null,
       };
       if (editData) {
+        // Handle logic update for auctionEnd ? If auction active is toggled?
+        // If auctionActive is false, auctionEnd is null.
         await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', collectionName, editData.id), data);
         onCancelEdit();
       } else {
@@ -314,9 +322,22 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
               <label className="text-[9px] font-black uppercase text-stone-400 ml-2">Nom de l'ouvrage</label>
               <input placeholder="Table de monastère..." className={`w-full p-4 rounded-xl border-none font-bold outline-none focus:ring-4 transition-all shadow-inner ${darkMode ? 'bg-stone-900 text-white ring-stone-700 placeholder:text-stone-600' : 'bg-stone-50 text-stone-900 ring-stone-100'}`} value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
             </div>
-            <div className="space-y-1.5">
-              <label className="text-[9px] font-black uppercase text-stone-400 ml-2">Prix de départ (€)</label>
-              <input type="number" placeholder="0" className={`w-full p-4 rounded-xl border-none font-bold outline-none focus:ring-4 transition-all shadow-inner ${darkMode ? 'bg-stone-900 text-white ring-stone-700 placeholder:text-stone-600' : 'bg-stone-50 text-stone-900 ring-stone-100'}`} value={formData.startingPrice === 0 ? "" : formData.startingPrice} onChange={e => setFormData({ ...formData, startingPrice: e.target.value === "" ? 0 : Number(e.target.value) })} />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black uppercase text-stone-400 ml-2">Prix de départ (€)</label>
+                <input type="number" placeholder="0" className={`w-full p-4 rounded-xl border-none font-bold outline-none focus:ring-4 transition-all shadow-inner ${darkMode ? 'bg-stone-900 text-white ring-stone-700 placeholder:text-stone-600' : 'bg-stone-50 text-stone-900 ring-stone-100'}`} value={formData.startingPrice === 0 ? "" : formData.startingPrice} onChange={e => setFormData({ ...formData, startingPrice: e.target.value === "" ? 0 : Number(e.target.value) })} />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black uppercase text-stone-400 ml-2">Stock Initial</label>
+                <input
+                  type="number"
+                  disabled={formData.auctionActive}
+                  placeholder="1"
+                  className={`w-full p-4 rounded-xl border-none font-bold outline-none focus:ring-4 transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed ${darkMode ? 'bg-stone-900 text-white ring-stone-700 placeholder:text-stone-600' : 'bg-stone-50 text-stone-900 ring-stone-100'}`}
+                  value={formData.stock}
+                  onChange={e => setFormData({ ...formData, stock: e.target.value })}
+                />
+              </div>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
