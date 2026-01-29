@@ -288,6 +288,23 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
     return typeof window !== 'undefined' ? !window.hasShownPreloader : true;
   });
 
+  // --- GSAP ORCHESTRATION (SIMPLIFIED & ROBUST) ---
+  const tlHeroRef = useRef(null);
+
+  // Force hidden state BEFORE any painting happens to avoid "flash"
+  useLayoutEffect(() => {
+    if (!scriptsLoaded) return;
+
+    const ctx = gsap.context(() => {
+      // 1. SETUP: Force hidden state immediately and aggressively
+      // We set y to 150% to ensure it's hidden below the clipping mask
+      gsap.set('.hero-section .reveal-inner', { y: "150%", rotate: 2, opacity: 0 }); // Added opacity 0 for double safety
+      gsap.set('.hero-footer-element', { opacity: 0, y: 20 });
+    }, componentRef);
+
+    return () => ctx.revert();
+  }, [scriptsLoaded]);
+
   // --- PRELOADER & HERO ENTRANCE ---
   useEffect(() => {
     if (!scriptsLoaded) return;
@@ -308,12 +325,14 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       gsap.set('.three-container', { opacity: 1, y: 0 });
       window._pauseThree = false;
 
+      // START HERO ANIMATION (Fast version)
       const tl = gsap.timeline();
-      tl.set('.hero-section .reveal-inner', { y: "115%", rotate: 2 });
+      // Ensure visibility is restored before animating
+      tl.set('.hero-section .reveal-inner', { opacity: 1 });
       tl.to('.hero-section .reveal-inner', {
         y: "0%",
         rotate: 0,
-        duration: 1.5,
+        duration: 1.2, // Faster
         ease: "expo.out",
         stagger: 0.1,
         force3D: true
@@ -321,10 +340,10 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         .to('.hero-footer-element', {
           opacity: 1,
           y: 0,
-          duration: 1,
+          duration: 0.8,
           stagger: 0.1,
           ease: "power3.out"
-        }, "-=1.0");
+        }, "-=0.8");
 
       return;
     }
@@ -344,76 +363,83 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       });
 
       // 0. Initial Setup
-      gsap.set('.preloader-content', { opacity: 0 });
+      gsap.set('.preloader-content', { opacity: 0 }); // Redundant with class but safe
       gsap.set('.preloader-char', { y: 40, opacity: 0, filter: "blur(10px)" });
       gsap.set('.preloader-icon', { scale: 0.8, opacity: 0, filter: "blur(5px)" });
-      gsap.set('.hero-section .reveal-inner', { y: "115%", rotate: 2 }); // Légère rotation pour plus de dynamisme
+      // Ensure hero is hidden but ready (opacity 1 will be set in timeline if needed, or we rely on y)
+      // Actually we set opacity 0 in useLayoutEffect, so we need to set it back to 1 just before reveal
 
-      // 1. Intro Sequence - Plus "Atmosphérique"
-      tl.to('.preloader-content', { opacity: 1, duration: 0.5 })
+      // 1. Intro Sequence - Plus Rapide (Snappy)
+      tl.to('.preloader-content', { opacity: 1, duration: 0.1 }) // Instant container visibility so children can act
         .to('.preloader-icon', {
           scale: 1,
           opacity: 1,
           filter: "blur(0px)",
-          duration: 1.5,
+          duration: 1.0, // Reduced from 1.5
           ease: "expo.out"
-        }, "-=0.2")
+        })
         .to('.preloader-char', {
           y: 0,
           opacity: 1,
           filter: "blur(0px)",
-          duration: 1.2,
-          stagger: 0.05,
+          duration: 1.0, // Reduced from 1.2
+          stagger: 0.06, // Tighter stagger
           ease: "expo.out"
-        }, "-=1.0")
+        }, "-=0.5")
+        .to('.preloader-footer-element', {
+          opacity: 1,
+          duration: 0.8,
+          ease: "power2.out"
+        }, "-=0.8") // Start slightly before chars finish
 
-        // Petite pulsation élégante avant sortie
+        // Petite pulsation rapide
         .to('.preloader-content', {
           scale: 1.05,
           opacity: 0.8,
-          duration: 2,
+          duration: 1.2, // Reduced from 2
           ease: "sine.inOut"
-        }, "-=0.2")
+        }, "-=0.1")
 
-        // 2. Curtain Exit - Plus rapide et tranchant (Luxury style)
+        // 2. Curtain Exit - Rapide et Tranchant
         .addLabel("exit", "+=0.1")
         .to('.preloader-secondary-bg', {
           yPercent: -100,
-          duration: 1.2,
+          duration: 0.8, // Reduced from 1.2
           ease: "expo.inOut"
         }, "exit")
         .to('.preloader-overlay', {
           yPercent: -100,
-          duration: 1.2,
+          duration: 0.8, // Reduced from 1.2
           ease: "expo.inOut"
         }, "exit+=0.05")
 
-        // 3. Hero Content Reveal - SYNCHRO FLUIDE
-        // On attend que le rideau soit presque parti pour lancer le titre
+        // 3. Hero Content Reveal - SYNCHRO RAPIDE
+        // We set opacity back to 1 right before animating y
+        .set('.hero-section .reveal-inner', { opacity: 1 }, "exit+=0.2")
         .to('.hero-section .reveal-inner', {
           y: "0%",
           rotate: 0,
-          duration: 1.8,
+          duration: 1.2, // Reduced from 1.8
           ease: "expo.out",
-          stagger: 0.12,
-          force3D: true // Force le GPU pour éviter les saccades
-        }, "exit+=0.8")
+          stagger: 0.1,
+          force3D: true
+        }, "exit+=0.3") // Start almost immediately as curtain lifts
 
         .to('.hero-footer-element', {
           opacity: 1,
           y: 0,
-          duration: 1.5,
-          stagger: 0.2,
+          duration: 1.0,
+          stagger: 0.1,
           ease: "power3.out"
-        }, "exit+=1.2")
+        }, "exit+=0.6")
 
-        // 4. Finalisation - On décale le refresh pour éviter de saccader l'anim du titre
+        // 4. Finalisation
         .add(() => {
           setIsLoading(false);
           document.body.style.overflow = '';
           setTimeout(() => {
             if (window.ScrollTrigger) window.ScrollTrigger.refresh(true);
-          }, 500); // Laisse le titre finir son mouvement avant de stresser le CPU
+          }, 400);
         });
     });
 
@@ -423,18 +449,14 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
   // --- INITIALISATION LENIS ---
   useEffect(() => {
     if (!scriptsLoaded) return;
-
-    // Config adaptée au mobile vs desktop (Tablettes incluses maintenant < 1024px)
     const isMobile = window.innerWidth < 1024;
-
     const lenis = new window.Lenis({
-      duration: isMobile ? 0.5 : 1.2, // Mobile: Durée courte pour arrêter l'inertie rapidement
+      duration: isMobile ? 0.5 : 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
-      smoothTouch: true, // IMPORTANT: Force Lenis à gérer le scroll tactile pour appliquer nos réglages
-      touchMultiplier: isMobile ? 0.8 : 2, // Mobile: Sensibilité naturelle mais contrôlée
+      smoothTouch: true,
+      touchMultiplier: isMobile ? 0.8 : 2,
     });
-
     function raf(time) {
       lenis.raf(time);
       requestAnimationFrame(raf);
@@ -442,30 +464,6 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
     requestAnimationFrame(raf);
     return () => lenis.destroy();
   }, [scriptsLoaded]);
-
-  // --- THREE.JS BACKGROUND ---
-  // Logic moved to src/components/ThreeBackground.jsx for Lazy Loading
-
-  // Ref to store the Hero timeline so we can play it later
-  // --- GSAP ORCHESTRATION (SIMPLIFIED & ROBUST) ---
-  const tlHeroRef = useRef(null); // Keep ref definition to avoid breaking other code if referenced, but we won't strictly use it for the timeline.
-
-  useLayoutEffect(() => {
-    if (!scriptsLoaded) return;
-
-    const ctx = gsap.context(() => {
-      // 1. SETUP: Force hidden state immediately
-      // Using 200% to ensure text fully clears the container padding (prevents "frozen top" glitch)
-      gsap.set('.hero-section .reveal-inner', { y: "200%" });
-      gsap.set('.hero-footer-element', { opacity: 0, y: 20 });
-    }, componentRef);
-
-    return () => ctx.revert();
-  }, [scriptsLoaded]);
-
-  // 2. TRIGGER: (LOGIC MOVED TO LOAD TIMELINE FOR BETTER SYNC)
-  // The separate useEffect for title/footer reveal has been removed to eliminate the delay gap.
-
 
   // --- GSAP ORCHESTRATION ---
   useLayoutEffect(() => {
@@ -666,21 +664,21 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
 
           <div className="preloader-overlay fixed inset-0 z-[9999] bg-[#1a1a1a] flex flex-col items-center justify-center text-[#FAF9F6]">
             {/* Content Container */}
-            <div className="preloader-content flex flex-col items-center gap-8">
-              <div className="preloader-icon">
+            <div className="preloader-content flex flex-col items-center gap-8 opacity-0">
+              <div className="preloader-icon opacity-0">
                 <Hammer size={56} strokeWidth={1} className="text-[#9C8268] drop-shadow-[0_0_15px_rgba(156,130,104,0.3)]" />
               </div>
               <div className="overflow-hidden flex gap-[0.2em] px-4">
                 {"TOUS À TABLE".split("").map((char, i) => (
                   <span
                     key={i}
-                    className="preloader-char font-serif text-4xl md:text-6xl italic font-light tracking-[0.2em] inline-block will-change-transform"
+                    className="preloader-char font-serif text-4xl md:text-6xl italic font-light tracking-[0.2em] inline-block will-change-transform opacity-0"
                   >
                     {char === " " ? "\u00A0" : char}
                   </span>
                 ))}
               </div>
-              <div className="mt-8 flex items-center gap-4 opacity-20">
+              <div className="mt-8 flex items-center gap-4 opacity-0 preloader-footer-element">
                 <div className="w-12 h-[1px] bg-[#9C8268]"></div>
                 <span className="text-[8px] uppercase tracking-[0.5em] font-bold">Artisan ébéniste</span>
                 <div className="w-12 h-[1px] bg-[#9C8268]"></div>
