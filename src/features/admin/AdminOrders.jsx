@@ -1,21 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, limit } from 'firebase/firestore';
 import { db } from '../../firebase/config';
-import { Package, Clock, CheckCircle, Trash2, Mail, ChevronDown, ChevronUp, Download } from 'lucide-react';
+import { Package, Clock, CheckCircle, Trash2, Mail, ChevronDown, ChevronUp, Download, Loader2 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const AdminOrders = ({ darkMode = false }) => {
     const [orders, setOrders] = useState([]);
     const [expandedOrder, setExpandedOrder] = useState(null);
+    const [orderLimit, setOrderLimit] = useState(10); // Pagination limit (réduit à 10 pour le test)
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // Listen to orders directly form Firestore
-        const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
+        setIsLoading(true);
+        // Optimized: Only load the last 'orderLimit' orders (Review n reads only)
+        const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(orderLimit));
+
         const unsub = onSnapshot(q, (snap) => {
+            console.log(`🔥 FIRESTORE READ: Chargement de ${snap.docs.length} commandes (Limite demandée : ${orderLimit})`);
             setOrders(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+            setIsLoading(false);
         });
         return () => unsub();
-    }, []);
+    }, [orderLimit]); // Re-run when limit changes
 
     const toggleStatus = async (order) => {
         const newStatus = order.status === 'pending_payment' ? 'completed' : 'pending_payment';
@@ -158,10 +164,20 @@ const AdminOrders = ({ darkMode = false }) => {
                     </div>
                 ))}
 
-                {orders.length === 0 && (
+                {orders.length === 0 && !isLoading && (
                     <div className={`text-center py-20 rounded-3xl border border-dashed ${darkMode ? 'bg-stone-800/50 border-stone-700' : 'bg-white border-stone-100'}`}>
                         <p className="text-stone-400 font-medium">Aucune commande pour le moment.</p>
                     </div>
+                )}
+
+                {/* Load More Button */}
+                {orders.length >= orderLimit && (
+                    <button
+                        onClick={() => setOrderLimit(prev => prev + 50)}
+                        className={`w-full py-4 rounded-xl border border-dashed text-xs font-black uppercase tracking-widest transition-all ${darkMode ? 'border-stone-700 text-stone-400 hover:bg-stone-800 hover:text-white' : 'border-stone-200 text-stone-400 hover:bg-stone-50 hover:text-stone-900'}`}
+                    >
+                        {isLoading ? <Loader2 className="animate-spin mx-auto" size={16} /> : 'Charger les commandes plus anciennes'}
+                    </button>
                 )}
             </div>
         </div>

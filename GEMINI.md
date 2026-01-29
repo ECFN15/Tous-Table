@@ -1,6 +1,6 @@
 ---
 project_name: "Tous à Table - Atelier Normand"
-last_updated: "2026-01-28"
+last_updated: "2026-01-29"
 description: "Site e-commerce et vitrine pour un atelier d'ébénisterie d'art. Vente de meubles (enchères/achat direct) et planches à découper."
 stack:
   frontend: "React + Vite"
@@ -79,6 +79,22 @@ Le projet a été restructuré pour séparer clairement les responsabilités (Ja
 
 ---
 
+## ⚡ 2b. Optimisations & Scalabilité (Janvier 2026)
+
+### 📊 Admin Commandes (Scalabilité)
+*   **Pagination Intelligente** : Pour éviter de charger des milliers de commandes et faire exploser la facture Firebase (Reads), l'Admin ne charge désormais que les **50 dernières commandes** par défaut (`limit(50)`).
+*   **Load More** : Un bouton "Charger les commandes plus anciennes" en bas de liste permet de charger les 50 suivantes à la demande.
+*   **Export Excel** : Ajout d'une fonctionnalité d'export complète (`xlsx` / SheetJS) générant un fichier `.xlsx` propre avec toutes les données clients et articles, formaté pour la comptabilité.
+
+### 🖼️ UX Fiche Produit (Navigation)
+*   **Navigation Tactile/Click** : L'image principale est désormais interactive.
+    *   Clic **Gauche** (ou < 50% largeur) : Image précédente.
+    *   Clic **Droit** (ou > 50% largeur) : Image suivante.
+*   **Indicateurs "Pills"** : Remplacement des miniatures par une barre de navigation moderne (traits arrondis) sous l'image pour alléger le design tout en gardant le contexte (Position X/Y).
+*   **Theming Dynamique** : Les blocs "Matières" et "Dimensions" utilisent désormais les tokens du thème (`palette.cardBg`, `palette.switcherBorder`) pour une cohérence parfaite avec le Studio.
+
+---
+
 ## ⚙️ 3. Fonctionnalités Clés (Backend)
 
 Le backend est géré par **Firebase Cloud Functions** (dans `/functions`).
@@ -148,4 +164,4 @@ Pour mettre le site en ligne sur **https://tatmadeinnormandie.web.app** :
 
 ---
 
-*Dernière mise à jour par l'IA : Session du 28/01/2026. Ajout Studio, Thèmes et Fix Rendu GPU.*
+*Dernière mise à jour par l'IA : Session du 29/01/2026. Ajout Pagination Admin, Export Excel et UX Produit.*
