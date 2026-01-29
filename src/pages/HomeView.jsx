@@ -392,16 +392,8 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
           ease: "power2.out"
         }, "-=0.8") // Start slightly before chars finish
 
-        // Petite pulsation rapide
-        .to('.preloader-content', {
-          scale: 1.05,
-          opacity: 0.8,
-          duration: 1.2, // Reduced from 2
-          ease: "sine.inOut"
-        }, "-=0.1")
-
         // 2. Curtain Exit - Rapide et Tranchant
-        .addLabel("exit", "+=0.1")
+        .addLabel("exit", "+=0.5") // Petit délai de lecture fixe avant de partir
         .to('.preloader-secondary-bg', {
           yPercent: -100,
           duration: 0.8, // Reduced from 1.2
