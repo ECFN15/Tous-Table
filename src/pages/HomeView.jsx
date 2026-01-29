@@ -393,7 +393,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         }, "-=0.8") // Start slightly before chars finish
 
         // 2. Curtain Exit - Rapide et Tranchant
-        .addLabel("exit", "+=0.5") // Petit délai de lecture fixe avant de partir
+        .addLabel("exit", "+=0.0") // Départ immédiat (Snappy)
         .to('.preloader-secondary-bg', {
           yPercent: -100,
           duration: 0.8, // Reduced from 1.2
