@@ -67,6 +67,7 @@ Le projet a été restructuré pour séparer clairement les responsabilités (Ja
 
 *   **Animations** :
     *   **GSAP** : Utilisé pour les transitions fluides (ScrollTrigger sur la Home).
+    *   **Preloader "Lumnos"** : Séquence d'intro optimisée pour zéro "Flash" (FOUC). Marteau -> Révélation lettre à lettre -> Sortie rideau immédiate ("Snappy").
     *   **Three.js** : Objet 3D (Nœud Torus) en fond sur la Home.
     *   **Lenis** : Smooth Scroll (défilement doux).
 *   **UX Mobile & Badges (Mise à jour Janvier 2026)** :
@@ -172,4 +173,4 @@ Pour mettre le site en ligne sur **https://tatmadeinnormandie.web.app** :
 
 ---
 
-*Dernière mise à jour par l'IA : Session du 29/01/2026. Ajout Pagination Admin, Export Excel et UX Produit & Recherche Hybride.*
+*Dernière mise à jour par l'IA : Session du 29/01/2026. Ajout Pagination Admin, Export Excel, UX Produit, Recherche Hybride & Tuning Preloader.*

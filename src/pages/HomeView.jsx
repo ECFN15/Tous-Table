@@ -861,7 +861,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
               </div>
 
               {/* Caption */}
-              <div className={`p-caption mt-6 md:mt-0 min-[1920px]:mt-8 relative z-10 text-white md:w-[35%] min-[1920px]:w-full md:px-12 min-[1920px]:px-0 min-[1920px]:pl-6 border-l border-[#9C8268] max-[1919px]:border-[#9C8268] min-[1920px]:border-white/10 min-[1920px]:group-hover:border-[#9C8268] transition-colors duration-150 text-center ${i % 2 === 0 ? 'md:text-right min-[1920px]:text-left' : 'md:text-left min-[1920px]:text-left'}`}>
+              <div className={`p-caption mt-6 md:mt-0 min-[1920px]:mt-8 relative z-10 text-white md:w-[35%] min-[1920px]:w-full px-6 md:px-12 min-[1920px]:px-0 min-[1920px]:pl-6 border-l border-[#9C8268] max-[1919px]:border-[#9C8268] min-[1920px]:border-white/10 min-[1920px]:group-hover:border-[#9C8268] transition-colors duration-150 text-center ${i % 2 === 0 ? 'md:text-right min-[1920px]:text-left' : 'md:text-left min-[1920px]:text-left'}`}>
                 <h3 className="text-3xl md:text-5xl min-[1920px]:text-6xl font-light italic font-serif text-white mb-6 min-[1920px]:group-hover:translate-x-2 transition-transform duration-500">{step.t}</h3>
                 <p className="text-[10px] md:text-sm uppercase tracking-[0.25em] opacity-80 max-[1919px]:opacity-80 min-[1920px]:opacity-40 leading-loose max-w-[320px] font-medium text-[#FAF9F6] min-[1920px]:group-hover:opacity-80 transition-opacity mx-auto md:mx-0 inline-block">{step.d}</p>
               </div>
