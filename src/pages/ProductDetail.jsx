@@ -286,17 +286,18 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMo
             </div>
           </div>
 
-          <div className={`p-8 rounded-[3rem] ring-1 ring-inset overflow-hidden transition-all duration-700 transform-gpu backface-hidden ${isWinner ? 'scale-[1.02] shadow-[0_0_30px_-5px_rgba(16,185,129,0.3)]' : 'shadow-xl'}`}
+          <div className={`p-8 rounded-[3rem] ring-1 ring-inset overflow-hidden transition-all duration-700 transform-gpu backface-hidden ${isWinner ? 'scale-[1.02]' : 'shadow-xl'}`}
             style={{
               backgroundColor: palette.cardBg,
-              '--tw-ring-color': isWinner ? '#10b981' : palette.switcherBorder,
-              color: palette.textBody
+              '--tw-ring-color': isWinner ? palette.accent : palette.switcherBorder,
+              color: palette.textBody,
+              boxShadow: isWinner ? `0 0 30px -5px ${palette.accent}60` : undefined
             }}
           >
             <div className="flex justify-between items-end mb-8">
               <div className="space-y-0.5">
                 <p className="text-[9px] font-black uppercase tracking-widest opacity-60">Offre actuelle</p>
-                <p className="text-5xl font-black tracking-tighter transition-all" style={{ color: isWinner ? '#10b981' : palette.textTitle }}>{item.currentPrice || item.startingPrice} €</p>
+                <p className="text-5xl font-black tracking-tighter transition-all" style={{ color: isWinner ? palette.accent : palette.textTitle }}>{item.currentPrice || item.startingPrice} €</p>
               </div>
               {item.auctionActive ? (
                 <div className="text-right space-y-1">
@@ -314,11 +315,11 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMo
             {isWinner ? (
               <div className="text-center space-y-4 py-6 animate-in zoom-in-95 slide-in-from-top-4 duration-1000">
                 <div className="relative inline-block">
-                  <Award size={56} className="mx-auto text-emerald-500 animate-bounce" />
-                  <div className="absolute -inset-2 bg-emerald-400/20 blur-xl rounded-full -z-10 animate-pulse"></div>
+                  <Award size={56} className="mx-auto animate-bounce" style={{ color: palette.accent }} />
+                  <div className="absolute -inset-2 blur-xl rounded-full -z-10 animate-pulse" style={{ backgroundColor: palette.accent, opacity: 0.3 }}></div>
                 </div>
-                <h4 className="text-2xl font-black uppercase tracking-tight text-emerald-700">Vente remportée !</h4>
-                <p className="text-emerald-600/70 text-xs italic">Félicitations. L'artisan vous contactera prochainement.</p>
+                <h4 className="text-2xl font-black uppercase tracking-tight" style={{ color: palette.accent }}>Vente remportée !</h4>
+                <p className="text-xs italic opacity-70" style={{ color: palette.accent }}>Félicitations. L'artisan vous contactera prochainement.</p>
               </div>
             ) : item.auctionActive && !isAuctionOver ? (
               <div className="space-y-6">
