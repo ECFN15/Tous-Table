@@ -207,7 +207,7 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMo
         <div className="grid md:grid-cols-2 gap-12 lg:gap-16" style={{ color: palette.textBody }}>
           {/* Colonne Gauche: Images & Story */}
           <div className="space-y-8">
-            <div className="aspect-square rounded-[2.5rem] overflow-hidden ring-1 ring-inset shadow-2xl relative transform-gpu backface-hidden group cursor-pointer" style={{ backgroundColor: palette.cardBg, '--tw-ring-color': palette.switcherBorder }} onClick={(e) => {
+            <div className="aspect-square overflow-hidden ring-1 ring-inset relative transform-gpu backface-hidden group cursor-pointer" style={{ backgroundColor: palette.cardBg, '--tw-ring-color': palette.switcherBorder, borderRadius: palette.borderRadius, boxShadow: palette.cardShadow }} onClick={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
               const x = e.clientX - rect.left;
               if (x < rect.width / 2) {
@@ -254,7 +254,7 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMo
               </div>
             )}
 
-            <div className="p-8 rounded-[2.5rem] ring-1 ring-inset shadow-sm relative overflow-hidden group transform-gpu backface-hidden" style={{ backgroundColor: palette.cardBg, '--tw-ring-color': palette.switcherBorder }}>
+            <div className="p-8 ring-1 ring-inset relative overflow-hidden group transform-gpu backface-hidden" style={{ backgroundColor: palette.cardBg, '--tw-ring-color': palette.switcherBorder, borderRadius: palette.borderRadius, boxShadow: palette.cardShadow }}>
               <Quote size={48} className="absolute top-4 right-6 transition-colors opacity-5 rotate-12" style={{ color: palette.textBody }} />
               <div className="relative z-10">
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-6 flex items-center gap-2" style={{ color: palette.textSubtitle }}>
@@ -305,12 +305,13 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMo
               </div>
             </div>
 
-            <div className={`p-8 rounded-[3rem] ring-1 ring-inset overflow-hidden transition-all duration-700 transform-gpu backface-hidden ${isWinner ? 'scale-[1.02]' : 'shadow-xl'}`}
+            <div className={`p-8 ring-1 ring-inset overflow-hidden transition-all duration-700 transform-gpu backface-hidden ${isWinner ? 'scale-[1.02]' : ''}`}
               style={{
                 backgroundColor: palette.cardBg,
                 '--tw-ring-color': isWinner ? palette.accent : palette.switcherBorder,
                 color: palette.textBody,
-                boxShadow: isWinner ? `0 0 30px -5px ${palette.accent}60` : undefined
+                boxShadow: isWinner ? `0 0 30px -5px ${palette.accent}60` : palette.cardShadow,
+                borderRadius: palette.borderRadius
               }}
             >
               <div className="flex justify-between items-end mb-8">
@@ -410,7 +411,7 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMo
             )}
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-6 rounded-[2rem] ring-1 ring-inset shadow-sm group transform-gpu backface-hidden" style={{ backgroundColor: palette.cardBg, '--tw-ring-color': palette.switcherBorder }}>
+              <div className="p-6 ring-1 ring-inset group transform-gpu backface-hidden" style={{ backgroundColor: palette.cardBg, '--tw-ring-color': palette.switcherBorder, borderRadius: palette.borderRadius, boxShadow: palette.cardShadow }}>
                 <p className="text-[9px] font-black uppercase tracking-widest flex items-center gap-2 mb-2" style={{ color: palette.textSubtitle }}>
                   <Box size={14} className="opacity-50" /> Matières
                 </p>
@@ -418,7 +419,7 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMo
                   {item.material || "Non spécifié"}
                 </p>
               </div>
-              <div className="p-6 rounded-[2rem] ring-1 ring-inset shadow-sm group transform-gpu backface-hidden" style={{ backgroundColor: palette.cardBg, '--tw-ring-color': palette.switcherBorder }}>
+              <div className="p-6 ring-1 ring-inset group transform-gpu backface-hidden" style={{ backgroundColor: palette.cardBg, '--tw-ring-color': palette.switcherBorder, borderRadius: palette.borderRadius, boxShadow: palette.cardShadow }}>
                 <p className="text-[9px] font-black uppercase tracking-widest flex items-center gap-2 mb-2" style={{ color: palette.textSubtitle }}>
                   <Ruler size={14} className="opacity-50" /> Dimensions
                 </p>

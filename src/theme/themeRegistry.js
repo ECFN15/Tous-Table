@@ -27,6 +27,7 @@ export const STANDARD_THEME = {
         particleColors: ['#3E2723', '#8D6E63', '#BCAAA4'],
         fogColor: '#fdf5e6',
         fogDensity: 0.015,
+        borderRadius: '2.5rem',
         isDark: false
     },
     dark: {
@@ -54,15 +55,78 @@ export const STANDARD_THEME = {
         particleColors: ['#fbbf24', '#d97706', '#b45309'],
         fogColor: '#0a0807',
         fogDensity: 0.04,
+        borderRadius: '2.5rem',
         isDark: true
     }
 };
 
 export const THEMES = [
     {
+        id: 'authentik',
+        name: 'Authentik Shop',
+        description: 'Design E-commerce Pro. Inspiration Shopify : Minimalisme pur, contrastes forts et trames techniques.',
+        previewColor: '#171717', // Neutral Black
+        light: {
+            bgGradientTop: '#ffffff', // Pure White
+            bgGradientBot: '#f4f4f5', // Zinc 100 (Very subtle grey for depth)
+            textBody: '#18181b', // Zinc 900
+            textTitle: '#000000', // Pure Black
+            textSubtitle: '#52525b', // Zinc 600
+            titleBlendMode: 'normal',
+            cardBg: '#ffffff',
+            cardShadow: 'none', // Flat design
+            // We simulate a technical border using the switcher params usually, but here we want a border.
+            // The palette doesn't have a specific 'border' key often used in ProductDetail except 'switcherBorder'.
+            // scaling up the ring to look like a border.
+            switcherBg: '#ffffff',
+            switcherBorder: '#e4e4e7', // Zinc 200 - Crisp Border
+            btnActiveBg: '#000000', // Black Action Buttons
+            btnActiveText: '#ffffff',
+            btnInactiveText: '#71717a',
+            viewSwitcherBg: '#fafafa',
+            accent: '#000000', // Black Accents
+            statusValid: '#10b981', // Emerald 500
+            firefly: '#d4d4d8', // Zinc 300 (Subtle particles)
+            dust: '#18181b',
+            foliage: '#27272a',
+            furniture: '#000000',
+            particleColors: ['#000000', '#52525b', '#a1a1aa'], // Greyscale particles
+            fogColor: '#ffffff',
+            fogDensity: 0.01, // Very clear air
+            borderRadius: '0px', // Sharp corners for Authentik
+            isDark: false
+        },
+        dark: {
+            bgGradientTop: '#09090b', // Zinc 950
+            bgGradientBot: '#18181b', // Zinc 900
+            textBody: '#f4f4f5', // Zinc 100
+            textTitle: '#ffffff',
+            textSubtitle: '#a1a1aa', // Zinc 400
+            titleBlendMode: 'normal',
+            cardBg: '#09090b',
+            cardShadow: 'none',
+            switcherBg: '#18181b',
+            switcherBorder: '#27272a', // Zinc 800
+            btnActiveBg: '#ffffff', // White Action Buttons
+            btnActiveText: '#000000',
+            btnInactiveText: '#a1a1aa',
+            viewSwitcherBg: '#09090b',
+            accent: '#ffffff', // White Accents
+            statusValid: '#34d399',
+            firefly: '#ffffff',
+            dust: '#e4e4e7',
+            foliage: '#f4f4f5',
+            furniture: '#ffffff',
+            particleColors: ['#ffffff', '#a1a1aa', '#52525b'],
+            fogColor: '#09090b',
+            fogDensity: 0.04,
+            borderRadius: '0px',
+            isDark: true
+        }
+    },
+    {
         id: 'ocean',
         name: 'Océan & Sable',
-        // ... (rest of ocean theme is implicit, I'm just replacing the start of the array)
         description: 'Atmosphère marine premium. Glassmorphism, dégradés bleus profonds et bulles de lumière.',
         previewColor: '#0ea5e9',
         light: {
@@ -90,6 +154,7 @@ export const THEMES = [
             particleColors: ['#E0F7FA', '#81D4FA', '#29B6F6'], // Water tones
             fogColor: '#E1F5FE',
             fogDensity: 0.02,
+            borderRadius: '2.5rem',
             isDark: false
         },
         dark: {
@@ -117,6 +182,7 @@ export const THEMES = [
             particleColors: ['#006064', '#0097A7', '#00BCD4'],
             fogColor: '#001e2b',
             fogDensity: 0.045,
+            borderRadius: '2.5rem',
             isDark: true
         }
     },
@@ -150,6 +216,7 @@ export const THEMES = [
             particleColors: ['#365314', '#14532D', '#166534'], // Forest Greens
             fogColor: '#DCFCE7',
             fogDensity: 0.025,
+            borderRadius: '2.5rem',
             isDark: false
         },
         dark: {
@@ -177,6 +244,7 @@ export const THEMES = [
             particleColors: ['#a3e635', '#bef264', '#d9f99d'], // Fireflies particles
             fogColor: '#022c22',
             fogDensity: 0.05,
+            borderRadius: '2.5rem',
             isDark: true
         }
     },
@@ -210,6 +278,7 @@ export const THEMES = [
             particleColors: ['#000000', '#262626', '#404040'],
             fogColor: '#FFFFFF',
             fogDensity: 0.005, // Very clear
+            borderRadius: '2.5rem',
             isDark: false
         },
         dark: {
@@ -237,6 +306,7 @@ export const THEMES = [
             particleColors: ['#FFFFFF', '#E5E5E5', '#D4D4D4'],
             fogColor: '#000000',
             fogDensity: 0.02,
+            borderRadius: '2.5rem',
             isDark: true
         }
     },
@@ -270,6 +340,7 @@ export const THEMES = [
             particleColors: ['#3e2723', '#4e342e', '#5d4037'],
             fogColor: '#efebe9',
             fogDensity: 0.02,
+            borderRadius: '2.5rem',
             isDark: false
         },
         dark: {
@@ -297,6 +368,7 @@ export const THEMES = [
             particleColors: ['#ffca28', '#ffb74d', '#ffa726'],
             fogColor: '#1a100b',
             fogDensity: 0.05,
+            borderRadius: '2.5rem',
             isDark: true
         }
     },
@@ -330,6 +402,7 @@ export const THEMES = [
             particleColors: ['#f472b6', '#fbcfe8', '#fce7f3'],
             fogColor: '#fff1f2',
             fogDensity: 0.02,
+            borderRadius: '2.5rem',
             isDark: false
         },
         dark: {
@@ -356,6 +429,7 @@ export const THEMES = [
             particleColors: ['#f472b6', '#db2777', '#be185d'],
             fogColor: '#3f0c23',
             fogDensity: 0.04,
+            borderRadius: '2.5rem',
             isDark: true
         }
     },
@@ -388,6 +462,7 @@ export const THEMES = [
             particleColors: ['#f59e0b', '#fbbf24', '#fcd34d'],
             fogColor: '#fffbeb',
             fogDensity: 0.015,
+            borderRadius: '2.5rem',
             isDark: false
         },
         dark: {
@@ -414,6 +489,7 @@ export const THEMES = [
             particleColors: ['#f59e0b', '#fbbf24', '#d97706'],
             fogColor: '#451a03',
             fogDensity: 0.03,
+            borderRadius: '2.5rem',
             isDark: true
         }
     },
@@ -446,6 +522,7 @@ export const THEMES = [
             particleColors: ['#c2410c', '#ea580c', '#fdba74'],
             fogColor: '#fff7ed',
             fogDensity: 0.02,
+            borderRadius: '2.5rem',
             isDark: false
         },
         dark: {
@@ -472,6 +549,7 @@ export const THEMES = [
             particleColors: ['#ea580c', '#f97316', '#fb923c'],
             fogColor: '#431407',
             fogDensity: 0.04,
+            borderRadius: '2.5rem',
             isDark: true
         }
     },
@@ -504,6 +582,7 @@ export const THEMES = [
             particleColors: ['#e2e8f0', '#cbd5e1', '#ffffff'],
             fogColor: '#f8fafc',
             fogDensity: 0.03,
+            borderRadius: '2.5rem',
             isDark: false
         },
         dark: {
@@ -530,6 +609,7 @@ export const THEMES = [
             particleColors: ['#ffffff', '#f1f5f9', '#e2e8f0'],
             fogColor: '#020617',
             fogDensity: 0.05,
+            borderRadius: '2.5rem',
             isDark: true
         }
     }
