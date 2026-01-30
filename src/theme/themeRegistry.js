@@ -7,7 +7,7 @@ export const STANDARD_THEME = {
         bgGradientBot: '#8b5e3c',
         textBody: '#1D1D1F',
         textTitle: '#1a0f0a',
-        textSubtitle: '#5D4037',
+        textSubtitle: '#2d1b18',
         titleBlendMode: 'multiply',
         cardBg: 'rgba(255, 255, 255, 0.9)',
         cardShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
@@ -70,7 +70,7 @@ export const THEMES = [
             bgGradientBot: '#0288D1', // Deep Sky Blue
             textBody: '#01579B', // Deepest Blue
             textTitle: '#01579B',
-            textSubtitle: '#01579B', // Increased contrast (was #0288D1)
+            textSubtitle: '#033f70', // Darker Blue (was #01579B, made slightly darker/richer)
             titleBlendMode: 'normal',
             cardBg: 'rgba(255, 255, 255, 0.45)', // GLASS EFFECT
             cardShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.15)', // Soft Blue Shadow
@@ -130,7 +130,7 @@ export const THEMES = [
             bgGradientBot: '#166534', // Green 700
             textBody: '#064E3B',
             textTitle: '#064E3B',
-            textSubtitle: '#14532D', // Increased contrast (was #15803D)
+            textSubtitle: '#0f392b', // Very Dark Green (almost black-green)
             titleBlendMode: 'multiply',
             cardBg: 'rgba(255, 255, 255, 0.7)',
             cardShadow: '0 10px 15px -3px rgba(22, 101, 52, 0.1)',
@@ -190,7 +190,7 @@ export const THEMES = [
             bgGradientBot: '#E5E5E5', // Very Light Gray
             textBody: '#000000',
             textTitle: '#000000',
-            textSubtitle: '#525252',
+            textSubtitle: '#171717', // Nearly Black (was #525252)
             titleBlendMode: 'normal',
             cardBg: '#FFFFFF',
             cardShadow: 'none', // Flat
@@ -250,7 +250,7 @@ export const THEMES = [
             bgGradientBot: '#a1887f', // Brown 300
             textBody: '#3e2723', // Brown 900
             textTitle: '#3e2723',
-            textSubtitle: '#5d4037',
+            textSubtitle: '#2d1b18', // Very Dark Brown (almost black)
             titleBlendMode: 'normal',
             cardBg: 'rgba(255, 255, 255, 0.8)', // Semi-transparent
             cardShadow: '0 10px 15px -3px rgba(62, 39, 35, 0.1)',
@@ -311,7 +311,7 @@ export const THEMES = [
             bgGradientBot: '#fbcfe8', // Pink 200
             textBody: '#831843', // Pink 900
             textTitle: '#831843',
-            textSubtitle: '#db2777', // Pink 600
+            textSubtitle: '#9d174d', // Dark Pink (was #db2777)
             titleBlendMode: 'multiply',
             cardBg: 'rgba(255, 255, 255, 0.6)',
             cardShadow: '0 10px 25px -5px rgba(219, 39, 119, 0.15)',
@@ -369,7 +369,7 @@ export const THEMES = [
             bgGradientBot: '#fcd34d', // Amber 300
             textBody: '#b45309', // Amber 700
             textTitle: '#78350f', // Amber 900
-            textSubtitle: '#d97706', // Amber 600
+            textSubtitle: '#92400e', // Dark Amber (was #d97706)
             titleBlendMode: 'multiply',
             cardBg: 'rgba(255, 255, 255, 0.5)',
             cardShadow: '0 10px 25px -5px rgba(245, 158, 11, 0.2)',
@@ -427,7 +427,7 @@ export const THEMES = [
             bgGradientBot: '#fdba74', // Orange 300
             textBody: '#7c2d12', // Orange 900
             textTitle: '#7c2d12',
-            textSubtitle: '#c2410c', // Orange 700
+            textSubtitle: '#9a3412', // Dark Rust (was #c2410c)
             titleBlendMode: 'multiply',
             cardBg: 'rgba(255, 255, 255, 0.6)',
             cardShadow: '0 10px 25px -5px rgba(234, 88, 12, 0.15)',
@@ -485,7 +485,7 @@ export const THEMES = [
             bgGradientBot: '#cbd5e1', // Slate 300
             textBody: '#0f172a', // Slate 900
             textTitle: '#0f172a',
-            textSubtitle: '#334155', // Slate 700
+            textSubtitle: '#1e293b', // Dark Slate (was #334155)
             titleBlendMode: 'multiply',
             cardBg: 'rgba(255, 255, 255, 0.8)',
             cardShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.1)',
