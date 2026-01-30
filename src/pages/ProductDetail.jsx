@@ -41,6 +41,15 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMo
     return item.collectionName || ((item.id && item.id.includes('board')) ? 'cutting_boards' : 'furniture');
   }, [item]);
 
+  // OPTIMIZATION: Preload images for instant navigation
+  useEffect(() => {
+    if (!images || images.length === 0) return;
+    images.forEach((src) => {
+      const img = new Image();
+      img.src = src;
+    });
+  }, [images]);
+
   useEffect(() => {
     // Only subscribe if item exists AND is auction
     if (!item?.auctionActive) return;
@@ -236,8 +245,8 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMo
                     onClick={() => setActiveImg(idx)}
                     className={`h-1.5 rounded-full transition-all duration-300 ${activeImg === idx ? 'w-8' : 'w-2 hover:w-4'}`}
                     style={{
-                      backgroundColor: activeImg === idx ? palette.accent : palette.switcherBorder,
-                      opacity: activeImg === idx ? 1 : 0.4
+                      backgroundColor: activeImg === idx ? palette.accent : palette.textSubtitle,
+                      opacity: activeImg === idx ? 1 : 0.3
                     }}
                     aria-label={`Voir image ${idx + 1}`}
                   />
@@ -246,7 +255,7 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMo
             )}
 
             <div className="p-8 rounded-[2.5rem] ring-1 ring-inset shadow-sm relative overflow-hidden group transform-gpu backface-hidden" style={{ backgroundColor: palette.cardBg, '--tw-ring-color': palette.switcherBorder }}>
-              <Quote size={32} className="absolute -top-2 -right-2 transition-colors opacity-10" style={{ color: palette.textBody }} />
+              <Quote size={48} className="absolute top-4 right-6 transition-colors opacity-5 rotate-12" style={{ color: palette.textBody }} />
               <div className="relative z-10">
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-6 flex items-center gap-2" style={{ color: palette.textSubtitle }}>
                   <span className="w-4 h-px" style={{ backgroundColor: palette.textSubtitle }}></span> L'histoire de la pièce
