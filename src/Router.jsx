@@ -94,7 +94,7 @@ const AppRouter = ({
 
             {/* VUE: DETAIL PRODUIT */}
             {view === 'detail' && selectedItemId && (
-                <div className="pt-32 px-6">
+                <div className="contents">
                     <ProductDetail
                         item={[...items, ...boardItems].find(i => i.id === selectedItemId)}
                         user={user}

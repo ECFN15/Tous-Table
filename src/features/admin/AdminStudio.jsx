@@ -69,29 +69,56 @@ const AdminStudio = ({ darkMode }) => {
                     </div>
                 </div>
 
-                {/* MODE STANDARD TOGGLE */}
-                <div className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${activeStandard ? (darkMode ? 'bg-emerald-900/20 border-emerald-800/50' : 'bg-emerald-50 border-emerald-100') : (darkMode ? 'bg-stone-900/50 border-stone-800' : 'bg-stone-50 border-stone-100')}`}>
-                    <div className="flex items-center gap-4">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center border ${activeStandard ? (darkMode ? 'bg-emerald-500 text-white' : 'bg-emerald-500 text-white') : (darkMode ? 'bg-stone-800 border-stone-700 text-stone-600' : 'bg-white border-stone-200 text-stone-300')}`}>
-                            <RotateCcw size={20} />
+            </div>
+            {/* THEMES GRID */}
+            <div className={`grid md:grid-cols-2 gap-4`}>
+                {/* STANDARD THEME CARD */}
+                <div
+                    onClick={() => handleToggleStandard(true)}
+                    className={`group relative p-4 md:p-6 rounded-3xl ring-2 ring-inset text-left transition-all hover:scale-[1.02] cursor-pointer transform-gpu backface-hidden will-change-transform ${activeStandard ? (darkMode ? 'ring-emerald-500 bg-stone-800' : 'ring-emerald-500 bg-white shadow-xl shadow-emerald-50') : (darkMode ? 'ring-stone-800 bg-stone-900 hover:ring-stone-600' : 'ring-stone-100 bg-white hover:ring-stone-200 shadow-sm')}`}
+                >
+                    {activeStandard && (
+                        <div className="absolute top-4 right-4 bg-emerald-500 text-white text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-widest flex items-center gap-1">
+                            <Check size={10} strokeWidth={4} /> Actif
                         </div>
+                    )}
+
+                    <div className="flex gap-4">
+                        <div className={`w-20 h-20 rounded-2xl shadow-sm shrink-0 flex items-center justify-center ${darkMode ? 'bg-stone-700' : 'bg-stone-100'}`}>
+                            <RotateCcw size={32} className={darkMode ? 'text-stone-500' : 'text-stone-400'} />
+                        </div>
+
                         <div>
-                            <h3 className="font-bold text-lg leading-tight">Mode Standard</h3>
-                            <p className="text-xs opacity-70">Désactive les thèmes et restaure le design original (codé en dur).</p>
+                            <h3 className="font-bold text-lg mb-1">Mode Standard</h3>
+                            <p className={`text-xs leading-relaxed ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
+                                Le design original. Authentique, simple et éprouvé.
+                            </p>
                         </div>
                     </div>
 
-                    <button
-                        onClick={() => handleToggleStandard(!activeStandard)}
-                        className={`relative w-14 h-8 rounded-full transition-colors duration-300 ${activeStandard ? 'bg-emerald-500' : (darkMode ? 'bg-stone-700' : 'bg-stone-300')}`}
-                    >
-                        <div className={`absolute top-1 left-1 bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-300 ${activeStandard ? 'translate-x-6' : 'translate-x-0'}`}></div>
-                    </button>
+                    {/* Standard Force Mode Controls */}
+                    <div className={`mt-6 flex items-center justify-between gap-2 p-1 rounded-xl transition-all duration-300 ${activeStandard ? 'opacity-100' : 'opacity-40 group-hover:opacity-100'} ${darkMode ? 'bg-stone-950/50' : 'bg-stone-100'}`}>
+                        <button
+                            onClick={(e) => { e.stopPropagation(); setActiveForcedMode('light'); saveSettings(true, activeThemeIdLocal, 'light'); }}
+                            className={`flex-1 py-2 rounded-lg flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-wider transition-all ${activeStandard && activeForcedMode === 'light' ? 'bg-white text-stone-900 shadow-md' : 'text-stone-400 hover:text-stone-600'}`}
+                        >
+                            <Sun size={14} /> Light
+                        </button>
+                        <button
+                            onClick={(e) => { e.stopPropagation(); setActiveForcedMode('auto'); saveSettings(true, activeThemeIdLocal, 'auto'); }}
+                            className={`flex-1 py-2 rounded-lg flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-wider transition-all ${activeStandard && activeForcedMode === 'auto' ? (darkMode ? 'bg-stone-700 text-white shadow-md' : 'bg-white text-stone-900 shadow-md') : 'text-stone-400 hover:text-stone-600'}`}
+                        >
+                            <Smartphone size={14} /> Auto
+                        </button>
+                        <button
+                            onClick={(e) => { e.stopPropagation(); setActiveForcedMode('dark'); saveSettings(true, activeThemeIdLocal, 'dark'); }}
+                            className={`flex-1 py-2 rounded-lg flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-wider transition-all ${activeStandard && activeForcedMode === 'dark' ? 'bg-stone-800 text-white shadow-md' : 'text-stone-400 hover:text-stone-600'}`}
+                        >
+                            <Moon size={14} /> Dark
+                        </button>
+                    </div>
                 </div>
-            </div>
 
-            {/* THEMES GRID */}
-            <div className={`grid md:grid-cols-2 gap-4 ${activeStandard ? 'opacity-50 pointer-events-none grayscale' : 'opacity-100'}`}>
                 {THEMES.map(theme => (
                     <div
                         key={theme.id}
@@ -127,27 +154,27 @@ const AdminStudio = ({ darkMode }) => {
                         <div className={`mt-6 flex items-center justify-between gap-2 p-1 rounded-xl transition-all duration-300 ${activeThemeIdLocal === theme.id && !activeStandard ? 'opacity-100' : 'opacity-40 group-hover:opacity-100'} ${darkMode ? 'bg-stone-950/50' : 'bg-stone-100'}`}>
                             <button
                                 onClick={(e) => handleForceMode(e, theme.id, 'light')}
-                                className={`flex-1 py-2 rounded-lg flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-wider transition-all ${activeThemeIdLocal === theme.id && activeForcedMode === 'light' ? 'bg-white text-stone-900 shadow-md' : 'text-stone-400 hover:text-stone-600'}`}
+                                className={`flex-1 py-2 rounded-lg flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-wider transition-all ${activeThemeIdLocal === theme.id && !activeStandard && activeForcedMode === 'light' ? 'bg-white text-stone-900 shadow-md' : 'text-stone-400 hover:text-stone-600'}`}
                             >
                                 <Sun size={14} /> Light
                             </button>
                             <button
                                 onClick={(e) => handleForceMode(e, theme.id, 'auto')}
-                                className={`flex-1 py-2 rounded-lg flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-wider transition-all ${activeThemeIdLocal === theme.id && activeForcedMode === 'auto' ? (darkMode ? 'bg-stone-700 text-white shadow-md' : 'bg-white text-stone-900 shadow-md') : 'text-stone-400 hover:text-stone-600'}`}
+                                className={`flex-1 py-2 rounded-lg flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-wider transition-all ${activeThemeIdLocal === theme.id && !activeStandard && activeForcedMode === 'auto' ? (darkMode ? 'bg-stone-700 text-white shadow-md' : 'bg-white text-stone-900 shadow-md') : 'text-stone-400 hover:text-stone-600'}`}
                             >
                                 <Smartphone size={14} /> Auto
                             </button>
                             <button
                                 onClick={(e) => handleForceMode(e, theme.id, 'dark')}
-                                className={`flex-1 py-2 rounded-lg flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-wider transition-all ${activeThemeIdLocal === theme.id && activeForcedMode === 'dark' ? 'bg-stone-800 text-white shadow-md' : 'text-stone-400 hover:text-stone-600'}`}
+                                className={`flex-1 py-2 rounded-lg flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-wider transition-all ${activeThemeIdLocal === theme.id && !activeStandard && activeForcedMode === 'dark' ? 'bg-stone-800 text-white shadow-md' : 'text-stone-400 hover:text-stone-600'}`}
                             >
                                 <Moon size={14} /> Dark
                             </button>
                         </div>
                     </div>
                 ))}
-            </div >
-        </div >
+            </div>
+        </div>
     );
 };
 

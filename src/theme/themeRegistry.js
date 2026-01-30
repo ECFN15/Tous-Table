@@ -7,9 +7,9 @@ export const STANDARD_THEME = {
         bgGradientBot: '#8b5e3c',
         textBody: '#1D1D1F',
         textTitle: '#1a0f0a',
-        textSubtitle: '#FAF9F6',
+        textSubtitle: '#5D4037',
         titleBlendMode: 'multiply',
-        cardBg: '#FAF9F6',
+        cardBg: 'rgba(255, 255, 255, 0.9)',
         cardShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
         // NO BORDER IN STANDARD
         switcherBg: 'rgba(255, 255, 255, 0.8)',
