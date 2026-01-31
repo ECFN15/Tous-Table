@@ -1,3 +1,4 @@
+
 import React, { Suspense } from 'react';
 import HomeView from './pages/HomeView';
 import GalleryView from './pages/GalleryView';
@@ -5,20 +6,25 @@ import ProductDetail from './pages/ProductDetail';
 import CheckoutView from './pages/CheckoutView';
 import LoginView from './pages/LoginView';
 import OrderSuccessModal from './components/OrderSuccessModal';
-import AdminForm from './features/admin/AdminForm';
-import AdminOrders from './features/admin/AdminOrders';
-import AdminComments from './features/admin/AdminComments';
-import AdminDashboard from './features/admin/AdminDashboard';
-import AdminHomepage from './features/admin/AdminHomepage';
-import AdminStudio from './features/admin/AdminStudio';
-import AdminItemList from './features/admin/AdminItemList'; // New Scalable List
-import { Pencil, Eye, EyeOff, Trash2, Trophy, Mail, Palette } from 'lucide-react';
+import {
+    LayoutGrid, Palette, ShoppingBag, Settings,
+    CreditCard, MessageCircle, Heart, Share2, Hammer, Gavel, Pencil, Eye, EyeOff, Trash2, Trophy, Mail
+} from 'lucide-react';
+
+const AdminDashboard = React.lazy(() => import('./features/admin/AdminDashboard'));
+const AdminHomepage = React.lazy(() => import('./features/admin/AdminHomepage'));
+const AdminOrders = React.lazy(() => import('./features/admin/AdminOrders'));
+const AdminComments = React.lazy(() => import('./features/admin/AdminComments'));
+const AdminStudio = React.lazy(() => import('./features/admin/AdminStudio'));
+const AdminAuctions = React.lazy(() => import('./features/admin/AdminAuctions'));
+const AdminForm = React.lazy(() => import('./features/admin/AdminForm'));
+const AdminItemList = React.lazy(() => import('./features/admin/AdminItemList'));
+const CommentsModal = React.lazy(() => import('./components/ui/CommentsModal'));
+
 import { getMillis } from './utils/time';
 import { useAuth } from './contexts/AuthContext';
 import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db, appId } from './firebase/config';
-
-const CommentsModal = React.lazy(() => import('./components/ui/CommentsModal'));
 
 const AppRouter = ({
     view,
@@ -49,9 +55,9 @@ const AppRouter = ({
     setAdminCollection,
     editingItem,
     setEditingItem,
-    onOpenMenu, // New trigger
-    onOpenCart,  // New trigger
-    toggleTheme // New trigger
+    onOpenMenu,
+    onOpenCart,
+    toggleTheme
 }) => {
     const { user, isAdmin } = useAuth();
 
@@ -66,7 +72,6 @@ const AppRouter = ({
 
     return (
         <main>
-            {/* VUE: ACCUEIL */}
             {(view === 'home' || isPreparingGallery) && (
                 <div className={view === 'home' ? 'contents' : 'hidden'}>
                     <HomeView
@@ -77,7 +82,6 @@ const AppRouter = ({
                 </div>
             )}
 
-            {/* VUE: GALERIE (MARKETPLACE) */}
             {(view === 'gallery' || isPreparingGallery) && (
                 <div
                     className={view === 'gallery' ? 'contents animate-in fade-in duration-500' : 'fixed inset-0 pointer-events-none opacity-0 z-0'}
@@ -98,7 +102,6 @@ const AppRouter = ({
                 </div>
             )}
 
-            {/* VUE: DETAIL PRODUIT */}
             {view === 'detail' && selectedItemId && (
                 <div className="contents">
                     <ProductDetail
@@ -121,7 +124,6 @@ const AppRouter = ({
                 </div>
             )}
 
-            {/* VUE: CHECKOUT */}
             {view === 'checkout' && (
                 <CheckoutView
                     cartItems={cartItems}
@@ -132,10 +134,8 @@ const AppRouter = ({
                 />
             )}
 
-            {/* MODAL SUCCESS ORDER */}
             {showOrderSuccess && <OrderSuccessModal onClose={() => setShowOrderSuccess(false)} />}
 
-            {/* MODAL COMMENTAIRES (GLOBAL) */}
             <Suspense fallback={null}>
                 <CommentsModal
                     isOpen={isCommentModalOpen}
@@ -147,15 +147,15 @@ const AppRouter = ({
                 />
             </Suspense>
 
-            {/* VUE: LOGIN ADMIN */}
             {view === 'login' && isSecretGateOpen && <LoginView onSuccess={() => setView('admin')} />}
 
-            {/* VUE: ADMIN DASHBOARD */}
             {view === 'admin' && isAdmin && (
                 <div className={`max-w-6xl mx-auto px-4 py-32 space-y-16 animate-in fade-in ${darkMode ? 'text-white' : 'text-stone-900'}`}>
-                    <div className={`flex justify-between items-center border-b pb-8 ${darkMode ? 'border-stone-700' : 'border-stone-200/60'}`}><h2 className="text-4xl font-black tracking-tighter">Gestion Atelier</h2><button onClick={() => setView('gallery')} className={`text-[10px] font-black border-2 px-6 py-2 rounded-xl transition-all ${darkMode ? 'border-white hover:bg-white hover:text-stone-900' : 'border-stone-900 hover:bg-stone-900 hover:text-white'}`}>Retour</button></div>
+                    <div className={`flex justify-between items-center border-b pb-8 ${darkMode ? 'border-stone-700' : 'border-stone-200/60'}`}>
+                        <h2 className="text-4xl font-black tracking-tighter">Gestion Atelier</h2>
+                        <button onClick={() => setView('gallery')} className={`text-[10px] font-black border-2 px-6 py-2 rounded-xl transition-all ${darkMode ? 'border-white hover:bg-white hover:text-stone-900' : 'border-stone-900 hover:bg-stone-900 hover:text-white'}`}>Retour</button>
+                    </div>
 
-                    {/* Collection Switcher */}
                     <div className={`flex flex-wrap md:flex-nowrap gap-2 md:gap-4 p-2 md:p-1 border-b md:border-none md:rounded-xl w-full md:w-fit justify-center transition-all shadow-sm md:shadow-none ${darkMode ? 'bg-stone-800 border-stone-700 md:bg-stone-800' : 'bg-[#FAF9F6] border-stone-200/50 md:bg-stone-100'}`}>
                         <button
                             onClick={() => { setAdminCollection('studio'); setEditingItem(null); }}
@@ -182,6 +182,12 @@ const AppRouter = ({
                             Commandes
                         </button>
                         <button
+                            onClick={() => { setAdminCollection('auctions'); setEditingItem(null); }}
+                            className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center justify-center gap-2 ${adminCollection === 'auctions' ? (darkMode ? 'bg-white text-stone-900 border-white md:bg-stone-700 md:text-white md:border-none' : 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
+                        >
+                            <Gavel size={14} className="md:w-3.5" /> Enchères
+                        </button>
+                        <button
                             onClick={() => { setAdminCollection('furniture'); setEditingItem(null); }}
                             className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'furniture' ? (darkMode ? 'bg-white text-stone-900 border-white md:bg-stone-700 md:text-white md:border-none' : 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
                         >
@@ -203,7 +209,6 @@ const AppRouter = ({
                     </div>
 
                     <Suspense fallback={<div className="flex items-center justify-center p-20"><div className="w-10 h-10 border-4 border-stone-200 border-t-stone-800 rounded-full animate-spin"></div></div>}>
-                        {/* CONTENU ADMIN */}
                         {adminCollection === 'dashboard' ? (
                             <AdminDashboard user={user} darkMode={darkMode} />
                         ) : adminCollection === 'homepage' ? (
@@ -211,13 +216,13 @@ const AppRouter = ({
                         ) : adminCollection === 'orders' ? (
                             <AdminOrders darkMode={darkMode} />
                         ) : adminCollection === 'comments' ? (
-
                             <AdminComments darkMode={darkMode} />
+                        ) : adminCollection === 'auctions' ? (
+                            <AdminAuctions darkMode={darkMode} />
                         ) : adminCollection === 'studio' ? (
                             <AdminStudio darkMode={darkMode} />
                         ) : (
                             <>
-                                {/* Formulaire Admin */}
                                 <AdminForm
                                     key={adminCollection}
                                     editData={editingItem}
@@ -225,8 +230,6 @@ const AppRouter = ({
                                     collectionName={adminCollection}
                                     darkMode={darkMode}
                                 />
-
-                                {/* Liste Admin Optimisée */}
                                 <div className="pt-10">
                                     <AdminItemList
                                         collectionName={adminCollection}

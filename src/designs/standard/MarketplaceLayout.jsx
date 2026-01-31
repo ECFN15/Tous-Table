@@ -170,7 +170,7 @@ const MarketplaceLayout = ({
                         items.map((item, index) => (
                             <div
                                 key={item.id}
-                                onClick={() => { if (item.auctionActive && !onLike /* user logic hack if we dont pass user */) onShowLogin(); else onSelectItem(item.id); }}
+                                onClick={() => onSelectItem(item.id)}
                                 className={`group relative flex flex-col cursor-pointer animate-in fade-in slide-in-from-bottom-8 duration-700 fill-mode-backwards transform-gpu`}
                                 style={{
                                     animationDelay: index < 8 ? `${index * 50}ms` : '0ms',
