@@ -1,6 +1,6 @@
 ---
 project_name: "Tous à Table - Atelier Normand"
-last_updated: "2026-01-29"
+last_updated: "2026-01-31"
 description: "Site e-commerce et vitrine pour un atelier d'ébénisterie d'art. Vente de meubles (enchères/achat direct) et planches à découper."
 stack:
   frontend: "React + Vite"
@@ -28,8 +28,8 @@ Le projet a été restructuré pour séparer clairement les responsabilités (Ja
 ### 📂 Source (`src/`)
 *   **`pages/`** : Les Vues Principales (Routes).
     *   `HomeView.jsx` : Page d'accueil (Vitrine, Three.js, GSAP).
-    *   `GalleryView.jsx` : La Marketplace (Catalogue).
-    *   `ProductDetail.jsx` : Fiche produit détaillée (Enchères/Achat).
+    *   `GalleryView.jsx` : La Marketplace (Sharding : dispatche vers layout Standard ou Architectural).
+    *   `ProductDetail.jsx` : Fiche produit (Sharding : dispatche vers `StandardProductDetail` ou `ArchitecturalProductDetail`).
     *   `LoginView.jsx` : Connexion Admin.
     *   `CheckoutView.jsx` : Tunnel de paiement.
 *   **`contexts/`** : Gestion des états globaux.
@@ -43,7 +43,8 @@ Le projet a été restructuré pour séparer clairement les responsabilités (Ja
     *   `AdminHomepage.jsx` : Gestion des images de la page d'accueil.
     *   `AdminStudio.jsx` : Gestion des Thèmes et du Design System en direct.
     *   `components/` : Sous-composants admin (ex: `AdminImageCard.jsx` pour l'upload).
-*   **`components/`** : Briques UI réutilisables (Boutons, Cards, Navbar, etc.).
+*   **`components/`** : Briques UI réutilisables.
+    *   `ErrorBoundary.jsx` : "Coussin de sécurité" global pour intercepter les erreurs de rendu (Ecran blanc).
 *   **`hooks/`** : Logique métier partagée.
     *   `useLiveTheme.js` : Hook central pour la gestion des thèmes dynamiques (Firestore).
     *   `useRealtimeUserLikes.js` : Gestion temps réel des likes.
@@ -65,18 +66,10 @@ Le projet a été restructuré pour séparer clairement les responsabilités (Ja
     *   **Mode Standard** : Si activé, désactive tous les thèmes et utilise le design "original" (hardcoded).
     *   **Mode Forcé** : Pour chaque thème, l'admin peut forcer "Light", "Dark" ou "Auto". Si forcé, le toggle Dark Mode du header disparait pour les utilisateurs afin de garantir la cohérence artistique choisie.
 
-*   **Animations** :
-    *   **GSAP** : Utilisé pour les transitions fluides (ScrollTrigger sur la Home).
-    *   **Preloader "Lumnos"** : Séquence d'intro optimisée pour zéro "Flash" (FOUC). Marteau -> Révélation lettre à lettre -> Sortie rideau immédiate ("Snappy").
-    *   **Three.js** : Objet 3D (Nœud Torus) en fond sur la Home.
-    *   **Lenis** : Smooth Scroll (défilement doux).
-*   **UX Mobile & Badges (Mise à jour Janvier 2026)** :
-    *   **Grille Mobile (2 colonnes)** : Optimisation de l'espace avec des badges réduits (Police 9px, Padding fin) pour ne pas obstruer les photos.
-    *   **Logique de Statut** :
-        *   **Enchère** : Badge Vert à impulsion avec Timer.
-        *   **Vendu** : Badge Rouge "VENDU" (Aussi marqué "RUPTURE" en rouge au niveau du stock).
-        *   **Disponible** : PAS de badge (implicite) pour épurer l'interface, sauf mention "STOCK X" en vert discret en bas de carte.
-        *   **Alignement** : Prix et Stock rigoureusement alignés à droite (`text-right` + `tabular-nums`) pour une symétrie parfaite sur tous les écrans.
+*   **Sharding des Vues (Architecture Hybride - Janvier 2026)** :
+    *   Pour gérer des designs radicalement différents sans "Spaghetti Code", les vues complexes (`GalleryView` et `ProductDetail`) n'utilisent plus de conditions ternaires géantes.
+    *   Elles agissent comme des **Routeurs Internes** qui importent et affichent soit le composant `Standard...` soit le composant `Architectural...` en fonction du `activeDesignId` du thème.
+    *   Cela garantit une **séparation totale** des responsabilités : modifier le design "Architectural" ne cassera jamais le design "Standard".
 
 ---
 
@@ -88,19 +81,13 @@ Le projet a été restructuré pour séparer clairement les responsabilités (Ja
 *   **Export Excel** : Ajout d'une fonctionnalité d'export complète (`xlsx` / SheetJS) générant un fichier `.xlsx` propre avec toutes les données clients et articles, formaté pour la comptabilité.
 
 ### 🖼️ UX Fiche Produit (Navigation)
-*   **Navigation Tactile/Click** : L'image principale est désormais interactive.
-    *   Clic **Gauche** (ou < 50% largeur) : Image précédente.
-    *   Clic **Droit** (ou > 50% largeur) : Image suivante.
-*   **Indicateurs "Pills"** : Remplacement des miniatures par une barre de navigation moderne (traits arrondis) sous l'image pour alléger le design tout en gardant le contexte (Position X/Y).
-*   **Theming Dynamique** : Les blocs "Matières" et "Dimensions" utilisent désormais les tokens du thème (`palette.cardBg`, `palette.switcherBorder`) pour une cohérence parfaite avec le Studio.
+*   **Navigation Tactile/Click** : L'image principale est désormais interactive (Clic Gauche/Droit pour naviguer).
+*   **Indicateurs "Pills"** : Remplacement des miniatures par une barre de navigation moderne (traits arrondis) sous l'image pour alléger le design.
+*   **Theming Dynamique** : Les blocs "Matières" et "Dimensions" utilisent désormais les tokens du thème.
 
 ### 🔎 Admin Listes & Recherche (Architecture Hybride)
 *   **Composant Unifié** : Création de `AdminItemList.jsx` pour gérer uniformément les collections "Mobilier" et "Planches à Découper".
-*   **Stratégie de Chargement Hybride** :
-    *   **Par Défaut (Pagination)** : Charge uniquement les **10 derniers éléments** via l'index `createdAt` pour un affichage instantané.
-    *   **Bouton "Load More"** : Permet de charger les **50 suivants** à la demande.
-    *   **Mode Recherche "Active Load"** : Dès que l'admin tape une recherche, le système charge **tout le catalogue** de la collection en une fois (optimisé pour < 2000 items) et bascule en filtrage client-side.
-*   **Avantage** : Cela permet une **recherche floue ("Fuzzy") et multi-termes** (ex: "Table chene" trouve "Grande Table en Chêne") sans dépendre d'un moteur de recherche tiers payant (Algolia/Typesense), tout en gardant les coûts Firebase au minimum pour la navigation standard.
+*   **Stratégie de Chargement Hybride** : Recherche Fuzzy client-side sur le catalogue complet, mais affichage paginé par défaut pour la performance.
 
 ---
 
@@ -152,32 +139,20 @@ Pour mettre le site en ligne sur **https://tatmadeinnormandie.web.app** :
 
 ## 🛠️ 6. Solutions Techniques & Troubleshooting (Important)
 
-### 📧 Problème : Emails non envoyés (Confirmation commande / Admin)
-**Symptôme** : Les commandes passent mais aucun mail n'est reçu (ni client, ni admin). L'outil "Diagnostics Système" du Dashboard Admin affiche une erreur `535 5.7.8 Username and Password not accepted`.
-**Cause** : Le "Mot de passe d'application" Google du compte émetteur (`functions/.env`) a expiré ou a été révoqué par sécurité.
-**Solution** :
-1.  Aller sur [Google App Passwords](https://myaccount.google.com/apppasswords) avec le compte `matthis.fradin2@gmail.com`.
-2.  Supprimer l'ancien mot de passe et en générer un nouveau (Nom: "Firebase").
-3.  Mettre à jour `functions/.env` : `GMAIL_PASSWORD="votre-nouveau-code-16-caracteres"`.
-4.  Redéployer : `firebase deploy --only functions`.
-5.  Valider via le bouton "Diagnostics" du Dashboard Admin.
+### 🚨 "Firestore Internal Assertion Failed: Unexpected state" (Ecran Blanc)
+**Symptôme** : L'application plante aléatoirement en mode développement (`npm run dev`) avec un message d'erreur rouge concernant Firestore et un état inattendu.
+**Cause** : Conflit entre `React.StrictMode` (qui double le montage des composants) et les listeners Temps Réel de Firestore. La connexion est établie/coupée trop vite, corrompant l'état interne du SDK. De plus, les listeners de données publiques étaient recréés à chaque changement d'état utilisateur.
+**Solution Appliquée** :
+1.  **Désactivation du Strict Mode** : Retrait de `<React.StrictMode>` dans `main.jsx`.
+2.  **Split useEffect** : Séparation dans `App.jsx` des listeners de données publiques (dépendances vides `[]`) et de la logique utilisateur (dépendances `[user]`).
+3.  **ErrorBoundary** : Ajout d'un composant global `ErrorBoundary.jsx` pour capturer ces plantages et afficher un bouton "Recharger" au lieu d'un écran blanc mortel.
+
+### 📧 Problème : Emails non envoyés
+**Solution** : Regénérer le "Mot de passe d'application" Google et mettre à jour `functions/.env`.
 
 ### 🖥️ Artefacts de rendu (Lignes clignotantes / Flickering)
-**Problème rencontré** : Sur le Dashboard et le Studio, des lignes blanches fines ou des scintillements apparaissaient lors du survol des cartes en Dark Mode.
-**Cause** : Conflit de rendu "Sub-pixel" entre les bordures classiques (`border`) et les translations CSS (`translate-y`) sur des éléments non accélérés par le GPU.
-**Solution Appliquée** :
-1.  **Remplacer `border` par `ring`** : Utiliser `ring-1 ring-inset` (box-shadow) au lieu de `border` pour éviter les recalculs de géométrie.
-2.  **Hardware Acceleration** : Ajouter les classes `transform-gpu backface-hidden will-change-transform` sur les conteneurs animés.
-3.  **Éviter `translate`** : Préférer `hover:scale` (zoom) à `hover:translate` (déplacement) pour les interactions, car le scaling est mieux géré par le compositeur GPU.
-4.  **Overflow** : Ajouter `overflow-hidden` sur les cartes arrondies pour "clipper" les artefacts de bordure.
-
-### 🐛 Écran Blanc sur Fiche Produit (Enchères)
-**Symptôme** : Crash total de l'application (Ecran blanc) lors du clic sur un meuble en enchère.
-**Causes Identifiées** :
-1.  **React Hook Ordering** : Une condition de sortie `if (!item) return` était placée *avant* les Hooks (`useMemo`, `useEffect`). En React, les Hooks doivent toujours être exécutés dans le même ordre. Si le produit n'était pas chargé, le `return` empêchait les Hooks suivants de s'exécuter, causant une erreur fatale au rendu suivant.
-2.  **Variable d'État Manquante** : Le composant utilisait `setForceWinnerCheck` (pour l'actualisation fin d'enchère) sans l'avoir définie via `useState`.
-**Correctif** : Restructuration complète de `ProductDetail.jsx` pour déclarer tous les Hooks en premier (avec des sécurités internes) et ajout de la variable d'état manquante.
+**Solution** : Remplacer `border` par `ring` (box-shadow) et ajouter `will-change-transform` pour forcer l'accélération GPU lors des animations d'échelle.
 
 ---
 
-*Dernière mise à jour par l'IA : Session du 29/01/2026. Ajout Pagination Admin, Export Excel, UX Produit, Recherche Hybride & Tuning Preloader.*
+*Dernière mise à jour par l'IA : Session du 31/01/2026. Sharding Vues, ErrorBoundary, Fix Firestore Dev Mode.*

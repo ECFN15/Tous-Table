@@ -50,7 +50,8 @@ const AppRouter = ({
     editingItem,
     setEditingItem,
     onOpenMenu, // New trigger
-    onOpenCart  // New trigger
+    onOpenCart,  // New trigger
+    toggleTheme // New trigger
 }) => {
     const { user, isAdmin } = useAuth();
 
@@ -92,6 +93,7 @@ const AppRouter = ({
                         darkMode={darkMode}
                         onOpenMenu={onOpenMenu}
                         onOpenCart={onOpenCart}
+                        toggleTheme={toggleTheme}
                     />
                 </div>
             )}
@@ -114,6 +116,7 @@ const AppRouter = ({
                         onOpenMenu={onOpenMenu}
                         onOpenCart={onOpenCart}
                         onShowLogin={() => setShowFullLogin(true)}
+                        toggleTheme={toggleTheme}
                     />
                 </div>
             )}

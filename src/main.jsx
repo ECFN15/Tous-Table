@@ -14,10 +14,8 @@ if (!rootElement) {
 } else {
   // Ce fichier fait le lien entre ton code React et ta page HTML
   ReactDOM.createRoot(rootElement).render(
-    <React.StrictMode>
-      <HelmetProvider>
-        <App />
-      </HelmetProvider>
-    </React.StrictMode>
+    <HelmetProvider>
+      <App />
+    </HelmetProvider>
   );
 }

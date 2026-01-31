@@ -89,6 +89,12 @@ const AdminStudio = ({ darkMode }) => {
         saveSettings(false, themeId, mode, 'standard');
     };
 
+    const handleForceModeCollection = (e, designId, mode) => {
+        e.stopPropagation();
+        setActiveForcedMode(mode);
+        saveSettings(activeStandard, activeThemeIdLocal, mode, designId);
+    };
+
     return (
         <div className={`space-y-8 animate-in fade-in ${darkMode ? 'text-white' : 'text-stone-900'}`}>
 
@@ -265,6 +271,13 @@ const AdminStudio = ({ darkMode }) => {
                                         <span className="flex items-center gap-1"><Check size={10} /> Minimaliste</span>
                                         <span className="flex items-center gap-1"><Check size={10} /> Editorial</span>
                                         <span className="flex items-center gap-1"><Check size={10} /> Responsive</span>
+                                    </div>
+
+                                    {/* Force Mode Controls for Architectural */}
+                                    <div className={`mt-6 flex items-center justify-between gap-2 p-1 rounded-xl transition-all duration-300 ${activeDesignId === 'architectural' ? 'opacity-100' : 'opacity-40 group-hover:opacity-100'} ${darkMode ? 'bg-stone-950/50' : 'bg-stone-50'}`}>
+                                        <button onClick={(e) => handleForceModeCollection(e, 'architectural', 'light')} className={`flex-1 py-1.5 rounded-lg flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-wider ${activeDesignId === 'architectural' && activeForcedMode === 'light' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-400'}`}><Sun size={12} /> Light</button>
+                                        <button onClick={(e) => handleForceModeCollection(e, 'architectural', 'auto')} className={`flex-1 py-1.5 rounded-lg flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-wider ${activeDesignId === 'architectural' && activeForcedMode === 'auto' ? (darkMode ? 'bg-stone-700 text-white' : 'bg-white text-stone-900 shadow-sm') : 'text-stone-400'}`}><Smartphone size={12} /> Auto</button>
+                                        <button onClick={(e) => handleForceModeCollection(e, 'architectural', 'dark')} className={`flex-1 py-1.5 rounded-lg flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-wider ${activeDesignId === 'architectural' && activeForcedMode === 'dark' ? 'bg-stone-800 text-white shadow-sm' : 'text-stone-400'}`}><Moon size={12} /> Dark</button>
                                     </div>
                                 </div>
                             </div>

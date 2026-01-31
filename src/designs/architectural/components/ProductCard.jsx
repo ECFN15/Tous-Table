@@ -26,7 +26,7 @@ const ProductCard = ({
         <div className={`group relative flex flex-col gap-6 w-full cursor-pointer ${layoutMode === 'list' ? 'flex-row items-center gap-12 border-b border-stone-200 dark:border-stone-800 pb-12' : ''}`}>
 
             {/* 1. VISUAL BLOCK */}
-            <div className={`relative bg-[#F0EFEC] dark:bg-[#1A1A1A] overflow-hidden ${layoutMode === 'list' ? 'w-1/3 aspect-[4/3]' : 'w-full aspect-[3/4]'} ${isBig ? 'md:aspect-[16/10]' : ''}`}>
+            <div className={`relative bg-white dark:bg-[#1A1A1A] overflow-hidden ${layoutMode === 'list' ? 'w-1/3 aspect-[4/3]' : 'w-full aspect-[3/4]'} ${isBig ? 'md:aspect-[16/10]' : ''}`}>
                 <img
                     src={item.thumbnailUrl || item.thumbnails?.[0] || item.images?.[0] || item.imageUrl}
                     alt={item.name}
@@ -71,7 +71,7 @@ const ProductCard = ({
                 {/* META */}
                 <div className="flex justify-between items-baseline opacity-50 dark:opacity-40 text-[9px] font-black uppercase tracking-widest">
                     <span>{item.material || 'Matière Inconnue'}</span>
-                    <span>Ref. {item.id ? item.id.substring(0, 6).toUpperCase() : '---'}</span>
+                    <span>{item.sold ? 'Stock: 0' : `Stock: ${item.stock !== undefined ? item.stock : 1}`}</span>
                 </div>
 
                 {/* TITLE & PRICE */}

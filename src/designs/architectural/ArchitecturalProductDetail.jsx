@@ -12,7 +12,7 @@ import ArchitecturalHeader from './components/ArchitecturalHeader';
 
 const placeBidFunction = httpsCallable(functions, 'placeBid');
 
-const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, onOpenMenu, onOpenCart, onShowLogin }) => {
+const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, onOpenMenu, onOpenCart, onShowLogin, toggleTheme, darkMode }) => {
     const { palette, activeDesignId } = useLiveTheme();
     const [activeImg, setActiveImg] = useState(0);
     const [bidLoading, setBidLoading] = useState(false);
@@ -143,13 +143,15 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
 
     // --- RENDER ARCHITECTURAL ---
     return (
-        <div className="min-h-screen transition-colors duration-500 animate-in fade-in bg-[#f5f5f5] dark:bg-[#0A0A0A] text-stone-900 dark:text-stone-200">
+        <div className={`min-h-screen transition-colors duration-500 animate-in fade-in ${darkMode ? 'bg-[#0A0A0A] text-stone-200' : 'bg-[#FAFAF9] text-stone-900'}`}>
 
             <ArchitecturalHeader
                 user={user}
                 onShowLogin={onShowLogin}
                 onOpenMenu={onOpenMenu}
                 onOpenCart={onOpenCart}
+                toggleTheme={toggleTheme}
+                darkMode={darkMode}
             />
 
             <div className="max-w-[1920px] mx-auto px-6 md:px-12 pb-20 pt-8">
@@ -211,18 +213,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
                                 <span className="px-3 py-1 text-[9px] font-black uppercase tracking-widest border border-stone-200 dark:border-stone-800 bg-transparent text-stone-500">Lot n°{item.id.substring(0, 4)}</span>
                             </div>
                             <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-none font-serif font-normal italic">{item.name}</h1>
-                            <div className="flex flex-wrap items-center gap-6 pt-2">
-                                <button onClick={handleLike} className="flex items-center gap-2 transition-colors hover:opacity-100 opacity-60">
-                                    <Heart size={16} className={isLiked ? "fill-current text-red-500" : ""} />
-                                    <span className="text-xs font-bold">{item.likeCount || 0} Likes</span>
-                                </button>
-                                <button onClick={() => onShowComments(item)} className="flex items-center gap-2 transition-colors hover:opacity-100 opacity-60">
-                                    <MessageCircle size={16} /> <span className="text-xs font-bold">{item.commentCount || 0} Avis</span>
-                                </button>
-                                <button onClick={handleShare} className="flex items-center gap-2 transition-colors hover:opacity-100 opacity-60">
-                                    <Share2 size={16} /> <span className="text-xs font-bold">Partager</span>
-                                </button>
-                            </div>
+
                         </div>
 
                         {/* Description (Scrollable) */}

@@ -53,7 +53,7 @@ const ProductCard = ({
                     `}
                     sizes="(max-width: 768px) 90vw, (max-width: 1200px) 33vw, 25vw"
                     alt={item.name}
-                    className="w-full h-full object-cover transform-gpu transition-transform duration-700 ease-out group-hover:scale-110"
+                    className="w-full h-full object-cover"
                     loading="lazy"
                     decoding="async"
                 />

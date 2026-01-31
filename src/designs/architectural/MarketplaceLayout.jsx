@@ -17,7 +17,9 @@ const MarketplaceLayout = ({
     headerProps,
     user,
     onOpenMenu, // GLOBAL MENU TRIGGER
-    onOpenCart  // GLOBAL CART TRIGGER
+    onOpenCart,  // GLOBAL CART TRIGGER
+    toggleTheme, // Global Theme Toggle
+    darkMode // Explicit state
 }) => {
     // Déstructuration des props de header
     const { activeCollection, setActiveCollection, filter, setFilter } = headerProps || {};
@@ -29,7 +31,7 @@ const MarketplaceLayout = ({
     };
 
     return (
-        <div className="w-full min-h-screen bg-[#FAFAF9] dark:bg-[#0A0A0A] text-stone-900 dark:text-stone-200 transition-colors duration-700 selection:bg-stone-300 selection:text-black">
+        <div className={`w-full min-h-screen transition-colors duration-700 selection:bg-stone-300 selection:text-black ${darkMode ? 'bg-[#0A0A0A] text-stone-200' : 'bg-[#FAFAF9] text-stone-900'}`}>
 
             {/* --- HEADER INTÉGRÉ (VIA COMPONENT) --- */}
             <ArchitecturalHeader
@@ -39,6 +41,8 @@ const MarketplaceLayout = ({
                 onOpenMenu={onOpenMenu}
                 onOpenCart={onOpenCart}
                 wishlistCount={wishlistCount}
+                toggleTheme={toggleTheme}
+                darkMode={darkMode} // Pass explicit state
             />
 
             {/* --- MAIN CONTENT --- */}
@@ -46,10 +50,10 @@ const MarketplaceLayout = ({
 
                 {/* HERO TITLE */}
                 <div className="mb-24 flex flex-col items-center text-center gap-6 max-w-4xl mx-auto">
-                    <span className="text-[10px] uppercase font-bold tracking-[0.4em] text-stone-400">
+                    <span className={`text-[10px] uppercase font-bold tracking-[0.4em] ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
                         Collection 2026
                     </span>
-                    <h2 className="font-serif text-5xl md:text-7xl lg:text-8xl text-stone-900 dark:text-stone-100 leading-[0.9]">
+                    <h2 className={`font-serif text-5xl md:text-7xl lg:text-8xl leading-[0.9] ${darkMode ? 'text-stone-100' : 'text-stone-900'}`}>
                         {activeCollection === 'furniture' ? 'L\'Élégance du Temps.' : 'L\'Art de la Table.'}
                     </h2>
                 </div>

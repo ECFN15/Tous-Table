@@ -7,7 +7,7 @@ import ArchitecturalLayout from '../designs/architectural/MarketplaceLayout';
 
 const SEO = React.lazy(() => import('../components/SEO'));
 
-const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, onSelectItem, onShowLogin, onShowComments, darkMode = false, onOpenMenu, onOpenCart }) => {
+const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, onSelectItem, onShowLogin, onShowComments, darkMode = false, onOpenMenu, onOpenCart, toggleTheme }) => {
     const [filter, setFilter] = useState('fixed');
     const [activeCollection, setActiveCollection] = useState('furniture'); // 'furniture' | 'cutting_boards'
     const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list'
@@ -66,6 +66,7 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                 user={user}
                 onOpenMenu={onOpenMenu}
                 onOpenCart={onOpenCart}
+                toggleTheme={toggleTheme}
                 headerProps={{
                     activeCollection,
                     setActiveCollection,

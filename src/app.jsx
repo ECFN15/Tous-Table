@@ -15,6 +15,7 @@ import { useLiveTheme } from './hooks/useLiveTheme'; // Import hook for forcedMo
 
 // --- IMPORTS VUES ---
 import AppRouter from './Router';
+import ErrorBoundary from './components/ErrorBoundary';
 
 import CartSidebar from './components/CartSidebar';
 // Other imports removed or moved to Router
@@ -145,20 +146,28 @@ const AppContent = () => {
   }, [lastScrollY]);
 
   // --- CHARGEMENT ---
+  // --- CHARGEMENT DONNÉES PUBLIQUES (Stable) ---
   useEffect(() => {
     // 1. Meubles (Données)
     const unsubData = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'furniture'), (snap) => {
       setItems(snap.docs.map(d => ({ id: d.id, collectionName: 'furniture', ...d.data() })).sort((a, b) => getMillis(b.createdAt) - getMillis(a.createdAt)));
+    }, (error) => {
+      console.error("Erreur lecture meubles:", error);
     });
 
     // 2. Planches (Données)
     const unsubBoards = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'cutting_boards'), (snap) => {
       setBoardItems(snap.docs.map(d => ({ id: d.id, collectionName: 'cutting_boards', ...d.data() })).sort((a, b) => getMillis(b.createdAt) - getMillis(a.createdAt)));
+    }, (error) => {
+      console.error("Erreur lecture planches:", error);
     });
 
-    // 3. Auth Listener (Removed - Handled by AuthProvider)
+    return () => { unsubData(); unsubBoards(); };
+  }, []); // Dépendances vides pour éviter le re-subscribe fréquent
 
-    // Logic dependent on user/auth state (moved from auth listener)
+  // --- LOGIQUE ROUTING & AUTH (Dépend du User) ---
+  useEffect(() => {
+    // Logic dependent on user/auth state
     const params = new URLSearchParams(window.location.search);
     const productId = params.get('product');
     const hash = window.location.hash.replace('#', '');
@@ -208,7 +217,6 @@ const AppContent = () => {
     }
     setLoading(false);
 
-    return () => { unsubData(); unsubBoards(); };
   }, [user, isAdmin]); // Re-run when auth state changes
 
   // --- PERSISTANCE NAVIGATION (HASH) ---
@@ -658,6 +666,7 @@ const AppContent = () => {
           setEditingItem={setEditingItem}
           onOpenMenu={() => setIsMenuOpen(true)}
           onOpenCart={() => { setCartInteracted(true); setIsCartOpen(true); }}
+          toggleTheme={() => setDarkMode(!darkMode)}
         />
       </main>
     </div>
@@ -668,7 +677,9 @@ const AppContent = () => {
 export default function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <ErrorBoundary>
+        <AppContent />
+      </ErrorBoundary>
     </AuthProvider>
   );
 }

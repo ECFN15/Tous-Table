@@ -182,7 +182,7 @@ const StandardProductDetail = ({ item, user, onBack, onAddToCart, onShowComments
                                     setActiveImg(prev => prev === images.length - 1 ? 0 : prev + 1);
                                 }
                             }}>
-                            <img src={images[activeImg]} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt={item.name} />
+                            <img src={images[activeImg]} className="w-full h-full object-cover" alt={item.name} />
 
                             {/* Nav Arrows */}
                             {images.length > 1 && (
