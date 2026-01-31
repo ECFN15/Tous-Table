@@ -1,3 +1,4 @@
+import React, { useState, useEffect, useMemo } from 'react';
 import { ChevronLeft, Box, Heart, MessageCircle, Share2, ArrowRight, Trophy, Zap, Clock } from 'lucide-react';
 import { db, appId, functions } from '../../firebase/config';
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
@@ -63,17 +64,24 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
     const isAuctionOver = item?.auctionActive && getMillis(item.auctionEnd) < Date.now();
     const isWinner = isAuctionOver && user && item?.lastBidderId === user.uid;
 
-    if (!item) return (
-        <div className="min-h-[60vh] flex flex-col items-center justify-center gap-6 pt-32 text-center animate-in fade-in duration-500">
-            <div className="p-6 rounded-full bg-stone-100 mb-4 animate-pulse">
-                <Box size={40} className="text-stone-400" />
-            </div>
-            <div className="space-y-2">
-                <h2 className="text-xl md:text-2xl font-black uppercase tracking-widest">Produit Introuvable</h2>
-            </div>
-            <button onClick={onBack} className="px-8 py-3 bg-stone-900 text-white uppercase tracking-widest text-xs font-bold">Retour</button>
-        </div>
-    );
+    const productSchema = useMemo(() => {
+        if (!item) return null;
+        return {
+            "@context": "https://schema.org/",
+            "@type": "Product",
+            "name": item.name,
+            "image": images,
+            "description": item.description,
+            "brand": { "@type": "Brand", "name": "Tous à Table - Atelier Normand" },
+            "offers": {
+                "@type": "Offer",
+                "url": `${window.location.origin}/?product=${item.id}`,
+                "priceCurrency": "EUR",
+                "price": item.currentPrice || item.startingPrice,
+                "availability": !item.sold ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+            }
+        };
+    }, [item, images]);
 
     const handleQuickBid = async (inc) => {
         if (bidLoading) return;
@@ -122,24 +130,20 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
         } catch (e) { }
     };
 
-    // SEO
-    const productSchema = useMemo(() => {
-        return {
-            "@context": "https://schema.org/",
-            "@type": "Product",
-            "name": item.name,
-            "image": images,
-            "description": item.description,
-            "brand": { "@type": "Brand", "name": "Tous à Table - Atelier Normand" },
-            "offers": {
-                "@type": "Offer",
-                "url": `${window.location.origin}/?product=${item.id}`,
-                "priceCurrency": "EUR",
-                "price": item.currentPrice || item.startingPrice,
-                "availability": !item.sold ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-            }
-        };
-    }, [item, images]);
+
+
+
+    if (!item) return (
+        <div className="min-h-[60vh] flex flex-col items-center justify-center gap-6 pt-32 text-center animate-in fade-in duration-500">
+            <div className="p-6 rounded-full bg-stone-100 mb-4 animate-pulse">
+                <Box size={40} className="text-stone-400" />
+            </div>
+            <div className="space-y-2">
+                <h2 className="text-xl md:text-2xl font-black uppercase tracking-widest">Produit Introuvable</h2>
+            </div>
+            <button onClick={onBack} className="px-8 py-3 bg-stone-900 text-white uppercase tracking-widest text-xs font-bold">Retour</button>
+        </div>
+    );
 
     // --- RENDER ARCHITECTURAL ---
     return (
