@@ -564,8 +564,8 @@ const AppContent = () => {
         </div>
       )}
 
-      {/* --- NAVBAR GLOBALE (Masquée UNIQUEMENT sur la Galerie Architectural) --- */}
-      {view !== 'home' && !(activeDesignId === 'architectural' && view === 'gallery') && (
+      {/* --- NAVBAR GLOBALE (Masquée sur la Galerie ET Détail en Architecture) --- */}
+      {view !== 'home' && !(activeDesignId === 'architectural' && (view === 'gallery' || view === 'detail')) && (
         <nav className={`fixed top-0 left-0 right-0 z-[100] px-3 md:px-12 py-3 md:py-8 flex justify-between items-center transition-all duration-500 ease-in-out ${isHeaderVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}>
           <div className="flex items-center gap-1.5 md:gap-3 cursor-pointer group" onClick={() => { window.hasShownPreloader = true; setView('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
             <div className={`w-[28px] h-[28px] md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center backdrop-blur-2xl border transition-all group-hover:rotate-6 ${darkMode ? 'bg-white/10 border-white/20 text-white' : 'bg-white/90 border-[#1a0f0a]/10 text-[#1a0f0a]'}`}>

@@ -111,6 +111,9 @@ const AppRouter = ({
                             setIsCommentModalOpen(true);
                         }}
                         darkMode={darkMode}
+                        onOpenMenu={onOpenMenu}
+                        onOpenCart={onOpenCart}
+                        onShowLogin={() => setShowFullLogin(true)}
                     />
                 </div>
             )}

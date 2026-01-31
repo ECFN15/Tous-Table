@@ -263,10 +263,10 @@ img {
 }
 
 /* Dark mode specific overrides for scrollbar if needed */
-.dark-mode .custom-scrollbar::-webkit-scrollbar-thumb {
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: rgba(168, 162, 158, 0.2);
 }
 
-.dark-mode .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: rgba(168, 162, 158, 0.4);
 }

@@ -12,8 +12,9 @@ const placeBidFunction = httpsCallable(functions, 'placeBid');
 
 import { useRealtimeUserLikes } from '../hooks/useRealtimeUserLikes'; // Import
 import { useLiveTheme } from '../hooks/useLiveTheme';
+import ArchitecturalHeader from '../designs/architectural/components/ArchitecturalHeader'; // Import Arch Header
 
-const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMode }) => {
+const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMode, onOpenMenu, onOpenCart, onShowLogin }) => {
   const { palette, isStandardMode, activeDesignId } = useLiveTheme(darkMode); // Add activeDesignId
   const [activeImg, setActiveImg] = useState(0);
   const [bidLoading, setBidLoading] = useState(false);
@@ -177,7 +178,18 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMo
         color: palette.textBody
       } : {}}
     >
-      <div className="max-w-[1920px] mx-auto pt-24 md:pt-32 px-6 md:px-12 pb-20">
+      {/* ARCHITECTURAL HEADER (Only if Architectural Theme) */}
+      {isArch && (
+        <ArchitecturalHeader
+          user={user}
+          onShowLogin={onShowLogin}
+          onOpenMenu={onOpenMenu}
+          onOpenCart={onOpenCart}
+        // wishlistCount usually comes from layout, might be missing here unless passed or context used.
+        />
+      )}
+
+      <div className={`max-w-[1920px] mx-auto px-6 md:px-12 pb-20 ${isArch ? 'pt-8' : 'pt-24 md:pt-32'}`}>
         <React.Suspense fallback={null}>
           <SEO
             title={`${item.name} - Tous à Table`}
@@ -197,7 +209,8 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMo
         <div className="grid md:grid-cols-2 gap-12 lg:gap-24" style={!isArch ? { color: palette.textBody } : {}}>
           {/* Colonne Gauche: Images & Story */}
           <div className="space-y-8 sticky top-32 h-fit">
-            <div className={`aspect-square overflow-hidden relative transform-gpu backface-hidden group cursor-pointer ${isArch ? 'rounded-none' : 'ring-1 ring-inset rounded-2xl'}`}
+            <div className={`transform-gpu backface-hidden group cursor-pointer 
+                 ${isArch ? 'w-full max-h-[65vh] flex items-center justify-center rounded-none bg-[#f5f5f5] dark:bg-[#111]' : 'aspect-square overflow-hidden relative ring-1 ring-inset rounded-2xl'}`}
               style={!isArch ? { backgroundColor: palette.cardBg, '--tw-ring-color': palette.switcherBorder, borderRadius: palette.borderRadius, boxShadow: palette.cardShadow } : {}}
               onClick={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
@@ -208,7 +221,7 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMo
                   setActiveImg(prev => prev === images.length - 1 ? 0 : prev + 1);
                 }
               }}>
-              <img src={images[activeImg]} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt={item.name} />
+              <img src={images[activeImg]} className={`transition-transform duration-700 group-hover:scale-105 ${!isArch ? 'w-full h-full object-cover' : 'max-w-full max-h-[65vh] object-contain p-6'}`} alt={item.name} />
 
               {/* Hover Navigation Arrows */}
               {images.length > 1 && (
@@ -239,14 +252,14 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMo
           </div>
 
           {/* Colonne Droite: Actions & Stats */}
-          <div className="space-y-10 px-1 py-4">
+          <div className="space-y-3 px-1 py-1">
 
             {/* Header Product */}
             <div className="space-y-4">
               <div className="flex gap-2">
                 <span className={`px-3 py-1 text-[9px] font-black uppercase tracking-widest border ${isArch ? 'border-stone-200 dark:border-stone-800 bg-transparent text-stone-500' : 'rounded-full'}`} style={!isArch ? { backgroundColor: `${palette.accent}20`, borderColor: `${palette.accent}40`, color: palette.accent } : {}}>Lot n°{item.id.substring(0, 4)}</span>
               </div>
-              <h1 className={`text-4xl md:text-6xl font-black tracking-tighter leading-none ${isArch ? 'font-serif font-normal italic' : ''}`} style={!isArch ? { color: palette.textTitle } : {}}>{item.name}</h1>
+              <h1 className={`text-4xl md:text-5xl font-black tracking-tighter leading-none ${isArch ? 'font-serif font-normal italic' : ''}`} style={!isArch ? { color: palette.textTitle } : {}}>{item.name}</h1>
 
               <div className="flex flex-wrap items-center gap-6 pt-2">
                 <button onClick={handleLike} className="flex items-center gap-2 transition-colors group/stat hover:opacity-80 opacity-60 hover:opacity-100">
@@ -265,14 +278,16 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMo
             </div>
 
             {/* Description */}
-            <div className={`p-8 ${isArch ? 'border-l pl-8 border-stone-200 dark:border-stone-800 p-0' : 'ring-1 ring-inset rounded-2xl'}`} style={!isArch ? { backgroundColor: palette.cardBg, '--tw-ring-color': palette.switcherBorder, borderRadius: palette.borderRadius, boxShadow: palette.cardShadow } : {}}>
-              <p className="text-lg leading-relaxed font-light opacity-80 whitespace-pre-wrap">
+            <div className={`p-8 ${isArch ? 'border-l pl-8 border-stone-200 dark:border-stone-800 p-0 max-h-[200px] overflow-y-auto custom-scrollbar pr-4' : 'ring-1 ring-inset rounded-2xl'}`} style={!isArch ? { backgroundColor: palette.cardBg, '--tw-ring-color': palette.switcherBorder, borderRadius: palette.borderRadius, boxShadow: palette.cardShadow } : {}}>
+              <p className={`whitespace-pre-wrap ${isArch ? 'font-serif text-lg leading-loose text-stone-600 dark:text-stone-400' : 'text-lg leading-relaxed font-light opacity-80'}`}>
                 {item.description}
               </p>
             </div>
 
+
+
             {/* Price & Action */}
-            <div className={`p-8 ${isArch ? 'bg-transparent border-t border-b border-stone-200 dark:border-stone-800' : 'ring-1 ring-inset rounded-2xl overflow-hidden'}`}
+            <div className={`p-6 ${isArch ? 'bg-transparent border-t border-b border-stone-200 dark:border-stone-800' : 'ring-1 ring-inset rounded-2xl overflow-hidden'}`}
               style={!isArch ? {
                 backgroundColor: palette.cardBg,
                 '--tw-ring-color': isWinner ? palette.accent : palette.switcherBorder,
@@ -312,27 +327,27 @@ const ProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, darkMo
                 </button>
               ) : (
                 <div className="text-center py-4 bg-stone-50 rounded-none border border-stone-200 text-stone-400">
-                  <span className="font-serif italic">Vente terminée</span>
+                  <span className="font-serif italic">Vente terminée [Fin Enchère]</span>
                 </div>
               )}
             </div>
 
             {/* Specifications */}
-            <div className="grid grid-cols-2 gap-8 pt-4">
+            <div className="grid grid-cols-2 gap-8 pt-2 pl-6 opacity-80">
               <div>
-                <p className="text-[9px] font-black uppercase tracking-widest mb-2 opacity-50">Matières</p>
-                <p className="text-sm font-medium">{item.material || "Non spécifié"}</p>
+                <p className="text-[9px] font-black uppercase tracking-widest mb-1 opacity-50">Matières</p>
+                <p className="text-xs font-bold">{item.material || "Non spécifié"}</p>
               </div>
               <div>
-                <p className="text-[9px] font-black uppercase tracking-widest mb-2 opacity-50">Dimensions</p>
-                <p className="text-sm font-medium font-mono opacity-80">{item.width ? `${item.width} x ${item.depth} x ${item.height} cm` : item.dimensions}</p>
+                <p className="text-[9px] font-black uppercase tracking-widest mb-1 opacity-50">Dimensions</p>
+                <p className="font-mono text-xs">{item.width ? `${item.width} x ${item.depth} x ${item.height} cm` : item.dimensions}</p>
               </div>
             </div>
 
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 
