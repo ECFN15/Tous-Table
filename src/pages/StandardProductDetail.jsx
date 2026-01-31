@@ -150,7 +150,7 @@ const StandardProductDetail = ({ item, user, onBack, onAddToCart, onShowComments
                 color: palette.textBody
             } : {}}
         >
-            <div className="max-w-[1920px] mx-auto px-6 md:px-12 pb-20 pt-24 md:pt-32">
+            <div className="max-w-[1920px] mx-auto px-6 md:px-12 pb-12 pt-24 md:pt-32">
                 <React.Suspense fallback={null}>
                     <SEO
                         title={`${item.name} - Tous à Table`}
@@ -163,15 +163,16 @@ const StandardProductDetail = ({ item, user, onBack, onAddToCart, onShowComments
 
                 {isWinner && <ConfettiRain />}
 
-                <button onClick={onBack} className="mb-8 flex items-center gap-2 font-bold text-[10px] uppercase tracking-widest transition-colors" style={{ color: palette.textSubtitle }}>
+                <button onClick={onBack} className="mb-4 flex items-center gap-2 font-bold text-[10px] uppercase tracking-widest transition-colors" style={{ color: palette.textSubtitle }}>
                     <ChevronLeft size={14} /> Retour collection
                 </button>
 
-                <div className="grid md:grid-cols-2 gap-12 lg:gap-24" style={{ color: palette.textBody }}>
-                    {/* Left Column: Images (Square, Rounded) */}
-                    <div className="space-y-8 sticky top-32 h-fit">
-                        <div className="aspect-square overflow-hidden relative ring-1 ring-inset rounded-2xl group cursor-pointer"
-                            style={{ backgroundColor: palette.cardBg, '--tw-ring-color': palette.switcherBorder, borderRadius: palette.borderRadius, boxShadow: palette.cardShadow }}
+                <div className="grid md:grid-cols-2 gap-8 lg:gap-16 items-stretch" style={{ color: palette.textBody }}>
+                    {/* Left Column: Images (Strictly follows Right Column Height) */}
+                    <div className="relative w-full h-auto min-h-[500px] rounded-2xl overflow-hidden shadow-sm"
+                        style={{ backgroundColor: palette.cardBg, borderRadius: palette.borderRadius, boxShadow: palette.cardShadow }}>
+
+                        <div className="absolute inset-0 group cursor-pointer"
                             onClick={(e) => {
                                 // Image Nav Logic
                                 const rect = e.currentTarget.getBoundingClientRect();
@@ -182,7 +183,7 @@ const StandardProductDetail = ({ item, user, onBack, onAddToCart, onShowComments
                                     setActiveImg(prev => prev === images.length - 1 ? 0 : prev + 1);
                                 }
                             }}>
-                            <img src={images[activeImg]} className="w-full h-full object-cover" alt={item.name} />
+                            <img src={images[activeImg]} className="w-full h-full object-cover object-center" alt={item.name} />
 
                             {/* Nav Arrows */}
                             {images.length > 1 && (
@@ -193,26 +194,26 @@ const StandardProductDetail = ({ item, user, onBack, onAddToCart, onShowComments
                             )}
                         </div>
 
-                        {/* Pager */}
+                        {/* Pager (Floating at bottom of image) */}
                         {images.length > 1 && (
-                            <div className="flex justify-center gap-2 mt-4">
+                            <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-2 z-10">
                                 {images.map((_, idx) => (
-                                    <button key={idx} onClick={() => setActiveImg(idx)} className={`h-0.5 transition-all duration-300 ${activeImg === idx ? 'w-8 bg-black dark:bg-white' : 'w-4 bg-stone-300 dark:bg-stone-700'}`} />
+                                    <button key={idx} onClick={(e) => { e.stopPropagation(); setActiveImg(idx); }} className={`h-1 rounded-full shadow-sm transition-all duration-300 ${activeImg === idx ? 'w-8 bg-white' : 'w-2 bg-white/50 hover:bg-white/80'}`} />
                                 ))}
                             </div>
                         )}
                     </div>
 
-                    {/* Right Column: Content */}
-                    <div className="space-y-8 px-1 py-1">
+                    {/* Right Column: Content (Drivers the Height) */}
+                    <div className="flex flex-col h-full px-1 py-1 min-h-[500px]">
                         {/* Header */}
-                        <div className="space-y-4">
+                        <div className="space-y-4 mb-4">
                             <div className="flex gap-2">
                                 <span className="px-3 py-1 text-[9px] font-black uppercase tracking-widest rounded-full" style={{ backgroundColor: `${palette.accent}20`, borderColor: `${palette.accent}40`, color: palette.accent }}>Lot n°{item.id.substring(0, 4)}</span>
                             </div>
-                            <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-none" style={{ color: palette.textTitle }}>{item.name}</h1>
+                            <h1 className="text-4xl md:text-5xl lg:text-5xl font-black tracking-tighter leading-none" style={{ color: palette.textTitle }}>{item.name}</h1>
 
-                            <div className="flex flex-wrap items-center gap-6 pt-2">
+                            <div className="flex flex-wrap items-center gap-6 pt-1">
                                 <button onClick={handleLike} className="flex items-center gap-2 transition-colors hover:opacity-100 opacity-60">
                                     <Heart size={16} className={isLiked ? "fill-current text-red-500" : ""} />
                                     <span className="text-xs font-bold">{item.likeCount || 0} Likes</span>
@@ -226,13 +227,16 @@ const StandardProductDetail = ({ item, user, onBack, onAddToCart, onShowComments
                             </div>
                         </div>
 
-                        {/* Description (Natural Flow, no scroll) */}
-                        <div className="p-8 ring-1 ring-inset rounded-2xl" style={{ backgroundColor: palette.cardBg, '--tw-ring-color': palette.switcherBorder, borderRadius: palette.borderRadius, boxShadow: palette.cardShadow }}>
-                            <p className="text-lg leading-relaxed font-light opacity-80 whitespace-pre-wrap">{item.description}</p>
+                        {/* Description (Flexible with Max Limit) */}
+                        <div className="flex-1 min-h-[100px] mb-4 relative">
+                            <div className="p-6 h-full ring-1 ring-inset rounded-2xl overflow-y-auto custom-scrollbar"
+                                style={{ backgroundColor: palette.cardBg, '--tw-ring-color': palette.switcherBorder, borderRadius: palette.borderRadius, boxShadow: palette.cardShadow }}>
+                                <p className="font-serif text-lg leading-relaxed text-stone-600 dark:text-stone-300 whitespace-pre-wrap pb-8">{item.description}</p>
+                            </div>
                         </div>
 
-                        {/* Specs (Standard Location: Middle or Bottom? Put it here for now to match current flow but with card style) */}
-                        <div className="grid grid-cols-2 gap-8 pt-4 opacity-80 pl-2">
+                        {/* Specs (Compact Row) */}
+                        <div className="grid grid-cols-2 gap-8 px-2 mb-6 opacity-80">
                             <div>
                                 <p className="text-[9px] font-black uppercase tracking-widest mb-1 opacity-50">Matières</p>
                                 <p className="text-xs font-bold">{item.material || "Non spécifié"}</p>
@@ -243,8 +247,8 @@ const StandardProductDetail = ({ item, user, onBack, onAddToCart, onShowComments
                             </div>
                         </div>
 
-                        {/* Price & Actions */}
-                        <div className="p-6 ring-1 ring-inset rounded-2xl overflow-hidden"
+                        {/* Price & Actions (Fixed at Bottom) */}
+                        <div className="p-5 ring-1 ring-inset rounded-2xl overflow-hidden mt-auto"
                             style={{
                                 backgroundColor: palette.cardBg,
                                 '--tw-ring-color': isWinner ? palette.accent : palette.switcherBorder,
@@ -252,10 +256,10 @@ const StandardProductDetail = ({ item, user, onBack, onAddToCart, onShowComments
                                 boxShadow: isWinner ? `0 0 30px -5px ${palette.accent}60` : palette.cardShadow,
                                 borderRadius: palette.borderRadius
                             }}>
-                            <div className="flex justify-between items-end mb-8">
+                            <div className="flex justify-between items-end mb-6">
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Prix Actuel</p>
-                                    <p className="text-6xl font-black tracking-tighter">{item.currentPrice || item.startingPrice} €</p>
+                                    <p className="text-5xl md:text-6xl font-black tracking-tighter">{item.currentPrice || item.startingPrice} €</p>
                                 </div>
                             </div>
 
@@ -269,7 +273,7 @@ const StandardProductDetail = ({ item, user, onBack, onAddToCart, onShowComments
                                     </div>
                                 </div>
                             ) : !item.auctionActive ? (
-                                <button onClick={() => onAddToCart(item)} className="w-full py-6 bg-stone-900 rounded-2xl shadow-xl text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-emerald-600 transition-all flex items-center justify-center gap-4 group">
+                                <button onClick={() => onAddToCart(item)} className="w-full py-5 bg-stone-900 rounded-2xl shadow-xl text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-emerald-600 transition-all flex items-center justify-center gap-4 group">
                                     <span>Acquérir cette pièce</span>
                                     <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                                 </button>
