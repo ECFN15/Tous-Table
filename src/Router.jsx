@@ -48,7 +48,9 @@ const AppRouter = ({
     adminCollection,
     setAdminCollection,
     editingItem,
-    setEditingItem
+    setEditingItem,
+    onOpenMenu, // New trigger
+    onOpenCart  // New trigger
 }) => {
     const { user, isAdmin } = useAuth();
 
@@ -88,6 +90,8 @@ const AppRouter = ({
                         onSelectItem={(id) => { setSelectedItemId(id); setView('detail'); window.scrollTo(0, 0); }}
                         onShowComments={(item, col) => { setSelectedItemForComments(item); setCommentCollection(col); setIsCommentModalOpen(true); }}
                         darkMode={darkMode}
+                        onOpenMenu={onOpenMenu}
+                        onOpenCart={onOpenCart}
                     />
                 </div>
             )}

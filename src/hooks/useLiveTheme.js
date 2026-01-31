@@ -8,6 +8,7 @@ export const useLiveTheme = (darkMode) => {
     const [isStandardMode, setIsStandardMode] = useState(true);
     const [currentThemeId, setCurrentThemeId] = useState(null);
     const [forcedMode, setForcedMode] = useState('auto');
+    const [activeDesignId, setActiveDesignId] = useState('standard');
     const [isThemeLoading, setIsThemeLoading] = useState(true);
 
     useEffect(() => {
@@ -18,10 +19,12 @@ export const useLiveTheme = (darkMode) => {
                 const standard = data.isStandardMode ?? true;
                 const themeId = data.activeThemeId || 'chocolat';
                 const forced = data.forcedMode || 'auto'; // 'auto', 'light', 'dark'
+                const designId = data.activeDesignId || 'standard'; // 'standard', 'architectural'
 
                 setIsStandardMode(standard);
                 setCurrentThemeId(themeId);
                 setForcedMode(forced);
+                setActiveDesignId(designId);
 
                 // Determine effective Dark Mode
                 let effectiveDarkMode = darkMode;
@@ -37,6 +40,7 @@ export const useLiveTheme = (darkMode) => {
             } else {
                 setIsStandardMode(true);
                 setForcedMode('auto');
+                setActiveDesignId('standard');
                 setPalette(darkMode ? STANDARD_THEME.dark : STANDARD_THEME.light);
             }
             setIsThemeLoading(false);
@@ -47,12 +51,7 @@ export const useLiveTheme = (darkMode) => {
         });
 
         return () => unsub();
-    }, [darkMode]); // NOTE: This effect runs when user toggles local dark mode. 
-    // We should probably rely on a separate effect to sync forcedMode back to App? 
-    // Or just let App handle the effective mode.
+    }, [darkMode]);
 
-    // Actually, palette calculation here is for components using this hook.
-    // If we want the WHOLE APP to switch, App.jsx must know about forcedMode.
-
-    return { palette, isStandardMode, currentThemeId, isThemeLoading, forcedMode };
+    return { palette, isStandardMode, currentThemeId, isThemeLoading, forcedMode, activeDesignId };
 };

@@ -102,7 +102,7 @@ const AppContent = () => {
   });
 
   // Check for forced mode
-  const { forcedMode } = useLiveTheme(darkMode);
+  const { forcedMode, activeDesignId } = useLiveTheme(darkMode);
   // Only hide toggle if strictly Light or Dark is forced. If 'auto' (default), show toggle.
   const isModeForced = forcedMode === 'light' || forcedMode === 'dark';
 
@@ -383,6 +383,7 @@ const AppContent = () => {
         onCheckout={() => { setIsCartOpen(false); setView('checkout'); window.scrollTo(0, 0); }}
         interacted={cartInteracted}
         darkMode={darkMode}
+        activeDesignId={activeDesignId}
       />
 
       {/* MODAL LOGIN (Pour la Marketplace) */}
@@ -517,103 +518,111 @@ const AppContent = () => {
       )}
 
       {/* --- NAVBAR & MENU GLOBAUX (NE S'AFFICHENT PAS SUR LA PAGE D'ACCUEIL) --- */}
+      {/* --- MENU GLOBAL (Toujours disponible sauf Home) --- */}
       {view !== 'home' && (
-        <>
-          {/* MENU LATERAL (OVERLAY) - Animations fluides restaurées */}
-          <div className={`fixed inset-0 z-[110] transition-all duration-300 ${isMenuOpen ? 'visible' : 'invisible pointer-events-none'}`}>
-            <div
-              className={`absolute inset-0 bg-stone-900/60 backdrop-blur-md transition-opacity duration-700 ease-in-out ${isMenuOpen ? 'opacity-100' : 'opacity-0'}`}
-              onClick={() => setIsMenuOpen(false)}
-            ></div>
-            <div className={`absolute right-0 top-0 bottom-0 w-full md:w-[450px] shadow-2xl transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] p-12 flex flex-col justify-between ${isMenuOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'} ${darkMode ? 'bg-stone-900 border-l border-stone-800' : 'bg-white'}`}>
-              <div className="space-y-20">
-                <div className="flex justify-between items-center">
-                  <span className={`text-[10px] font-black uppercase tracking-[0.3em] transition-opacity duration-500 ${isMenuOpen ? 'opacity-100' : 'opacity-0'} ${darkMode ? 'text-stone-500' : 'text-stone-300'}`}>Menu</span>
-                  <button onClick={() => setIsMenuOpen(false)} className={`w-12 h-12 rounded-full border flex items-center justify-center transition-all duration-300 ${darkMode ? 'border-stone-800 text-white hover:bg-stone-800' : 'border-stone-100 hover:bg-stone-50'}`}><X size={20} /></button>
-                </div>
-                <nav className="flex flex-col gap-10">
-                  <button onClick={() => { window.hasShownPreloader = true; setView('home'); setIsMenuOpen(false); window.scrollTo(0, 0); }} className={`text-5xl font-black tracking-tighter transition-colors duration-100 text-left transform transition-transform duration-300 ${isMenuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'} ${darkMode ? 'text-white hover:text-amber-500' : 'text-stone-900 hover:text-amber-600'}`} style={{ transitionDelay: isMenuOpen ? '100ms' : '0ms' }}>Accueil.</button>
-                  <button onClick={() => { setView('gallery'); setIsMenuOpen(false); window.scrollTo(0, 0); }} className={`text-5xl font-black tracking-tighter transition-colors duration-100 text-left transform transition-transform duration-300 ${isMenuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'} ${darkMode ? 'text-white hover:text-amber-500' : 'text-stone-900 hover:text-amber-600'}`} style={{ transitionDelay: isMenuOpen ? '200ms' : '0ms' }}>Marketplace.</button>
-                  {isAdmin && <button onClick={() => { setView('admin'); setIsMenuOpen(false); window.scrollTo(0, 0); }} className={`text-5xl font-black tracking-tighter transition-colors duration-100 text-left opacity-30 transform transition-transform duration-300 ${isMenuOpen ? 'translate-x-0' : '-translate-x-8'} ${darkMode ? 'text-stone-600 hover:text-stone-300' : 'hover:text-stone-300'}`} style={{ transitionDelay: isMenuOpen ? '300ms' : '0ms' }}>Admin.</button>}
-                </nav>
+        <div className={`fixed inset-0 z-[110] transition-all duration-300 ${isMenuOpen ? 'visible' : 'invisible pointer-events-none'}`}>
+          <div
+            className={`absolute inset-0 bg-stone-900/60 backdrop-blur-md transition-opacity duration-700 ease-in-out ${isMenuOpen ? 'opacity-100' : 'opacity-0'}`}
+            onClick={() => setIsMenuOpen(false)}
+          ></div>
+          <div className={`absolute right-0 top-0 bottom-0 w-full md:w-[450px] shadow-2xl transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] p-12 flex flex-col justify-between ${isMenuOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'} 
+              ${activeDesignId === 'architectural'
+              ? (darkMode ? 'bg-[#0A0A0A] border-l border-stone-800 text-stone-200' : 'bg-[#FAFAF9] border-l border-stone-200 text-stone-900')
+              : (darkMode ? 'bg-stone-900 border-l border-stone-800' : 'bg-white')}
+            `}>
+            <div className="space-y-20">
+              <div className="flex justify-between items-center">
+                <span className={`text-[10px] font-black uppercase tracking-[0.3em] transition-opacity duration-500 ${isMenuOpen ? 'opacity-100' : 'opacity-0'} ${darkMode ? 'text-stone-500' : 'text-stone-300'}`}>Menu</span>
+                <button onClick={() => setIsMenuOpen(false)} className={`w-12 h-12 rounded-full border flex items-center justify-center transition-all duration-300 ${darkMode ? 'border-stone-800 text-white hover:bg-stone-800' : 'border-stone-100 hover:bg-stone-50'}`}><X size={20} /></button>
               </div>
-              <div className={`space-y-6 pt-10 border-t transition-opacity duration-500 ${isMenuOpen ? 'opacity-100' : 'opacity-0'} ${darkMode ? 'border-stone-800' : 'border-stone-100'}`} style={{ transitionDelay: isMenuOpen ? '400ms' : '0ms' }}>
-                {user && !user.isAnonymous && (
-                  <div className="mb-4">
-                    <p className={`text-xs font-bold flex items-center gap-2 ${darkMode ? 'text-white' : 'text-stone-900'}`}>
-                      {user.displayName || user.email}
-                      {user.emailVerified && <span className="text-blue-500 text-[10px] bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">Vérifié</span>}
-                    </p>
-                    <p className={`text-[10px] uppercase tracking-widest ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>Connecté</p>
-                  </div>
-                )}
-                <div className="flex gap-6">
-                  <a href="#" className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${darkMode ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-stone-50 hover:bg-stone-900 hover:text-white'}`}><Instagram size={20} /></a>
-                  <a href="mailto:contact@tat.fr" className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${darkMode ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-stone-50 hover:bg-stone-900 hover:text-white'}`}><Mail size={20} /></a>
+              <nav className="flex flex-col gap-10">
+                <button onClick={() => { window.hasShownPreloader = true; setView('home'); setIsMenuOpen(false); window.scrollTo(0, 0); }} className={`text-5xl font-black tracking-tighter transition-colors duration-100 text-left transform transition-transform duration-300 ${isMenuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'} ${activeDesignId === 'architectural' ? 'font-serif italic' : ''} ${darkMode ? 'text-white hover:text-amber-500' : 'text-stone-900 hover:text-amber-600'}`} style={{ transitionDelay: isMenuOpen ? '100ms' : '0ms' }}>
+                  {activeDesignId === 'architectural' ? 'Accueil' : 'Accueil.'}
+                </button>
+                <button onClick={() => { setView('gallery'); setIsMenuOpen(false); window.scrollTo(0, 0); }} className={`text-5xl font-black tracking-tighter transition-colors duration-100 text-left transform transition-transform duration-300 ${isMenuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'} ${activeDesignId === 'architectural' ? 'font-serif italic' : ''} ${darkMode ? 'text-white hover:text-amber-500' : 'text-stone-900 hover:text-amber-600'}`} style={{ transitionDelay: isMenuOpen ? '200ms' : '0ms' }}>
+                  {activeDesignId === 'architectural' ? 'La Galerie' : 'Marketplace.'}
+                </button>
+                {isAdmin && <button onClick={() => { setView('admin'); setIsMenuOpen(false); window.scrollTo(0, 0); }} className={`text-5xl font-black tracking-tighter transition-colors duration-100 text-left transform transition-transform duration-300 ${isMenuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'} ${activeDesignId === 'architectural' ? 'font-serif italic' : ''} ${darkMode ? 'text-stone-600 hover:text-stone-300' : 'opacity-30 hover:text-stone-500'}`} style={{ transitionDelay: isMenuOpen ? '300ms' : '0ms' }}>Admin.</button>}
+              </nav>
+            </div>
+            <div className={`space-y-6 pt-10 border-t transition-opacity duration-500 ${isMenuOpen ? 'opacity-100' : 'opacity-0'} ${darkMode ? 'border-stone-800' : 'border-stone-100'}`} style={{ transitionDelay: isMenuOpen ? '400ms' : '0ms' }}>
+              {user && !user.isAnonymous && (
+                <div className="mb-4">
+                  <p className={`text-xs font-bold flex items-center gap-2 ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                    {user.displayName || user.email}
+                    {user.emailVerified && <span className="text-blue-500 text-[10px] bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">Vérifié</span>}
+                  </p>
+                  <p className={`text-[10px] uppercase tracking-widest ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>Connecté</p>
                 </div>
+              )}
+              <div className="flex gap-6">
+                <a href="#" className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${darkMode ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-stone-50 hover:bg-stone-900 hover:text-white'}`}><Instagram size={20} /></a>
+                <a href="mailto:contact@tat.fr" className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${darkMode ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-stone-50 hover:bg-stone-900 hover:text-white'}`}><Mail size={20} /></a>
               </div>
             </div>
           </div>
+        </div>
+      )}
 
-          {/* NAVBAR GLOBALE (Auto-Hide) */}
-          <nav className={`fixed top-0 left-0 right-0 z-[100] px-3 md:px-12 py-3 md:py-8 flex justify-between items-center transition-all duration-500 ease-in-out ${isHeaderVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}>
-            <div className="flex items-center gap-1.5 md:gap-3 cursor-pointer group" onClick={() => { window.hasShownPreloader = true; setView('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
-              <div className={`w-[28px] h-[28px] md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center backdrop-blur-2xl border transition-all group-hover:rotate-6 ${darkMode ? 'bg-white/10 border-white/20 text-white' : 'bg-white/90 border-[#1a0f0a]/10 text-[#1a0f0a]'}`}>
-                <Hammer size={12} strokeWidth={1.5} className="md:w-4 md:h-4" />
-              </div>
-              <div className="flex flex-col justify-center">
-                <h1 className={`text-[13px] md:text-lg font-bold uppercase tracking-tight md:tracking-widest leading-none transition-colors ${darkMode ? 'text-white' : 'text-[#FAF9F6] drop-shadow-sm'}`}>Tous à Table</h1>
-                <p className={`font-serif italic text-[11px] md:text-[14px] tracking-[0.05em] md:tracking-[0.1em] leading-none mt-0.5 md:mt-1 ml-0.5 transition-colors ${darkMode ? 'text-white/80' : 'text-[#FAF9F6] opacity-75'}`}>Atelier Normand</p>
-              </div>
+      {/* --- NAVBAR GLOBALE (Masquée UNIQUEMENT sur la Galerie Architectural) --- */}
+      {view !== 'home' && !(activeDesignId === 'architectural' && view === 'gallery') && (
+        <nav className={`fixed top-0 left-0 right-0 z-[100] px-3 md:px-12 py-3 md:py-8 flex justify-between items-center transition-all duration-500 ease-in-out ${isHeaderVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}>
+          <div className="flex items-center gap-1.5 md:gap-3 cursor-pointer group" onClick={() => { window.hasShownPreloader = true; setView('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
+            <div className={`w-[28px] h-[28px] md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center backdrop-blur-2xl border transition-all group-hover:rotate-6 ${darkMode ? 'bg-white/10 border-white/20 text-white' : 'bg-white/90 border-[#1a0f0a]/10 text-[#1a0f0a]'}`}>
+              <Hammer size={12} strokeWidth={1.5} className="md:w-4 md:h-4" />
             </div>
+            <div className="flex flex-col justify-center">
+              <h1 className={`text-[13px] md:text-lg font-bold uppercase tracking-tight md:tracking-widest leading-none transition-colors ${darkMode ? 'text-white' : 'text-[#FAF9F6] drop-shadow-sm'}`}>Tous à Table</h1>
+              <p className={`font-serif italic text-[11px] md:text-[14px] tracking-[0.05em] md:tracking-[0.1em] leading-none mt-0.5 md:mt-1 ml-0.5 transition-colors ${darkMode ? 'text-white/80' : 'text-[#FAF9F6] opacity-75'}`}>Atelier Normand</p>
+            </div>
+          </div>
 
-            <div className={`flex items-center gap-1 md:gap-4 ${darkMode ? 'text-white' : 'text-stone-900'}`}>
-              {user && !user.isAnonymous ? (
-                <div className="flex items-center gap-1.5 md:gap-4 mr-0.5 md:mr-2">
-                  <div className="text-right hidden md:block">
-                    <div className="flex items-center justify-end gap-2 text-[#1a0f0a]">
-                      <p className={`text-[10px] font-black uppercase tracking-widest ${darkMode ? 'text-white' : 'text-[#1a0f0a]'}`}>{user.displayName || 'Client'}</p>
-                      {user.emailVerified && <ShieldCheck size={14} strokeWidth={3} className={darkMode ? 'text-white' : 'text-[#1a0f0a]'} title="Compte Vérifié" />}
-                    </div>
+          <div className={`flex items-center gap-1 md:gap-4 ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+            {user && !user.isAnonymous ? (
+              <div className="flex items-center gap-1.5 md:gap-4 mr-0.5 md:mr-2">
+                <div className="text-right hidden md:block">
+                  <div className="flex items-center justify-end gap-2 text-[#1a0f0a]">
+                    <p className={`text-[10px] font-black uppercase tracking-widest ${darkMode ? 'text-white' : 'text-[#1a0f0a]'}`}>{user.displayName || 'Client'}</p>
+                    {user.emailVerified && <ShieldCheck size={14} strokeWidth={3} className={darkMode ? 'text-white' : 'text-[#1a0f0a]'} title="Compte Vérifié" />}
                   </div>
-                  <button onClick={() => { logout(); }} className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center backdrop-blur-2xl border shadow-xl transition-all ${darkMode ? 'bg-white/15 border-white/20 text-white hover:bg-white hover:text-stone-900 shadow-white/5' : 'bg-white/80 border-black/10 text-stone-900 hover:bg-stone-900 hover:text-white shadow-black/5'}`}><LogOut size={12} className="md:w-[15px] md:h-[15px]" /></button>
                 </div>
-              ) : !isSecretGateOpen && (
-                <button onClick={() => setShowFullLogin(true)} className={`flex items-center gap-2 px-3 py-2 md:px-5 md:py-2.5 rounded-full backdrop-blur-2xl border shadow-xl transition-all text-[9.5px] md:text-[11px] font-bold uppercase tracking-widest mr-0.5 md:mr-2 ${darkMode ? 'bg-white/15 border-white/20 text-white hover:bg-white hover:text-stone-900 shadow-white/5' : 'bg-white/80 border-black/10 text-stone-900 hover:bg-stone-900 hover:text-white shadow-black/5'}`}><ShieldCheck size={12} className="md:w-3.5 md:h-3.5" /> <span className="hidden md:inline">Connexion</span></button>
-              )}
+                <button onClick={() => { logout(); }} className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center backdrop-blur-2xl border shadow-xl transition-all ${darkMode ? 'bg-white/15 border-white/20 text-white hover:bg-white hover:text-stone-900 shadow-white/5' : 'bg-white/80 border-black/10 text-stone-900 hover:bg-stone-900 hover:text-white shadow-black/5'}`}><LogOut size={12} className="md:w-[15px] md:h-[15px]" /></button>
+              </div>
+            ) : !isSecretGateOpen && (
+              <button onClick={() => setShowFullLogin(true)} className={`flex items-center gap-2 px-3 py-2 md:px-5 md:py-2.5 rounded-full backdrop-blur-2xl border shadow-xl transition-all text-[9.5px] md:text-[11px] font-bold uppercase tracking-widest mr-0.5 md:mr-2 ${darkMode ? 'bg-white/15 border-white/20 text-white hover:bg-white hover:text-stone-900 shadow-white/5' : 'bg-white/80 border-black/10 text-stone-900 hover:bg-stone-900 hover:text-white shadow-black/5'}`}><ShieldCheck size={12} className="md:w-3.5 md:h-3.5" /> <span className="hidden md:inline">Connexion</span></button>
+            )}
 
-              {/* CART BUTTON - Uniquement sur marketplace, detail et checkout */}
-              {['gallery', 'detail', 'checkout'].includes(view) && (
-                <button
-                  onClick={() => { setCartInteracted(true); setIsCartOpen(true); }}
-                  className={`w-8 h-8 md:w-auto md:h-auto px-0 md:px-5 md:py-2.5 rounded-full flex items-center justify-center gap-2.5 backdrop-blur-2xl border shadow-xl transition-all group relative ${darkMode ? 'bg-white/15 border-white/20 text-white hover:bg-amber-500 hover:text-white shadow-white/5' : 'bg-white/80 border-black/10 text-stone-900 hover:bg-amber-500 hover:text-white shadow-black/5'}`}
-                >
-                  <ShoppingBag size={14} className="md:w-[15px] md:h-[15px]" />
-                  <span className="hidden md:block text-[9.5px] md:text-[11px] font-bold uppercase tracking-widest">Panier</span>
-                  {cartItems.length > 0 && (
-                    <span className="absolute -top-1 -right-1 md:top-1 md:right-1 w-3 h-3 md:w-4 md:h-4 bg-amber-500 text-white flex items-center justify-center text-[7px] md:text-[9px] font-black rounded-full border border-white shadow-md">
-                      {cartItems.length}
-                    </span>
-                  )}
-                </button>
-              )}
+            {/* CART BUTTON - Uniquement sur marketplace, detail et checkout */}
+            {['gallery', 'detail', 'checkout'].includes(view) && (
+              <button
+                onClick={() => { setCartInteracted(true); setIsCartOpen(true); }}
+                className={`w-8 h-8 md:w-auto md:h-auto px-0 md:px-5 md:py-2.5 rounded-full flex items-center justify-center gap-2.5 backdrop-blur-2xl border shadow-xl transition-all group relative ${darkMode ? 'bg-white/15 border-white/20 text-white hover:bg-amber-500 hover:text-white shadow-white/5' : 'bg-white/80 border-black/10 text-stone-900 hover:bg-amber-500 hover:text-white shadow-black/5'}`}
+              >
+                <ShoppingBag size={14} className="md:w-[15px] md:h-[15px]" />
+                <span className="hidden md:block text-[9.5px] md:text-[11px] font-bold uppercase tracking-widest">Panier</span>
+                {cartItems.length > 0 && (
+                  <span className="absolute -top-1 -right-1 md:top-1 md:right-1 w-3 h-3 md:w-4 md:h-4 bg-amber-500 text-white flex items-center justify-center text-[7px] md:text-[9px] font-black rounded-full border border-white shadow-md">
+                    {cartItems.length}
+                  </span>
+                )}
+              </button>
+            )}
 
-              {/* DARK MODE TOGGLE */}
-              {/* DARK MODE TOGGLE - Hidden if Forced */}
-              {!isModeForced && (
-                <button
-                  onClick={() => setDarkMode(!darkMode)}
-                  className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center backdrop-blur-2xl border shadow-xl transition-all ml-0.5 md:ml-0 ${darkMode ? 'bg-white/15 border-white/20 text-white hover:bg-amber-500 hover:text-white shadow-white/5' : 'bg-white/80 border-black/10 text-stone-900 hover:bg-amber-500 hover:text-white shadow-black/5'}`}
-                  title={darkMode ? 'Mode Clair' : 'Mode Sombre'}
-                >
-                  {darkMode ? <Sun size={12} className="md:w-[15px] md:h-[15px]" /> : <Moon size={12} className="md:w-[15px] md:h-[15px]" />}
-                </button>
-              )}
+            {/* DARK MODE TOGGLE */}
+            {/* DARK MODE TOGGLE - Hidden if Forced */}
+            {!isModeForced && (
+              <button
+                onClick={() => setDarkMode(!darkMode)}
+                className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center backdrop-blur-2xl border shadow-xl transition-all ml-0.5 md:ml-0 ${darkMode ? 'bg-white/15 border-white/20 text-white hover:bg-amber-500 hover:text-white shadow-white/5' : 'bg-white/80 border-black/10 text-stone-900 hover:bg-amber-500 hover:text-white shadow-black/5'}`}
+                title={darkMode ? 'Mode Clair' : 'Mode Sombre'}
+              >
+                {darkMode ? <Sun size={12} className="md:w-[15px] md:h-[15px]" /> : <Moon size={12} className="md:w-[15px] md:h-[15px]" />}
+              </button>
+            )}
 
-              <button onClick={() => setIsMenuOpen(true)} className={`w-8 h-8 md:w-auto md:h-auto px-0 md:px-6 md:py-2.5 rounded-full flex items-center justify-center gap-3 backdrop-blur-2xl border shadow-xl group transition-all ml-0.5 md:ml-0 ${darkMode ? 'bg-white/15 border-white/20 text-white hover:bg-white hover:text-stone-900 shadow-white/5' : 'bg-white/80 border-black/10 text-stone-900 hover:bg-stone-900 hover:text-white shadow-black/5'}`}><span className="hidden md:block text-[9.5px] md:text-[11px] font-bold uppercase tracking-widest">Menu</span><Menu size={14} className="md:w-[15px] md:h-[15px]" /></button>
-            </div>
-          </nav>
-        </>
+            <button onClick={() => setIsMenuOpen(true)} className={`w-8 h-8 md:w-auto md:h-auto px-0 md:px-6 md:py-2.5 rounded-full flex items-center justify-center gap-3 backdrop-blur-2xl border shadow-xl group transition-all ml-0.5 md:ml-0 ${darkMode ? 'bg-white/15 border-white/20 text-white hover:bg-white hover:text-stone-900 shadow-white/5' : 'bg-white/80 border-black/10 text-stone-900 hover:bg-stone-900 hover:text-white shadow-black/5'}`}><span className="hidden md:block text-[9.5px] md:text-[11px] font-bold uppercase tracking-widest">Menu</span><Menu size={14} className="md:w-[15px] md:h-[15px]" /></button>
+          </div>
+        </nav>
       )}
 
       {/* --- CONTENU PRINCIPAL --- */}
@@ -647,9 +656,11 @@ const AppContent = () => {
           setAdminCollection={setAdminCollection}
           editingItem={editingItem}
           setEditingItem={setEditingItem}
+          onOpenMenu={() => setIsMenuOpen(true)}
+          onOpenCart={() => { setCartInteracted(true); setIsCartOpen(true); }}
         />
-      </main >
-    </div >
+      </main>
+    </div>
   );
 };
 // Wrapper to provide Context
