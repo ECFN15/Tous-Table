@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronLeft, Box, Heart, MessageCircle, Share2, ArrowRight } from 'lucide-react';
+import { ChevronLeft, Box, Heart, MessageCircle, Share2, ArrowRight, Trophy, Zap, Clock } from 'lucide-react';
 import { db, appId, functions } from '../../firebase/config';
+import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { getMillis } from '../../utils/time';
 import ConfettiRain from '../../components/ui/ConfettiRain';
@@ -85,7 +85,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
         try {
             const result = await placeBidFunction({
                 itemId: item.id,
-                collectionName: 'furniture',
+                collectionName: collectionName,
                 increment: inc
             });
             if (result.data.success) {
@@ -249,9 +249,41 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
                                     <span>Acquérir cette pièce</span>
                                     <ArrowRight size={16} />
                                 </button>
+                            ) : !isWinner ? (
+                                <div className="text-center py-12 px-6 space-y-4 border border-stone-200 dark:border-stone-800"
+                                    style={{ borderRadius: palette.borderRadius }}>
+                                    <div className="flex justify-center mb-2 opacity-20">
+                                        <Clock size={40} />
+                                    </div>
+                                    <p className="font-serif italic text-xl text-stone-400">Cette vente est terminée</p>
+                                    <p className="text-[10px] uppercase font-black tracking-widest opacity-30">Clôture des enchères</p>
+                                </div>
                             ) : (
-                                <div className="text-center py-4 bg-stone-50 rounded-none border border-stone-200 text-stone-400">
-                                    <span className="font-serif italic">Vente terminée [Fin Enchère]</span>
+                                <div className="relative overflow-hidden p-10 text-center space-y-6 animate-in zoom-in-95 duration-1000 shadow-2xl shadow-emerald-500/10"
+                                    style={{
+                                        backgroundColor: palette.isDark ? 'rgba(16, 185, 129, 0.05)' : 'rgba(16, 185, 129, 0.03)',
+                                        border: `1px solid ${palette.statusValid}40`,
+                                        borderRadius: palette.borderRadius
+                                    }}>
+                                    <div className="flex justify-center">
+                                        <div className="p-5 rounded-full animate-bounce shadow-xl"
+                                            style={{ backgroundColor: palette.statusValid, color: '#fff' }}>
+                                            <Trophy size={32} />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <h3 className="text-3xl font-black tracking-tighter font-serif italic" style={{ color: palette.statusValid }}>
+                                            Félicitations !
+                                        </h3>
+                                        <p className="text-sm font-medium opacity-80 leading-relaxed max-w-[300px] mx-auto">
+                                            Vous avez remporté cette enchère.<br />
+                                            <span className="text-[10px] uppercase font-black tracking-widest mt-4 block opacity-60">Notre équipe va vous contacter pour finaliser l'acquisition.</span>
+                                        </p>
+                                    </div>
+
+                                    {/* Sub-bg effect */}
+                                    <div className="absolute top-0 right-0 -mr-8 -mt-8 w-24 h-24 blur-3xl opacity-20 rounded-full" style={{ backgroundColor: palette.statusValid }}></div>
+                                    <div className="absolute bottom-0 left-0 -ml-8 -mb-8 w-24 h-24 blur-3xl opacity-10 rounded-full" style={{ backgroundColor: palette.statusValid }}></div>
                                 </div>
                             )}
                         </div>
