@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronLeft, Award, Mail, Box, Ruler, History, Quote, Heart, MessageCircle, Share2, ArrowRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Award, Mail, Box, Ruler, History, Quote, Heart, MessageCircle, Share2, ArrowRight } from 'lucide-react';
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { db, appId, functions } from '../firebase/config';
 import { httpsCallable } from 'firebase/functions';
@@ -188,8 +188,14 @@ const StandardProductDetail = ({ item, user, onBack, onAddToCart, onShowComments
                             {/* Nav Arrows */}
                             {images.length > 1 && (
                                 <>
-                                    <div className="absolute top-1/2 left-4 -translate-y-1/2 p-3 rounded-full bg-black/20 text-white backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/40"><ChevronLeft size={24} /></div>
-                                    <div className="absolute top-1/2 right-4 -translate-y-1/2 p-3 rounded-full bg-black/20 text-white backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/40 rotate-180"><ChevronLeft size={24} /></div>
+                                    <div className="absolute top-1/2 left-4 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full bg-black/20 text-white backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/40"
+                                        onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === 0 ? images.length - 1 : prev - 1); }}>
+                                        <ChevronLeft size={24} />
+                                    </div>
+                                    <div className="absolute top-1/2 right-4 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full bg-black/20 text-white backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/40"
+                                        onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === images.length - 1 ? 0 : prev + 1); }}>
+                                        <ChevronRight size={24} />
+                                    </div>
                                 </>
                             )}
                         </div>
