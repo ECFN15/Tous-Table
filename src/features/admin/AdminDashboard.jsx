@@ -31,17 +31,7 @@ const AdminDashboard = ({ user, darkMode = false }) => {
 
 
     useEffect(() => {
-        // --- AUTO-SETUP ADMIN ROLE (TEMPORARY) ---
-        if (user && user.email === 'matthis.fradin2@gmail.com') {
-            // On tente d'appeler la fonction pour s'assurer que le rôle est mis (idempotent)
-            import('../../firebase/config').then(({ functions }) => {
-                import('firebase/functions').then(({ httpsCallable }) => {
-                    const grantAdmin = httpsCallable(functions, 'grantAdminRole');
-                    grantAdmin().then(r => console.log("Admin Role Status:", r.data))
-                        .catch(e => console.log("Admin Role Check:", e.message));
-                });
-            });
-        }
+
 
         const fetchData = async () => {
             try {

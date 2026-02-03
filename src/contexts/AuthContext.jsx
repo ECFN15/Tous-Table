@@ -8,7 +8,8 @@ import {
     signOut,
     sendEmailVerification
 } from 'firebase/auth';
-import { auth, googleProvider } from '../firebase/config';
+import { doc, onSnapshot } from 'firebase/firestore'; // Moved top-level
+import { auth, googleProvider, db } from '../firebase/config'; // Added db
 
 // Create the context
 const AuthContext = createContext();
@@ -24,29 +25,56 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
 
-    // Admin emails list (Moved from App.jsx)
-    const ADMIN_EMAILS = ['matthis.fradin2@gmail.com'];
+    // Admin emails list (Dynamic + Fallback)
+    const [adminWhitelist, setAdminWhitelist] = useState({});
+    const HARDCODED_ADMINS = ['matthis.fradin2@gmail.com'];
+    const ADMIN_EMAILS = HARDCODED_ADMINS; // Backward compatibility
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        // 1. Listen to Admin Whitelist in Firestore
+        // Note: db and firestore methods are now imported at top level
+
+        const unsub = onSnapshot(doc(db, 'sys_metadata', 'admin_users'), (snap) => {
+            if (snap.exists() && snap.data().users) {
+                setAdminWhitelist(snap.data().users);
+            }
+        }, (err) => console.log("Auth Whitelist Sync Error (Ignored if not admin)", err));
+
+        // 2. Listen to Auth State
+        const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
             setUser(currentUser);
-
-            // Admin Check Logic
-            const isRealAdmin = currentUser && !currentUser.isAnonymous && ADMIN_EMAILS.includes(currentUser.email);
-            setIsAdmin(isRealAdmin);
-
             setLoading(false);
 
-            // Auto-login anonymously if not logged in (to track user session for cart, etc.)
+            // Auto-login anonymously
             if (!currentUser) {
-                signInAnonymously(auth).catch((error) => {
-                    console.error("Anonymous auth failed", error);
-                });
+                signInAnonymously(auth).catch((error) => console.error("Anonymous auth failed", error));
             }
         });
 
-        return () => unsubscribe();
+        return () => {
+            unsub();
+            unsubscribeAuth();
+        };
     }, []);
+
+    // Derived Admin State
+    useEffect(() => {
+        if (user && !user.isAnonymous) {
+            const isHardcoded = HARDCODED_ADMINS.includes(user.email);
+            const isWhitelisted = adminWhitelist[user.uid] || Object.values(adminWhitelist).some(u => u.email === user.email);
+
+            // On vérifie aussi les Custom Claims si disponibles (plus sécurisé)
+            user.getIdTokenResult().then((idTokenResult) => {
+                if (idTokenResult.claims.admin || isHardcoded || isWhitelisted) {
+                    setIsAdmin(true);
+                } else {
+                    setIsAdmin(false);
+                }
+            });
+        } else {
+            setIsAdmin(false);
+        }
+    }, [user, adminWhitelist]);
 
     const loginWithGoogle = () => {
         return signInWithPopup(auth, googleProvider);

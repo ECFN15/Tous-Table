@@ -8,7 +8,7 @@ import LoginView from './pages/LoginView';
 import OrderSuccessModal from './components/OrderSuccessModal';
 import {
     LayoutGrid, Palette, ShoppingBag, Settings,
-    CreditCard, MessageCircle, Heart, Share2, Hammer, Gavel, Pencil, Eye, EyeOff, Trash2, Trophy, Mail
+    CreditCard, MessageCircle, Heart, Share2, Hammer, Gavel, Pencil, Eye, EyeOff, Trash2, Trophy, Mail, Users
 } from 'lucide-react';
 
 const AdminDashboard = React.lazy(() => import('./features/admin/AdminDashboard'));
@@ -19,6 +19,7 @@ const AdminStudio = React.lazy(() => import('./features/admin/AdminStudio'));
 const AdminAuctions = React.lazy(() => import('./features/admin/AdminAuctions'));
 const AdminForm = React.lazy(() => import('./features/admin/AdminForm'));
 const AdminItemList = React.lazy(() => import('./features/admin/AdminItemList'));
+const AdminUsers = React.lazy(() => import('./features/admin/AdminUsers'));
 const CommentsModal = React.lazy(() => import('./components/ui/CommentsModal'));
 
 import { getMillis } from './utils/time';
@@ -206,6 +207,12 @@ const AppRouter = ({
                         >
                             Avis
                         </button>
+                        <button
+                            onClick={() => { setAdminCollection('users'); setEditingItem(null); }}
+                            className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center justify-center gap-2 ${adminCollection === 'users' ? (darkMode ? 'bg-white text-stone-900 border-white md:bg-stone-700 md:text-white md:border-none' : 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
+                        >
+                            <Users size={14} className="md:w-3.5" /> <span className="hidden md:inline">Utilisateurs</span>
+                        </button>
                     </div>
 
                     <Suspense fallback={<div className="flex items-center justify-center p-20"><div className="w-10 h-10 border-4 border-stone-200 border-t-stone-800 rounded-full animate-spin"></div></div>}>
@@ -221,6 +228,8 @@ const AppRouter = ({
                             <AdminAuctions darkMode={darkMode} />
                         ) : adminCollection === 'studio' ? (
                             <AdminStudio darkMode={darkMode} />
+                        ) : adminCollection === 'users' ? (
+                            <AdminUsers darkMode={darkMode} />
                         ) : (
                             <>
                                 <AdminForm
@@ -244,7 +253,7 @@ const AppRouter = ({
                     </Suspense>
                 </div>
             )}
-        </main>
+        </main >
     );
 };
 

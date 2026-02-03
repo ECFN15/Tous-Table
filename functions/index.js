@@ -622,16 +622,138 @@ exports.shareMeta = functions.https.onRequest(async (req, res) => {
     res.send(html);
 });
 
-// Admin Grant (conservé)
-exports.grantAdminRole = functions.https.onCall(async (data, context) => {
-    if (context.auth.token.email !== 'matthis.fradin2@gmail.com') return { error: 'Unauthorized' };
-    await admin.auth().setCustomUserClaims(context.auth.uid, { admin: true });
-    return { success: true };
+// ============================================================
+// 6. GESTION DES UTILISATEURS ADMIN (IAM)
+// ============================================================
+
+/**
+ * Trigger: À la création d'un user (ex: 1ère connexion Google), 
+ * on vérifie s'il est dans la whitelist Admin. Si oui, on lui donne le badge.
+ */
+exports.grantAdminOnAuth = functions.auth.user().onCreate(async (user) => {
+    const adminDocRef = db.doc('sys_metadata/admin_users');
+    const docSnap = await adminDocRef.get();
+
+    if (!docSnap.exists) return;
+
+    const whitelist = docSnap.data().users || {};
+    const isAdmin = Object.values(whitelist).some(u => u.email === user.email);
+
+    if (isAdmin) {
+        console.log(`🎯 Nouvel utilisateur Admin détecté: ${user.email}. Attribution des droits...`);
+        await admin.auth().setCustomUserClaims(user.uid, { admin: true });
+
+        // Optionnel: Mettre à jour la clé dans la whitelist pour utiliser le vrai UID
+        // Mais l'AuthContext gère déjà la détection par email, donc pas critique.
+    }
 });
 
-// ============================================================
-// 6. OUTIL DE DIAGNOSTIC (EMAIL)
-// ============================================================
+// Ajouter un administrateur (Whitelist + Claims si existe déjà)
+exports.addAdminUser = functions.https.onCall(async (data, context) => {
+    // 1. Sécurité
+    const callerEmail = context.auth?.token.email;
+    const isSuperAdmin = callerEmail === 'matthis.fradin2@gmail.com';
+
+    if (!context.auth || (!context.auth.token.admin && !isSuperAdmin)) {
+        throw new functions.https.HttpsError('permission-denied', 'Réservé aux administrateurs.');
+    }
+
+    const { email, name } = data;
+    if (!email) throw new functions.https.HttpsError('invalid-argument', 'Email requis.');
+
+    let targetUid = null;
+    let userExists = false;
+
+    try {
+        // A. Chercher si l'utilisateur existe déjà pour lui mettre le badge tout de suite
+        try {
+            const userRecord = await admin.auth().getUserByEmail(email);
+            targetUid = userRecord.uid;
+            userExists = true;
+        } catch (e) {
+            // Pas grave, il n'existe pas encore. 
+            // Le trigger grantAdminOnAuth s'en chargera quand il se connectera.
+            targetUid = `pending_${Date.now()}`;
+        }
+
+        // B. Attribution du rôle Admin (Custom Claims) SI l'user existe
+        if (userExists && targetUid) {
+            await admin.auth().setCustomUserClaims(targetUid, { admin: true });
+        }
+
+        // C. Ajout à la liste blanche Firestore
+        await db.doc('sys_metadata/admin_users').set({
+            users: {
+                [targetUid]: {
+                    email: email,
+                    name: name || 'Admin Invité',
+                    role: 'admin',
+                    addedAt: admin.firestore.FieldValue.serverTimestamp(),
+                    addedBy: callerEmail,
+                    status: userExists ? 'active' : 'pending'
+                }
+            }
+        }, { merge: true });
+
+        return { success: true, userExists, uid: targetUid };
+
+    } catch (error) {
+        console.error("Erreur Add Admin:", error);
+        throw new functions.https.HttpsError('internal', error.message);
+    }
+});
+
+// Révoquer un administrateur
+exports.removeAdminUser = functions.https.onCall(async (data, context) => {
+    // 1. Sécurité
+    if (!context.auth || !context.auth.token.admin) {
+        if (!context.auth || context.auth.token.email !== 'matthis.fradin2@gmail.com') {
+            throw new functions.https.HttpsError('permission-denied', 'Interdit.');
+        }
+    }
+
+    const { uid, email } = data; // On accepte UID ou Email pour retrouver l'user
+    if (!uid && !email) throw new functions.https.HttpsError('invalid-argument', 'UID ou Email requis.');
+
+    try {
+        let targetUid = uid;
+
+        // Si on a l'email mais le UID est "pending_...", on essaie de trouver le vrai UID Auth
+        if (email && (!targetUid || targetUid.startsWith('pending_'))) {
+            try {
+                const userRecord = await admin.auth().getUserByEmail(email);
+                targetUid = userRecord.uid; // On a trouvé le vrai compte
+            } catch (e) { }
+        }
+
+        // A. Retirer le claim admin (sur le vrai compte Auth s'il existe)
+        if (targetUid && !targetUid.startsWith('pending_')) {
+            await admin.auth().setCustomUserClaims(targetUid, { admin: false });
+        }
+
+        // B. Retirer de Firestore (Il faut trouver la clé exacte dans la Map)
+        // On doit lire la map pour trouver la clé associée à cet email si on a pas le bon UID
+        const docRef = db.doc('sys_metadata/admin_users');
+
+        if (uid) {
+            // Cas facile: on a la clé
+            await docRef.update({
+                [`users.${uid}`]: admin.firestore.FieldValue.delete()
+            });
+        } else {
+            // Cas difficile: on cherche la clé par l'email (rare)
+            // On laisse le client gérer ça: le client doit envoyer le 'uid' (clé de la map)
+        }
+
+        return { success: true };
+
+    } catch (error) {
+        console.error("Erreur Remove Admin:", error);
+        throw new functions.https.HttpsError('internal', error.message);
+    }
+});
+
+// Outil de diagnostic (Email)
 exports.sendTestEmail = functions.https.onCall(async (data, context) => {
     // 1. Sécurité : Admin seulement
     if (!context.auth || !context.auth.token.admin) {
