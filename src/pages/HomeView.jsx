@@ -120,13 +120,17 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
   // ... (Keep existing Navigation logic) ...
 
   // --- DONNÉES UTILISANT LES IMAGES DYNAMIQUES ---
+  // --- DONNÉES UTILISANT LES IMAGES DYNAMIQUES ET TEXTES ---
   const featuredItems = [
     {
       id: 1,
       bgTitle: "Voltaire",
-      subtitle: "Exposition Temporaire",
-      title: ["Le Voltaire", "Signature"],
-      desc: "\"Une renaissance historique pour l'époque contemporaine.\"",
+      subtitle: homepageImages['featured_1_text']?.subtitle || "Exposition Temporaire",
+      title: [
+        homepageImages['featured_1_text']?.title_1 || "Le Voltaire",
+        homepageImages['featured_1_text']?.title_2 || "Signature"
+      ],
+      desc: homepageImages['featured_1_text']?.desc || "\"Une renaissance historique pour l'époque contemporaine.\"",
       img: homepageImages.featured_1 || "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1200",
       bgColor: "#FFFEFA",
       textColor: "#1a1a1a",
@@ -136,9 +140,12 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
     {
       id: 2,
       bgTitle: "Console",
-      subtitle: "Collection Permanente",
-      title: ["Console", "Héritage"],
-      desc: "\"Formes épurées et assemblage traditionnel. L'équilibre parfait entre passé et présent.\"",
+      subtitle: homepageImages['featured_2_text']?.subtitle || "Collection Permanente",
+      title: [
+        homepageImages['featured_2_text']?.title_1 || "Console",
+        homepageImages['featured_2_text']?.title_2 || "Héritage"
+      ],
+      desc: homepageImages['featured_2_text']?.desc || "\"Formes épurées et assemblage traditionnel. L'équilibre parfait entre passé et présent.\"",
       img: homepageImages.featured_2 || "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=1200",
       bgColor: "#FAF4EB",
       textColor: "#1a1a1a",
@@ -148,9 +155,12 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
     {
       id: 3,
       bgTitle: "Secrétaire",
-      subtitle: "Pièce Unique",
-      title: ["Le Secrétaire", "Secret"],
-      desc: "\"Bois de rose et marqueterie complexe. Un gardien de correspondances oubliées.\"",
+      subtitle: homepageImages['featured_3_text']?.subtitle || "Pièce Unique",
+      title: [
+        homepageImages['featured_3_text']?.title_1 || "Le Secrétaire",
+        homepageImages['featured_3_text']?.title_2 || "Secret"
+      ],
+      desc: homepageImages['featured_3_text']?.desc || "\"Bois de rose et marqueterie complexe. Un gardien de correspondances oubliées.\"",
       img: homepageImages.featured_3 || "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?q=80&w=1200",
       bgColor: "#F2E6D8",
       textColor: "#1a1a1a",
@@ -160,9 +170,12 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
     {
       id: 4,
       bgTitle: "Bibliothèque",
-      subtitle: "Nouvelle Acquisition",
-      title: ["Bibliothèque", "Céleste"],
-      desc: "\"Chêne massif et échelles en laiton. Une structure qui élève l'esprit.\"",
+      subtitle: homepageImages['featured_4_text']?.subtitle || "Nouvelle Acquisition",
+      title: [
+        homepageImages['featured_4_text']?.title_1 || "Bibliothèque",
+        homepageImages['featured_4_text']?.title_2 || "Céleste"
+      ],
+      desc: homepageImages['featured_4_text']?.desc || "\"Chêne massif et échelles en laiton. Une structure qui élève l'esprit.\"",
       img: homepageImages.featured_4 || "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?q=80&w=1200",
       bgColor: "#E6D0B8",
       textColor: "#1a1a1a",
@@ -782,8 +795,12 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
               <img src={homepageImages['manifesto_1'] || "https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=1200"} className="w-full h-full object-cover" alt="Table en Chêne" />
             </div>
             <div className="max-w-sm mx-auto 2xl:mx-0">
-              <h3 className="font-serif text-4xl italic mb-4 text-[#1a1a1a]">Le Plateau d'Antan</h3>
-              <p className="text-sm opacity-50 font-light leading-relaxed uppercase tracking-wider text-[#1a1a1a]">Chêne de pays — Finition à la cire d'abeille.</p>
+              <h3 className="font-serif text-4xl italic mb-4 text-[#1a1a1a]">
+                {homepageImages['manifesto_1_text']?.title || "Le Plateau d'Antan"}
+              </h3>
+              <p className="text-sm opacity-50 font-light leading-relaxed uppercase tracking-wider text-[#1a1a1a]">
+                {homepageImages['manifesto_1_text']?.desc || "Chêne de pays — Finition à la cire d'abeille."}
+              </p>
             </div>
           </div>
 
@@ -792,8 +809,12 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
               <img src={homepageImages['manifesto_2'] || "https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=1200"} className="w-full h-full object-cover" alt="Console de style" />
             </div>
             <div className="text-center 2xl:text-left">
-              <h3 className="font-serif text-3xl italic mb-4 text-[#1a1a1a]">La Console Royale</h3>
-              <p className="text-[10px] uppercase tracking-widest opacity-40 text-[#1a1a1a]">Noyer sculpté — XIXème siècle.</p>
+              <h3 className="font-serif text-3xl italic mb-4 text-[#1a1a1a]">
+                {homepageImages['manifesto_2_text']?.title || "La Console Royale"}
+              </h3>
+              <p className="text-[10px] uppercase tracking-widest opacity-40 text-[#1a1a1a]">
+                {homepageImages['manifesto_2_text']?.desc || "Noyer sculpté — XIXème siècle."}
+              </p>
             </div>
           </div>
 
@@ -802,15 +823,20 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
               <img src={homepageImages['manifesto_3'] || "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1400"} className="w-full h-full object-cover" alt="Commode ancienne" />
             </div>
             <div className="w-full max-w-lg 2xl:max-w-none 2xl:w-2/5 space-y-8 mx-auto 2xl:mx-0">
-              <h3 className="font-serif text-5xl italic leading-tight text-[#1a1a1a]">La Renaissance <br /> d'un Chef-d'œuvre</h3>
+              <h3
+                className="font-serif text-5xl italic leading-tight text-[#1a1a1a]"
+                dangerouslySetInnerHTML={{ __html: homepageImages['manifesto_3_text']?.title || "La Renaissance <br /> d'un Chef-d'œuvre" }}
+              />
               <p className="text-lg font-light opacity-60 leading-relaxed text-[#1a1a1a]">
-                Après 400 heures de restauration méticuleuse, cette pièce a retrouvé sa profondeur originelle. Un dialogue suspendu entre le XVIIIème et aujourd'hui.
+                {homepageImages['manifesto_3_text']?.desc || "Après 400 heures de restauration méticuleuse, cette pièce a retrouvé sa profondeur originelle. Un dialogue suspendu entre le XVIIIème et aujourd'hui."}
               </p>
               <button onClick={onEnterMarketplace} className="flex items-center gap-6 group">
                 <div className="w-14 h-14 rounded-full border border-black/10 flex items-center justify-center group-hover:bg-black group-hover:text-white transition-all duration-500">
                   <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                 </div>
-                <span className="text-[10px] uppercase tracking-[0.4em] text-[#1a1a1a]">Découvrir la pièce</span>
+                <span className="text-[10px] uppercase tracking-[0.4em] text-[#1a1a1a]">
+                  {homepageImages['manifesto_3_text']?.btn || "Découvrir la pièce"}
+                </span>
               </button>
             </div>
           </div>
@@ -835,11 +861,46 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
           </div>
 
           {[
-            { n: "I", t: "L'Essence", d: "Sélection rigoureuse des billes de bois précieux.", main: homepageImages.process_1 || "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?q=80&w=1400", w: "w-full md:max-w-[90vw] min-[1920px]:w-[580px]", h: "h-[450px] md:h-[600px] min-[1920px]:h-[500px]", info: "Matière première" },
-            { n: "II", t: "L'Analyse", d: "Diagnostic structurel et scan de la patine historique.", main: homepageImages.process_2 || "https://images.unsplash.com/photo-1644358686685-4ed525a59663?q=80&w=2000&auto=format&fit=crop", w: "w-full md:max-w-[95vw] min-[1920px]:w-[750px]", h: "h-[400px] md:h-[600px] min-[1920px]:h-[500px]", info: "Étude microscopique" },
-            { n: "III", t: "Le Dessin", d: "Tracé géométrique pour les greffes complexes.", main: homepageImages.process_3 || "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2000&auto=format&fit=crop", w: "w-full md:max-w-[90vw] min-[1920px]:w-[650px]", h: "h-[350px] md:h-[550px] min-[1920px]:h-[450px]", info: "Perspective d'art" },
-            { n: "IV", t: "La Cure", d: "Greffes invisibles et consolidation structurelle.", main: homepageImages.process_4 || "https://images.unsplash.com/photo-1600585152220-90363fe7e115?q=80&w=1400", w: "w-full md:max-w-[90vw] min-[1920px]:w-[600px]", h: "h-[400px] md:h-[600px] min-[1920px]:h-[500px]", info: "Renaissance physique" },
-            { n: "V", t: "L'Éclat", d: "Secret du vernis au tampon selon la tradition normande.", main: homepageImages.process_5 || "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=1400", w: "w-full md:max-w-[95vw] min-[1920px]:w-[850px]", h: "h-[400px] md:h-[650px] min-[1920px]:h-[550px]", info: "Miroir de bois" }
+            {
+              n: "I",
+              main: homepageImages.process_1 || "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?q=80&w=1400",
+              w: "w-full md:max-w-[90vw] min-[1920px]:w-[580px]", h: "h-[450px] md:h-[600px] min-[1920px]:h-[500px]",
+              t: homepageImages['process_1_text']?.t || "L'Essence",
+              d: homepageImages['process_1_text']?.d || "Sélection rigoureuse des billes de bois précieux.",
+              info: homepageImages['process_1_text']?.info || "Matière première"
+            },
+            {
+              n: "II",
+              main: homepageImages.process_2 || "https://images.unsplash.com/photo-1644358686685-4ed525a59663?q=80&w=2000&auto=format&fit=crop",
+              w: "w-full md:max-w-[95vw] min-[1920px]:w-[750px]", h: "h-[400px] md:h-[600px] min-[1920px]:h-[500px]",
+              t: homepageImages['process_2_text']?.t || "L'Analyse",
+              d: homepageImages['process_2_text']?.d || "Diagnostic structurel et scan de la patine historique.",
+              info: homepageImages['process_2_text']?.info || "Étude microscopique"
+            },
+            {
+              n: "III",
+              main: homepageImages.process_3 || "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2000&auto=format&fit=crop",
+              w: "w-full md:max-w-[90vw] min-[1920px]:w-[650px]", h: "h-[350px] md:h-[550px] min-[1920px]:h-[450px]",
+              t: homepageImages['process_3_text']?.t || "Le Dessin",
+              d: homepageImages['process_3_text']?.d || "Tracé géométrique pour les greffes complexes.",
+              info: homepageImages['process_3_text']?.info || "Perspective d'art"
+            },
+            {
+              n: "IV",
+              main: homepageImages.process_4 || "https://images.unsplash.com/photo-1600585152220-90363fe7e115?q=80&w=1400",
+              w: "w-full md:max-w-[90vw] min-[1920px]:w-[600px]", h: "h-[400px] md:h-[600px] min-[1920px]:h-[500px]",
+              t: homepageImages['process_4_text']?.t || "La Cure",
+              d: homepageImages['process_4_text']?.d || "Greffes invisibles et consolidation structurelle.",
+              info: homepageImages['process_4_text']?.info || "Renaissance physique"
+            },
+            {
+              n: "V",
+              main: homepageImages.process_5 || "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=1400",
+              w: "w-full md:max-w-[95vw] min-[1920px]:w-[850px]", h: "h-[400px] md:h-[650px] min-[1920px]:h-[550px]",
+              t: homepageImages['process_5_text']?.t || "L'Éclat",
+              d: homepageImages['process_5_text']?.d || "Secret du vernis au tampon selon la tradition normande.",
+              info: homepageImages['process_5_text']?.info || "Miroir de bois"
+            }
           ].map((step, i) => (
             <div key={i} className={`process-card flex-shrink-0 relative ${step.w} flex flex-col ${i % 2 === 0 ? 'md:flex-row-reverse' : 'md:flex-row'} min-[1920px]:flex-col items-center min-[1920px]:items-start justify-center gap-12 md:gap-20 min-[1920px]:gap-8 group mb-24 md:mb-48 min-[1920px]:mb-0 px-4 md:px-0`}>
 
@@ -957,18 +1018,20 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
             <div className="space-y-6 md:space-y-8 lg:space-y-10 team-content-reveal">
               <span className="text-[10px] md:text-[11px] lg:text-[12px] uppercase tracking-[1.2em] md:tracking-[1.4em] text-[#9C8268] block font-black italic">La Direction</span>
               <h2 className="font-serif text-5xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-[8vw] leading-[0.9] font-light italic tracking-tight text-[#1a1a1a]">
-                Jean <br /> Lefebvre
+                {homepageImages['team_main_text']?.name_line1 || "Jean"} <br /> {homepageImages['team_main_text']?.name_line2 || "Lefebvre"}
               </h2>
             </div>
 
             <p className="text-base md:text-lg lg:text-xl xl:text-2xl font-light opacity-60 leading-relaxed italic border-l border-black/10 pl-6 md:pl-6 lg:pl-8 xl:pl-10 mt-8 md:mt-8 lg:mt-12 team-content-reveal">
-              "Nous ne luttons pas contre le temps, nous le réapprivoisons. Chaque main possède une mémoire que les outils n'ont pas."
+              {homepageImages['team_main_text']?.quote || "\"Nous ne luttons pas contre le temps, nous le réapprivoisons. Chaque main possède une mémoire que les outils n'ont pas.\""}
             </p>
 
             <div className="flex gap-6 md:gap-8 lg:gap-12 xl:gap-16 pt-6 md:pt-8 lg:pt-12 border-t border-black/5 items-center mt-8 md:mt-8 lg:mt-12 team-content-reveal">
               <div>
                 <span className="block text-[9px] uppercase tracking-widest opacity-30 mb-2 font-black">Expérience</span>
-                <span className="font-serif text-3xl md:text-4xl lg:text-5xl xl:text-6xl italic text-[#9C8268]">XXV Ans</span>
+                <span className="font-serif text-3xl md:text-4xl lg:text-5xl xl:text-6xl italic text-[#9C8268]">
+                  {homepageImages['team_main_text']?.exp_years || "XXV Ans"}
+                </span>
               </div>
               <div className="w-[1px] h-12 bg-black/5"></div>
               <Zap size={32} className="text-[#9C8268] opacity-60" />

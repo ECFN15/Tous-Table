@@ -1,5 +1,5 @@
 import React from 'react';
-import { Upload, X, Loader, Image as ImageIcon, Download } from 'lucide-react';
+import { Upload, X, Loader, Image as ImageIcon, Download, Type } from 'lucide-react';
 
 const AdminImageCard = ({
     item,
@@ -9,7 +9,9 @@ const AdminImageCard = ({
     onFileSelect,
     onDownload,
     onReset,
-    hasCustomImage
+    hasCustomImage,
+    hasTextSchema,
+    onEditText
 }) => {
 
     const handleDrop = (e) => {
@@ -94,6 +96,17 @@ const AdminImageCard = ({
                 >
                     <Download size={14} />
                 </button>
+
+                {hasTextSchema && (
+                    <button
+                        onClick={onEditText}
+                        className={`w-10 flex items-center justify-center rounded-xl transition-colors ${darkMode ? 'bg-stone-700 text-stone-300 hover:bg-stone-600' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}
+                        title="Éditer le texte associé"
+                        type="button"
+                    >
+                        <Type size={14} />
+                    </button>
+                )}
 
                 {/* RESET BUTTON (If changed) */}
                 {hasCustomImage && (

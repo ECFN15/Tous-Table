@@ -6,46 +6,186 @@ import { Upload, X, Save, Image as ImageIcon, Loader, Info, Check, Download } fr
 
 import { compressImage } from '../../utils/imageUtils';
 import AdminImageCard from './components/AdminImageCard';
+import TextEditorModal from './components/TextEditorModal';
 
 // CONFIGURATION DES IMAGES DU HOMEPAGE
-// Cette structure définit toutes les images modifiables
+// Cette structure définit toutes les images modifiables ET les textes associés
 const HOMEPAGE_CONFIG = [
     {
         section: "Manifesto",
         description: "Section d'introduction 'Héritage'",
         items: [
-            { key: "manifesto_1", label: "Image 1 - Le Plateau", format: "Portrait (3:4)", default: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=1200" },
-            { key: "manifesto_2", label: "Image 2 - La Console", format: "Portrait (4:5)", default: "https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=1200" },
-            { key: "manifesto_3", label: "Image 3 - La Renaissance", format: "Paysage (16:9)", default: "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1400" }
+            {
+                key: "manifesto_1",
+                label: "Image 1 - Le Plateau",
+                format: "Portrait (3:4)",
+                default: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=1200",
+                textSchema: [
+                    { key: "title", label: "Titre Principal", type: "text", placeholder: "Le Plateau d'Antan" },
+                    { key: "desc", label: "Description / Matières", type: "textarea", placeholder: "Chêne de pays — Finition à la cire d'abeille." }
+                ]
+            },
+            {
+                key: "manifesto_2",
+                label: "Image 2 - La Console",
+                format: "Portrait (4:5)",
+                default: "https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=1200",
+                textSchema: [
+                    { key: "title", label: "Titre Principal", type: "text", placeholder: "La Console Royale" },
+                    { key: "desc", label: "Description / Apposition", type: "textarea", placeholder: "Noyer sculpté — XIXème siècle." }
+                ]
+            },
+            {
+                key: "manifesto_3",
+                label: "Image 3 - La Renaissance",
+                format: "Paysage (16:9)",
+                default: "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1400",
+                textSchema: [
+                    { key: "title", label: "Titre (Avec saut de ligne <br/>)", type: "text", placeholder: "La Renaissance <br /> d'un Chef-d'œuvre" },
+                    { key: "desc", label: "Paragraphe descriptif", type: "textarea", placeholder: "Après 400 heures de restauration méticuleuse..." },
+                    { key: "btn", label: "Texte Bouton", type: "text", placeholder: "Découvrir la pièce" }
+                ]
+            }
         ]
     },
     {
         section: "Process (Étapes)",
         description: "Les 5 étapes du rituel de restauration",
         items: [
-            { key: "process_1", label: "Étape I - L'Essence", format: "Portrait/Paysage", default: "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?q=80&w=1400" },
-            { key: "process_2", label: "Étape II - L'Analyse", format: "Portrait/Paysage", default: "https://images.unsplash.com/photo-1644358686685-4ed525a59663?q=80&w=2000&auto=format&fit=crop" },
-            { key: "process_3", label: "Étape III - Le Dessin", format: "Portrait/Paysage", default: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2000&auto=format&fit=crop" },
-            { key: "process_4", label: "Étape IV - La Cure", format: "Portrait/Paysage", default: "https://images.unsplash.com/photo-1600585152220-90363fe7e115?q=80&w=1400" },
-            { key: "process_5", label: "Étape V - L'Éclat", format: "Portrait/Paysage", default: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=1400" }
+            {
+                key: "process_1",
+                label: "Étape I - L'Essence",
+                format: "Portrait/Paysage",
+                default: "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?q=80&w=1400",
+                textSchema: [
+                    { key: "t", label: "Titre de l'étape", type: "text", placeholder: "L'Essence" },
+                    { key: "d", label: "Description courte", type: "textarea", placeholder: "Sélection rigoureuse des billes de bois précieux." },
+                    { key: "info", label: "Tag technique", type: "text", placeholder: "Matière première" }
+                ]
+            },
+            {
+                key: "process_2",
+                label: "Étape II - L'Analyse",
+                format: "Portrait/Paysage",
+                default: "https://images.unsplash.com/photo-1644358686685-4ed525a59663?q=80&w=2000&auto=format&fit=crop",
+                textSchema: [
+                    { key: "t", label: "Titre de l'étape", type: "text", placeholder: "L'Analyse" },
+                    { key: "d", label: "Description courte", type: "textarea", placeholder: "Diagnostic structurel et scan de la patine historique." },
+                    { key: "info", label: "Tag technique", type: "text", placeholder: "Étude microscopique" }
+                ]
+            },
+            {
+                key: "process_3",
+                label: "Étape III - Le Dessin",
+                format: "Portrait/Paysage",
+                default: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2000&auto=format&fit=crop",
+                textSchema: [
+                    { key: "t", label: "Titre de l'étape", type: "text", placeholder: "Le Dessin" },
+                    { key: "d", label: "Description courte", type: "textarea", placeholder: "Tracé géométrique pour les greffes complexes." },
+                    { key: "info", label: "Tag technique", type: "text", placeholder: "Perspective d'art" }
+                ]
+            },
+            {
+                key: "process_4",
+                label: "Étape IV - La Cure",
+                format: "Portrait/Paysage",
+                default: "https://images.unsplash.com/photo-1600585152220-90363fe7e115?q=80&w=1400",
+                textSchema: [
+                    { key: "t", label: "Titre de l'étape", type: "text", placeholder: "La Cure" },
+                    { key: "d", label: "Description courte", type: "textarea", placeholder: "Greffes invisibles et consolidation structurelle." },
+                    { key: "info", label: "Tag technique", type: "text", placeholder: "Renaissance physique" }
+                ]
+            },
+            {
+                key: "process_5",
+                label: "Étape V - L'Éclat",
+                format: "Portrait/Paysage",
+                default: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=1400",
+                textSchema: [
+                    { key: "t", label: "Titre de l'étape", type: "text", placeholder: "L'Éclat" },
+                    { key: "d", label: "Description courte", type: "textarea", placeholder: "Secret du vernis au tampon selon la tradition normande." },
+                    { key: "info", label: "Tag technique", type: "text", placeholder: "Miroir de bois" }
+                ]
+            }
         ]
     },
     {
         section: "En Vedette (Cartes)",
         description: "Les 4 cartes empilées (Stacked Cards)",
         items: [
-            { key: "featured_1", label: "Carte 1 - Voltaire", format: "Portrait", default: "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1200" },
-            { key: "featured_2", label: "Carte 2 - Console", format: "Portrait", default: "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=1200" },
-            { key: "featured_3", label: "Carte 3 - Secrétaire", format: "Portrait", default: "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?q=80&w=1200" },
-            { key: "featured_4", label: "Carte 4 - Bibliothèque", format: "Portrait", default: "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?q=80&w=1200" }
+            {
+                key: "featured_1",
+                label: "Carte 1 - Voltaire",
+                format: "Portrait",
+                default: "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1200",
+                textSchema: [
+                    { key: "subtitle", label: "Badge (Pillule)", type: "text", placeholder: "Exposition Temporaire" },
+                    { key: "title_1", label: "Titre Ligne 1", type: "text", placeholder: "Le Voltaire" },
+                    { key: "title_2", label: "Titre Ligne 2 (Italique)", type: "text", placeholder: "Signature" },
+                    { key: "desc", label: "Citation / Description", type: "textarea", placeholder: "\"Une renaissance historique pour l'époque contemporaine.\"" }
+                ]
+            },
+            {
+                key: "featured_2",
+                label: "Carte 2 - Console",
+                format: "Portrait",
+                default: "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=1200",
+                textSchema: [
+                    { key: "subtitle", label: "Badge (Pillule)", type: "text", placeholder: "Collection Permanente" },
+                    { key: "title_1", label: "Titre Ligne 1", type: "text", placeholder: "Console" },
+                    { key: "title_2", label: "Titre Ligne 2 (Italique)", type: "text", placeholder: "Héritage" },
+                    { key: "desc", label: "Citation / Description", type: "textarea", placeholder: "\"Formes épurées et assemblage traditionnel...\"" }
+                ]
+            },
+            {
+                key: "featured_3",
+                label: "Carte 3 - Secrétaire",
+                format: "Portrait",
+                default: "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?q=80&w=1200",
+                textSchema: [
+                    { key: "subtitle", label: "Badge (Pillule)", type: "text", placeholder: "Pièce Unique" },
+                    { key: "title_1", label: "Titre Ligne 1", type: "text", placeholder: "Le Secrétaire" },
+                    { key: "title_2", label: "Titre Ligne 2 (Italique)", type: "text", placeholder: "Secret" },
+                    { key: "desc", label: "Citation / Description", type: "textarea", placeholder: "\"Bois de rose et marqueterie complexe...\"" }
+                ]
+            },
+            {
+                key: "featured_4",
+                label: "Carte 4 - Bibliothèque",
+                format: "Portrait",
+                default: "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?q=80&w=1200",
+                textSchema: [
+                    { key: "subtitle", label: "Badge (Pillule)", type: "text", placeholder: "Nouvelle Acquisition" },
+                    { key: "title_1", label: "Titre Ligne 1", type: "text", placeholder: "Bibliothèque" },
+                    { key: "title_2", label: "Titre Ligne 2 (Italique)", type: "text", placeholder: "Céleste" },
+                    { key: "desc", label: "Citation / Description", type: "textarea", placeholder: "\"Chêne massif et échelles en laiton...\"" }
+                ]
+            }
         ]
     },
     {
         section: "Équipe & Autres",
         description: "Images de la direction et autres sections",
         items: [
-            { key: "team_main", label: "Portrait Direction", format: "Portrait (2:3)", default: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1600" },
-            { key: "faq_main", label: "Image FAQ", format: "Carré (1:1)", default: "https://images.unsplash.com/photo-1610701596007-11502861dcfa?q=80&w=1600" }
+            {
+                key: "team_main",
+                label: "Portrait Direction",
+                format: "Portrait (2:3)",
+                default: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1600",
+                textSchema: [
+                    { key: "name_line1", label: "Prénom", type: "text", placeholder: "Jean" },
+                    { key: "name_line2", label: "Nom", type: "text", placeholder: "Lefebvre" },
+                    { key: "quote", label: "Citation", type: "textarea", placeholder: "\"Nous ne luttons pas contre le temps...\"" },
+                    { key: "exp_years", label: "Années Expérience (chiffres romains)", type: "text", placeholder: "XXV Ans" }
+                ]
+            },
+            {
+                key: "faq_main",
+                label: "Image FAQ",
+                format: "Carré (1:1)",
+                default: "https://images.unsplash.com/photo-1610701596007-11502861dcfa?q=80&w=1600",
+                textSchema: [] // Pas de texte editable ici pour l'instant
+            }
         ]
     }
 ];
@@ -53,8 +193,12 @@ const HOMEPAGE_CONFIG = [
 const AdminHomepage = ({ darkMode = false }) => {
     const [images, setImages] = useState({});
     const [loading, setLoading] = useState(true);
-    const [uploading, setUploading] = useState(null); // Key of the image currently uploading
+    const [uploading, setUploading] = useState(null);
     const [msg, setMsg] = useState('');
+
+    // Modal Text Edit State
+    const [editingTextItem, setEditingTextItem] = useState(null); // { key: 'manifesto_1', schema: [...] }
+    const [isTextModalOpen, setIsTextModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchConfig = async () => {
@@ -64,7 +208,6 @@ const AdminHomepage = ({ darkMode = false }) => {
                 if (snap.exists()) {
                     setImages(snap.data());
                 } else {
-                    // Initialize with empty object, will fallback to defaults
                     setImages({});
                 }
             } catch (error) {
@@ -83,25 +226,19 @@ const AdminHomepage = ({ darkMode = false }) => {
         setMsg(`Traitement de ${file.name}...`);
 
         try {
-            // 1. Compression Client
             setMsg('Compression WebP...');
             const compressedFile = await compressImage(file);
 
-            // 2. Upload Storage
             setMsg('Upload vers Firebase...');
             const storagePath = `homepage/${key}_${Date.now()}.webp`;
             const storageRef = ref(storage, storagePath);
-            await uploadBytes(storageRef, compressedFile, {
-                cacheControl: 'public, max-age=31536000'
-            });
+            await uploadBytes(storageRef, compressedFile, { cacheControl: 'public, max-age=31536000' });
             const downloadUrl = await getDownloadURL(storageRef);
 
-            // 3. Update Firestore
             setMsg('Sauvegarde...');
             const docRef = doc(db, 'sys_metadata', 'homepage_images');
             await setDoc(docRef, { [key]: downloadUrl }, { merge: true });
 
-            // 4. Update Local State
             setImages(prev => ({ ...prev, [key]: downloadUrl }));
             setMsg('');
         } catch (error) {
@@ -118,7 +255,6 @@ const AdminHomepage = ({ darkMode = false }) => {
         const newImages = { ...images };
         delete newImages[item.key];
         setImages(newImages);
-        // Firebase Update (delete key essentially, or reset to default)
         const docRef = doc(db, 'sys_metadata', 'homepage_images');
         await setDoc(docRef, { [item.key]: item.default }, { merge: true });
     };
@@ -138,8 +274,36 @@ const AdminHomepage = ({ darkMode = false }) => {
             window.URL.revokeObjectURL(blobUrl);
         } catch (error) {
             console.warn("Download failed (likely CORS), falling back to new tab:", error);
-            // Fallback: Open in new tab which allows user to "Save As"
             window.open(url, '_blank');
+        }
+    };
+
+    // --- TEXT EDITING HANDLERS ---
+    const handleEditText = (item) => {
+        if (!item.textSchema || item.textSchema.length === 0) return;
+        setEditingTextItem(item);
+        setIsTextModalOpen(true);
+    };
+
+    const handleSaveText = async (key, formData) => {
+        try {
+            setMsg('Sauvegarde Texte...');
+            const docRef = doc(db, 'sys_metadata', 'homepage_images');
+
+            // On sauvegarde sous la clé "key_text"
+            const textKey = `${key}_text`;
+            await setDoc(docRef, { [textKey]: formData }, { merge: true });
+
+            // Mise à jour locale
+            setImages(prev => ({ ...prev, [textKey]: formData }));
+
+            setIsTextModalOpen(false);
+            setEditingTextItem(null);
+            setMsg('Sauvegardé !');
+            setTimeout(() => setMsg(''), 2000);
+        } catch (error) {
+            console.error("Erreur save text:", error);
+            alert("Erreur: " + error.message);
         }
     };
 
@@ -170,6 +334,7 @@ const AdminHomepage = ({ darkMode = false }) => {
                                 const currentImage = images[item.key] || item.default;
                                 const isUpdating = uploading === item.key;
                                 const hasCustomImage = !!images[item.key];
+                                const hasTextSchema = item.textSchema && item.textSchema.length > 0;
 
                                 return (
                                     <AdminImageCard
@@ -179,9 +344,11 @@ const AdminHomepage = ({ darkMode = false }) => {
                                         isUpdating={isUpdating}
                                         darkMode={darkMode}
                                         onFileSelect={(file) => handleFileChange(file, item.key)}
-                                        onDownload={() => handleDownload(currentImage, `${item.key}.webp`)} // handleDownload logic removed from here, need to move it back or simple implementation
+                                        onDownload={() => handleDownload(currentImage, `${item.key}.webp`)}
                                         onReset={() => handleReset(item)}
                                         hasCustomImage={hasCustomImage}
+                                        hasTextSchema={hasTextSchema}
+                                        onEditText={() => handleEditText(item)}
                                     />
                                 );
                             })}
@@ -189,6 +356,16 @@ const AdminHomepage = ({ darkMode = false }) => {
                     </div>
                 ))}
             </div>
+
+            <TextEditorModal
+                isOpen={isTextModalOpen}
+                onClose={() => setIsTextModalOpen(false)}
+                onSave={handleSaveText}
+                itemKey={editingTextItem?.key}
+                fields={editingTextItem?.textSchema || []}
+                initialData={images[`${editingTextItem?.key}_text`] || {}}
+                darkMode={darkMode}
+            />
         </div>
     );
 };
