@@ -181,10 +181,21 @@ const HOMEPAGE_CONFIG = [
             },
             {
                 key: "faq_main",
-                label: "Image FAQ",
+                label: "Image FAQ & Questions",
                 format: "Carré (1:1)",
                 default: "https://images.unsplash.com/photo-1610701596007-11502861dcfa?q=80&w=1600",
-                textSchema: [] // Pas de texte editable ici pour l'instant
+                textSchema: [
+                    { key: "q1", label: "Question 1", type: "text", placeholder: "Comment se déroule la restauration..." },
+                    { key: "a1", label: "Réponse 1", type: "textarea", placeholder: "Chaque projet commence par..." },
+                    { key: "q2", label: "Question 2", type: "text", placeholder: "Puis-je personnaliser..." },
+                    { key: "a2", label: "Réponse 2", type: "textarea", placeholder: "Absolument. Bien que..." },
+                    { key: "q3", label: "Question 3", type: "text", placeholder: "Utilisez-vous des produits écologiques ?" },
+                    { key: "a3", label: "Réponse 3", type: "textarea", placeholder: "Oui, nous privilégions..." },
+                    { key: "q4", label: "Question 4", type: "text", placeholder: "Quels sont les délais moyens ?" },
+                    { key: "a4", label: "Réponse 4", type: "textarea", placeholder: "Cela dépend de la complexité..." },
+                    { key: "q5", label: "Question 5", type: "text", placeholder: "Livrez-vous à l'international ?" },
+                    { key: "a5", label: "Réponse 5", type: "textarea", placeholder: "Oui, nous organisons l'expédition..." }
+                ]
             }
         ]
     }

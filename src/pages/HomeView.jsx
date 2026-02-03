@@ -638,12 +638,28 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
   ];
 
   // DONNÉES FAQ
+  // DONNÉES FAQ (DYNAMIQUES)
   const faqItems = [
-    { q: "Comment se déroule la restauration d'un meuble ?", a: "Chaque projet commence par une analyse approfondie de l'état du meuble. Nous établissons un diagnostic précis avant de procéder au nettoyage, à la consolidation structurelle, puis aux finitions respectueuses de l'époque." },
-    { q: "Puis-je personnaliser les finitions ?", a: "Absolument. Bien que nous privilégions les techniques traditionnelles, nous pouvons adapter la teinte, le vernis ou le tissu pour que la pièce s'intègre parfaitement à votre intérieur contemporain." },
-    { q: "Utilisez-vous des produits écologiques ?", a: "Oui, nous privilégions les cires naturelles, les huiles végétales et les vernis à l'eau ou au tampon (gomme laque) pour garantir la santé de votre intérieur et celle de la planète." },
-    { q: "Quels sont les délais moyens ?", a: "Cela dépend de la complexité de la restauration. Comptez en moyenne 4 à 8 semaines pour une restauration complète. Chaque étape de séchage et de pose est cruciale et ne peut être accélérée." },
-    { q: "Livrez-vous à l'international ?", a: "Oui, nous organisons l'expédition sécurisée de nos pièces dans le monde entier, avec des caisses de transport sur-mesure pour garantir une protection optimale." }
+    {
+      q: homepageImages['faq_main_text']?.q1 || "Comment se déroule la restauration d'un meuble ?",
+      a: homepageImages['faq_main_text']?.a1 || "Chaque projet commence par une analyse approfondie de l'état du meuble. Nous établissons un diagnostic précis avant de procéder au nettoyage, à la consolidation structurelle, puis aux finitions respectueuses de l'époque."
+    },
+    {
+      q: homepageImages['faq_main_text']?.q2 || "Puis-je personnaliser les finitions ?",
+      a: homepageImages['faq_main_text']?.a2 || "Absolument. Bien que nous privilégions les techniques traditionnelles, nous pouvons adapter la teinte, le vernis ou le tissu pour que la pièce s'intègre parfaitement à votre intérieur contemporain."
+    },
+    {
+      q: homepageImages['faq_main_text']?.q3 || "Utilisez-vous des produits écologiques ?",
+      a: homepageImages['faq_main_text']?.a3 || "Oui, nous privilégions les cires naturelles, les huiles végétales et les vernis à l'eau ou au tampon (gomme laque) pour garantir la santé de votre intérieur et celle de la planète."
+    },
+    {
+      q: homepageImages['faq_main_text']?.q4 || "Quels sont les délais moyens ?",
+      a: homepageImages['faq_main_text']?.a4 || "Cela dépend de la complexité de la restauration. Comptez en moyenne 4 à 8 semaines pour une restauration complète. Chaque étape de séchage et de pose est cruciale et ne peut être accélérée."
+    },
+    {
+      q: homepageImages['faq_main_text']?.q5 || "Livrez-vous à l'international ?",
+      a: homepageImages['faq_main_text']?.a5 || "Oui, nous organisons l'expédition sécurisée de nos pièces dans le monde entier, avec des caisses de transport sur-mesure pour garantir une protection optimale."
+    }
   ];
 
   const SEO = React.lazy(() => import('../components/SEO'));
