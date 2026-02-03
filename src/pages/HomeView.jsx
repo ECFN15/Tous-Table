@@ -700,11 +700,10 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         <button onClick={() => { setIsMenuOpen(!isMenuOpen); setMenuInteracted(true); }} className="flex items-center gap-4 group focus:outline-none">
           <span className={`text-[9px] uppercase tracking-[0.4em] transition-opacity duration-500 ${isMenuOpen ? 'opacity-100' : 'opacity-40 group-hover:opacity-100'}`}>Menu</span>
 
-          {/* ANIMATION HAMBURGER -> CROIX */}
-          <div className="w-6 h-4 flex flex-col justify-between">
-            <span className={`block w-full h-[1px] bg-white transition-all duration-500 ease-in-out will-change-transform ${isMenuOpen ? 'rotate-45 translate-y-[7px]' : ''}`}></span>
-            <span className={`block w-full h-[1px] bg-white transition-all duration-500 ease-in-out will-change-transform ${isMenuOpen ? 'opacity-0' : 'opacity-100'}`}></span>
-            <span className={`block w-full h-[1px] bg-white transition-all duration-500 ease-in-out will-change-transform ${isMenuOpen ? '-rotate-45 -translate-y-[7px]' : ''}`}></span>
+          {/* ANIMATION HAMBURGER -> CROIX (Lucide Icons) */}
+          <div className="relative w-6 h-6 flex items-center justify-center">
+            <Menu strokeWidth={1} className={`absolute w-6 h-6 text-white transition-all duration-500 ease-in-out ${isMenuOpen ? 'opacity-0 rotate-90 scale-50' : 'opacity-100 rotate-0 scale-100'}`} />
+            <X strokeWidth={1} className={`absolute w-6 h-6 text-white transition-all duration-500 ease-in-out ${isMenuOpen ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-50'}`} />
           </div>
         </button>
       </header>
