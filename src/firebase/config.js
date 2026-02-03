@@ -3,6 +3,7 @@ import { getFirestore } from 'firebase/firestore';
 import { getAuth, GoogleAuthProvider, FacebookAuthProvider, TwitterAuthProvider, OAuthProvider } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 import { getFunctions } from 'firebase/functions';
+import { getAnalytics } from 'firebase/analytics';
 
 // --- CONFIGURATION FIREBASE ---
 const firebaseConfig = {
@@ -20,6 +21,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 const functions = getFunctions(app, 'us-central1'); // Region important for functions
+const analytics = getAnalytics(app);
 const appId = 'tat-made-in-normandie';
 
 // --- PROVIDERS AUTHENTIFICATION ---
@@ -29,4 +31,4 @@ const twitterProvider = new TwitterAuthProvider();
 const appleProvider = new OAuthProvider('apple.com');
 const microsoftProvider = new OAuthProvider('microsoft.com');
 
-export { auth, db, storage, functions, appId, googleProvider, facebookProvider, twitterProvider, appleProvider, microsoftProvider };
+export { auth, db, storage, functions, analytics, appId, googleProvider, facebookProvider, twitterProvider, appleProvider, microsoftProvider };

@@ -227,7 +227,7 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                                 <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/30 to-transparent opacity-80"></div>
 
                                 {/* PBE Style Badge - RESPONSIVE ADJUSTMENTS */}
-                                <div className="absolute bottom-6 md:bottom-8 lg:bottom-10 left-1/2 -translate-x-1/2 bg-[#1a1a1a] text-white px-4 py-2 md:px-5 md:py-2.5 rounded-full shadow-lg z-20 whitespace-nowrap">
+                                <div className="absolute bottom-6 md:bottom-8 lg:bottom-10 left-0 right-0 mx-auto w-fit bg-[#1a1a1a] text-white px-4 py-2 md:px-5 md:py-2.5 rounded-full shadow-lg z-20 whitespace-nowrap">
                                     <span className="text-[9px] md:text-[10px] lg:text-xs uppercase tracking-[0.2em] font-bold">
                                         {item.subtitle}
                                     </span>
