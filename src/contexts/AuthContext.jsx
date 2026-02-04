@@ -61,16 +61,15 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         if (user && !user.isAnonymous) {
             const isHardcoded = HARDCODED_ADMINS.includes(user.email);
+            // Vérification stricte temps réel via Firestore
+            // idTokenResult.claims.admin est ignoré pour l'UI car il a une latence de révocation d'1h
             const isWhitelisted = adminWhitelist[user.uid] || Object.values(adminWhitelist).some(u => u.email === user.email);
 
-            // On vérifie aussi les Custom Claims si disponibles (plus sécurisé)
-            user.getIdTokenResult().then((idTokenResult) => {
-                if (idTokenResult.claims.admin || isHardcoded || isWhitelisted) {
-                    setIsAdmin(true);
-                } else {
-                    setIsAdmin(false);
-                }
-            });
+            if (isHardcoded || isWhitelisted) {
+                setIsAdmin(true);
+            } else {
+                setIsAdmin(false);
+            }
         } else {
             setIsAdmin(false);
         }

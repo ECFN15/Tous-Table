@@ -631,10 +631,26 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
 
 
   const stats = [
-    { label: "Années d'excellence", value: "25", suffix: "+" },
-    { label: "Heures par projet", value: "400", suffix: "h" },
-    { label: "Outils traditionnels", value: "1500", suffix: "" },
-    { label: "Patrimoines sauvés", value: "85", suffix: "+" }
+    {
+      label: homepageImages['stat_1_text']?.label || "Années d'excellence",
+      value: homepageImages['stat_1_text']?.value || "25",
+      suffix: homepageImages['stat_1_text']?.suffix || "+"
+    },
+    {
+      label: homepageImages['stat_2_text']?.label || "Heures par projet",
+      value: homepageImages['stat_2_text']?.value || "400",
+      suffix: homepageImages['stat_2_text']?.suffix || "h"
+    },
+    {
+      label: homepageImages['stat_3_text']?.label || "Outils traditionnels",
+      value: homepageImages['stat_3_text']?.value || "1500",
+      suffix: homepageImages['stat_3_text']?.suffix || ""
+    },
+    {
+      label: homepageImages['stat_4_text']?.label || "Patrimoines sauvés",
+      value: homepageImages['stat_4_text']?.value || "85",
+      suffix: homepageImages['stat_4_text']?.suffix || "+"
+    }
   ];
 
   // DONNÉES FAQ
@@ -967,9 +983,13 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
           <div className="flex whitespace-nowrap animate-marquee">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="flex items-center gap-24 mx-12">
-                <span className="font-serif text-5xl md:text-8xl font-light italic uppercase text-white tracking-[0.15em]">Patrimoine Durable</span>
+                <span className="font-serif text-5xl md:text-8xl font-light italic uppercase text-white tracking-[0.15em]">
+                  {homepageImages['ticker_text']?.text_left || "Patrimoine Durable"}
+                </span>
                 <Star size={32} className="text-[#9C8268] opacity-60" />
-                <span className="font-serif text-5xl md:text-8xl font-light uppercase opacity-20 italic tracking-[0.15em] text-white">L'Excellence du geste</span>
+                <span className="font-serif text-5xl md:text-8xl font-light uppercase opacity-20 italic tracking-[0.15em] text-white">
+                  {homepageImages['ticker_text']?.text_right || "L'Excellence du geste"}
+                </span>
                 <Star size={32} className="text-[#9C8268] opacity-60" />
               </div>
             ))}

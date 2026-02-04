@@ -164,6 +164,71 @@ const HOMEPAGE_CONFIG = [
         ]
     },
     {
+        section: "Textes & Chiffres Clés",
+        description: "Bandeau défilant et statistiques (Section 12)",
+        items: [
+            {
+                key: "ticker",
+                label: "Bandeau Défilant",
+                format: "Texte seul",
+                default: null,
+                isTextOnly: true,
+                textSchema: [
+                    { key: "text_left", label: "Texte Gauche", type: "text", placeholder: "Patrimoine Durable" },
+                    { key: "text_right", label: "Texte Droite", type: "text", placeholder: "L'Excellence du geste" }
+                ]
+            },
+            {
+                key: "stat_1",
+                label: "Mesure 01",
+                format: "Statistique",
+                default: null,
+                isTextOnly: true,
+                textSchema: [
+                    { key: "value", label: "Chiffre", type: "text", placeholder: "25" },
+                    { key: "suffix", label: "Suffixe", type: "text", placeholder: "+" },
+                    { key: "label", label: "Label", type: "text", placeholder: "Années d'excellence" }
+                ]
+            },
+            {
+                key: "stat_2",
+                label: "Mesure 02",
+                format: "Statistique",
+                default: null,
+                isTextOnly: true,
+                textSchema: [
+                    { key: "value", label: "Chiffre", type: "text", placeholder: "400" },
+                    { key: "suffix", label: "Suffixe", type: "text", placeholder: "h" },
+                    { key: "label", label: "Label", type: "text", placeholder: "Heures par projet" }
+                ]
+            },
+            {
+                key: "stat_3",
+                label: "Mesure 03",
+                format: "Statistique",
+                default: null,
+                isTextOnly: true,
+                textSchema: [
+                    { key: "value", label: "Chiffre", type: "text", placeholder: "1500" },
+                    { key: "suffix", label: "Suffixe", type: "text", placeholder: "" },
+                    { key: "label", label: "Label", type: "text", placeholder: "Outils traditionnels" }
+                ]
+            },
+            {
+                key: "stat_4",
+                label: "Mesure 04",
+                format: "Statistique",
+                default: null,
+                isTextOnly: true,
+                textSchema: [
+                    { key: "value", label: "Chiffre", type: "text", placeholder: "85" },
+                    { key: "suffix", label: "Suffixe", type: "text", placeholder: "+" },
+                    { key: "label", label: "Label", type: "text", placeholder: "Patrimoines sauvés" }
+                ]
+            }
+        ]
+    },
+    {
         section: "Équipe & Autres",
         description: "Images de la direction et autres sections",
         items: [
