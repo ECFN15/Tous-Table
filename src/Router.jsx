@@ -21,6 +21,7 @@ const AdminForm = React.lazy(() => import('./features/admin/AdminForm'));
 const AdminItemList = React.lazy(() => import('./features/admin/AdminItemList'));
 const AdminUsers = React.lazy(() => import('./features/admin/AdminUsers'));
 const CommentsModal = React.lazy(() => import('./components/ui/CommentsModal'));
+const MyOrdersView = React.lazy(() => import('./pages/MyOrdersView'));
 
 import { getMillis } from './utils/time';
 import { useAuth } from './contexts/AuthContext';
@@ -64,6 +65,14 @@ const AppRouter = ({
 
     const handleToggleStatus = async (item, col) => {
         try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', col, item.id), { status: item.status === 'published' ? 'draft' : 'published' }); } catch (e) { console.error(e); }
+    };
+
+    const handleArchiveItem = async (item, col) => {
+        try {
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', col, item.id), {
+                archived: !item.archived
+            });
+        } catch (e) { console.error(e); }
     };
 
     const handleDeleteItem = async (year, id, col) => {
@@ -133,6 +142,16 @@ const AppRouter = ({
                     onBack={() => setView('gallery')}
                     onPlaceOrder={handlePlaceOrder}
                 />
+            )}
+
+            {view === 'my-orders' && user && (
+                <Suspense fallback={<div className="min-h-screen bg-[#FAF9F6]"></div>}>
+                    <MyOrdersView
+                        user={user}
+                        onBack={() => setView('gallery')}
+                        darkMode={darkMode}
+                    />
+                </Suspense>
             )}
 
             {showOrderSuccess && <OrderSuccessModal onClose={() => setShowOrderSuccess(false)} />}
@@ -245,6 +264,7 @@ const AppRouter = ({
                                         darkMode={darkMode}
                                         onEdit={(item) => { setEditingItem(item); window.scrollTo(0, 0); }}
                                         onToggleStatus={(item) => handleToggleStatus(item, adminCollection)}
+                                        onArchive={(item) => handleArchiveItem(item, adminCollection)}
                                         onDelete={(id) => handleDeleteItem(null, id, adminCollection)}
                                     />
                                 </div>

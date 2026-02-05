@@ -42,7 +42,7 @@ const AppContent = () => {
   const [view, setView] = useState(() => {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash.replace('#', '');
-      if (['gallery', 'login', 'admin'].includes(hash)) return hash;
+      if (['gallery', 'login', 'admin', 'my-orders'].includes(hash)) return hash;
       const params = new URLSearchParams(window.location.search);
       if (params.get('page') === 'gallery') return 'gallery';
     }
@@ -223,7 +223,7 @@ const AppContent = () => {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '');
-      if (['home', 'gallery', 'admin', 'login'].includes(hash)) {
+      if (['home', 'gallery', 'admin', 'login', 'my-orders'].includes(hash)) {
         setView(hash);
       }
     };
@@ -315,6 +315,7 @@ const AppContent = () => {
       price: item.currentPrice || item.startingPrice,
       image: item.images?.[0] || item.imageUrl,
       material: item.material || 'Bois',
+      quantity: 1, // [FIX] Required by Firestore Rules
       addedAt: serverTimestamp()
     };
 
@@ -550,6 +551,11 @@ const AppContent = () => {
                 <button onClick={() => { setView('gallery'); setIsMenuOpen(false); window.scrollTo(0, 0); }} className={`text-5xl font-black tracking-tighter transition-colors duration-100 text-left transform transition-transform duration-300 ${isMenuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'} ${activeDesignId === 'architectural' ? 'font-serif italic' : ''} ${darkMode ? 'text-white hover:text-amber-500' : 'text-stone-900 hover:text-amber-600'}`} style={{ transitionDelay: isMenuOpen ? '200ms' : '0ms' }}>
                   {activeDesignId === 'architectural' ? 'La Galerie' : 'Marketplace.'}
                 </button>
+                {user && !user.isAnonymous && (
+                  <button onClick={() => { setView('my-orders'); setIsMenuOpen(false); window.scrollTo(0, 0); }} className={`text-5xl font-black tracking-tighter transition-colors duration-100 text-left transform transition-transform duration-300 ${isMenuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'} ${activeDesignId === 'architectural' ? 'font-serif italic' : ''} ${darkMode ? 'text-white hover:text-amber-500' : 'text-stone-900 hover:text-amber-600'}`} style={{ transitionDelay: isMenuOpen ? '250ms' : '0ms' }}>
+                    {activeDesignId === 'architectural' ? 'Mes Commandes' : 'Mes Commandes.'}
+                  </button>
+                )}
                 {isAdmin && <button onClick={() => { setView('admin'); setIsMenuOpen(false); window.scrollTo(0, 0); }} className={`text-5xl font-black tracking-tighter transition-colors duration-100 text-left transform transition-transform duration-300 ${isMenuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'} ${activeDesignId === 'architectural' ? 'font-serif italic' : ''} ${darkMode ? 'text-stone-600 hover:text-stone-300' : 'opacity-30 hover:text-stone-500'}`} style={{ transitionDelay: isMenuOpen ? '300ms' : '0ms' }}>Admin.</button>}
               </nav>
             </div>
