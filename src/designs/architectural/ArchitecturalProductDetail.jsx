@@ -237,7 +237,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
 
                         {/* Description (Scrollable) */}
                         <div className="p-0 border-l pl-8 border-stone-200 dark:border-stone-800 max-h-[250px] overflow-y-auto custom-scrollbar pr-4">
-                            <p className="whitespace-pre-wrap font-serif text-lg leading-loose text-stone-600 dark:text-stone-400">
+                            <p className="whitespace-pre-wrap font-serif text-lg font-medium leading-loose" style={{ color: darkMode ? '#d6d3d1' : '#000000', opacity: 1 }}>
                                 {item.description}
                             </p>
                         </div>
@@ -267,7 +267,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
                                     </div>
                                 </div>
                             ) : !item.auctionActive ? (
-                                <button onClick={() => onAddToCart(item)} className="w-full py-6 text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-emerald-600 transition-all flex items-center justify-center gap-4 bg-[#0A0A0A] dark:bg-white dark:text-black rounded-none">
+                                <button onClick={() => onAddToCart(item)} className="w-full py-6 text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-emerald-600 transition-all flex items-center justify-center gap-4 bg-black dark:bg-white dark:text-black rounded-none shadow-lg">
                                     <span>Acquérir cette pièce</span>
                                     <ArrowRight size={16} />
                                 </button>
