@@ -182,9 +182,9 @@ const StandardProductDetail = ({ item, user, onBack, onAddToCart, onShowComments
                     <ChevronLeft size={14} /> Retour collection
                 </button>
 
-                <div className="grid md:grid-cols-2 gap-8 lg:gap-16 items-stretch" style={{ color: palette.textBody }}>
-                    {/* Left Column: Images (Strictly follows Right Column Height) */}
-                    <div className="relative w-full h-auto min-h-[500px] rounded-2xl overflow-hidden shadow-sm"
+                <div className="grid md:grid-cols-2 gap-8 lg:gap-16 lg:h-[calc(100vh-160px)] lg:min-h-[650px] items-stretch" style={{ color: palette.textBody }}>
+                    {/* Left Column: Images (Strictly follows Right Column Height on Desktop) */}
+                    <div className="relative w-full h-[500px] lg:h-full rounded-2xl overflow-hidden shadow-sm"
                         style={{ backgroundColor: palette.cardBg, borderRadius: palette.borderRadius, boxShadow: palette.cardShadow }}>
 
                         <div className="absolute inset-0 group cursor-pointer"
@@ -226,9 +226,9 @@ const StandardProductDetail = ({ item, user, onBack, onAddToCart, onShowComments
                     </div>
 
                     {/* Right Column: Content (Drivers the Height) */}
-                    <div className="flex flex-col h-full px-1 py-1 min-h-[500px]">
+                    <div className="flex flex-col h-full px-1 py-1 overflow-hidden">
                         {/* Header */}
-                        <div className="space-y-4 mb-4">
+                        <div className="space-y-4 mb-4 shrink-0">
                             <div className="flex gap-2">
                                 <span className="px-3 py-1 text-[9px] font-black uppercase tracking-widest rounded-full" style={{ backgroundColor: `${palette.accent}20`, borderColor: `${palette.accent}40`, color: palette.accent }}>Lot n°{displayItem.id.substring(0, 4)}</span>
                             </div>
@@ -248,16 +248,18 @@ const StandardProductDetail = ({ item, user, onBack, onAddToCart, onShowComments
                             </div>
                         </div>
 
-                        {/* Description (Flexible with Max Limit) */}
-                        <div className="flex-1 min-h-[100px] mb-4 relative">
-                            <div className="p-6 h-full ring-1 ring-inset rounded-2xl overflow-y-auto custom-scrollbar"
-                                style={{ backgroundColor: palette.cardBg, '--tw-ring-color': palette.switcherBorder, borderRadius: palette.borderRadius, boxShadow: palette.cardShadow }}>
-                                <p className="font-serif text-lg leading-relaxed text-stone-600 dark:text-stone-300 whitespace-pre-wrap pb-8">{displayItem.description}</p>
+                        {/* Description (Absolute Scroll Jail - Bulletproof Layout) */}
+                        <div className="flex-1 min-h-[120px] mb-8 relative">
+                            <div className="absolute inset-0">
+                                <div className="h-full w-full p-6 rounded-2xl overflow-y-auto custom-scrollbar"
+                                    style={{ backgroundColor: palette.cardBg, borderRadius: palette.borderRadius }}>
+                                    <p className="font-serif text-lg leading-relaxed text-stone-600 dark:text-stone-300 whitespace-pre-wrap pb-4">{displayItem.description}</p>
+                                </div>
                             </div>
                         </div>
 
                         {/* Specs (Compact Row) */}
-                        <div className="grid grid-cols-2 gap-8 px-2 mb-6 opacity-80">
+                        <div className="grid grid-cols-2 gap-8 px-2 mb-6 opacity-80 shrink-0">
                             <div>
                                 <p className="text-[9px] font-black uppercase tracking-widest mb-1 opacity-50">Matières</p>
                                 <p className="text-xs font-bold">{displayItem.material || "Non spécifié"}</p>
@@ -268,14 +270,12 @@ const StandardProductDetail = ({ item, user, onBack, onAddToCart, onShowComments
                             </div>
                         </div>
 
-                        {/* Price & Actions (Fixed at Bottom) */}
                         {/* Price & Actions (Fixed at Bottom, with Auction Support) */}
-                        <div className="p-5 ring-1 ring-inset rounded-2xl overflow-hidden mt-auto"
+                        <div className="p-5 rounded-2xl overflow-hidden mt-auto shrink-0"
                             style={{
                                 backgroundColor: palette.cardBg,
-                                '--tw-ring-color': isWinner ? palette.accent : palette.switcherBorder,
                                 color: palette.textBody,
-                                boxShadow: isWinner ? `0 0 30px -5px ${palette.accent}60` : palette.cardShadow,
+                                boxShadow: isWinner ? `0 0 30px -5px ${palette.accent}60` : 'none',
                                 borderRadius: palette.borderRadius
                             }}>
                             <div className="flex justify-between items-end mb-6">
