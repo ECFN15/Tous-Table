@@ -111,8 +111,7 @@ export const AuthProvider = ({ children }) => {
         loginWithEmail,
         signupWithEmail,
         logout,
-        verifyEmail,
-        ADMIN_EMAILS
+        verifyEmail
     };
 
     return (
