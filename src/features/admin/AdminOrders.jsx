@@ -210,10 +210,12 @@ const AdminOrders = ({ darkMode = false }) => {
                                         <div className="space-y-3">
                                             <h4 className="text-xs font-black uppercase tracking-widest text-stone-400 flex items-center gap-2"><Mail size={12} /> Contact & Livraison</h4>
                                             <div className={`p-4 rounded-2xl border text-sm space-y-1 ${darkMode ? 'bg-stone-900/40 border-stone-700 text-stone-400' : 'bg-white border-stone-100 text-stone-600'}`}>
-                                                <p><strong className={darkMode ? 'text-stone-200' : 'text-stone-900'}>Email:</strong> {order.shipping?.email}</p>
+                                                <p><strong className={darkMode ? 'text-stone-200' : 'text-stone-900'}>Compte:</strong> {order.userEmail}</p>
+                                                <p><strong className={darkMode ? 'text-stone-200' : 'text-stone-900'}>Livraison:</strong> {order.shipping?.email}</p>
                                                 <p><strong className={darkMode ? 'text-stone-200' : 'text-stone-900'}>Tél:</strong> {order.shipping?.phone}</p>
                                                 <p><strong className={darkMode ? 'text-stone-200' : 'text-stone-900'}>Adresse:</strong> {order.shipping?.address}, {order.shipping?.zip} {order.shipping?.city}</p>
                                                 <p><strong className={darkMode ? 'text-stone-200' : 'text-stone-900'}>Paiement:</strong> {order.paymentMethod === 'deferred' ? 'Différé (Virement/Chèque)' : 'Stripe'}</p>
+                                                <p className="text-[10px] opacity-50 mt-2 font-mono">UID: {order.userId}</p>
                                             </div>
 
                                             <div className="flex gap-2 pt-2">

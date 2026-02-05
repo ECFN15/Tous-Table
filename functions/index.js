@@ -312,10 +312,13 @@ exports.createOrder = functions.https.onCall(async (data, context) => {
     }
 
     // 2. Gestion du Paiement Différé (MANUAL)
-    if (orderData.paymentMethod === 'manual') {
+    if (orderData.paymentMethod === 'manual' || orderData.paymentMethod === 'deferred') {
         const orderRef = db.collection('orders').doc();
         const finalOrder = {
             ...orderData,
+            userId: userId, // [FIX] Add Missing User ID
+            userEmail: context.auth.token.email || orderData.shipping?.email, // [FIX] Add Missing Email
+            paymentMethod: 'deferred', // [FIX] Normalize to 'deferred' for Admin display
             total: totalAmount,
             status: 'pending_payment', // En attente de virement/chèque
             createdAt: admin.firestore.FieldValue.serverTimestamp(),

@@ -92,7 +92,10 @@ service cloud.firestore {
     // Commandes - Accès Admin Total + Client (Lecture seule sur siennes)
     match /orders/{orderId} {
       allow read, write: if isArtisan(); // Utilisation du helper unifié
-      allow read: if request.auth != null && (request.auth.uid == resource.data.userId);
+      allow read: if request.auth != null && (
+        request.auth.uid == resource.data.userId || 
+        request.auth.token.email == resource.data.userEmail
+      );
       allow create: if false; // Toujours via Cloud Function uniquement
     }
 
