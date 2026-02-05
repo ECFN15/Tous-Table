@@ -1,5 +1,6 @@
 import { useLiveTheme } from '../../../hooks/useLiveTheme';
-import { Menu, ShoppingBag, ShieldCheck, Sun, Moon } from 'lucide-react';
+import { useAuth } from '../../../contexts/AuthContext';
+import { Menu, ShoppingBag, ShieldCheck, Sun, Moon, LogOut } from 'lucide-react';
 
 /**
  * COMPONENT : ARCHITECTURAL HEADER
@@ -25,6 +26,7 @@ const ArchitecturalHeader = ({
     // Since we don't receive darkMode boolean here, we'll let useLiveTheme resolve it or rely on parent.
     // Actually, forcedMode comes from Firestore.
     const { forcedMode } = useLiveTheme();
+    const { logout } = useAuth();
 
     // We only show toggle if mode is NOT forced
     const showToggle = forcedMode !== 'light' && forcedMode !== 'dark';
@@ -85,15 +87,24 @@ const ArchitecturalHeader = ({
                             </button>
                         )}
 
-                        {/* LOGIN BUTTON */}
+                        {/* LOGIN / LOGOUT BUTTON */}
                         {(!user || user.isAnonymous) ? (
                             <button onClick={onShowLogin} className={`hidden md:flex items-center gap-2 px-5 py-2 rounded border transition-all group ${darkMode ? 'border-stone-800 hover:bg-stone-800' : 'border-stone-200 hover:bg-stone-200'}`}>
                                 <ShieldCheck size={16} className={`group-hover:text-amber-500 transition-colors ${darkMode ? 'text-stone-400' : 'text-stone-400'}`} />
                                 <span className={`text-xs font-bold uppercase tracking-widest group-hover:text-stone-900 dark:group-hover:text-stone-200 ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>Connexion</span>
                             </button>
                         ) : (
-                            <div className="hidden md:flex items-center gap-2 px-5 py-2">
-                                <span className="text-xs font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Connecté</span>
+                            <div className="hidden md:flex items-center gap-2">
+                                <div className="px-3 py-2">
+                                    <span className="text-xs font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 cursor-default">Connecté</span>
+                                </div>
+                                <button
+                                    onClick={() => logout()}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded border transition-all group ${darkMode ? 'border-stone-800 hover:bg-red-900/20 hover:border-red-900/50 text-stone-400 hover:text-red-400' : 'border-stone-200 hover:bg-red-50 hover:border-red-200 text-stone-500 hover:text-red-600'}`}
+                                    title="Se déconnecter"
+                                >
+                                    <LogOut size={16} />
+                                </button>
                             </div>
                         )}
 

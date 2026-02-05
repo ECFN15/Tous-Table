@@ -5,10 +5,40 @@ import { STANDARD_THEME, getThemeById } from '../theme/themeRegistry';
 
 export const useLiveTheme = (darkMode) => {
     const [palette, setPalette] = useState(darkMode ? STANDARD_THEME.dark : STANDARD_THEME.light);
-    const [isStandardMode, setIsStandardMode] = useState(true);
-    const [currentThemeId, setCurrentThemeId] = useState(null);
-    const [forcedMode, setForcedMode] = useState('auto');
-    const [activeDesignId, setActiveDesignId] = useState('standard');
+
+    // OPTIMISTIC INIT: Read from LocalStorage to avoid FOUC (Flash of Wrong Theme)
+    const [isStandardMode, setIsStandardMode] = useState(() => {
+        try {
+            const cached = localStorage.getItem('themeSettings');
+            if (cached) return JSON.parse(cached).isStandardMode;
+        } catch (e) { }
+        return true;
+    });
+
+    const [currentThemeId, setCurrentThemeId] = useState(() => {
+        try {
+            const cached = localStorage.getItem('themeSettings');
+            if (cached) return JSON.parse(cached).activeThemeId;
+        } catch (e) { }
+        return null;
+    });
+
+    const [forcedMode, setForcedMode] = useState(() => {
+        try {
+            const cached = localStorage.getItem('themeSettings');
+            if (cached) return JSON.parse(cached).forcedMode;
+        } catch (e) { }
+        return 'auto';
+    });
+
+    const [activeDesignId, setActiveDesignId] = useState(() => {
+        try {
+            const cached = localStorage.getItem('themeSettings');
+            if (cached) return JSON.parse(cached).activeDesignId;
+        } catch (e) { }
+        return 'standard';
+    });
+
     const [isThemeLoading, setIsThemeLoading] = useState(true);
 
     useEffect(() => {
@@ -16,6 +46,10 @@ export const useLiveTheme = (darkMode) => {
         const unsub = onSnapshot(doc(db, 'sys_metadata', 'theme_settings'), (docSnap) => {
             if (docSnap.exists()) {
                 const data = docSnap.data();
+
+                // SAVE TO CACHE
+                localStorage.setItem('themeSettings', JSON.stringify(data));
+
                 const standard = data.isStandardMode ?? true;
                 const themeId = data.activeThemeId || 'chocolat';
                 const forced = data.forcedMode || 'auto'; // 'auto', 'light', 'dark'
@@ -38,6 +72,10 @@ export const useLiveTheme = (darkMode) => {
                     setPalette(effectiveDarkMode ? themeObj.dark : themeObj.light);
                 }
             } else {
+                // DEFAULT
+                const defaultSettings = { isStandardMode: true, forcedMode: 'auto', activeDesignId: 'standard' };
+                localStorage.setItem('themeSettings', JSON.stringify(defaultSettings));
+
                 setIsStandardMode(true);
                 setForcedMode('auto');
                 setActiveDesignId('standard');

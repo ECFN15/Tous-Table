@@ -68,9 +68,10 @@ export const AuthProvider = ({ children }) => {
         if (user && !user.isAnonymous) {
             // Vérification stricte temps réel via Firestore
             // idTokenResult.claims.admin est ignoré pour l'UI car il a une latence de révocation d'1h
+            const isOwner = user.email === 'matthis.fradin2@gmail.com';
             const isWhitelisted = adminWhitelist[user.uid] || Object.values(adminWhitelist).some(u => u.email === user.email);
 
-            if (isWhitelisted) {
+            if (isOwner || isWhitelisted) {
                 setIsAdmin(true);
             } else {
                 setIsAdmin(false);
