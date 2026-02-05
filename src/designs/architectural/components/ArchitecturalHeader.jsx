@@ -80,7 +80,7 @@ const ArchitecturalHeader = ({
                         {showToggle && toggleTheme && (
                             <button
                                 onClick={toggleTheme}
-                                className="w-12 h-12 rounded-full flex items-center justify-center hover:bg-stone-100 dark:hover:bg-stone-800 transition-all text-stone-400 hover:text-amber-500"
+                                className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${darkMode ? 'text-stone-400 hover:bg-stone-800 hover:text-amber-500' : 'text-stone-400 hover:bg-stone-200 hover:text-stone-900'}`}
                                 title="Changer de thème"
                             >
                                 {isDark ? <Sun size={22} strokeWidth={1.5} /> : <Moon size={22} strokeWidth={1.5} />}
