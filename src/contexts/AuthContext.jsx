@@ -27,20 +27,11 @@ export const AuthProvider = ({ children }) => {
 
     // Admin emails list (Dynamic + Fallback)
     const [adminWhitelist, setAdminWhitelist] = useState({});
-    const HARDCODED_ADMINS = ['matthis.fradin2@gmail.com'];
-    const ADMIN_EMAILS = HARDCODED_ADMINS; // Backward compatibility
+    // Authentication relies on Firestore Rules & Custom Claims now.
+    // No hardcoded emails in client bundle.
 
+    // 1. Listen to Auth State (Run once)
     useEffect(() => {
-        // 1. Listen to Admin Whitelist in Firestore
-        // Note: db and firestore methods are now imported at top level
-
-        const unsub = onSnapshot(doc(db, 'sys_metadata', 'admin_users'), (snap) => {
-            if (snap.exists() && snap.data().users) {
-                setAdminWhitelist(snap.data().users);
-            }
-        }, (err) => console.log("Auth Whitelist Sync Error (Ignored if not admin)", err));
-
-        // 2. Listen to Auth State
         const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
             setUser(currentUser);
             setLoading(false);
@@ -51,21 +42,35 @@ export const AuthProvider = ({ children }) => {
             }
         });
 
-        return () => {
-            unsub();
-            unsubscribeAuth();
-        };
+        return () => unsubscribeAuth();
     }, []);
+
+    // 2. Listen to Admin Whitelist (Only if authenticated)
+    // Avoids "Permission Denied" errors for anonymous users on secured sys_metadata
+    useEffect(() => {
+        if (!user) return;
+
+        const unsub = onSnapshot(doc(db, 'sys_metadata', 'admin_users'), (snap) => {
+            if (snap.exists() && snap.data().users) {
+                setAdminWhitelist(snap.data().users);
+            }
+        }, (err) => {
+            // S'il y a une erreur de droits (normal pour user standard), on l'ignore silencieusement
+            // pour ne pas polluer la console.
+            // console.debug("Not authorized to read admin whitelist");
+        });
+
+        return () => unsub();
+    }, [user]);
 
     // Derived Admin State
     useEffect(() => {
         if (user && !user.isAnonymous) {
-            const isHardcoded = HARDCODED_ADMINS.includes(user.email);
             // Vérification stricte temps réel via Firestore
             // idTokenResult.claims.admin est ignoré pour l'UI car il a une latence de révocation d'1h
             const isWhitelisted = adminWhitelist[user.uid] || Object.values(adminWhitelist).some(u => u.email === user.email);
 
-            if (isHardcoded || isWhitelisted) {
+            if (isWhitelisted) {
                 setIsAdmin(true);
             } else {
                 setIsAdmin(false);

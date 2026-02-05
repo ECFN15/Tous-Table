@@ -20,13 +20,13 @@ service cloud.firestore {
         data.name is string && data.name.size() > 0 && data.name.size() < 140 &&
         data.description is string && data.description.size() < 10000 &&
         
-        // 2. Données Financières (Nombres obligatoires)
-        (data.currentPrice is number || data.currentPrice is float) &&
-        (data.startingPrice is number || data.startingPrice is float) &&
+        // 2. Données Financières (Nombres obligatoires et positifs)
+        (data.currentPrice is number && data.currentPrice >= 0) &&
+        (data.startingPrice is number && data.startingPrice >= 0) &&
         
         // 3. Structure d'Images
         (data.images is list) &&
-        (!("thumbnails" in data) || data.thumbnails is list) && // Optionnel pour rétrocompatibilité
+        (!("thumbnails" in data) || data.thumbnails is list) && 
         
         // 4. Logique Enchère
         (data.auctionActive is bool);
@@ -54,8 +54,7 @@ service cloud.firestore {
         allow delete: if request.auth != null && (resource.data.userId == request.auth.uid || isArtisan());
       }
 
-      // Likes - Utilisateurs authentifiés peuvent créer/lire/supprimer LEUR like
-      // L'ID du document DOIT être l'UID de l'utilisateur pour garantir l'unicité (1 like par user)
+      // Likes
       match /likes/{userId} {
         allow read: if true;
         allow create: if request.auth != null && request.auth.uid == userId;
@@ -75,23 +74,32 @@ service cloud.firestore {
       }
     }
 
-    // Panier utilisateur - Isolation par userId
-    match /users/{userId}/cart/{cartItem} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    // Fonction Validation Cart
+    function isValidCartItem() {
+      let data = request.resource.data;
+      return 
+        data.keys().size() < 10 &&
+        (data.quantity is number && data.quantity > 0) &&
+        (data.price is number && data.price >= 0);
     }
 
-    // Commandes - Accès Admin Total
+    // Panier utilisateur - Isolation + Validation Anti-Flood
+    match /users/{userId}/cart/{cartItem} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && request.auth.uid == userId && (isValidCartItem() || request.method == 'delete');
+    }
+
+    // Commandes - Accès Admin Total + Client (Lecture seule sur siennes)
     match /orders/{orderId} {
-      allow read, write: if request.auth != null && request.auth.token.email == 'matthis.fradin2@gmail.com';
-      // Pour les clients
+      allow read, write: if isArtisan(); // Utilisation du helper unifié
       allow read: if request.auth != null && (request.auth.uid == resource.data.userId);
       allow create: if false; // Toujours via Cloud Function uniquement
     }
 
-    // System Metadata
+    // System Metadata - PROTECTION CRITIQUE ADMIN
     match /sys_metadata/{docId} {
-      allow read: if true;
-      allow write: if request.auth != null && request.auth.token.email == 'matthis.fradin2@gmail.com';
+      allow read: if isArtisan(); // <--- SEUL L'ADMIN PEUT LIRE LA LISTE DES ADMINS
+      allow write: if isArtisan();
     }
   }
 }

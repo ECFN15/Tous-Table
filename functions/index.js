@@ -236,6 +236,11 @@ exports.createOrder = functions.https.onCall(async (data, context) => {
     const appId = 'tat-made-in-normandie';
     const SITE_URL = 'https://tatmadeinnormandie.web.app'; // URL de prod
 
+    // VALIDATION BASIC
+    if (!orderData || !orderData.items || !Array.isArray(orderData.items)) {
+        throw new functions.https.HttpsError('invalid-argument', 'Format de commande invalide.');
+    }
+
     // 1. Validation de stock et calcul du prix TOTAL réel (côté serveur pour sécurité)
     // On ne fait PAS confiance au prix envoyé par le frontend
     let totalAmount = 0;

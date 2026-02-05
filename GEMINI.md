@@ -70,7 +70,13 @@ Le projet a été restructuré pour séparer clairement les responsabilités (Ja
     *   Pour gérer des designs radicalement différents sans "Spaghetti Code", les vues complexes (`GalleryView` et `ProductDetail`) n'utilisent plus de conditions ternaires géantes.
     *   Elles agissent comme des **Routeurs Internes** qui importent et affichent soit le composant `Standard...` soit le composant `Architectural...` en fonction du `activeDesignId` du thème.
     *   Cela garantit une **séparation totale** des responsabilités : modifier le design "Architectural" ne cassera jamais le design "Standard".
-    *   **Update Février 2026 (Architectural)** : Passage en Layout "Split Screen" (50/50) avec conteneur image fixe (`h-[calc(100vh-5rem)]`) et `object-cover` pour éviter les bandes noires. Adoucissement des animations (Hover Gallery).
+    *   **Update Février 2026 (Refonte Architectural)** :
+        *   **Header Épuré** : Typographie "Atelier Normand" agrandie (`text-xs`), symétrie verticale parfaite, bouton "Retour" déplacé hors du header pour alléger.
+        *   **Layout Produit (Smart Scroll)** : Passage en **Body Scroll** (défilement naturel) avec **Sticky Left Column** pour l'image. Suppression des scrollbars internes.
+        *   **Image "Tableau"** : Conteneur avec coins très arrondis (`rounded-[2.5rem]`), padding aéré et ombre portée douce. L'image se fond dans le décor.
+        *   **Navigation Intuitive** : Bouton "Retour Collection" positionné **au-dessus de l'image** (Desktop & Mobile). Suppression des boutons flottants parasites sur mobile.
+        *   **Symétrie & Alignement** : Alignement strict du haut (Titre vs Bouton Retour) et du bas (Prix/Specs vs Bas de l'image) grâce à des spacers flexibles (`mt-auto`).
+        *   **Aération** : Suppression des bordures (Prix) et augmentation significative des marges (`space-y`, `mb-12`) pour une lecture plus élégante.
 
 ---
 
