@@ -45,7 +45,7 @@ const ArchitecturalHeader = ({
                         {/* MINI LOGO TEXT */}
                         <div className="flex flex-col leading-none cursor-pointer group" onClick={() => window.location.href = '/'}>
                             <span className={`font-black uppercase text-sm tracking-widest transition-colors ${darkMode ? 'text-stone-200 group-hover:text-stone-400' : 'text-stone-900 group-hover:text-stone-600'}`}>Tous à Table</span>
-                            <span className={`font-serif italic text-[10px] mt-1 ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>Atelier Normand</span>
+                            <span className={`font-serif italic text-xs mt-1 ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>Atelier Normand</span>
                         </div>
 
                         {/* COLLECTION TABS */}
