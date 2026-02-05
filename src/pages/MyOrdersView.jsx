@@ -189,7 +189,7 @@ const MyOrdersView = ({ user, onBack, darkMode }) => {
                                                 onClick={() => {
                                                     if (window.$crisp) window.$crisp.push(["do", "chat:open"]);
                                                 }}
-                                                className="w-full flex items-center justify-center gap-2 py-3 bg-stone-100 dark:bg-stone-800 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors"
+                                                className="w-full flex items-center justify-center gap-2 py-3 bg-stone-900 text-white dark:bg-white dark:text-stone-900 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-stone-800 dark:hover:bg-stone-100 transition-colors shadow-sm"
                                             >
                                                 <MessageCircle size={14} /> Contacter le vendeur
                                             </button>
