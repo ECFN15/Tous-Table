@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronLeft, Box, Heart, MessageCircle, Share2, ArrowRight, Trophy, Zap, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Box, Heart, MessageCircle, Share2, ArrowRight, Trophy, Zap, Clock } from 'lucide-react';
 import { db, appId, functions } from '../../firebase/config';
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
@@ -159,16 +159,16 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
                 onBack={onBack}
             />
 
-            <div className="w-full h-auto md:h-[calc(100vh-5rem)] overflow-hidden flex flex-col md:flex-row">
-                {/* BACK BUTTON (Absolute Top Left) */}
+            <div className="w-full min-h-screen flex flex-col md:flex-row relative">
+                {/* BACK BUTTON (Absolute Top Left - Mobile Only) */}
                 <div className="absolute top-24 left-6 z-50 md:hidden">
                     <button onClick={onBack} className="flex items-center gap-2 font-bold text-[10px] uppercase tracking-widest px-4 py-2 bg-white/80 dark:bg-black/80 backdrop-blur rounded-full">
                         <ChevronLeft size={14} /> Retour
                     </button>
                 </div>
 
-                {/* LEFT COLUMN: IMAGE GALLERY (Fixed & Styled like Atelier Theme) */}
-                <div className="w-full md:w-1/2 h-[50vh] md:h-full flex flex-col p-6 md:p-12">
+                {/* LEFT COLUMN: IMAGE GALLERY (Sticky on Desktop) */}
+                <div className="w-full md:w-1/2 h-[50vh] md:h-[calc(100vh-6rem)] md:sticky md:top-24 flex flex-col p-6 md:p-12">
 
                     {/* BACK BUTTON (Desktop - Above Image) */}
                     <button onClick={onBack} className="hidden md:flex items-center gap-3 font-bold text-[10px] uppercase tracking-widest transition-colors hover:opacity-60 mb-6 opacity-60 hover:opacity-100">
@@ -195,8 +195,18 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
                         {/* Arrows (Visible on hover) */}
                         {images.length > 1 && (
                             <>
-                                <div className="absolute top-1/2 left-6 -translate-y-1/2 p-3 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer drop-shadow-md bg-black/20 backdrop-blur-md rounded-full hover:bg-black/50 hover:scale-110 flex items-center justify-center"><ChevronLeft size={24} strokeWidth={2} /></div>
-                                <div className="absolute top-1/2 right-6 -translate-y-1/2 p-3 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 rotate-180 cursor-pointer drop-shadow-md bg-black/20 backdrop-blur-md rounded-full hover:bg-black/50 hover:scale-110 flex items-center justify-center"><ChevronLeft size={24} strokeWidth={2} /></div>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === 0 ? images.length - 1 : prev - 1); }}
+                                    className="absolute top-1/2 left-6 -translate-y-1/2 w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer drop-shadow-md bg-black/20 backdrop-blur-md rounded-full hover:bg-black/50 flex items-center justify-center outline-none ring-0 focus:outline-none focus:ring-0"
+                                >
+                                    <ChevronLeft size={24} strokeWidth={2} />
+                                </button>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === images.length - 1 ? 0 : prev + 1); }}
+                                    className="absolute top-1/2 right-6 -translate-y-1/2 w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer drop-shadow-md bg-black/20 backdrop-blur-md rounded-full hover:bg-black/50 flex items-center justify-center outline-none ring-0 focus:outline-none focus:ring-0"
+                                >
+                                    <ChevronRight size={24} strokeWidth={2} />
+                                </button>
                             </>
                         )}
 
@@ -216,7 +226,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
                 </div>
 
                 {/* RIGHT COLUMN: SCROLLABLE INFO */}
-                <div className="w-full md:w-1/2 h-auto md:h-full md:overflow-y-auto px-6 md:px-16 py-12 md:py-24 flex flex-col justify-center">
+                <div className="w-full md:w-1/2 px-6 md:px-16 py-12 md:py-12 flex flex-col">
 
                     <div className="max-w-xl mx-auto w-full space-y-10">
                         <button onClick={onBack} className="flex md:hidden items-center gap-2 font-bold text-xs uppercase tracking-widest transition-colors hover:opacity-60 mb-8 opacity-100">
