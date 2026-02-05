@@ -156,61 +156,72 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
                 onOpenCart={onOpenCart}
                 toggleTheme={toggleTheme}
                 darkMode={darkMode}
+                onBack={onBack}
             />
 
-            <div className="max-w-[1920px] mx-auto px-6 md:px-12 pb-20 pt-8">
-                <React.Suspense fallback={null}>
-                    <SEO
-                        title={`${item.name} - Tous à Table`}
-                        description={item.description}
-                        image={images[0]}
-                        url={`/?product=${item.id}`}
-                        schema={productSchema}
-                    />
-                </React.Suspense>
+            <div className="w-full h-auto md:h-[calc(100vh-5rem)] overflow-hidden flex flex-col md:flex-row">
+                {/* BACK BUTTON (Absolute Top Left) */}
+                <div className="absolute top-24 left-6 z-50 md:hidden">
+                    <button onClick={onBack} className="flex items-center gap-2 font-bold text-[10px] uppercase tracking-widest px-4 py-2 bg-white/80 dark:bg-black/80 backdrop-blur rounded-full">
+                        <ChevronLeft size={14} /> Retour
+                    </button>
+                </div>
 
-                {isWinner && <ConfettiRain />}
+                {/* LEFT COLUMN: IMAGE GALLERY (Fixed & Styled like Atelier Theme) */}
+                <div className="w-full md:w-1/2 h-[50vh] md:h-full flex flex-col p-6 md:p-12">
 
-                <button onClick={onBack} className="mb-8 flex items-center gap-2 font-bold text-[10px] uppercase tracking-widest transition-colors px-0 hover:opacity-60">
-                    <ChevronLeft size={14} /> Retour collection
-                </button>
+                    {/* BACK BUTTON (Desktop - Above Image) */}
+                    <button onClick={onBack} className="hidden md:flex items-center gap-3 font-bold text-[10px] uppercase tracking-widest transition-colors hover:opacity-60 mb-6 opacity-60 hover:opacity-100">
+                        <ChevronLeft size={14} /> Retour Collection
+                    </button>
 
-                <div className="grid md:grid-cols-2 gap-12 lg:gap-24">
+                    {/* ROUNDED IMAGE CONTAINER */}
+                    <div className="relative w-full flex-1 rounded-[2.5rem] overflow-hidden shadow-2xl shadow-black/20 group"
+                        onClick={(e) => {
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            const x = e.clientX - rect.left;
+                            if (x < rect.width / 2) {
+                                setActiveImg(prev => prev === 0 ? images.length - 1 : prev - 1);
+                            } else {
+                                setActiveImg(prev => prev === images.length - 1 ? 0 : prev + 1);
+                            }
+                        }}>
+                        <img
+                            src={images[activeImg]}
+                            className="w-full h-full object-cover transition-transform duration-700 ease-in-out"
+                            alt={item.name}
+                        />
 
-                    {/* Left Column: Images */}
-                    <div className="space-y-8 sticky top-24 h-fit">
-                        <div className="transform-gpu backface-hidden group cursor-pointer w-full max-h-[75vh] flex items-center justify-center rounded-none bg-white dark:bg-[#111]"
-                            onClick={(e) => {
-                                const rect = e.currentTarget.getBoundingClientRect();
-                                const x = e.clientX - rect.left;
-                                if (x < rect.width / 2) {
-                                    setActiveImg(prev => prev === 0 ? images.length - 1 : prev - 1);
-                                } else {
-                                    setActiveImg(prev => prev === images.length - 1 ? 0 : prev + 1);
-                                }
-                            }}>
-                            <img src={images[activeImg]} className="transition-transform duration-700 group-hover:scale-105 max-w-full max-h-[75vh] object-contain p-6" alt={item.name} />
-
-                            {/* Arrows */}
-                            {images.length > 1 && (
-                                <>
-                                    <div className="absolute top-1/2 left-4 -translate-y-1/2 p-3 rounded-full bg-black/20 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/40"><ChevronLeft size={24} /></div>
-                                    <div className="absolute top-1/2 right-4 -translate-y-1/2 p-3 rounded-full bg-black/20 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/40 rotate-180"><ChevronLeft size={24} /></div>
-                                </>
-                            )}
-                        </div>
-                        {/* Pager */}
+                        {/* Arrows (Visible on hover) */}
                         {images.length > 1 && (
-                            <div className="flex justify-center gap-2 mt-4">
+                            <>
+                                <div className="absolute top-1/2 left-6 -translate-y-1/2 p-3 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer drop-shadow-md bg-black/20 backdrop-blur-md rounded-full hover:bg-black/50 hover:scale-110 flex items-center justify-center"><ChevronLeft size={24} strokeWidth={2} /></div>
+                                <div className="absolute top-1/2 right-6 -translate-y-1/2 p-3 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 rotate-180 cursor-pointer drop-shadow-md bg-black/20 backdrop-blur-md rounded-full hover:bg-black/50 hover:scale-110 flex items-center justify-center"><ChevronLeft size={24} strokeWidth={2} /></div>
+                            </>
+                        )}
+
+                        {/* Pager (Bottom Overlay) */}
+                        {images.length > 1 && (
+                            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3">
                                 {images.map((_, idx) => (
-                                    <button key={idx} onClick={(e) => { e.stopPropagation(); setActiveImg(idx) }} className={`h-0.5 transition-all duration-300 ${activeImg === idx ? 'w-8 bg-black dark:bg-white' : 'w-4 bg-stone-300 dark:bg-stone-700'}`} />
+                                    <button
+                                        key={idx}
+                                        onClick={(e) => { e.stopPropagation(); setActiveImg(idx) }}
+                                        className={`h-1.5 rounded-full transition-all duration-300 shadow-sm backdrop-blur-sm ${activeImg === idx ? 'w-8 bg-white' : 'w-2 bg-white/40 hover:bg-white/80'}`}
+                                    />
                                 ))}
                             </div>
                         )}
                     </div>
+                </div>
 
-                    {/* Right Column: Details */}
-                    <div className="space-y-6 px-1 py-1">
+                {/* RIGHT COLUMN: SCROLLABLE INFO */}
+                <div className="w-full md:w-1/2 h-auto md:h-full md:overflow-y-auto px-6 md:px-16 py-12 md:py-24 flex flex-col justify-center">
+
+                    <div className="max-w-xl mx-auto w-full space-y-10">
+                        <button onClick={onBack} className="flex md:hidden items-center gap-2 font-bold text-xs uppercase tracking-widest transition-colors hover:opacity-60 mb-8 opacity-100">
+                            <ChevronLeft size={16} /> Retour Collection
+                        </button>
                         {/* Header */}
                         <div className="space-y-4">
                             <div className="flex gap-2">

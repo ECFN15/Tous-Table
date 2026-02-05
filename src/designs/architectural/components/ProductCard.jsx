@@ -30,7 +30,7 @@ const ProductCard = ({
                 <img
                     src={item.thumbnailUrl || item.thumbnails?.[0] || item.images?.[0] || item.imageUrl}
                     alt={item.name}
-                    className={`w-full h-full object-cover transition-transform duration-[1.2s] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] ${isBig ? 'group-hover:scale-105' : 'group-hover:scale-110'}`}
+                    className={`w-full h-full object-cover transition-transform duration-700 ease-out ${isBig ? 'group-hover:scale-105' : 'group-hover:scale-105'}`}
                     loading="lazy"
                 />
 

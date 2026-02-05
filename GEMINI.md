@@ -1,6 +1,6 @@
 ---
 project_name: "Tous à Table - Atelier Normand"
-last_updated: "2026-01-31"
+last_updated: "2026-02-05"
 description: "Site e-commerce et vitrine pour un atelier d'ébénisterie d'art. Vente de meubles (enchères/achat direct) et planches à découper."
 stack:
   frontend: "React + Vite"
@@ -70,6 +70,7 @@ Le projet a été restructuré pour séparer clairement les responsabilités (Ja
     *   Pour gérer des designs radicalement différents sans "Spaghetti Code", les vues complexes (`GalleryView` et `ProductDetail`) n'utilisent plus de conditions ternaires géantes.
     *   Elles agissent comme des **Routeurs Internes** qui importent et affichent soit le composant `Standard...` soit le composant `Architectural...` en fonction du `activeDesignId` du thème.
     *   Cela garantit une **séparation totale** des responsabilités : modifier le design "Architectural" ne cassera jamais le design "Standard".
+    *   **Update Février 2026 (Architectural)** : Passage en Layout "Split Screen" (50/50) avec conteneur image fixe (`h-[calc(100vh-5rem)]`) et `object-cover` pour éviter les bandes noires. Adoucissement des animations (Hover Gallery).
 
 ---
 
