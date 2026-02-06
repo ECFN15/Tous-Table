@@ -823,8 +823,14 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
             Switched to 2XL for the grid. Below 2XL (laptops/desktops), it's a clean, centered vertical stack. */}
         <div className="grid grid-cols-1 2xl:grid-cols-12 gap-20 2xl:gap-32 items-center">
           <div className="manifesto-item 2xl:col-span-6 space-y-8 flex flex-col items-center 2xl:block 2xl:space-y-12 text-center 2xl:text-left">
-            <div className="img-parallax aspect-[3/4] shadow-2xl w-full max-w-xl 2xl:max-w-none mx-auto">
-              <img src={homepageImages['manifesto_1'] || "https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=1200"} className="w-full h-full object-cover" alt="Table en Chêne" />
+            <div className="img-parallax aspect-[3/4] shadow-2xl w-full max-w-xl 2xl:max-w-none mx-auto overflow-hidden">
+              <img
+                src={homepageImages['manifesto_1'] || "https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=1200"}
+                className="w-full h-full object-cover will-change-transform"
+                alt="Table en Chêne"
+                decoding="async"
+                loading="lazy"
+              />
             </div>
             <div className="max-w-sm mx-auto 2xl:mx-0">
               <h3 className="font-serif text-4xl italic mb-4 text-[#1a1a1a]">
@@ -837,8 +843,14 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
           </div>
 
           <div className="manifesto-item 2xl:col-span-4 2xl:col-start-9 2xl:mt-40 space-y-8 flex flex-col items-center 2xl:block 2xl:space-y-12 text-center 2xl:text-left">
-            <div className="img-parallax aspect-[4/5] shadow-2xl w-full max-w-xl 2xl:max-w-none mx-auto">
-              <img src={homepageImages['manifesto_2'] || "https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=1200"} className="w-full h-full object-cover" alt="Console de style" />
+            <div className="img-parallax aspect-[4/5] shadow-2xl w-full max-w-xl 2xl:max-w-none mx-auto overflow-hidden">
+              <img
+                src={homepageImages['manifesto_2'] || "https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=1200"}
+                className="w-full h-full object-cover will-change-transform"
+                alt="Console de style"
+                decoding="async"
+                loading="lazy"
+              />
             </div>
             <div className="text-center 2xl:text-left">
               <h3 className="font-serif text-3xl italic mb-4 text-[#1a1a1a]">
@@ -851,8 +863,14 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
           </div>
 
           <div className="manifesto-item 2xl:col-span-12 mt-20 2xl:mt-40 flex flex-col 2xl:flex-row gap-12 2xl:gap-20 items-center">
-            <div className="w-full max-w-xl 2xl:max-w-none 2xl:w-3/5 img-parallax aspect-video shadow-2xl mx-auto 2xl:mx-0">
-              <img src={homepageImages['manifesto_3'] || "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1400"} className="w-full h-full object-cover" alt="Commode ancienne" />
+            <div className="w-full max-w-xl 2xl:max-w-none 2xl:w-3/5 img-parallax aspect-video shadow-2xl mx-auto 2xl:mx-0 overflow-hidden">
+              <img
+                src={homepageImages['manifesto_3'] || "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1400"}
+                className="w-full h-full object-cover will-change-transform"
+                alt="Commode ancienne"
+                decoding="async"
+                loading="lazy"
+              />
             </div>
             <div className="w-full max-w-lg 2xl:max-w-none 2xl:w-2/5 space-y-8 mx-auto 2xl:mx-0">
               <h3
@@ -944,7 +962,13 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
               {/* Conteneur Image */}
               <div className={`img-box-process ${step.h} w-full md:w-[65%] min-[1920px]:w-full border border-white/30 max-[1919px]:border-white/30 min-[1920px]:border-white/10 relative overflow-hidden transition-all duration-700 min-[1920px]:group-hover:border-white/30 z-10 mx-auto min-[1920px]:mx-0`}>
                 <div className="absolute inset-0 z-10 bg-transparent min-[1920px]:bg-[#0D0D0D]/30 min-[1920px]:group-hover:bg-transparent transition-colors duration-150"></div>
-                <img src={step.main} alt={step.t} className="p-img-inner w-full h-full object-cover grayscale-0 transition-[filter,transform] duration-150 scale-100 will-change-[filter,transform]" />
+                <img
+                  src={step.main}
+                  alt={step.t}
+                  className="p-img-inner w-full h-full object-cover grayscale-0 transition-[filter,transform] duration-150 scale-100 will-change-[filter,transform]"
+                  decoding="async"
+                  loading="lazy"
+                />
 
                 {/* Tag technique au survol */}
                 <div className="absolute bottom-6 right-6 z-20 opacity-100 translate-y-0 min-[1920px]:opacity-0 min-[1920px]:translate-y-4 min-[1920px]:group-hover:opacity-100 min-[1920px]:group-hover:translate-y-0 transition-all duration-300 delay-75">
@@ -1050,7 +1074,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
 
           {/* COLONNE GAUCHE (TEXTE) - STICKY */}
           {/* md: tablettes (768px+), lg: laptops (1024px+), xl: desktops (1280px+) */}
-          <div className="w-full md:w-1/2 md:sticky md:top-0 md:h-auto lg:h-screen flex flex-col md:justify-start lg:justify-center px-6 md:px-8 lg:px-[6vw] py-16 md:pt-[15vh] md:pb-16 lg:py-0 text-[#1a1a1a]">
+          <div className="w-full md:w-1/2 md:sticky md:top-0 md:h-auto lg:h-screen flex flex-col md:justify-start lg:justify-center px-6 md:px-8 lg:px-[6vw] pt-16 pb-0 md:pt-[15vh] md:pb-16 lg:py-0 text-[#1a1a1a]">
             <div className="space-y-6 md:space-y-8 lg:space-y-10 team-content-reveal">
               <span className="text-[10px] md:text-[11px] lg:text-[12px] uppercase tracking-[1.2em] md:tracking-[1.4em] text-[#9C8268] block font-black italic">La Direction</span>
               <h2 className="font-serif text-5xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-[8vw] leading-[0.9] font-light italic tracking-tight text-[#1a1a1a]">
@@ -1076,12 +1100,12 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
 
           {/* COLONNE DROITE (IMAGE) - SCROLLABLE, PLUS HAUTE */}
           {/* min-h plus grand sur tablette pour compenser le texte plus petit */}
-          <div className="w-full md:w-1/2 md:min-h-[160vh] lg:min-h-[150vh] flex flex-col justify-start px-6 md:px-8 lg:px-[4vw] py-16 md:pt-[15vh] md:pb-[20vh] lg:py-[15vh] bg-[#FAF9F6]">
+          <div className="w-full md:w-1/2 md:min-h-[160vh] lg:min-h-[150vh] flex flex-col justify-start px-6 md:px-8 lg:px-[4vw] pt-8 pb-20 md:pt-[15vh] md:pb-[20vh] lg:py-[15vh] bg-[#FAF9F6]">
             <div className="relative w-full aspect-[3/4] md:aspect-[2/3] shadow-[0_80px_160px_rgba(0,0,0,0.15)] bg-stone-200 overflow-hidden">
               <img
                 src={homepageImages['team_main'] || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1600"}
                 alt="Maître Ebéniste"
-                className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000"
+                className="w-full h-full object-cover grayscale-0 md:grayscale md:hover:grayscale-0 transition-all duration-1000"
               />
               <RotatingSymbol className="absolute -bottom-16 -right-16 text-[#9C8268] opacity-20" size={200} />
             </div>

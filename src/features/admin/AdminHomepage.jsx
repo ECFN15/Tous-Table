@@ -7,6 +7,7 @@ import { Upload, X, Save, Image as ImageIcon, Loader, Info, Check, Download } fr
 import { compressImage } from '../../utils/imageUtils';
 import AdminImageCard from './components/AdminImageCard';
 import TextEditorModal from './components/TextEditorModal';
+import ImageCropperModal from './components/ImageCropperModal';
 
 // CONFIGURATION DES IMAGES DU HOMEPAGE
 // Cette structure définit toutes les images modifiables ET les textes associés
@@ -276,6 +277,27 @@ const AdminHomepage = ({ darkMode = false }) => {
     const [editingTextItem, setEditingTextItem] = useState(null); // { key: 'manifesto_1', schema: [...] }
     const [isTextModalOpen, setIsTextModalOpen] = useState(false);
 
+    // [NEW] Cropper State
+    const [cropperConfig, setCropperConfig] = useState({ isOpen: false, image: null, key: null, aspect: 1, originalSize: 0 });
+    const [lastOptimization, setLastOptimization] = useState(null); // { original, compressed }
+
+    const formatBytes = (bytes) => {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    };
+
+    const parseAspect = (formatStr) => {
+        if (!formatStr) return 1;
+        const match = formatStr.match(/\((\d+):(\d+)\)/);
+        if (match) return parseInt(match[1]) / parseInt(match[2]);
+        if (formatStr.toLowerCase().includes('portrait')) return 3 / 4;
+        if (formatStr.toLowerCase().includes('paysage')) return 16 / 9;
+        return 1;
+    };
+
     useEffect(() => {
         const fetchConfig = async () => {
             try {
@@ -298,31 +320,74 @@ const AdminHomepage = ({ darkMode = false }) => {
     const handleFileChange = async (file, key) => {
         if (!file) return;
 
+        // Find aspect ratio from config
+        let aspect = 1;
+        HOMEPAGE_CONFIG.some(section => {
+            const item = section.items.find(i => i.key === key);
+            if (item) {
+                aspect = parseAspect(item.format);
+                return true;
+            }
+            return false;
+        });
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            setCropperConfig({
+                isOpen: true,
+                image: reader.result,
+                key: key,
+                aspect: aspect,
+                originalSize: file.size // Capture original size
+            });
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleCropComplete = async (croppedBlob) => {
+        const key = cropperConfig.key;
+        if (!key) return;
+
         setUploading(key);
-        setMsg(`Traitement de ${file.name}...`);
+        setMsg(`⏳ Optimisation WebP...`);
 
         try {
-            setMsg('Compression WebP...');
-            const compressedFile = await compressImage(file);
+            const fileName = `cropped_${key}.webp`;
+            const fileToUpload = new File([croppedBlob], fileName, { type: 'image/webp' });
 
-            setMsg('Upload vers Firebase...');
-            const storagePath = `homepage/${key}_${Date.now()}.webp`;
+            setMsg('⏳ Envoi vers le serveur...');
+            // Standardized storage path for homepage
+            const storagePath = `homepage/${key}_tat_${Date.now()}.webp`;
             const storageRef = ref(storage, storagePath);
-            await uploadBytes(storageRef, compressedFile, { cacheControl: 'public, max-age=31536000' });
+
+            await uploadBytes(storageRef, fileToUpload, {
+                cacheControl: 'public, max-age=31536000',
+                contentType: 'image/webp'
+            });
+
             const downloadUrl = await getDownloadURL(storageRef);
 
-            setMsg('Sauvegarde...');
+            setMsg('⏳ Finalisation...');
             const docRef = doc(db, 'sys_metadata', 'homepage_images');
             await setDoc(docRef, { [key]: downloadUrl }, { merge: true });
 
             setImages(prev => ({ ...prev, [key]: downloadUrl }));
-            setMsg('');
+
+            // Record optimization metrics
+            setLastOptimization({
+                original: cropperConfig.originalSize,
+                compressed: fileToUpload.size,
+                key: key
+            });
+
+            setMsg('✅ Mise à jour réussie !');
+            setTimeout(() => setMsg(''), 5000);
         } catch (error) {
-            console.error("Error uploading image:", error);
-            setMsg('Erreur lors de l\'upload.');
-            alert('Erreur: ' + error.message);
+            console.error("Critical Upload Error:", error);
+            setMsg(`❌ Erreur: ${error.message}`);
         } finally {
             setUploading(null);
+            setCropperConfig(prev => ({ ...prev, isOpen: false, image: null }));
         }
     };
 
@@ -387,11 +452,31 @@ const AdminHomepage = ({ darkMode = false }) => {
 
     return (
         <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 pb-20">
-            <div className="bg-stone-900 text-white p-8 rounded-[2.5rem] shadow-xl">
-                <h2 className="text-3xl font-black tracking-tight mb-2">Page d'Accueil</h2>
-                <p className="text-stone-400 font-medium">Gérez l'intégralité des visuels de la landing page. Glissez-déposez vos images pour les remplacer.</p>
+            <div className={`p-8 rounded-[2.5rem] shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6 ${darkMode ? 'bg-stone-900 text-white' : 'bg-white border text-stone-900 shadow-sm'}`}>
+                <div>
+                    <h2 className="text-3xl font-black tracking-tight mb-2">Page d'Accueil</h2>
+                    <p className={`${darkMode ? 'text-stone-400' : 'text-stone-500'} font-medium`}>Gérez les visuels de la landing page. Vos photos sont automatiquement optimisées en WebP.</p>
+                </div>
+
+                {/* [NEW] Optimization Metrics Display */}
+                {lastOptimization && (
+                    <div className={`flex items-center gap-4 px-5 py-3 rounded-2xl animate-in fade-in slide-in-from-right-4 shadow-inner ${darkMode ? 'bg-stone-800/50 border border-emerald-900/30' : 'bg-emerald-50 border border-emerald-100'}`}>
+                        <div className="flex flex-col">
+                            <span className="text-[9px] font-black uppercase text-emerald-500 tracking-wider">Diagnostic Poids</span>
+                            <div className="flex items-center gap-2 mt-0.5">
+                                <span className={`text-[10px] font-mono ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>{formatBytes(lastOptimization.original)} →</span>
+                                <span className="text-xs font-black text-emerald-500">{formatBytes(lastOptimization.compressed)}</span>
+                                <span className="ml-1 bg-emerald-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-md">-{((1 - lastOptimization.compressed / lastOptimization.original) * 100).toFixed(0)}%</span>
+                            </div>
+                        </div>
+                        <button onClick={() => setLastOptimization(null)} className="text-stone-400 hover:text-emerald-500 transition-colors">
+                            <X size={16} />
+                        </button>
+                    </div>
+                )}
+
                 {msg && (
-                    <div className="mt-4 bg-amber-500/10 text-amber-500 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest inline-block animate-pulse">
+                    <div className="bg-amber-500/10 text-amber-500 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest inline-block animate-pulse">
                         {msg}
                     </div>
                 )}
@@ -440,6 +525,15 @@ const AdminHomepage = ({ darkMode = false }) => {
                 itemKey={editingTextItem?.key}
                 fields={editingTextItem?.textSchema || []}
                 initialData={images[`${editingTextItem?.key}_text`] || {}}
+                darkMode={darkMode}
+            />
+
+            <ImageCropperModal
+                isOpen={cropperConfig.isOpen}
+                image={cropperConfig.image}
+                aspect={cropperConfig.aspect}
+                onClose={() => setCropperConfig(prev => ({ ...prev, isOpen: false }))}
+                onCropComplete={handleCropComplete}
                 darkMode={darkMode}
             />
         </div>

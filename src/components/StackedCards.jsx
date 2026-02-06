@@ -221,7 +221,7 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                                     alt={item.title.join(' ')}
                                     loading="lazy"
                                     decoding="async"
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-full object-cover will-change-transform"
                                 />
                                 {/* Gradient Overlay for legibility */}
                                 <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/30 to-transparent opacity-80"></div>

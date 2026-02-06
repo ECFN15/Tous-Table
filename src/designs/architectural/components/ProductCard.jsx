@@ -28,7 +28,7 @@ const ProductCard = ({
             {/* 1. VISUAL BLOCK */}
             <div className={`relative bg-white dark:bg-[#1A1A1A] overflow-hidden ${layoutMode === 'list' ? 'w-1/3 aspect-[4/3]' : 'w-full aspect-[3/4]'} ${isBig ? 'md:aspect-[16/10]' : ''}`}>
                 <img
-                    src={item.thumbnailUrl || item.thumbnails?.[0] || item.images?.[0] || item.imageUrl}
+                    src={item.images?.[0] || item.imageUrl || item.thumbnailUrl}
                     alt={item.name}
                     className={`w-full h-full object-cover will-change-transform transition-transform duration-[800ms] ease-[cubic-bezier(0.23,1,0.32,1)] ${isBig ? 'group-hover:scale-110' : 'group-hover:scale-110'}`}
                     loading="lazy"
@@ -54,10 +54,11 @@ const ProductCard = ({
 
                 {/* AUCTION TIMER (Discrete Top Left) */}
                 {item.auctionActive && (
-                    <div className="absolute top-0 left-0 p-6">
-                        <div className="px-3 py-1 bg-white/90 dark:bg-black/90 backdrop-blur text-[10px] font-mono border border-black/5 dark:border-white/10 flex items-center gap-2 uppercase tracking-wider">
-                            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
-                            <span>Live Enchère :</span>
+                    <div className="absolute top-0 left-0 p-3 md:p-6">
+                        <div className="px-2 md:px-3 py-1 bg-white/90 dark:bg-black/90 backdrop-blur text-[9px] md:text-[10px] font-mono border border-black/5 dark:border-white/10 flex items-center gap-1.5 md:gap-2 uppercase tracking-wider whitespace-nowrap">
+                            <div className="w-1 h-1 md:w-1.5 md:h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
+                            <span className="hidden sm:inline">Live Enchère :</span>
+                            <span className="sm:hidden">Live</span>
                             <Suspense fallback="..:.."><AuctionTimer endDate={item.auctionEnd} /></Suspense>
                         </div>
                     </div>

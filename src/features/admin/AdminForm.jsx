@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Upload, Trash2, Download } from 'lucide-react';
+import { Upload, Trash2, Download, Zap } from 'lucide-react';
 import { doc, addDoc, updateDoc, collection, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage, appId } from '../../firebase/config';
 import { getMillis } from '../../utils/time';
 import { compressImage } from '../../utils/imageUtils'; // [NEW] Import compression utility
+import ImageCropperModal from './components/ImageCropperModal';
 
 const WOOD_TYPES = [
   "Acacia", "Acajou", "Bambou", "Bouleau", "Châtaignier",
@@ -45,6 +46,9 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
   // [NEW] Metrics
   const totalOriginalSize = galleryItems.reduce((acc, item) => acc + (item.originalSize || (item.file ? item.file.size : 0)), 0);
   const [totalCompressedSize, setTotalCompressedSize] = useState(0);
+
+  // [NEW] Cropper State
+  const [cropperConfig, setCropperConfig] = useState({ isOpen: false, image: null, itemId: null, aspect: 3 / 4 });
 
   const formatBytes = (bytes) => {
     if (bytes === 0) return '0 B';
@@ -103,6 +107,7 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
       auctionActive: false,
       durationMinutes: 0
     });
+    galleryItems.forEach(item => { if (item.preview && !item.isExisting) URL.revokeObjectURL(item.preview); });
     setGalleryItems([]);
     setIsCustomMaterial(false);
     setTotalCompressedSize(0);
@@ -152,7 +157,8 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
 
     setGalleryItems(newItems);
     setTotalCompressedSize(newTotalSize);
-    if (anyCompressed) setMsg("✅ Images optimisées !");
+    if (anyCompressed) setMsg("✅ Images prêtes !");
+    else setMsg("ℹ️ Déjà optimisées");
   };
 
   const handleDownloadImages = (e) => {
@@ -178,42 +184,39 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
 
   const addMeuble = async () => {
     if (!formData.name) { setMsg("⚠️ Nom requis"); return; }
-    setUploading(true); setMsg("⏳ Optimisation & Envoi..."); // Updated message
+    setUploading(true);
+    setMsg("⏳ Préparation des fichiers...");
+
     try {
       let finalImageUrls = [];
-      let finalThumbnailUrls = []; // [NEW] Thumbnails array
-
+      let finalThumbnailUrls = [];
       let accumulatedCompressedSize = 0;
+      let count = 0;
+
       for (const item of galleryItems) {
+        count++;
+        const progressPrefix = `[${count}/${galleryItems.length}]`;
+
         if (item.isExisting) {
           finalImageUrls.push(item.preview);
-          finalThumbnailUrls.push(item.thumbnail || null); // Keep existing thumb or null
         } else if (item.file) {
           let fileToUpload = item.file;
-          const originalSizeStr = formatBytes(item.originalSize || item.file.size);
 
-          // 1. Full Size (High Res)
+          // 1. Optimized WebP
           if (!item.isCompressed) {
-            setMsg(`⏳ Compression HD: ${item.file.name}...`);
-            fileToUpload = await compressImage(item.file); // Default 1920
+            setMsg(`⏳ ${progressPrefix} Compression WebP...`);
+            try {
+              fileToUpload = await compressImage(item.file);
+            } catch (err) {
+              console.warn("Compression failed, using original", err);
+            }
           }
 
-          const imageRef = ref(storage, `${collectionName}/${Date.now()}_HD_${fileToUpload.name}`);
+          setMsg(`⏳ ${progressPrefix} Envoi de l'image...`);
+          const imageRef = ref(storage, `${collectionName}/${Date.now()}_tat_${fileToUpload.name}`);
           await uploadBytes(imageRef, fileToUpload, { cacheControl: 'public, max-age=31536000' });
-          finalImageUrls.push(await getDownloadURL(imageRef));
-
-          // 2. Thumbnail (Low Res) [NEW]
-          try {
-            setMsg(`⏳ Création Miniature: ${item.file.name}...`);
-            // Creates a 500px wide version, heavily compressed (quality 0.7)
-            const thumbFile = await compressImage(item.file, 0.7, 500);
-            const thumbRef = ref(storage, `${collectionName}/${Date.now()}_THUMB_${thumbFile.name}`);
-            await uploadBytes(thumbRef, thumbFile, { cacheControl: 'public, max-age=31536000' });
-            finalThumbnailUrls.push(await getDownloadURL(thumbRef));
-          } catch (thumbnailErr) {
-            console.error("Thumbnail generation failed, pushing null", thumbnailErr);
-            finalThumbnailUrls.push(null); // Fallback to null
-          }
+          const fullUrl = await getDownloadURL(imageRef);
+          finalImageUrls.push(fullUrl);
 
           if (!item.isCompressed) {
             accumulatedCompressedSize += fileToUpload.size;
@@ -222,38 +225,46 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
         }
       }
 
+      setMsg("⏳ Finalisation...");
       const data = {
         ...formData,
         images: finalImageUrls,
-        thumbnails: finalThumbnailUrls, // [NEW] Save thumbnails
+        thumbnails: [], // Cleanup legacy fields
         imageUrl: finalImageUrls[0] || "",
-        thumbnailUrl: finalThumbnailUrls[0] || "", // [NEW] Main thumbnail
+        thumbnailUrl: "",
         currentPrice: Number(formData.startingPrice),
         startingPrice: Number(formData.startingPrice),
-        stock: parseInt(formData.stock) || 1, // [NEW] Save Stock
-        sold: (parseInt(formData.stock) || 1) <= 0, // [NEW] Auto-update sold status based on stock
-        soldAt: (parseInt(formData.stock) || 1) <= 0 ? (editData?.soldAt || Timestamp.now()) : null, // [NEW] Set/Clear sold date
+        stock: parseInt(formData.stock) || 1,
+        sold: (parseInt(formData.stock) || 1) <= 0,
+        soldAt: (parseInt(formData.stock) || 1) <= 0 ? (editData?.soldAt || Timestamp.now()) : null,
         durationMinutes: Number(formData.durationMinutes),
         auctionEnd: formData.auctionActive ? Timestamp.fromMillis(Date.now() + (Number(formData.durationMinutes) * 60000)) : null,
       };
-      if (editData) {
-        // Handle logic update for auctionEnd ? If auction active is toggled?
-        // If auctionActive is false, auctionEnd is null.
-        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', collectionName, editData.id), data);
-        onCancelEdit();
-      } else {
-        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', collectionName), { ...data, status: 'published', bidCount: 0, createdAt: serverTimestamp() });
-      }
-      setMsg("✅ Succès !"); resetForm();
-    } catch (err) {
-      console.error("FULL ERROR:", err);
-      // Try to identify if it is storage or firestore
-      let errorPrefix = "Erreur incomprise";
-      if (err.message.includes("storage")) errorPrefix = "Erreur Stockage (Images)";
-      else if (err.code === "permission-denied") errorPrefix = "Erreur Permissions (Règles Firebase non mises à jour ?)";
 
-      setMsg(`❌ ${errorPrefix}: ${err.message}`);
-    } finally { setUploading(false); setTimeout(() => setMsg(""), 5000); }
+      if (editData) {
+        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', collectionName, editData.id), data);
+      } else {
+        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', collectionName), {
+          ...data,
+          status: 'published',
+          bidCount: 0,
+          createdAt: serverTimestamp()
+        });
+      }
+
+      setMsg("✅ Publication réussie !");
+      resetForm();
+      if (onCancelEdit) onCancelEdit();
+    } catch (err) {
+      console.error("CRITICAL UPLOAD ERROR:", err);
+      let errorPrefix = "Erreur";
+      if (err.message?.includes("storage")) errorPrefix = "Stockage plein ou bloqué";
+      else if (err.code === "permission-denied") errorPrefix = "Session expirée";
+      setMsg(`❌ ${errorPrefix}: ${err.message || "Inconnue"}`);
+    } finally {
+      setUploading(false);
+      setTimeout(() => setMsg(""), 8000);
+    }
   };
 
   // Drag handlers
@@ -275,11 +286,71 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
   const onDropItem = (e, dropIndex) => {
     e.preventDefault();
     if (draggedItemIndex === null || draggedItemIndex === dropIndex) return;
+    reorderGallery(draggedItemIndex, dropIndex);
+  };
+
+  // Touch Support for Mobile
+  const handleTouchStart = (index) => {
+    setDraggedItemIndex(index);
+  };
+
+  const handleTouchEnd = (e) => {
+    if (draggedItemIndex === null) return;
+
+    // Find the element at the point where the touch ended
+    const touch = e.changedTouches[0];
+    const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
+    const dropZone = targetEl?.closest('[data-index]');
+
+    if (dropZone) {
+      const targetIndex = parseInt(dropZone.getAttribute('data-index'));
+      if (draggedItemIndex !== targetIndex) {
+        reorderGallery(draggedItemIndex, targetIndex);
+      }
+    }
+    setDraggedItemIndex(null);
+  };
+
+  const reorderGallery = (from, to) => {
     const newItems = [...galleryItems];
-    const [draggedItem] = newItems.splice(draggedItemIndex, 1);
-    newItems.splice(dropIndex, 0, draggedItem);
+    const [draggedItem] = newItems.splice(from, 1);
+    newItems.splice(to, 0, draggedItem);
     setGalleryItems(newItems);
     setDraggedItemIndex(null);
+  };
+
+  const handleOpenCropper = (item) => {
+    setCropperConfig({
+      isOpen: true,
+      image: item.preview,
+      itemId: item.id,
+      aspect: 3 / 4 // Standard for products
+    });
+  };
+
+  const handleCropComplete = async (croppedBlob) => {
+    const itemId = cropperConfig.itemId;
+    if (!itemId) return;
+
+    const newItems = galleryItems.map(item => {
+      if (item.id === itemId) {
+        const newPreview = URL.createObjectURL(croppedBlob);
+        // Revoke old blob if it was local
+        if (item.preview && !item.isExisting) URL.revokeObjectURL(item.preview);
+
+        return {
+          ...item,
+          file: new File([croppedBlob], `cropped_${Date.now()}.webp`, { type: 'image/webp' }),
+          preview: newPreview,
+          isCompressed: true, // It's already optimized by cropper quality
+          originalSize: croppedBlob.size
+        };
+      }
+      return item;
+    });
+
+    setGalleryItems(newItems);
+    setCropperConfig(prev => ({ ...prev, isOpen: false, image: null }));
   };
 
   return (
@@ -290,9 +361,8 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-4 space-y-4">
-          {/* ... (keep image upload section) */}
           <div
-            className={`grid grid-cols-2 gap-3 p-4 rounded-3xl transition-all border-2 border-dashed ${isDragging ? (darkMode ? 'border-amber-500/50 bg-amber-900/10' : 'border-amber-500 bg-amber-50/50 scale-[1.02]') : 'border-transparent'}`}
+            className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 gap-3 p-4 rounded-3xl transition-all border-2 border-dashed ${isDragging ? (darkMode ? 'border-amber-500/50 bg-amber-900/10' : 'border-amber-500 bg-amber-50/50 scale-[1.02]') : (darkMode ? 'border-stone-700/50' : 'border-stone-100')}`}
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}
             onDragOver={handleDragOver}
@@ -305,14 +375,49 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
                 onDragStart={(e) => onDragStartItem(e, idx)}
                 onDragOver={(e) => onDragOverItem(e, idx)}
                 onDrop={(e) => onDropItem(e, idx)}
-                className={`aspect-square rounded-2xl overflow-hidden relative group shadow-md border cursor-move transition-all ${draggedItemIndex === idx ? 'opacity-50 scale-95 border-amber-500' : (darkMode ? 'border-stone-700 hover:scale-[1.02]' : 'border-stone-50 hover:scale-[1.02]')}`}
+                onTouchStart={() => handleTouchStart(idx)}
+                onTouchEnd={handleTouchEnd}
+                data-index={idx}
+                className={`aspect-square rounded-2xl overflow-hidden relative group shadow-md border cursor-move transition-all duration-300 ${draggedItemIndex === idx ? 'opacity-50 scale-110 border-amber-500 z-10 rotate-2' : (darkMode ? 'border-stone-700 hover:scale-[1.02]' : 'border-stone-50 hover:scale-[1.02]')}`}
               >
                 <img src={item.preview} className="w-full h-full object-cover pointer-events-none" alt="" />
-                <button onClick={(e) => { e.stopPropagation(); setGalleryItems(items => items.filter((_, i) => i !== idx)); }} className="absolute inset-0 bg-red-500/80 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all duration-300"><Trash2 size={20} /></button>
-                <div className="absolute top-2 left-2 bg-black/50 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full">{idx + 1}</div>
+
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 transition-all duration-300 backdrop-blur-[2px]">
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); handleOpenCropper(item); }}
+                    className="p-2 bg-amber-500 rounded-full text-white hover:scale-110 transition-transform shadow-lg"
+                    title="Recadrer"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6.13 1L6 16a2 2 0 0 0 2 2h15" /><path d="M1 6.13L16 6a2 2 0 0 1 2 2v15" /></svg>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (item.preview && !item.isExisting) URL.revokeObjectURL(item.preview);
+                      setGalleryItems(items => items.filter((_, i) => i !== idx));
+                    }}
+                    className="p-2 bg-red-500 rounded-full text-white hover:scale-110 transition-transform shadow-lg"
+                    title="Supprimer"
+                  >
+                    <Trash2 size={20} />
+                  </button>
+                </div>
+
+                <div className="absolute top-2 left-2 bg-black/70 backdrop-blur-md text-white text-[10px] font-black w-6 h-6 flex items-center justify-center rounded-lg border border-white/20 select-none shadow-lg">{idx + 1}</div>
+                {item.isCompressed && <div className="absolute bottom-2 right-2 bg-emerald-500 text-white p-1 rounded-full shadow-lg"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><polyline points="20 6 9 17 4 12" /></svg></div>}
               </div>
             ))}
-            <button onClick={() => !uploading && fileInputRef.current.click()} className={`aspect-square rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all ${darkMode ? 'bg-stone-900/40 border-stone-700 text-stone-600 hover:bg-stone-900/60 hover:border-stone-500' : 'bg-stone-50 border-stone-200 text-stone-300 hover:bg-stone-100 hover:border-stone-300'}`}><Upload size={20} /></button>
+            <button
+              onClick={() => !uploading && fileInputRef.current.click()}
+              type="button"
+              className={`aspect-square rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all gap-2 ${darkMode ? 'bg-stone-900/40 border-stone-700 text-stone-600 hover:bg-stone-900/60 hover:border-stone-500' : 'bg-stone-50 border-stone-200 text-stone-300 hover:bg-stone-100 hover:border-stone-300'}`}
+            >
+              <Upload size={24} />
+              <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Ajouter</span>
+            </button>
           </div>
           <input type="file" id="fileInput" ref={fileInputRef} className="hidden" accept="image/*" multiple onChange={handleImageChange} />
         </div>
@@ -421,33 +526,43 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
         </div>
       </div>
 
-      {/* Metrics Display */}
+      {/* Metrics Display (Responsive Fix) */}
       {(totalOriginalSize > 0 || totalCompressedSize > 0) && (
-        <div className="flex items-center justify-end px-6 pb-2 gap-4 mt-4">
-          <div className="text-[10px] font-mono text-stone-500">
-            <span>Poids initial: {formatBytes(totalOriginalSize)}</span>
-            {totalCompressedSize > 0 && <span className="text-emerald-600 font-bold ml-2">→ Optimisé: {formatBytes(totalCompressedSize)} (-{((1 - totalCompressedSize / totalOriginalSize) * 100).toFixed(0)}%)</span>}
+        <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-6 gap-6 mt-4 border-t border-dashed border-stone-700/30">
+          <div className="flex flex-col gap-1 text-center sm:text-left">
+            <p className="text-[10px] font-black uppercase text-stone-500 tracking-tighter">Diagnostic Poids</p>
+            <div className="text-[11px] font-mono leading-tight">
+              <span className={darkMode ? 'text-stone-400' : 'text-stone-500'}>Initial: {formatBytes(totalOriginalSize)}</span>
+              {totalCompressedSize > 0 && (
+                <div className="text-emerald-500 font-bold mt-1">
+                  Optimisé: {formatBytes(totalCompressedSize)}
+                  <span className="ml-2 bg-emerald-500/10 px-1.5 py-0.5 rounded-md">-{((1 - totalCompressedSize / totalOriginalSize) * 100).toFixed(0)}%</span>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Optimization Button */}
-          {galleryItems.some(i => i.file && !i.isCompressed) && (
-            <button
-              onClick={handleOptimizeImages}
-              className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase hover:opacity-80 transition-all shadow-sm ${darkMode ? 'bg-amber-900/40 text-amber-400' : 'bg-amber-100 text-amber-800'}`}
-            >
-              ⚡ Transformer en WebP
-            </button>
-          )}
+          <div className="flex flex-wrap justify-center gap-3 w-full sm:w-auto">
+            {/* Optimization Button */}
+            {galleryItems.some(i => i.file && !i.isCompressed) && (
+              <button
+                onClick={handleOptimizeImages}
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-4 rounded-2xl text-[10px] font-black uppercase transition-all shadow-xl active:scale-95 ${darkMode ? 'bg-amber-500 text-stone-950 hover:bg-amber-400' : 'bg-amber-500 text-white hover:bg-amber-600'}`}
+              >
+                <Zap size={16} /> Transformer en WebP
+              </button>
+            )}
 
-          {/* Download Button */}
-          {totalCompressedSize > 0 && (
-            <button
-              onClick={handleDownloadImages}
-              className={`flex items-center gap-2 px-3 py-1 rounded-lg text-[10px] font-black uppercase transition-all shadow-sm ${darkMode ? 'bg-emerald-900/40 text-emerald-400 hover:bg-emerald-900/60' : 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'}`}
-            >
-              <Download size={12} /> Télécharger
-            </button>
-          )}
+            {/* Download Button */}
+            {totalCompressedSize > 0 && (
+              <button
+                onClick={handleDownloadImages}
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-4 rounded-2xl text-[10px] font-black uppercase transition-all shadow-xl active:scale-95 ${darkMode ? 'bg-stone-700 text-stone-300 hover:bg-stone-600' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}
+              >
+                <Download size={16} /> Télécharger
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -458,8 +573,17 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
           {editData ? "Confirmer les modifications" : "Publier l'ouvrage"}
         </button>
       </div>
-    </div >
+
+      <ImageCropperModal
+        isOpen={cropperConfig.isOpen}
+        image={cropperConfig.image}
+        aspect={cropperConfig.aspect}
+        onClose={() => setCropperConfig(prev => ({ ...prev, isOpen: false }))}
+        onCropComplete={handleCropComplete}
+        darkMode={darkMode}
+      />
+    </div>
   );
-}
+};
 
 export default AdminForm;

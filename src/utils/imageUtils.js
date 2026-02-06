@@ -56,3 +56,66 @@ export const compressImage = (file, quality = 0.8, maxWidth = 1920) => {
         reader.onerror = (error) => reject(error);
     });
 };
+/**
+ * Utility to get cropped image from canvas as a Blob/File
+ */
+export const getCroppedImg = (imageSrc, pixelCrop, maxDimension = 1920) => {
+    return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.src = imageSrc;
+        image.crossOrigin = "anonymous"; // Essential for CORS images
+
+        image.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            if (!ctx) {
+                reject(new Error('Canvas context not found'));
+                return;
+            }
+
+            // [NEW] Resolution Capping to avoid massive textures on Homepage
+            let targetWidth = pixelCrop.width;
+            let targetHeight = pixelCrop.height;
+
+            if (targetWidth > maxDimension || targetHeight > maxDimension) {
+                const ratio = Math.min(maxDimension / targetWidth, maxDimension / targetHeight);
+                targetWidth = Math.round(targetWidth * ratio);
+                targetHeight = Math.round(targetHeight * ratio);
+            }
+
+            canvas.width = targetWidth;
+            canvas.height = targetHeight;
+
+            // Optional: for smoother downscaling
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+
+            ctx.drawImage(
+                image,
+                pixelCrop.x,
+                pixelCrop.y,
+                pixelCrop.width,
+                pixelCrop.height,
+                0,
+                0,
+                targetWidth,
+                targetHeight
+            );
+
+            canvas.toBlob(
+                (blob) => {
+                    if (!blob) {
+                        reject(new Error('Canvas is empty'));
+                        return;
+                    }
+                    resolve(blob);
+                },
+                'image/webp',
+                0.85 // Reduced from 0.95 to better balance quality/weight
+            );
+        };
+
+        image.onerror = (error) => reject(error);
+    });
+};
