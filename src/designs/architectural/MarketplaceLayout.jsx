@@ -74,7 +74,7 @@ const MarketplaceLayout = ({
                             className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-300 ${activeCollection === 'cutting_boards' ? (darkMode ? 'bg-stone-100 text-black scale-105 shadow-xl shadow-black/50' : 'bg-stone-900 text-white scale-105 shadow-xl shadow-stone-400/20') : (darkMode ? 'bg-stone-900/40 text-stone-500 border border-stone-800' : 'bg-stone-100 text-stone-400 border border-stone-200')}`}
                         >
                             <Sparkles size={14} strokeWidth={2.5} />
-                            Art
+                            Planches
                         </button>
                         <button
                             onClick={() => {

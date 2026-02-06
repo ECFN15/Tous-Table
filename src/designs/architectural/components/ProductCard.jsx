@@ -34,19 +34,19 @@ const ProductCard = ({
                     loading="lazy"
                 />
 
-                {/* PREMIUM OVERLAY (Museum Gallery Hook) */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)] flex items-center justify-center">
-                    <div className="relative py-12 px-16 opacity-0 group-hover:opacity-100 transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)] flex flex-col items-center gap-4">
+                {/* PREMIUM OVERLAY (Museum Gallery Hook - Desktop Only) */}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)] hidden lg:flex items-center justify-center">
+                    <div className="relative py-7 px-10 xl:py-9 xl:px-14 2xl:py-12 2xl:px-18 opacity-0 group-hover:opacity-100 transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)] flex flex-col items-center gap-3 xl:gap-4">
                         {/* Minimal Architectural Frame (Corners) */}
-                        <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-white/40 translate-x-4 translate-y-4 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)]"></div>
-                        <div className="absolute top-0 right-0 w-4 h-4 border-t border-r border-white/40 -translate-x-4 translate-y-4 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)]"></div>
-                        <div className="absolute bottom-0 left-0 w-4 h-4 border-b border-l border-white/40 translate-x-4 -translate-y-4 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)]"></div>
-                        <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-white/40 -translate-x-4 -translate-y-4 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)]"></div>
+                        <div className="absolute top-0 left-0 w-3 h-3 xl:w-4 xl:h-4 border-t border-l border-white/40 translate-x-2 translate-y-2 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)]"></div>
+                        <div className="absolute top-0 right-0 w-3 h-3 xl:w-4 xl:h-4 border-t border-r border-white/40 -translate-x-2 translate-y-2 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)]"></div>
+                        <div className="absolute bottom-0 left-0 w-3 h-3 xl:w-4 xl:h-4 border-b border-l border-white/40 translate-x-2 -translate-y-2 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)]"></div>
+                        <div className="absolute bottom-0 right-0 w-3 h-3 xl:w-4 xl:h-4 border-b border-r border-white/40 -translate-x-2 -translate-y-2 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)]"></div>
 
-                        <span className="text-[10px] md:text-[11px] font-sans font-black tracking-[0.7em] uppercase text-white translate-y-2 group-hover:translate-y-0 transition-transform duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)]">
+                        <span className="text-[9px] xl:text-[10px] 2xl:text-[11px] font-sans font-black tracking-[0.4em] xl:tracking-[0.6em] 2xl:tracking-[0.8em] uppercase text-white translate-y-2 group-hover:translate-y-0 transition-transform duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)]">
                             Découvrir
                         </span>
-                        <div className="w-12 h-[1px] bg-white/30 scale-x-0 group-hover:scale-x-100 transition-transform duration-[800ms] ease-[cubic-bezier(0.23,1,0.32,1)] origin-center"></div>
+                        <div className="w-8 xl:w-10 2xl:w-14 h-[1.5px] bg-white/30 scale-x-0 group-hover:scale-x-100 transition-transform duration-[800ms] ease-[cubic-bezier(0.23,1,0.32,1)] origin-center"></div>
                     </div>
                 </div>
 
@@ -64,20 +64,24 @@ const ProductCard = ({
                 )}
             </div>
 
-            {/* 2. INFO BLOCK */}
-            <div className={`flex flex-col gap-1 ${layoutMode === 'list' ? 'flex-1 pt-4' : 'pt-4'}`}>
-                {/* META */}
-                <div className="flex justify-between items-baseline opacity-50 dark:opacity-40 text-[9px] font-black uppercase tracking-widest">
-                    <span>{item.material || 'Matière Inconnue'}</span>
-                    <span>{item.sold ? 'Stock: 0' : `Stock: ${item.stock !== undefined ? item.stock : 1}`}</span>
-                </div>
-
-                {/* TITLE & PRICE */}
-                <div className="flex justify-between items-end mt-1">
-                    <h3 className={`font-serif leading-none pr-4 text-lg ${layoutMode === 'list' ? 'text-4xl' : ''}`}>
+            {/* 2. INFO BLOCK (Refined Responsive Layout) */}
+            <div className={`flex items-start justify-between gap-2 md:gap-4 ${layoutMode === 'list' ? 'flex-1 pt-6' : 'pt-4'}`}>
+                {/* Left Side: Material & Name */}
+                <div className="flex flex-col gap-0.5 md:gap-1 flex-1 min-w-0">
+                    <div className="opacity-50 dark:opacity-40 text-[9px] font-black uppercase tracking-widest truncate">
+                        {item.material || 'Matière Inconnue'}
+                    </div>
+                    <h3 className={`font-serif leading-tight text-[15px] md:text-lg lg:text-xl ${layoutMode === 'list' ? 'text-4xl' : ''}`}>
                         {item.name}
                     </h3>
-                    <p className={`font-bold tabular-nums text-xs ${item.sold ? 'text-red-500' : ''}`}>
+                </div>
+
+                {/* Right Side: Stock & Price */}
+                <div className="flex flex-col items-end shrink-0 text-right gap-0.5 md:gap-1">
+                    <div className="opacity-50 dark:opacity-40 text-[9px] font-black uppercase tracking-widest whitespace-nowrap">
+                        {item.sold ? 'Stock: 0' : `Stock: ${item.stock !== undefined ? item.stock : 1}`}
+                    </div>
+                    <p className={`font-bold tabular-nums text-[11px] md:text-xs lg:text-sm ${item.sold ? 'text-red-500' : ''} whitespace-nowrap`}>
                         {item.sold ? 'VENDU' : (item.currentPrice || item.startingPrice) + ' €'}
                     </p>
                 </div>

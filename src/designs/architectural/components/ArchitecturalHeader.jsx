@@ -66,7 +66,7 @@ const ArchitecturalHeader = ({
                                     onClick={() => setActiveCollection('cutting_boards')} // Cutting boards don't have auctions usually
                                     className={`px-5 py-2 rounded text-xs font-bold uppercase tracking-widest transition-all ${activeCollection === 'cutting_boards' ? (darkMode ? 'bg-stone-800 text-white' : 'bg-stone-200 text-black') : (darkMode ? 'text-stone-400 hover:text-stone-300' : 'text-stone-400 hover:text-stone-600')}`}
                                 >
-                                    Objets d'Art
+                                    Planches
                                 </button>
                                 <button
                                     onClick={() => {

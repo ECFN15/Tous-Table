@@ -1,6 +1,6 @@
 ---
 project_name: "Tous à Table - Atelier Normand"
-last_updated: "2026-02-06"
+last_updated: "2026-02-06 (Update 16:45)"
 description: "Site e-commerce et vitrine pour un atelier d'ébénisterie d'art. Vente de meubles (enchères/achat direct) et planches à découper."
 stack:
   frontend: "React + Vite"
@@ -79,6 +79,9 @@ Le projet a été restructuré pour séparer clairement les responsabilités (Ja
         *   **Layout Produit (Smart Scroll)** : Passage en **Body Scroll** (défilement naturel) avec **Sticky Left Column** pour l'image. Suppression des scrollbars internes.
         *   **Image "Tableau"** : Conteneur avec coins très arrondis (`rounded-[2.5rem]`), padding aéré et ombre portée douce.
         *   **Navigation Intuitive** : Bouton "Retour Collection" positionné **au-dessus de l'image** (Desktop & Mobile). Maison du design épuré.
+        *   **Museum Gallery Hook (Desktop)** : Remplacement des boutons classiques par un appel à l'action "DÉCOUVRIR" central. Utilisation de coins architecturaux (brackets en L) qui convergent au survol pour un effet de mise au point "Galerie d'Art".
+        *   **Hover Animation V2 (Snappy & Smooth)** : Optimisation des timings (800ms pour l'image, 600ms pour le hook) avec une courbe `cubic-bezier(0.23, 1, 0.32, 1)`. Résultat : une réactivité "nerveuse" lors du passage d'une carte à l'autre tout en conservant une fluidité cinématographique.
+        *   **Épure Mobile Radicale** : Suppression de tous les boutons et overlays sur les cartes mobiles. L'image est reine, sans pollution visuelle, pour une navigation tactile fluide. PN : Le bouton "SÉLECTIONNER" a été retiré de la version PC pour simplifier l'interface.
 
 ---
 
@@ -168,4 +171,4 @@ Pour mettre le site en ligne sur **https://tatmadeinnormandie.web.app** :
 
 ---
 
-*Dernière mise à jour par l'IA : Session du 06/02/2026. Refonte Architectural (Layout Balance), AnimatedPrice (Micro-interactions GSAP), Fix Typography Jitter.*
+*Dernière mise à jour par l'IA : Session du 06/02/2026 (16:45). Refonte Architectural (Layout Balance), AnimatedPrice (Micro-interactions GSAP), Museum Gallery Hook & Hover V2 (Snappy & Cinematic).*
