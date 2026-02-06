@@ -33,12 +33,6 @@ const AnimatedPrice = ({ amount, className = "" }) => {
                     // Ensure final value is perfectly accurate and formatted
                     if (displayRef.current) {
                         displayRef.current.textContent = Math.round(amount).toLocaleString('fr-FR');
-
-                        // Small "Bump" effect at the end to signify "Locked in"
-                        gsap.fromTo(displayRef.current,
-                            { y: -2 },
-                            { y: 0, duration: 0.1, ease: "power1.out" }
-                        );
                     }
                 }
             });
