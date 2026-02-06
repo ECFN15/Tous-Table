@@ -1,6 +1,6 @@
 ---
 project_name: "Tous à Table - Atelier Normand"
-last_updated: "2026-02-05"
+last_updated: "2026-02-06"
 description: "Site e-commerce et vitrine pour un atelier d'ébénisterie d'art. Vente de meubles (enchères/achat direct) et planches à découper."
 stack:
   frontend: "React + Vite"
@@ -45,6 +45,7 @@ Le projet a été restructuré pour séparer clairement les responsabilités (Ja
     *   `components/` : Sous-composants admin (ex: `AdminImageCard.jsx` pour l'upload).
 *   **`components/`** : Briques UI réutilisables.
     *   `ErrorBoundary.jsx` : "Coussin de sécurité" global pour intercepter les erreurs de rendu (Ecran blanc).
+    *   **`ui/AnimatedPrice.jsx`** : Micro-interaction premium pour l'affichage fluide des prix (GSAP).
 *   **`hooks/`** : Logique métier partagée.
     *   `useLiveTheme.js` : Hook central pour la gestion des thèmes dynamiques (Firestore).
     *   `useRealtimeUserLikes.js` : Gestion temps réel des likes.
@@ -70,13 +71,14 @@ Le projet a été restructuré pour séparer clairement les responsabilités (Ja
     *   Pour gérer des designs radicalement différents sans "Spaghetti Code", les vues complexes (`GalleryView` et `ProductDetail`) n'utilisent plus de conditions ternaires géantes.
     *   Elles agissent comme des **Routeurs Internes** qui importent et affichent soit le composant `Standard...` soit le composant `Architectural...` en fonction du `activeDesignId` du thème.
     *   Cela garantit une **séparation totale** des responsabilités : modifier le design "Architectural" ne cassera jamais le design "Standard".
-    *   **Update Février 2026 (Refonte Architectural)** :
+    *   **Update Février 2026 (Refonte Architectural & Micro-Animations)** :
+        *   **Layout "Dashboard"** : Équilibrage vertical strict entre la Description et les Actions. Zone de texte calibrée (~260px de haut) pour garantir que les boutons d'enchères (+10, +50, +100) soient visibles au premier coup d'œil.
+        *   **AnimatedPrice Integration** : Remplacement des prix statiques par un composant animé (GSAP). Transition numérique fluide avec atterrissage "smooth" pour une sensation de luxe.
+        *   **Suppression des Marges Mortes** : Retrait des spacers `mt-auto` et réduction des paddings pour unifier visuellement la description et le bloc de commande.
         *   **Header Épuré** : Typographie "Atelier Normand" agrandie (`text-xs`), symétrie verticale parfaite, bouton "Retour" déplacé hors du header pour alléger.
         *   **Layout Produit (Smart Scroll)** : Passage en **Body Scroll** (défilement naturel) avec **Sticky Left Column** pour l'image. Suppression des scrollbars internes.
-        *   **Image "Tableau"** : Conteneur avec coins très arrondis (`rounded-[2.5rem]`), padding aéré et ombre portée douce. L'image se fond dans le décor.
-        *   **Navigation Intuitive** : Bouton "Retour Collection" positionné **au-dessus de l'image** (Desktop & Mobile). Suppression des boutons flottants parasites sur mobile.
-        *   **Symétrie & Alignement** : Alignement strict du haut (Titre vs Bouton Retour) et du bas (Prix/Specs vs Bas de l'image) grâce à des spacers flexibles (`mt-auto`).
-        *   **Aération** : Suppression des bordures (Prix) et augmentation significative des marges (`space-y`, `mb-12`) pour une lecture plus élégante.
+        *   **Image "Tableau"** : Conteneur avec coins très arrondis (`rounded-[2.5rem]`), padding aéré et ombre portée douce.
+        *   **Navigation Intuitive** : Bouton "Retour Collection" positionné **au-dessus de l'image** (Desktop & Mobile). Maison du design épuré.
 
 ---
 
@@ -160,6 +162,10 @@ Pour mettre le site en ligne sur **https://tatmadeinnormandie.web.app** :
 ### 🖥️ Artefacts de rendu (Lignes clignotantes / Flickering)
 **Solution** : Remplacer `border` par `ring` (box-shadow) et ajouter `will-change-transform` pour forcer l'accélération GPU lors des animations d'échelle.
 
+### 🎰 Animation de Prix (Kerning & Jitter)
+**Problème** : L'utilisation de `tabular-nums` pour stabiliser l'animation de compteur créait des espaces inesthétiques sur les polices Serif (ex: gros trou autour du "1").
+**Solution** : Utilisation d'une interpolation numérique rapide (`gsap.to`) sur le texte pur, garantissant un rendu typographique parfait à l'arrêt, couplé à un léger flash de couleur pour le feedback. Pas de structure DOM complexe (type Odometer) car incompatible avec l'italique artistique de la marque.
+
 ---
 
-*Dernière mise à jour par l'IA : Session du 31/01/2026. Sharding Vues, ErrorBoundary, Fix Firestore Dev Mode.*
+*Dernière mise à jour par l'IA : Session du 06/02/2026. Refonte Architectural (Layout Balance), AnimatedPrice (Micro-interactions GSAP), Fix Typography Jitter.*
