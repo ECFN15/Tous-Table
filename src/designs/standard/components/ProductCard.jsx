@@ -101,8 +101,8 @@ const ProductCard = ({
                 )}
             </div>
 
-            {/* 4. SOCIAL ACTIONS (Right Side - Floating) */}
-            <div className={`absolute ${viewMode === 'list' ? 'top-[15%] right-4 gap-10' : 'top-4 right-3 gap-3.5'} md:top-24 md:right-4 flex flex-col md:gap-6 z-20`}>
+            {/* 4. SOCIAL ACTIONS (Right Side - Floating - Hidden on Mobile) */}
+            <div className={`absolute ${viewMode === 'list' ? 'top-[15%] right-4 gap-10' : 'top-4 right-3 gap-3.5'} md:top-24 md:right-4 hidden md:flex flex-col md:gap-6 z-20`}>
                 <button
                     onClick={onLike}
                     className={`${viewMode === 'list' ? 'p-2.5' : 'p-1.5'} md:p-2.5 rounded-full backdrop-blur-md border transition-all hover:scale-110 active:scale-95 group/icon`}

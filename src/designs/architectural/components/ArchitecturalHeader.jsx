@@ -1,6 +1,6 @@
 import { useLiveTheme } from '../../../hooks/useLiveTheme';
 import { useAuth } from '../../../contexts/AuthContext';
-import { Menu, ShoppingBag, ShieldCheck, Sun, Moon, LogOut } from 'lucide-react';
+import { Menu, ShoppingBag, ShieldCheck, Sun, Moon, LogOut, Hammer } from 'lucide-react';
 
 /**
  * COMPONENT : ARCHITECTURAL HEADER
@@ -37,7 +37,7 @@ const ArchitecturalHeader = ({
 
     return (
         <header className={`sticky top-0 z-[100] backdrop-blur-md transition-colors duration-500 ${darkMode ? 'bg-[#0A0A0A]/95' : 'bg-[#FAFAF9]/95'}`}>
-            <div className="max-w-[1920px] mx-auto px-6 md:px-12 h-24 flex items-center justify-between">
+            <div className="max-w-[1920px] mx-auto px-4 md:px-12 h-20 md:h-24 flex items-center justify-between">
 
                 {/* 1. LEFT: LOGO & TABS */}
                 {/* 1. LEFT: NAVIGATION & LOGO */}
@@ -95,39 +95,53 @@ const ArchitecturalHeader = ({
                                 className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${darkMode ? 'text-stone-400 hover:bg-stone-800 hover:text-amber-500' : 'text-stone-400 hover:bg-stone-200 hover:text-stone-900'}`}
                                 title="Changer de thème"
                             >
-                                {isDark ? <Sun size={22} strokeWidth={1.5} /> : <Moon size={22} strokeWidth={1.5} />}
+                                {isDark ? <Sun size={20} strokeWidth={1.5} /> : <Moon size={20} strokeWidth={1.5} />}
                             </button>
                         )}
 
-                        {/* LOGIN / LOGOUT BUTTON */}
+                        {/* LOGIN / LOGOUT BUTTON (Integrated Mobile + Desktop) */}
                         {(!user || user.isAnonymous) ? (
-                            <button onClick={onShowLogin} className={`hidden md:flex items-center gap-2 px-5 py-2 rounded border transition-all group ${darkMode ? 'border-stone-800 hover:bg-stone-800' : 'border-stone-200 hover:bg-stone-200'}`}>
-                                <ShieldCheck size={16} className={`group-hover:text-amber-500 transition-colors ${darkMode ? 'text-stone-400' : 'text-stone-400'}`} />
-                                <span className={`text-xs font-bold uppercase tracking-widest group-hover:text-stone-900 dark:group-hover:text-stone-200 ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>Connexion</span>
-                            </button>
+                            <div className="flex items-center gap-1 md:gap-2">
+                                {/* Mobile Icon (Hammer) */}
+                                <button
+                                    onClick={onShowLogin}
+                                    className={`md:hidden w-10 h-10 rounded-full flex items-center justify-center border transition-all ${darkMode ? 'border-stone-800 text-stone-400' : 'border-stone-200 text-stone-500'}`}
+                                    title="Connexion Admin"
+                                >
+                                    <Hammer size={20} strokeWidth={1.5} />
+                                </button>
+
+                                {/* Desktop Button */}
+                                <button onClick={onShowLogin} className={`hidden md:flex items-center gap-2 px-5 py-2 rounded border transition-all group ${darkMode ? 'border-stone-800 hover:bg-stone-800' : 'border-stone-200 hover:bg-stone-200'}`}>
+                                    <ShieldCheck size={16} className={`group-hover:text-amber-500 transition-colors ${darkMode ? 'text-stone-400' : 'text-stone-400'}`} />
+                                    <span className={`text-xs font-bold uppercase tracking-widest group-hover:text-stone-900 dark:group-hover:text-stone-200 ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>Connexion</span>
+                                </button>
+                            </div>
                         ) : (
-                            <div className="hidden md:flex items-center gap-2">
-                                <div className="px-3 py-2">
-                                    <span className="text-xs font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 cursor-default">Connecté</span>
+                            <div className="flex items-center gap-2">
+                                {/* Mobile/Desktop Indicator */}
+                                <div className="px-3 py-2 hidden sm:block">
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 cursor-default">Admin</span>
                                 </div>
                                 <button
                                     onClick={() => logout()}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded border transition-all group ${darkMode ? 'border-stone-800 hover:bg-red-900/20 hover:border-red-900/50 text-stone-400 hover:text-red-400' : 'border-stone-200 hover:bg-red-50 hover:border-red-200 text-stone-500 hover:text-red-600'}`}
+                                    className={`flex items-center justify-center sm:gap-2 w-10 h-10 sm:w-auto sm:px-4 sm:py-2 rounded-full sm:rounded border transition-all group ${darkMode ? 'border-stone-800 hover:bg-red-900/20 hover:border-red-900/50 text-stone-400 hover:text-red-400' : 'border-stone-200 hover:bg-red-50 hover:border-red-200 text-stone-500 hover:text-red-600'}`}
                                     title="Se déconnecter"
                                 >
-                                    <LogOut size={16} />
+                                    <LogOut size={18} />
+                                    <span className="hidden sm:inline text-[10px] font-bold uppercase tracking-widest">Quitter</span>
                                 </button>
                             </div>
                         )}
 
-                        <button onClick={onOpenCart} className={`relative group p-3 rounded transition-colors ${darkMode ? 'hover:bg-stone-800' : 'hover:bg-stone-200'}`} title="Panier">
-                            <ShoppingBag size={24} strokeWidth={1.5} className={`group-hover:scale-110 transition-transform ${darkMode ? 'text-stone-200' : 'text-stone-900'}`} />
+                        <button onClick={onOpenCart} className={`relative group w-10 h-10 flex items-center justify-center rounded-full transition-colors ${darkMode ? 'hover:bg-stone-800' : 'hover:bg-stone-200'}`} title="Panier">
+                            <ShoppingBag size={20} strokeWidth={1.5} className={`group-hover:scale-110 transition-transform ${darkMode ? 'text-stone-200' : 'text-stone-900'}`} />
                             {wishlistCount > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-black"></span>}
                         </button>
 
-                        <button onClick={onOpenMenu} className={`flex items-center gap-3 group cursor-pointer px-4 py-2 rounded transition-colors ${darkMode ? 'hover:bg-stone-800' : 'hover:bg-stone-200'}`} title="Menu">
+                        <button onClick={onOpenMenu} className={`flex items-center justify-center gap-3 group cursor-pointer w-10 h-10 md:w-auto md:px-4 md:py-2 rounded-full md:rounded transition-colors ${darkMode ? 'hover:bg-stone-800' : 'hover:bg-stone-200'}`} title="Menu">
                             <span className={`hidden md:block text-xs font-bold uppercase tracking-widest group-hover:underline underline-offset-4 ${darkMode ? 'text-stone-200' : 'text-stone-900'}`}>Menu</span>
-                            <Menu size={24} strokeWidth={1.5} className={darkMode ? 'text-stone-200' : 'text-stone-900'} />
+                            <Menu size={20} strokeWidth={1.5} className={darkMode ? 'text-stone-200' : 'text-stone-900'} />
                         </button>
                     </div>
                 </div>
