@@ -10,6 +10,7 @@ const SEO = React.lazy(() => import('../../components/SEO'));
 import { useRealtimeUserLikes } from '../../hooks/useRealtimeUserLikes';
 import { useLiveTheme } from '../../hooks/useLiveTheme';
 import ArchitecturalHeader from './components/ArchitecturalHeader';
+import AnimatedPrice from '../../components/ui/AnimatedPrice';
 
 const placeBidFunction = httpsCallable(functions, 'placeBid');
 
@@ -249,7 +250,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
                             <div className="flex items-end justify-between mb-12 pt-8">
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Prix Actuel</p>
-                                    <p className="text-6xl font-black tracking-tighter font-serif italic font-normal">{item.currentPrice || item.startingPrice} €</p>
+                                    <p className="text-6xl font-black tracking-tighter font-serif italic font-normal"><AnimatedPrice amount={item.currentPrice || item.startingPrice || 0} /> €</p>
                                 </div>
                                 <div className="flex items-end gap-12 text-right opacity-60 pb-2">
                                     <div>
