@@ -237,21 +237,14 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
 
 
                         {/* Description (Matched to Red Brace ~260px) */}
-                        <div className="p-0 border-l pl-8 border-stone-200 dark:border-stone-800 max-h-[260px] overflow-y-auto custom-scrollbar pr-4 mb-6">
+                        <div className="p-0 border-l pl-8 border-stone-200 dark:border-stone-800 max-h-[260px] overflow-y-auto custom-scrollbar pr-4 mb-2">
                             <p className="whitespace-pre-wrap font-serif text-lg font-medium leading-loose" style={{ color: darkMode ? '#d6d3d1' : '#000000', opacity: 1 }}>
                                 {item.description}
                             </p>
                         </div>
 
-                        {/* SPACER (Adjusts content position) */}
-                        <div className="mt-auto"></div>
-
                         {/* Price & Actions */}
-
-                        {/* Price & Actions (Pushed to bottom by Description flex-1) */}
-
-                        {/* Price & Actions */}
-                        <div className="p-6 bg-transparent">
+                        <div className="px-6 pb-6 pt-0 bg-transparent">
                             {/* NEW COMPACT LAYOUT: PRICE (Left) + SPECS HORIZONTAL (Right) */}
                             <div className="flex items-end justify-between mb-12 pt-8">
                                 <div className="space-y-1">
