@@ -222,8 +222,8 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
                     </div>
                 </div>
 
-                {/* RIGHT COLUMN: SCROLLABLE INFO */}
-                <div className="w-full md:w-1/2 px-6 md:px-16 py-12 md:py-12 flex flex-col md:h-[calc(100vh-6rem)]">
+                {/* RIGHT COLUMN: NATURAL SCROLL (Fix Overflow) */}
+                <div className="w-full md:w-1/2 px-6 md:px-16 py-12 md:py-12 flex flex-col">
                     <div className="max-w-xl mx-auto w-full h-full flex flex-col">
 
                         {/* Header */}
@@ -235,35 +235,87 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
 
                         </div>
 
-                        {/* Description (Scrollable) */}
-                        <div className="p-0 border-l pl-8 border-stone-200 dark:border-stone-800 max-h-[250px] overflow-y-auto custom-scrollbar pr-4">
+
+                        {/* Description (Matched to Red Brace ~260px) */}
+                        <div className="p-0 border-l pl-8 border-stone-200 dark:border-stone-800 max-h-[260px] overflow-y-auto custom-scrollbar pr-4 mb-6">
                             <p className="whitespace-pre-wrap font-serif text-lg font-medium leading-loose" style={{ color: darkMode ? '#d6d3d1' : '#000000', opacity: 1 }}>
                                 {item.description}
                             </p>
                         </div>
 
-                        {/* SPACER PUSH TO BOTTOM */}
+                        {/* SPACER (Adjusts content position) */}
                         <div className="mt-auto"></div>
 
                         {/* Price & Actions */}
+
+                        {/* Price & Actions (Pushed to bottom by Description flex-1) */}
+
+                        {/* Price & Actions */}
                         <div className="p-6 bg-transparent">
-                            <div className="flex justify-between items-end mb-8">
+                            {/* NEW COMPACT LAYOUT: PRICE (Left) + SPECS HORIZONTAL (Right) */}
+                            <div className="flex items-end justify-between mb-12 pt-8">
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Prix Actuel</p>
                                     <p className="text-6xl font-black tracking-tighter font-serif italic font-normal">{item.currentPrice || item.startingPrice} €</p>
                                 </div>
+                                <div className="flex items-end gap-12 text-right opacity-60 pb-2">
+                                    <div>
+                                        <p className="text-[9px] font-black uppercase tracking-widest mb-1 opacity-50">Matières</p>
+                                        <p className="text-xs font-bold">{item.material || "Non spécifié"}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[9px] font-black uppercase tracking-widest mb-1 opacity-50">Dimensions</p>
+                                        <p className="font-mono text-xs">{item.width ? `${item.width} x ${item.depth} x ${item.height} cm` : item.dimensions}</p>
+                                    </div>
+                                </div>
                             </div>
 
                             {item.auctionActive && !isAuctionOver ? (
-                                <div className="space-y-4">
-                                    <p className="text-[10px] font-black uppercase opacity-40">Placer une enchère rapide</p>
-                                    <div className="grid grid-cols-3 gap-3">
-                                        {[10, 50, 100].map(inc => (
-                                            <button key={inc} onClick={() => handleQuickBid(inc)} disabled={bidLoading}
-                                                className="py-4 border font-black text-xs hover:bg-black hover:text-white transition-all border-stone-200 dark:border-stone-700 bg-transparent">
-                                                +{inc}€
-                                            </button>
-                                        ))}
+                                <div className="space-y-8">
+                                    {/* Action Buttons */}
+                                    <div className="space-y-4">
+                                        <p className="text-[10px] font-black uppercase opacity-40">Placer une enchère rapide</p>
+                                        <div className="grid grid-cols-3 gap-3">
+                                            {[10, 50, 100].map(inc => (
+                                                <button key={inc} onClick={() => handleQuickBid(inc)} disabled={bidLoading}
+                                                    className="py-4 border font-black text-xs hover:bg-black hover:text-white transition-all border-stone-200 dark:border-stone-700 bg-transparent">
+                                                    +{inc}€
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* LIVE AUCTION HISTORY (NEW) */}
+                                    <div className="border-t border-stone-200 dark:border-stone-800 pt-6">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <p className="text-[10px] font-black uppercase tracking-widest opacity-40 flex items-center gap-2">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                                                En direct
+                                            </p>
+                                            <span className="text-[9px] opacity-30">{bidsHistory.length} offres</span>
+                                        </div>
+
+                                        <div className="max-h-[120px] overflow-y-auto custom-scrollbar space-y-3">
+                                            {bidsHistory.length === 0 ? (
+                                                <p className="text-xs italic opacity-30 text-center py-2">Aucune offre pour le moment. Soyez le premier !</p>
+                                            ) : (
+                                                bidsHistory.map((bid, i) => (
+                                                    <div key={bid.id || i} className="flex justify-between items-center text-xs group">
+                                                        <div className="flex items-center gap-3">
+                                                            <span className="font-mono opacity-30 text-[10px]">
+                                                                {bid.timestamp ? new Date(bid.timestamp.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                                                            </span>
+                                                            <span className={`font-bold ${i === 0 ? 'text-amber-600 dark:text-amber-500' : 'opacity-60'}`}>
+                                                                {bid.bidderName || 'Anonyme'}
+                                                            </span>
+                                                        </div>
+                                                        <span className={`font-mono font-bold ${i === 0 ? 'text-amber-600 dark:text-amber-500' : 'opacity-60'}`}>
+                                                            {bid.amount} €
+                                                        </span>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             ) : !item.auctionActive ? (
@@ -308,18 +360,6 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
                                     <div className="absolute bottom-0 left-0 -ml-8 -mb-8 w-24 h-24 blur-3xl opacity-10 rounded-full" style={{ backgroundColor: palette.statusValid }}></div>
                                 </div>
                             )}
-                        </div>
-
-                        {/* Specs */}
-                        <div className="grid grid-cols-2 gap-8 pt-4 pl-6 opacity-80">
-                            <div>
-                                <p className="text-[9px] font-black uppercase tracking-widest mb-1 opacity-50">Matières</p>
-                                <p className="text-xs font-bold">{item.material || "Non spécifié"}</p>
-                            </div>
-                            <div>
-                                <p className="text-[9px] font-black uppercase tracking-widest mb-1 opacity-50">Dimensions</p>
-                                <p className="font-mono text-xs">{item.width ? `${item.width} x ${item.depth} x ${item.height} cm` : item.dimensions}</p>
-                            </div>
                         </div>
                     </div>
                 </div>

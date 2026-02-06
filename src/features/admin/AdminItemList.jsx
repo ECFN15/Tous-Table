@@ -12,6 +12,12 @@ const normalizeText = (text) => {
 }
 
 const AdminItemList = ({ collectionName, darkMode, onEdit, onToggleStatus, onDelete, onArchive }) => {
+    const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [items, setItems] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [statsLimit, setStatsLimit] = useState(10);
+    const [fullCache, setFullCache] = useState(null);
     const [showArchives, setShowArchives] = useState(false);
 
     // Debounce search input

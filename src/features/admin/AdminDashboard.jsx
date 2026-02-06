@@ -28,6 +28,8 @@ const AdminDashboard = ({ user, darkMode = false }) => {
     const [isOrderResetModalOpen, setIsOrderResetModalOpen] = useState(false);
     const [resettingOrders, setResettingOrders] = useState(false);
     const [allOrders, setAllOrders] = useState([]);
+    const [cleaning, setCleaning] = useState(false);
+    const [isCleaningModalOpen, setIsCleaningModalOpen] = useState(false);
 
 
     useEffect(() => {
@@ -246,6 +248,30 @@ const AdminDashboard = ({ user, darkMode = false }) => {
         }
     };
 
+    const confirmCleaning = async () => {
+        setCleaning(true);
+        try {
+            // Call Cloud Function
+            const garbageCollectorFn = httpsCallable(functions, 'runGarbageCollector');
+            const result = await garbageCollectorFn();
+            const stats = result.data.stats;
+            const freedMb = (stats.storageSpaceFreedBytes / (1024 * 1024)).toFixed(2);
+
+            setIsCleaningModalOpen(false);
+
+            alert(`✅ Nettoyage Terminé avec Succès !\n\n` +
+                `👻 Fantômes éliminés : ${stats.ghostDocsDeleted}\n` +
+                `📸 Images orphelines supprimées : ${stats.orphanedImagesDeleted}\n` +
+                `💾 Espace libéré : ${freedMb} Mo\n` +
+                `\nVotre système est maintenant propre.`);
+        } catch (error) {
+            console.error("Cleaning error:", error);
+            alert("Erreur lors du nettoyage système : " + (error.message || "Erreur inconnue"));
+        } finally {
+            setCleaning(false);
+        }
+    };
+
 
     if (loading) return <div className="p-12 text-center text-stone-400 font-bold animate-pulse">Chargement des données...</div>;
 
@@ -410,11 +436,20 @@ const AdminDashboard = ({ user, darkMode = false }) => {
 
                             <button
                                 onClick={handleResetOrdersClick}
-                                disabled={resetting || resettingOrders}
+                                disabled={resetting || resettingOrders || cleaning}
                                 className={`w-full py-4 border rounded-xl font-black uppercase text-[10px] tracking-widest transition-all shadow-sm flex items-center justify-center gap-2 ${darkMode ? 'bg-stone-800 text-red-400 border-red-800 hover:bg-red-500 hover:text-white' : 'bg-white text-red-500 border-red-100 hover:bg-red-500 hover:text-white'}`}
                             >
                                 {resettingOrders ? <RefreshCw size={14} className="animate-spin" /> : <RefreshCw size={14} />}
                                 {resettingOrders ? 'Archivage & Purge Commandes' : 'Réinitialiser Commandes'}
+                            </button>
+
+                            <button
+                                onClick={() => setIsCleaningModalOpen(true)}
+                                disabled={resetting || resettingOrders || cleaning}
+                                className={`w-full py-4 border rounded-xl font-black uppercase text-[10px] tracking-widest transition-all shadow-sm flex items-center justify-center gap-2 ${darkMode ? 'bg-stone-800 text-orange-400 border-orange-800 hover:bg-orange-500 hover:text-white' : 'bg-white text-orange-500 border-orange-100 hover:bg-orange-500 hover:text-white'}`}
+                            >
+                                {cleaning ? <RefreshCw size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+                                {cleaning ? 'Nettoyage en cours...' : 'Maintenance Système (Images & Fantômes)'}
                             </button>
                         </div>
 
@@ -456,7 +491,6 @@ const AdminDashboard = ({ user, darkMode = false }) => {
             )}
             {/* ORDER RESET CONFIRMATION MODAL */}
             {isOrderResetModalOpen && (
-
                 <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200 ${darkMode ? 'bg-black/70' : 'bg-stone-900/50'}`}>
                     <div className={`rounded-[2rem] p-8 max-w-sm w-full shadow-2xl border space-y-6 text-center animate-in zoom-in-95 duration-200 ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
                         <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto text-red-500 ${darkMode ? 'bg-red-900/30' : 'bg-red-50'}`}>
@@ -479,6 +513,42 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                             <button
                                 onClick={() => setIsOrderResetModalOpen(false)}
                                 disabled={resettingOrders}
+                                className={`w-full py-4 rounded-xl font-bold uppercase text-xs tracking-widest transition-colors ${darkMode ? 'bg-stone-700 text-stone-400 hover:text-stone-200' : 'bg-white text-stone-400 hover:text-stone-600'}`}
+                            >
+                                Annuler
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* GARBAGE COLLECTOR CONFIRMATION MODAL */}
+            {isCleaningModalOpen && (
+                <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200 ${darkMode ? 'bg-black/70' : 'bg-stone-900/50'}`}>
+                    <div className={`rounded-[2rem] p-8 max-w-sm w-full shadow-2xl border space-y-6 text-center animate-in zoom-in-95 duration-200 ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
+                        <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto text-orange-500 ${darkMode ? 'bg-orange-900/30' : 'bg-orange-50'}`}>
+                            <RefreshCw size={32} />
+                        </div>
+                        <div>
+                            <h3 className={`text-xl font-black mb-2 ${darkMode ? 'text-white' : 'text-stone-900'}`}>Maintenance Système</h3>
+                            <p className={`text-sm leading-relaxed ${darkMode ? 'text-stone-300' : 'text-stone-500'}`}>
+                                Ce script va scanner le système pour :<br />
+                                1. Supprimer les documents fantômes (produits mal supprimés).<br />
+                                2. Supprimer les <span className="font-bold">images orphelines</span> du stockage.<br />
+                                <span className="text-[10px] uppercase opacity-60 mt-2 block">Durée estimée : 10-30 secondes</span>
+                            </p>
+                        </div>
+                        <div className="flex flex-col gap-3">
+                            <button
+                                onClick={confirmCleaning}
+                                disabled={cleaning}
+                                className="w-full py-4 bg-orange-500 text-white rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-orange-600 transition-colors shadow-lg shadow-orange-200 flex items-center justify-center gap-2"
+                            >
+                                {cleaning ? <RefreshCw size={14} className="animate-spin" /> : 'Lancer le Nettoyage'}
+                            </button>
+                            <button
+                                onClick={() => setIsCleaningModalOpen(false)}
+                                disabled={cleaning}
                                 className={`w-full py-4 rounded-xl font-bold uppercase text-xs tracking-widest transition-colors ${darkMode ? 'bg-stone-700 text-stone-400 hover:text-stone-200' : 'bg-white text-stone-400 hover:text-stone-600'}`}
                             >
                                 Annuler

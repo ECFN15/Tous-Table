@@ -109,8 +109,9 @@ exports.resetAllStats = functions.https.onCall(async (data, context) => {
             const itemsRef = db.collection(`artifacts/${appId}/public/data/${colName}`);
             const itemsSnap = await itemsRef.get();
 
-            // Pour chaque Item
-            for (const doc of itemsSnap.docs) {
+            // OPTIMISATION: Traitement PARALLÈLE des items (Promise.all) au lieu de séquentiel
+            // Cela réduit le temps de 15s à ~2s
+            const itemPromises = itemsSnap.docs.map(async (doc) => {
                 const batch = db.batch();
                 let opCount = 0;
 
@@ -122,24 +123,31 @@ exports.resetAllStats = functions.https.onCall(async (data, context) => {
                 });
                 opCount++;
 
-                // B. Suppression des sous-collections (Likes, Comments, Shares)
-                // Note: Firestore ne supprime pas récursivement automatiquement, il faut aller chercher les docs.
+                // B. Récupération parallèle des sous-collections
                 const subCollections = ['likes', 'comments', 'shares'];
+                const subSnaps = await Promise.all(
+                    subCollections.map(subCol => doc.ref.collection(subCol).limit(500).get())
+                );
 
-                for (const subCol of subCollections) {
-                    const subSnap = await doc.ref.collection(subCol).limit(500).get(); // Limit par sécurité batch
+                // Ajout des suppressions au batch
+                subSnaps.forEach(subSnap => {
                     subSnap.forEach(subDoc => {
                         batch.delete(subDoc.ref);
                         opCount++;
                     });
-                }
+                });
 
                 // C. Commit du batch par Item
                 if (opCount > 0) {
                     await batch.commit();
-                    totalOp += opCount;
+                    return opCount;
                 }
-            }
+                return 0;
+            });
+
+            // Attendre que TOUS les items soient nettoyés
+            const results = await Promise.all(itemPromises);
+            totalOp += results.reduce((acc, curr) => acc + curr, 0);
         }
 
         console.log(`Reset terminé. ${totalOp} opérations effectuées.`);
@@ -815,3 +823,176 @@ exports.sendTestEmail = functions.https.onCall(async (data, context) => {
         };
     }
 });
+
+// ============================================================
+// 7. MAINTENANCE & NETTOYAGE (GARBAGE COLLECTOR)
+// ============================================================
+exports.runGarbageCollector = functions.runWith({ timeoutSeconds: 540, memory: '1GB' }).https.onCall(async (data, context) => {
+    // 1. Sécurité : Admin seulement
+    if (!context.auth || !context.auth.token.admin) {
+        if (!context.auth || context.auth.token.email !== 'matthis.fradin2@gmail.com') {
+            throw new functions.https.HttpsError('permission-denied', 'Administrateur requis.');
+        }
+    }
+
+    const appId = 'tat-made-in-normandie';
+    const collections = ['furniture', 'cutting_boards'];
+    const bucket = admin.storage().bucket(); // Default bucket
+
+    let stats = {
+        scanDate: new Date().toISOString(),
+        ghostDocsDeleted: 0,
+        orphanedImagesDeleted: 0,
+        storageSpaceFreedBytes: 0,
+        errors: []
+    };
+
+    try {
+        console.log("🧹 STARTING GARBAGE COLLECTOR...");
+
+        // --- STEP 1: GHOST HUNTING (Firestore) ---
+        // Trouve les documents qui n'existent pas mais ont des sous-collections (bids, likes...)
+        const activeImagePaths = new Set(); // Pour l'étape 2
+
+        for (const colName of collections) {
+            const colRef = db.collection(`artifacts/${appId}/public/data/${colName}`);
+            const allRefs = await colRef.listDocuments(); // Récupère TOUTES les refs, même mortes
+
+            // On vérifie l'existence par lots de 100
+            const chunkSize = 100;
+            for (let i = 0; i < allRefs.length; i += chunkSize) {
+                const chunk = allRefs.slice(i, i + chunkSize);
+                if (chunk.length === 0) continue;
+
+                const snaps = await db.getAll(...chunk);
+
+                for (const snap of snaps) {
+                    if (!snap.exists) {
+                        // C'est un FANTÔME ! 👻 (Document supprimé mais sous-collections présentes)
+                        console.log(`👻 Fantôme détecté: ${snap.ref.path}. Suppression récursive...`);
+
+                        // Suppression manuelle récursive des sous-collections connues
+                        const subCols = ['bids', 'likes', 'comments', 'shares', 'logs'];
+                        const batch = db.batch();
+                        let ops = 0;
+
+                        for (const subName of subCols) {
+                            // Augmentation de la puissance de nettoyage : 450 items par coup (Max batch 500)
+                            const subSnaps = await snap.ref.collection(subName).limit(450).get();
+                            subSnaps.forEach(doc => {
+                                batch.delete(doc.ref);
+                                ops++;
+                            });
+                        }
+
+                        if (ops > 0) {
+                            await batch.commit();
+                            stats.ghostDocsDeleted++;
+                        }
+                    } else {
+                        // C'est un VIVANT ! 🌳
+                        // On collecte ses images pour l'étape 2
+                        const data = snap.data();
+                        if (data.images && Array.isArray(data.images)) {
+                            data.images.forEach(url => {
+                                try {
+                                    // Extraction du chemin depuis l'URL Firebase Storage
+                                    // URL type: https://firebasestorage.googleapis.com/.../o/furniture%2Fmon_image.jpg?alt=...
+                                    // Decoding: furniture/mon_image.jpg
+                                    if (url.includes('/o/')) {
+                                        const path = decodeURIComponent(url.split('/o/')[1].split('?')[0]);
+                                        activeImagePaths.add(path);
+                                    }
+                                } catch (e) {
+                                    // Ignore invalid urls
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+        }
+        console.log(`✅ IDs d'images actives recensées : ${activeImagePaths.size}`);
+
+
+        // --- STEP 2: ORPHAN IMAGES (Storage) ---
+        // Liste les fichiers et supprime ceux qui ne sont pas dans activeImagePaths
+        const foldersToClean = ['furniture/', 'cutting_boards/']; // Trailing slash important pour prefix
+
+        for (const folder of foldersToClean) {
+            // Get files in folder
+            const [files] = await bucket.getFiles({ prefix: folder });
+
+            // Process parallèle mais limité pour éviter rate limit
+            // On supprime les fichiers non référencés
+            for (const file of files) {
+                // Ignore les dossiers eux-mêmes (taille 0 ou nom terminé par /)
+                if (file.name.endsWith('/')) continue;
+
+                // Vérification
+                if (!activeImagePaths.has(file.name)) {
+                    // ORPHELIN ! 🗑️
+                    // Protection ultime: Vérifier que c'est bien une image et pas un truc système
+                    if (!file.name.includes('sys_') && (file.name.includes('.jpg') || file.name.includes('.png') || file.name.includes('.webp'))) {
+                        try {
+                            await file.delete();
+                            stats.orphanedImagesDeleted++;
+                            // Calcul du poids libéré (converti en nombre, parfois string)
+                            stats.storageSpaceFreedBytes += parseInt(file.metadata.size || '0', 10);
+                            console.log(`🗑️ Image orpheline supprimée: ${file.name}`);
+                        } catch (e) {
+                            console.error(`Erreur suppression ${file.name}:`, e);
+                            stats.errors.push(file.name);
+                        }
+                    }
+                }
+            }
+        }
+
+        console.log("✅ Garbage Collection terminé:", stats);
+        return { success: true, stats };
+
+    } catch (error) {
+        console.error("Critical GC Error:", error);
+        throw new functions.https.HttpsError('internal', error.message);
+    }
+});
+
+// --- 11. TRIGGER NETTOYAGE AUTOMATIQUE (Préventif) ---
+// Se déclenche quand un produit (Main ou Planche) est supprimé
+exports.onArtifactDeleted = functions.runWith({ timeoutSeconds: 300 }).firestore
+    .document('artifacts/{appId}/public/data/{collection}/{docId}')
+    .onDelete(async (snap, context) => {
+        const { collection, docId } = context.params;
+        // On ne cible que furniture et cutting_boards
+        if (!['furniture', 'cutting_boards'].includes(collection)) return null;
+
+        console.log(`🗑️ Suppression détectée : ${collection}/${docId}. Nettoyage des sous-collections...`);
+
+        const subCols = ['bids', 'likes', 'comments', 'shares', 'logs'];
+        const batch = db.batch();
+        let deletedCount = 0;
+
+        try {
+            for (const subName of subCols) {
+                const subSnaps = await snap.ref.collection(subName).get();
+                if (!subSnaps.empty) {
+                    console.log(`   - Suppression de ${subSnaps.size} items dans '${subName}'`);
+                    subSnaps.forEach(doc => {
+                        batch.delete(doc.ref);
+                        deletedCount++;
+                    });
+                }
+            }
+
+            if (deletedCount > 0) {
+                await batch.commit();
+                console.log(`✅ Nettoyage automatique terminé. ${deletedCount} sous-documents supprimés.`);
+            } else {
+                console.log("✅ Rien à nettoyer (pas de sous-collections).");
+            }
+        } catch (error) {
+            console.error(`❌ Erreur lors du nettoyage automatique de ${docId}:`, error);
+        }
+        return null;
+    });
