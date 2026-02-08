@@ -798,29 +798,19 @@ exports.sendTestEmail = functions.https.onCall(async (data, context) => {
     const mailOptions = {
         from: `Tous à Table Test <${process.env.GMAIL_EMAIL}>`,
         to: process.env.GMAIL_EMAIL, // S'envoyer à soi-même
-        subject: '🧪 Test Technique - Tous à Table',
-        html: `
-            <h1>Ceci est un email de test</h1>
-            <p>Si vous recevez ceci, la configuration SMTP fonctionne (Nodemailer + Gmail).</p>
-            <p><b>Heure :</b> ${new Date().toISOString()}</p>
-            <p><b>Compte utilisé :</b> ${process.env.GMAIL_EMAIL}</p>
-        `
+        subject: `[Diagnostic] Test Email`,
+        text: `Ceci est un test.\n\nDebug Info:\n${JSON.stringify(debugInfo, null, 2)}`
     };
 
     try {
+
         const info = await transporter.sendMail(mailOptions);
-        console.log("✅ Email de test envoyé:", info.response);
-        return { success: true, messageId: info.messageId, response: info.response, debug: debugInfo };
+        console.log("✅ Email envoyé:", info.response);
+        return { success: true, response: info.response, debug: debugInfo };
+
     } catch (error) {
-        console.error("❌ Erreur Test Email:", error);
-        return {
-            success: false,
-            error: error.message,
-            stack: error.stack,
-            code: error.code,
-            command: error.command,
-            debug: debugInfo
-        };
+        console.error("❌ Erreur envoi:", error);
+        return { success: false, error: error.message, debug: debugInfo };
     }
 });
 
@@ -828,6 +818,7 @@ exports.sendTestEmail = functions.https.onCall(async (data, context) => {
 // 7. MAINTENANCE & NETTOYAGE (GARBAGE COLLECTOR)
 // ============================================================
 exports.runGarbageCollector = functions.runWith({ timeoutSeconds: 540, memory: '1GB' }).https.onCall(async (data, context) => {
+
     // 1. Sécurité : Admin seulement
     if (!context.auth || !context.auth.token.admin) {
         if (!context.auth || context.auth.token.email !== 'matthis.fradin2@gmail.com') {
@@ -958,41 +949,91 @@ exports.runGarbageCollector = functions.runWith({ timeoutSeconds: 540, memory: '
     }
 });
 
-// --- 11. TRIGGER NETTOYAGE AUTOMATIQUE (Préventif) ---
-// Se déclenche quand un produit (Main ou Planche) est supprimé
+// ============================================================
+// 11. TRIGGER NETTOYAGE COMPLET (Images + Sous-collections)
+// ============================================================
+
+/**
+ * Fonction unifiée pour nettoyer tout ce qui est lié à un document supprimé.
+ * Gère :
+ * 1. Suppression des images dans Storage (via URLs stockées dans le doc)
+ * 2. Suppression récursive des sous-collections (Standard + Bids + Logs)
+ */
+const cleanupDocumentAssets = async (snap, context) => {
+    const data = snap.data();
+    const docPath = snap.ref.path;
+    const { collection, docId } = context.params;
+
+    // Sécurité : On ne touche qu'aux objets métiers
+    if (!['furniture', 'cutting_boards'].includes(collection)) return null;
+
+    console.log(`🗑️ [AUTO-CLEANUP] Suppression détectée : ${collection}/${docId}`);
+
+    // --- STEP 1: IMAGES (STORAGE) ---
+    let imagesToDelete = [];
+
+    if (data.imageUrl) imagesToDelete.push(data.imageUrl);
+    if (data.thumbnailUrl) imagesToDelete.push(data.thumbnailUrl);
+
+    if (data.images && Array.isArray(data.images)) {
+        imagesToDelete = [...imagesToDelete, ...data.images];
+    }
+    if (data.thumbnails && Array.isArray(data.thumbnails)) {
+        imagesToDelete = [...imagesToDelete, ...data.thumbnails];
+    }
+
+    // Filtrer les doublons et URLs invalides
+    const uniqueImages = [...new Set(imagesToDelete)].filter(url => url && typeof url === 'string' && url.includes('firebasestorage'));
+
+    if (uniqueImages.length > 0) {
+        console.log(`📸 Suppression de ${uniqueImages.length} images associées...`);
+        const bucket = admin.storage().bucket();
+
+        await Promise.all(uniqueImages.map(async (url) => {
+            try {
+                // Parse URL Firebase : .../o/dossier%2Ffich.jpg?alt...
+                const decodedUrl = decodeURIComponent(url);
+                const startIndex = decodedUrl.indexOf('/o/') + 3;
+                const endIndex = decodedUrl.indexOf('?');
+
+                if (startIndex > 2 && (endIndex === -1 || endIndex > startIndex)) {
+                    const filePath = decodedUrl.substring(startIndex, endIndex === -1 ? undefined : endIndex);
+                    console.log(`🔥 Delete Storage: ${filePath}`);
+                    await bucket.file(filePath).delete();
+                }
+            } catch (e) {
+                console.warn(`⚠️ Echec suppression image ${url} (probablement déjà supprimée):`, e.message);
+            }
+        }));
+    }
+
+    // --- STEP 2: SOUS-COLLECTIONS (FIRESTORE) ---
+    const subCols = ['bids', 'likes', 'comments', 'shares', 'logs'];
+    const batch = db.batch();
+    let deletedCount = 0;
+
+    for (const subName of subCols) {
+        const subSnaps = await snap.ref.collection(subName).get();
+        if (!subSnaps.empty) {
+            console.log(`   - Suppression sous-collection '${subName}' (${subSnaps.size} docs)`);
+            subSnaps.forEach(doc => {
+                batch.delete(doc.ref);
+                deletedCount++;
+            });
+        }
+    }
+
+    if (deletedCount > 0) {
+        await batch.commit();
+        console.log(`✅ Sous-collections nettoyées (${deletedCount} docs).`);
+    }
+
+    console.log(`✅ [AUTO-CLEANUP] Terminé avec succès pour ${docId}.`);
+    return null;
+};
+
+// Trigger Wildcard pour les deux collections
 exports.onArtifactDeleted = functions.runWith({ timeoutSeconds: 300 }).firestore
     .document('artifacts/{appId}/public/data/{collection}/{docId}')
-    .onDelete(async (snap, context) => {
-        const { collection, docId } = context.params;
-        // On ne cible que furniture et cutting_boards
-        if (!['furniture', 'cutting_boards'].includes(collection)) return null;
+    .onDelete(cleanupDocumentAssets);
 
-        console.log(`🗑️ Suppression détectée : ${collection}/${docId}. Nettoyage des sous-collections...`);
-
-        const subCols = ['bids', 'likes', 'comments', 'shares', 'logs'];
-        const batch = db.batch();
-        let deletedCount = 0;
-
-        try {
-            for (const subName of subCols) {
-                const subSnaps = await snap.ref.collection(subName).get();
-                if (!subSnaps.empty) {
-                    console.log(`   - Suppression de ${subSnaps.size} items dans '${subName}'`);
-                    subSnaps.forEach(doc => {
-                        batch.delete(doc.ref);
-                        deletedCount++;
-                    });
-                }
-            }
-
-            if (deletedCount > 0) {
-                await batch.commit();
-                console.log(`✅ Nettoyage automatique terminé. ${deletedCount} sous-documents supprimés.`);
-            } else {
-                console.log("✅ Rien à nettoyer (pas de sous-collections).");
-            }
-        } catch (error) {
-            console.error(`❌ Erreur lors du nettoyage automatique de ${docId}:`, error);
-        }
-        return null;
-    });

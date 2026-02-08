@@ -100,6 +100,10 @@ Le backend est géré par **Firebase Cloud Functions** (dans `/functions`).
 *   `resetAllStats` : Fonction admin pour remettre à zéro les compteurs.
 *   `checkStorageCount` : Vérification des stocks pour éviter les surventes.
 
+### 🧹 Nettoyage & Maintenance (Février 2026)
+*   **Nettoyage Automatique (Temps Réel)** : Trigger `onArtifactDeleted`. Supprime instantanément les images Storage (via URL) et nettoie récursivement les sous-collections (`comments`, `likes`, `bids`) dès qu'un produit est effacé de Firestore. C'est la garantie "Zéro Déchet".
+*   **Garbage Collector (Manuel)** : La fonction `runGarbageCollector` est conservée comme outil de diagnostic/backup pour scanner l'intégralité du Storage en cas d'anomalie.
+
 ---
 
 ## 🚀 4. Workflow de Déploiement

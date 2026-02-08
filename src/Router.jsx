@@ -14,7 +14,7 @@ import {
 const AdminDashboard = React.lazy(() => import('./features/admin/AdminDashboard'));
 const AdminHomepage = React.lazy(() => import('./features/admin/AdminHomepage'));
 const AdminOrders = React.lazy(() => import('./features/admin/AdminOrders'));
-const AdminComments = React.lazy(() => import('./features/admin/AdminComments'));
+
 const AdminStudio = React.lazy(() => import('./features/admin/AdminStudio'));
 const AdminAuctions = React.lazy(() => import('./features/admin/AdminAuctions'));
 const AdminForm = React.lazy(() => import('./features/admin/AdminForm'));
@@ -220,12 +220,7 @@ const AppRouter = ({
                             <span className="md:hidden">Planches</span>
                             <span className="hidden md:inline">Planches à Découper</span>
                         </button>
-                        <button
-                            onClick={() => { setAdminCollection('comments'); setEditingItem(null); }}
-                            className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'comments' ? (darkMode ? 'bg-white text-stone-900 border-white md:bg-stone-700 md:text-white md:border-none' : 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
-                        >
-                            Avis
-                        </button>
+
                         <button
                             onClick={() => { setAdminCollection('users'); setEditingItem(null); }}
                             className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center justify-center gap-2 ${adminCollection === 'users' ? (darkMode ? 'bg-white text-stone-900 border-white md:bg-stone-700 md:text-white md:border-none' : 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
@@ -241,8 +236,7 @@ const AppRouter = ({
                             <AdminHomepage darkMode={darkMode} />
                         ) : adminCollection === 'orders' ? (
                             <AdminOrders darkMode={darkMode} />
-                        ) : adminCollection === 'comments' ? (
-                            <AdminComments darkMode={darkMode} />
+
                         ) : adminCollection === 'auctions' ? (
                             <AdminAuctions darkMode={darkMode} />
                         ) : adminCollection === 'studio' ? (

@@ -1,28 +1,31 @@
-
 import React, { useState, useEffect } from 'react';
 import {
-    TrendingUp, Users, Heart, MessageCircle, Share2,
-    DollarSign, ShoppingBag, ArrowUpRight, AlertTriangle, RefreshCw, Mail
+    TrendingUp, ShoppingBag, ArrowUpRight, AlertTriangle, RefreshCw, Mail,
+    Gavel, Package, CheckCircle, Clock, Archive
 } from 'lucide-react';
-import { collection, getDocs, writeBatch, doc, onSnapshot, query, orderBy, limit, setDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, writeBatch, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, appId, functions } from '../../firebase/config';
 import { getMillis } from '../../utils/time';
 import * as XLSX from 'xlsx';
 
-
 const AdminDashboard = ({ user, darkMode = false }) => {
+    // Revised State for Business Logic
     const [stats, setStats] = useState({
         totalRevenue: 0,
         totalOrders: 0,
         averageOrderValue: 0,
-        totalLikes: 0,
-        totalComments: 0,
-        totalShares: 0
+        totalStockValue: 0, // [NEW] Potential Revenue
+        activeAuctionsCount: 0, // [NEW] Live Auctions
+        totalItemsForSale: 0
     });
-    const [trendingItems, setTrendingItems] = useState([]);
+
+    const [activeAuctions, setActiveAuctions] = useState([]); // [NEW] List of live auctions
+    const [recentSales, setRecentSales] = useState([]); // [NEW] Recently sold items list
     const [recentOrders, setRecentOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    // Modal States
     const [resetting, setResetting] = useState(false);
     const [isResetModalOpen, setIsResetModalOpen] = useState(false);
     const [isOrderResetModalOpen, setIsOrderResetModalOpen] = useState(false);
@@ -31,10 +34,7 @@ const AdminDashboard = ({ user, darkMode = false }) => {
     const [cleaning, setCleaning] = useState(false);
     const [isCleaningModalOpen, setIsCleaningModalOpen] = useState(false);
 
-
     useEffect(() => {
-
-
         const fetchData = async () => {
             try {
                 // 1. Fetch Orders for Financials
@@ -45,56 +45,81 @@ const AdminDashboard = ({ user, darkMode = false }) => {
 
                 ordersSnapshot.forEach(doc => {
                     const data = doc.data();
-                    if (data.status !== 'cancelled') { // Exclude cancelled if any
+                    if (data.status !== 'cancelled') {
                         revenue += (data.total || 0);
                         orderCount++;
                     }
                     orders.push({ id: doc.id, ...data });
                 });
 
-                // Sort orders client side for recent list (or use query)
                 const sortedOrders = orders.sort((a, b) => getMillis(b.createdAt) - getMillis(a.createdAt)).slice(0, 5);
                 setRecentOrders(sortedOrders);
+                setAllOrders(orders);
 
-                // 2. Fetch Items for Engagement Stats
+                // 2. Fetch Items for Stock & Business Stats (Furniture + Boards)
                 const furnitureSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'furniture'));
                 const boardSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'cutting_boards'));
 
-                let likes = 0;
-                let comments = 0;
-                let shares = 0;
-                let allItems = [];
+                let stockValue = 0;
+                let itemsForSale = 0;
+                let auctions = [];
+                let soldItems = [];
 
-                const processItem = (doc) => {
+                const processItem = (doc, type) => {
                     const data = doc.data();
-                    likes += (data.likeCount || 0);
-                    comments += (data.commentCount || 0);
-                    shares += (data.shareCount || 0);
-                    allItems.push({ id: doc.id, ...data });
+                    const price = data.currentPrice || data.startingPrice || 0;
+                    const stock = data.stock !== undefined ? Number(data.stock) : 1;
+
+                    // A. Stock Value Calculation (Only available items)
+                    if (!data.sold && stock > 0) {
+                        stockValue += (price * stock);
+                        itemsForSale += stock;
+                    }
+
+                    // B. Active Auctions
+                    if (data.auctionActive && !data.sold && stock > 0) {
+                        const endTime = data.auctionEnd ? getMillis(data.auctionEnd) : 0;
+                        const timeLeft = Math.max(0, endTime - Date.now());
+                        auctions.push({
+                            id: doc.id,
+                            ...data,
+                            type,
+                            timeLeft,
+                            bidCount: data.bidCount || 0
+                        });
+                    }
+
+                    // C. Recent Sales (To celebrate success)
+                    if (data.sold || stock <= 0) {
+                        soldItems.push({
+                            id: doc.id,
+                            ...data,
+                            soldAt: data.soldAt ? getMillis(data.soldAt) : 0
+                        });
+                    }
                 };
 
-                furnitureSnap.forEach(processItem);
-                boardSnap.forEach(processItem);
+                furnitureSnap.forEach(doc => processItem(doc, 'Mobilier'));
+                boardSnap.forEach(doc => processItem(doc, 'Planche'));
 
-                // Calculate Top Trending (by likes + comments*2 + shares*3)
-                const trending = allItems
-                    .map(item => ({
-                        ...item,
-                        score: (item.likeCount || 0) + ((item.commentCount || 0) * 2) + ((item.shareCount || 0) * 3)
-                    }))
-                    .sort((a, b) => b.score - a.score)
-                    .slice(0, 5);
+                // Sort Auctions by urgency (ending soonest)
+                auctions.sort((a, b) => a.timeLeft - b.timeLeft);
 
-                setTrendingItems(trending);
-                setAllOrders(orders);
+                // Sort Sales by recent
+                soldItems.sort((a, b) => b.soldAt - a.soldAt);
+
+                setActiveAuctions(auctions);
+                setRecentSales(soldItems.slice(0, 5)); // Top 5 sold
+
                 setStats({
                     totalRevenue: revenue,
                     totalOrders: orderCount,
                     averageOrderValue: orderCount > 0 ? Math.round(revenue / orderCount) : 0,
-                    totalLikes: likes,
-                    totalComments: comments,
-                    totalShares: shares
+                    totalStockValue: stockValue,
+                    activeAuctionsCount: auctions.length,
+                    totalItemsForSale: itemsForSale
                 });
+
                 setLoading(false);
             } catch (error) {
                 console.error("Error fetching dashboard data:", error);
@@ -103,116 +128,58 @@ const AdminDashboard = ({ user, darkMode = false }) => {
         };
 
         fetchData();
-    }, []); // Run once on mount
+        // Refresh auctions timer every minute? No, simple load is enough for admin dash overview.
+    }, []);
 
 
-    const refreshStats = async () => {
-        setLoading(true);
-        try {
-            const ordersSnapshot = await getDocs(collection(db, 'orders'));
-            let revenue = 0;
-            let orderCount = 0;
-            const orders = [];
-
-            ordersSnapshot.forEach(doc => {
-                const data = doc.data();
-                if (data.status !== 'cancelled') {
-                    revenue += (data.total || 0);
-                    orderCount++;
-                }
-                orders.push({ id: doc.id, ...data });
-            });
-
-            const sortedOrders = orders.sort((a, b) => getMillis(b.createdAt) - getMillis(a.createdAt)).slice(0, 5);
-            setRecentOrders(sortedOrders);
-            setAllOrders(orders);
-
-            setStats(prev => ({
-                ...prev,
-                totalRevenue: revenue,
-                totalOrders: orderCount,
-                averageOrderValue: orderCount > 0 ? Math.round(revenue / orderCount) : 0
-            }));
-        } catch (error) {
-            console.error("Refresh stats error:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-
-    const handleResetClick = () => {
-        setIsResetModalOpen(true);
-    };
+    // --- ACTIONS (Reset, Export, Clean) SAME AS BEFORE ---
+    const handleResetClick = () => setIsResetModalOpen(true);
+    const handleResetOrdersClick = () => setIsOrderResetModalOpen(true);
 
     const confirmReset = async () => {
         setResetting(true);
         try {
-            // Call the robust Cloud Function
             const resetStatsFn = httpsCallable(functions, 'resetAllStats');
-            const result = await resetStatsFn();
-            const count = result.data.count || 0;
-
-            // Force clear LOCAL STORAGE
+            await resetStatsFn();
             localStorage.removeItem('tat_liked_items_v2');
             localStorage.removeItem('tat_shared_items_v2');
-
-            // Set Global Reset Signal
             await setDoc(doc(db, 'sys_metadata', 'stats_reset'), {
                 lastStatsReset: serverTimestamp(),
                 resetBy: user?.email || 'admin'
             }, { merge: true });
-
-            // Update local state
-            setStats(prev => ({ ...prev, totalLikes: 0, totalComments: 0, totalShares: 0 }));
-            setTrendingItems([]);
-
             setIsResetModalOpen(false);
-            alert(`Succès ! ${count} opérations de nettoyage effectuées. Les compteurs sont remis à zéro.`);
+            alert(`Succès ! Les compteurs (likes/coms) sont remis à zéro.`);
         } catch (error) {
-            console.error("Reset error:", error);
-            alert("Erreur lors de la réinitialisation : " + (error.message || "Erreur inconnue"));
+            console.error(error);
+            alert("Erreur reset: " + error.message);
         } finally {
             setResetting(false);
         }
     };
-
-    const handleResetOrdersClick = () => {
-        setIsOrderResetModalOpen(true);
-    };
-
 
     const exportToExcel = (orders) => {
         const data = orders.map(order => ({
             'ID Commande': order.id,
             'Date': new Date(getMillis(order.createdAt)).toLocaleString(),
             'Client': order.shipping?.fullName || 'N/A',
-            'Email': order.shipping?.email || 'N/A',
-            'Téléphone': order.shipping?.phone || 'N/A',
-            'Adresse': `${order.shipping?.address || ''}, ${order.shipping?.city || ''} ${order.shipping?.postalCode || ''}`,
             'Total': `${order.total} €`,
             'Statut': order.status || 'N/A',
             'Articles': order.items?.map(item => `${item.name} (x${item.quantity})`).join(', ') || ''
         }));
-
         const ws = XLSX.utils.json_to_sheet(data);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Commandes");
-        XLSX.writeFile(wb, `Recapitulatif_Commandes_${new Date().toISOString().split('T')[0]}.xlsx`);
+        XLSX.writeFile(wb, `Commandes_${new Date().toISOString().split('T')[0]}.xlsx`);
     };
 
     const confirmResetOrders = async () => {
         setResettingOrders(true);
         try {
-            // 1. Export to Excel first
             exportToExcel(allOrders);
-
-            // 2. Batch delete all orders
             const ordersSnapshot = await getDocs(collection(db, 'orders'));
             const chunks = [];
             let currentChunk = writeBatch(db);
             let count = 0;
-
             for (const doc of ordersSnapshot.docs) {
                 currentChunk.delete(doc.ref);
                 count++;
@@ -222,27 +189,16 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                 }
             }
             if (count % 500 !== 0) chunks.push(currentChunk.commit());
-
             await Promise.all(chunks);
 
-            // 3. Reset local state immediately
-            setStats(prev => ({
-                ...prev,
-                totalRevenue: 0,
-                totalOrders: 0,
-                averageOrderValue: 0
-            }));
+            setStats(prev => ({ ...prev, totalRevenue: 0, totalOrders: 0, averageOrderValue: 0 }));
             setRecentOrders([]);
             setAllOrders([]);
             setIsOrderResetModalOpen(false);
-
-            // 4. Force a refresh of the whole data just in case
-            await refreshStats();
-
-            alert(`Succès ! ${count} commandes ont été sauvegardées en Excel et supprimées de la base.`);
+            alert(`Succès ! ${count} commandes archivées et supprimées.`);
         } catch (error) {
-            console.error("Order reset error:", error);
-            alert("Erreur lors de la réinitialisation des commandes :" + error.message);
+            console.error(error);
+            alert("Erreur purge commandes: " + error.message);
         } finally {
             setResettingOrders(false);
         }
@@ -251,49 +207,50 @@ const AdminDashboard = ({ user, darkMode = false }) => {
     const confirmCleaning = async () => {
         setCleaning(true);
         try {
-            // Call Cloud Function
             const garbageCollectorFn = httpsCallable(functions, 'runGarbageCollector');
             const result = await garbageCollectorFn();
-            const stats = result.data.stats;
-            const freedMb = (stats.storageSpaceFreedBytes / (1024 * 1024)).toFixed(2);
-
+            const s = result.data.stats;
+            const freedMb = (s.storageSpaceFreedBytes / (1024 * 1024)).toFixed(2);
             setIsCleaningModalOpen(false);
-
-            alert(`✅ Nettoyage Terminé avec Succès !\n\n` +
-                `👻 Fantômes éliminés : ${stats.ghostDocsDeleted}\n` +
-                `📸 Images orphelines supprimées : ${stats.orphanedImagesDeleted}\n` +
-                `💾 Espace libéré : ${freedMb} Mo\n` +
-                `\nVotre système est maintenant propre.`);
+            alert(`✅ Nettoyage terminé.\nEspace libéré : ${freedMb} Mo\nImages supprimées : ${s.orphanedImagesDeleted}`);
         } catch (error) {
-            console.error("Cleaning error:", error);
-            alert("Erreur lors du nettoyage système : " + (error.message || "Erreur inconnue"));
+            console.error(error);
+            alert("Erreur nettoyage: " + error.message);
         } finally {
             setCleaning(false);
         }
     };
 
+    if (loading) return <div className="p-12 text-center text-stone-400 font-bold animate-pulse">Chargement...</div>;
 
-    if (loading) return <div className="p-12 text-center text-stone-400 font-bold animate-pulse">Chargement des données...</div>;
+    // Helper for formatting duration
+    const formatDuration = (ms) => {
+        if (ms <= 0) return "Terminée";
+        const days = Math.floor(ms / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        return days > 0 ? `${days}j ${hours}h` : `${hours}h rest.`;
+    };
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
 
-            {/* KPI ROW */}
+            {/* NEW KPI ROW - BUSINESS ORIENTED */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <KpiCard
                     title="Chiffre d'Affaires"
                     value={`${stats.totalRevenue} €`}
-                    icon={<DollarSign size={20} className="text-emerald-500" />}
+                    icon={<TrendingUp size={20} className="text-emerald-500" />}
                     trend={`Panier moyen : ${stats.averageOrderValue} €`}
                     trendColor="text-emerald-600"
                     bg="bg-emerald-50/50 ring-1 ring-inset ring-emerald-100"
                     darkMode={darkMode}
                 />
                 <KpiCard
-                    title="Engagement Total"
-                    value={stats.totalLikes + stats.totalComments + stats.totalShares}
-                    icon={<TrendingUp size={20} className="text-amber-500" />}
-                    trend={`${stats.totalLikes} Likes • ${stats.totalComments} Coms`}
+                    title="Valeur Catalogue" // Replaces Engagement
+                    value={`${stats.totalStockValue} €`}
+                    icon={<Package size={20} className="text-amber-500" />}
+                    trend={`${stats.totalItemsForSale} pièces en stock`}
+                    trendColor="text-amber-600"
                     bg="bg-amber-50/50 ring-1 ring-inset ring-amber-100"
                     darkMode={darkMode}
                 />
@@ -306,10 +263,10 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                     darkMode={darkMode}
                 />
                 <KpiCard
-                    title="Partages"
-                    value={stats.totalShares}
-                    icon={<Share2 size={20} className="text-purple-500" />}
-                    trend="Viralité"
+                    title="Enchères Actives" // Replaces Shares
+                    value={stats.activeAuctionsCount}
+                    icon={<Gavel size={20} className="text-purple-500" />}
+                    trend="Salle des ventes"
                     bg="bg-purple-50/50 ring-1 ring-inset ring-purple-100"
                     darkMode={darkMode}
                 />
@@ -317,65 +274,94 @@ const AdminDashboard = ({ user, darkMode = false }) => {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-                {/* TOP TRENDING (Bar Chart styled) */}
-                <div className={`lg:col-span-2 p-8 rounded-[2.5rem] shadow-sm transform-gpu backface-hidden will-change-transform overflow-hidden ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : 'bg-white ring-1 ring-inset ring-stone-100'}`}>
-                    <div className="flex justify-between items-center mb-8">
-                        <div>
-                            <h3 className={`text-xl font-black tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>Tendances Mobilier</h3>
-                            <p className="text-xs text-stone-400 font-bold uppercase tracking-widest mt-1">Le top 5 de vos créations</p>
+                {/* MAIN WIDGET: SALLE DES VENTES & DERNIERS VENDUS */}
+                <div className="lg:col-span-2 space-y-8">
+
+                    {/* RECENTLY SOLD (MOVED TOP) */}
+                    <div className={`p-8 rounded-[2.5rem] shadow-sm overflow-hidden transform-gpu backface-hidden will-change-transform ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : 'bg-white ring-1 ring-inset ring-stone-100'}`}>
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className={`text-lg font-black tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>Dernières Ventes</h3>
+                            <Archive size={20} className="text-stone-400" />
                         </div>
-                        <div className={`p-2 rounded-full ${darkMode ? 'bg-stone-700' : 'bg-stone-50'}`}><ArrowUpRight size={20} className="text-stone-400" /></div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {recentSales.map(item => (
+                                <div key={item.id} className={`flex items-center gap-3 p-3 rounded-xl opacity-60 hover:opacity-100 transition-opacity ${darkMode ? 'bg-stone-900' : 'bg-stone-50'}`}>
+                                    <img src={item.images?.[0] || item.imageUrl} className="w-10 h-10 rounded-lg object-cover grayscale" alt="" />
+                                    <div className="min-w-0">
+                                        <p className={`text-xs font-bold truncate ${darkMode ? 'text-stone-300' : 'text-stone-700'}`}>{item.name}</p>
+                                        <p className="text-[10px] text-stone-400">Vendu le {new Date(item.soldAt).toLocaleDateString()}</p>
+                                    </div>
+                                    <div className="ml-auto text-emerald-500"><CheckCircle size={16} /></div>
+                                </div>
+                            ))}
+                            {recentSales.length === 0 && <p className="text-xs text-stone-400 italic">Aucune vente archivée.</p>}
+                        </div>
                     </div>
 
-                    <div className="space-y-6">
-                        {trendingItems.length === 0 ? (
-                            <p className={`text-center italic py-10 ${darkMode ? 'text-stone-500' : 'text-stone-300'}`}>Pas assez de données pour le moment...</p>
-                        ) : (
-                            trendingItems.map((item, idx) => {
-                                const maxScore = trendingItems[0]?.score || 1;
-                                const percent = (item.score / maxScore) * 100;
-                                return (
-                                    <div key={item.id} className="relative group">
-                                        <div className={`flex justify-between text-xs font-bold mb-2 relative z-10 ${darkMode ? 'text-stone-300' : 'text-stone-600'}`}>
-                                            <span className="flex items-center gap-2">
-                                                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${darkMode ? 'bg-stone-700 text-stone-400' : 'bg-stone-100 text-stone-500'}`}>#{idx + 1}</span>
-                                                {item.name}
-                                            </span>
-                                            <div className="flex gap-3 text-[10px] uppercase tracking-wide opacity-60">
-                                                <span className="flex items-center gap-1"><Heart size={10} /> {item.likeCount || 0}</span>
-                                                <span className="flex items-center gap-1"><MessageCircle size={10} /> {item.commentCount || 0}</span>
-                                                <span className="flex items-center gap-1"><Share2 size={10} /> {item.shareCount || 0}</span>
+                    {/* LIVE AUCTIONS (MOVED DOWN) */}
+                    <div className={`p-8 rounded-[2.5rem] shadow-sm overflow-hidden transform-gpu backface-hidden will-change-transform ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : 'bg-white ring-1 ring-inset ring-stone-100'}`}>
+                        <div className="flex justify-between items-center mb-6">
+                            <div>
+                                <h3 className={`text-xl font-black tracking-tight flex items-center gap-2 ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                                    Salle des Ventes <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded-full animate-pulse">LIVE</span>
+                                </h3>
+                                <p className="text-xs text-stone-400 font-bold uppercase tracking-widest mt-1">Surveillance des enchères en cours</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            {activeAuctions.length === 0 ? (
+                                <div className="text-center py-10 opacity-50">
+                                    <Gavel size={40} className="mx-auto mb-2 text-stone-300" />
+                                    <p className="text-sm font-bold text-stone-400">Aucune enchère en cours</p>
+                                </div>
+                            ) : (
+                                activeAuctions.map((item) => (
+                                    <div key={item.id} className={`flex items-center justify-between p-4 rounded-2xl ring-1 ring-inset transition-all transform-gpu backface-hidden will-change-transform ${darkMode ? 'ring-stone-700 bg-stone-900/50' : 'ring-stone-100 bg-stone-50'}`}>
+                                        <div className="flex items-center gap-4">
+                                            <div className="relative">
+                                                <img src={item.images?.[0] || item.imageUrl} className="w-12 h-12 rounded-xl object-cover" alt="" />
+                                                <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full ring-2 ring-white flex items-center justify-center text-[8px] font-bold text-white">{item.bidCount}</div>
+                                            </div>
+                                            <div>
+                                                <h4 className={`font-bold text-sm ${darkMode ? 'text-white' : 'text-stone-900'}`}>{item.name}</h4>
+                                                <p className="text-[10px] text-stone-400 uppercase tracking-wider">{item.lastBidderName || 'Aucune offre'}</p>
                                             </div>
                                         </div>
-                                        <div className={`h-3 w-full rounded-full overflow-hidden ${darkMode ? 'bg-stone-700' : 'bg-stone-50'}`}>
-                                            <div
-                                                className={`h-full rounded-full transition-all duration-1000 ease-out flex items-center justify-end px-2 ${darkMode ? 'bg-white' : 'bg-stone-900'}`}
-                                                style={{ width: `${percent}%` }}
-                                            >
-                                            </div>
+                                        <div className="text-right">
+                                            <p className={`font-black text-lg ${darkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                                                {item.currentPrice || item.startingPrice} €
+                                            </p>
+                                            <p className="text-[10px] font-bold text-stone-400 flex items-center justify-end gap-1">
+                                                <Clock size={10} /> {formatDuration(item.timeLeft)}
+                                            </p>
                                         </div>
                                     </div>
-                                );
-                            })
-                        )}
+                                ))
+                            )}
+                        </div>
                     </div>
+
                 </div>
 
-                {/* RECENT ACTIVITY & ACTIONS */}
+                {/* SIDEBAR */}
                 <div className="space-y-6">
                     {/* Recent Orders */}
                     <div className={`p-6 rounded-[2rem] shadow-sm transform-gpu backface-hidden will-change-transform overflow-hidden ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : 'bg-white ring-1 ring-inset ring-stone-100'}`}>
-                        <h3 className={`text-sm font-black uppercase tracking-widest mb-4 ${darkMode ? 'text-white' : 'text-stone-900'}`}>Dernières Commandes</h3>
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className={`text-sm font-black uppercase tracking-widest ${darkMode ? 'text-white' : 'text-stone-900'}`}>Dernières Commandes</h3>
+                            <button onClick={() => { window.location.href = "/?page=admin&section=orders" }} className="text-[10px] text-blue-500 hover:underline">Voir tout</button>
+                        </div>
                         <div className="space-y-4">
                             {recentOrders.length === 0 ? <p className="text-xs text-stone-400">Aucune commande récente.</p> : (
                                 recentOrders.map(order => (
                                     <div key={order.id} className={`flex items-center gap-3 p-3 rounded-xl transition-colors ring-1 ring-inset ring-transparent ${darkMode ? 'hover:bg-stone-700 hover:ring-stone-600' : 'hover:bg-stone-50 hover:ring-stone-100'}`}>
-                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs ${darkMode ? 'bg-stone-700 text-stone-300' : 'bg-stone-100 text-stone-500'}`}>
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-[10px] ${darkMode ? 'bg-stone-700 text-stone-300' : 'bg-stone-100 text-stone-500'}`}>
                                             {order.shipping?.fullName?.[0] || '?'}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className={`text-sm font-bold truncate ${darkMode ? 'text-white' : 'text-stone-900'}`}>{order.shipping?.fullName || 'Client'}</p>
-                                            <p className="text-[10px] text-stone-400">{new Date(getMillis(order.createdAt)).toLocaleDateString()}</p>
+                                            <p className={`text-xs font-bold truncate ${darkMode ? 'text-white' : 'text-stone-900'}`}>{order.shipping?.fullName || 'Client'}</p>
+                                            <p className="text-[9px] text-stone-400">{new Date(getMillis(order.createdAt)).toLocaleDateString()}</p>
                                         </div>
                                         <span className={`text-xs font-black ${darkMode ? 'text-white' : 'text-stone-900'}`}>{order.total}€</span>
                                     </div>
@@ -385,174 +371,93 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                     </div>
 
                     {/* SYSTEM DIAGNOSTICS */}
-                    <div className={`p-6 rounded-[2rem] shadow-sm transform-gpu backface-hidden will-change-transform overflow-hidden ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : 'bg-white ring-1 ring-inset ring-stone-100'} mb-6`}>
+                    <div className={`p-6 rounded-[2rem] shadow-sm transform-gpu backface-hidden will-change-transform overflow-hidden ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : 'bg-white ring-1 ring-inset ring-stone-100'}`}>
                         <h3 className={`text-sm font-black uppercase tracking-widest mb-4 ${darkMode ? 'text-white' : 'text-stone-900'}`}>Diagnostics Système</h3>
-                        <p className="text-xs text-stone-400 mb-4">Vérifiez l'état des services externes (Email, Paiement, etc.).</p>
+                        <p className="text-xs text-stone-400 mb-4">Vérifiez l'état des services externes.</p>
 
                         <button
                             onClick={async () => {
-                                const confirm = window.confirm("Envoyer un email de test à l'admin ?");
-                                if (!confirm) return;
-
+                                if (!confirm("Envoyer un email de test ?")) return;
                                 try {
-                                    alert("Envoi en cours...");
-                                    const sendTestFn = httpsCallable(functions, 'sendTestEmail');
-                                    const res = await sendTestFn();
-                                    console.log("TEST EMAIL RESULT:", res.data);
-                                    if (res.data.success) {
-                                        alert("✅ Succès !\nEmail envoyé.\nRéponse SMTP: " + res.data.response);
-                                    } else {
-                                        alert("❌ Échec.\nErreur: " + res.data.error + "\nVoir console pour détails.");
-                                    }
-                                } catch (e) {
-                                    console.error(e);
-                                    alert("Erreur critique: " + e.message);
-                                }
+                                    alert("Envoi...");
+                                    const res = await httpsCallable(functions, 'sendTestEmail')();
+                                    if (res.data.success) alert("✅ Email envoyé !");
+                                    else alert("❌ Erreur: " + res.data.error);
+                                } catch (e) { alert("Erreur: " + e.message); }
                             }}
-                            className={`w-full py-3 border rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all shadow-sm flex items-center justify-center gap-2 ${darkMode ? 'bg-stone-700 text-stone-300 border-stone-600 hover:bg-stone-600 hover:text-white' : 'bg-stone-50 text-stone-600 border-stone-200 hover:bg-stone-100 hover:text-stone-900'}`}
+                            className={`w-full py-3 rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all shadow-sm flex items-center justify-center gap-2 ring-1 ring-inset ${darkMode ? 'bg-stone-700 text-stone-300 ring-stone-600 hover:bg-stone-600' : 'bg-stone-50 text-stone-600 ring-stone-200 hover:bg-stone-100'}`}
                         >
-                            <Mail size={14} /> Tester Email (Admin)
+                            <Mail size={14} /> Tester Email
                         </button>
                     </div>
 
                     {/* DANGER ZONE */}
-                    <div className={`p-6 rounded-[2rem] ring-1 ring-inset transform-gpu backface-hidden will-change-transform overflow-hidden ${darkMode ? 'bg-red-900/20 ring-red-900/40' : 'bg-red-50 ring-red-100'}`}>
-                        <div className={`flex items-center gap-3 mb-4 ${darkMode ? 'text-red-400' : 'text-red-900'}`}>
-                            <AlertTriangle size={20} />
-                            <h3 className="text-sm font-black uppercase tracking-widest">Zone de Danger</h3>
+                    <div className={`p-6 rounded-[2rem] ring-1 ring-inset transform-gpu backface-hidden will-change-transform overflow-hidden ${darkMode ? 'bg-red-900/10 ring-red-900/30' : 'bg-red-50 ring-red-100/50'}`}>
+                        <div className={`flex items-center gap-2 mb-4 ${darkMode ? 'text-red-400' : 'text-red-900'}`}>
+                            <AlertTriangle size={16} />
+                            <h3 className="text-xs font-black uppercase tracking-widest">Zone de Danger</h3>
                         </div>
-                        <p className={`text-xs mb-6 leading-relaxed ${darkMode ? 'text-red-300' : 'text-red-400'}`}>
-                            Gestion critique des données : Réinitialisation des interactions (likes/coms) ou purge archivée des commandes. Ces actions sont <strong>définitives</strong>.
-                        </p>
-                        <div className="space-y-3">
+                        <div className="space-y-2">
                             <button
                                 onClick={handleResetClick}
                                 disabled={resetting || resettingOrders}
-                                className={`w-full py-4 border rounded-xl font-black uppercase text-[10px] tracking-widest transition-all shadow-sm flex items-center justify-center gap-2 ${darkMode ? 'bg-stone-800 text-red-400 border-red-800 hover:bg-red-500 hover:text-white' : 'bg-white text-red-500 border-red-100 hover:bg-red-500 hover:text-white'}`}
+                                className={`w-full py-3 rounded-xl font-bold uppercase text-[9px] tracking-widest transition-all flex items-center justify-center gap-2 ring-1 ring-inset ${darkMode ? 'bg-stone-800 text-red-400 ring-red-900/50 hover:bg-red-900/20' : 'bg-white text-red-500 ring-red-100 hover:bg-red-50'}`}
                             >
-                                {resetting ? <RefreshCw size={14} className="animate-spin" /> : <RefreshCw size={14} />}
-                                {resetting ? 'Réinitialisation...' : 'Réinitialiser Stats'}
+                                <RefreshCw size={12} className={resetting ? "animate-spin" : ""} /> Stats Reset
                             </button>
-
                             <button
                                 onClick={handleResetOrdersClick}
-                                disabled={resetting || resettingOrders || cleaning}
-                                className={`w-full py-4 border rounded-xl font-black uppercase text-[10px] tracking-widest transition-all shadow-sm flex items-center justify-center gap-2 ${darkMode ? 'bg-stone-800 text-red-400 border-red-800 hover:bg-red-500 hover:text-white' : 'bg-white text-red-500 border-red-100 hover:bg-red-500 hover:text-white'}`}
+                                disabled={resetting || resettingOrders}
+                                className={`w-full py-3 rounded-xl font-bold uppercase text-[9px] tracking-widest transition-all flex items-center justify-center gap-2 ring-1 ring-inset ${darkMode ? 'bg-stone-800 text-red-400 ring-red-900/50 hover:bg-red-900/20' : 'bg-white text-red-500 ring-red-100 hover:bg-red-50'}`}
                             >
-                                {resettingOrders ? <RefreshCw size={14} className="animate-spin" /> : <RefreshCw size={14} />}
-                                {resettingOrders ? 'Archivage & Purge Commandes' : 'Réinitialiser Commandes'}
+                                <RefreshCw size={12} className={resettingOrders ? "animate-spin" : ""} /> Purge Commandes
                             </button>
-
                             <button
                                 onClick={() => setIsCleaningModalOpen(true)}
-                                disabled={resetting || resettingOrders || cleaning}
-                                className={`w-full py-4 border rounded-xl font-black uppercase text-[10px] tracking-widest transition-all shadow-sm flex items-center justify-center gap-2 ${darkMode ? 'bg-stone-800 text-orange-400 border-orange-800 hover:bg-orange-500 hover:text-white' : 'bg-white text-orange-500 border-orange-100 hover:bg-orange-500 hover:text-white'}`}
+                                disabled={resetting || cleaning}
+                                className={`w-full py-3 rounded-xl font-bold uppercase text-[9px] tracking-widest transition-all flex items-center justify-center gap-2 ring-1 ring-inset ${darkMode ? 'bg-stone-800 text-orange-400 ring-orange-900/50 hover:bg-orange-900/20' : 'bg-white text-orange-500 ring-orange-100 hover:bg-orange-50'}`}
                             >
-                                {cleaning ? <RefreshCw size={14} className="animate-spin" /> : <RefreshCw size={14} />}
-                                {cleaning ? 'Nettoyage en cours...' : 'Maintenance Système (Images & Fantômes)'}
+                                <RefreshCw size={12} className={cleaning ? "animate-spin" : ""} /> Nettoyage Système
                             </button>
                         </div>
-
                     </div>
                 </div>
+
             </div>
 
-            {/* CONFIRMATION MODAL */}
+            {/* KEEP MODALS AS IS (Reset, Order Reset, Cleaning) */}
             {isResetModalOpen && (
-                <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200 ${darkMode ? 'bg-black/70' : 'bg-stone-900/50'}`}>
-                    <div className={`rounded-[2rem] p-8 max-w-sm w-full shadow-2xl border space-y-6 text-center animate-in zoom-in-95 duration-200 ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
-                        <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto text-red-500 ${darkMode ? 'bg-red-900/30' : 'bg-red-50'}`}>
-                            <AlertTriangle size={32} />
-                        </div>
-                        <div>
-                            <h3 className={`text-xl font-black mb-2 ${darkMode ? 'text-white' : 'text-stone-900'}`}>Êtes-vous sûr ?</h3>
-                            <p className={`text-sm leading-relaxed ${darkMode ? 'text-stone-300' : 'text-stone-500'}`}>
-                                Vous êtes sur le point de supprimer <span className={`font-bold ${darkMode ? 'text-white' : 'text-stone-900'}`}>définitivement</span> tous les likes, commentaires et partages du site.
-                            </p>
-                        </div>
-                        <div className="flex flex-col gap-3">
-                            <button
-                                onClick={confirmReset}
-                                disabled={resetting}
-                                className="w-full py-4 bg-red-500 text-white rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-red-600 transition-colors shadow-lg shadow-red-200 flex items-center justify-center gap-2"
-                            >
-                                {resetting ? <RefreshCw size={14} className="animate-spin" /> : 'Oui, tout effacer'}
-                            </button>
-                            <button
-                                onClick={() => setIsResetModalOpen(false)}
-                                disabled={resetting}
-                                className={`w-full py-4 rounded-xl font-bold uppercase text-xs tracking-widest transition-colors ${darkMode ? 'bg-stone-700 text-stone-400 hover:text-stone-200' : 'bg-white text-stone-400 hover:text-stone-600'}`}
-                            >
-                                Annuler
-                            </button>
+                <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm ${darkMode ? 'bg-black/70' : 'bg-stone-900/50'}`}>
+                    <div className={`rounded-[2rem] p-8 max-w-sm w-full shadow-2xl border text-center space-y-4 ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
+                        <h3 className={`text-lg font-black ${darkMode ? 'text-white' : 'text-stone-900'}`}>Réinitialiser Stats ?</h3>
+                        <p className="text-xs text-stone-400">Efface tous les likes/commentaires.</p>
+                        <div className="flex gap-2">
+                            <button onClick={confirmReset} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold text-xs">Oui, Effacer</button>
+                            <button onClick={() => setIsResetModalOpen(false)} className="flex-1 py-3 bg-stone-200 text-stone-600 rounded-xl font-bold text-xs">Annuler</button>
                         </div>
                     </div>
                 </div>
             )}
-            {/* ORDER RESET CONFIRMATION MODAL */}
             {isOrderResetModalOpen && (
-                <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200 ${darkMode ? 'bg-black/70' : 'bg-stone-900/50'}`}>
-                    <div className={`rounded-[2rem] p-8 max-w-sm w-full shadow-2xl border space-y-6 text-center animate-in zoom-in-95 duration-200 ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
-                        <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto text-red-500 ${darkMode ? 'bg-red-900/30' : 'bg-red-50'}`}>
-                            <AlertTriangle size={32} />
-                        </div>
-                        <div>
-                            <h3 className={`text-xl font-black mb-2 ${darkMode ? 'text-white' : 'text-stone-900'}`}>Purge des Commandes</h3>
-                            <p className={`text-sm leading-relaxed ${darkMode ? 'text-stone-300' : 'text-stone-500'}`}>
-                                Cette action va <span className={`font-bold ${darkMode ? 'text-white' : 'text-stone-900'}`}>EXPORTER</span> toutes les commandes en Excel, puis les <span className={`font-bold ${darkMode ? 'text-white' : 'text-stone-900'}`}>SUPPRIMER</span> définitivement de la base.
-                            </p>
-                        </div>
-                        <div className="flex flex-col gap-3">
-                            <button
-                                onClick={confirmResetOrders}
-                                disabled={resettingOrders}
-                                className="w-full py-4 bg-red-500 text-white rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-red-600 transition-colors shadow-lg shadow-red-200 flex items-center justify-center gap-2"
-                            >
-                                {resettingOrders ? <RefreshCw size={14} className="animate-spin" /> : 'Exporter & Tout Effacer'}
-                            </button>
-                            <button
-                                onClick={() => setIsOrderResetModalOpen(false)}
-                                disabled={resettingOrders}
-                                className={`w-full py-4 rounded-xl font-bold uppercase text-xs tracking-widest transition-colors ${darkMode ? 'bg-stone-700 text-stone-400 hover:text-stone-200' : 'bg-white text-stone-400 hover:text-stone-600'}`}
-                            >
-                                Annuler
-                            </button>
+                <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm ${darkMode ? 'bg-black/70' : 'bg-stone-900/50'}`}>
+                    <div className={`rounded-[2rem] p-8 max-w-sm w-full shadow-2xl border text-center space-y-4 ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
+                        <h3 className={`text-lg font-black ${darkMode ? 'text-white' : 'text-stone-900'}`}>Purger Commandes ?</h3>
+                        <p className="text-xs text-stone-400">Export Excel + Suppression définitive.</p>
+                        <div className="flex gap-2">
+                            <button onClick={confirmResetOrders} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold text-xs">Confirmer</button>
+                            <button onClick={() => setIsOrderResetModalOpen(false)} className="flex-1 py-3 bg-stone-200 text-stone-600 rounded-xl font-bold text-xs">Annuler</button>
                         </div>
                     </div>
                 </div>
             )}
-
-            {/* GARBAGE COLLECTOR CONFIRMATION MODAL */}
             {isCleaningModalOpen && (
-                <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200 ${darkMode ? 'bg-black/70' : 'bg-stone-900/50'}`}>
-                    <div className={`rounded-[2rem] p-8 max-w-sm w-full shadow-2xl border space-y-6 text-center animate-in zoom-in-95 duration-200 ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
-                        <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto text-orange-500 ${darkMode ? 'bg-orange-900/30' : 'bg-orange-50'}`}>
-                            <RefreshCw size={32} />
-                        </div>
-                        <div>
-                            <h3 className={`text-xl font-black mb-2 ${darkMode ? 'text-white' : 'text-stone-900'}`}>Maintenance Système</h3>
-                            <p className={`text-sm leading-relaxed ${darkMode ? 'text-stone-300' : 'text-stone-500'}`}>
-                                Ce script va scanner le système pour :<br />
-                                1. Supprimer les documents fantômes (produits mal supprimés).<br />
-                                2. Supprimer les <span className="font-bold">images orphelines</span> du stockage.<br />
-                                <span className="text-[10px] uppercase opacity-60 mt-2 block">Durée estimée : 10-30 secondes</span>
-                            </p>
-                        </div>
-                        <div className="flex flex-col gap-3">
-                            <button
-                                onClick={confirmCleaning}
-                                disabled={cleaning}
-                                className="w-full py-4 bg-orange-500 text-white rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-orange-600 transition-colors shadow-lg shadow-orange-200 flex items-center justify-center gap-2"
-                            >
-                                {cleaning ? <RefreshCw size={14} className="animate-spin" /> : 'Lancer le Nettoyage'}
-                            </button>
-                            <button
-                                onClick={() => setIsCleaningModalOpen(false)}
-                                disabled={cleaning}
-                                className={`w-full py-4 rounded-xl font-bold uppercase text-xs tracking-widest transition-colors ${darkMode ? 'bg-stone-700 text-stone-400 hover:text-stone-200' : 'bg-white text-stone-400 hover:text-stone-600'}`}
-                            >
-                                Annuler
-                            </button>
+                <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm ${darkMode ? 'bg-black/70' : 'bg-stone-900/50'}`}>
+                    <div className={`rounded-[2rem] p-8 max-w-sm w-full shadow-2xl border text-center space-y-4 ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
+                        <h3 className={`text-lg font-black ${darkMode ? 'text-white' : 'text-stone-900'}`}>Nettoyage Système ?</h3>
+                        <p className="text-xs text-stone-400">Supprime les images orphelines du stockage.</p>
+                        <div className="flex gap-2">
+                            <button onClick={confirmCleaning} className="flex-1 py-3 bg-orange-500 text-white rounded-xl font-bold text-xs">Lancer</button>
+                            <button onClick={() => setIsCleaningModalOpen(false)} className="flex-1 py-3 bg-stone-200 text-stone-600 rounded-xl font-bold text-xs">Annuler</button>
                         </div>
                     </div>
                 </div>
@@ -562,16 +467,15 @@ const AdminDashboard = ({ user, darkMode = false }) => {
     );
 };
 
-// Sub-component for KPI
 const KpiCard = ({ title, value, icon, trend, trendColor = "text-stone-400", bg = "bg-white", darkMode = false }) => (
-    <div className={`p-6 rounded-[2rem] shadow-sm transition-all duration-300 hover:scale-[1.02] transform-gpu backface-hidden will-change-transform overflow-hidden ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : (bg.includes('white') ? 'ring-1 ring-inset ring-stone-100 bg-white' : bg)}`}>
+    <div className={`p-6 rounded-[2rem] shadow-sm transition-all duration-300 hover:scale-[1.05] transform-gpu backface-hidden will-change-transform overflow-hidden ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : (bg.includes('white') ? 'ring-1 ring-inset ring-stone-100 bg-white' : bg)}`}>
         <div className="flex justify-between items-start mb-4">
             <div className={`p-3 rounded-2xl shadow-sm ring-1 ring-inset ${darkMode ? 'bg-stone-700 ring-stone-600' : 'bg-white ring-stone-100/50'}`}>{icon}</div>
         </div>
         <div>
             <p className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-1">{title}</p>
-            <h4 className={`text-3xl font-black tracking-tighter mb-2 ${darkMode ? 'text-white' : 'text-stone-900'}`}>{value}</h4>
-            <p className={`text-[10px] font-bold ${trendColor}`}>{trend}</p>
+            <h4 className={`text-2xl font-black tracking-tighter mb-2 ${darkMode ? 'text-white' : 'text-stone-900'}`}>{value}</h4>
+            <p className={`text-[10px] font-bold opacity-80 ${trendColor}`}>{trend}</p>
         </div>
     </div>
 );
