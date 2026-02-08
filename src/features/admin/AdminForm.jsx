@@ -202,17 +202,19 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
         } else if (item.file) {
           let fileToUpload = item.file;
 
-          // 1. Optimized WebP
+          // 1. Optimized WebP (Single High Quality Version)
           if (!item.isCompressed) {
             setMsg(`⏳ ${progressPrefix} Compression WebP...`);
             try {
-              fileToUpload = await compressImage(item.file);
+              // High Quality WebP (0.85 quality, max 1920px width)
+              fileToUpload = await compressImage(item.file, 0.85, 1920);
             } catch (err) {
               console.warn("Compression failed, using original", err);
             }
           }
 
           setMsg(`⏳ ${progressPrefix} Envoi de l'image...`);
+          // Naming convention: Timestamp + _tat_ + Filename
           const imageRef = ref(storage, `${collectionName}/${Date.now()}_tat_${fileToUpload.name}`);
           await uploadBytes(imageRef, fileToUpload, { cacheControl: 'public, max-age=31536000' });
           const fullUrl = await getDownloadURL(imageRef);
@@ -229,9 +231,9 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
       const data = {
         ...formData,
         images: finalImageUrls,
-        thumbnails: [], // Cleanup legacy fields
+        thumbnails: [], // No separate thumbnails
         imageUrl: finalImageUrls[0] || "",
-        thumbnailUrl: "",
+        thumbnailUrl: "", // No separate thumbnail URL
         currentPrice: Number(formData.startingPrice),
         startingPrice: Number(formData.startingPrice),
         stock: parseInt(formData.stock) || 1,

@@ -14,14 +14,19 @@ const AdminAuctions = ({ darkMode = false }) => {
 
     useEffect(() => {
         setLoading(true);
-        // We need to fetch from both collections
-        const furnitureRef = collection(db, 'artifacts', appId, 'public', 'data', 'furniture');
-        const boardsRef = collection(db, 'artifacts', appId, 'public', 'data', 'cutting_boards');
+        // Optimize: Fetch only ACTIVE auctions server-side
+        const furnitureQuery = query(
+            collection(db, 'artifacts', appId, 'public', 'data', 'furniture'),
+            where('auctionActive', '==', true)
+        );
+        const boardsQuery = query(
+            collection(db, 'artifacts', appId, 'public', 'data', 'cutting_boards'),
+            where('auctionActive', '==', true)
+        );
 
-        const unsubFurniture = onSnapshot(furnitureRef, (snap) => {
+        const unsubFurniture = onSnapshot(furnitureQuery, (snap) => {
             const furnitureAuctions = snap.docs
-                .map(d => ({ id: d.id, collectionName: 'furniture', ...d.data() }))
-                .filter(item => item.auctionActive);
+                .map(d => ({ id: d.id, collectionName: 'furniture', ...d.data() }));
 
             setAuctions(prev => {
                 const other = prev.filter(a => a.collectionName !== 'furniture');
@@ -30,10 +35,9 @@ const AdminAuctions = ({ darkMode = false }) => {
             setLoading(false);
         });
 
-        const unsubBoards = onSnapshot(boardsRef, (snap) => {
+        const unsubBoards = onSnapshot(boardsQuery, (snap) => {
             const boardAuctions = snap.docs
-                .map(d => ({ id: d.id, collectionName: 'cutting_boards', ...d.data() }))
-                .filter(item => item.auctionActive);
+                .map(d => ({ id: d.id, collectionName: 'cutting_boards', ...d.data() }));
 
             setAuctions(prev => {
                 const other = prev.filter(a => a.collectionName !== 'cutting_boards');

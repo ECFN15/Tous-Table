@@ -63,6 +63,13 @@ Le projet a été simplifié en Février 2026 pour ne garder que le design "Arch
         *   **Hover Animation V2 (Snappy & Smooth)** : Optimisation des timings (800ms pour l'image, 600ms pour le hook) avec une courbe `cubic-bezier(0.23, 1, 0.32, 1)`. Résultat : une réactivité "nerveuse" lors du passage d'une carte à l'autre tout en conservant une fluidité cinématographique.
         *   **Épure Mobile Radicale** : Suppression de tous les boutons et overlays sur les cartes mobiles. L'image est reine, sans pollution visuelle, pour une navigation tactile fluide. PN : Le bouton "SÉLECTIONNER" a été retiré de la version PC pour simplifier l'interface.
 
+    *   **Update Février 2026 (Mobile Performance Audit - Homepage)** :
+        *   **Hero Stability (100svh)** : Remplacement de `100dvh` (Dynamic) par `100svh` (Small Viewport Height) pour la section Hero. Empêche le "saut de marche" (layout shift) causé par le retrait de la barre d'adresse mobile lors du scroll.
+        *   **Manifesto Anti-Jitter** : Désactivation des transforms complexes (`scale`, `parallax`) sur mobile (<1024px). Remplacement par un simple `fade-in` (`opacity`) déclenché une seule fois (`once: true`) pour une fluidité native sans tremblements.
+        *   **Background 3D Fix** : Suppression de la remontée verticale (`y: -150`) lors de la sortie du Hero pour éviter les trous blancs sur mobile. Le fond disparaît désormais uniquement par transparence (`opacity: 0`).
+        *   **Transition Couleur Stable** : Décalage du trigger de changement de fond (Noir -> Beige) à `top 60%` (au lieu de 80%) avec `preventOverlaps: true` pour éviter le clignotement lors des rebonds de scroll (rubber-banding).
+        *   **Process Section Light** : Utilisation d'une logique simplifiée "Instant Reveal" sur mobile pour les cartes Process, soulageant le GPU par rapport au `scrub` continu.
+
 ---
 
 ## ⚡ 2b. Optimisations & Scalabilité (Janvier 2026)
