@@ -1,6 +1,6 @@
 import { useLiveTheme } from '../../../hooks/useLiveTheme';
 import { useAuth } from '../../../contexts/AuthContext';
-import { Menu, ShoppingBag, ShieldCheck, Sun, Moon, LogOut, Hammer } from 'lucide-react';
+import { Menu, ShoppingBag, ShieldCheck, Sun, Moon, LogOut, Hammer, LogIn } from 'lucide-react';
 
 /**
  * COMPONENT : ARCHITECTURAL HEADER
@@ -102,13 +102,13 @@ const ArchitecturalHeader = ({
                         {/* LOGIN / LOGOUT BUTTON (Integrated Mobile + Desktop) */}
                         {(!user || user.isAnonymous) ? (
                             <div className="flex items-center gap-1 md:gap-2">
-                                {/* Mobile Icon (Hammer) */}
+                                {/* Mobile Icon (LogIn) */}
                                 <button
                                     onClick={onShowLogin}
                                     className={`md:hidden w-10 h-10 rounded-full flex items-center justify-center border transition-all ${darkMode ? 'border-stone-800 text-stone-400' : 'border-stone-200 text-stone-500'}`}
                                     title="Connexion Admin"
                                 >
-                                    <Hammer size={20} strokeWidth={1.5} />
+                                    <LogIn size={20} strokeWidth={1.5} />
                                 </button>
 
                                 {/* Desktop Button */}

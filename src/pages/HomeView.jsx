@@ -479,18 +479,29 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
     if (!scriptsLoaded) return;
     const { gsap, ScrollTrigger } = window;
 
+    // GLOBAL MOBILE OPTIMIZATION
+    // Prevent layout thrashing when mobile address bar shows/hides
+    ScrollTrigger.config({ ignoreMobileResize: true });
+    // Disable lag smoothing to prevent "jumpy" catch-up frames on mobile
+    gsap.ticker.lagSmoothing(0);
+
     const ctx = gsap.context(() => {
       // 2. Disparition 3D + PAUSE (Save GPU for Section 10)
       ScrollTrigger.create({
         trigger: ".hero-section",
         start: "bottom top",
-        onEnter: () => { window._pauseThree = true; },
-        onLeaveBack: () => { window._pauseThree = false; }
+        onEnter: () => {
+          // FORCE PAUSE IMMEDIATE
+          window._pauseThree = true;
+        },
+        onLeaveBack: () => {
+          window._pauseThree = false;
+        }
       });
 
       gsap.to('.three-container', {
         opacity: 0,
-        y: -150,
+        // No Y movement to avoid background clipping/jumps on mobile resize
         scrollTrigger: {
           trigger: ".hero-section",
           start: "top top",
@@ -513,18 +524,43 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       themes.forEach(theme => {
         ScrollTrigger.create({
           trigger: theme.trigger,
-          start: "top 80%",
-          end: "bottom 20%",
-          onEnter: () => gsap.to(document.body, { backgroundColor: theme.bg, color: theme.color, duration: 0.8, ease: "power2.inOut" }),
-          onEnterBack: () => gsap.to(document.body, { backgroundColor: theme.bg, color: theme.color, duration: 0.8, ease: "power2.inOut" }),
+          start: "top 60%", // Delayed trigger to avoid edge flicker
+          end: "bottom 40%",
+          preventOverlaps: true, // Crucial for rapid scrolling
+          fastScrollEnd: true,
+          onEnter: () => gsap.to(document.body, { backgroundColor: theme.bg, color: theme.color, duration: 1.2, ease: "power2.inOut", overwrite: "auto" }),
+          onEnterBack: () => gsap.to(document.body, { backgroundColor: theme.bg, color: theme.color, duration: 1.2, ease: "power2.inOut", overwrite: "auto" }),
         });
       });
 
-      // 4. Galerie Manifesto
-      gsap.utils.toArray('.manifesto-item').forEach((item) => {
-        gsap.from(item, {
-          y: 100, opacity: 0, scale: 0.95, duration: 1.5,
-          scrollTrigger: { trigger: item, start: "top 90%", toggleActions: "play none none reverse" }
+      // 4. Galerie Manifesto - RESPONSIVE OPTIMIZATION
+      const mm = gsap.matchMedia();
+
+      // DESKTOP: Cinematic Parallax & Scale
+      mm.add("(min-width: 1024px)", () => {
+        gsap.utils.toArray('.manifesto-item').forEach((item) => {
+          gsap.from(item, {
+            y: 100, opacity: 0, scale: 0.95, duration: 1.5,
+            scrollTrigger: { trigger: item, start: "top 90%", toggleActions: "play none none reverse" }
+          });
+        });
+      });
+
+      // MOBILE: Simple & Light (No Scale Jitter)
+      mm.add("(max-width: 1023px)", () => {
+        gsap.utils.toArray('.manifesto-item').forEach((item) => {
+          gsap.from(item, {
+            y: 50,
+            opacity: 0,
+            duration: 0.8,
+            ease: "power2.out",
+            clearProps: "all", // RELEASE GPU MEMORY
+            scrollTrigger: {
+              trigger: item,
+              start: "top 85%",
+              once: true // ONE SHOT ONLY to prevent scroll stutter
+            }
+          });
         });
       });
 
@@ -575,18 +611,26 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
 
         mm.add("(max-width: 1919px)", () => {
           // Animation des cartes (Mobile - Vertical) - ULTRA-OPTIMISÉ INSTANT REVEAL
+          // Mobile Optimization: Use IntersectionObserver or simple ScrollTrigger without scrub
           const cards = gsap.utils.toArray('.process-card');
           cards.forEach((card) => {
             const img = card.querySelector('.img-box-process');
-            gsap.set(img, { y: 20, opacity: 0, scale: 0.98 });
-            gsap.to(img, {
-              y: 0, opacity: 1, scale: 1,
-              duration: 0.25, ease: "power1.out",
-              force3D: true,
-              scrollTrigger: {
-                trigger: card,
-                start: "top 100%",
-                toggleActions: "play none none reverse"
+            // Mobile: Simpler animation to avoid GPU strain
+            gsap.set(img, { opacity: 0, scale: 0.98 });
+
+            ScrollTrigger.create({
+              trigger: card,
+              start: "top 85%", // Trigger earlier on mobile
+              once: true, // Run only once to avoid re-calculation/jitter on weird scrolls
+              onEnter: () => {
+                gsap.to(img, {
+                  opacity: 1,
+                  scale: 1,
+                  duration: 0.4,
+                  ease: "power2.out",
+                  force3D: true,
+                  clearProps: "transform,filter" // Clean up to free GPU memory
+                });
               }
             });
           });
@@ -783,7 +827,9 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
 
       {/* [SECTION 08: HERO] - Fixed vertical cropping with h-[100dvh] + SAFE AREAS */}
       {/* Increased pb to 32 (8rem) on tablet to LIFT elements higher as requested */}
-      <section className="hero-section relative h-[100dvh] flex flex-col justify-center px-6 md:px-12 lg:px-[10vw] z-10 pb-12 md:pb-32">
+      {/* [SECTION 07: HERO] */}
+      {/* FIX: Use svh (Small Viewport Height) instead of dvh to prevent jump when address bar hides */}
+      <section className="hero-section relative h-[100svh] flex flex-col justify-center px-6 md:px-12 lg:px-[10vw] z-10 pb-12 md:pb-32">
         {/* Title resized to 10.5vw (was 12.5) to free up vertical space for bottom text */}
         <h1 className="font-serif text-[18vw] md:text-[10.5vw] leading-[0.8] uppercase flex flex-col font-light text-[#1a1a1a] mix-blend-multiply">
           <RevealText text="Le Geste" />
