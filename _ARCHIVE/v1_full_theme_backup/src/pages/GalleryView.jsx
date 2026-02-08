@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLiveTheme } from '../hooks/useLiveTheme';
 
 // DESIGNS (Layouts)
+import StandardLayout from '../designs/standard/MarketplaceLayout';
 import ArchitecturalLayout from '../designs/architectural/MarketplaceLayout';
 
 const SEO = React.lazy(() => import('../components/SEO'));
@@ -12,7 +13,7 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
     const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list'
 
     // THEME & DESIGN HOOK
-    const { palette } = useLiveTheme(darkMode);
+    const { palette, activeDesignId } = useLiveTheme(darkMode);
 
     // --- LOGIC: FILTER & SORT ---
     // 1. Choose collection source
@@ -41,8 +42,8 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
         onSelectItem(id);
     };
 
-    // Always use Architectural
-    const LayoutComponent = ArchitecturalLayout;
+    // --- ROUTING DESIGN ---
+    const LayoutComponent = activeDesignId === 'architectural' ? ArchitecturalLayout : StandardLayout;
 
     return (
         <div className="min-h-screen">
@@ -80,4 +81,3 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
 };
 
 export default GalleryView;
-

@@ -1,6 +1,6 @@
 ---
 project_name: "Tous à Table - Atelier Normand"
-last_updated: "2026-02-06 (Update 16:45)"
+last_updated: "2026-02-08 (Simplification Design)"
 description: "Site e-commerce et vitrine pour un atelier d'ébénisterie d'art. Vente de meubles (enchères/achat direct) et planches à découper."
 stack:
   frontend: "React + Vite"
@@ -17,60 +17,40 @@ Ce fichier sert de référence absolue pour toute IA (Gemini, ChatGPT, Claude) o
 
 ## 🏗️ 1. Architecture & Structure des Dossiers
 
-Le projet a été restructuré pour séparer clairement les responsabilités (Janvier 2026).
+Le projet a été simplifié en Février 2026 pour ne garder que le design "Architectural" comme standard unique.
 
 ### 📂 Racine (`/`)
 *   Contient les fichiers de configuration vitaux (`vite.config.js`, `firebase.json`, `package.json`). **NE PAS DÉPLACER.**
 *   `functions/` : Le Backend (Node.js). C'est un sous-projet autonome déployé sur Google Cloud Functions.
-*   `public/` : Fichiers statiques (Images racines, `robots.txt`, `sitemap.xml`).
-*   `_ARCHIVE/` : Vieux fichiers, backups et logs. À ignorer.
+*   `public/` : Fichiers statiques.
+*   `_ARCHIVE/` : 
+    *   `v1_full_theme_backup` : **SAUVEGARDE CRITIQUE** contenant l'intégralité du code avant la simplification (Atelier, thèmes saisonniers, logic de switching). À consulter pour réinstaller un ancien design.
 
 ### 📂 Source (`src/`)
-*   **`pages/`** : Les Vues Principales (Routes).
-    *   `HomeView.jsx` : Page d'accueil (Vitrine, Three.js, GSAP).
-    *   `GalleryView.jsx` : La Marketplace (Sharding : dispatche vers layout Standard ou Architectural).
-    *   `ProductDetail.jsx` : Fiche produit (Sharding : dispatche vers `StandardProductDetail` ou `ArchitecturalProductDetail`).
-    *   `LoginView.jsx` : Connexion Admin.
-    *   `CheckoutView.jsx` : Tunnel de paiement.
-*   **`contexts/`** : Gestion des états globaux.
-    *   `AuthContext.jsx` : Gestion centralisée de l'authentification.
-*   **`Router.jsx`** : Gestion centralisée de la navigation et des transitions de pages.
-*   **`features/admin/`** : Le Back-Office (Administration).
-    *   `AdminDashboard.jsx` : Vue d'ensemble (Stats, Graphiques).
-    *   `AdminForm.jsx` : Création/Édition de meubles.
-    *   `AdminOrders.jsx` : Gestion des commandes.
-    *   `AdminComments.jsx` : Modération des commentaires.
-    *   `AdminHomepage.jsx` : Gestion des images de la page d'accueil.
-    *   `AdminStudio.jsx` : Gestion des Thèmes et du Design System en direct.
-    *   `components/` : Sous-composants admin (ex: `AdminImageCard.jsx` pour l'upload).
-*   **`components/`** : Briques UI réutilisables.
-    *   `ErrorBoundary.jsx` : "Coussin de sécurité" global pour intercepter les erreurs de rendu (Ecran blanc).
-    *   **`ui/AnimatedPrice.jsx`** : Micro-interaction premium pour l'affichage fluide des prix (GSAP).
-*   **`hooks/`** : Logique métier partagée.
-    *   `useLiveTheme.js` : Hook central pour la gestion des thèmes dynamiques (Firestore).
-    *   `useRealtimeUserLikes.js` : Gestion temps réel des likes.
-*   **`firebase/`** : Configuration (`config.js`) et initialisation.
+*   **`pages/`** : Les Vues Principales.
+    *   `HomeView.jsx` : Vitrine (Three.js, GSAP).
+    *   `GalleryView.jsx` : Marketplace (Utilise désormais exclusivement `ArchitecturalLayout`).
+    *   `ProductDetail.jsx` : Fiche produit (Utilise désormais exclusivement `ArchitecturalProductDetail`).
+*   **`designs/architectural/`** : Le design system et les layouts par défaut du site.
+*   **`features/admin/`** : Le Back-Office.
+    *   `AdminStudio.jsx` : Gère désormais uniquement le forçage du mode (Light/Dark) pour le design Architectural.
 
 ---
 
-## 🎨 2. Design System & UX
+## 🎨 2. Design System & UX (Architectural Only)
 
-*   **Ambiance** : "Chocolat & Bois", Luxe, Artisanat, Terroir Normand, Minimalisme "Lumnos".
-*   **Couleurs (Palette "Atelier")** :
-    *   **Fond Principal** : Dégradé Teck/Noyer (`#e0d0c1` à `#8b5e3c`) en Light Mode. Noir Profond (`#1C1C1E`) en Dark Mode.
-    *   **Cartes & Surfaces** : `#FAF9F6` (Blanc cassé / Coquille d'œuf) avec ombres portées noires (`shadow-black/10`) et bordure subtile (`border-white/60`).
-    *   **Textes & Titres** : `#1a0f0a` (Chocolat Noir 95%) pour un contraste élégant sans la dureté du noir pur.
-    *   **Accents** : Vert Émeraude (`#047857`) pour les validations, Ambre (`#f59e0b`) pour les actions.
-*   **Typographie** : Polices avec empattement (Serif) pour les titres, Sans-Serif épuré pour le texte.
-*   **Studio & Thèmes Dynamiques (Nouveau - Janvier 2026)** :
-    *   Accessible via `AdminStudio`, permet de changer l'ambiance de la Marketplace sans coder.
-    *   **Mode Standard** : Si activé, désactive tous les thèmes et utilise le design "original" (hardcoded).
-    *   **Mode Forcé** : Pour chaque thème, l'admin peut forcer "Light", "Dark" ou "Auto". Si forcé, le toggle Dark Mode du header disparait pour les utilisateurs afin de garantir la cohérence artistique choisie.
+*   **Philosophie** : "Musée Contemporain", Editorial, Minimaliste.
+*   **Typographie** : Serif dominante pour les titres, Sans-Serif épuré pour le corps.
+*   **Layout** : Grilles larges, absence de bordures (remplacées par des jeux d'ombres ou de "rings"), focus total sur la photographie.
+*   **Mode Forcé** : L'admin peut toujours forcer "Light", "Dark" ou "Auto" dans l'onglet `Studio` du dashboard.
 
-*   **Sharding des Vues (Architecture Hybride - Janvier 2026)** :
-    *   Pour gérer des designs radicalement différents sans "Spaghetti Code", les vues complexes (`GalleryView` et `ProductDetail`) n'utilisent plus de conditions ternaires géantes.
-    *   Elles agissent comme des **Routeurs Internes** qui importent et affichent soit le composant `Standard...` soit le composant `Architectural...` en fonction du `activeDesignId` du thème.
-    *   Cela garantit une **séparation totale** des responsabilités : modifier le design "Architectural" ne cassera jamais le design "Standard".
+---
+
+## ⚡ 2b. Optimisations & Scalabilité
+
+*   **Code Sharding Supprimé** : Les vues ne sont plus dispatchées entre plusieurs designs. La logique est directe et plus légère.
+*   **useLiveTheme Simplifié** : Le hook ne charge plus les registres de thèmes complexes (`themeRegistry.js` supprimé), réduisant le poids du bundle.
+
     *   **Update Février 2026 (Refonte Architectural & Micro-Animations)** :
         *   **Layout "Dashboard"** : Équilibrage vertical strict entre la Description et les Actions. Zone de texte calibrée (~260px de haut) pour garantir que les boutons d'enchères (+10, +50, +100) soient visibles au premier coup d'œil.
         *   **AnimatedPrice Integration** : Remplacement des prix statiques par un composant animé (GSAP). Transition numérique fluide avec atterrissage "smooth" pour une sensation de luxe.
