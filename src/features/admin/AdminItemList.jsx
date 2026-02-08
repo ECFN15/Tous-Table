@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, orderBy, limit, onSnapshot, getDocs } from 'firebase/firestore';
 import { db, appId } from '../../firebase/config';
-import { Pencil, Eye, EyeOff, Trash2, Trophy, Mail, Search, Loader2 } from 'lucide-react';
+import { Pencil, Eye, EyeOff, Trash2, Trophy, Mail, Search, Loader2, CheckCircle } from 'lucide-react';
 import { getMillis } from '../../utils/time';
 
 // Helper pour nettoyer le texte (accents, casse)
@@ -11,7 +11,7 @@ const normalizeText = (text) => {
         .normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // Enlève les accents
 }
 
-const AdminItemList = ({ collectionName, darkMode, onEdit, onToggleStatus, onDelete }) => {
+const AdminItemList = ({ collectionName, darkMode, onEdit, onToggleStatus, onDelete, onMarkAsSold }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [items, setItems] = useState([]);
@@ -149,6 +149,11 @@ const AdminItemList = ({ collectionName, darkMode, onEdit, onToggleStatus, onDel
                                                     <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 md:px-2.5 md:py-1 rounded-lg ${item.status === 'published' ? (darkMode ? 'bg-emerald-900/40 text-emerald-400' : 'bg-emerald-100 text-emerald-700') : (darkMode ? 'bg-stone-700 text-stone-500' : 'bg-stone-200 text-stone-500')}`}>
                                                         {item.status === 'published' ? 'Public' : 'Brouillon'}
                                                     </span>
+                                                    {item.sold && (
+                                                        <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 md:px-2.5 md:py-1 rounded-lg ${darkMode ? 'bg-red-950/40 text-red-500' : 'bg-red-50 text-red-600'}`}>
+                                                            Vendu
+                                                        </span>
+                                                    )}
                                                 </div>
 
                                                 {hasWinner ? (
@@ -172,6 +177,16 @@ const AdminItemList = ({ collectionName, darkMode, onEdit, onToggleStatus, onDel
                                             </div>
                                         </div>
                                         <div className="flex items-center justify-end md:justify-start gap-2 md:gap-3 w-full md:w-auto mt-2 md:mt-0 border-t md:border-none pt-3 md:pt-0">
+                                            {!item.sold && (
+                                                <button
+                                                    onClick={() => onMarkAsSold(item)}
+                                                    className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shadow-sm border transition-all hover:scale-110 ${darkMode ? 'bg-emerald-950/20 text-emerald-500 border-emerald-900/30 hover:bg-emerald-500 hover:text-white' : 'bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-500 hover:text-white'}`}
+                                                    title="Marquer comme VENDU"
+                                                >
+                                                    <CheckCircle size={16} className="md:w-[18px]" />
+                                                </button>
+                                            )}
+
                                             <button onClick={() => onEdit(item)} className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shadow-sm border transition-all hover:scale-110 ${darkMode ? 'bg-stone-700 text-white border-stone-600' : 'bg-white text-stone-900 border-stone-100'}`} title="Modifier"><Pencil size={16} className="md:w-[18px]" /></button>
 
                                             <button onClick={() => onToggleStatus(item)} className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shadow-sm transition-all hover:scale-110 ${item.status === 'published' ? (darkMode ? 'bg-emerald-600 text-white shadow-emerald-900/40' : 'bg-emerald-500 text-white shadow-emerald-200') : (darkMode ? 'bg-stone-700 text-stone-500' : 'bg-stone-200 text-stone-400')}`} title={item.status === 'published' ? 'Masquer' : 'Publier'}>{item.status === 'published' ? <Eye size={16} className="md:w-[18px]" /> : <EyeOff size={16} className="md:w-[18px]" />}</button>

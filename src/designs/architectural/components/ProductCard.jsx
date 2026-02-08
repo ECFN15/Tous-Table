@@ -83,7 +83,7 @@ const ProductCard = ({
                         {item.sold ? 'Stock: 0' : `Stock: ${item.stock !== undefined ? item.stock : 1}`}
                     </div>
                     <p className={`font-bold tabular-nums text-[11px] md:text-xs lg:text-sm ${item.sold ? 'text-red-500' : ''} whitespace-nowrap`}>
-                        {item.sold ? 'VENDU' : (item.currentPrice || item.startingPrice) + ' €'}
+                        {item.sold ? 'VENDU' : (item.priceOnRequest ? '' : (item.currentPrice || item.startingPrice) + ' €')}
                     </p>
                 </div>
             </div>

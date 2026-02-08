@@ -26,6 +26,7 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
     depth: '',
     height: '',
     stock: '', // [NEW] Stock management (empty by default)
+    priceOnRequest: false,
     auctionActive: false,
     durationMinutes: 0
   });
@@ -76,6 +77,7 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
         width: editData.width || '',
         depth: editData.depth || '',
         height: editData.height || '',
+        priceOnRequest: editData.priceOnRequest || false,
         auctionActive: editData.auctionActive || false,
         durationMinutes: duration > 0 ? duration : 0
       });
@@ -104,6 +106,7 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
       width: '',
       depth: '',
       height: '',
+      priceOnRequest: false,
       auctionActive: false,
       durationMinutes: 0
     });
@@ -240,6 +243,7 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
         sold: (parseInt(formData.stock) || 1) <= 0,
         soldAt: (parseInt(formData.stock) || 1) <= 0 ? (editData?.soldAt || Timestamp.now()) : null,
         durationMinutes: Number(formData.durationMinutes),
+        priceOnRequest: formData.priceOnRequest || false,
         auctionEnd: formData.auctionActive ? Timestamp.fromMillis(Date.now() + (Number(formData.durationMinutes) * 60000)) : null,
       };
 
@@ -431,8 +435,22 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-[9px] font-black uppercase text-stone-400 ml-2">Prix de départ (€)</label>
-                <input type="number" placeholder="0" className={`w-full p-4 rounded-xl border-none font-bold outline-none focus:ring-4 transition-all shadow-inner ${darkMode ? 'bg-stone-900 text-white ring-stone-700 placeholder:text-stone-600' : 'bg-stone-50 text-stone-900 ring-stone-100'}`} value={formData.startingPrice === 0 ? "" : formData.startingPrice} onChange={e => setFormData({ ...formData, startingPrice: e.target.value === "" ? 0 : Number(e.target.value) })} />
+                <div className="flex justify-between items-center ml-2">
+                  <label className="text-[9px] font-black uppercase text-stone-400">Prix de départ (€)</label>
+                  <label className="flex items-center gap-2 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      className="hidden"
+                      checked={formData.priceOnRequest}
+                      onChange={e => setFormData({ ...formData, priceOnRequest: e.target.checked })}
+                    />
+                    <div className={`w-3.5 h-3.5 rounded border transition-all flex items-center justify-center ${formData.priceOnRequest ? 'bg-amber-500 border-amber-500' : 'border-stone-300 dark:border-stone-600'}`}>
+                      {formData.priceOnRequest && <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4"><polyline points="20 6 9 17 4 12" /></svg>}
+                    </div>
+                    <span className={`text-[8px] font-black uppercase transition-colors ${formData.priceOnRequest ? 'text-amber-500' : 'text-stone-400 group-hover:text-stone-500'}`}>Prix sur demande</span>
+                  </label>
+                </div>
+                <input type="number" disabled={formData.priceOnRequest} placeholder={formData.priceOnRequest ? "Demande" : "0"} className={`w-full p-4 rounded-xl border-none font-bold outline-none focus:ring-4 transition-all shadow-inner disabled:opacity-50 ${darkMode ? 'bg-stone-900 text-white ring-stone-700 placeholder:text-stone-600' : 'bg-stone-50 text-stone-900 ring-stone-100'}`} value={formData.priceOnRequest ? "" : (formData.startingPrice === 0 ? "" : formData.startingPrice)} onChange={e => setFormData({ ...formData, startingPrice: e.target.value === "" ? 0 : Number(e.target.value) })} />
               </div>
               <div className="space-y-1.5">
                 <label className="text-[9px] font-black uppercase text-stone-400 ml-2">Stock Initial</label>

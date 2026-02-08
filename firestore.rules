@@ -21,15 +21,15 @@ service cloud.firestore {
         data.description is string && data.description.size() < 10000 &&
         
         // 2. Données Financières (Nombres obligatoires et positifs)
-        (data.currentPrice is number && data.currentPrice >= 0) &&
-        (data.startingPrice is number && data.startingPrice >= 0) &&
+        (!("currentPrice" in data) || (data.currentPrice is number && data.currentPrice >= 0)) &&
+        (!("startingPrice" in data) || (data.startingPrice is number && data.startingPrice >= 0)) &&
         
         // 3. Structure d'Images
         (data.images is list) &&
         (!("thumbnails" in data) || data.thumbnails is list) && 
         
         // 4. Logique Enchère
-        (data.auctionActive is bool);
+        (!("auctionActive" in data) || data.auctionActive is bool);
     }
 
     // Collections produits (furniture, cutting_boards, etc.)

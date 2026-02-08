@@ -25,7 +25,7 @@ const MyOrdersView = React.lazy(() => import('./pages/MyOrdersView'));
 
 import { getMillis } from './utils/time';
 import { useAuth } from './contexts/AuthContext';
-import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { db, appId } from './firebase/config';
 
 const AppRouter = ({
@@ -72,6 +72,21 @@ const AppRouter = ({
     const handleDeleteItem = async (year, id, col) => {
         if (!confirm("Supprimer ?")) return;
         try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', col, id)); } catch (e) { console.error(e); }
+    };
+
+    const handleMarkAsSold = async (item, col) => {
+        if (!confirm(`Marquer "${item.name}" comme VENDU ? (Stock à 0)`)) return;
+        try {
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', col, item.id), {
+                sold: true,
+                stock: 0,
+                soldAt: serverTimestamp()
+            });
+            alert("✓ Mis à jour avec succès");
+        } catch (e) {
+            console.error(e);
+            alert("❌ Erreur lors de la mise à jour : " + e.message);
+        }
     };
 
     return (
@@ -253,6 +268,7 @@ const AppRouter = ({
                                         onEdit={(item) => { setEditingItem(item); window.scrollTo(0, 0); }}
                                         onToggleStatus={(item) => handleToggleStatus(item, adminCollection)}
                                         onDelete={(id) => handleDeleteItem(null, id, adminCollection)}
+                                        onMarkAsSold={(item) => handleMarkAsSold(item, adminCollection)}
                                     />
                                 </div>
                             </>

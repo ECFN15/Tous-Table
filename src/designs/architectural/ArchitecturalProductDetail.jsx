@@ -247,12 +247,18 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
                         {/* Price & Actions */}
                         <div className="px-6 pb-6 pt-0 bg-transparent">
                             {/* NEW COMPACT LAYOUT: PRICE (Left) + SPECS HORIZONTAL (Right) */}
-                            <div className="flex items-end justify-between mb-12 pt-8">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-12 pt-8 gap-6 sm:gap-0">
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Prix Actuel</p>
-                                    <p className="text-6xl font-black tracking-tighter font-serif italic font-normal"><AnimatedPrice amount={item.currentPrice || item.startingPrice || 0} /> €</p>
+                                    <p className={`${item.priceOnRequest ? 'text-3xl md:text-4xl' : 'text-5xl md:text-6xl'} font-black tracking-tighter font-serif italic font-normal leading-none`}>
+                                        {item.priceOnRequest ? (
+                                            "Prix sur demande"
+                                        ) : (
+                                            <><AnimatedPrice amount={item.currentPrice || item.startingPrice || 0} /> €</>
+                                        )}
+                                    </p>
                                 </div>
-                                <div className="flex items-end gap-12 text-right opacity-60 pb-2">
+                                <div className="flex items-end gap-8 md:gap-12 text-right opacity-60 pb-1 md:pb-2">
                                     <div>
                                         <p className="text-[9px] font-black uppercase tracking-widest mb-1 opacity-50">Matières</p>
                                         <p className="text-xs font-bold">{item.material || "Non spécifié"}</p>
