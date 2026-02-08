@@ -1,6 +1,6 @@
 ---
 project_name: "Tous à Table - Atelier Normand"
-last_updated: "2026-02-08 (Simplification Design)"
+last_updated: "2026-02-08 (Sécurité & Admin Dashboard)"
 description: "Site e-commerce et vitrine pour un atelier d'ébénisterie d'art. Vente de meubles (enchères/achat direct) et planches à découper."
 stack:
   frontend: "React + Vite"
@@ -160,6 +160,11 @@ Pour mettre le site en ligne sur **https://tatmadeinnormandie.web.app** :
 **Problème** : L'utilisation de `tabular-nums` pour stabiliser l'animation de compteur créait des espaces inesthétiques sur les polices Serif (ex: gros trou autour du "1").
 **Solution** : Utilisation d'une interpolation numérique rapide (`gsap.to`) sur le texte pur, garantissant un rendu typographique parfait à l'arrêt, couplé à un léger flash de couleur pour le feedback. Pas de structure DOM complexe (type Odometer) car incompatible avec l'italique artistique de la marque.
 
+### 🛡️ Traçabilité & Sécurité (Février 2026)
+*   **Capture d'IP & Device** : Mise en place de `logUserConnection` pour enregistrer l'adresse IP (IPv6/IPv4) et le User-Agent (appareil) de chaque utilisateur à la connexion.
+*   **Logique de Purge Utilisateurs** : Unification du bouton "Purge Utilisateurs" dans la Zone de Danger pour réinitialiser Firebase Auth tout en protégeant uniquement le Super Admin (`matthis.fradin2@gmail.com`).
+*   **Module "Clients Inscrits"** : Ajout d'un KPI dynamique affichant le nombre de comptes réels (email-verified, non-anonymes) avec un export Excel complet incluant les métadonnées de sécurité (IP, Device).
+
 ---
 
-*Dernière mise à jour par l'IA : Session du 06/02/2026 (16:45). Refonte Architectural (Layout Balance), AnimatedPrice (Micro-interactions GSAP), Museum Gallery Hook & Hover V2 (Snappy & Cinematic).*
+*Dernière mise à jour par l'IA : Session du 08/02/2026 (22:15). Suppression "Stats Reset", Ajout KPI "Clients Inscrits" avec Export Excel, et implémentation de la traçabilité IP (Security Logs).*
