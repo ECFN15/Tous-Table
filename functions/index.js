@@ -653,14 +653,37 @@ exports.grantAdminOnAuth = functions.auth.user().onCreate(async (user) => {
     if (!docSnap.exists) return;
 
     const whitelist = docSnap.data().users || {};
-    const isAdmin = Object.values(whitelist).some(u => u.email === user.email);
+    // Find the key in the map where the email matches (might be a pending key or a real UID)
+    const [pendingKey, pendingData] = Object.entries(whitelist).find(([key, val]) => val.email === user.email) || [];
 
-    if (isAdmin) {
+    if (pendingData) {
         console.log(`🎯 Nouvel utilisateur Admin détecté: ${user.email}. Attribution des droits...`);
+
+        // 1. Grant Security Claims
         await admin.auth().setCustomUserClaims(user.uid, { admin: true });
 
-        // Optionnel: Mettre à jour la clé dans la whitelist pour utiliser le vrai UID
-        // Mais l'AuthContext gère déjà la détection par email, donc pas critique.
+        // 2. Update Firestore Whitelist (Replace pending key with Real UID)
+        const updates = {};
+
+        // If the key was not already the UID (e.g. pending_123), delete it
+        if (pendingKey !== user.uid) {
+            updates[`users.${pendingKey}`] = admin.firestore.FieldValue.delete();
+        }
+
+        // Add the correct entry with Real UID
+        updates[`users.${user.uid}`] = {
+            ...pendingData,
+            name: user.displayName || pendingData.name || 'Admin',
+            photoURL: user.photoURL || null,
+            uid: user.uid,
+            status: 'active', // ✅ Pass to Green
+            lastLogin: admin.firestore.FieldValue.serverTimestamp()
+        };
+
+        await adminDocRef.update(updates);
+        console.log(`✅ Admin ${user.email} activé avec succès (UID: ${user.uid}).`);
+    } else {
+        console.log(`User ${user.email} not in admin whitelist.`);
     }
 });
 
@@ -811,6 +834,188 @@ exports.sendTestEmail = functions.https.onCall(async (data, context) => {
     } catch (error) {
         console.error("❌ Erreur envoi:", error);
         return { success: false, error: error.message, debug: debugInfo };
+    }
+});
+
+// ============================================================
+// 8. STATISTIQUES UTILISATEURS (Registered Users Only)
+// ============================================================
+exports.getUserStats = functions.runWith({ timeoutSeconds: 300, memory: '512MB' }).https.onCall(async (data, context) => {
+    // 1. Sécurité : Admin seulement
+    if (!context.auth || !context.auth.token.admin) {
+        throw new functions.https.HttpsError('permission-denied', 'Administrateur requis.');
+    }
+
+    try {
+        let nextPageToken;
+        const allUsers = [];
+
+        // Etape A : On récupère les métadonnées de sécurité depuis Firestore (IPs, etc.)
+        // C'est plus rapide de tout prendre d'un coup que de faire N requêtes.
+        const userDocsSnapshot = await db.collection('users').get();
+        const userMetadataMap = {};
+        userDocsSnapshot.forEach(doc => {
+            userMetadataMap[doc.id] = doc.data();
+        });
+
+        // Etape B : On boucle pour récupérer tous les comptes Auth
+        do {
+            const listUsersResult = await admin.auth().listUsers(1000, nextPageToken);
+
+            listUsersResult.users.forEach((userRecord) => {
+                // On filtre les anonymes
+                if (userRecord.email || (userRecord.providerData && userRecord.providerData.length > 0)) {
+
+                    // On récupère les infos Firestore correspondantes
+                    const meta = userMetadataMap[userRecord.uid] || {};
+
+                    allUsers.push({
+                        uid: userRecord.uid,
+                        email: userRecord.email,
+                        displayName: userRecord.displayName || 'Sans nom',
+                        creationTime: userRecord.metadata.creationTime,
+                        lastSignInTime: userRecord.metadata.lastSignInTime,
+                        provider: userRecord.providerData.map(p => p.providerId).join(', '),
+                        // Nouveaux champs de sécurité
+                        lastIp: meta.lastIp || 'N/A',
+                        lastUserAgent: meta.lastUserAgent || 'N/A'
+                    });
+                }
+            });
+
+            nextPageToken = listUsersResult.pageToken;
+        } while (nextPageToken);
+
+        // On trie par date de création (le plus récent en premier)
+        allUsers.sort((a, b) => new Date(b.creationTime) - new Date(a.creationTime));
+
+        return {
+            success: true,
+            count: allUsers.length,
+            users: allUsers
+        };
+
+    } catch (error) {
+        console.error("❌ Erreur getUserStats:", error);
+        throw new functions.https.HttpsError('internal', error.message);
+    }
+});
+
+// ============================================================
+// 9. SÉCURITÉ : LOG CONNEXION (IP CAPTURE)
+// ============================================================
+exports.logUserConnection = functions.https.onCall(async (data, context) => {
+    // 1. Vérification basique
+    if (!context.auth) return { success: false, message: "Unauthenticated" };
+
+    try {
+        // 2. Extraction IP
+        // Sur Cloud Functions, l'IP réelle passe par le load balancer dans 'x-forwarded-for'
+        const rawIp = context.rawRequest.headers['x-forwarded-for'] || context.rawRequest.connection.remoteAddress;
+        // Si plusieurs IPs (proxy chain), on prend la première
+        const ip = rawIp ? rawIp.split(',')[0].trim() : 'Unknown';
+        const userAgent = context.rawRequest.headers['user-agent'] || 'Unknown';
+
+        // 3. Stockage Sécurisé dans Firestore
+        const userRef = db.collection('users').doc(context.auth.uid);
+
+        // On met à jour la dernière IP et on l'ajoute à l'historique (limité aux 50 dernières pour pas exploser)
+        // Note: arrayUnion ajoute seulement si unique, mais ici avec le timestamp ça sera toujours unique.
+        // Pour éviter de saturer, on ne garde que les infos essentielles.
+
+        await userRef.set({
+            lastIp: ip,
+            lastUserAgent: userAgent,
+            lastConnectionAt: admin.firestore.FieldValue.serverTimestamp(),
+            // On peut ajouter un tableau 'securityHistory' si besoin, mais attention à la taille du doc.
+            // Pour l'instant on garde juste la dernière connue pour l'export Excel.
+            securityData: {
+                ip: ip,
+                ua: userAgent,
+                detectedAt: admin.firestore.FieldValue.serverTimestamp()
+            }
+        }, { merge: true });
+
+        return { success: true, ip: ip };
+
+    } catch (error) {
+        console.error("❌ Erreur LogConnection:", error);
+        return { success: false, error: error.message };
+    }
+});
+
+// ============================================================
+// ⚠️ DANGER ZONE: NETTOYAGE TOTAL UTILISATEURS
+// ============================================================
+exports.resetAllUsers = functions.runWith({ timeoutSeconds: 540, memory: '1GB' }).https.onCall(async (data, context) => {
+
+    // 1. SÉCURITÉ ABSOLUE : SEUL LE SUPER ADMIN PEUT LANCER ÇA
+    const SUPER_ADMINS = ['matthis.fradin2@gmail.com'];
+    const callerEmail = context.auth?.token.email;
+
+    if (!SUPER_ADMINS.includes(callerEmail)) {
+        throw new functions.https.HttpsError('permission-denied', 'ACCÈS REFUSÉ. Seul le Super Admin peut lancer ce nettoyage.');
+    }
+
+    console.log(`🚨 STARTING USER PURGE initiated by ${callerEmail}`);
+
+    try {
+        // --- A. NETTOYAGE AUTHENTICATION ---
+        let nextPageToken;
+        let usersDeleted = 0;
+        const preservedUids = [];
+
+        // On boucle pour lister tout le monde
+        do {
+            const listUsersResult = await admin.auth().listUsers(1000, nextPageToken);
+
+            const usersToDelete = listUsersResult.users.filter(user => {
+                const isProtected = SUPER_ADMINS.includes(user.email);
+                if (isProtected) {
+                    preservedUids.push(user); // On garde les infos pour restaurer Firestore
+                    console.log(`🛡️ Compte PROTÉGÉ : ${user.email}`);
+                    return false;
+                }
+                return true;
+            }).map(u => u.uid);
+
+            if (usersToDelete.length > 0) {
+                await admin.auth().deleteUsers(usersToDelete);
+                usersDeleted += usersToDelete.length;
+                console.log(`🗑️ Batch delete: ${usersToDelete.length} users removed.`);
+            }
+
+            nextPageToken = listUsersResult.pageToken;
+        } while (nextPageToken);
+
+
+        // --- B. RESTAURATION FIRESTORE (ADMIN WHITELIST) ---
+        // On écrase la liste des admins pour ne garder que les survivants
+        const newAdminMap = {};
+
+        for (const user of preservedUids) {
+            newAdminMap[user.uid] = {
+                uid: user.uid, // Utiliser le vrai UID Auth
+                email: user.email,
+                name: user.displayName || 'Super Admin',
+                photoURL: user.photoURL || null,
+                role: 'super_admin',
+                status: 'active',
+                addedAt: admin.firestore.FieldValue.serverTimestamp()
+            };
+            // Sécurité double ceinture : On remet le claim Admin
+            await admin.auth().setCustomUserClaims(user.uid, { admin: true });
+        }
+
+        // On écrase le doc
+        await db.doc('sys_metadata/admin_users').set({ users: newAdminMap });
+        console.log("✅ Firestore Admin Whitelist reset.");
+
+        return { success: true, count: usersDeleted, message: `Nettoyage terminé. ${usersDeleted} comptes supprimés.` };
+
+    } catch (error) {
+        console.error("❌ Erreur Purge :", error);
+        throw new functions.https.HttpsError('internal', error.message);
     }
 });
 

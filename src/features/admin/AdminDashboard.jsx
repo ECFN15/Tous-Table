@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     TrendingUp, ShoppingBag, ArrowUpRight, AlertTriangle, RefreshCw, Mail,
-    Gavel, Package, CheckCircle, Clock, Archive
+    Gavel, Package, CheckCircle, Clock, Archive, Users
 } from 'lucide-react';
 import { collection, getDocs, writeBatch, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
@@ -17,7 +17,8 @@ const AdminDashboard = ({ user, darkMode = false }) => {
         averageOrderValue: 0,
         totalStockValue: 0, // [NEW] Potential Revenue
         activeAuctionsCount: 0, // [NEW] Live Auctions
-        totalItemsForSale: 0
+        totalItemsForSale: 0,
+        registeredUsers: 0
     });
 
     const [activeAuctions, setActiveAuctions] = useState([]); // [NEW] List of live auctions
@@ -26,13 +27,14 @@ const AdminDashboard = ({ user, darkMode = false }) => {
     const [loading, setLoading] = useState(true);
 
     // Modal States
-    const [resetting, setResetting] = useState(false);
-    const [isResetModalOpen, setIsResetModalOpen] = useState(false);
     const [isOrderResetModalOpen, setIsOrderResetModalOpen] = useState(false);
     const [resettingOrders, setResettingOrders] = useState(false);
     const [allOrders, setAllOrders] = useState([]);
     const [cleaning, setCleaning] = useState(false);
     const [isCleaningModalOpen, setIsCleaningModalOpen] = useState(false);
+    const [resettingUsers, setResettingUsers] = useState(false);
+    const [isResetUsersModalOpen, setIsResetUsersModalOpen] = useState(false);
+    const [exportingUsers, setExportingUsers] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -117,8 +119,14 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                     averageOrderValue: orderCount > 0 ? Math.round(revenue / orderCount) : 0,
                     totalStockValue: stockValue,
                     activeAuctionsCount: auctions.length,
-                    totalItemsForSale: itemsForSale
+                    totalItemsForSale: itemsForSale,
+                    registeredUsers: 0 // Placeholder, fetched below
                 });
+
+                // 3. Fetch User Stats (Async to not block UI if slow)
+                httpsCallable(functions, 'getUserStats')().then(res => {
+                    setStats(prev => ({ ...prev, registeredUsers: res.data.count }));
+                }).catch(err => console.error("Failed to fetch user stats", err));
 
                 setLoading(false);
             } catch (error) {
@@ -133,29 +141,7 @@ const AdminDashboard = ({ user, darkMode = false }) => {
 
 
     // --- ACTIONS (Reset, Export, Clean) SAME AS BEFORE ---
-    const handleResetClick = () => setIsResetModalOpen(true);
     const handleResetOrdersClick = () => setIsOrderResetModalOpen(true);
-
-    const confirmReset = async () => {
-        setResetting(true);
-        try {
-            const resetStatsFn = httpsCallable(functions, 'resetAllStats');
-            await resetStatsFn();
-            localStorage.removeItem('tat_liked_items_v2');
-            localStorage.removeItem('tat_shared_items_v2');
-            await setDoc(doc(db, 'sys_metadata', 'stats_reset'), {
-                lastStatsReset: serverTimestamp(),
-                resetBy: user?.email || 'admin'
-            }, { merge: true });
-            setIsResetModalOpen(false);
-            alert(`Succès ! Les compteurs (likes/coms) sont remis à zéro.`);
-        } catch (error) {
-            console.error(error);
-            alert("Erreur reset: " + error.message);
-        } finally {
-            setResetting(false);
-        }
-    };
 
     const exportToExcel = (orders) => {
         const data = orders.map(order => ({
@@ -221,6 +207,54 @@ const AdminDashboard = ({ user, darkMode = false }) => {
         }
     };
 
+    const confirmResetUsers = async () => {
+        setResettingUsers(true);
+        try {
+            const resetUsersFn = httpsCallable(functions, 'resetAllUsers');
+            const result = await resetUsersFn();
+            const { count, message } = result.data;
+            setIsResetUsersModalOpen(false);
+            alert(`✅ Succès !\n${message}`);
+        } catch (error) {
+            console.error(error);
+            alert("Erreur purge utilisateurs: " + error.message);
+        } finally {
+            setResettingUsers(false);
+        }
+    };
+
+    const handleExportUsers = async () => {
+        setExportingUsers(true);
+        try {
+            const getUserStatsFn = httpsCallable(functions, 'getUserStats');
+            const result = await getUserStatsFn();
+            const users = result.data.users;
+
+            const data = users.map(u => ({
+                'ID': u.uid,
+                'Email': u.email,
+                'Nom': u.displayName,
+                'Date Inscription': new Date(u.creationTime).toLocaleDateString(),
+                'Dernière Connexion': new Date(u.lastSignInTime).toLocaleDateString(),
+                'Provider': u.provider,
+                'IP': u.lastIp || 'N/A',
+                'Device': u.lastUserAgent || 'N/A'
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Clients");
+            XLSX.writeFile(wb, `Clients_${new Date().toISOString().split('T')[0]}.xlsx`);
+
+            alert(`✅ Export réussi : ${users.length} clients exportés.`);
+        } catch (error) {
+            console.error(error);
+            alert("Erreur export utilisateurs: " + error.message);
+        } finally {
+            setExportingUsers(false);
+        }
+    };
+
     if (loading) return <div className="p-12 text-center text-stone-400 font-bold animate-pulse">Chargement...</div>;
 
     // Helper for formatting duration
@@ -235,7 +269,7 @@ const AdminDashboard = ({ user, darkMode = false }) => {
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
 
             {/* NEW KPI ROW - BUSINESS ORIENTED */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 <KpiCard
                     title="Chiffre d'Affaires"
                     value={`${stats.totalRevenue} €`}
@@ -269,6 +303,23 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                     trend="Salle des ventes"
                     bg="bg-purple-50/50 ring-1 ring-inset ring-purple-100"
                     darkMode={darkMode}
+                />
+                <KpiCard
+                    title="Clients Inscrits"
+                    value={stats.registeredUsers}
+                    icon={<Users size={20} className="text-pink-500" />}
+                    trend="Comptes vérifiés"
+                    bg="bg-pink-50/50 ring-1 ring-inset ring-pink-100"
+                    darkMode={darkMode}
+                    action={
+                        <button
+                            onClick={handleExportUsers}
+                            disabled={exportingUsers}
+                            className="mt-2 text-[10px] bg-white ring-1 ring-pink-200 text-pink-600 px-3 py-1 rounded-full font-bold uppercase hover:bg-pink-50 transition-colors flex items-center gap-1"
+                        >
+                            {exportingUsers ? <RefreshCw size={10} className="animate-spin" /> : <Archive size={10} />} Excel
+                        </button>
+                    }
                 />
             </div>
 
@@ -399,78 +450,79 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                         </div>
                         <div className="space-y-2">
                             <button
-                                onClick={handleResetClick}
-                                disabled={resetting || resettingOrders}
-                                className={`w-full py-3 rounded-xl font-bold uppercase text-[9px] tracking-widest transition-all flex items-center justify-center gap-2 ring-1 ring-inset ${darkMode ? 'bg-stone-800 text-red-400 ring-red-900/50 hover:bg-red-900/20' : 'bg-white text-red-500 ring-red-100 hover:bg-red-50'}`}
-                            >
-                                <RefreshCw size={12} className={resetting ? "animate-spin" : ""} /> Stats Reset
-                            </button>
-                            <button
                                 onClick={handleResetOrdersClick}
-                                disabled={resetting || resettingOrders}
+                                disabled={resettingOrders}
                                 className={`w-full py-3 rounded-xl font-bold uppercase text-[9px] tracking-widest transition-all flex items-center justify-center gap-2 ring-1 ring-inset ${darkMode ? 'bg-stone-800 text-red-400 ring-red-900/50 hover:bg-red-900/20' : 'bg-white text-red-500 ring-red-100 hover:bg-red-50'}`}
                             >
                                 <RefreshCw size={12} className={resettingOrders ? "animate-spin" : ""} /> Purge Commandes
                             </button>
                             <button
                                 onClick={() => setIsCleaningModalOpen(true)}
-                                disabled={resetting || cleaning}
+                                disabled={cleaning}
                                 className={`w-full py-3 rounded-xl font-bold uppercase text-[9px] tracking-widest transition-all flex items-center justify-center gap-2 ring-1 ring-inset ${darkMode ? 'bg-stone-800 text-orange-400 ring-orange-900/50 hover:bg-orange-900/20' : 'bg-white text-orange-500 ring-orange-100 hover:bg-orange-50'}`}
                             >
                                 <RefreshCw size={12} className={cleaning ? "animate-spin" : ""} /> Nettoyage Système
                             </button>
+                            <button
+                                onClick={() => setIsResetUsersModalOpen(true)}
+                                disabled={resettingUsers}
+                                className={`w-full py-3 rounded-xl font-bold uppercase text-[9px] tracking-widest transition-all flex items-center justify-center gap-2 ring-1 ring-inset ${darkMode ? 'bg-stone-800 text-red-600 ring-red-900/50 hover:bg-red-900/20' : 'bg-white text-red-700 ring-red-100 hover:bg-red-50'}`}
+                            >
+                                <RefreshCw size={12} className={resettingUsers ? "animate-spin" : ""} /> Purge Utilisateurs
+                            </button>
                         </div>
                     </div>
+                    {/* KEEP MODALS AS IS (Order Reset, Cleaning) */}
+                    {isOrderResetModalOpen && (
+                        <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm ${darkMode ? 'bg-black/70' : 'bg-stone-900/50'}`}>
+                            <div className={`rounded-[2rem] p-8 max-w-sm w-full shadow-2xl border text-center space-y-4 ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
+                                <h3 className={`text-lg font-black ${darkMode ? 'text-white' : 'text-stone-900'}`}>Purger Commandes ?</h3>
+                                <p className="text-xs text-stone-400">Export Excel + Suppression définitive.</p>
+                                <div className="flex gap-2">
+                                    <button onClick={confirmResetOrders} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold text-xs">Confirmer</button>
+                                    <button onClick={() => setIsOrderResetModalOpen(false)} className="flex-1 py-3 bg-stone-200 text-stone-600 rounded-xl font-bold text-xs">Annuler</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    {isCleaningModalOpen && (
+                        <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm ${darkMode ? 'bg-black/70' : 'bg-stone-900/50'}`}>
+                            <div className={`rounded-[2rem] p-8 max-w-sm w-full shadow-2xl border text-center space-y-4 ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
+                                <h3 className={`text-lg font-black ${darkMode ? 'text-white' : 'text-stone-900'}`}>Nettoyage Système ?</h3>
+                                <p className="text-xs text-stone-400">Supprime les images orphelines du stockage.</p>
+                                <div className="flex gap-2">
+                                    <button onClick={confirmCleaning} className="flex-1 py-3 bg-orange-500 text-white rounded-xl font-bold text-xs">Lancer</button>
+                                    <button onClick={() => setIsCleaningModalOpen(false)} className="flex-1 py-3 bg-stone-200 text-stone-600 rounded-xl font-bold text-xs">Annuler</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    {isResetUsersModalOpen && (
+                        <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm ${darkMode ? 'bg-black/70' : 'bg-stone-900/50'}`}>
+                            <div className={`rounded-[2rem] p-8 max-w-sm w-full shadow-2xl border text-center space-y-4 ${darkMode ? 'bg-stone-800 border-stone-700 border-red-900/30' : 'bg-white border-stone-100 border-red-100'}`}>
+                                <h3 className={`text-lg font-black text-red-500`}>Danger : Purge Totale ?</h3>
+                                <p className={`text-xs ${darkMode ? 'text-stone-300' : 'text-stone-600'}`}>
+                                    Cela va supprimer <b>TOUS les comptes utilisateurs</b> (clients et tests) de Firebase Auth.<br /><br />
+                                    Seuls les Super Admins (<code>matthis.fradin...</code>) seront épargnés.
+                                </p>
+                                <div className="flex gap-2 pt-2">
+                                    <button onClick={confirmResetUsers} className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg shadow-red-500/20">Confirmer</button>
+                                    <button onClick={() => setIsResetUsersModalOpen(false)} className={`flex-1 py-3 rounded-xl font-bold text-xs uppercase tracking-wider ${darkMode ? 'bg-stone-700 text-stone-300 hover:bg-stone-600' : 'bg-stone-100 text-stone-500 hover:bg-stone-200'}`}>Annuler</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
-
             </div>
-
-            {/* KEEP MODALS AS IS (Reset, Order Reset, Cleaning) */}
-            {isResetModalOpen && (
-                <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm ${darkMode ? 'bg-black/70' : 'bg-stone-900/50'}`}>
-                    <div className={`rounded-[2rem] p-8 max-w-sm w-full shadow-2xl border text-center space-y-4 ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
-                        <h3 className={`text-lg font-black ${darkMode ? 'text-white' : 'text-stone-900'}`}>Réinitialiser Stats ?</h3>
-                        <p className="text-xs text-stone-400">Efface tous les likes/commentaires.</p>
-                        <div className="flex gap-2">
-                            <button onClick={confirmReset} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold text-xs">Oui, Effacer</button>
-                            <button onClick={() => setIsResetModalOpen(false)} className="flex-1 py-3 bg-stone-200 text-stone-600 rounded-xl font-bold text-xs">Annuler</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-            {isOrderResetModalOpen && (
-                <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm ${darkMode ? 'bg-black/70' : 'bg-stone-900/50'}`}>
-                    <div className={`rounded-[2rem] p-8 max-w-sm w-full shadow-2xl border text-center space-y-4 ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
-                        <h3 className={`text-lg font-black ${darkMode ? 'text-white' : 'text-stone-900'}`}>Purger Commandes ?</h3>
-                        <p className="text-xs text-stone-400">Export Excel + Suppression définitive.</p>
-                        <div className="flex gap-2">
-                            <button onClick={confirmResetOrders} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold text-xs">Confirmer</button>
-                            <button onClick={() => setIsOrderResetModalOpen(false)} className="flex-1 py-3 bg-stone-200 text-stone-600 rounded-xl font-bold text-xs">Annuler</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-            {isCleaningModalOpen && (
-                <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm ${darkMode ? 'bg-black/70' : 'bg-stone-900/50'}`}>
-                    <div className={`rounded-[2rem] p-8 max-w-sm w-full shadow-2xl border text-center space-y-4 ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
-                        <h3 className={`text-lg font-black ${darkMode ? 'text-white' : 'text-stone-900'}`}>Nettoyage Système ?</h3>
-                        <p className="text-xs text-stone-400">Supprime les images orphelines du stockage.</p>
-                        <div className="flex gap-2">
-                            <button onClick={confirmCleaning} className="flex-1 py-3 bg-orange-500 text-white rounded-xl font-bold text-xs">Lancer</button>
-                            <button onClick={() => setIsCleaningModalOpen(false)} className="flex-1 py-3 bg-stone-200 text-stone-600 rounded-xl font-bold text-xs">Annuler</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
         </div>
     );
 };
 
-const KpiCard = ({ title, value, icon, trend, trendColor = "text-stone-400", bg = "bg-white", darkMode = false }) => (
+const KpiCard = ({ title, value, icon, trend, trendColor = "text-stone-400", bg = "bg-white", darkMode = false, action }) => (
     <div className={`p-6 rounded-[2rem] shadow-sm transition-all duration-300 hover:scale-[1.05] transform-gpu backface-hidden will-change-transform overflow-hidden ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : (bg.includes('white') ? 'ring-1 ring-inset ring-stone-100 bg-white' : bg)}`}>
         <div className="flex justify-between items-start mb-4">
             <div className={`p-3 rounded-2xl shadow-sm ring-1 ring-inset ${darkMode ? 'bg-stone-700 ring-stone-600' : 'bg-white ring-stone-100/50'}`}>{icon}</div>
+            {action}
         </div>
         <div>
             <p className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-1">{title}</p>

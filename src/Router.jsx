@@ -67,13 +67,7 @@ const AppRouter = ({
         try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', col, item.id), { status: item.status === 'published' ? 'draft' : 'published' }); } catch (e) { console.error(e); }
     };
 
-    const handleArchiveItem = async (item, col) => {
-        try {
-            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', col, item.id), {
-                archived: !item.archived
-            });
-        } catch (e) { console.error(e); }
-    };
+
 
     const handleDeleteItem = async (year, id, col) => {
         if (!confirm("Supprimer ?")) return;
@@ -258,7 +252,6 @@ const AppRouter = ({
                                         darkMode={darkMode}
                                         onEdit={(item) => { setEditingItem(item); window.scrollTo(0, 0); }}
                                         onToggleStatus={(item) => handleToggleStatus(item, adminCollection)}
-                                        onArchive={(item) => handleArchiveItem(item, adminCollection)}
                                         onDelete={(id) => handleDeleteItem(null, id, adminCollection)}
                                     />
                                 </div>

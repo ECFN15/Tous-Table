@@ -3,13 +3,14 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import {
   onSnapshot, collection, doc, updateDoc, deleteDoc, serverTimestamp, addDoc, query, orderBy, getDocs, writeBatch
 } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions'; // Added for logUserConnection
 // Auth imports removed (handled in Context)
 import {
   Hammer, LogOut, ShieldCheck, Menu, X, Instagram, Mail, User, Eye, EyeOff, Pencil, Trash2, Trophy, ShoppingBag, Sun, Moon
 } from 'lucide-react';
 
 // --- IMPORTS CONFIG & UTILS ---
-import { auth, db, appId, googleProvider, facebookProvider, twitterProvider, appleProvider, microsoftProvider } from './firebase/config';
+import { auth, db, appId, functions, googleProvider, facebookProvider, twitterProvider, appleProvider, microsoftProvider } from './firebase/config';
 import { getMillis } from './utils/time';
 import { useLiveTheme } from './hooks/useLiveTheme'; // Import hook for forcedMode check
 
@@ -171,6 +172,12 @@ const AppContent = () => {
     const params = new URLSearchParams(window.location.search);
     const productId = params.get('product');
     const hash = window.location.hash.replace('#', '');
+
+    // --- SECURITY LOG (IP CAPTURE) ---
+    if (user && !user.isAnonymous) {
+      // We fire and forget. The backend handles rate limiting or lightweight updates.
+      httpsCallable(functions, 'logUserConnection')().catch(e => console.error("SecLog Error", e));
+    }
 
     // --- STRIPE SUCCESS HANDLING ---
     if (params.get('order_success') === 'true' && user && !user.isAnonymous) {
