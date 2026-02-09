@@ -3,17 +3,15 @@ service firebase.storage {
   match /b/{bucket}/o {
     match /{allPaths=**} {
       allow read: if true;
-      // Seul l'admin peut uploader des fichiers
-      allow delete: if request.auth != null && (
-                   request.auth.token.email == 'matthis.fradin2@gmail.com' ||
-                   request.auth.token.admin == true
-      );
       
-      allow create, update: if request.auth != null && (
+      // BLINDAGE ADMINISTRATEUR (Standard & Robuste)
+      // Seul l'admin identifié peut uploader. 
+      // On bloque les fichiers trop gros (>10Mo) et les non-images.
+      allow write: if request.auth != null && (
                    request.auth.token.email == 'matthis.fradin2@gmail.com' ||
                    request.auth.token.admin == true
-      ) && request.resource.size < 20 * 1024 * 1024 // Max 20MB
-        && request.resource.contentType.matches('image/.*'); // Images uniquement
+      ) && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
     }
   }
 }

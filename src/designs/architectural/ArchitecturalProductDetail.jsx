@@ -13,6 +13,7 @@ import ArchitecturalHeader from './components/ArchitecturalHeader';
 import AnimatedPrice from '../../components/ui/AnimatedPrice';
 
 const placeBidFunction = httpsCallable(functions, 'placeBid');
+const wakeUpFunction = httpsCallable(functions, 'wakeUp');
 
 const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, onOpenMenu, onOpenCart, onShowLogin, toggleTheme, darkMode }) => {
     const { palette, activeDesignId } = useLiveTheme();
@@ -20,6 +21,15 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
     const [bidLoading, setBidLoading] = useState(false);
     const [msg, setMsg] = useState(null);
     const [bidsHistory, setBidsHistory] = useState([]);
+    const [activeBidInc, setActiveBidInc] = useState(null);
+    const [bidProgress, setBidProgress] = useState(0);
+
+    // WAKE UP CLOUD FUNCTIONS (Anti-Cold Start)
+    useEffect(() => {
+        if (item?.auctionActive) {
+            wakeUpFunction().catch(() => { }); // Silent ping
+        }
+    }, [item?.id]);
 
     // HOOK TEMPS RÉEL
     const { likedItemIds, toggleLike } = useRealtimeUserLikes(user);
@@ -87,23 +97,49 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
     const handleQuickBid = async (inc) => {
         if (bidLoading) return;
         if (!user) {
-            setMsg({ type: 'error', text: 'Connectez-vous pour enchérir.' });
+            onShowLogin();
             return;
         }
         setBidLoading(true);
+        setActiveBidInc(inc);
+        setBidProgress(0);
+
+        // Simulation de progression (0 -> 90% en 1s)
+        const startTime = Date.now();
+        const duration = 1200; // Un peu plus long pour laisser le temps au serveur
+        const timer = setInterval(() => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(90, Math.floor((elapsed / duration) * 90));
+            setBidProgress(progress);
+            if (progress >= 90) clearInterval(timer);
+        }, 50);
+
+        // Clé d'idempotence (Unique par clic pour éviter les doublons techniques)
+        const idempotencyKey = `bid_${user.uid}_${item.id}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
         try {
             const result = await placeBidFunction({
                 itemId: item.id,
                 collectionName: collectionName,
-                increment: inc
+                increment: inc,
+                idempotencyKey
             });
             if (result.data.success) {
+                clearInterval(timer);
+                setBidProgress(100);
                 setMsg({ type: 'success', text: `Offre validée !` });
             }
         } catch (e) {
+            clearInterval(timer);
+            setBidProgress(0);
             setMsg({ type: 'error', text: e.message || 'Erreur lors de l\'enchère.' });
         } finally {
-            setBidLoading(false);
+            // On laisse la barre à 100% un court instant pour la satisfaction visuelle
+            setTimeout(() => {
+                setBidLoading(false);
+                setActiveBidInc(null);
+                setBidProgress(0);
+            }, 500);
             setTimeout(() => setMsg(null), 3000);
         }
     };
@@ -276,12 +312,37 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
                                     <div className="space-y-4">
                                         <p className="text-[10px] font-black uppercase opacity-40">Placer une enchère rapide</p>
                                         <div className="grid grid-cols-3 gap-3">
-                                            {[10, 50, 100].map(inc => (
-                                                <button key={inc} onClick={() => handleQuickBid(inc)} disabled={bidLoading}
-                                                    className="py-4 border font-black text-xs hover:bg-black hover:text-white transition-all border-stone-200 dark:border-stone-700 bg-transparent">
-                                                    +{inc}€
-                                                </button>
-                                            ))}
+                                            {[10, 50, 100].map(inc => {
+                                                const isActive = activeBidInc === inc;
+                                                return (
+                                                    <button
+                                                        key={inc}
+                                                        onClick={() => handleQuickBid(inc)}
+                                                        disabled={bidLoading}
+                                                        className={`relative py-4 border font-black text-xs transition-all duration-300 flex items-center justify-center overflow-hidden
+                                                            ${isActive ? 'bg-black text-white border-black' : 'hover:bg-black hover:text-white border-stone-200 dark:border-stone-700 bg-transparent'}
+                                                            ${bidLoading && !isActive ? 'opacity-30 grayscale cursor-not-allowed' : 'opacity-100'}
+                                                        `}
+                                                    >
+                                                        {isActive ? (
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
+                                                                <span>OFFRE...</span>
+                                                            </div>
+                                                        ) : (
+                                                            <span>+{inc}€</span>
+                                                        )}
+
+                                                        {/* Subtle progress bar effect */}
+                                                        {isActive && (
+                                                            <div
+                                                                className="absolute bottom-0 left-0 h-[2px] w-full bg-white/40 origin-left transition-transform duration-300 ease-out"
+                                                                style={{ transform: `scaleX(${bidProgress / 100})` }}
+                                                            ></div>
+                                                        )}
+                                                    </button>
+                                                );
+                                            })}
                                         </div>
                                     </div>
 

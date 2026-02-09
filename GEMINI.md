@@ -1,6 +1,6 @@
 ---
 project_name: "Tous à Table - Atelier Normand"
-last_updated: "2026-02-08 (Sécurité & Admin Dashboard)"
+last_updated: "2026-02-09 (Sécurisation Enchères & UX Mobile)"
 description: "Site e-commerce et vitrine pour un atelier d'ébénisterie d'art. Vente de meubles (enchères/achat direct) et planches à découper."
 stack:
   frontend: "React + Vite"
@@ -164,7 +164,16 @@ Pour mettre le site en ligne sur **https://tatmadeinnormandie.web.app** :
 *   **Capture d'IP & Device** : Mise en place de `logUserConnection` pour enregistrer l'adresse IP (IPv6/IPv4) et le User-Agent (appareil) de chaque utilisateur à la connexion.
 *   **Logique de Purge Utilisateurs** : Unification du bouton "Purge Utilisateurs" dans la Zone de Danger pour réinitialiser Firebase Auth tout en protégeant uniquement le Super Admin (`matthis.fradin2@gmail.com`).
 *   **Module "Clients Inscrits"** : Ajout d'un KPI dynamique affichant le nombre de comptes réels (email-verified, non-anonymes) avec un export Excel complet incluant les métadonnées de sécurité (IP, Device).
+*   **Validation Stripe Webhook** : Implémentation de la vérification cryptographique des signatures (`STRIPE_WH_SECRET`) pour sécuriser les transactions contre les faux événements de paiement.
+*   **Sécurisation Multi-Admins** : Verrouillage strict de la révocation du compte Super-Admin (`matthis.fradin2@gmail.com`) pour éviter tout auto-blocage ou sabotage.
+
+### 🔨 Optimisation Enchères & Storage (Février 2026)
+*   **Idempotency Protocol** : Utilisation d'une clé d'idempotence unique par clic (`sys_idempotency`) dans la fonction `placeBid`. Empêche techniquement tout doublon d'enchère en cas de clics frénétiques ou de lag réseau.
+*   **Système de "Réveil" (Warm-up)** : Déclenchement silencieux de la fonction `wakeUp` dès l'ouverture d'une fiche produit. Réduit le délai de "Cold Start" de Google Cloud, rendant la première enchère instantanée pour l'utilisateur.
+*   **Blindage Storage** : Verrouillage des `storage.rules` (Admins uniquement, max 10Mo, images uniquement). Prévention du vandalisme par saturation de stockage.
+*   **UX "Fake Progress"** : Synchronisation chirurgicale entre le front et le back. Le bouton d'enchère simule une progression ultra-fluide (0-90%) et saute à 100% au signal exact du serveur. Effet de réactivité premium garanti.
+*   **Force Login Guard** : Redirection automatique vers le modal de connexion si un visiteur tente d'enchérir sans être identifié.
 
 ---
 
-*Dernière mise à jour par l'IA : Session du 08/02/2026 (22:15). Suppression "Stats Reset", Ajout KPI "Clients Inscrits" avec Export Excel, et implémentation de la traçabilité IP (Security Logs).*
+*Dernière mise à jour par l'IA : Session du 09/02/2026 (01:05). Sécurisation Stripe, Idempotence Enchères, Warm-up System et UX Progress Bar Sync.*

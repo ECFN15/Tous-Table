@@ -158,15 +158,62 @@ exports.resetAllStats = functions.https.onCall(async (data, context) => {
         throw new functions.https.HttpsError('internal', "Erreur lors du nettoyage.");
     }
 });
+// ============================================================
+// 2b. GESTION DU STORAGE PRIVÉ (COFFRE-FORT)
+// ============================================================
 
+/**
+ * Génère une URL signée pour permettre l'upload sécurisé
+ */
+exports.getUploadUrl = functions.https.onCall(async (data, context) => {
+    // 1. Sécurité Admin
+    if (!context.auth || (!context.auth.token.admin && context.auth.token.email !== 'matthis.fradin2@gmail.com')) {
+        throw new functions.https.HttpsError('permission-denied', 'Réservé aux admins.');
+    }
+
+    const { fileName, contentType, collectionName } = data;
+    if (!fileName || !contentType || !collectionName) {
+        throw new functions.https.HttpsError('invalid-argument', 'Paramètres manquants.');
+    }
+
+    // 2. Validation Type de fichier (WebP recommandé)
+    if (!contentType.startsWith('image/')) {
+        throw new functions.https.HttpsError('invalid-argument', 'Seules les images sont autorisées.');
+    }
+
+    const bucket = admin.storage().bucket();
+    const filePath = `${collectionName}/${Date.now()}_tat_${fileName}`;
+    const file = bucket.file(filePath);
+
+    // 3. Génération de l'URL signée (Valable 5 minutes)
+    try {
+        const [url] = await file.getSignedUrl({
+            version: 'v4',
+            action: 'write',
+            expires: Date.now() + 5 * 60 * 1000,
+            contentType: contentType,
+        });
+
+        return { uploadUrl: url, filePath: filePath };
+    } catch (error) {
+        console.error("Erreur getSignedUrl:", error);
+        throw new functions.https.HttpsError('internal', 'Impossible de générer l\'URL signée.');
+    }
+});
 
 // ============================================================
-// 3. CLOUD FUNCTION: ENCHÈRES SÉCURISÉES
+// 3. CLOUD FUNCTION: ENCHÈRES SÉCURISÉES & RÉVEIL
 // ============================================================
+
+// Fonction "Réveil" (Warm-up)
+exports.wakeUp = functions.https.onCall(async (data, context) => {
+    return { status: 'awake', timestamp: Date.now() };
+});
+
 exports.placeBid = functions.https.onCall(async (data, context) => {
     if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'Vous devez être connecté.');
 
-    const { itemId, collectionName, increment } = data;
+    const { itemId, collectionName, increment, idempotencyKey } = data;
     const userId = context.auth.uid;
     const userEmail = context.auth.token.email || 'Anonyme';
     const userName = context.auth.token.name || 'Anonyme';
@@ -176,6 +223,28 @@ exports.placeBid = functions.https.onCall(async (data, context) => {
 
     const appId = 'tat-made-in-normandie';
     const itemRef = db.doc(`artifacts/${appId}/public/data/${collectionName}/${itemId}`);
+
+    // LOGIQUE ANTI-DOUBLON (Idempotency)
+    if (idempotencyKey) {
+        const keyRef = db.doc(`sys_idempotency/${idempotencyKey}`);
+        try {
+            await db.runTransaction(async (t) => {
+                const keySnap = await t.get(keyRef);
+                if (keySnap.exists) {
+                    throw new functions.https.HttpsError('already-exists', 'Action déjà traitée.');
+                }
+                t.set(keyRef, {
+                    usedAt: admin.firestore.FieldValue.serverTimestamp(),
+                    userId,
+                    action: 'bid',
+                    itemId
+                });
+            });
+        } catch (e) {
+            if (e.code === 'already-exists') return { success: true, duplicated: true }; // On renvoie success pour ne pas bloquer le front
+            throw e;
+        }
+    }
 
     return db.runTransaction(async (transaction) => {
         const snap = await transaction.get(itemRef);
@@ -211,7 +280,7 @@ exports.placeBid = functions.https.onCall(async (data, context) => {
             increment: increment,
             bidderId: userId,
             bidderName: userName,
-            bidderEmail: userEmail, // Utile pour l'admin
+            bidderEmail: userEmail,
             timestamp: admin.firestore.FieldValue.serverTimestamp()
         });
 
@@ -403,25 +472,28 @@ exports.createOrder = functions.https.onCall(async (data, context) => {
 exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
     const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
     const sig = req.headers['stripe-signature'];
+    const endpointSecret = process.env.STRIPE_WH_SECRET;
 
-    // IMPORTANT: Pour la sécurité, on DEVRAIT vérifier la signature avec endpointSecret
-    // Pour l'instant on fait confiance au format de l'event pour simplifier, 
-    // mais en prod il faut process.env.STRIPE_WH_SECRET
+    // Firebase Functions v1 parses the body automatically, but provides req.rawBody 
+    // which is REQUIRED for Stripe signature verification.
 
     let event;
 
     try {
-        // Si on a le secret webhook, on vérifie la signature (Recommandé)
-        if (process.env.STRIPE_WH_SECRET) {
-            event = stripe.webhooks.constructEvent(req.rawBody, sig, process.env.STRIPE_WH_SECRET);
+        if (endpointSecret && sig) {
+            // VERIFICATION CRYPTOGRAPHIQUE STRICTE
+            event = stripe.webhooks.constructEvent(req.rawBody, sig, endpointSecret);
+            console.log("🔒 Webhook: Signature vérifiée avec succès.");
         } else {
-            // Fallback sans signature (Moins sûr mais marche pour dev rapide)
+            // FALLBACK DEV (À désactiver en production pure si STRIPE_WH_SECRET est forcé)
+            if (!endpointSecret) {
+                console.warn("⚠️ STRIPE_WH_SECRET non configuré. Mode non-sécurisé actif.");
+            }
             event = req.body;
         }
     } catch (err) {
-        console.error(`Webhook Error: ${err.message}`);
-        res.status(400).send(`Webhook Error: ${err.message}`);
-        return;
+        console.error(`❌ Webhook Security Error: ${err.message}`);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
     // Gérer l'événement
@@ -753,6 +825,12 @@ exports.removeAdminUser = functions.https.onCall(async (data, context) => {
 
     const { uid, email } = data; // On accepte UID ou Email pour retrouver l'user
     if (!uid && !email) throw new functions.https.HttpsError('invalid-argument', 'UID ou Email requis.');
+
+    // PRÉVENTION AUTO-BLOQUAGE & PROTECTION SUPER-ADMIN
+    // On interdit formellement de supprimer le compte propriétaire matthis.fradin2@gmail.com
+    if (email === 'matthis.fradin2@gmail.com' || (uid && uid === context.auth?.uid && context.auth?.token.email === 'matthis.fradin2@gmail.com')) {
+        throw new functions.https.HttpsError('failed-precondition', 'Action impossible: vous ne pouvez pas révoquer le super-administrateur.');
+    }
 
     try {
         let targetUid = uid;

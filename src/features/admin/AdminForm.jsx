@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Upload, Trash2, Download, Zap } from 'lucide-react';
+import { db, storage, functions, appId } from '../../firebase/config';
+import { httpsCallable } from 'firebase/functions';
 import { doc, addDoc, updateDoc, collection, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage, appId } from '../../firebase/config';
 import { getMillis } from '../../utils/time';
 import { compressImage } from '../../utils/imageUtils'; // [NEW] Import compression utility
 import ImageCropperModal from './components/ImageCropperModal';
@@ -217,7 +218,7 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
           }
 
           setMsg(`⏳ ${progressPrefix} Envoi de l'image...`);
-          // Naming convention: Timestamp + _tat_ + Filename
+
           const imageRef = ref(storage, `${collectionName}/${Date.now()}_tat_${fileToUpload.name}`);
           await uploadBytes(imageRef, fileToUpload, { cacheControl: 'public, max-age=31536000' });
           const fullUrl = await getDownloadURL(imageRef);
