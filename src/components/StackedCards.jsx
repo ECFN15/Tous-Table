@@ -71,7 +71,7 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                     if (prevVisual) {
                         gsap.to(prevVisual, {
                             scale: 0.80,
-                            y: 100,
+                            y: 0, // <--- FIX: Ne pas descendre la carte pour qu'elle reste bien cachée derrière
                             filter: "blur(8px)",
                             ease: "none",
                             force3D: true,

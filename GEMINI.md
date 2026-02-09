@@ -187,6 +187,15 @@ Suite à un audit de sécurité exhaustif (score initial 7.8/10), les mesures su
     *   `Referrer-Policy: strict-origin-when-cross-origin` : Contrôle du Referer
 *   **Règles Firestore sys_* sécurisées** : Les collections `sys_ratelimit` et `sys_idempotency` sont verrouillées côté client (`allow: if false`).
 
+### 🐛 Debugging & Fixes (Session du 09/02/2026 - 15:00)
+
+*   **GSAP "Safety Refresh" (Stacked Cards)** : Correction du bug d'affichage (flou/petit) au premier chargement Desktop. 
+    *   **Cause** : Le layout Shift (chargement images/fontes) désynchronisait ScrollTrigger.
+    *   **Solution** : Implémentation d'un **Refresh Polling** (recalcul à 100ms, 500ms, 1s, 2s) et d'un **ResizeObserver** sur le conteneur. Dès que la taille change, l'animation se recalibre.
+*   **Images Homepage (Règles Sécurité)** : Correction des règles Firestore qui bloquaient l'affichage des images pour les visiteurs non-connectés.
+    *   **Fix** : Autorisation publique (`allow read`) spécifique pour le document `sys_metadata/homepage_images`.
+*   **Hauteur Cartes Unifiée** : Standardisation de la hauteur des cartes "Stacked" à `88vh` sur tous les devices (Mobile & Desktop) pour garantir la cohérence des triggers.
+
 ---
 
-*Dernière mise à jour par l'IA : Session du 09/02/2026 (13:57). Audit Sécurité Complet, Rate Limiting, CSP Headers, Blocage Webhook Stripe.*
+*Dernière mise à jour par l'IA : Session du 09/02/2026. Fix GSAP Safety Refresh & Règles Homepage Images.*
