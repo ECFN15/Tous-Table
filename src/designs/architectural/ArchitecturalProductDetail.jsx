@@ -231,13 +231,13 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
                             <>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === 0 ? images.length - 1 : prev - 1); }}
-                                    className="absolute top-1/2 left-6 -translate-y-1/2 w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer drop-shadow-md bg-black/20 backdrop-blur-md rounded-full hover:bg-black/50 flex items-center justify-center outline-none ring-0 focus:outline-none focus:ring-0"
+                                    className="hidden md:flex absolute top-1/2 left-6 -translate-y-1/2 w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer drop-shadow-md bg-black/20 backdrop-blur-md rounded-full hover:bg-black/50 items-center justify-center outline-none ring-0 focus:outline-none focus:ring-0"
                                 >
                                     <ChevronLeft size={24} strokeWidth={2} />
                                 </button>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === images.length - 1 ? 0 : prev + 1); }}
-                                    className="absolute top-1/2 right-6 -translate-y-1/2 w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer drop-shadow-md bg-black/20 backdrop-blur-md rounded-full hover:bg-black/50 flex items-center justify-center outline-none ring-0 focus:outline-none focus:ring-0"
+                                    className="hidden md:flex absolute top-1/2 right-6 -translate-y-1/2 w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer drop-shadow-md bg-black/20 backdrop-blur-md rounded-full hover:bg-black/50 items-center justify-center outline-none ring-0 focus:outline-none focus:ring-0"
                                 >
                                     <ChevronRight size={24} strokeWidth={2} />
                                 </button>

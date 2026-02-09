@@ -65,7 +65,7 @@ const ArchitecturalHeader = ({
 
     return (
         <header
-            className={`sticky top-0 z-[100] backdrop-blur-md transition-all duration-500 ease-in-out transform ${isVisible ? 'translate-y-0' : '-translate-y-full'} ${darkMode ? 'bg-[#0A0A0A]/95' : 'bg-[#FAFAF9]/95'}`}
+            className={`sticky top-0 z-[100] backdrop-blur-md transition-all duration-300 ease-in-out transform ${isVisible ? 'translate-y-0' : '-translate-y-full'} ${darkMode ? 'bg-[#0A0A0A]/95' : 'bg-[#FAFAF9]/95'}`}
         >
             <div className="max-w-[1920px] mx-auto px-4 md:px-12 h-20 md:h-24 flex items-center justify-between">
 
