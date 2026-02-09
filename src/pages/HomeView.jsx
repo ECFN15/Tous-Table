@@ -533,11 +533,42 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         });
       });
 
-      // 4. Galerie Manifesto - RESPONSIVE OPTIMIZATION
+      // 4a. Manifesto Title Animation (Global - Scoped)
+      // Targeting the specific intro block
+      gsap.from('.manifesto > div:first-child span', {
+        y: 30, opacity: 0, duration: 1, ease: "power3.out",
+        scrollTrigger: { trigger: ".manifesto", start: "top 75%", once: true }
+      });
+      gsap.from('.manifesto > div:first-child h2', {
+        y: 40, opacity: 0, duration: 1.2, delay: 0.1, ease: "power3.out",
+        scrollTrigger: { trigger: ".manifesto", start: "top 75%", once: true }
+      });
+
+      // 4b. Galerie Manifesto - RESPONSIVE OPTIMIZATION
       const mm = gsap.matchMedia();
 
       // DESKTOP: Cinematic Parallax & Scale
       mm.add("(min-width: 1024px)", () => {
+        // Shared Parallax Logic for Desktop
+        gsap.utils.toArray('.manifesto-item .img-parallax img').forEach((img) => {
+          gsap.fromTo(img,
+            { scale: 1.2, yPercent: -8 }, // Safe scale (20% buffer for 16% movement)
+            {
+              yPercent: 8,
+              scale: 1.2,
+              ease: "none",
+              force3D: true,
+              scrollTrigger: {
+                trigger: img.parentElement,
+                start: "top bottom",
+                end: "bottom top",
+                scrub: 1 // Smooth scrub
+              }
+            }
+          );
+        });
+
+        // Item Entry
         gsap.utils.toArray('.manifesto-item').forEach((item) => {
           gsap.from(item, {
             y: 100, opacity: 0, scale: 0.95, duration: 1.5,
@@ -546,21 +577,65 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         });
       });
 
-      // MOBILE: Simple & Light (No Scale Jitter)
+      // MOBILE: Intelligent Parallax & Soft Reveal (Premium Feel)
       mm.add("(max-width: 1023px)", () => {
-        gsap.utils.toArray('.manifesto-item').forEach((item) => {
-          gsap.from(item, {
-            y: 50,
-            opacity: 0,
-            duration: 0.8,
-            ease: "power2.out",
-            clearProps: "all", // RELEASE GPU MEMORY
-            scrollTrigger: {
-              trigger: item,
-              start: "top 85%",
-              once: true // ONE SHOT ONLY to prevent scroll stutter
+        // 1. Image Parallax (The "Intelligent" part)
+        // Moves the image inside its container based on scroll for a "living" window effect
+        gsap.utils.toArray('.manifesto-item .img-parallax img').forEach((img) => {
+          gsap.fromTo(img,
+            { scale: 1.25, yPercent: -10 }, // Increased scale to prevent white gaps
+            {
+              yPercent: 10,
+              scale: 1.25,
+              ease: "none",
+              force3D: true,
+              scrollTrigger: {
+                trigger: img.parentElement,
+                start: "top bottom",
+                end: "bottom top",
+                scrub: 1 // Reduced scrub slightly for responsiveness
+              }
             }
-          });
+          );
+        });
+
+        // 2. Content Reveal (The "Smooth" part)
+        // Decomposed animation: Image first, then Text
+        gsap.utils.toArray('.manifesto-item').forEach((item) => {
+          const imgWrapper = item.querySelector('.img-parallax');
+          const textWrapper = item.querySelector('div:not(.img-parallax)'); // Select text container
+
+          // Image Entry
+          if (imgWrapper) {
+            gsap.from(imgWrapper, {
+              y: 60,
+              opacity: 0,
+              duration: 1.2,
+              ease: "power3.out",
+              clearProps: "transform, opacity", // Clean up for parallax
+              scrollTrigger: {
+                trigger: item,
+                start: "top 80%", // Reveal when comfortably in view
+                once: true
+              }
+            });
+          }
+
+          // Text Entry (Staggered)
+          if (textWrapper) {
+            gsap.from(textWrapper, {
+              y: 40,
+              opacity: 0,
+              duration: 1.0,
+              delay: 0.2, // Wait for image to establish presence
+              ease: "power2.out",
+              scrollTrigger: {
+                trigger: item,
+                start: "top 80%",
+                once: true
+              }
+            });
+          }
         });
       });
 

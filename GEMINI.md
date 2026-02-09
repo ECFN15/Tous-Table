@@ -65,6 +65,7 @@ Le projet a été simplifié en Février 2026 pour ne garder que le design "Arch
 
     *   **Update Février 2026 (Mobile Performance Audit - Homepage)** :
         *   **Hero Stability (100svh)** : Remplacement de `100dvh` (Dynamic) par `100svh` (Small Viewport Height) pour la section Hero. Empêche le "saut de marche" (layout shift) causé par le retrait de la barre d'adresse mobile lors du scroll.
+        *   **Manifesto Intelligent (Parallax)** : Intégration d'un effet de fenêtre (window parallax) sur les images (`scale: 1.25` + `scrub`) pour une profondeur vivante. Décomposition de l'apparition (Image puis Texte) pour une narration fluide sur Mobile & Desktop.
         *   **Manifesto Anti-Jitter** : Désactivation des transforms complexes (`scale`, `parallax`) sur mobile (<1024px). Remplacement par un simple `fade-in` (`opacity`) déclenché une seule fois (`once: true`) pour une fluidité native sans tremblements.
         *   **Background 3D Fix** : Suppression de la remontée verticale (`y: -150`) lors de la sortie du Hero pour éviter les trous blancs sur mobile. Le fond disparaît désormais uniquement par transparence (`opacity: 0`).
         *   **Transition Couleur Stable** : Décalage du trigger de changement de fond (Noir -> Beige) à `top 60%` (au lieu de 80%) avec `preventOverlaps: true` pour éviter le clignotement lors des rebonds de scroll (rubber-banding).
@@ -198,4 +199,4 @@ Suite à un audit de sécurité exhaustif (score initial 7.8/10), les mesures su
 
 ---
 
-*Dernière mise à jour par l'IA : Session du 09/02/2026. Fix GSAP Safety Refresh & Règles Homepage Images.*
+*Dernière mise à jour par l'IA : Session du 09/02/2026. Fix GSAP Safety Refresh, Règles Homepage Images & Manifesto Animations.*
