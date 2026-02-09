@@ -174,6 +174,19 @@ Pour mettre le site en ligne sur **https://tatmadeinnormandie.web.app** :
 *   **UX "Fake Progress"** : Synchronisation chirurgicale entre le front et le back. Le bouton d'enchère simule une progression ultra-fluide (0-90%) et saute à 100% au signal exact du serveur. Effet de réactivité premium garanti.
 *   **Force Login Guard** : Redirection automatique vers le modal de connexion si un visiteur tente d'enchérir sans être identifié.
 
+### 🔒 Audit de Sécurité Complet (Février 2026 - Session 13:57)
+Suite à un audit de sécurité exhaustif (score initial 7.8/10), les mesures suivantes ont été implémentées :
+
+*   **Rate Limiting Enchères** : Protection anti-spam avec limite de 5 enchères par minute par utilisateur. Collection dédiée `sys_ratelimit` gérée exclusivement par le backend (Admin SDK). Empêche les attaques DoS économiques sur Firestore.
+*   **Blocage Webhook Stripe Non-Sécurisé** : Suppression du mode "fallback" qui acceptait les webhooks non signés. Si `STRIPE_WH_SECRET` n'est pas configuré, le webhook renvoie une erreur 500 au lieu d'accepter des requêtes potentiellement forgées.
+*   **Email Vérifié Obligatoire** : La fonction `createOrder` exige désormais `email_verified = true` sur le token utilisateur. Empêche les commandes fantômes avec des emails non vérifiables.
+*   **Headers de Sécurité CSP** : Ajout dans `firebase.json` des headers modernes :
+    *   `Content-Security-Policy` : Blocage des scripts/styles/images non autorisés
+    *   `X-Frame-Options: DENY` : Protection anti-clickjacking
+    *   `X-Content-Type-Options: nosniff` : Protection MIME sniffing
+    *   `Referrer-Policy: strict-origin-when-cross-origin` : Contrôle du Referer
+*   **Règles Firestore sys_* sécurisées** : Les collections `sys_ratelimit` et `sys_idempotency` sont verrouillées côté client (`allow: if false`).
+
 ---
 
-*Dernière mise à jour par l'IA : Session du 09/02/2026 (01:05). Sécurisation Stripe, Idempotence Enchères, Warm-up System et UX Progress Bar Sync.*
+*Dernière mise à jour par l'IA : Session du 09/02/2026 (13:57). Audit Sécurité Complet, Rate Limiting, CSP Headers, Blocage Webhook Stripe.*

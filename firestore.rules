@@ -104,5 +104,21 @@ service cloud.firestore {
       allow read: if isArtisan(); // <--- SEUL L'ADMIN PEUT LIRE LA LISTE DES ADMINS
       allow write: if isArtisan();
     }
+
+    // ============================================================
+    // SÉCURITÉ: Collections système (Backend-Only via Admin SDK)
+    // ============================================================
+    // Ces collections sont gérées EXCLUSIVEMENT par les Cloud Functions
+    // Aucun client ne peut y accéder directement
+
+    // Rate Limiting pour les enchères
+    match /sys_ratelimit/{docId} {
+      allow read, write: if false; // Backend Admin SDK uniquement
+    }
+
+    // Clés d'idempotence (anti-doublon enchères)
+    match /sys_idempotency/{docId} {
+      allow read, write: if false; // Backend Admin SDK uniquement
+    }
   }
 }

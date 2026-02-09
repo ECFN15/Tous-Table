@@ -221,6 +221,24 @@ exports.placeBid = functions.https.onCall(async (data, context) => {
     if (!itemId || typeof itemId !== 'string') throw new functions.https.HttpsError('invalid-argument', 'ID invalide.');
     if (increment < 5 || increment > 10000) throw new functions.https.HttpsError('invalid-argument', 'Incrément invalide.');
 
+    // ============================================================
+    // RATE LIMITING: Max 5 enchères par minute par utilisateur
+    // ============================================================
+    const rateLimitRef = db.doc(`sys_ratelimit/bid_${userId}`);
+    const rateLimitSnap = await rateLimitRef.get();
+    const rateLimitData = rateLimitSnap.exists ? rateLimitSnap.data() : { count: 0, resetAt: 0 };
+
+    if (Date.now() < rateLimitData.resetAt && rateLimitData.count >= 5) {
+        throw new functions.https.HttpsError('resource-exhausted', 'Trop de requêtes. Réessayez dans 1 minute.');
+    }
+
+    // Update rate limit counter (fire-and-forget pour ne pas bloquer)
+    if (Date.now() > rateLimitData.resetAt) {
+        rateLimitRef.set({ count: 1, resetAt: Date.now() + 60000 }).catch(() => { });
+    } else {
+        rateLimitRef.update({ count: admin.firestore.FieldValue.increment(1) }).catch(() => { });
+    }
+
     const appId = 'tat-made-in-normandie';
     const itemRef = db.doc(`artifacts/${appId}/public/data/${collectionName}/${itemId}`);
 
@@ -298,6 +316,15 @@ const Stripe = require('stripe');
 
 exports.createOrder = functions.https.onCall(async (data, context) => {
     if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'Auth requise.');
+
+    // ============================================================
+    // SÉCURITÉ: Exiger un email vérifié pour passer commande
+    // ============================================================
+    if (!context.auth.token.email_verified) {
+        throw new functions.https.HttpsError('failed-precondition',
+            'Veuillez vérifier votre email avant de passer commande. Consultez votre boîte de réception (ou spams).'
+        );
+    }
 
     // Initialisation Lazy de Stripe pour éviter les erreurs au déploiement
     const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
@@ -485,11 +512,17 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
             event = stripe.webhooks.constructEvent(req.rawBody, sig, endpointSecret);
             console.log("🔒 Webhook: Signature vérifiée avec succès.");
         } else {
-            // FALLBACK DEV (À désactiver en production pure si STRIPE_WH_SECRET est forcé)
+            // ============================================================
+            // SÉCURITÉ CRITIQUE: Bloquer les webhooks non signés en PRODUCTION
+            // ============================================================
             if (!endpointSecret) {
-                console.warn("⚠️ STRIPE_WH_SECRET non configuré. Mode non-sécurisé actif.");
+                console.error("❌ ERREUR CRITIQUE: STRIPE_WH_SECRET non configuré. Webhook DÉSACTIVÉ.");
+                return res.status(500).send('Configuration Error: Webhook secret missing.');
             }
-            event = req.body;
+            if (!sig) {
+                console.error("❌ Tentative de webhook sans signature. Bloquée.");
+                return res.status(401).send('Unauthorized: Missing signature.');
+            }
         }
     } catch (err) {
         console.error(`❌ Webhook Security Error: ${err.message}`);
