@@ -92,7 +92,7 @@ const ArchitecturalHeader = ({
                         {showToggle && toggleTheme && (
                             <button
                                 onClick={toggleTheme}
-                                className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${darkMode ? 'text-stone-400 hover:bg-stone-800 hover:text-amber-500' : 'text-stone-400 hover:bg-stone-200 hover:text-stone-900'}`}
+                                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${darkMode ? 'text-stone-400 hover:bg-stone-800 hover:text-amber-500' : 'text-stone-400 hover:bg-stone-200 hover:text-stone-900'}`}
                                 title="Changer de thème"
                             >
                                 {isDark ? <Sun size={20} strokeWidth={1.5} /> : <Moon size={20} strokeWidth={1.5} />}
@@ -105,7 +105,7 @@ const ArchitecturalHeader = ({
                                 {/* Mobile Icon (LogIn) */}
                                 <button
                                     onClick={onShowLogin}
-                                    className={`md:hidden w-10 h-10 rounded-full flex items-center justify-center border transition-all ${darkMode ? 'border-stone-800 text-stone-400' : 'border-stone-200 text-stone-500'}`}
+                                    className={`md:hidden w-10 h-10 rounded-full flex items-center justify-center transition-all ${darkMode ? 'text-stone-400 hover:bg-stone-800' : 'text-stone-500 hover:bg-stone-200'}`}
                                     title="Connexion Admin"
                                 >
                                     <LogIn size={20} strokeWidth={1.5} />
