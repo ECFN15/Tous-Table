@@ -47,14 +47,14 @@ const MarketplaceLayout = ({
             />
 
             {/* --- MAIN CONTENT --- */}
-            <main className="max-w-[1920px] mx-auto px-4 md:px-12 py-10 md:pt-10 md:pb-12">
+            <main className="max-w-[1920px] mx-auto px-4 md:px-12 py-10 md:pt-8 md:pb-12">
 
                 {/* HERO TITLE */}
-                <div className="mb-10 md:mb-10 flex flex-col items-center text-center gap-4 md:gap-4 max-w-7xl mx-auto">
+                <div className="mb-10 md:mb-8 flex flex-col items-center text-center gap-4 md:gap-4 max-w-7xl mx-auto">
                     <span className={`text-[10px] uppercase font-bold tracking-[0.4em] ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
                         Collection 2026
                     </span>
-                    <h2 className={`font-serif text-5xl md:text-7xl lg:text-8xl leading-[0.9] min-h-[1.8em] flex items-center justify-center ${darkMode ? 'text-stone-100' : 'text-stone-900'}`}>
+                    <h2 className={`font-serif text-4xl md:text-7xl lg:text-8xl leading-[0.9] min-h-[1.8em] flex items-center justify-center ${darkMode ? 'text-stone-100' : 'text-stone-900'}`}>
                         {activeCollection === 'furniture' ? (
                             <TextType
                                 text={["Tous à Table", "Savoir-Faire", "Made in Normandie", "L'Élégance du Temps.", "Votre Intérieur Sublimé."]}
