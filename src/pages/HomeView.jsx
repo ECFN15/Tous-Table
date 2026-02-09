@@ -642,11 +642,14 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       // 5. Scroll Horizontal (PROCESS) - HYBRID MODE (Desktop Only)
       const horizontal = document.querySelector('.horizontal-content');
       if (horizontal) {
+        // Create MatchMedia inside the Context (safe cleanup)
         const mm = gsap.matchMedia();
 
+        // --- DESKTOP (>= 1920px) : HORIZONTAL SCROLL ---
         mm.add("(min-width: 1920px)", () => {
           // Add extra space so we can scroll past the 5th card and see black space
           const distanceToScroll = horizontal.scrollWidth - window.innerWidth + 200;
+
           const xAnim = gsap.to(horizontal, {
             x: -distanceToScroll,
             ease: "none",
@@ -670,22 +673,35 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
             gsap.to(img, {
               y: 0, opacity: 1, scale: 1,
               duration: 0.5, ease: "power2.out",
-              // Delay spécifique pour la 2ème image (index 1) pour éviter l'apparition instantanée
               delay: (i === 1) ? 0.5 : 0,
               scrollTrigger: {
                 trigger: card,
                 containerAnimation: xAnim,
-                // On attend que la carte soit un peu plus rentrée (95%) pour déclencher
-                // Cela "naturelise" l'apparition comme pour les cartes 3, 4, 5
                 start: "left 95%",
+                toggleActions: "play none none reverse"
+              }
+            });
+
+            // Text/Caption Animation
+            const caption = card.querySelector('.p-caption');
+            gsap.set(caption, { opacity: 0, x: -20 });
+            gsap.to(caption, {
+              opacity: 1, x: 0,
+              duration: 0.6,
+              delay: 0.2,
+              scrollTrigger: {
+                trigger: card,
+                containerAnimation: xAnim,
+                start: "left 80%",
                 toggleActions: "play none none reverse"
               }
             });
           });
         });
 
+        // --- MOBILE/TABLET (< 1920px) : VERTICAL STACK + PARALLAX ---
         mm.add("(max-width: 1919px)", () => {
-          // 1. Process Image Parallax (Window Effect) - Optimized
+          // 1. Image Parallax (Window Effect)
           gsap.utils.toArray('.process-card .img-box-process img').forEach((img) => {
             gsap.fromTo(img,
               { scale: 1.25, yPercent: -10 },
@@ -753,9 +769,6 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
 
       // 6. STACKING CARDS LOGIC REMOVED (Handled by StackedCards.jsx)
 
-      // 6. STACKING CARDS LOGIC REMOVED (Handled by StackedCards.jsx)
-      // Legacy text reveal removed to prevent ReferenceError
-
       // 7. Data Counters (GSAP pour la Section 12)
       const statNumbers = gsap.utils.toArray('.stat-number');
       statNumbers.forEach(num => {
@@ -769,13 +782,31 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         });
       });
 
-      // 8. Team Section - Animation d'apparition du texte uniquement (CSS Sticky gère le pinning)
-      gsap.from('.team-content-reveal', {
-        y: 50,
-        opacity: 0,
-        duration: 1,
-        stagger: 0.1,
-        scrollTrigger: { trigger: '.team-section', start: "top 60%" }
+      // 8. Team Section - Modern Editorial Reveal (Blur + Stagger)
+      const teamElements = gsap.utils.toArray('.team-content-reveal');
+      teamElements.forEach((el, i) => {
+        gsap.fromTo(el,
+          {
+            y: 30,
+            opacity: 0,
+            filter: 'blur(8px)', // Modern "Apple-like" blur
+            scale: 0.98
+          },
+          {
+            y: 0,
+            opacity: 1,
+            filter: 'blur(0px)',
+            scale: 1,
+            duration: 1.2,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: '.team-section',
+              start: "top 60%", // Trigger slightly later
+              toggleActions: "play none none reverse"
+            },
+            delay: i * 0.15 // Consistent stagger calculated manually for cleaner control
+          }
+        );
       });
 
       // 9. Curseur (Desktop uniquement)
