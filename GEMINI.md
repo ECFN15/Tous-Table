@@ -69,7 +69,7 @@ Le projet a été simplifié en Février 2026 pour ne garder que le design "Arch
         *   **Manifesto Anti-Jitter** : Désactivation des transforms complexes (`scale`, `parallax`) sur mobile (<1024px). Remplacement par un simple `fade-in` (`opacity`) déclenché une seule fois (`once: true`) pour une fluidité native sans tremblements.
         *   **Background 3D Fix** : Suppression de la remontée verticale (`y: -150`) lors de la sortie du Hero pour éviter les trous blancs sur mobile. Le fond disparaît désormais uniquement par transparence (`opacity: 0`).
         *   **Transition Couleur Stable** : Décalage du trigger de changement de fond (Noir -> Beige) à `top 60%` (au lieu de 80%) avec `preventOverlaps: true` pour éviter le clignotement lors des rebonds de scroll (rubber-banding).
-        *   **Process Section Light** : Utilisation d'une logique simplifiée "Instant Reveal" sur mobile pour les cartes Process, soulageant le GPU par rapport au `scrub` continu.
+        *   **Process Section Premium** : Abandon du "Simple Reveal" au profit du système **Intelligent Parallax** (`scrub: 1`) et d'une séquence d'apparition plus nerveuse (Trigger `top 85%`, Durations réduites) pour éliminer toute sensation de lenteur sur mobile.
 
 ---
 
@@ -199,4 +199,4 @@ Suite à un audit de sécurité exhaustif (score initial 7.8/10), les mesures su
 
 ---
 
-*Dernière mise à jour par l'IA : Session du 09/02/2026. Fix GSAP Safety Refresh, Règles Homepage Images & Manifesto Animations.*
+*Dernière mise à jour par l'IA : Session du 09/02/2026. Fix GSAP Safety Refresh & Process Mobile Ultra-Fast.*

@@ -685,29 +685,68 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         });
 
         mm.add("(max-width: 1919px)", () => {
-          // Animation des cartes (Mobile - Vertical) - ULTRA-OPTIMISÉ INSTANT REVEAL
-          // Mobile Optimization: Use IntersectionObserver or simple ScrollTrigger without scrub
-          const cards = gsap.utils.toArray('.process-card');
-          cards.forEach((card) => {
-            const img = card.querySelector('.img-box-process');
-            // Mobile: Simpler animation to avoid GPU strain
-            gsap.set(img, { opacity: 0, scale: 0.98 });
+          // 1. Process Image Parallax (Window Effect) - Optimized
+          gsap.utils.toArray('.process-card .img-box-process img').forEach((img) => {
+            gsap.fromTo(img,
+              { scale: 1.25, yPercent: -10 },
+              {
+                yPercent: 10,
+                scale: 1.25,
+                ease: "none",
+                force3D: true,
+                scrollTrigger: {
+                  trigger: img.closest('.process-card'),
+                  start: "top bottom",
+                  end: "bottom top",
+                  scrub: 1 // Smooth touch response
+                }
+              }
+            );
+          });
 
-            ScrollTrigger.create({
-              trigger: card,
-              start: "top 85%", // Trigger earlier on mobile
-              once: true, // Run only once to avoid re-calculation/jitter on weird scrolls
-              onEnter: () => {
-                gsap.to(img, {
-                  opacity: 1,
-                  scale: 1,
-                  duration: 0.4,
-                  ease: "power2.out",
-                  force3D: true,
-                  clearProps: "transform,filter" // Clean up to free GPU memory
-                });
+          // 2. Intelligent Reveal Sequence (Faster & More Fluid)
+          const cards = gsap.utils.toArray('.process-card');
+          cards.forEach((card, i) => {
+            const imgBox = card.querySelector('.img-box-process');
+            const caption = card.querySelector('.p-caption');
+            const number = card.querySelector('.font-serif.text-stroke-1');
+
+            const tl = gsap.timeline({
+              scrollTrigger: {
+                trigger: card,
+                // Fix for First Card: Trigger later (70%) to ensure user sees it after reading Title
+                // Others: Trigger early (90%) for flow
+                start: i === 0 ? "top 70%" : "top 90%",
+                once: true
               }
             });
+
+            // Sequence: ULTRA-FAST (Near instantaneous)
+            if (number) {
+              // Number: Flash appear
+              tl.from(number.parentElement, { opacity: 0, y: 15, duration: 0.4, ease: "power2.out" }, 0);
+            }
+
+            if (imgBox) {
+              // Image: Snappy rise
+              tl.from(imgBox, {
+                y: 15, // Micro-movement
+                opacity: 0,
+                duration: 0.4, // 0.4s is extremely fast
+                ease: "power2.out",
+                clearProps: "transform,opacity"
+              }, 0);
+            }
+
+            if (caption) {
+              // Caption: Follows immediately
+              tl.from(caption, {
+                y: 10,
+                opacity: 0,
+                duration: 0.5,
+                ease: "power2.out"
+              }, 0.05); // 50ms delay
+            }
           });
         });
       }
@@ -1199,19 +1238,22 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
 
           {/* COLONNE GAUCHE (TEXTE) - STICKY */}
           {/* md: tablettes (768px+), lg: laptops (1024px+), xl: desktops (1280px+) */}
-          <div className="w-full md:w-1/2 md:sticky md:top-0 md:h-auto lg:h-screen flex flex-col md:justify-start lg:justify-center px-6 md:px-8 lg:px-[6vw] pt-16 pb-0 md:pt-[15vh] md:pb-16 lg:py-0 text-[#1a1a1a]">
-            <div className="space-y-6 md:space-y-8 lg:space-y-10 team-content-reveal">
+          <div className="w-full md:w-1/2 md:sticky md:top-0 md:h-auto lg:h-screen flex flex-col md:justify-start lg:justify-center px-8 md:px-8 lg:px-[6vw] pt-24 pb-0 md:pt-[15vh] md:pb-16 lg:py-0 text-[#1a1a1a]">
+            {/* Espacement interne augmenté : space-y-8 (was space-y-6) */}
+            <div className="space-y-8 md:space-y-8 lg:space-y-10 team-content-reveal">
               <span className="text-[10px] md:text-[11px] lg:text-[12px] uppercase tracking-[1.2em] md:tracking-[1.4em] text-[#9C8268] block font-black italic">La Direction</span>
-              <h2 className="font-serif text-5xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-[8vw] leading-[0.9] font-light italic tracking-tight text-[#1a1a1a]">
+              <h2 className="font-serif text-5xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-[8vw] leading-[1.1] md:leading-[0.9] font-light italic tracking-tight text-[#1a1a1a]">
                 {homepageImages['team_main_text']?.name_line1 || "Jean"} <br /> {homepageImages['team_main_text']?.name_line2 || "Lefebvre"}
               </h2>
             </div>
 
-            <p className="text-base md:text-lg lg:text-xl xl:text-2xl font-light opacity-60 leading-relaxed italic border-l border-black/10 pl-6 md:pl-6 lg:pl-8 xl:pl-10 mt-8 md:mt-8 lg:mt-12 team-content-reveal">
+            {/* Marge augmentée : mt-12 (was mt-8) */}
+            <p className="text-base md:text-lg lg:text-xl xl:text-2xl font-light opacity-60 leading-relaxed italic border-l border-black/10 pl-6 md:pl-6 lg:pl-8 xl:pl-10 mt-12 md:mt-8 lg:mt-12 team-content-reveal">
               {homepageImages['team_main_text']?.quote || "\"Nous ne luttons pas contre le temps, nous le réapprivoisons. Chaque main possède une mémoire que les outils n'ont pas.\""}
             </p>
 
-            <div className="flex gap-6 md:gap-8 lg:gap-12 xl:gap-16 pt-6 md:pt-8 lg:pt-12 border-t border-black/5 items-center mt-8 md:mt-8 lg:mt-12 team-content-reveal">
+            {/* Marge augmentée : mt-12 (was mt-8) */}
+            <div className="flex gap-6 md:gap-8 lg:gap-12 xl:gap-16 pt-8 md:pt-8 lg:pt-12 border-t border-black/5 items-center mt-12 md:mt-8 lg:mt-12 team-content-reveal">
               <div>
                 <span className="block text-[9px] uppercase tracking-widest opacity-30 mb-2 font-black">Expérience</span>
                 <span className="font-serif text-3xl md:text-4xl lg:text-5xl xl:text-6xl italic text-[#9C8268]">
@@ -1224,8 +1266,8 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
           </div>
 
           {/* COLONNE DROITE (IMAGE) - SCROLLABLE, PLUS HAUTE */}
-          {/* min-h plus grand sur tablette pour compenser le texte plus petit */}
-          <div className="w-full md:w-1/2 md:min-h-[160vh] lg:min-h-[150vh] flex flex-col justify-start px-6 md:px-8 lg:px-[4vw] pt-8 pb-20 md:pt-[15vh] md:pb-[20vh] lg:py-[15vh] bg-[#FAF9F6]">
+          {/* Mobile: pt-16 (Gap entre texte et image), pb-24 (Marge bas symétrique à pt-24 du haut) */}
+          <div className="w-full md:w-1/2 md:min-h-[160vh] lg:min-h-[150vh] flex flex-col justify-start px-8 md:px-8 lg:px-[4vw] pt-16 pb-24 md:pt-[15vh] md:pb-[20vh] lg:py-[15vh] bg-[#FAF9F6]">
             <div className="relative w-full aspect-[3/4] md:aspect-[2/3] shadow-[0_80px_160px_rgba(0,0,0,0.15)] bg-stone-200 overflow-hidden">
               <img
                 src={homepageImages['team_main'] || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1600"}
