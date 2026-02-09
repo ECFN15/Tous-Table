@@ -39,28 +39,28 @@ const ArchitecturalHeader = ({
 
     // --- SMART SCROLL LOGIC ---
     const [isVisible, setIsVisible] = useState(true);
-    const [lastScrollY, setLastScrollY] = useState(0);
+    const lastScrollY = React.useRef(0); // Use Ref for performance
 
     useEffect(() => {
         const handleScroll = () => {
             const currentScrollY = window.scrollY;
 
             // Ignore small movements or top of page (elastic bounce)
-            if (Math.abs(currentScrollY - lastScrollY) < 10) return;
+            if (Math.abs(currentScrollY - lastScrollY.current) < 10) return;
 
-            if (currentScrollY > lastScrollY && currentScrollY > 100) {
+            if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
                 // Scrolling DOWN (>100px) -> Hide
                 setIsVisible(false);
             } else {
                 // Scrolling UP -> Show
                 setIsVisible(true);
             }
-            setLastScrollY(currentScrollY);
+            lastScrollY.current = currentScrollY;
         };
 
         window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
-    }, [lastScrollY]);
+    }, []);
 
 
     return (
