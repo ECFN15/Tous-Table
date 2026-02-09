@@ -47,10 +47,10 @@ const MarketplaceLayout = ({
             />
 
             {/* --- MAIN CONTENT --- */}
-            <main className="max-w-[1920px] mx-auto px-4 md:px-12 py-10 md:py-24">
+            <main className="max-w-[1920px] mx-auto px-4 md:px-12 py-10 md:pt-10 md:pb-12">
 
                 {/* HERO TITLE */}
-                <div className="mb-10 md:mb-24 flex flex-col items-center text-center gap-4 md:gap-6 max-w-7xl mx-auto">
+                <div className="mb-10 md:mb-10 flex flex-col items-center text-center gap-4 md:gap-4 max-w-7xl mx-auto">
                     <span className={`text-[10px] uppercase font-bold tracking-[0.4em] ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
                         Collection 2026
                     </span>
