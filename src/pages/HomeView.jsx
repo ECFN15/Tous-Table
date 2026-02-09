@@ -730,9 +730,9 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
             const tl = gsap.timeline({
               scrollTrigger: {
                 trigger: card,
-                // Fix for First Card: Trigger later (70%) to ensure user sees it after reading Title
-                // Others: Trigger early (90%) for flow
-                start: i === 0 ? "top 70%" : "top 90%",
+                // Fix for First Card: Trigger later (75%) to ensure user sees it after reading Title
+                // Others: Trigger VERY early (95%) for immediate flow
+                start: i === 0 ? "top 75%" : "top 95%",
                 once: true
               }
             });
@@ -740,7 +740,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
             // Sequence: ULTRA-FAST (Near instantaneous)
             if (number) {
               // Number: Flash appear
-              tl.from(number.parentElement, { opacity: 0, y: 15, duration: 0.4, ease: "power2.out" }, 0);
+              tl.from(number.parentElement, { opacity: 0, y: 15, duration: 0.35, ease: "power2.out" }, 0);
             }
 
             if (imgBox) {
@@ -748,7 +748,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
               tl.from(imgBox, {
                 y: 15, // Micro-movement
                 opacity: 0,
-                duration: 0.4, // 0.4s is extremely fast
+                duration: 0.35, // 0.35s is extremely fast
                 ease: "power2.out",
                 clearProps: "transform,opacity"
               }, 0);
@@ -759,7 +759,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
               tl.from(caption, {
                 y: 10,
                 opacity: 0,
-                duration: 0.5,
+                duration: 0.45,
                 ease: "power2.out"
               }, 0.05); // 50ms delay
             }
