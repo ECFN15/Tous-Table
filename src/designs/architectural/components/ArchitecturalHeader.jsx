@@ -135,7 +135,7 @@ const ArchitecturalHeader = ({
                                 {/* Mobile Icon (LogIn) */}
                                 <button
                                     onClick={onShowLogin}
-                                    className={`md:hidden w-10 h-10 rounded-full flex items-center justify-center transition-all ${darkMode ? 'text-stone-400 hover:bg-stone-800' : 'text-stone-500 hover:bg-stone-200'}`}
+                                    className={`md:hidden w-10 h-10 flex items-center justify-center transition-all ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}
                                     title="Connexion Admin"
                                 >
                                     <LogIn size={20} strokeWidth={1.5} />
@@ -155,7 +155,7 @@ const ArchitecturalHeader = ({
                                 </div>
                                 <button
                                     onClick={() => logout()}
-                                    className={`flex items-center justify-center sm:gap-2 w-10 h-10 sm:w-auto sm:px-4 sm:py-2 rounded-full sm:rounded border transition-all group ${darkMode ? 'border-stone-800 hover:bg-red-900/20 hover:border-red-900/50 text-stone-400 hover:text-red-400' : 'border-stone-200 hover:bg-red-50 hover:border-red-200 text-stone-500 hover:text-red-600'}`}
+                                    className={`flex items-center justify-center sm:gap-2 w-10 h-10 sm:w-auto sm:px-4 sm:py-2 rounded-full sm:rounded sm:border transition-all group ${darkMode ? 'sm:border-stone-800 sm:hover:bg-red-900/20 sm:hover:border-red-900/50 text-stone-400 hover:text-red-400' : 'sm:border-stone-200 sm:hover:bg-red-50 sm:hover:border-red-200 text-stone-500 hover:text-red-600'}`}
                                     title="Se déconnecter"
                                 >
                                     <LogOut size={18} />
