@@ -22,7 +22,7 @@ const RevealText = ({ text, className, delay = 0 }) => {
 };
 
 // --- COMPOSANT : ROTATING SYMBOL (HEADER) ---
-const RotatingSymbol = ({ className, size = 120, text = "TOUS À TABLE • 2024 •" }) => {
+const RotatingSymbol = ({ className, size = 120, text = "TOUS À TABLE • 2026 •" }) => {
   return (
     <div className={`relative flex items-center justify-center pointer-events-none select-none ${className}`}>
       <svg width={size} height={size} viewBox="0 0 100 100" className="animate-spin-extremely-slow">
@@ -1059,12 +1059,12 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
 
       {/* [SECTION 10: PROCESS] */}
       {/* HYBRID: Vertical Zig-Zag until Big PC (1920px), Horizontal (h-[100dvh]) for 1920px+ */}
-      <section className="process-wrapper h-auto min-[1920px]:h-[100dvh] min-h-[600px] bg-[#0D0D0D] text-[#FAF9F6] flex items-center overflow-hidden py-32 min-[1920px]:py-0">
+      <section className="process-wrapper h-auto min-[1920px]:h-[100dvh] min-h-[600px] bg-[#0D0D0D] text-[#FAF9F6] flex items-center overflow-hidden py-24 min-[1920px]:py-0">
         <div className="horizontal-content flex flex-col min-[1920px]:flex-row gap-32 min-[1920px]:gap-[12vw] px-4 md:px-12 min-[1920px]:px-0 min-[1920px]:pl-[10vw] min-[1920px]:pr-[15vw] items-center relative min-[1920px]:will-change-transform w-full">
 
           {/* Titre Section */}
           <div className="w-full min-[1920px]:min-w-[40vw] relative flex flex-col items-center min-[1920px]:items-start justify-center mb-32 min-[1920px]:mb-0 border-b min-[1920px]:border-b-0 min-[1920px]:border-r border-white/5 pb-16 min-[1920px]:pb-0 min-[1920px]:pr-[8vw] text-center min-[1920px]:text-left mx-auto min-[1920px]:mx-0">
-            <RotatingSymbol className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 min-[1920px]:top-auto min-[1920px]:left-auto min-[1920px]:translate-x-0 min-[1920px]:translate-y-0 min-[1920px]:-top-20 min-[1920px]:-left-24 text-[#9C8268] opacity-10 min-[1920px]:opacity-100" size={isMobile ? 220 : 160} />
+            <RotatingSymbol className="absolute -top-20 left-1/2 -translate-x-1/2 min-[1920px]:top-auto min-[1920px]:left-auto min-[1920px]:translate-x-0 min-[1920px]:translate-y-0 min-[1920px]:-top-20 min-[1920px]:-left-24 text-[#9C8268] opacity-30 min-[1920px]:opacity-100" size={isMobile ? 220 : 160} />
             <div className="relative z-10 w-full px-4 md:px-0">
               <span className="text-[10px] uppercase tracking-[1.2em] text-[#9C8268] mb-8 block font-black">L'Alchimie</span>
               <h2 className="font-serif text-5xl md:text-8xl min-[1920px]:text-[12vw] leading-none font-light italic text-white px-2">Le Rituel.</h2>
