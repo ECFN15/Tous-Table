@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import ProductCard from './components/ProductCard';
-import ArchitecturalHeader from './components/ArchitecturalHeader'; // Import
+import ArchitecturalHeader from './components/ArchitecturalHeader';
+import TextType from '../../components/ui/TextType';
 import { Bookmark, LayoutGrid, Rows, GripHorizontal, ChevronDown, Menu, ShoppingBag, ShieldCheck, Armchair, Sparkles, Gavel } from 'lucide-react';
 
 /**
@@ -49,12 +50,22 @@ const MarketplaceLayout = ({
             <main className="max-w-[1920px] mx-auto px-4 md:px-12 py-10 md:py-24">
 
                 {/* HERO TITLE */}
-                <div className="mb-10 md:mb-24 flex flex-col items-center text-center gap-4 md:gap-6 max-w-4xl mx-auto">
+                <div className="mb-10 md:mb-24 flex flex-col items-center text-center gap-4 md:gap-6 max-w-7xl mx-auto">
                     <span className={`text-[10px] uppercase font-bold tracking-[0.4em] ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
                         Collection 2026
                     </span>
-                    <h2 className={`font-serif text-5xl md:text-7xl lg:text-8xl leading-[0.9] ${darkMode ? 'text-stone-100' : 'text-stone-900'}`}>
-                        {activeCollection === 'furniture' ? 'L\'Élégance du Temps.' : 'L\'Art de la Table.'}
+                    <h2 className={`font-serif text-5xl md:text-7xl lg:text-8xl leading-[0.9] min-h-[1.8em] flex items-center justify-center ${darkMode ? 'text-stone-100' : 'text-stone-900'}`}>
+                        {activeCollection === 'furniture' ? (
+                            <TextType
+                                text={["Tous à Table", "Savoir-Faire", "Made in Normandie", "L'Élégance du Temps.", "Votre Intérieur Sublimé."]}
+                                typingSpeed={150}
+                                deletingSpeed={50}
+                                pauseDuration={1500}
+                                loop={true}
+                                showCursor={true}
+                                cursorCharacter="_"
+                            />
+                        ) : 'L\'Art de la Table.'}
                     </h2>
 
                     {/* MOBILE NAVIGATION BUTTONS (Integrated in Hero space) */}
