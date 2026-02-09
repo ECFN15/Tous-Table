@@ -100,8 +100,10 @@ service cloud.firestore {
     }
 
     // System Metadata - PROTECTION CRITIQUE ADMIN
+    // System Metadata - PROTECTION CRITIQUE ADMIN
     match /sys_metadata/{docId} {
-      allow read: if isArtisan(); // <--- SEUL L'ADMIN PEUT LIRE LA LISTE DES ADMINS
+      // Exception: Les images de la Home sont publiques !
+      allow read: if docId == 'homepage_images' || isArtisan();
       allow write: if isArtisan();
     }
 

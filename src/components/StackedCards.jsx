@@ -40,129 +40,124 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
         const cards = cardsRef.current;
         if (!cards || cards.length === 0) return;
 
-        let ctx = null;
-        let initialized = false;
-        let lastScrollY = window.scrollY;
+        let ctx;
 
-        // STEP 1: Apply CSS class to ensure ALL cards start SHARP
-        // This is done immediately and cannot be overridden by GSAP
-        cards.forEach((card) => {
-            const visual = card?.querySelector('.card-visual');
-            if (visual) {
-                visual.style.transform = 'scale(1)';
-                visual.style.filter = 'blur(0px)';
-                visual.style.transformOrigin = 'center top';
-            }
-        });
+        const initGSAP = () => {
+            if (ctx) ctx.revert(); // Cleanup if existing (e.g. resize)
 
-        // CRITICAL: Only initialize ScrollTrigger animations AFTER user starts scrolling
-        // This completely prevents any premature progress calculations
-        const initializeAnimations = () => {
-            if (initialized) return;
-            initialized = true;
+            ctx = gsap.context(() => {
+                // STEP 1: RESET ALL CARDS TO CLEAN SLATE
+                cards.forEach((card) => {
+                    const visual = card?.querySelector('.card-visual');
+                    if (visual) {
+                        gsap.set(visual, {
+                            scale: 1,
+                            y: 0,
+                            filter: "blur(0px)",
+                            transformOrigin: 'center top',
+                            force3D: true,
+                            clearProps: "all"
+                        });
+                    }
+                });
 
-            // Small delay to ensure scroll direction is established
-            requestAnimationFrame(() => {
-                ctx = gsap.context(() => {
-                    cards.forEach((card, index) => {
-                        if (index === 0) return;
+                // STEP 2: SETUP ANIMATIONS
+                cards.forEach((card, index) => {
+                    if (index === 0) return;
 
-                        const prevCard = cards[index - 1];
-                        const prevVisual = prevCard?.querySelector('.card-visual');
+                    const prevCard = cards[index - 1];
+                    const prevVisual = prevCard?.querySelector('.card-visual');
 
-                        if (prevVisual) {
-                            // Ensure starting state is sharp
-                            gsap.set(prevVisual, {
-                                scale: 1,
-                                filter: "blur(0px)",
-                                transformOrigin: "center top"
-                            });
-
-                            // Create the animation - Paris By Emily style
-                            // Cards shrink + move down to create a wheel rotation effect
-                            gsap.to(prevVisual, {
-                                scale: 0.80,
-                                y: 100, // Move down to hide behind current card
-                                filter: "blur(8px)",
-                                ease: "none",
-                                force3D: true, // GPU acceleration for smoother mobile performance
-                                scrollTrigger: {
-                                    trigger: card,
-                                    start: "top 70%",
-                                    end: "top 21px",
-                                    scrub: 0.5,
-                                    invalidateOnRefresh: true,
-                                    fastScrollEnd: true, // Optimize for fast scrolling
-                                    onLeaveBack: () => {
-                                        // Reset to initial state when scrolling back up
-                                        gsap.set(prevVisual, {
-                                            scale: 1,
-                                            y: 0,
-                                            filter: "blur(0px)"
-                                        });
-                                    }
-                                }
-                            });
-                        }
-                    });
-
-                    // Last card exit: Progressive width reduction (scaleX) - Paris By Emily style
-                    // Effect should be smooth and continue until the card is completely out of view
-                    const lastCard = cards[cards.length - 1];
-                    const lastVisual = lastCard?.querySelector('.card-visual');
-                    const spacer = containerRef.current?.querySelector('.section-spacer');
-
-                    if (lastVisual && spacer) {
-                        gsap.to(lastVisual, {
-                            scaleX: 0.90, // More noticeable reduction like Paris By Emily
-                            scaleY: 0.96, // Slight Y reduction too for depth
-                            // NO y movement - last card only shrinks, it doesn't move
-                            ease: "none", // Linear for consistent progressive feel
+                    if (prevVisual) {
+                        gsap.to(prevVisual, {
+                            scale: 0.80,
+                            y: 100,
+                            filter: "blur(8px)",
+                            ease: "none",
                             force3D: true,
                             scrollTrigger: {
-                                trigger: spacer,
-                                start: "top 110%", // Start very early
-                                end: "top -30%", // Continue well past the spacer for long progressive effect
-                                scrub: 1.2, // Very smooth scrub
+                                trigger: card,
+                                start: "top 70%",
+                                end: "top 21px",
+                                scrub: 0.5,
                                 invalidateOnRefresh: true,
+                                fastScrollEnd: true,
                                 onLeaveBack: () => {
-                                    gsap.set(lastVisual, { scaleX: 1, scaleY: 1 });
+                                    gsap.set(prevVisual, {
+                                        scale: 1,
+                                        y: 0,
+                                        filter: "blur(0px)"
+                                    });
                                 }
                             }
                         });
                     }
-                }, containerRef);
+                });
 
-                // Refresh after creation to get correct positions
-                ScrollTrigger.refresh();
-            });
+                // Last card exit animation
+                const lastCard = cards[cards.length - 1];
+                const lastVisual = lastCard?.querySelector('.card-visual');
+                const spacer = containerRef.current?.querySelector('.section-spacer');
+
+                if (lastVisual && spacer) {
+                    gsap.to(lastVisual, {
+                        scaleX: 0.90,
+                        scaleY: 0.96,
+                        ease: "none",
+                        force3D: true,
+                        scrollTrigger: {
+                            trigger: spacer,
+                            start: "top 110%",
+                            end: "top -30%",
+                            scrub: 1.2,
+                            invalidateOnRefresh: true,
+                            onLeaveBack: () => {
+                                gsap.set(lastVisual, { scaleX: 1, scaleY: 1 });
+                            }
+                        }
+                    });
+                }
+            }, containerRef);
+
+            ScrollTrigger.refresh();
         };
 
-        // Listen for scroll to initialize - use 'once' pattern
-        const handleScroll = () => {
-            const currentScrollY = window.scrollY;
-            // Only init if user is scrolling DOWN (towards the cards)
-            if (currentScrollY > lastScrollY) {
-                initializeAnimations();
-                window.removeEventListener('scroll', handleScroll);
-            }
-            lastScrollY = currentScrollY;
+        // RUN INIT:
+        // 1. Immediately
+        initGSAP();
+
+        // 2. On Window Load (Critical)
+        const onWindowLoad = () => {
+            initGSAP();
         };
 
-        // Add scroll listener
-        window.addEventListener('scroll', handleScroll, { passive: true });
+        if (document.readyState === 'complete') {
+            onWindowLoad();
+        } else {
+            window.addEventListener('load', onWindowLoad);
+        }
 
-        // Also initialize on first wheel event (in case scroll doesn't fire)
-        const handleWheel = () => {
-            // Small delay to let scroll position update
-            setTimeout(initializeAnimations, 50);
-            window.removeEventListener('wheel', handleWheel);
-        };
-        window.addEventListener('wheel', handleWheel, { passive: true, once: true });
+        // 3. SAFETY REFRESH PATTERN (La solution "Vraie")
+        // Force ScrollTrigger to re-calculate periodically during the first few seconds
+        // This fixes the "Desktop First Load" bug where layout isn't fully stable yet
+        const refreshTimers = [100, 500, 1000, 2000].map(delay =>
+            setTimeout(() => ScrollTrigger.refresh(), delay)
+        );
+
+        // 4. RESIZE OBSERVER (Pour le redimesionnement dynamique)
+        // If the container size changes (images loading, etc.), refresh triggers
+        const resizeObserver = new ResizeObserver(() => {
+            ScrollTrigger.refresh();
+        });
+
+        if (containerRef.current) {
+            resizeObserver.observe(containerRef.current);
+        }
 
         return () => {
-            window.removeEventListener('scroll', handleScroll);
-            window.removeEventListener('wheel', handleWheel);
+            window.removeEventListener('load', onWindowLoad);
+            refreshTimers.forEach(t => clearTimeout(t));
+            resizeObserver.disconnect();
             if (ctx) ctx.revert();
         };
     }, []);
@@ -205,7 +200,7 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                     >
                         {/* VISUAL CARD - PBE "Magazine" Style */}
                         <div
-                            className="card-visual relative w-[90%] md:w-[97%] max-w-[1800px] h-[88vh] md:h-[90vh] bg-[#FAF9F6] rounded-[2.5rem] md:rounded-[4rem] overflow-hidden shadow-[0_20px_70px_rgba(0,0,0,0.15)] flex flex-col items-center"
+                            className="card-visual relative w-[90%] md:w-[97%] max-w-[1800px] h-[88vh] md:h-[88vh] bg-[#FAF9F6] rounded-[2.5rem] md:rounded-[4rem] overflow-hidden shadow-[0_20px_70px_rgba(0,0,0,0.15)] flex flex-col items-center"
                             style={{
                                 backgroundColor: item.bgColor,
                                 transformOrigin: '50% 100%',
