@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { useLiveTheme } from '../../../hooks/useLiveTheme';
 import { useAuth } from '../../../contexts/AuthContext';
 import { Menu, ShoppingBag, ShieldCheck, Sun, Moon, LogOut, Hammer, LogIn } from 'lucide-react';
@@ -5,6 +6,7 @@ import { Menu, ShoppingBag, ShieldCheck, Sun, Moon, LogOut, Hammer, LogIn } from
 /**
  * COMPONENT : ARCHITECTURAL HEADER
  * Shared header for Gallery and Product Detail views in Architectural Theme.
+ * - [UX] Smart Scroll: Hides on scroll down, shows on scroll up.
  */
 const ArchitecturalHeader = ({
     headerProps,
@@ -35,8 +37,36 @@ const ArchitecturalHeader = ({
     // Let's assume standard Tailwind 'dark' class presence for icon state.
     const isDark = darkMode;
 
+    // --- SMART SCROLL LOGIC ---
+    const [isVisible, setIsVisible] = useState(true);
+    const [lastScrollY, setLastScrollY] = useState(0);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            const currentScrollY = window.scrollY;
+
+            // Ignore small movements or top of page (elastic bounce)
+            if (Math.abs(currentScrollY - lastScrollY) < 10) return;
+
+            if (currentScrollY > lastScrollY && currentScrollY > 100) {
+                // Scrolling DOWN (>100px) -> Hide
+                setIsVisible(false);
+            } else {
+                // Scrolling UP -> Show
+                setIsVisible(true);
+            }
+            setLastScrollY(currentScrollY);
+        };
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [lastScrollY]);
+
+
     return (
-        <header className={`sticky top-0 z-[100] backdrop-blur-md transition-colors duration-500 ${darkMode ? 'bg-[#0A0A0A]/95' : 'bg-[#FAFAF9]/95'}`}>
+        <header
+            className={`sticky top-0 z-[100] backdrop-blur-md transition-all duration-500 ease-in-out transform ${isVisible ? 'translate-y-0' : '-translate-y-full'} ${darkMode ? 'bg-[#0A0A0A]/95' : 'bg-[#FAFAF9]/95'}`}
+        >
             <div className="max-w-[1920px] mx-auto px-4 md:px-12 h-20 md:h-24 flex items-center justify-between">
 
                 {/* 1. LEFT: LOGO & TABS */}
