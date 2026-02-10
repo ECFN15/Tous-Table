@@ -205,18 +205,28 @@ Suite à un audit de sécurité exhaustif (score initial 7.8/10), les mesures su
     *   **Fix** : Autorisation publique (`allow read`) spécifique pour le document `sys_metadata/homepage_images`.
 *   **Hauteur Cartes Unifiée** : Standardisation de la hauteur des cartes "Stacked" à `88vh` sur tous les devices (Mobile & Desktop) pour garantir la cohérence des triggers.
 
-### 🏭 7. Gestion des Environnements (Prod vs Dev) - Février 2026
-Mise en place d'une isolation stricte entre le développement et la production pour éviter les accidents de données.
+### 🌍 8. Mise en Production & Domaine (10 Février 2026)
 
-*   **Architecture Double-Projet** :
-    *   **DEV (Bac à Sable)** : Projet Firebase `tatmadeinnormandie`. Utilisé par `npm run dev`. C'est le terrain de jeu pour tout casser.
-    *   **PROD (Client)** : Projet Firebase `tousatable-client`. Utilisé par `npm run build`. C'est le site officiel, propre et sécurisé.
-*   **Séparation via `.env`** :
-    *   `.env` : Contient les credentials du projet DEV (chargé par défaut).
-    *   `.env.production` : Contient les credentials du projet PROD (chargé uniquement au build).
-*   **Workflow Git Documenté** : Création de `GUIDE_GIT.md` pour standardiser l'usage des branches (`checkout -b`) pour les nouvelles fonctionnalités, préservant `main` toujours stable.
-*   **Guide de Survie** : Création de `GUIDE_ENVIRONNEMENTS.md` pour expliquer comment basculer les alias Firebase (`use default` vs `use prod`).
+Le site est officiellement déployé en Production avec une séparation stricte des environnements.
+
+*   **Identité PROD** :
+    *   **Projet Firebase** : `tousatable-client`
+    *   **Domaine Principal** : [tousatable-madeinnormandie.fr](https://tousatable-madeinnormandie.fr) (Configuré via OVH)
+    *   **Domaine Technique** : `tousatable-client.web.app` (Toujours accessible, idéal pour tester si le domaine principal propage)
+    *   **Commande** : `firebase use prod`
+
+*   **Configuration DNS (OVH)** :
+    *   **A Record** : `199.36.158.100` (Pointe vers l'IP de Firebase Hosting)
+    *   **TXT Record** : `hosting-site=tousatable-client` (Validation de propriété Google)
+    *   *Note : Les anciennes entrées (213.186.33.5) ont été supprimées pour éviter les conflits.*
+
+*   **Correctifs Critiques de Déploiement** :
+    *   **White Screen of Death (MIME Type Error)** : Correction de `firebase.json`. La règle de réécriture (`rewrites`) pointait tout (`**`) vers une fonction `shareMeta`, ce qui interceptait les fichiers JS/CSS et causait un crash.
+        *   *Fix* : `source: "**", destination: "/index.html"` (Standard SPA fallback).
+    *   **Admin Label Fantôme** : Correction de `AuthContext.jsx`. L'ancienne méthode lisait `sys_metadata/admin_users` (interdit en lecture publique), ce qui cachait le statut réel.
+        *   *Fix* : Le Frontend lit désormais le document `users/{uid}` de l'utilisateur connecté pour vérifier `role: "admin"`. Plus robuste et sécurisé.
+    *   **Anonymous Users** : Explication de la présence de comptes sans email dans Firestore (`users/{uid}`). Ce sont des visiteurs temporaires (paniers/sécurité). Ils sont nettoyés automatiquement par le Garbage Collector après 30 jours.
 
 ---
 
-*Dernière mise à jour par l'IA : Session du 2026-02-10. Séparation Environnements (Prod/Dev) & Workflow Git.*
+*Dernière mise à jour par l'IA : Session du 2026-02-10. Déploiement Production, Configuration Domaine OVH & Fix Auth Admin.*

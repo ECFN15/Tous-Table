@@ -986,7 +986,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         <div className="absolute bottom-16 md:bottom-12 left-0 w-full px-8 md:px-[10vw] flex flex-row justify-between items-end md:items-baseline">
           <div className="hero-footer-element space-y-4 max-w-[150px] md:max-w-xs text-[#1a1a1a] opacity-0 translate-y-5">
             <p className="text-[10px] uppercase tracking-[0.2em] md:tracking-[0.3em] opacity-60 leading-relaxed md:leading-loose font-medium">
-              Restauration de mobilier <br /> de haute ébénisterie. <br /> Normandie, France.
+              Restauration & Vente <br /> de Mobilier d'Art. <br /> Normandie, France.
             </p>
           </div>
 
@@ -1383,7 +1383,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         </div>
 
         <div className="pt-16 border-t border-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-8 opacity-40 text-[9px] uppercase tracking-[0.3em] font-light relative z-10">
-          <span className="leading-relaxed">Tous à Table — Artisans du Patrimoine — Caen, FR — 2024</span>
+          <span className="leading-relaxed">Tous à Table — Atelier d'Ébénisterie d'Art & Vente de Meubles Antiques — Caen, Deauville, Paris, Normandie, France</span>
           <div className="flex gap-12 lowercase underline underline-offset-4 font-bold tracking-widest">
             <span className="cursor-pointer hover:text-white transition-colors">privacy policy</span>
             <span className="cursor-pointer hover:text-white transition-colors">legal mentions</span>
