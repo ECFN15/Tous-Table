@@ -10,6 +10,17 @@ service cloud.firestore {
       );
     }
 
+    // Fonction Validation User (Basic)
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isArtisan();
+      allow create: if isOwner(userId); // Permet la création automatique à la première connexion
+      allow update: if isOwner(userId) || isArtisan();
+    }
+
     // Validation Helpers
     // ---------------------------------------------------------
     // Fonction de Validation des Produits (Schema Enforcement)

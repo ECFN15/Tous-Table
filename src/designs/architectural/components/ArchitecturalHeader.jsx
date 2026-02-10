@@ -28,7 +28,7 @@ const ArchitecturalHeader = ({
     // Since we don't receive darkMode boolean here, we'll let useLiveTheme resolve it or rely on parent.
     // Actually, forcedMode comes from Firestore.
     const { forcedMode } = useLiveTheme();
-    const { logout } = useAuth();
+    const { logout, isAdmin } = useAuth();
 
     // We only show toggle if mode is NOT forced
     const showToggle = forcedMode !== 'light' && forcedMode !== 'dark';
@@ -150,9 +150,11 @@ const ArchitecturalHeader = ({
                         ) : (
                             <div className="flex items-center gap-2">
                                 {/* Mobile/Desktop Indicator */}
-                                <div className="px-3 py-2 hidden sm:block">
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 cursor-default">Admin</span>
-                                </div>
+                                {isAdmin && (
+                                    <div className="px-3 py-2 hidden sm:block">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 cursor-default">Admin</span>
+                                    </div>
+                                )}
                                 <button
                                     onClick={() => logout()}
                                     className={`flex items-center justify-center sm:gap-2 w-10 h-10 sm:w-auto sm:px-4 sm:py-2 rounded-full sm:rounded sm:border transition-all group ${darkMode ? 'sm:border-stone-800 sm:hover:bg-red-900/20 sm:hover:border-red-900/50 text-stone-400 hover:text-red-400' : 'sm:border-stone-200 sm:hover:bg-red-50 sm:hover:border-red-200 text-stone-500 hover:text-red-600'}`}

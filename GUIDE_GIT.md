@@ -100,3 +100,17 @@ Si vous préférez cliquer plutôt que taper :
 5.  Confirmez (Oui/Yes).
 
 
+
+---
+
+## ☁️ Sauvegarder dans le Cloud (GitHub)
+
+Une fois que vous avez fusionné vos modifications dans `main` (Scénario B), votre travail est validé **localement** (sur votre PC).
+Pour le sécuriser sur Internet (GitHub) :
+
+```bash
+# Une fois sur la branche main
+git push
+```
+
+*C'est tout ! Votre code est maintenant cloné chez GitHub. Si votre PC brûle, le projet survit.*
