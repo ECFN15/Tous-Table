@@ -191,6 +191,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
                 image={images[0]}
                 url={window.location.href}
                 type="product"
+                schema={productSchema}
             />
             <ArchitecturalHeader
                 user={user}

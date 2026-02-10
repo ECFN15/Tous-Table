@@ -6,6 +6,7 @@ import StackedCards from '../components/StackedCards'; // New Import
 const ThreeBackground = React.lazy(() => import('../components/ThreeBackground'));
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase/config';
+import SEO from '../components/SEO';
 
 // --- COMPOSANT : REVEAL TEXT (CORRIGÉ & ÉLARGI) ---
 const RevealText = ({ text, className, delay = 0 }) => {
@@ -27,12 +28,12 @@ const RotatingSymbol = ({ className, size = 120, text = "TOUS À TABLE • 2026 
     <div className={`relative flex items-center justify-center pointer-events-none select-none ${className}`}>
       <svg width={size} height={size} viewBox="0 0 100 100" className="animate-spin-extremely-slow">
         <path id="circlePath" d="M 50, 50 m -40, 0 a 40,40 0 1,1 80,0 a 40,40 0 1,1 -80,0" fill="transparent" />
-        <text className="text-[8px] uppercase tracking-[0.2em] font-medium fill-current opacity-40">
+        <text className="text-[8px] uppercase tracking-[0.2em] font-medium fill-current opacity-60">
           <textPath xlinkHref="#circlePath">{text}</textPath>
         </text>
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <Star size={size / 5} className="opacity-20 text-[#9C8268]" />
+        <Star size={size / 5} className="opacity-30 text-[#9C8268]" />
       </div>
     </div>
   );
@@ -871,52 +872,90 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
     }
   ];
 
-  const SEO = React.lazy(() => import('../components/SEO'));
+  // SEO component is already imported at the top.
+  // We just need to ensure it is used correctly in the return statement.
 
   return (
     <div ref={componentRef} className="bg-[#FAF9F6] text-[#1a1a1a] transition-colors duration-700 antialiased">
-      <React.Suspense fallback={null}>
-        <SEO
-          title="Tous à Table - Atelier d'Ébénisterie en Normandie"
-          description="Créations uniques et restauration de mobilier d'art. L'excellence du savoir-faire normand au service de votre intérieur."
-        />
-      </React.Suspense>
+      <SEO
+        title="Tous à Table - Atelier d'Ébénisterie en Normandie"
+        description="Créations uniques et restauration de mobilier d'art. L'excellence du savoir-faire normand au service de votre intérieur."
+        schema={{
+          "@context": "https://schema.org",
+          "@type": "LocalBusiness",
+          "name": "Tous à Table - Atelier Normand",
+          "image": "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1200",
+          "@id": "https://tousatable-madeinnormandie.fr",
+          "url": "https://tousatable-madeinnormandie.fr",
+          "telephone": "+33 6 00 00 00 00",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Caen",
+            "addressRegion": "Normandie",
+            "postalCode": "14000",
+            "addressCountry": "FR"
+          },
+          "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": 49.1828,
+            "longitude": -0.3706
+          },
+          "priceRange": "€€€",
+          "description": "Atelier d'ébénisterie d'art et vente de mobilier en Normandie. Restauration de meubles anciens et créations sur-mesure.",
+          "openingHoursSpecification": [
+            {
+              "@type": "OpeningHoursSpecification",
+              "dayOfWeek": [
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday"
+              ],
+              "opens": "09:00",
+              "closes": "18:00"
+            }
+          ]
+        }}
+      />
 
 
 
 
 
       {/* --- PREMIUM PRELOADER (LUMOSINE STYLE) --- */}
-      {isLoading && (
-        <>
-          {/* Secondary background for depth */}
-          <div className="preloader-secondary-bg fixed inset-0 z-[9998] bg-[#9C8268]/20 pointer-events-none"></div>
+      {
+        isLoading && (
+          <>
+            {/* Secondary background for depth */}
+            <div className="preloader-secondary-bg fixed inset-0 z-[9998] bg-[#9C8268]/20 pointer-events-none"></div>
 
-          <div className="preloader-overlay fixed inset-0 z-[9999] bg-[#1a1a1a] flex flex-col items-center justify-center text-[#FAF9F6]">
-            {/* Content Container */}
-            <div className="preloader-content flex flex-col items-center gap-8 opacity-0">
-              <div className="preloader-icon opacity-0">
-                <Hammer size={56} strokeWidth={1} className="text-[#9C8268] drop-shadow-[0_0_15px_rgba(156,130,104,0.3)]" />
-              </div>
-              <div className="overflow-hidden flex gap-[0.2em] px-4">
-                {"TOUS À TABLE".split("").map((char, i) => (
-                  <span
-                    key={i}
-                    className="preloader-char font-serif text-4xl md:text-6xl italic font-light tracking-[0.2em] inline-block will-change-transform opacity-0"
-                  >
-                    {char === " " ? "\u00A0" : char}
-                  </span>
-                ))}
-              </div>
-              <div className="mt-8 flex items-center gap-4 opacity-0 preloader-footer-element">
-                <div className="w-12 h-[1px] bg-[#9C8268]"></div>
-                <span className="text-[8px] uppercase tracking-[0.5em] font-bold">Artisan ébéniste</span>
-                <div className="w-12 h-[1px] bg-[#9C8268]"></div>
+            <div className="preloader-overlay fixed inset-0 z-[9999] bg-[#1a1a1a] flex flex-col items-center justify-center text-[#FAF9F6]">
+              {/* Content Container */}
+              <div className="preloader-content flex flex-col items-center gap-8 opacity-0">
+                <div className="preloader-icon opacity-0">
+                  <Hammer size={56} strokeWidth={1} className="text-[#9C8268] drop-shadow-[0_0_15px_rgba(156,130,104,0.3)]" />
+                </div>
+                <div className="overflow-hidden flex gap-[0.2em] px-4">
+                  {"TOUS À TABLE".split("").map((char, i) => (
+                    <span
+                      key={i}
+                      className="preloader-char font-serif text-4xl md:text-6xl italic font-light tracking-[0.2em] inline-block will-change-transform opacity-0"
+                    >
+                      {char === " " ? "\u00A0" : char}
+                    </span>
+                  ))}
+                </div>
+                <div className="mt-8 flex items-center gap-4 opacity-0 preloader-footer-element">
+                  <div className="w-12 h-[1px] bg-[#9C8268]"></div>
+                  <span className="text-[8px] uppercase tracking-[0.5em] font-bold">Artisan ébéniste</span>
+                  <div className="w-12 h-[1px] bg-[#9C8268]"></div>
+                </div>
               </div>
             </div>
-          </div>
-        </>
-      )}
+          </>
+        )
+      }
 
       <div id="main-cursor" ref={cursorRef} className="hidden lg:block"></div>
       <div className="three-container fixed inset-0 pointer-events-none z-0">
@@ -927,7 +966,8 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
 
       {/* NAVIGATION */}
       {/* NAVIGATION - FIXED SAFE AREA */
-      /* Increased to max(3rem) for tablets with thick status bars */}
+        /* Increased to max(3rem) for tablets with thick status bars */
+      }
       <header className="fixed top-0 left-0 w-full p-5 md:p-12 pt-[max(2rem,env(safe-area-inset-top))] pr-[max(1.5rem,env(safe-area-inset-right))] pl-[max(1.5rem,env(safe-area-inset-left))] flex justify-between items-center z-[210] mix-blend-difference text-white">
         <div className="flex items-center gap-3 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
           <Hammer size={18} className="group-hover:rotate-45 transition-transform duration-500" />

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 
-const SEO = ({ title, description, image, url, type = 'website' }) => {
+const SEO = ({ title, description, image, url, type = 'website', schema }) => {
     const siteTitle = "Tous à Table - Atelier Normand";
     const defaultDescription = "Atelier d'ébénisterie d'art en Normandie. Créations uniques et sur-mesure.";
     const defaultImage = "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1200";
@@ -29,6 +29,13 @@ const SEO = ({ title, description, image, url, type = 'website' }) => {
             <meta property="twitter:title" content={fullTitle} />
             <meta property="twitter:description" content={description || defaultDescription} />
             <meta property="twitter:image" content={image || defaultImage} />
+
+            {/* Structured Data (JSON-LD) for Rich Results */}
+            {schema && (
+                <script type="application/ld+json">
+                    {JSON.stringify(schema)}
+                </script>
+            )}
         </Helmet>
     );
 };

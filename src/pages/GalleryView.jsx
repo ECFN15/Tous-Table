@@ -3,8 +3,9 @@ import { useLiveTheme } from '../hooks/useLiveTheme';
 
 // DESIGNS (Layouts)
 import ArchitecturalLayout from '../designs/architectural/MarketplaceLayout';
+import SEO from '../components/SEO';
 
-const SEO = React.lazy(() => import('../components/SEO'));
+// SEO component is imported at the top.
 
 const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, onSelectItem, onShowLogin, onShowComments, darkMode = false, onOpenMenu, onOpenCart, toggleTheme }) => {
     const [filter, setFilter] = useState('fixed');
@@ -46,13 +47,11 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
 
     return (
         <div className="min-h-screen">
-            <React.Suspense fallback={null}>
-                <SEO
-                    title="La Galerie - Marketplace Ébénisterie d'Art"
-                    description="Découvrez nos pièces uniques de mobilier et d'objets d'art restaurés ou créés à la main. Enchères exclusives et vente directe."
-                    url="/?page=gallery"
-                />
-            </React.Suspense>
+            <SEO
+                title="La Galerie - Marketplace Ébénisterie d'Art"
+                description="Découvrez nos pièces uniques de mobilier et d'objets d'art restaurés ou créés à la main. Enchères exclusives et vente directe."
+                url="/?page=gallery"
+            />
 
             <LayoutComponent
                 items={filteredItems}

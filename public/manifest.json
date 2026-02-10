@@ -1,0 +1,15 @@
+{
+    "short_name": "Tous à Table",
+    "name": "Tous à Table - Atelier Normand",
+    "icons": [
+        {
+            "src": "favgpt.png",
+            "type": "image/png",
+            "sizes": "192x192 512x512"
+        }
+    ],
+    "start_url": ".",
+    "display": "standalone",
+    "theme_color": "#1a120b",
+    "background_color": "#ffffff"
+}
