@@ -205,6 +205,18 @@ Suite à un audit de sécurité exhaustif (score initial 7.8/10), les mesures su
     *   **Fix** : Autorisation publique (`allow read`) spécifique pour le document `sys_metadata/homepage_images`.
 *   **Hauteur Cartes Unifiée** : Standardisation de la hauteur des cartes "Stacked" à `88vh` sur tous les devices (Mobile & Desktop) pour garantir la cohérence des triggers.
 
+### 🏭 7. Gestion des Environnements (Prod vs Dev) - Février 2026
+Mise en place d'une isolation stricte entre le développement et la production pour éviter les accidents de données.
+
+*   **Architecture Double-Projet** :
+    *   **DEV (Bac à Sable)** : Projet Firebase `tatmadeinnormandie`. Utilisé par `npm run dev`. C'est le terrain de jeu pour tout casser.
+    *   **PROD (Client)** : Projet Firebase `tousatable-client`. Utilisé par `npm run build`. C'est le site officiel, propre et sécurisé.
+*   **Séparation via `.env`** :
+    *   `.env` : Contient les credentials du projet DEV (chargé par défaut).
+    *   `.env.production` : Contient les credentials du projet PROD (chargé uniquement au build).
+*   **Workflow Git Documenté** : Création de `GUIDE_GIT.md` pour standardiser l'usage des branches (`checkout -b`) pour les nouvelles fonctionnalités, préservant `main` toujours stable.
+*   **Guide de Survie** : Création de `GUIDE_ENVIRONNEMENTS.md` pour expliquer comment basculer les alias Firebase (`use default` vs `use prod`).
+
 ---
 
-*Dernière mise à jour par l'IA : Session du 2024-05-16. Marketplace TextType & Layout UX.*
+*Dernière mise à jour par l'IA : Session du 2026-02-10. Séparation Environnements (Prod/Dev) & Workflow Git.*
