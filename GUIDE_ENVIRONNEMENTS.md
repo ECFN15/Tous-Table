@@ -1,63 +1,73 @@
-# 🏗️ Guide des Environnements (Prod vs Dev)
 
-Voici comment gérer vos deux versions du site "Tous à Table".
+# 🚦 Guide de Survie : Les Environnements (Prod vs Dev)
 
----
-
-## 🎭 Les deux Environnements
-
-| Environnement | Nom du Projet Firebase | Alias | Usage |
-| :--- | :--- | :--- | :--- |
-| **DEV (Bac à Sable)** | `tatmadeinnormandie` | `default` | Pour coder, tester, tout casser sans risque. |
-| **PROD (Client)** | `tousatable-client` | `prod` | Le site officiel, propre, pour les clients. |
+Ce projet utilise deux environnements Firebase distincts pour garantir la sécurité de la production.
+Voici comment jongler entre eux sans se perdre.
 
 ---
 
-## 🛠️ Commandes Essentielles
+## 🧐 Comment savoir où je suis ?
 
-### 1. Revenir en Sécurité (Mode DEV)
-Si vous avez un doute, lancez toujours ceci pour être sûr de travailler sur le brouillon :
+Ouvrez un terminal dans VS Code et tapez :
+```bash
+firebase use
+```
+
+La ligne en couleur ou précédée de `(current)` indique l'environnement actif.
+
+*   `default (tatmadeinnormandie)` 🟡 = **DEV** (Bac à Sable / Tout casser autorisé)
+*   `prod (tousatable-client)` 🔴 = **PROD** (Site Client / Pas touche sauf déploiement)
+
+---
+
+## � Comment changer d'environnement ?
+
+### 1. Aller sur le Bac à Sable (DEV) 🟡
+Utilisez ceci 99% du temps quand vous codez ou testez localement.
 ```bash
 firebase use default
+npm run dev
 ```
+*   **Base de Données** : `tatmadeinnormandie` (Données de test, "bordel")
+*   **URL Locale** : `localhost:5173`
 
-### 2. Déployer sur le site PROD (Mise en ligne Client)
-Quand vous êtes prêt à mettre à jour le vrai site :
-
-1.  **Construire le code** (Créer les fichiers optimisés avec la config PROD) :
-    ```bash
-    npm run build
-    ```
-    *(Cette commande utilise automatiqument le fichier `.env.production`)*
-
-2.  **Basculer sur le projet PROD** :
-    ```bash
-    firebase use prod
-    ```
-
-3.  **Envoyer en ligne** :
-    ```bash
-    firebase deploy
-    ```
-    *(Envoie le Hosting, les Règles de sécurité, le Storage et les Fonctions)*
-
-4.  **REVENIR IMMÉDIATEMENT EN DEV** (Réflexe de sécurité) :
-    ```bash
-    firebase use default
-    ```
-
----
-
-## 📂 Fichiers de Configuration (Ne pas toucher)
-
-*   **`.env`** : Contient les clés du projet **DEV**. Utilisé par `npm run dev`.
-*   **`.env.production`** : Contient les clés du projet **PROD**. Utilisé par `npm run build`.
-
----
-
-## 🚨 En cas de Panique
-Si vous ne savez plus sur quel projet vous êtes connectés :
+### 2. Aller sur la Production (PROD) 🔴
+Utilisez ceci **UNIQUEMENT** pour déployer une version validée.
 ```bash
-firebase projects:list
+firebase use prod
+npm run build
+firebase deploy
 ```
-Regardez où est écrit `(current)`.
+*   **Base de Données** : `tousatable-client` (Données réelles, propres)
+*   **URL Publique** : `https://tousatable-client.web.app`
+
+---
+
+## ⚠️ Piège à éviter (Attention !)
+
+Si vous faites `firebase deploy` alors que vous êtes sur l'environnement de DEV (`default`), vous allez mettre à jour le site de test en ligne (`tatmadeinnormandie.web.app`), ce qui est sans danger.
+
+**MAIS ATTENTION** : Si vous modifiez des règles de sécurité (`firestore.rules`) ou des fonctions (`functions/`) et que vous êtes sur le mauvais environnement, vous risquez de casser la prod.
+
+**👉 TOUJOURS vérifier avec `firebase use` avant de lancer une commande `deploy`.**
+
+---
+
+## ☁️ Synchronisation Git (Indépendant)
+
+Git (GitHub) est agnostique. Il sauvegarde le code, peu importe l'environnement Firebase actif.
+*   **Commit/Push** sauvegarde votre travail.
+*   Cela n'impacte PAS directement le site en ligne (pour ça, il faut `deploy`).
+
+---
+Auteur : Assistant IA - Février 2026
+
+switch environement:
+
+Pour retourner travailler tranquille (DEV) : Tapes : firebase use default 
+
+(Hop, tu bascules sur la base de données "Bordel" et tu peux coder sans risque).
+
+Pour mettre en ligne (PROD) : Tapes : firebase use prod 
+
+(Attention, ici chaque modification est réelle pour les clients).

@@ -18,7 +18,7 @@
     "rewrites": [
       {
         "source": "**",
-        "function": "shareMeta"
+        "destination": "/index.html"
       }
     ],
     "headers": [

@@ -45,41 +45,40 @@ export const AuthProvider = ({ children }) => {
         return () => unsubscribeAuth();
     }, []);
 
-    // 2. Listen to Admin Whitelist (Only if authenticated)
-    // Avoids "Permission Denied" errors for anonymous users on secured sys_metadata
+    // 2. Listen to User Role (Real-time)
     useEffect(() => {
-        if (!user) return;
+        if (!user || user.isAnonymous) {
+            setIsAdmin(false);
+            return;
+        }
 
-        const unsub = onSnapshot(doc(db, 'sys_metadata', 'admin_users'), (snap) => {
-            if (snap.exists() && snap.data().users) {
-                setAdminWhitelist(snap.data().users);
+        // Hardcoded Super Admin Override (Security Net)
+        if (user.email === 'matthis.fradin2@gmail.com') {
+            setIsAdmin(true);
+        }
+
+        // Listen to the user's own document
+        const unsub = onSnapshot(doc(db, 'users', user.uid), (snap) => {
+            if (snap.exists()) {
+                const userData = snap.data();
+                // Check if role is 'admin' OR 'super_admin'
+                if (userData.role === 'admin' || userData.role === 'super_admin' || user.email === 'matthis.fradin2@gmail.com') {
+                    setIsAdmin(true);
+                } else {
+                    setIsAdmin(false);
+                }
+            } else {
+                // Document doesn't exist yet (or created by trigger with delay), but check email fallback
+                if (user.email === 'matthis.fradin2@gmail.com') setIsAdmin(true);
+                else setIsAdmin(false);
             }
         }, (err) => {
-            // S'il y a une erreur de droits (normal pour user standard), on l'ignore silencieusement
-            // pour ne pas polluer la console.
-            // console.debug("Not authorized to read admin whitelist");
+            console.error("Error reading user role:", err);
+            setIsAdmin(false);
         });
 
         return () => unsub();
     }, [user]);
-
-    // Derived Admin State
-    useEffect(() => {
-        if (user && !user.isAnonymous) {
-            // Vérification stricte temps réel via Firestore
-            // idTokenResult.claims.admin est ignoré pour l'UI car il a une latence de révocation d'1h
-            const isOwner = user.email === 'matthis.fradin2@gmail.com';
-            const isWhitelisted = adminWhitelist[user.uid] || Object.values(adminWhitelist).some(u => u.email === user.email);
-
-            if (isOwner || isWhitelisted) {
-                setIsAdmin(true);
-            } else {
-                setIsAdmin(false);
-            }
-        } else {
-            setIsAdmin(false);
-        }
-    }, [user, adminWhitelist]);
 
     const loginWithGoogle = () => {
         return signInWithPopup(auth, googleProvider);
