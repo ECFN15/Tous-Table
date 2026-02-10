@@ -4,7 +4,7 @@ import { Helmet } from 'react-helmet-async';
 const SEO = ({ title, description, image, url, type = 'website' }) => {
     const siteTitle = "Tous à Table - Atelier Normand";
     const defaultDescription = "Atelier d'ébénisterie d'art en Normandie. Créations uniques et sur-mesure.";
-    const defaultImage = "https://tousatable-madeinnormandie.fr/assets/logo.png";
+    const defaultImage = "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1200";
     const siteUrl = "https://tousatable-madeinnormandie.fr";
 
     const fullTitle = title ? `${title} | ${siteTitle}` : siteTitle;
