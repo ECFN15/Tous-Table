@@ -5,24 +5,27 @@ import { getStorage } from 'firebase/storage';
 import { getFunctions } from 'firebase/functions';
 import { getAnalytics } from 'firebase/analytics';
 
-// --- CONFIGURATION FIREBASE ---
+// --- CONFIGURATION FIREBASE (Via Variables d'Environnement) ---
+// Cette configuration est chargée dynamiquement depuis le fichier .env
 const firebaseConfig = {
-  apiKey: "AIzaSyCtuul_bp1r6W__c_6B37ank6Nl7Im0H8o",
-  authDomain: "tatmadeinnormandie.firebaseapp.com",
-  projectId: "tatmadeinnormandie",
-  storageBucket: "tatmadeinnormandie.firebasestorage.app",
-  messagingSenderId: "116427088828",
-  appId: "1:116427088828:web:614ea24f006431d4d581b9",
-  measurementId: "G-Z58ZWH97Z2"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
-const functions = getFunctions(app, 'us-central1'); // Region important for functions
+const functions = getFunctions(app, 'us-central1');
 const analytics = getAnalytics(app);
-const appId = 'tat-made-in-normandie';
+
+// Nom logique pour isoler les données si besoin
+const appId = import.meta.env.VITE_APP_LOGICAL_NAME || 'tat-made-in-normandie';
 
 // --- PROVIDERS AUTHENTIFICATION ---
 const googleProvider = new GoogleAuthProvider();

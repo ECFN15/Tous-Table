@@ -91,6 +91,14 @@ Le projet a été simplifié en Février 2026 pour ne garder que le design "Arch
 
 ---
 
+*   **Update Février 2026 (Header & Layout Marketplace)** :
+        *   **TextType Animation** : Intégration du composant typewriter (`TextType.jsx`) pour le titre Héro de la Marketplace. Séquence : "Tous à Table" -> "Savoir-Faire" -> "Made in Normandie" -> "L'Élégance du Temps." -> "Votre Intérieur Sublimé.". Vitesse : 150ms (Premium Slow). Layout stabilisé (`min-h-[1.8em]`) pour zéro shift.
+        *   **"The Sweet Spot" Layout (Desktop)** : Optimisation chirurgicale de l'espacement vertical (`md:pt-8`, `md:mb-8`) pour afficher les infos produits (Prix/Status) "au-dessus de la ligne de flottaison" sur grand écran, tout en gardant une esthétique aérée.
+        *   **Mobile Typography** : Réduction de la taille de police (`text-4xl`) sur mobile pour le titre Héro. Empêche le retour à la ligne des phrases longues ("Made in Normandie"), garantissant une harmonie parfaite.
+        *   **Smart Scroll Header** : Header intelligent qui se cache au scroll bas (>100px) et réapparaît au scroll haut. Libère de l'espace écran pour le contenu.
+
+---
+
 ## ⚙️ 3. Fonctionnalités Clés (Backend)
 
 Le backend est géré par **Firebase Cloud Functions** (dans `/functions`).
@@ -199,4 +207,4 @@ Suite à un audit de sécurité exhaustif (score initial 7.8/10), les mesures su
 
 ---
 
-*Dernière mise à jour par l'IA : Session du 09/02/2026. Fix GSAP Safety Refresh & Process Mobile Ultra-Fast.*
+*Dernière mise à jour par l'IA : Session du 2024-05-16. Marketplace TextType & Layout UX.*

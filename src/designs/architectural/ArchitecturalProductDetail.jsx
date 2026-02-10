@@ -5,7 +5,7 @@ import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestor
 import { httpsCallable } from 'firebase/functions';
 import { getMillis } from '../../utils/time';
 import ConfettiRain from '../../components/ui/ConfettiRain';
-const SEO = React.lazy(() => import('../../components/SEO'));
+import SEO from '../../components/SEO';
 
 import { useRealtimeUserLikes } from '../../hooks/useRealtimeUserLikes';
 import { useLiveTheme } from '../../hooks/useLiveTheme';
@@ -185,7 +185,13 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
     // --- RENDER ARCHITECTURAL ---
     return (
         <div className={`min-h-screen transition-colors duration-500 animate-in fade-in ${darkMode ? 'bg-[#0A0A0A] text-stone-200' : 'bg-[#FAFAF9] text-stone-900'}`}>
-
+            <SEO
+                title={item.name}
+                description={item.description}
+                image={images[0]}
+                url={window.location.href}
+                type="product"
+            />
             <ArchitecturalHeader
                 user={user}
                 onShowLogin={onShowLogin}

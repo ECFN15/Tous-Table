@@ -26,7 +26,10 @@ import CartSidebar from './components/CartSidebar';
 // --- CONFIG ADMIN ---
 // ADMIN_EMAILS removed (handled in Context)
 
+import SEO from './components/SEO';
+
 const AppContent = () => {
+
   // Use Auth Context
   const { user, isAdmin, loading: authLoading, loginWithGoogle, loginWithEmail, signupWithEmail, logout, verifyEmail } = useAuth();
 
@@ -380,6 +383,7 @@ const AppContent = () => {
 
   return (
     <div className={`min-h-screen font-sans selection:bg-amber-100 transition-colors duration-500 ${darkMode ? 'bg-stone-900 text-white' : 'bg-[#FAF9F6] text-stone-900'}`}>
+      <SEO />
 
       {/* RIDEAU DE TRANSITION GLOBAL (Masque le switch de page) */}
       <div
