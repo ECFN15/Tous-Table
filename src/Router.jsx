@@ -1,11 +1,14 @@
 
 import React, { Suspense } from 'react';
 import HomeView from './pages/HomeView';
-import GalleryView from './pages/GalleryView';
-import ProductDetail from './pages/ProductDetail';
-import CheckoutView from './pages/CheckoutView';
-import LoginView from './pages/LoginView';
 import OrderSuccessModal from './components/OrderSuccessModal';
+
+// --- CODE SPLITTING: Chargement différé des pages secondaires ---
+// Optimisation critique pour mobile : on ne télécharge pas tout d'un coup.
+const GalleryView = React.lazy(() => import('./pages/GalleryView'));
+const ProductDetail = React.lazy(() => import('./pages/ProductDetail'));
+const CheckoutView = React.lazy(() => import('./pages/CheckoutView'));
+const LoginView = React.lazy(() => import('./pages/LoginView'));
 import {
     LayoutGrid, Palette, ShoppingBag, Settings,
     CreditCard, MessageCircle, Heart, Share2, Hammer, Gavel, Pencil, Eye, EyeOff, Trash2, Trophy, Mail, Users
@@ -106,51 +109,57 @@ const AppRouter = ({
                     className={view === 'gallery' ? 'contents animate-in fade-in duration-500' : 'fixed inset-0 pointer-events-none opacity-0 z-0'}
                     style={{ display: (view === 'gallery' || isPreparingGallery) ? 'block' : 'none' }}
                 >
-                    <GalleryView
-                        items={items}
-                        boardItems={boardItems}
-                        isAdmin={isAdmin} isSecretGateOpen={isSecretGateOpen} user={user}
-                        onShowLogin={() => setShowFullLogin(true)}
-                        onSelectItem={(id) => { setSelectedItemId(id); setView('detail'); window.scrollTo(0, 0); }}
-                        onShowComments={(item, col) => { setSelectedItemForComments(item); setCommentCollection(col); setIsCommentModalOpen(true); }}
-                        darkMode={darkMode}
-                        onOpenMenu={onOpenMenu}
-                        onOpenCart={onOpenCart}
-                        toggleTheme={toggleTheme}
-                    />
+                    <Suspense fallback={<div className="min-h-screen bg-[#0A0A0A]"></div>}>
+                        <GalleryView
+                            items={items}
+                            boardItems={boardItems}
+                            isAdmin={isAdmin} isSecretGateOpen={isSecretGateOpen} user={user}
+                            onShowLogin={() => setShowFullLogin(true)}
+                            onSelectItem={(id) => { setSelectedItemId(id); setView('detail'); window.scrollTo(0, 0); }}
+                            onShowComments={(item, col) => { setSelectedItemForComments(item); setCommentCollection(col); setIsCommentModalOpen(true); }}
+                            darkMode={darkMode}
+                            onOpenMenu={onOpenMenu}
+                            onOpenCart={onOpenCart}
+                            toggleTheme={toggleTheme}
+                        />
+                    </Suspense>
                 </div>
             )}
 
             {view === 'detail' && selectedItemId && (
-                <div className="contents">
-                    <ProductDetail
-                        item={[...items, ...boardItems].find(i => i.id === selectedItemId)}
-                        user={user}
-                        onBack={() => { setView('gallery'); setSelectedItemId(null); }}
-                        onAddToCart={addToCart}
-                        onShowComments={(item) => {
-                            const col = items.find(i => i.id === item.id) ? 'furniture' : 'cutting_boards';
-                            setSelectedItemForComments(item);
-                            setCommentCollection(col);
-                            setIsCommentModalOpen(true);
-                        }}
-                        darkMode={darkMode}
-                        onOpenMenu={onOpenMenu}
-                        onOpenCart={onOpenCart}
-                        onShowLogin={() => setShowFullLogin(true)}
-                        toggleTheme={toggleTheme}
-                    />
-                </div>
+                <Suspense fallback={<div className="min-h-screen bg-[#FAFAF9]"></div>}>
+                    <div className="contents">
+                        <ProductDetail
+                            item={[...items, ...boardItems].find(i => i.id === selectedItemId)}
+                            user={user}
+                            onBack={() => { setView('gallery'); setSelectedItemId(null); }}
+                            onAddToCart={addToCart}
+                            onShowComments={(item) => {
+                                const col = items.find(i => i.id === item.id) ? 'furniture' : 'cutting_boards';
+                                setSelectedItemForComments(item);
+                                setCommentCollection(col);
+                                setIsCommentModalOpen(true);
+                            }}
+                            darkMode={darkMode}
+                            onOpenMenu={onOpenMenu}
+                            onOpenCart={onOpenCart}
+                            onShowLogin={() => setShowFullLogin(true)}
+                            toggleTheme={toggleTheme}
+                        />
+                    </div>
+                </Suspense>
             )}
 
             {view === 'checkout' && (
-                <CheckoutView
-                    cartItems={cartItems}
-                    total={cartTotal}
-                    user={user}
-                    onBack={() => setView('gallery')}
-                    onPlaceOrder={handlePlaceOrder}
-                />
+                <Suspense fallback={<div className="min-h-screen bg-[#FAFAF9]"></div>}>
+                    <CheckoutView
+                        cartItems={cartItems}
+                        total={cartTotal}
+                        user={user}
+                        onBack={() => setView('gallery')}
+                        onPlaceOrder={handlePlaceOrder}
+                    />
+                </Suspense>
             )}
 
             {view === 'my-orders' && user && (
@@ -176,7 +185,7 @@ const AppRouter = ({
                 />
             </Suspense>
 
-            {view === 'login' && isSecretGateOpen && <LoginView onSuccess={() => setView('admin')} />}
+            {view === 'login' && isSecretGateOpen && <Suspense fallback={null}><LoginView onSuccess={() => setView('admin')} /></Suspense>}
 
             {view === 'admin' && isAdmin && (
                 <div className={`max-w-6xl mx-auto px-4 py-32 space-y-16 animate-in fade-in ${darkMode ? 'text-white' : 'text-stone-900'}`}>
