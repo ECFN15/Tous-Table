@@ -640,14 +640,14 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         });
       });
 
-      // 5. Scroll Horizontal (PROCESS) - HYBRID MODE (Desktop Only)
+      // 5. Scroll Horizontal (PROCESS) - HYBRID MODE (Desktop Only, matches CSS 2xl)
       const horizontal = document.querySelector('.horizontal-content');
       if (horizontal) {
         // Create MatchMedia inside the Context (safe cleanup)
         const mm = gsap.matchMedia();
 
-        // --- DESKTOP (>= 1920px) : HORIZONTAL SCROLL ---
-        mm.add("(min-width: 1920px)", () => {
+        // --- DESKTOP (>= 1536px) : HORIZONTAL SCROLL ---
+        mm.add("(min-width: 1536px)", () => {
           // Add extra space so we can scroll past the 5th card and see black space
           const distanceToScroll = horizontal.scrollWidth - window.innerWidth + 200;
 
@@ -700,8 +700,8 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
           });
         });
 
-        // --- MOBILE/TABLET (< 1920px) : VERTICAL STACK + PARALLAX ---
-        mm.add("(max-width: 1919px)", () => {
+        // --- MOBILE/TABLET (< 1536px) : VERTICAL STACK + PARALLAX ---
+        mm.add("(max-width: 1535px)", () => {
           // 1. Image Parallax (Window Effect)
           gsap.utils.toArray('.process-card .img-box-process img').forEach((img) => {
             gsap.fromTo(img,
