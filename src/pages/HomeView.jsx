@@ -1130,16 +1130,16 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
 
       {/* [SECTION 10: PROCESS] */}
       {/* HYBRID: Vertical Zig-Zag until Big PC (1920px), Horizontal (h-[100dvh]) for 1920px+ */}
-      <section className="process-wrapper h-auto min-[1920px]:h-[100dvh] min-h-[600px] bg-[#0D0D0D] text-[#FAF9F6] flex items-center overflow-hidden py-24 min-[1920px]:py-0">
-        <div className="horizontal-content flex flex-col min-[1920px]:flex-row gap-32 min-[1920px]:gap-[12vw] px-4 md:px-12 min-[1920px]:px-0 min-[1920px]:pl-[10vw] min-[1920px]:pr-[15vw] items-center relative min-[1920px]:will-change-transform w-full">
+      <section className="process-wrapper h-auto 2xl:h-[100dvh] min-h-[600px] bg-[#0D0D0D] text-[#FAF9F6] flex items-center overflow-hidden py-24 2xl:py-0">
+        <div className="horizontal-content flex flex-col 2xl:flex-row gap-32 2xl:gap-[12vw] px-4 md:px-12 2xl:px-0 2xl:pl-[10vw] 2xl:pr-[15vw] items-center relative 2xl:will-change-transform w-full">
 
           {/* Titre Section */}
-          <div className="w-full min-[1920px]:min-w-[40vw] relative flex flex-col items-center min-[1920px]:items-start justify-center mb-32 min-[1920px]:mb-0 border-b min-[1920px]:border-b-0 min-[1920px]:border-r border-white/5 pb-16 min-[1920px]:pb-0 min-[1920px]:pr-[8vw] text-center min-[1920px]:text-left mx-auto min-[1920px]:mx-0">
-            <RotatingSymbol className="absolute -top-20 left-1/2 -translate-x-1/2 min-[1920px]:top-auto min-[1920px]:left-auto min-[1920px]:translate-x-0 min-[1920px]:translate-y-0 min-[1920px]:-top-20 min-[1920px]:-left-24 text-[#9C8268] opacity-30 min-[1920px]:opacity-100" size={isMobile ? 220 : 160} />
+          <div className="w-full 2xl:min-w-[40vw] relative flex flex-col items-center 2xl:items-start justify-center mb-32 2xl:mb-0 border-b 2xl:border-b-0 2xl:border-r border-white/5 pb-16 2xl:pb-0 2xl:pr-[8vw] text-center 2xl:text-left mx-auto 2xl:mx-0">
+            <RotatingSymbol className="absolute -top-20 left-1/2 -translate-x-1/2 2xl:top-auto 2xl:left-auto 2xl:translate-x-0 2xl:translate-y-0 2xl:-top-20 2xl:-left-24 text-[#9C8268] opacity-30 2xl:opacity-100" size={isMobile ? 220 : 160} />
             <div className="relative z-10 w-full px-4 md:px-0">
               <span className="text-[10px] uppercase tracking-[1.2em] text-[#9C8268] mb-8 block font-black">L'Alchimie</span>
-              <h2 className="font-serif text-5xl md:text-8xl min-[1920px]:text-[12vw] leading-none font-light italic text-white px-2">Le Rituel.</h2>
-              <p className="mt-8 min-[1920px]:mt-12 text-base md:text-xl font-light opacity-50 max-w-lg min-[1920px]:border-l border-[#9C8268] min-[1920px]:pl-6 mx-auto min-[1920px]:mx-0 leading-relaxed">
+              <h2 className="font-serif text-5xl md:text-8xl 2xl:text-[12vw] leading-none font-light italic text-white px-2">Le Rituel.</h2>
+              <p className="mt-8 2xl:mt-12 text-base md:text-xl font-light opacity-50 max-w-lg 2xl:border-l border-[#9C8268] 2xl:pl-6 mx-auto 2xl:mx-0 leading-relaxed">
                 Chaque étape est une célébration de la matière. De l'état brut à l'œuvre d'art, découvrez notre processus de restauration.
               </p>
             </div>
@@ -1149,7 +1149,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
             {
               n: "I",
               main: homepageImages.process_1 || "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?q=80&w=1400",
-              w: "w-full md:max-w-[90vw] min-[1920px]:w-[580px]", h: "h-[450px] md:h-[600px] min-[1920px]:h-[500px]",
+              w: "w-full md:max-2xl:max-w-[90vw] 2xl:w-[580px]", h: "h-[450px] md:max-2xl:h-[600px] 2xl:h-[500px]",
               t: homepageImages['process_1_text']?.t || "L'Essence",
               d: homepageImages['process_1_text']?.d || "Sélection rigoureuse des billes de bois précieux.",
               info: homepageImages['process_1_text']?.info || "Matière première"
@@ -1157,7 +1157,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
             {
               n: "II",
               main: homepageImages.process_2 || "https://images.unsplash.com/photo-1644358686685-4ed525a59663?q=80&w=2000&auto=format&fit=crop",
-              w: "w-full md:max-w-[95vw] min-[1920px]:w-[750px]", h: "h-[400px] md:h-[600px] min-[1920px]:h-[500px]",
+              w: "w-full md:max-2xl:max-w-[95vw] 2xl:w-[750px]", h: "h-[400px] md:max-2xl:h-[600px] 2xl:h-[500px]",
               t: homepageImages['process_2_text']?.t || "L'Analyse",
               d: homepageImages['process_2_text']?.d || "Diagnostic structurel et scan de la patine historique.",
               info: homepageImages['process_2_text']?.info || "Étude microscopique"
@@ -1165,7 +1165,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
             {
               n: "III",
               main: homepageImages.process_3 || "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2000&auto=format&fit=crop",
-              w: "w-full md:max-w-[90vw] min-[1920px]:w-[650px]", h: "h-[350px] md:h-[550px] min-[1920px]:h-[450px]",
+              w: "w-full md:max-2xl:max-w-[90vw] 2xl:w-[650px]", h: "h-[350px] md:max-2xl:h-[550px] 2xl:h-[450px]",
               t: homepageImages['process_3_text']?.t || "Le Dessin",
               d: homepageImages['process_3_text']?.d || "Tracé géométrique pour les greffes complexes.",
               info: homepageImages['process_3_text']?.info || "Perspective d'art"
@@ -1173,7 +1173,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
             {
               n: "IV",
               main: homepageImages.process_4 || "https://images.unsplash.com/photo-1600585152220-90363fe7e115?q=80&w=1400",
-              w: "w-full md:max-w-[90vw] min-[1920px]:w-[600px]", h: "h-[400px] md:h-[600px] min-[1920px]:h-[500px]",
+              w: "w-full md:max-2xl:max-w-[90vw] 2xl:w-[600px]", h: "h-[400px] md:max-2xl:h-[600px] 2xl:h-[500px]",
               t: homepageImages['process_4_text']?.t || "La Cure",
               d: homepageImages['process_4_text']?.d || "Greffes invisibles et consolidation structurelle.",
               info: homepageImages['process_4_text']?.info || "Renaissance physique"
@@ -1181,22 +1181,24 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
             {
               n: "V",
               main: homepageImages.process_5 || "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=1400",
-              w: "w-full md:max-w-[95vw] min-[1920px]:w-[850px]", h: "h-[400px] md:h-[650px] min-[1920px]:h-[550px]",
+              w: "w-full md:max-2xl:max-w-[95vw] 2xl:w-[850px]", h: "h-[400px] md:max-2xl:h-[650px] 2xl:h-[550px]",
               t: homepageImages['process_5_text']?.t || "L'Éclat",
               d: homepageImages['process_5_text']?.d || "Secret du vernis au tampon selon la tradition normande.",
               info: homepageImages['process_5_text']?.info || "Miroir de bois"
             }
           ].map((step, i) => (
-            <div key={i} className={`process-card flex-shrink-0 relative ${step.w} flex flex-col ${i % 2 === 0 ? 'md:flex-row-reverse' : 'md:flex-row'} min-[1920px]:flex-col items-center min-[1920px]:items-start justify-center gap-12 md:gap-20 min-[1920px]:gap-8 group mb-24 md:mb-48 min-[1920px]:mb-0 px-4 md:px-0`}>
+            <div key={i} className={`process-card flex-shrink-0 relative ${step.w} flex flex-col ${i % 2 === 0 ? 'md:max-2xl:flex-row-reverse' : 'md:max-2xl:flex-row'} 2xl:flex-col items-center 2xl:items-start justify-center gap-12 md:gap-20 2xl:gap-8 group mb-24 md:mb-48 2xl:mb-0 px-4 md:px-0`}>
 
               {/* Numéro flottant "Architectural" */}
-              <div className={`absolute -top-12 min-[1920px]:-top-12 ${i % 2 === 0 ? 'right-4 md:right-0 min-[1920px]:left-0 min-[1920px]:right-auto' : 'left-4 md:left-0'} min-[1920px]:-left-12 z-30 pointer-events-none select-none text-[#9C8268]/20 min-[1920px]:text-white/10 min-[1920px]:group-hover:text-[#9C8268]/20 transition-colors duration-700`}>
-                <span className="font-serif text-[6rem] md:text-[8rem] min-[1920px]:text-[12rem] leading-none text-stroke-1 italic">{step.n}</span>
+              <div className={`absolute -top-12 2xl:-top-12 ${i % 2 === 0 ? 'right-4 md:right-0 2xl:left-0 2xl:right-auto' : 'left-4 md:left-0'} 2xl:-left-12 z-30 pointer-events-none select-none text-[#9C8268]/20 2xl:text-white/10 2xl:group-hover:text-[#9C8268]/20 transition-colors duration-700`}>
+                <span className="font-serif text-[6rem] md:text-[8rem] 2xl:text-[12rem] leading-none text-stroke-1 italic">{step.n}</span>
               </div>
 
+
+
               {/* Conteneur Image */}
-              <div className={`img-box-process ${step.h} w-full md:w-[65%] min-[1920px]:w-full border border-white/30 max-[1919px]:border-white/30 min-[1920px]:border-white/10 relative overflow-hidden transition-all duration-700 min-[1920px]:group-hover:border-white/30 z-10 mx-auto min-[1920px]:mx-0`}>
-                <div className="absolute inset-0 z-10 bg-transparent min-[1920px]:bg-[#0D0D0D]/30 min-[1920px]:group-hover:bg-transparent transition-colors duration-150"></div>
+              <div className={`img-box-process ${step.h} w-full md:w-[65%] 2xl:w-full border border-white/30 max-2xl:border-white/30 2xl:border-white/10 relative overflow-hidden transition-all duration-700 2xl:group-hover:border-white/30 z-10 mx-auto 2xl:mx-0`}>
+                <div className="absolute inset-0 z-10 bg-transparent 2xl:bg-[#0D0D0D]/30 2xl:group-hover:bg-transparent transition-colors duration-150"></div>
                 <img
                   src={step.main}
                   alt={step.t}
@@ -1206,15 +1208,15 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
                 />
 
                 {/* Tag technique au survol */}
-                <div className="absolute bottom-6 right-6 z-20 opacity-100 translate-y-0 min-[1920px]:opacity-0 min-[1920px]:translate-y-4 min-[1920px]:group-hover:opacity-100 min-[1920px]:group-hover:translate-y-0 transition-all duration-300 delay-75">
+                <div className="absolute bottom-6 right-6 z-20 opacity-100 translate-y-0 2xl:opacity-0 2xl:translate-y-4 2xl:group-hover:opacity-100 2xl:group-hover:translate-y-0 transition-all duration-300 delay-75">
                   <span className="text-[10px] uppercase tracking-widest bg-[#111] px-4 py-2 border border-[#9C8268] text-white font-medium shadow-xl">{step.info}</span>
                 </div>
               </div>
 
               {/* Caption */}
-              <div className={`p-caption mt-6 md:mt-0 min-[1920px]:mt-8 relative z-10 text-white md:w-[35%] min-[1920px]:w-full px-6 md:px-12 min-[1920px]:px-0 min-[1920px]:pl-6 border-l border-[#9C8268] max-[1919px]:border-[#9C8268] min-[1920px]:border-white/10 min-[1920px]:group-hover:border-[#9C8268] transition-colors duration-150 text-center ${i % 2 === 0 ? 'md:text-right min-[1920px]:text-left' : 'md:text-left min-[1920px]:text-left'}`}>
-                <h3 className="text-3xl md:text-5xl min-[1920px]:text-6xl font-light italic font-serif text-white mb-6 min-[1920px]:group-hover:translate-x-2 transition-transform duration-500">{step.t}</h3>
-                <p className="text-[10px] md:text-sm uppercase tracking-[0.25em] opacity-80 max-[1919px]:opacity-80 min-[1920px]:opacity-40 leading-loose max-w-[320px] font-medium text-[#FAF9F6] min-[1920px]:group-hover:opacity-80 transition-opacity mx-auto md:mx-0 inline-block">{step.d}</p>
+              <div className={`p-caption mt-6 md:mt-0 2xl:mt-8 relative z-10 text-white md:w-[35%] 2xl:w-full px-6 md:px-12 2xl:px-0 2xl:pl-6 border-l border-[#9C8268] md:max-2xl:border-[#9C8268] 2xl:border-white/10 2xl:group-hover:border-[#9C8268] transition-colors duration-150 text-center ${i % 2 === 0 ? 'md:max-2xl:text-right 2xl:text-left' : 'md:max-2xl:text-left 2xl:text-left'}`}>
+                <h3 className="text-3xl md:text-5xl 2xl:text-6xl font-light italic font-serif text-white mb-6 2xl:group-hover:translate-x-2 transition-transform duration-500">{step.t}</h3>
+                <p className="text-[10px] md:text-sm uppercase tracking-[0.25em] opacity-80 md:max-2xl:opacity-80 2xl:opacity-40 leading-loose max-w-[320px] font-medium text-[#FAF9F6] 2xl:group-hover:opacity-80 transition-opacity mx-auto md:mx-0 inline-block">{step.d}</p>
               </div>
             </div>
           ))}
@@ -1223,7 +1225,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
 
 
           {/* SPACER: Extra space at the end for the 5th card to be fully visible on desktop */}
-          <div className="hidden min-[1920px]:block w-[50vw] h-full flex-shrink-0" aria-hidden="true"></div>
+          <div className="hidden 2xl:block w-[50vw] h-full flex-shrink-0" aria-hidden="true"></div>
         </div>
       </section>
 

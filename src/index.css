@@ -1,4 +1,13 @@
 @import "tailwindcss";
+
+@theme {
+  --breakpoint-monitor: 1920px;
+
+  /* Font Families (Optional but good for v4 consistency) */
+  --font-serif: "Cormorant Garamond", serif;
+  --font-sans: "Plus Jakarta Sans", sans-serif;
+}
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* GLOBAL STYLES & UTILITIES */
