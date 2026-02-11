@@ -1145,11 +1145,14 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
             </div>
           </div>
 
+          {/* PROCESS CARDS LOOP - PROGRESSIVE SCALING (1536px scaled down -> 1920px full scale) */}
           {[
             {
               n: "I",
               main: homepageImages.process_1 || "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?q=80&w=1400",
-              w: "w-full md:max-2xl:max-w-[90vw] 2xl:w-[580px]", h: "h-[450px] md:max-2xl:h-[600px] 2xl:h-[500px]",
+              // FLUID: 30.2vw = 580px at 1920w. Scales down smoothly below 1920px.
+              w: "w-full md:max-2xl:max-w-[90vw] 2xl:w-[30.2vw] min-[1920px]:w-[580px]",
+              h: "h-[450px] md:max-2xl:h-[600px] 2xl:h-[26vw] min-[1920px]:h-[500px]",
               t: homepageImages['process_1_text']?.t || "L'Essence",
               d: homepageImages['process_1_text']?.d || "Sélection rigoureuse des billes de bois précieux.",
               info: homepageImages['process_1_text']?.info || "Matière première"
@@ -1157,7 +1160,9 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
             {
               n: "II",
               main: homepageImages.process_2 || "https://images.unsplash.com/photo-1644358686685-4ed525a59663?q=80&w=2000&auto=format&fit=crop",
-              w: "w-full md:max-2xl:max-w-[95vw] 2xl:w-[750px]", h: "h-[400px] md:max-2xl:h-[600px] 2xl:h-[500px]",
+              // FLUID: 39vw = 750px at 1920w.
+              w: "w-full md:max-2xl:max-w-[95vw] 2xl:w-[39vw] min-[1920px]:w-[750px]",
+              h: "h-[400px] md:max-2xl:h-[600px] 2xl:h-[23.4vw] min-[1920px]:h-[450px]",
               t: homepageImages['process_2_text']?.t || "L'Analyse",
               d: homepageImages['process_2_text']?.d || "Diagnostic structurel et scan de la patine historique.",
               info: homepageImages['process_2_text']?.info || "Étude microscopique"
@@ -1165,7 +1170,9 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
             {
               n: "III",
               main: homepageImages.process_3 || "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2000&auto=format&fit=crop",
-              w: "w-full md:max-2xl:max-w-[90vw] 2xl:w-[650px]", h: "h-[350px] md:max-2xl:h-[550px] 2xl:h-[450px]",
+              // FLUID: 33.8vw = 650px at 1920w.
+              w: "w-full md:max-2xl:max-w-[90vw] 2xl:w-[33.8vw] min-[1920px]:w-[650px]",
+              h: "h-[350px] md:max-2xl:h-[550px] 2xl:h-[23.4vw] min-[1920px]:h-[450px]",
               t: homepageImages['process_3_text']?.t || "Le Dessin",
               d: homepageImages['process_3_text']?.d || "Tracé géométrique pour les greffes complexes.",
               info: homepageImages['process_3_text']?.info || "Perspective d'art"
@@ -1173,7 +1180,9 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
             {
               n: "IV",
               main: homepageImages.process_4 || "https://images.unsplash.com/photo-1600585152220-90363fe7e115?q=80&w=1400",
-              w: "w-full md:max-2xl:max-w-[90vw] 2xl:w-[600px]", h: "h-[400px] md:max-2xl:h-[600px] 2xl:h-[500px]",
+              // FLUID: 31.2vw = 600px at 1920w.
+              w: "w-full md:max-2xl:max-w-[90vw] 2xl:w-[31.2vw] min-[1920px]:w-[600px]",
+              h: "h-[400px] md:max-2xl:h-[600px] 2xl:h-[26vw] min-[1920px]:h-[500px]",
               t: homepageImages['process_4_text']?.t || "La Cure",
               d: homepageImages['process_4_text']?.d || "Greffes invisibles et consolidation structurelle.",
               info: homepageImages['process_4_text']?.info || "Renaissance physique"
@@ -1181,7 +1190,9 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
             {
               n: "V",
               main: homepageImages.process_5 || "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=1400",
-              w: "w-full md:max-2xl:max-w-[95vw] 2xl:w-[850px]", h: "h-[400px] md:max-2xl:h-[650px] 2xl:h-[550px]",
+              // FLUID: 44.2vw = 850px at 1920w.
+              w: "w-full md:max-2xl:max-w-[95vw] 2xl:w-[44.2vw] min-[1920px]:w-[850px]",
+              h: "h-[400px] md:max-2xl:h-[650px] 2xl:h-[28.6vw] min-[1920px]:h-[550px]",
               t: homepageImages['process_5_text']?.t || "L'Éclat",
               d: homepageImages['process_5_text']?.d || "Secret du vernis au tampon selon la tradition normande.",
               info: homepageImages['process_5_text']?.info || "Miroir de bois"
