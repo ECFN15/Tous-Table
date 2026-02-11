@@ -285,6 +285,8 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         });
 
         // 4. Ghost scroll to trigger initial calculations (invisible under preloader)
+        // Removed aggressive refresh to avoid layout thrashing during TBT
+        /* 
         window.scrollTo(0, 1);
         requestAnimationFrame(() => {
           window.scrollTo(0, 0);
@@ -292,6 +294,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
             window.ScrollTrigger.refresh(true);
           }
         });
+        */
       };
 
       // Execute warm-up after a short delay to let DOM stabilize
