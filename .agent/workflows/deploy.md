@@ -14,9 +14,9 @@ Pour plus de détails, ouvre le fichier `GUIDE_DEPLOIEMENT.md`.
    ```powershell
    firebase use prod
    ```
-3. Construire le site (Mode Production) :
+3. Construire le site (⚠️ OBLIGATOIRE: utiliser build:prod pour les clés Firebase prod) :
    ```powershell
-   npm run build
+   npm run build:prod
    ```
 4. Déployer (Hosting Uniquement) :
    ```powershell
