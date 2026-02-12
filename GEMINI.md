@@ -34,6 +34,7 @@ Le projet a été simplifié en Février 2026 pour ne garder que le design "Arch
 *   **`designs/architectural/`** : Le design system et les layouts par défaut du site.
 *   **`features/admin/`** : Le Back-Office.
     *   `AdminStudio.jsx` : Gère désormais uniquement le forçage du mode (Light/Dark) pour le design Architectural.
+*   **`REGLES_ENV.md`** : Guide complet pour la gestion des environnements (Sandbox vs Production). À consulter avant tout déploiement.
 
 ---
 
