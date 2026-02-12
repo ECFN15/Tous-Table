@@ -174,12 +174,12 @@ const AppRouter = ({
                         <button onClick={() => setView('gallery')} className={`text-[10px] font-black border-2 px-4 md:px-6 py-2 rounded-xl transition-all ${darkMode ? 'border-white hover:bg-white hover:text-stone-900' : 'border-stone-900 hover:bg-stone-900 hover:text-white'}`}>Retour</button>
                     </div>
 
-                    {/* ADMIN NAVIGATION - WRAPPING TABS FOR DESKTOP */}
-                    <div className="w-full overflow-x-auto md:overflow-x-visible no-scrollbar scroll-smooth">
-                        <div className="flex flex-nowrap md:flex-wrap items-center justify-start md:justify-center gap-2 md:gap-3 p-1 w-max md:w-full min-w-full pb-4 md:pb-0">
+                    {/* ADMIN NAVIGATION - FULLY RESPONSIVE WRAPPING */}
+                    <div className="w-full">
+                        <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3 p-1 pb-4 md:pb-0">
                             <button
                                 onClick={() => { setAdminCollection('studio'); setEditingItem(null); }}
-                                className={`px-4 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center justify-center gap-2 ${adminCollection === 'studio' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
+                                className={`px-3 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center justify-center gap-2 ${adminCollection === 'studio' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
                             >
                                 <Palette size={14} className="shrink-0" /> Studio
                             </button>
@@ -203,7 +203,7 @@ const AppRouter = ({
                             </button>
                             <button
                                 onClick={() => { setAdminCollection('auctions'); setEditingItem(null); }}
-                                className={`px-4 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center justify-center gap-2 ${adminCollection === 'auctions' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
+                                className={`px-3 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center justify-center gap-2 ${adminCollection === 'auctions' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
                             >
                                 <Gavel size={14} className="shrink-0" /> Enchères
                             </button>
@@ -222,14 +222,14 @@ const AppRouter = ({
 
                             <button
                                 onClick={() => { setAdminCollection('users'); setEditingItem(null); }}
-                                className={`px-4 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center justify-center gap-2 ${adminCollection === 'users' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
+                                className={`px-3 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center justify-center gap-2 ${adminCollection === 'users' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
                             >
                                 <Users size={14} className="shrink-0" /> Utilisateurs
                             </button>
 
                             <button
                                 onClick={() => { setAdminCollection('seo'); setEditingItem(null); }}
-                                className={`px-4 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center justify-center gap-2 ${adminCollection === 'seo' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
+                                className={`px-3 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center justify-center gap-2 ${adminCollection === 'seo' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
                             >
                                 <Share2 size={14} className="shrink-0" /> SEO
                             </button>
