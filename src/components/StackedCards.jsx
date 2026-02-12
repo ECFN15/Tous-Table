@@ -82,6 +82,7 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                                 scrub: 0.5,
                                 invalidateOnRefresh: true,
                                 fastScrollEnd: true,
+                                refreshPriority: -1, // Refresh AFTER pinned sections (Process horizontal scroll)
                                 onLeaveBack: () => {
                                     gsap.set(prevVisual, {
                                         scale: 1,
@@ -111,6 +112,7 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                             end: "top -30%",
                             scrub: 1.2,
                             invalidateOnRefresh: true,
+                            refreshPriority: -1, // Refresh AFTER pinned sections
                             onLeaveBack: () => {
                                 gsap.set(lastVisual, { scaleX: 1, scaleY: 1 });
                             }
@@ -154,8 +156,25 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
             resizeObserver.observe(containerRef.current);
         }
 
+        // 5. WINDOW RESIZE HANDLER (Re-init on viewport width change)
+        // When crossing breakpoints (e.g. 2xl at 1536px), the page layout changes
+        // and trigger positions need full recalculation
+        let lastWidth = window.innerWidth;
+        let resizeTimer;
+        const handleWindowResize = () => {
+            const newWidth = window.innerWidth;
+            if (Math.abs(newWidth - lastWidth) > 20) {
+                lastWidth = newWidth;
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(() => initGSAP(), 300);
+            }
+        };
+        window.addEventListener('resize', handleWindowResize);
+
         return () => {
             window.removeEventListener('load', onWindowLoad);
+            window.removeEventListener('resize', handleWindowResize);
+            clearTimeout(resizeTimer);
             refreshTimers.forEach(t => clearTimeout(t));
             resizeObserver.disconnect();
             if (ctx) ctx.revert();

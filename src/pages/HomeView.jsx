@@ -2,6 +2,12 @@ import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import { Hammer, Menu, X, ArrowRight, Instagram, ArrowDown, Star, Zap, Plus, Minus } from 'lucide-react';
 import StackedCards from '../components/StackedCards'; // New Import
 
+// --- NPM IMPORTS (remplace les anciens CDN) ---
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import Lenis from '@studio-freight/lenis';
+gsap.registerPlugin(ScrollTrigger);
+
 // Lazy Load Three.js to improve initial bundle size
 const ThreeBackground = React.lazy(() => import('../components/ThreeBackground'));
 import { doc, onSnapshot } from 'firebase/firestore';
@@ -100,7 +106,6 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
   const componentRef = useRef(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [menuInteracted, setMenuInteracted] = useState(false); // Prevents initial transition flash
-  const [scriptsLoaded, setScriptsLoaded] = useState(false);
   const [homepageImages, setHomepageImages] = useState({});
 
   // --- FETCH DYNAMIC IMAGES ---
@@ -117,6 +122,9 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
   const [openFaqIndex, setOpenFaqIndex] = useState(0);
 
   const isMobile = typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
+
+  // Scripts are always available via npm imports (no CDN loading needed)
+  const scriptsLoaded = true;
 
   // ... (Keep existing Navigation logic) ...
 
@@ -189,11 +197,6 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
   const handleNavigation = (selector) => {
     // 1. Transition vers Marketplace (Sync avec le Menu & App.jsx)
     if (selector === 'marketplace') {
-      const { gsap } = window;
-      if (!gsap) {
-        onEnterMarketplace();
-        return;
-      }
 
       // SIGNAL PRELOAD: On pré-monte la Marketplace en arrière-plan
       if (onStartMarketplaceTransition) onStartMarketplaceTransition();
@@ -236,72 +239,39 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
     }, 500);
   };
 
-  // --- CHARGEMENT DYNAMIQUE DES SCRIPTS ---
+  // --- PRE-WARM: Force GPU layer creation & position calculation ---
   useEffect(() => {
-    const loadScript = (src) => {
-      return new Promise((resolve) => {
-        const script = document.createElement('script');
-        script.src = src;
-        script.onload = resolve;
-        document.head.appendChild(script);
+    const warmUpAnimations = () => {
+      // 1. Collect ALL dynamic images for preloading
+      const dynamicImages = [
+        ...Object.values(homepageImages).filter(val => typeof val === 'string' && val.startsWith('http')),
+        "https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=1200",
+        "https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=1200"
+      ];
+
+      // 2. Load images into browser cache immediately
+      dynamicImages.forEach(src => {
+        const img = new Image();
+        img.src = src;
+      });
+
+      // 3. Force GPU layers on key animated elements
+      // NOTE: .card-visual is EXCLUDED — StackedCards manages its own GPU layers via GSAP force3D:true
+      const animatedElements = document.querySelectorAll(
+        '.process-card, .manifesto-item, .team-section, .data-section, .img-parallax img'
+      );
+      animatedElements.forEach(el => {
+        if (el) {
+          el.style.willChange = 'transform, opacity';
+          el.style.transform = 'translate3d(0, 0, 0)';
+          el.style.backfaceVisibility = 'hidden';
+          el.style.webkitBackfaceVisibility = 'hidden';
+        }
       });
     };
 
-    Promise.all([
-      loadScript('https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js'),
-      loadScript('https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js'),
-      loadScript('https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js')
-    ]).then(() => {
-      window.gsap.registerPlugin(window.ScrollTrigger);
-
-      // PRE-WARM: Force GPU layer creation & position calculation
-      const warmUpAnimations = () => {
-        // 1. Collect ALL dynamic images for preloading
-        const dynamicImages = [
-          ...Object.values(homepageImages).filter(val => typeof val === 'string' && val.startsWith('http')),
-          "https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=1200",
-          "https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=1200"
-        ];
-
-        // 2. Load images into browser cache immediately
-        dynamicImages.forEach(src => {
-          const img = new Image();
-          img.src = src;
-          // We don't block the preloader on EVERY image to avoid infinite loading, 
-          // but we prioritize them in the browser's download queue.
-        });
-
-        // 3. Force GPU layers on key animated elements
-        const animatedElements = document.querySelectorAll(
-          '.card-visual, .process-card, .manifesto-item, .team-section, .data-section, .img-parallax img'
-        );
-        animatedElements.forEach(el => {
-          if (el) {
-            el.style.willChange = 'transform, opacity';
-            el.style.transform = 'translate3d(0, 0, 0)';
-            el.style.backfaceVisibility = 'hidden';
-            el.style.webkitBackfaceVisibility = 'hidden';
-          }
-        });
-
-        // 4. Ghost scroll to trigger initial calculations (invisible under preloader)
-        // Removed aggressive refresh to avoid layout thrashing during TBT
-        /* 
-        window.scrollTo(0, 1);
-        requestAnimationFrame(() => {
-          window.scrollTo(0, 0);
-          if (window.ScrollTrigger) {
-            window.ScrollTrigger.refresh(true);
-          }
-        });
-        */
-      };
-
-      // Execute warm-up after a short delay to let DOM stabilize
-      setTimeout(warmUpAnimations, 100);
-
-      setScriptsLoaded(true);
-    });
+    // Execute warm-up after a short delay to let DOM stabilize
+    setTimeout(warmUpAnimations, 100);
   }, []);
 
   // --- PRELOADER STATE ---
@@ -329,9 +299,6 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
   // --- PRELOADER & HERO ENTRANCE ---
   useEffect(() => {
     if (!scriptsLoaded) return;
-
-    const { gsap } = window;
-    if (!gsap) return;
 
     // If preloader already shown, just animate hero immediately
     if (window.hasShownPreloader) {
@@ -379,7 +346,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
           window.hasShownPreloader = true; // Mark as shown
           document.body.style.overflow = '';
           // Ensure ScrollTrigger is refreshed after layout settles
-          if (window.ScrollTrigger) window.ScrollTrigger.refresh();
+          ScrollTrigger.refresh();
         }
       });
 
@@ -451,7 +418,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
           setIsLoading(false);
           document.body.style.overflow = '';
           setTimeout(() => {
-            if (window.ScrollTrigger) window.ScrollTrigger.refresh(true);
+            ScrollTrigger.refresh(true);
           }, 400);
         });
     });
@@ -459,16 +426,16 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
     return () => ctx.revert();
   }, [scriptsLoaded]);
 
-  // --- INITIALISATION LENIS ---
+  // --- INITIALISATION LENIS (Same behavior as old CDN v1.0.42) ---
   useEffect(() => {
     if (!scriptsLoaded) return;
-    const isMobile = window.innerWidth < 1024;
-    const lenis = new window.Lenis({
-      duration: isMobile ? 0.5 : 1.2,
+    const isMobileDevice = window.innerWidth < 1024;
+    const lenis = new Lenis({
+      duration: isMobileDevice ? 0.5 : 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
       smoothTouch: true,
-      touchMultiplier: isMobile ? 0.8 : 2,
+      touchMultiplier: isMobileDevice ? 0.8 : 2,
     });
     function raf(time) {
       lenis.raf(time);
@@ -481,13 +448,10 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
   // --- GSAP ORCHESTRATION ---
   useLayoutEffect(() => {
     if (!scriptsLoaded) return;
-    const { gsap, ScrollTrigger } = window;
 
-    // GLOBAL MOBILE OPTIMIZATION
-    // Prevent layout thrashing when mobile address bar shows/hides
-    ScrollTrigger.config({ ignoreMobileResize: true });
-    // Disable lag smoothing to prevent "jumpy" catch-up frames on mobile
-    gsap.ticker.lagSmoothing(0);
+    // NOTE: ignoreMobileResize and lagSmoothing(0) were removed.
+    // They were safe when HomeView used a separate CDN GSAP instance,
+    // but now that all components share the same GSAP, they corrupt StackedCards' animations.
 
     const ctx = gsap.context(() => {
       // 2. Disparition 3D + PAUSE (Save GPU for Section 10)
@@ -665,7 +629,8 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
               pin: true,
               scrub: 1,
               invalidateOnRefresh: true,
-              anticipatePin: 1
+              anticipatePin: 1,
+              refreshPriority: 1 // Refresh BEFORE downstream triggers (StackedCards)
             }
           });
 
