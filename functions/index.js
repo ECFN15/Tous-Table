@@ -19,6 +19,28 @@ const transporter = nodemailer.createTransport({
 });
 
 // ============================================================
+// 0. HELPERS SÉCURITÉ (CENTRALISATION)
+// ============================================================
+const SUPER_ADMIN_EMAIL = 'matthis.fradin2@gmail.com';
+
+const checkIsAdmin = (context) => {
+    if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'Authentification requise.');
+    const isSuper = context.auth.token.email === SUPER_ADMIN_EMAIL;
+    const isAdminClaim = context.auth.token.admin === true;
+    if (!isSuper && !isAdminClaim) {
+        throw new functions.https.HttpsError('permission-denied', 'Accès réservé aux administrateurs.');
+    }
+    return { isSuper, isAdmin: true };
+};
+
+const checkIsSuperAdmin = (context) => {
+    if (!context.auth || context.auth.token.email !== SUPER_ADMIN_EMAIL) {
+        throw new functions.https.HttpsError('permission-denied', 'ACCÈS REFUSÉ. Action réservée au Super Administrateur.');
+    }
+    return true;
+};
+
+// ============================================================
 // 1. TRIGGERS: COMPTEURS AUTOMATIQUES (FIABILITÉ TOTALE)
 // ============================================================
 
@@ -91,13 +113,8 @@ exports.onShareDeleted = functions.firestore
 // 2. FONCTION ADMIN: RESET TOTAL (GRAND NETTOYAGE)
 // ============================================================
 exports.resetAllStats = functions.https.onCall(async (data, context) => {
-    // 1. Sécurité : Admin seulement
-    if (!context.auth || !context.auth.token.admin) {
-        // Fallback: check email si pas encore de custom token
-        if (!context.auth || context.auth.token.email !== 'matthis.fradin2@gmail.com') {
-            throw new functions.https.HttpsError('permission-denied', 'Réservé à l\'administrateur.');
-        }
-    }
+    // 1. SÉCURITÉ CRITIQUE : Seul le Super Admin peut réinitialiser les stats globales
+    checkIsSuperAdmin(context);
 
     const appId = 'tat-made-in-normandie';
     const collections = ['furniture', 'cutting_boards'];
@@ -166,10 +183,8 @@ exports.resetAllStats = functions.https.onCall(async (data, context) => {
  * Génère une URL signée pour permettre l'upload sécurisé
  */
 exports.getUploadUrl = functions.https.onCall(async (data, context) => {
-    // 1. Sécurité Admin
-    if (!context.auth || (!context.auth.token.admin && context.auth.token.email !== 'matthis.fradin2@gmail.com')) {
-        throw new functions.https.HttpsError('permission-denied', 'Réservé aux admins.');
-    }
+    // 1. Sécurité Admin (Artisan ou Super)
+    checkIsAdmin(context);
 
     const { fileName, contentType, collectionName } = data;
     if (!fileName || !contentType || !collectionName) {
@@ -803,13 +818,8 @@ exports.grantAdminOnAuth = functions.auth.user().onCreate(async (user) => {
 
 // Ajouter un administrateur (Whitelist + Claims si existe déjà)
 exports.addAdminUser = functions.https.onCall(async (data, context) => {
-    // 1. Sécurité
-    const callerEmail = context.auth?.token.email;
-    const isSuperAdmin = callerEmail === 'matthis.fradin2@gmail.com';
-
-    if (!context.auth || (!context.auth.token.admin && !isSuperAdmin)) {
-        throw new functions.https.HttpsError('permission-denied', 'Réservé aux administrateurs.');
-    }
+    // 1. Sécurité (Admin ou Super)
+    const { isSuper } = checkIsAdmin(context);
 
     const { email, name } = data;
     if (!email) throw new functions.https.HttpsError('invalid-argument', 'Email requis.');
@@ -867,12 +877,8 @@ exports.addAdminUser = functions.https.onCall(async (data, context) => {
 
 // Révoquer un administrateur
 exports.removeAdminUser = functions.https.onCall(async (data, context) => {
-    // 1. Sécurité
-    if (!context.auth || !context.auth.token.admin) {
-        if (!context.auth || context.auth.token.email !== 'matthis.fradin2@gmail.com') {
-            throw new functions.https.HttpsError('permission-denied', 'Interdit.');
-        }
-    }
+    // 1. Sécurité (Admin ou Super)
+    checkIsAdmin(context);
 
     const { uid, email } = data; // On accepte UID ou Email pour retrouver l'user
     if (!uid && !email) throw new functions.https.HttpsError('invalid-argument', 'UID ou Email requis.');
@@ -923,12 +929,8 @@ exports.removeAdminUser = functions.https.onCall(async (data, context) => {
 
 // Outil de diagnostic (Email)
 exports.sendTestEmail = functions.https.onCall(async (data, context) => {
-    // 1. Sécurité : Admin seulement
-    if (!context.auth || !context.auth.token.admin) {
-        if (!context.auth || context.auth.token.email !== 'matthis.fradin2@gmail.com') {
-            throw new functions.https.HttpsError('permission-denied', 'Réservé à l\'administrateur.');
-        }
-    }
+    // 1. Sécurité (Admin ou Super)
+    checkIsAdmin(context);
 
     const debugInfo = {
         hasEmailEnv: !!process.env.GMAIL_EMAIL,
@@ -970,14 +972,8 @@ exports.sendTestEmail = functions.https.onCall(async (data, context) => {
 // 8. STATISTIQUES UTILISATEURS (Registered Users Only)
 // ============================================================
 exports.getUserStats = functions.runWith({ timeoutSeconds: 300, memory: '512MB' }).https.onCall(async (data, context) => {
-    // 1. Sécurité : Admin seulement
-    // 1. Sécurité : Admin ou Super Admin Hardcodé
-    const callerEmail = context.auth?.token.email;
-    const isSuperAdmin = callerEmail === 'matthis.fradin2@gmail.com';
-
-    if (!context.auth || (!context.auth.token.admin && !isSuperAdmin)) {
-        throw new functions.https.HttpsError('permission-denied', 'Administrateur requis.');
-    }
+    // 1. Sécurité (Admin ou Super)
+    checkIsAdmin(context);
 
     try {
         let nextPageToken;

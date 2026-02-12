@@ -443,36 +443,38 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                         </button>
                     </div>
 
-                    {/* DANGER ZONE */}
-                    <div className={`p-6 rounded-[2rem] ring-1 ring-inset transform-gpu backface-hidden will-change-transform overflow-hidden ${darkMode ? 'bg-red-900/10 ring-red-900/30' : 'bg-red-50 ring-red-100/50'}`}>
-                        <div className={`flex items-center gap-2 mb-4 ${darkMode ? 'text-red-400' : 'text-red-900'}`}>
-                            <AlertTriangle size={16} />
-                            <h3 className="text-xs font-black uppercase tracking-widest">Zone de Danger</h3>
+                    {/* DANGER ZONE (Uniquement pour Matthis) */}
+                    {user?.email === 'matthis.fradin2@gmail.com' && (
+                        <div className={`p-6 rounded-[2rem] ring-1 ring-inset transform-gpu backface-hidden will-change-transform overflow-hidden ${darkMode ? 'bg-red-900/10 ring-red-900/30' : 'bg-red-50 ring-red-100/50'}`}>
+                            <div className={`flex items-center gap-2 mb-4 ${darkMode ? 'text-red-400' : 'text-red-900'}`}>
+                                <AlertTriangle size={16} />
+                                <h3 className="text-xs font-black uppercase tracking-widest">Zone de Danger</h3>
+                            </div>
+                            <div className="space-y-2">
+                                <button
+                                    onClick={handleResetOrdersClick}
+                                    disabled={resettingOrders}
+                                    className={`w-full py-3 rounded-xl font-bold uppercase text-[9px] tracking-widest transition-all flex items-center justify-center gap-2 ring-1 ring-inset ${darkMode ? 'bg-stone-800 text-red-400 ring-red-900/50 hover:bg-red-900/20' : 'bg-white text-red-500 ring-red-100 hover:bg-red-50'}`}
+                                >
+                                    <RefreshCw size={12} className={resettingOrders ? "animate-spin" : ""} /> Purge Commandes
+                                </button>
+                                <button
+                                    onClick={() => setIsCleaningModalOpen(true)}
+                                    disabled={cleaning}
+                                    className={`w-full py-3 rounded-xl font-bold uppercase text-[9px] tracking-widest transition-all flex items-center justify-center gap-2 ring-1 ring-inset ${darkMode ? 'bg-stone-800 text-orange-400 ring-orange-900/50 hover:bg-orange-900/20' : 'bg-white text-orange-500 ring-orange-100 hover:bg-orange-50'}`}
+                                >
+                                    <RefreshCw size={12} className={cleaning ? "animate-spin" : ""} /> Nettoyage Système
+                                </button>
+                                <button
+                                    onClick={() => setIsResetUsersModalOpen(true)}
+                                    disabled={resettingUsers}
+                                    className={`w-full py-3 rounded-xl font-bold uppercase text-[9px] tracking-widest transition-all flex items-center justify-center gap-2 ring-1 ring-inset ${darkMode ? 'bg-stone-800 text-red-600 ring-red-900/50 hover:bg-red-900/20' : 'bg-white text-red-700 ring-red-100 hover:bg-red-50'}`}
+                                >
+                                    <RefreshCw size={12} className={resettingUsers ? "animate-spin" : ""} /> Purge Utilisateurs
+                                </button>
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <button
-                                onClick={handleResetOrdersClick}
-                                disabled={resettingOrders}
-                                className={`w-full py-3 rounded-xl font-bold uppercase text-[9px] tracking-widest transition-all flex items-center justify-center gap-2 ring-1 ring-inset ${darkMode ? 'bg-stone-800 text-red-400 ring-red-900/50 hover:bg-red-900/20' : 'bg-white text-red-500 ring-red-100 hover:bg-red-50'}`}
-                            >
-                                <RefreshCw size={12} className={resettingOrders ? "animate-spin" : ""} /> Purge Commandes
-                            </button>
-                            <button
-                                onClick={() => setIsCleaningModalOpen(true)}
-                                disabled={cleaning}
-                                className={`w-full py-3 rounded-xl font-bold uppercase text-[9px] tracking-widest transition-all flex items-center justify-center gap-2 ring-1 ring-inset ${darkMode ? 'bg-stone-800 text-orange-400 ring-orange-900/50 hover:bg-orange-900/20' : 'bg-white text-orange-500 ring-orange-100 hover:bg-orange-50'}`}
-                            >
-                                <RefreshCw size={12} className={cleaning ? "animate-spin" : ""} /> Nettoyage Système
-                            </button>
-                            <button
-                                onClick={() => setIsResetUsersModalOpen(true)}
-                                disabled={resettingUsers}
-                                className={`w-full py-3 rounded-xl font-bold uppercase text-[9px] tracking-widest transition-all flex items-center justify-center gap-2 ring-1 ring-inset ${darkMode ? 'bg-stone-800 text-red-600 ring-red-900/50 hover:bg-red-900/20' : 'bg-white text-red-700 ring-red-100 hover:bg-red-50'}`}
-                            >
-                                <RefreshCw size={12} className={resettingUsers ? "animate-spin" : ""} /> Purge Utilisateurs
-                            </button>
-                        </div>
-                    </div>
+                    )}
                     {/* KEEP MODALS AS IS (Order Reset, Cleaning) */}
                     {isOrderResetModalOpen && (
                         <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm ${darkMode ? 'bg-black/70' : 'bg-stone-900/50'}`}>

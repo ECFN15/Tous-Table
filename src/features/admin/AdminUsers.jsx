@@ -129,9 +129,9 @@ const AdminUsers = ({ darkMode }) => {
                                 )}
                             </p>
 
-                            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest ${darkMode ? 'bg-stone-900 text-stone-400' : 'bg-stone-50 text-stone-500'}`}>
+                            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest ${user.email === 'matthis.fradin2@gmail.com' ? (darkMode ? 'bg-amber-500/10 text-amber-500 ring-1 ring-amber-500/20' : 'bg-amber-50 text-amber-600 ring-1 ring-amber-200') : (darkMode ? 'bg-stone-900 text-stone-400' : 'bg-stone-50 text-stone-500')}`}>
                                 <Users size={12} />
-                                {user.role || 'Admin'}
+                                {user.email === 'matthis.fradin2@gmail.com' ? 'Super Admin' : (user.role || 'Admin')}
                             </div>
                         </div>
 
