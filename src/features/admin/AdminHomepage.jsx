@@ -452,7 +452,7 @@ const AdminHomepage = ({ darkMode = false }) => {
 
     return (
         <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 pb-20">
-            <div className={`p-8 rounded-[2.5rem] shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6 ${darkMode ? 'bg-stone-900 text-white' : 'bg-white border text-stone-900 shadow-sm'}`}>
+            <div className={`p-8 rounded-[2.5rem] shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6 will-change-transform ${darkMode ? 'bg-stone-900 text-white' : 'bg-white ring-1 ring-stone-100 text-stone-900 shadow-sm'}`}>
                 <div>
                     <h2 className="text-3xl font-black tracking-tight mb-2">Page d'Accueil</h2>
                     <p className={`${darkMode ? 'text-stone-400' : 'text-stone-500'} font-medium`}>Gérez les visuels de la landing page. Vos photos sont automatiquement optimisées en WebP.</p>

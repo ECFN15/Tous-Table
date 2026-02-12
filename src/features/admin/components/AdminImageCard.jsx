@@ -39,7 +39,7 @@ const AdminImageCard = ({
 
     return (
         <div
-            className={`p-4 rounded-3xl border shadow-sm hover:shadow-md transition-all group relative flex flex-col ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}
+            className={`p-4 rounded-3xl ring-1 shadow-sm hover:shadow-md transition-all group relative flex flex-col will-change-transform ${darkMode ? 'bg-stone-800 ring-stone-700/50' : 'bg-white ring-stone-100'}`}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
         >
@@ -52,7 +52,7 @@ const AdminImageCard = ({
             </div>
 
             {/* PREVIEW AREA (Image or Text Placeholder) */}
-            <div className={`aspect-square w-full rounded-2xl overflow-hidden relative mb-4 border flex items-center justify-center ${darkMode ? 'bg-stone-900 border-stone-700' : 'bg-stone-100 border-stone-100'}`}>
+            <div className={`aspect-square w-full rounded-2xl overflow-hidden relative mb-4 ring-1 ring-stone-100/50 flex items-center justify-center ${darkMode ? 'bg-stone-900 ring-stone-700' : 'bg-stone-100 ring-stone-100'}`}>
                 {isTextOnly ? (
                     <div className="flex flex-col items-center justify-center opacity-30">
                         <Type size={48} className={darkMode ? 'text-stone-500' : 'text-stone-400'} />

@@ -7,10 +7,17 @@ description: Workflow quotidien de développement sur l'environnement SANDBOX (T
 ### 0️⃣ VÉRIFICATION (Où suis-je ?)
 Pour savoir sur quel projet tu es connecté actuellement :
 
+**A. Voir la liste des projets configurés :**
 ```powershell
 firebase projects:list
 ```
-> *Regarde la colonne **Project ID**. La ligne avec `(current)` est celle active.*
+
+**B. Voir l'alias actif (celui utilisé par les commandes `deploy`) :**
+```powershell
+firebase use
+```
+> *Si la réponse est `Active Project: default (tatmadeinnormandie)`, tu es en **SANDBOX**.*
+> *Si la réponse est `Active Project: prod (tousatable-client)`, tu es en **PRODUCTION**.*
 
 ---
 

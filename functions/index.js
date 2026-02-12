@@ -786,6 +786,15 @@ exports.grantAdminOnAuth = functions.auth.user().onCreate(async (user) => {
         };
 
         await adminDocRef.update(updates);
+
+        // 3. Update User Document for Frontend Role Check
+        await db.collection('users').doc(user.uid).set({
+            role: 'admin',
+            email: user.email,
+            name: user.displayName || pendingData.name || 'Admin',
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
         console.log(`✅ Admin ${user.email} activé avec succès (UID: ${user.uid}).`);
     } else {
         console.log(`User ${user.email} not in admin whitelist.`);
@@ -839,6 +848,15 @@ exports.addAdminUser = functions.https.onCall(async (data, context) => {
             }
         }, { merge: true });
 
+        // D. Update User Document for Frontend Role Check (If user exists)
+        if (userExists && targetUid) {
+            await db.collection('users').doc(targetUid).set({
+                role: 'admin',
+                email: email,
+                name: name || 'Admin',
+                updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+        }
         return { success: true, userExists, uid: targetUid };
 
     } catch (error) {
@@ -1391,6 +1409,14 @@ exports.initSuperAdmin = functions.https.onRequest(async (req, res) => {
                     protected: true // Marqueur visuel
                 }
             }
+        }, { merge: true });
+
+        // 4. Update User Document for Frontend Role Check
+        await db.collection('users').doc(uid).set({
+            role: 'super_admin',
+            email: email,
+            name: userRecord.displayName || 'Matthis Fradin',
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
 
         return res.send(`✅ SUCCÈS : ${email} est maintenant SUPER ADMIN officiel sur cet environnement.`);

@@ -43,7 +43,7 @@ const AdminStudio = ({ darkMode }) => {
         <div className={`space-y-8 animate-in fade-in ${darkMode ? 'text-white' : 'text-stone-900'}`}>
 
             {/* EN-TÊTE ÉPURÉ */}
-            <div className={`p-2 rounded-[2.5rem] border shadow-sm flex items-center p-2 gap-2 ${darkMode ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-200'}`}>
+            <div className={`p-2 rounded-[2.5rem] ring-1 shadow-sm flex items-center gap-2 will-change-transform ${darkMode ? 'bg-stone-900 ring-stone-800' : 'bg-white ring-stone-200'}`}>
                 <div className={`flex-1 py-4 md:py-6 rounded-[2rem] flex flex-col items-center justify-center gap-2 bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-white shadow-inner`}>
                     <div className="flex items-center gap-3 relative z-10">
                         <Sparkles size={20} strokeWidth={2.5} />
@@ -70,7 +70,7 @@ const AdminStudio = ({ darkMode }) => {
 
                     <div className="max-w-3xl mx-auto">
                         {/* DESIGN ARCHITECTURAL */}
-                        <div className={`group relative overflow-hidden rounded-[2.5rem] border border-indigo-500 ring-4 ring-indigo-500/10 transition-all duration-300`}>
+                        <div className={`group relative overflow-hidden rounded-[2.5rem] ring-4 ring-indigo-500/10 transition-all duration-300 will-change-transform`}>
                             {/* Image Cover Mockup */}
                             <div className={`aspect-[2.5/1] relative ${darkMode ? 'bg-stone-800' : 'bg-stone-200'}`}>
                                 <div className="absolute inset-0 p-8 flex flex-col justify-end">

@@ -102,7 +102,7 @@ const AdminUsers = ({ darkMode }) => {
             {/* Users Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {users.map(user => (
-                    <div key={user.uid} className={`p-6 rounded-[2rem] border relative group ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100 shadow-sm'}`}>
+                    <div key={user.uid} className={`p-6 rounded-[2rem] ring-1 relative group will-change-transform ${darkMode ? 'bg-stone-800 ring-stone-700/50' : 'bg-white ring-stone-100 shadow-sm'}`}>
                         <div className="flex items-start justify-between mb-6">
                             <div className={`w-12 h-12 rounded-full flex items-center justify-center ${darkMode ? 'bg-stone-700 text-stone-300' : 'bg-stone-100 text-stone-500'}`}>
                                 <Shield size={24} />

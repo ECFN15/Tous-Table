@@ -161,7 +161,7 @@ const AdminOrders = ({ darkMode = false }) => {
                     const badge = getStatusBadge(order.status);
 
                     return (
-                        <div key={order.id} className={`border rounded-3xl shadow-sm overflow-hidden hover:shadow-md transition-shadow ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
+                        <div key={order.id} className={`ring-1 rounded-3xl shadow-sm overflow-hidden hover:shadow-md transition-shadow will-change-transform ${darkMode ? 'bg-stone-800 ring-stone-700/50' : 'bg-white ring-stone-100'}`}>
                             {/* Header de la commande */}
                             <div
                                 onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
@@ -192,7 +192,7 @@ const AdminOrders = ({ darkMode = false }) => {
                                         {/* Panier */}
                                         <div className="space-y-3">
                                             <h4 className="text-xs font-black uppercase tracking-widest text-stone-400 flex items-center gap-2"><Package size={12} /> Contenu du panier</h4>
-                                            <div className={`p-4 rounded-2xl border space-y-2 ${darkMode ? 'bg-stone-900/40 border-stone-700' : 'bg-white border-stone-100'}`}>
+                                            <div className={`p-4 rounded-2xl ring-1 ring-inset space-y-2 ${darkMode ? 'bg-stone-900/40 ring-stone-700' : 'bg-white ring-stone-100'}`}>
                                                 {order.items?.map((item, idx) => (
                                                     <div key={idx} className="flex justify-between items-center text-sm">
                                                         <span className={`font-medium ${darkMode ? 'text-stone-300' : 'text-stone-700'}`}>{item.name}</span>
@@ -209,7 +209,7 @@ const AdminOrders = ({ darkMode = false }) => {
                                         {/* Info Client & Actions */}
                                         <div className="space-y-3">
                                             <h4 className="text-xs font-black uppercase tracking-widest text-stone-400 flex items-center gap-2"><Mail size={12} /> Contact & Livraison</h4>
-                                            <div className={`p-4 rounded-2xl border text-sm space-y-1 ${darkMode ? 'bg-stone-900/40 border-stone-700 text-stone-400' : 'bg-white border-stone-100 text-stone-600'}`}>
+                                            <div className={`p-4 rounded-2xl ring-1 ring-inset text-sm space-y-1 ${darkMode ? 'bg-stone-900/40 ring-stone-700 text-stone-400' : 'bg-white ring-stone-100 text-stone-600'}`}>
                                                 <p><strong className={darkMode ? 'text-stone-200' : 'text-stone-900'}>Compte:</strong> {order.userEmail}</p>
                                                 <p><strong className={darkMode ? 'text-stone-200' : 'text-stone-900'}>Livraison:</strong> {order.shipping?.email}</p>
                                                 <p><strong className={darkMode ? 'text-stone-200' : 'text-stone-900'}>Tél:</strong> {order.shipping?.phone}</p>

@@ -134,13 +134,13 @@ const AdminItemList = ({ collectionName, darkMode, onEdit, onToggleStatus, onDel
                             const hasWinner = isAuctionOver && item.lastBidderEmail;
 
                             return (
-                                <div key={item.id} className={`p-4 md:p-5 rounded-3xl md:rounded-[2.5rem] border shadow-sm hover:shadow-md transition-all relative overflow-hidden group ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-[#FAF9F6] border-stone-200'}`}>
+                                <div key={item.id} className={`p-4 md:p-5 rounded-3xl md:rounded-[2.5rem] ring-1 shadow-sm hover:shadow-md transition-all relative overflow-hidden group will-change-transform ${darkMode ? 'bg-stone-800 ring-stone-700/50' : 'bg-[#FAF9F6] ring-stone-200'}`}>
                                     <div className="flex flex-col md:flex-row md:items-center justify-between relative z-10 gap-6">
                                         <div className="flex items-center md:items-center gap-4 md:gap-8">
                                             {/* ... Image & Status (Unchanged) ... */}
                                             <div className="relative flex-shrink-0">
-                                                <img src={item.images?.[0] || item.imageUrl} className={`w-16 h-16 md:w-20 md:h-20 rounded-xl md:rounded-2xl object-cover shadow-sm border ${darkMode ? 'border-stone-700' : 'border-white'}`} alt="" />
-                                                {hasWinner && <div className={`absolute -top-2 -right-2 p-1 md:p-1.5 rounded-full shadow-md border-2 ${darkMode ? 'bg-amber-500 border-stone-800' : 'bg-amber-400 border-white'} text-white`}><Trophy size={12} fill="currentColor" className="md:w-3.5 md:h-3.5" /></div>}
+                                                <img src={item.images?.[0] || item.imageUrl} className={`w-16 h-16 md:w-20 md:h-20 rounded-xl md:rounded-2xl object-cover shadow-sm ring-1 ring-inset ${darkMode ? 'ring-stone-700' : 'ring-white'}`} alt="" />
+                                                {hasWinner && <div className={`absolute -top-2 -right-2 p-1 md:p-1.5 rounded-full shadow-md ring-2 ring-inset ${darkMode ? 'bg-amber-500 ring-stone-800' : 'bg-amber-400 ring-white'} text-white`}><Trophy size={12} fill="currentColor" className="md:w-3.5 md:h-3.5" /></div>}
                                             </div>
 
                                             <div className="space-y-1 md:space-y-2 min-w-0 flex-1">
@@ -157,7 +157,7 @@ const AdminItemList = ({ collectionName, darkMode, onEdit, onToggleStatus, onDel
                                                 </div>
 
                                                 {hasWinner ? (
-                                                    <div className={`flex flex-col gap-0.5 md:gap-1 border px-3 py-1.5 md:px-4 md:py-2 rounded-xl animate-in slide-in-from-left-4 shadow-sm w-fit ${darkMode ? 'bg-amber-950/20 border-amber-900/40' : 'bg-amber-50 border-amber-200'}`}>
+                                                    <div className={`flex flex-col gap-0.5 md:gap-1 ring-1 ring-inset px-3 py-1.5 md:px-4 md:py-2 rounded-xl animate-in slide-in-from-left-4 shadow-sm w-fit ${darkMode ? 'bg-amber-950/20 ring-amber-900/40' : 'bg-amber-50 ring-amber-200'}`}>
                                                         <p className={`text-[8px] md:text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 md:gap-2 ${darkMode ? 'text-amber-400' : 'text-amber-800'}`}>
                                                             <span className="w-1 md:w-1.5 h-1 md:h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
                                                             Vainqueur
@@ -180,20 +180,20 @@ const AdminItemList = ({ collectionName, darkMode, onEdit, onToggleStatus, onDel
                                             {!item.sold && (
                                                 <button
                                                     onClick={() => onMarkAsSold(item)}
-                                                    className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shadow-sm border transition-all hover:scale-110 ${darkMode ? 'bg-emerald-950/20 text-emerald-500 border-emerald-900/30 hover:bg-emerald-500 hover:text-white' : 'bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-500 hover:text-white'}`}
+                                                    className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shadow-sm ring-1 ring-inset transition-all hover:scale-110 ${darkMode ? 'bg-emerald-950/20 text-emerald-500 ring-emerald-900/30 hover:bg-emerald-500 hover:text-white' : 'bg-emerald-50 text-emerald-600 ring-emerald-100 hover:bg-emerald-500 hover:text-white'}`}
                                                     title="Marquer comme VENDU"
                                                 >
                                                     <CheckCircle size={16} className="md:w-[18px]" />
                                                 </button>
                                             )}
 
-                                            <button onClick={() => onEdit(item)} className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shadow-sm border transition-all hover:scale-110 ${darkMode ? 'bg-stone-700 text-white border-stone-600' : 'bg-white text-stone-900 border-stone-100'}`} title="Modifier"><Pencil size={16} className="md:w-[18px]" /></button>
+                                            <button onClick={() => onEdit(item)} className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shadow-sm ring-1 ring-inset transition-all hover:scale-110 ${darkMode ? 'bg-stone-700 text-white ring-stone-600' : 'bg-white text-stone-900 ring-stone-100'}`} title="Modifier"><Pencil size={16} className="md:w-[18px]" /></button>
 
                                             <button onClick={() => onToggleStatus(item)} className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shadow-sm transition-all hover:scale-110 ${item.status === 'published' ? (darkMode ? 'bg-emerald-600 text-white shadow-emerald-900/40' : 'bg-emerald-500 text-white shadow-emerald-200') : (darkMode ? 'bg-stone-700 text-stone-500' : 'bg-stone-200 text-stone-400')}`} title={item.status === 'published' ? 'Masquer' : 'Publier'}>{item.status === 'published' ? <Eye size={16} className="md:w-[18px]" /> : <EyeOff size={16} className="md:w-[18px]" />}</button>
 
 
 
-                                            <button onClick={() => onDelete(item.id)} className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shadow-sm border transition-all hover:scale-110 ${darkMode ? 'bg-red-950/40 text-red-800 border-red-900/20 hover:bg-black hover:text-red-700' : 'bg-red-50 text-red-300 border-red-50 hover:bg-red-100 hover:text-red-500'}`} title="SUPPRESSION DÉFINITIVE"><Trash2 size={16} className="md:w-[18px]" /></button>
+                                            <button onClick={() => onDelete(item.id)} className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shadow-sm ring-1 ring-inset transition-all hover:scale-110 ${darkMode ? 'bg-red-950/40 text-red-800 ring-red-900/20 hover:bg-black hover:text-red-700' : 'bg-red-50 text-red-300 ring-red-50 hover:bg-red-100 hover:text-red-500'}`} title="SUPPRESSION DÉFINITIVE"><Trash2 size={16} className="md:w-[18px]" /></button>
                                         </div>
                                     </div>
                                 </div>

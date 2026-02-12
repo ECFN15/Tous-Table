@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
-import { Hammer, Menu, X, ArrowRight, Instagram, ArrowDown, Star, Zap, Plus, Minus } from 'lucide-react';
+import { Hammer, Menu, X, ArrowRight, Instagram, Facebook, ArrowDown, Star, Zap, Plus, Minus } from 'lucide-react';
 import StackedCards from '../components/StackedCards'; // New Import
 
 // --- NPM IMPORTS (remplace les anciens CDN) ---
@@ -108,14 +108,32 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
   const [menuInteracted, setMenuInteracted] = useState(false); // Prevents initial transition flash
   const [homepageImages, setHomepageImages] = useState({});
 
+  const [contactInfo, setContactInfo] = useState({
+    email: 'atelier@tousatable.fr',
+    phone: '07 77 32 41 78',
+    instagram: '',
+    facebook: ''
+  });
+
   // --- FETCH DYNAMIC IMAGES ---
   useEffect(() => {
-    const unsub = onSnapshot(doc(db, 'sys_metadata', 'homepage_images'), (doc) => {
-      if (doc.exists()) {
-        setHomepageImages(doc.data());
+    const unsubscribeImages = onSnapshot(doc(db, 'sys_metadata', 'homepage_images'), (docSnap) => {
+      if (docSnap.exists()) {
+        setHomepageImages(docSnap.data());
       }
     });
-    return () => unsub();
+
+    // Contact Info
+    const unsubscribeContact = onSnapshot(doc(db, 'sys_metadata', 'contact_info'), (docSnap) => {
+      if (docSnap.exists()) {
+        setContactInfo(prev => ({ ...prev, ...docSnap.data() }));
+      }
+    });
+
+    return () => {
+      unsubscribeImages();
+      unsubscribeContact();
+    };
   }, []);
 
   // State pour la FAQ
@@ -994,7 +1012,9 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         <div className="absolute bottom-16 md:bottom-12 left-0 w-full px-8 md:px-[10vw] flex flex-row justify-between items-end md:items-baseline">
           <div className="hero-footer-element space-y-4 max-w-[150px] md:max-w-xs text-[#1a1a1a] opacity-0 translate-y-5">
             <p className="text-[10px] uppercase tracking-[0.2em] md:tracking-[0.3em] opacity-60 leading-relaxed md:leading-loose font-medium">
-              Restauration & Vente <br /> de Mobilier d'Art. <br /> Normandie, France.
+              Restauration de Mobilier Normand.<br />
+              Vente de Meubles Anciens.<br />
+              France, Normandie.
             </p>
           </div>
 
@@ -1381,30 +1401,55 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         <div className="flex flex-col xl:flex-row justify-between items-start gap-16 xl:gap-40 mb-32 relative z-10 text-white">
 
           <div className="max-w-4xl">
-            <span className="text-[10px] uppercase tracking-[0.6em] text-[#9C8268] mb-8 block italic font-black">Inquiry</span>
+            <span className="text-[10px] uppercase tracking-[0.6em] text-[#9C8268] mb-8 block italic font-black">{contactInfo.footerSubtitle || "Inquiry"}</span>
             {/* Title: Safe sizing. No weird VW units that blow up on tablets. */}
-            <h2 className="font-serif text-6xl md:text-8xl xl:text-9xl leading-[0.9] font-light italic hover:translate-x-6 transition-transform duration-500 cursor-pointer text-white break-words">
-              Éveiller <br /> l'Immobile.
+            <h2
+              className="font-serif text-6xl md:text-8xl xl:text-9xl leading-[0.9] font-light italic hover:translate-x-6 transition-transform duration-500 cursor-pointer text-white break-words"
+              dangerouslySetInnerHTML={{ __html: (contactInfo.footerTitle || "Éveiller\nl'Immobile.").replace(/\n/g, '<br />') }}
+            >
             </h2>
           </div>
 
           <div className="flex flex-col gap-12 xl:gap-24 self-start xl:self-end">
             <div className="space-y-4">
-              {/* Email: Responsive text size */}
-              <a href="mailto:atelier@tousatable.fr" className="block text-2xl md:text-4xl lg:text-5xl font-light italic hover:text-[#9C8268] transition-colors border-b border-white/5 pb-2">
-                atelier@tousatable.fr
+              {/* Email: Dynamic */}
+              <a href={`mailto:${contactInfo.email}`} className="block text-2xl md:text-4xl lg:text-5xl font-light italic hover:text-[#9C8268] transition-colors border-b border-white/5 pb-2">
+                {contactInfo.email}
               </a>
+              {/* Phone: Dynamic */}
+              <a href={`tel:${contactInfo.phone.replace(/\s/g, '')}`} className="block text-lg md:text-xl lg:text-2xl font-light italic opacity-50 hover:opacity-100 hover:text-[#9C8268] transition-colors mt-2 tracking-wide">
+                {contactInfo.phone}
+              </a>
+              {/* Address: Dynamic (SEO) */}
+              {contactInfo.address && (
+                <address className="not-italic text-[10px] md:text-xs uppercase tracking-widest opacity-40 mt-6 leading-relaxed border-l-2 border-[#9C8268] pl-4">
+                  {contactInfo.address}
+                </address>
+              )}
             </div>
 
-            <div className="flex gap-8 items-center opacity-40 hover:opacity-100 transition-opacity">
-              <Instagram size={28} className="text-white" />
-              <span className="text-[10px] uppercase tracking-[0.4em] italic font-medium">Journal de l'Artisan</span>
+            <div className="flex flex-col gap-4">
+              {/* Instagram */}
+              {contactInfo.instagram && (
+                <a href={contactInfo.instagram} target="_blank" rel="noopener noreferrer" className="flex gap-8 items-center opacity-40 hover:opacity-100 transition-opacity group">
+                  <Instagram size={28} className="text-white group-hover:text-[#E1306C] transition-colors" />
+                  <span className="text-[10px] uppercase tracking-[0.4em] italic font-medium">Journal de l'Artisan</span>
+                </a>
+              )}
+
+              {/* Facebook */}
+              {contactInfo.facebook && (
+                <a href={contactInfo.facebook} target="_blank" rel="noopener noreferrer" className="flex gap-8 items-center opacity-40 hover:opacity-100 transition-opacity group">
+                  <Facebook size={28} className="text-white group-hover:text-[#1877F2] transition-colors" />
+                  <span className="text-[10px] uppercase tracking-[0.4em] italic font-medium">Suivez-nous</span>
+                </a>
+              )}
             </div>
           </div>
         </div>
 
         <div className="pt-16 border-t border-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-8 opacity-40 text-[9px] uppercase tracking-[0.3em] font-light relative z-10">
-          <span className="leading-relaxed">Tous à Table — Atelier d'Ébénisterie d'Art & Vente de Meubles Antiques — Caen, Deauville, Paris, Normandie, France</span>
+          <span className="leading-relaxed max-w-2xl">{contactInfo.legacyText || "Tous à Table — Atelier d'Ébénisterie d'Art & Vente de Meubles Antiques — Caen, Deauville, Paris, Normandie, France"}</span>
           <div className="flex gap-12 lowercase underline underline-offset-4 font-bold tracking-widest">
             <span className="cursor-pointer hover:text-white transition-colors">privacy policy</span>
             <span className="cursor-pointer hover:text-white transition-colors">legal mentions</span>
