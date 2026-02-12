@@ -7,7 +7,7 @@ import SEO from '../components/SEO';
 
 // SEO component is imported at the top.
 
-const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, onSelectItem, onShowLogin, onShowComments, darkMode = false, onOpenMenu, onOpenCart, toggleTheme }) => {
+const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, onSelectItem, onShowLogin, darkMode = false, onOpenMenu, onOpenCart, toggleTheme }) => {
     const [filter, setFilter] = useState('fixed');
     const [activeCollection, setActiveCollection] = useState('furniture'); // 'furniture' | 'cutting_boards'
     const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list'
@@ -33,10 +33,7 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
 
 
 
-    const handleCommentClick = (e, item) => {
-        e.stopPropagation();
-        onShowComments(item, activeCollection);
-    };
+
 
     const handleSelectItem = (id) => {
         onSelectItem(id);
@@ -57,7 +54,6 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                 items={filteredItems}
                 palette={palette}
                 viewMode={viewMode}
-                onComment={handleCommentClick}
                 onSelectItem={handleSelectItem}
                 onShowLogin={onShowLogin}
                 darkMode={darkMode}

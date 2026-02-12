@@ -165,19 +165,21 @@ const AdminOrders = ({ darkMode = false }) => {
                             {/* Header de la commande */}
                             <div
                                 onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
-                                className="p-6 flex items-center justify-between cursor-pointer"
+                                className="p-5 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer"
                             >
                                 <div className="flex items-center gap-4">
-                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white ${badge.bg}`}>
+                                    <div className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-white ${badge.bg}`}>
                                         {order.status === 'shipped' ? <Truck size={18} /> : (order.status === 'completed' ? <CheckCircle size={18} /> : (order.status?.includes('cancelled') ? <XCircle size={18} /> : <Clock size={18} />))}
                                     </div>
-                                    <div>
-                                        <h3 className={`font-bold ${darkMode ? 'text-white' : 'text-stone-900'}`}>{order.shipping?.fullName || 'Client Inconnu'}</h3>
-                                        <p className="text-xs text-stone-400 font-medium uppercase tracking-widest">{formatDate(order.createdAt)} • {formatPrice(order.total)}</p>
+                                    <div className="min-w-0">
+                                        <h3 className={`font-bold truncate text-sm md:text-base ${darkMode ? 'text-white' : 'text-stone-900'}`}>{order.shipping?.fullName || 'Client Inconnu'}</h3>
+                                        <p className="text-[10px] md:text-xs text-stone-400 font-medium uppercase tracking-widest leading-relaxed">
+                                            {formatDate(order.createdAt)} <span className="hidden sm:inline">•</span> <br className="sm:hidden" /> {formatPrice(order.total)}
+                                        </p>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-4">
-                                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${darkMode ? badge.bgDark + ' ' + badge.color : badge.bgLight + ' ' + badge.color}`}>
+                                <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-none pt-4 sm:pt-0">
+                                    <span className={`px-3 py-1 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest ${darkMode ? badge.bgDark + ' ' + badge.color : badge.bgLight + ' ' + badge.color}`}>
                                         {badge.label}
                                     </span>
                                     {expandedOrder === order.id ? <ChevronUp size={16} className="text-stone-300" /> : <ChevronDown size={16} className="text-stone-300" />}
@@ -218,10 +220,10 @@ const AdminOrders = ({ darkMode = false }) => {
                                                 <p className="text-[10px] opacity-50 mt-2 font-mono">UID: {order.userId}</p>
                                             </div>
 
-                                            <div className="flex gap-2 pt-2">
+                                            <div className="flex flex-col sm:flex-row gap-3 pt-4">
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); toggleStatus(order); }}
-                                                    className={`flex-1 py-3 rounded-xl font-bold text-xs transition-colors ${darkMode ? 'bg-white text-stone-900 hover:bg-stone-200' : 'bg-stone-900 text-white hover:bg-stone-800'}`}
+                                                    className={`flex-1 py-4 sm:py-3 rounded-xl font-bold text-[10px] sm:text-xs transition-colors shadow-sm ${darkMode ? 'bg-white text-stone-900 hover:bg-stone-200' : 'bg-stone-900 text-white hover:bg-stone-800'}`}
                                                 >
                                                     {order.status === 'shipped' ? 'Marquer comme Livrée' : (order.status === 'completed' ? 'Rouvrir la commande' : 'Expédier la commande')}
                                                 </button>
@@ -232,7 +234,7 @@ const AdminOrders = ({ darkMode = false }) => {
                                                         e.stopPropagation();
                                                         handleCancelAndRestore(order);
                                                     }}
-                                                    className={`px-4 py-3 rounded-xl transition-colors font-bold uppercase text-[10px] tracking-widest border ${darkMode ? 'bg-red-950/30 text-red-500 border-red-900/50 hover:bg-red-900/50' : 'bg-red-50 text-red-600 border-red-100 hover:bg-red-100'}`}
+                                                    className={`w-full sm:w-auto px-4 py-4 sm:py-3 rounded-xl transition-colors font-bold uppercase text-[10px] tracking-widest border shadow-sm ${darkMode ? 'bg-red-950/30 text-red-500 border-red-900/50 hover:bg-red-900/50' : 'bg-red-50 text-red-600 border-red-100 hover:bg-red-100'}`}
                                                     title="Annuler : Remet le stock et supprime la commande"
                                                 >
                                                     Annuler & Restaurer Stock

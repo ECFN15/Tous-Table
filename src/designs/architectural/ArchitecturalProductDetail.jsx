@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Box, Heart, MessageCircle, Share2, ArrowRight, Trophy, Zap, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Box, ArrowRight, Trophy, Zap, Clock } from 'lucide-react';
 import { db, appId, functions } from '../../firebase/config';
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
@@ -7,7 +7,7 @@ import { getMillis } from '../../utils/time';
 import ConfettiRain from '../../components/ui/ConfettiRain';
 import SEO from '../../components/SEO';
 
-import { useRealtimeUserLikes } from '../../hooks/useRealtimeUserLikes';
+
 import { useLiveTheme } from '../../hooks/useLiveTheme';
 import ArchitecturalHeader from './components/ArchitecturalHeader';
 import AnimatedPrice from '../../components/ui/AnimatedPrice';
@@ -30,11 +30,6 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
             wakeUpFunction().catch(() => { }); // Silent ping
         }
     }, [item?.id]);
-
-    // HOOK TEMPS RÉEL
-    const { likedItemIds, toggleLike } = useRealtimeUserLikes(user);
-
-    const isLiked = item ? likedItemIds.includes(item.id) : false;
 
     // Hooks
     const images = useMemo(() => {
@@ -144,28 +139,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
         }
     };
 
-    const handleLike = async () => {
-        if (!user) return;
-        const col = item.collectionName || (item.id.includes('board') ? 'cutting_boards' : 'furniture');
-        await toggleLike(item.id, col);
-    };
 
-    const handleShare = async () => {
-        const shareData = {
-            title: item.name,
-            text: `Découvrez ${item.name} sur Tous à Table`,
-            url: window.location.origin + '/?product=' + item.id
-        };
-        try {
-            if (navigator.share) await navigator.share(shareData);
-            else {
-                await navigator.clipboard.writeText(shareData.url);
-                alert("Lien copié !");
-            }
-            const trackShareFn = httpsCallable(functions, 'trackShare');
-            trackShareFn({ itemId: item.id, collectionName: item.collectionName || 'furniture' });
-        } catch (e) { }
-    };
 
 
 

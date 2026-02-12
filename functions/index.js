@@ -44,69 +44,7 @@ const checkIsSuperAdmin = (context) => {
 // 1. TRIGGERS: COMPTEURS AUTOMATIQUES (FIABILITÉ TOTALE)
 // ============================================================
 
-// --- LIKES ---
-exports.onLikeCreated = functions.firestore
-    .document('artifacts/{appId}/public/data/{collectionName}/{itemId}/likes/{userId}')
-    .onCreate(async (snap, context) => {
-        // Incrémenter le compteur du produit parent
-        return snap.ref.parent.parent.update({
-            likeCount: admin.firestore.FieldValue.increment(1)
-        });
-    });
 
-exports.onLikeDeleted = functions.firestore
-    .document('artifacts/{appId}/public/data/{collectionName}/{itemId}/likes/{userId}')
-    .onDelete(async (snap, context) => {
-        const itemRef = snap.ref.parent.parent;
-        return db.runTransaction(async (transaction) => {
-            const itemSnap = await transaction.get(itemRef);
-            if (!itemSnap.exists) return;
-            const current = itemSnap.data().likeCount || 0;
-            transaction.update(itemRef, { likeCount: Math.max(0, current - 1) });
-        });
-    });
-
-// --- COMMENTAIRES ---
-exports.onCommentCreated = functions.firestore
-    .document('artifacts/{appId}/public/data/{collectionName}/{itemId}/comments/{commentId}')
-    .onCreate(async (snap, context) => {
-        return snap.ref.parent.parent.update({
-            commentCount: admin.firestore.FieldValue.increment(1)
-        });
-    });
-
-exports.onCommentDeleted = functions.firestore
-    .document('artifacts/{appId}/public/data/{collectionName}/{itemId}/comments/{commentId}')
-    .onDelete(async (snap, context) => {
-        const itemRef = snap.ref.parent.parent;
-        return db.runTransaction(async (transaction) => {
-            const itemSnap = await transaction.get(itemRef);
-            if (!itemSnap.exists) return;
-            const current = itemSnap.data().commentCount || 0;
-            transaction.update(itemRef, { commentCount: Math.max(0, current - 1) });
-        });
-    });
-
-// --- PARTAGES (SHARES) ---
-exports.onShareCreated = functions.firestore
-    .document('artifacts/{appId}/public/data/{collectionName}/{itemId}/shares/{userId}')
-    .onCreate(async (snap, context) => {
-        return snap.ref.parent.parent.update({
-            shareCount: admin.firestore.FieldValue.increment(1)
-        });
-    });
-
-exports.onShareDeleted = functions.firestore
-    .document('artifacts/{appId}/public/data/{collectionName}/{itemId}/shares/{shareId}')
-    .onDelete(async (snap, context) => {
-        const itemRef = snap.ref.parent.parent;
-        return db.runTransaction(async (transaction) => {
-            const itemSnap = await transaction.get(itemRef);
-            if (!itemSnap.exists) return;
-            const current = itemSnap.data().shareCount || 0;
-            transaction.update(itemRef, { shareCount: Math.max(0, current - 1) });
-        });
-    });
 
 
 // ============================================================
@@ -132,16 +70,14 @@ exports.resetAllStats = functions.https.onCall(async (data, context) => {
                 const batch = db.batch();
                 let opCount = 0;
 
-                // A. Reset des compteurs sur l'item
+                // A. Reset des compteurs sur l'item (BidCount reste pour l'historique)
                 batch.update(doc.ref, {
-                    likeCount: 0,
-                    commentCount: 0,
-                    shareCount: 0
+                    bidCount: 0
                 });
                 opCount++;
 
                 // B. Récupération parallèle des sous-collections
-                const subCollections = ['likes', 'comments', 'shares'];
+                const subCollections = ['bids'];
                 const subSnaps = await Promise.all(
                     subCollections.map(subCol => doc.ref.collection(subCol).limit(500).get())
                 );
@@ -1148,6 +1084,39 @@ exports.resetAllUsers = functions.runWith({ timeoutSeconds: 540, memory: '1GB' }
     }
 });
 
+// Purge des Commandes (Backend)
+exports.resetAllOrders = functions.https.onCall(async (data, context) => {
+    // 1. SÉCURITÉ ABSOLUE
+    checkIsSuperAdmin(context);
+
+    console.log(`🚨 STARTING ORDERS PURGE initiated by ${context.auth.token.email}`);
+
+    try {
+        const ordersSnapshot = await db.collection('orders').get();
+        let deleted = 0;
+        const chunks = [];
+        let currentChunk = db.batch();
+
+        for (const doc of ordersSnapshot.docs) {
+            currentChunk.delete(doc.ref);
+            deleted++;
+            if (deleted % 500 === 0) {
+                chunks.push(currentChunk.commit());
+                currentChunk = db.batch();
+            }
+        }
+
+        if (deleted % 500 !== 0) chunks.push(currentChunk.commit());
+        await Promise.all(chunks);
+
+        console.log(`✅ Success: ${deleted} orders purged.`);
+        return { success: true, count: deleted };
+    } catch (error) {
+        console.error("❌ Erreur Reset Orders:", error);
+        throw new functions.https.HttpsError('internal', "Erreur lors de la purge des commandes.");
+    }
+});
+
 // ============================================================
 // 7. MAINTENANCE & NETTOYAGE (GARBAGE COLLECTOR)
 // ============================================================
@@ -1197,7 +1166,7 @@ exports.runGarbageCollector = functions.runWith({ timeoutSeconds: 540, memory: '
                         console.log(`👻 Fantôme détecté: ${snap.ref.path}. Suppression récursive...`);
 
                         // Suppression manuelle récursive des sous-collections connues
-                        const subCols = ['bids', 'likes', 'comments', 'shares', 'logs'];
+                        const subCols = ['bids', 'logs'];
                         const batch = db.batch();
                         let ops = 0;
 
@@ -1342,7 +1311,7 @@ const cleanupDocumentAssets = async (snap, context) => {
     }
 
     // --- STEP 2: SOUS-COLLECTIONS (FIRESTORE) ---
-    const subCols = ['bids', 'likes', 'comments', 'shares', 'logs'];
+    const subCols = ['bids', 'logs'];
     const batch = db.batch();
     let deletedCount = 0;
 

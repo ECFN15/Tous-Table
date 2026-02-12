@@ -12,7 +12,6 @@ import { Bookmark, LayoutGrid, Rows, GripHorizontal, ChevronDown, Menu, Shopping
 const MarketplaceLayout = ({
     items,
     palette,
-    onComment,
     onSelectItem,
     onShowLogin,
     headerProps,

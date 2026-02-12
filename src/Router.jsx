@@ -11,7 +11,7 @@ const CheckoutView = React.lazy(() => import('./pages/CheckoutView'));
 const LoginView = React.lazy(() => import('./pages/LoginView'));
 import {
     LayoutGrid, Palette, ShoppingBag, Settings,
-    CreditCard, MessageCircle, Heart, Share2, Hammer, Gavel, Pencil, Eye, EyeOff, Trash2, Trophy, Mail, Users
+    CreditCard, Hammer, Gavel, Pencil, Eye, EyeOff, Trash2, Trophy, Mail, Users, Share2
 } from 'lucide-react';
 
 const AdminDashboard = React.lazy(() => import('./features/admin/AdminDashboard'));
@@ -25,7 +25,7 @@ const AdminItemList = React.lazy(() => import('./features/admin/AdminItemList'))
 const AdminUsers = React.lazy(() => import('./features/admin/AdminUsers'));
 
 const AdminSEO = React.lazy(() => import('./features/admin/AdminSEO'));
-const CommentsModal = React.lazy(() => import('./components/ui/CommentsModal'));
+
 const MyOrdersView = React.lazy(() => import('./pages/MyOrdersView'));
 
 import { getMillis } from './utils/time';
@@ -46,18 +46,12 @@ const AppRouter = ({
     setShowFullLogin,
     setSelectedItemId,
     selectedItemId,
-    setSelectedItemForComments,
-    setCommentCollection,
-    setIsCommentModalOpen,
     addToCart,
     cartItems,
     cartTotal,
     handlePlaceOrder,
     showOrderSuccess,
     setShowOrderSuccess,
-    isCommentModalOpen,
-    selectedItemForComments,
-    commentCollection,
     adminCollection,
     setAdminCollection,
     editingItem,
@@ -118,7 +112,6 @@ const AppRouter = ({
                             isAdmin={isAdmin} isSecretGateOpen={isSecretGateOpen} user={user}
                             onShowLogin={() => setShowFullLogin(true)}
                             onSelectItem={(id) => { setSelectedItemId(id); setView('detail'); window.scrollTo(0, 0); }}
-                            onShowComments={(item, col) => { setSelectedItemForComments(item); setCommentCollection(col); setIsCommentModalOpen(true); }}
                             darkMode={darkMode}
                             onOpenMenu={onOpenMenu}
                             onOpenCart={onOpenCart}
@@ -136,12 +129,6 @@ const AppRouter = ({
                             user={user}
                             onBack={() => { setView('gallery'); setSelectedItemId(null); }}
                             onAddToCart={addToCart}
-                            onShowComments={(item) => {
-                                const col = items.find(i => i.id === item.id) ? 'furniture' : 'cutting_boards';
-                                setSelectedItemForComments(item);
-                                setCommentCollection(col);
-                                setIsCommentModalOpen(true);
-                            }}
                             darkMode={darkMode}
                             onOpenMenu={onOpenMenu}
                             onOpenCart={onOpenCart}
@@ -176,85 +163,77 @@ const AppRouter = ({
 
             {showOrderSuccess && <OrderSuccessModal onClose={() => setShowOrderSuccess(false)} />}
 
-            <Suspense fallback={null}>
-                <CommentsModal
-                    isOpen={isCommentModalOpen}
-                    onClose={() => setIsCommentModalOpen(false)}
-                    itemId={selectedItemForComments?.id}
-                    user={user}
-                    isAdmin={isAdmin}
-                    activeCollection={commentCollection}
-                />
-            </Suspense>
+
 
             {view === 'login' && isSecretGateOpen && <Suspense fallback={null}><LoginView onSuccess={() => setView('admin')} /></Suspense>}
 
             {view === 'admin' && isAdmin && (
-                <div className={`max-w-6xl mx-auto px-4 py-32 space-y-16 animate-in fade-in ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                <div className={`max-w-6xl mx-auto px-4 py-24 md:py-32 space-y-12 md:space-y-16 animate-in fade-in ${darkMode ? 'text-white' : 'text-stone-900'}`}>
                     <div className={`flex justify-between items-center border-b pb-8 ${darkMode ? 'border-stone-700' : 'border-stone-200/60'}`}>
-                        <h2 className="text-4xl font-black tracking-tighter">Gestion Atelier</h2>
-                        <button onClick={() => setView('gallery')} className={`text-[10px] font-black border-2 px-6 py-2 rounded-xl transition-all ${darkMode ? 'border-white hover:bg-white hover:text-stone-900' : 'border-stone-900 hover:bg-stone-900 hover:text-white'}`}>Retour</button>
+                        <h2 className="text-3xl md:text-4xl font-black tracking-tighter">Gestion Atelier</h2>
+                        <button onClick={() => setView('gallery')} className={`text-[10px] font-black border-2 px-4 md:px-6 py-2 rounded-xl transition-all ${darkMode ? 'border-white hover:bg-white hover:text-stone-900' : 'border-stone-900 hover:bg-stone-900 hover:text-white'}`}>Retour</button>
                     </div>
 
-                    <div className={`flex flex-wrap md:flex-nowrap gap-2 md:gap-4 p-2 md:p-1 border-b md:border-none md:rounded-xl w-full md:w-fit justify-center transition-all shadow-sm md:shadow-none ${darkMode ? 'bg-stone-800 border-stone-700 md:bg-stone-800' : 'bg-[#FAF9F6] border-stone-200/50 md:bg-stone-100'}`}>
-                        <button
-                            onClick={() => { setAdminCollection('studio'); setEditingItem(null); }}
-                            className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center justify-center gap-2 ${adminCollection === 'studio' ? (darkMode ? 'bg-white text-stone-900 border-white md:bg-stone-700 md:text-white md:border-none' : 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
-                        >
-                            <Palette size={14} className="md:w-3.5" /> <span className="hidden md:inline">Studio</span>
-                        </button>
-                        <button
-                            onClick={() => { setAdminCollection('dashboard'); setEditingItem(null); }}
-                            className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'dashboard' ? (darkMode ? 'bg-white text-stone-900 border-white md:bg-stone-700 md:text-white md:border-none' : 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
-                        >
-                            Dashboard
-                        </button>
-                        <button
-                            onClick={() => { setAdminCollection('homepage'); setEditingItem(null); }}
-                            className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'homepage' ? (darkMode ? 'bg-white text-stone-900 border-white md:bg-stone-700 md:text-white md:border-none' : 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
-                        >
-                            Homepage
-                        </button>
-                        <button
-                            onClick={() => { setAdminCollection('orders'); setEditingItem(null); }}
-                            className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'orders' ? (darkMode ? 'bg-white text-stone-900 border-white md:bg-stone-700 md:text-white md:border-none' : 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
-                        >
-                            Commandes
-                        </button>
-                        <button
-                            onClick={() => { setAdminCollection('auctions'); setEditingItem(null); }}
-                            className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center justify-center gap-2 ${adminCollection === 'auctions' ? (darkMode ? 'bg-white text-stone-900 border-white md:bg-stone-700 md:text-white md:border-none' : 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
-                        >
-                            <Gavel size={14} className="md:w-3.5" /> Enchères
-                        </button>
-                        <button
-                            onClick={() => { setAdminCollection('furniture'); setEditingItem(null); }}
-                            className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'furniture' ? (darkMode ? 'bg-white text-stone-900 border-white md:bg-stone-700 md:text-white md:border-none' : 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
-                        >
-                            Mobilier
-                        </button>
-                        <button
-                            onClick={() => { setAdminCollection('cutting_boards'); setEditingItem(null); }}
-                            className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'cutting_boards' ? (darkMode ? 'bg-white text-stone-900 border-white md:bg-stone-700 md:text-white md:border-none' : 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
-                        >
-                            <span className="md:hidden">Planches</span>
-                            <span className="hidden md:inline">Planches à Découper</span>
-                        </button>
+                    {/* ADMIN NAVIGATION - WRAPPING TABS FOR DESKTOP */}
+                    <div className="w-full overflow-x-auto md:overflow-x-visible no-scrollbar scroll-smooth">
+                        <div className="flex flex-nowrap md:flex-wrap items-center justify-start md:justify-center gap-2 md:gap-3 p-1 w-max md:w-full min-w-full pb-4 md:pb-0">
+                            <button
+                                onClick={() => { setAdminCollection('studio'); setEditingItem(null); }}
+                                className={`px-4 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center justify-center gap-2 ${adminCollection === 'studio' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
+                            >
+                                <Palette size={14} className="shrink-0" /> Studio
+                            </button>
+                            <button
+                                onClick={() => { setAdminCollection('dashboard'); setEditingItem(null); }}
+                                className={`px-4 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'dashboard' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
+                            >
+                                Dashboard
+                            </button>
+                            <button
+                                onClick={() => { setAdminCollection('homepage'); setEditingItem(null); }}
+                                className={`px-4 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'homepage' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
+                            >
+                                Homepage
+                            </button>
+                            <button
+                                onClick={() => { setAdminCollection('orders'); setEditingItem(null); }}
+                                className={`px-4 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'orders' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
+                            >
+                                Commandes
+                            </button>
+                            <button
+                                onClick={() => { setAdminCollection('auctions'); setEditingItem(null); }}
+                                className={`px-4 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center justify-center gap-2 ${adminCollection === 'auctions' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
+                            >
+                                <Gavel size={14} className="shrink-0" /> Enchères
+                            </button>
+                            <button
+                                onClick={() => { setAdminCollection('furniture'); setEditingItem(null); }}
+                                className={`px-4 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'furniture' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
+                            >
+                                Mobilier
+                            </button>
+                            <button
+                                onClick={() => { setAdminCollection('cutting_boards'); setEditingItem(null); }}
+                                className={`px-4 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'cutting_boards' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
+                            >
+                                Planches
+                            </button>
 
-                        <button
-                            onClick={() => { setAdminCollection('users'); setEditingItem(null); }}
-                            className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center justify-center gap-2 ${adminCollection === 'users' ? (darkMode ? 'bg-white text-stone-900 border-white md:bg-stone-700 md:text-white md:border-none' : 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
-                        >
-                            <Users size={14} className="md:w-3.5" /> <span className="hidden md:inline">Utilisateurs</span>
-                        </button>
+                            <button
+                                onClick={() => { setAdminCollection('users'); setEditingItem(null); }}
+                                className={`px-4 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center justify-center gap-2 ${adminCollection === 'users' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
+                            >
+                                <Users size={14} className="shrink-0" /> Utilisateurs
+                            </button>
 
-
-                        <button
-                            onClick={() => { setAdminCollection('seo'); setEditingItem(null); }}
-                            className={`flex-1 md:flex-none px-4 md:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center justify-center gap-2 ${adminCollection === 'seo' ? (darkMode ? 'bg-white text-stone-900 border-white md:bg-stone-700 md:text-white md:border-none' : 'bg-stone-900 text-white md:bg-white md:text-stone-900 border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
-                        >
-                            <Share2 size={14} className="md:w-3.5" /> <span className="hidden md:inline">SEO & Contact</span>
-                        </button>
+                            <button
+                                onClick={() => { setAdminCollection('seo'); setEditingItem(null); }}
+                                className={`px-4 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center justify-center gap-2 ${adminCollection === 'seo' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
+                            >
+                                <Share2 size={14} className="shrink-0" /> SEO
+                            </button>
+                        </div>
                     </div>
 
                     <Suspense fallback={<div className="flex items-center justify-center p-20"><div className="w-10 h-10 border-4 border-stone-200 border-t-stone-800 rounded-full animate-spin"></div></div>}>
@@ -296,9 +275,8 @@ const AppRouter = ({
                         )}
                     </Suspense>
                 </div>
-            )
-            }
-        </main >
+            )}
+        </main>
     );
 };
 

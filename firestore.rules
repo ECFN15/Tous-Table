@@ -58,31 +58,7 @@ service cloud.firestore {
         allow create: if false; // Via Cloud Function uniquement
       }
 
-      // Commentaires - Utilisateurs authentifiés peuvent créer/lire/supprimer LEURS commentaires
-      match /comments/{commentId} {
-        allow read: if true;
-        allow create: if request.auth != null;
-        allow delete: if request.auth != null && (resource.data.userId == request.auth.uid || isArtisan());
-      }
 
-      // Likes
-      match /likes/{userId} {
-        allow read: if true;
-        allow create: if request.auth != null && request.auth.uid == userId;
-        allow delete: if request.auth != null && request.auth.uid == userId;
-      }
-
-      // Shares
-      match /shares/{userId} {
-        allow read: if true;
-        allow create: if request.auth != null && request.auth.uid == userId;
-      }
-
-      // Logs
-      match /logs/{logId} {
-        allow create: if request.auth != null;
-        allow read, delete: if isArtisan();
-      }
     }
 
     // Fonction Validation Cart

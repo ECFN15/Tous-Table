@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
-import { Globe, Mail, Phone, Facebook, Instagram, Save, Search, Share2 } from 'lucide-react';
+import { Globe, Mail, Phone, Facebook, Instagram, Save, Search, Share2, RefreshCw } from 'lucide-react';
 
 const AdminSEO = ({ darkMode }) => {
     const [loading, setLoading] = useState(true);
@@ -64,13 +64,13 @@ const AdminSEO = ({ darkMode }) => {
         <div className={`space-y-8 animate-in fade-in ${darkMode ? 'text-white' : 'text-stone-900'}`}>
 
             {/* Header */}
-            <div className={`p-6 rounded-[2.5rem] ring-1 shadow-sm flex items-center gap-6 will-change-transform ${darkMode ? 'bg-stone-900 ring-stone-800' : 'bg-white ring-stone-200'}`}>
-                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-inner ${darkMode ? 'bg-stone-800 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
-                    <Globe size={32} />
+            <div className={`p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] ring-1 shadow-sm flex flex-col sm:flex-row items-center gap-4 md:gap-6 will-change-transform ${darkMode ? 'bg-stone-900 ring-stone-800' : 'bg-white ring-stone-200'}`}>
+                <div className={`w-12 h-12 md:w-16 md:h-16 rounded-2xl flex-shrink-0 flex items-center justify-center shadow-inner ${darkMode ? 'bg-stone-800 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
+                    <Globe size={24} className="md:w-8 md:h-8" />
                 </div>
-                <div>
-                    <h2 className="text-2xl font-black tracking-tight uppercase">Référencement & Contact</h2>
-                    <p className="text-xs font-bold uppercase tracking-widest opacity-60">Gérez vos coordonnées publiques et réseaux sociaux</p>
+                <div className="text-center sm:text-left">
+                    <h2 className="text-xl md:text-2xl font-black tracking-tight uppercase">Référencement & Contact</h2>
+                    <p className="text-[9px] md:text-xs font-bold uppercase tracking-widest opacity-60">Gérez vos coordonnées publiques et réseaux sociaux</p>
                 </div>
             </div>
 
@@ -177,7 +177,7 @@ const AdminSEO = ({ darkMode }) => {
                             <div className={`flex items-center px-4 py-3 rounded-xl border ${darkMode ? 'bg-stone-950 border-stone-800 focus-within:border-purple-500' : 'bg-stone-50 border-stone-200 focus-within:border-purple-500'}`}>
                                 <textarea
                                     name="footerTitle"
-                                    value={formData.footerTitle || "Éveiller\nl'Immobile."}
+                                    value={formData.footerTitle ?? "Éveiller\nl'Immobile."}
                                     onChange={handleChange}
                                     className="bg-transparent border-none outline-none w-full text-lg font-serif italic placeholder-opacity-30 resize-y min-h-[80px]"
                                     placeholder="Éveiller&#10;l'Immobile."
@@ -192,7 +192,7 @@ const AdminSEO = ({ darkMode }) => {
                                 <input
                                     type="text"
                                     name="footerSubtitle"
-                                    value={formData.footerSubtitle || "Inquiry"}
+                                    value={formData.footerSubtitle ?? "Inquiry"}
                                     onChange={handleChange}
                                     className="bg-transparent border-none outline-none w-full text-xs font-black uppercase tracking-widest placeholder-opacity-30"
                                 />
@@ -206,7 +206,7 @@ const AdminSEO = ({ darkMode }) => {
                                 <input
                                     type="text"
                                     name="address"
-                                    value={formData.address || ''}
+                                    value={formData.address ?? ''}
                                     onChange={handleChange}
                                     placeholder="Ex: 4 Rue de l'Atelier, 14000 Caen"
                                     className="bg-transparent border-none outline-none w-full text-sm font-medium placeholder-opacity-30"
@@ -222,7 +222,7 @@ const AdminSEO = ({ darkMode }) => {
                             <label className="text-xs font-bold uppercase tracking-widest opacity-60 ml-1">Ligne Bas de Page (SEO)</label>
                             <textarea
                                 name="legacyText"
-                                value={formData.legacyText || "Tous à Table..."}
+                                value={formData.legacyText ?? "Tous à Table..."}
                                 onChange={handleChange}
                                 className={`w-full h-32 p-4 rounded-xl border resize-none text-[10px] uppercase tracking-widest leading-relaxed ${darkMode ? 'bg-stone-950 border-stone-800 focus:border-purple-500' : 'bg-stone-50 border-stone-200 focus:border-purple-500'}`}
                             />
@@ -232,23 +232,25 @@ const AdminSEO = ({ darkMode }) => {
                 </div>
             </div>
 
-            {/* ACTION BAR */}
-            <div className={`fixed bottom-0 inset-x-0 p-6 z-50 flex justify-center backdrop-blur-md transition-all ${darkMode ? 'bg-black/80 border-t border-stone-800' : 'bg-white/80 border-t border-stone-200'}`}>
-                <div className="max-w-4xl w-full flex items-center justify-between">
-                    <p className="text-xs opacity-50 hidden md:block">Modifications appliquées immédiatement après sauvegarde.</p>
-                    <button
-                        onClick={handleSave}
-                        disabled={saving}
-                        className="flex items-center gap-3 px-8 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold uppercase tracking-widest shadow-lg shadow-emerald-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
-                    >
-                        {saving ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <Save size={18} />}
-                        <span>Enregistrer</span>
-                    </button>
+            {/* SECTION DE VALIDATION FINALE (FLUX NATUREL) */}
+            <div className={`mt-16 p-8 md:p-12 rounded-[2.5rem] border-2 border-dashed flex flex-col items-center justify-center text-center gap-6 transition-all ${darkMode ? 'border-stone-800 bg-stone-900/30' : 'border-stone-100 bg-stone-50/50'}`}>
+                <div className="space-y-2">
+                    <h3 className={`text-lg font-black tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>Vos modifications sont prêtes ?</h3>
+                    <p className="text-xs text-stone-400 font-medium">L'enregistrement mettra à jour instantanément les coordonnées sur tout le site.</p>
                 </div>
+
+                <button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="group relative flex items-center justify-center gap-4 px-12 py-5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-black uppercase text-xs tracking-[0.3em] shadow-xl shadow-emerald-500/20 transition-all active:scale-95 disabled:opacity-50"
+                >
+                    {saving ? <RefreshCw size={20} className="animate-spin" /> : <Save size={20} className="group-hover:scale-110 transition-transform" />}
+                    <span>Enregistrer les réglages</span>
+                </button>
             </div>
 
-            {/* Spacer for fixed bottom bar */}
-            <div className="h-24"></div>
+            {/* ESPACEUR DE FIN DE PAGE POUR LE FLUX NATUREL */}
+            <div className="h-32"></div>
         </div>
     );
 };

@@ -63,16 +63,13 @@ const AppContent = () => {
   const [showAuthSuccess, setShowAuthSuccess] = useState(false);
 
   // Admin State
-  const [adminCollection, setAdminCollection] = useState('dashboard'); // 'dashboard' | 'furniture' | 'cutting_boards' | 'orders' | 'comments'
+  const [adminCollection, setAdminCollection] = useState('dashboard'); // 'dashboard' | 'furniture' | 'cutting_boards' | 'orders'
 
   // Transition State
   const [isPreparingGallery, setIsPreparingGallery] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  // Comments State (Global)
-  const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
-  const [selectedItemForComments, setSelectedItemForComments] = useState(null);
-  const [commentCollection, setCommentCollection] = useState('furniture');
+
 
   const startGalleryTransition = () => {
     setIsPreparingGallery(true);
@@ -665,18 +662,12 @@ const AppContent = () => {
           setShowFullLogin={setShowFullLogin}
           setSelectedItemId={setSelectedItemId}
           selectedItemId={selectedItemId}
-          setSelectedItemForComments={setSelectedItemForComments}
-          setCommentCollection={setCommentCollection}
-          setIsCommentModalOpen={setIsCommentModalOpen}
           addToCart={addToCart}
           cartItems={cartItems}
           cartTotal={cartTotal}
           handlePlaceOrder={handlePlaceOrder}
           showOrderSuccess={showOrderSuccess}
           setShowOrderSuccess={setShowOrderSuccess}
-          isCommentModalOpen={isCommentModalOpen}
-          selectedItemForComments={selectedItemForComments}
-          commentCollection={commentCollection}
           adminCollection={adminCollection}
           setAdminCollection={setAdminCollection}
           editingItem={editingItem}

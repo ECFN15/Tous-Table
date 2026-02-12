@@ -161,21 +161,10 @@ const AdminDashboard = ({ user, darkMode = false }) => {
     const confirmResetOrders = async () => {
         setResettingOrders(true);
         try {
-            exportToExcel(allOrders);
-            const ordersSnapshot = await getDocs(collection(db, 'orders'));
-            const chunks = [];
-            let currentChunk = writeBatch(db);
-            let count = 0;
-            for (const doc of ordersSnapshot.docs) {
-                currentChunk.delete(doc.ref);
-                count++;
-                if (count % 500 === 0) {
-                    chunks.push(currentChunk.commit());
-                    currentChunk = writeBatch(db);
-                }
-            }
-            if (count % 500 !== 0) chunks.push(currentChunk.commit());
-            await Promise.all(chunks);
+            await exportToExcel(allOrders);
+            const resetOrdersFn = httpsCallable(functions, 'resetAllOrders');
+            const result = await resetOrdersFn();
+            const count = result.data.count;
 
             setStats(prev => ({ ...prev, totalRevenue: 0, totalOrders: 0, averageOrderValue: 0 }));
             setRecentOrders([]);
@@ -269,8 +258,8 @@ const AdminDashboard = ({ user, darkMode = false }) => {
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
 
-            {/* NEW KPI ROW - BUSINESS ORIENTED */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {/* KPI ROW - ADAPTIVE GRID */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                 <KpiCard
                     title="Chiffre d'Affaires"
                     value={`${stats.totalRevenue} €`}

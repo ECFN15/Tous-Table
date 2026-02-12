@@ -86,16 +86,16 @@ const AdminUsers = ({ darkMode }) => {
     return (
         <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 pb-20">
             {/* Header */}
-            <div className={`p-8 rounded-[2.5rem] shadow-xl flex justify-between items-center ${darkMode ? 'bg-stone-900 text-white' : 'bg-stone-900 text-white'}`}>
+            <div className={`p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 ${darkMode ? 'bg-stone-900 text-white' : 'bg-stone-900 text-white'}`}>
                 <div>
-                    <h2 className="text-3xl font-black tracking-tight mb-2">Maîtres des Lieux</h2>
-                    <p className="text-stone-400 font-medium">Gérez l'accès au portail d'administration.</p>
+                    <h2 className="text-2xl md:text-3xl font-black tracking-tight mb-1 md:mb-2">Maîtres des Lieux</h2>
+                    <p className="text-stone-400 font-medium text-xs md:text-sm">Gérez l'accès au portail d'administration.</p>
                 </div>
                 <button
                     onClick={() => setIsAddModalOpen(true)}
-                    className="px-6 py-4 bg-white text-stone-900 rounded-xl font-black uppercase text-xs tracking-widest hover:bg-stone-200 transition-colors flex items-center gap-3 shadow-lg"
+                    className="w-full sm:w-auto px-6 py-4 bg-white text-stone-900 rounded-xl font-black uppercase text-[10px] md:text-xs tracking-widest hover:bg-stone-200 transition-colors flex items-center justify-center gap-3 shadow-lg"
                 >
-                    <UserPlus size={16} /> Ajouter
+                    <UserPlus size={16} /> Ajouter un Admin
                 </button>
             </div>
 
