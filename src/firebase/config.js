@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
-import { getAuth, GoogleAuthProvider, FacebookAuthProvider, TwitterAuthProvider, OAuthProvider } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 import { getFunctions } from 'firebase/functions';
 import { getAnalytics } from 'firebase/analytics';
@@ -29,9 +29,5 @@ const appId = import.meta.env.VITE_APP_LOGICAL_NAME || 'tat-made-in-normandie';
 
 // --- PROVIDERS AUTHENTIFICATION ---
 const googleProvider = new GoogleAuthProvider();
-const facebookProvider = new FacebookAuthProvider();
-const twitterProvider = new TwitterAuthProvider();
-const appleProvider = new OAuthProvider('apple.com');
-const microsoftProvider = new OAuthProvider('microsoft.com');
 
-export { auth, db, storage, functions, analytics, appId, googleProvider, facebookProvider, twitterProvider, appleProvider, microsoftProvider };
+export { auth, db, storage, functions, analytics, appId, googleProvider };

@@ -7,7 +7,6 @@ import { collection, getDocs, writeBatch, doc, setDoc, serverTimestamp } from 'f
 import { httpsCallable } from 'firebase/functions';
 import { db, appId, functions } from '../../firebase/config';
 import { getMillis } from '../../utils/time';
-import * as XLSX from 'xlsx';
 
 const AdminDashboard = ({ user, darkMode = false }) => {
     // Revised State for Business Logic
@@ -143,7 +142,8 @@ const AdminDashboard = ({ user, darkMode = false }) => {
     // --- ACTIONS (Reset, Export, Clean) SAME AS BEFORE ---
     const handleResetOrdersClick = () => setIsOrderResetModalOpen(true);
 
-    const exportToExcel = (orders) => {
+    const exportToExcel = async (orders) => {
+        const XLSX = await import('xlsx');
         const data = orders.map(order => ({
             'ID Commande': order.id,
             'Date': new Date(getMillis(order.createdAt)).toLocaleString(),
@@ -241,6 +241,7 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                 'Device': u.lastUserAgent || 'N/A'
             }));
 
+            const XLSX = await import('xlsx');
             const ws = XLSX.utils.json_to_sheet(data);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Clients");

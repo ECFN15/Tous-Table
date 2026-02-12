@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 
 // --- IMPORTS CONFIG & UTILS ---
-import { auth, db, appId, functions, googleProvider, facebookProvider, twitterProvider, appleProvider, microsoftProvider } from './firebase/config';
+import { auth, db, appId, functions, googleProvider } from './firebase/config';
 import { getMillis } from './utils/time';
 import { useLiveTheme } from './hooks/useLiveTheme'; // Import hook for forcedMode check
 

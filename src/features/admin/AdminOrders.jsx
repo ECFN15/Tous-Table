@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, limit } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { Package, Clock, CheckCircle, Trash2, Mail, ChevronDown, ChevronUp, Download, Loader2, Truck, XCircle } from 'lucide-react';
-import * as XLSX from 'xlsx';
 
 const AdminOrders = ({ darkMode = false }) => {
     const [orders, setOrders] = useState([]);
@@ -116,7 +115,8 @@ const AdminOrders = ({ darkMode = false }) => {
         }
     };
 
-    const exportToExcel = () => {
+    const exportToExcel = async () => {
+        const XLSX = await import('xlsx');
         const data = orders.map(order => ({
             'ID Commande': order.id,
             'Date': order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR') : 'N/A',

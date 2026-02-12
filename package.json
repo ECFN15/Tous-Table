@@ -10,10 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@emailjs/browser": "^4.4.1",
     "@studio-freight/lenis": "^1.0.42",
     "@tailwindcss/postcss": "^4.1.18",
-    "crisp-sdk-web": "^1.0.27",
     "firebase": "^11.1.0",
     "gsap": "^3.12.5",
     "lucide-react": "^0.468.0",
