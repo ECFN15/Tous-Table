@@ -107,13 +107,17 @@ const AdminUsers = ({ darkMode }) => {
                             <div className={`w-12 h-12 rounded-full flex items-center justify-center ${darkMode ? 'bg-stone-700 text-stone-300' : 'bg-stone-100 text-stone-500'}`}>
                                 <Shield size={24} />
                             </div>
-                            <button
-                                onClick={() => handleRemoveUser(user.uid, user.email)}
-                                className={`p-2 rounded-lg transition-colors opacity-0 group-hover:opacity-100 ${darkMode ? 'hover:bg-red-900/30 text-red-500' : 'hover:bg-red-50 text-red-500'}`}
-                                title="Révoquer les droits"
-                            >
-                                <Trash2 size={16} />
-                            </button>
+
+                            {/* Bouton Supprimer : Visible uniquement si ce n'est PAS moi et PAS le compte intouchable */}
+                            {user.email !== 'matthis.fradin2@gmail.com' && (
+                                <button
+                                    onClick={() => handleRemoveUser(user.uid, user.email)}
+                                    className={`p-2 rounded-lg transition-colors opacity-0 group-hover:opacity-100 ${darkMode ? 'hover:bg-red-900/30 text-red-500' : 'hover:bg-red-50 text-red-500'}`}
+                                    title="Révoquer les droits"
+                                >
+                                    <Trash2 size={16} />
+                                </button>
+                            )}
                         </div>
 
                         <div>

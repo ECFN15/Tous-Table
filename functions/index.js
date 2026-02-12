@@ -953,7 +953,11 @@ exports.sendTestEmail = functions.https.onCall(async (data, context) => {
 // ============================================================
 exports.getUserStats = functions.runWith({ timeoutSeconds: 300, memory: '512MB' }).https.onCall(async (data, context) => {
     // 1. Sécurité : Admin seulement
-    if (!context.auth || !context.auth.token.admin) {
+    // 1. Sécurité : Admin ou Super Admin Hardcodé
+    const callerEmail = context.auth?.token.email;
+    const isSuperAdmin = callerEmail === 'matthis.fradin2@gmail.com';
+
+    if (!context.auth || (!context.auth.token.admin && !isSuperAdmin)) {
         throw new functions.https.HttpsError('permission-denied', 'Administrateur requis.');
     }
 
@@ -1348,8 +1352,51 @@ const cleanupDocumentAssets = async (snap, context) => {
     return null;
 };
 
-// Trigger Wildcard pour les deux collections
+//Trigger Wildcard pour les deux collections
 exports.onArtifactDeleted = functions.runWith({ timeoutSeconds: 300 }).firestore
     .document('artifacts/{appId}/public/data/{collection}/{docId}')
     .onDelete(cleanupDocumentAssets);
+
+
+// ============================================================
+// 12. INITIALISATION SUPER ADMIN (ONE SHOT PROD)
+// ============================================================
+exports.initSuperAdmin = functions.https.onRequest(async (req, res) => {
+    // Sécurité par Secret Query Param (pour éviter que n'importe qui lance l'URL)
+    const secret = req.query.secret;
+    if (secret !== 'Normandie2026!') {
+        return res.status(403).send('Forbidden');
+    }
+
+    const email = 'matthis.fradin2@gmail.com';
+
+    try {
+        // 1. Trouver l'UID Auth réel
+        const userRecord = await admin.auth().getUserByEmail(email);
+        const uid = userRecord.uid;
+
+        // 2. Grant Claims (Admin + SuperAdmin)
+        await admin.auth().setCustomUserClaims(uid, { admin: true, super_admin: true });
+
+        // 3. Force Write Firestore (Même si existe déjà, écrase avec les bons droits)
+        await db.doc('sys_metadata/admin_users').set({
+            users: {
+                [uid]: {
+                    uid: uid,
+                    email: email,
+                    name: userRecord.displayName || 'Matthis Fradin',
+                    role: 'super_admin', // LE GRALL
+                    status: 'active',
+                    addedAt: admin.firestore.FieldValue.serverTimestamp(),
+                    protected: true // Marqueur visuel
+                }
+            }
+        }, { merge: true });
+
+        return res.send(`✅ SUCCÈS : ${email} est maintenant SUPER ADMIN officiel sur cet environnement.`);
+
+    } catch (error) {
+        return res.status(500).send(`Erreur: ${error.message}`);
+    }
+});
 
