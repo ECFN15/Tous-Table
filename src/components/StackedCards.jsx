@@ -52,10 +52,11 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
 
         let ctx;
 
-        // --- iOS-SAFE ANIMATION VALUES ---
-        // iOS Safari cannot handle filter:blur() during scrub without jittering.
-        // We replace blur with opacity fade (GPU-composited, zero repaints).
-        // scrub:true (1:1 mapping) instead of 0.5 avoids fighting iOS momentum physics.
+        // --- iOS-SAFE SCROLL VALUES ---
+        // scrub:true (1:1 mapping) instead of 0.5 avoids fighting iOS momentum scroll physics.
+        // The blur effect is now KEPT on all platforms — the real jitter causes were:
+        // 1. Duplicate autoprefixer (fixed in postcss.config.js)
+        // 2. Permanent .featured-card GPU promotion (removed from index.css)
         const scrubValue = isIOS ? true : 0.5;
         const exitScrubValue = isIOS ? true : 1.2;
 
@@ -70,8 +71,7 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                         gsap.set(visual, {
                             scale: 1,
                             y: 0,
-                            opacity: 1,
-                            ...(isIOS ? {} : { filter: "blur(0px)" }),
+                            filter: "blur(0px)",
                             transformOrigin: 'center top',
                             force3D: true,
                             clearProps: "all"
@@ -87,18 +87,10 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                     const prevVisual = prevCard?.querySelector('.card-visual');
 
                     if (prevVisual) {
-                        // iOS: Use opacity instead of blur (blur causes per-frame repaint jitter)
-                        // Desktop/Android: Keep the premium blur effect
-                        const animProps = isIOS
-                            ? { scale: 0.80, y: 0, opacity: 0.4 }
-                            : { scale: 0.80, y: 0, filter: "blur(8px)" };
-
-                        const resetProps = isIOS
-                            ? { scale: 1, y: 0, opacity: 1 }
-                            : { scale: 1, y: 0, filter: "blur(0px)" };
-
                         gsap.to(prevVisual, {
-                            ...animProps,
+                            scale: 0.80,
+                            y: 0,
+                            filter: "blur(8px)",
                             ease: "none",
                             force3D: true,
                             scrollTrigger: {
@@ -110,7 +102,11 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                                 fastScrollEnd: true,
                                 refreshPriority: -1, // Refresh AFTER pinned sections (Process horizontal scroll)
                                 onLeaveBack: () => {
-                                    gsap.set(prevVisual, resetProps);
+                                    gsap.set(prevVisual, {
+                                        scale: 1,
+                                        y: 0,
+                                        filter: "blur(0px)"
+                                    });
                                 }
                             }
                         });

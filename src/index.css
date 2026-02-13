@@ -149,11 +149,9 @@ body,
 }
 
 /* PERFORMANCE OPTIMIZATION */
-.featured-card {
-  will-change: transform;
-  /* Promote to GPU layer for smoother scrolling */
-  transform: translateZ(0);
-}
+/* NOTE: .featured-card REMOVED — permanent will-change + translateZ(0) on all cards
+   exceeded iOS Safari's GPU compositing budget → scroll jitter.
+   GSAP handles GPU promotion dynamically via force3D:true only when animating. */
 
 .process-card {
   will-change: transform;
