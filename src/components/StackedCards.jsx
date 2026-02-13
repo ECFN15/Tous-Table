@@ -230,13 +230,16 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                             {/* 1. IMAGE ZONE (Top ~60% Mobile / ~55% Desktop) */}
                             {/* Adjusted heights to give more room to text on desktop */}
                             <div className="relative w-full h-[58%] md:h-[55%] overflow-hidden">
-                                <img
-                                    src={item.img}
-                                    alt={item.title.join(' ')}
-                                    loading="eager"
-                                    decoding="async"
-                                    className="w-full h-full object-cover will-change-transform"
-                                />
+                                <picture className="w-full h-full">
+                                    <source media="(max-width: 767px)" srcSet={item.imgMobile} />
+                                    <img
+                                        src={item.img}
+                                        alt={item.title.join(' ')}
+                                        loading="eager"
+                                        decoding="async"
+                                        className="w-full h-full object-cover will-change-transform"
+                                    />
+                                </picture>
                                 {/* Gradient Overlay for legibility */}
                                 <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/30 to-transparent opacity-80"></div>
 

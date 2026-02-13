@@ -56,7 +56,7 @@ const HOMEPAGE_CONFIG = [
             {
                 key: "process_1",
                 label: "Étape I - L'Essence",
-                format: "Portrait/Paysage",
+                format: "Paysage (16:9)",
                 default: "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?q=80&w=1400",
                 textSchema: [
                     { key: "t", label: "Titre de l'étape", type: "text", placeholder: "L'Essence" },
@@ -67,7 +67,7 @@ const HOMEPAGE_CONFIG = [
             {
                 key: "process_2",
                 label: "Étape II - L'Analyse",
-                format: "Portrait/Paysage",
+                format: "Paysage (16:9)",
                 default: "https://images.unsplash.com/photo-1644358686685-4ed525a59663?q=80&w=2000&auto=format&fit=crop",
                 textSchema: [
                     { key: "t", label: "Titre de l'étape", type: "text", placeholder: "L'Analyse" },
@@ -78,7 +78,7 @@ const HOMEPAGE_CONFIG = [
             {
                 key: "process_3",
                 label: "Étape III - Le Dessin",
-                format: "Portrait/Paysage",
+                format: "Paysage (16:9)",
                 default: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2000&auto=format&fit=crop",
                 textSchema: [
                     { key: "t", label: "Titre de l'étape", type: "text", placeholder: "Le Dessin" },
@@ -89,7 +89,7 @@ const HOMEPAGE_CONFIG = [
             {
                 key: "process_4",
                 label: "Étape IV - La Cure",
-                format: "Portrait/Paysage",
+                format: "Paysage (16:9)",
                 default: "https://images.unsplash.com/photo-1600585152220-90363fe7e115?q=80&w=1400",
                 textSchema: [
                     { key: "t", label: "Titre de l'étape", type: "text", placeholder: "La Cure" },
@@ -100,7 +100,7 @@ const HOMEPAGE_CONFIG = [
             {
                 key: "process_5",
                 label: "Étape V - L'Éclat",
-                format: "Portrait/Paysage",
+                format: "Paysage (16:9)",
                 default: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=1400",
                 textSchema: [
                     { key: "t", label: "Titre de l'étape", type: "text", placeholder: "L'Éclat" },
@@ -114,10 +114,11 @@ const HOMEPAGE_CONFIG = [
         section: "En Vedette (Cartes)",
         description: "Les 4 cartes empilées (Stacked Cards)",
         items: [
+            // CARTE 1
             {
                 key: "featured_1",
-                label: "Carte 1 - Voltaire",
-                format: "Portrait",
+                label: "Carte 1 - Voltaire (PC)",
+                format: "Paysage Panoramique (3:1)",
                 default: "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1200",
                 textSchema: [
                     { key: "subtitle", label: "Badge (Pillule)", type: "text", placeholder: "Exposition Temporaire" },
@@ -127,9 +128,17 @@ const HOMEPAGE_CONFIG = [
                 ]
             },
             {
+                key: "featured_1_mobile",
+                label: "Carte 1 - Voltaire (Mobile)",
+                format: "Portrait (4:5)",
+                default: "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=800",
+                isVariant: true
+            },
+            // CARTE 2
+            {
                 key: "featured_2",
-                label: "Carte 2 - Console",
-                format: "Portrait",
+                label: "Carte 2 - Console (PC)",
+                format: "Paysage Panoramique (3:1)",
                 default: "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=1200",
                 textSchema: [
                     { key: "subtitle", label: "Badge (Pillule)", type: "text", placeholder: "Collection Permanente" },
@@ -139,9 +148,17 @@ const HOMEPAGE_CONFIG = [
                 ]
             },
             {
+                key: "featured_2_mobile",
+                label: "Carte 2 - Console (Mobile)",
+                format: "Portrait (4:5)",
+                default: "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=800",
+                isVariant: true
+            },
+            // CARTE 3
+            {
                 key: "featured_3",
-                label: "Carte 3 - Secrétaire",
-                format: "Portrait",
+                label: "Carte 3 - Secrétaire (PC)",
+                format: "Paysage Panoramique (3:1)",
                 default: "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?q=80&w=1200",
                 textSchema: [
                     { key: "subtitle", label: "Badge (Pillule)", type: "text", placeholder: "Pièce Unique" },
@@ -151,9 +168,17 @@ const HOMEPAGE_CONFIG = [
                 ]
             },
             {
+                key: "featured_3_mobile",
+                label: "Carte 3 - Secrétaire (Mobile)",
+                format: "Portrait (4:5)",
+                default: "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?q=80&w=800",
+                isVariant: true
+            },
+            // CARTE 4
+            {
                 key: "featured_4",
-                label: "Carte 4 - Bibliothèque",
-                format: "Portrait",
+                label: "Carte 4 - Bibliothèque (PC)",
+                format: "Paysage Panoramique (3:1)",
                 default: "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?q=80&w=1200",
                 textSchema: [
                     { key: "subtitle", label: "Badge (Pillule)", type: "text", placeholder: "Nouvelle Acquisition" },
@@ -161,6 +186,13 @@ const HOMEPAGE_CONFIG = [
                     { key: "title_2", label: "Titre Ligne 2 (Italique)", type: "text", placeholder: "Céleste" },
                     { key: "desc", label: "Citation / Description", type: "textarea", placeholder: "\"Chêne massif et échelles en laiton...\"" }
                 ]
+            },
+            {
+                key: "featured_4_mobile",
+                label: "Carte 4 - Bibliothèque (Mobile)",
+                format: "Portrait (4:5)",
+                default: "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?q=80&w=800",
+                isVariant: true
             }
         ]
     },
@@ -248,7 +280,7 @@ const HOMEPAGE_CONFIG = [
             {
                 key: "faq_main",
                 label: "Image FAQ & Questions",
-                format: "Carré (1:1)",
+                format: "Paysage (16:9)",
                 default: "https://images.unsplash.com/photo-1610701596007-11502861dcfa?q=80&w=1600",
                 textSchema: [
                     { key: "q1", label: "Question 1", type: "text", placeholder: "Comment se déroule la restauration..." },
@@ -291,8 +323,8 @@ const AdminHomepage = ({ darkMode = false }) => {
 
     const parseAspect = (formatStr) => {
         if (!formatStr) return 1;
-        const match = formatStr.match(/\((\d+):(\d+)\)/);
-        if (match) return parseInt(match[1]) / parseInt(match[2]);
+        const match = formatStr.match(/\(([\d.]+):([\d.]+)\)/);
+        if (match) return parseFloat(match[1]) / parseFloat(match[2]);
         if (formatStr.toLowerCase().includes('portrait')) return 3 / 4;
         if (formatStr.toLowerCase().includes('paysage')) return 16 / 9;
         return 1;

@@ -86,15 +86,15 @@ const ImageCropperModal = ({ isOpen, image, onClose, onCropComplete, aspect = 3 
                     <div className="flex justify-between items-center gap-4">
                         <button
                             onClick={onClose}
-                            className={`flex-1 py-4 font-black uppercase text-[10px] tracking-[0.2em] rounded-2xl transition-all border ${darkMode ? 'border-stone-700 text-stone-400 hover:bg-stone-800' : 'border-stone-200 text-stone-500 hover:bg-white shadow-sm'}`}
+                            className={`flex-1 py-4 font-black uppercase text-[9px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] rounded-2xl transition-all border ${darkMode ? 'border-stone-700 text-stone-400 hover:bg-stone-800' : 'border-stone-200 text-stone-500 hover:bg-white shadow-sm'}`}
                         >
                             Annuler
                         </button>
                         <button
                             onClick={handleGenerateCroppedImage}
-                            className="flex-[2] py-4 bg-amber-500 text-white font-black uppercase text-[10px] tracking-[0.2em] rounded-2xl hover:bg-amber-600 transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2"
+                            className="flex-[2] py-4 bg-amber-500 text-white font-black uppercase text-[9px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] rounded-2xl hover:bg-amber-600 transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2"
                         >
-                            <Check size={16} />
+                            <Check size={16} className="hidden sm:block" />
                             Valider le recadrage
                         </button>
                     </div>
