@@ -243,19 +243,19 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                                 {/* Gradient Overlay for legibility */}
                                 <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/30 to-transparent opacity-80"></div>
 
-                                {/* PBE Style Badge - RESPONSIVE ADJUSTMENTS */}
-                                <div className="absolute bottom-6 md:bottom-8 lg:bottom-10 left-0 right-0 mx-auto w-fit bg-[#1a1a1a] text-white px-4 py-2 md:px-5 md:py-2.5 rounded-full shadow-lg z-20 whitespace-nowrap">
-                                    <span className="text-[9px] md:text-[10px] lg:text-xs uppercase tracking-[0.2em] font-bold">
+                                {/* PBE Style Badge - PERFECT CENTERING FIX */}
+                                <div className="absolute bottom-6 md:bottom-8 lg:bottom-10 left-1/2 -translate-x-1/2 flex items-center justify-center bg-[#1a1a1a] text-white px-5 py-2.5 md:px-6 md:py-3 rounded-full shadow-2xl z-20 whitespace-nowrap overflow-hidden">
+                                    <span className="text-[10px] md:text-[11px] lg:text-xs uppercase tracking-[0.3em] font-bold leading-none translate-y-[0.5px]">
                                         {item.subtitle}
                                     </span>
                                 </div>
                             </div>
 
                             {/* 2. TEXT ZONE (Bottom ~40% Mobile / ~45% Desktop) */}
-                            {/* Pulled up slightly more on desktop (-mt-16) to overlap image nicely */}
-                            <div className="relative z-10 w-full h-[42%] md:h-[45%] flex flex-col items-center justify-start pt-4 md:pt-8 lg:pt-10 px-6 md:px-12 text-center -mt-8 md:-mt-16">
+                            {/* Symmetric distribution: Title at top, Desc in middle (auto margins), Button at bottom */}
+                            <div className="relative z-10 w-full h-[42%] md:h-[45%] flex flex-col items-center justify-start pt-6 md:pt-8 lg:pt-10 px-6 md:px-12 text-center -mt-8 md:-mt-16">
 
-                                {/* Title - RESPONSIVE TYPOGRAPHY - Standardized size and fixed conditional rendering */}
+                                {/* Title - RESPONSIVE TYPOGRAPHY */}
                                 <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl leading-[1.1] md:leading-[0.9] text-[#1a1a1a] mix-blend-multiply mb-4 md:mb-6 drop-shadow-sm" style={{ color: item.textColor }}>
                                     {item.title[0]}
                                     {item.title[1] && (
@@ -266,13 +266,13 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                                     )}
                                 </h2>
 
-                                {/* Description - Standardized with Manifesto/Process style: uppercase, tracking, non-italic */}
-                                <p className="text-[10px] md:text-xs lg:text-sm uppercase tracking-[0.25em] font-light max-w-[85%] sm:max-w-md md:max-w-lg lg:max-w-xl leading-relaxed opacity-60 md:opacity-50 mt-auto md:mt-0 mb-6 md:mb-auto" style={{ color: item.textColor }}>
+                                {/* Description - Centering with mt-auto/mb-auto to occupy space symmetrically */}
+                                <p className="text-[10px] md:text-xs lg:text-sm uppercase tracking-[0.25em] font-light max-w-[85%] sm:max-w-md md:max-w-lg lg:max-w-xl leading-relaxed opacity-60 md:opacity-50 mt-auto mb-auto" style={{ color: item.textColor }}>
                                     {item.desc}
                                 </p>
 
-                                {/* BOUTON MODIFIÉ : RotatingButton + TEXTE - RESPONSIVE SPACING */}
-                                <button onClick={onEnterMarketplace} className="flex items-center gap-4 md:gap-5 lg:gap-6 group text-[#1a1a1a] mt-0 md:mt-8 mb-8 flex-shrink-0">
+                                {/* BOUTON FIXE EN BAS */}
+                                <button onClick={onEnterMarketplace} className="flex items-center gap-4 md:gap-5 lg:gap-6 group text-[#1a1a1a] mt-0 md:mt-8 mb-8 md:mb-8 flex-shrink-0">
                                     <RotatingButton id={item.id} />
                                     <span className="text-[10px] md:text-xs uppercase tracking-[0.4em] font-medium text-[#1a1a1a]">
                                         Découvrir la Galerie
