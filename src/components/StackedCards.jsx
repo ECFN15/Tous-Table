@@ -1,9 +1,18 @@
-import React, { useLayoutEffect, useRef } from 'react';
+import React, { useLayoutEffect, useRef, useMemo } from 'react';
 import { ArrowRight, Hammer } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
+
+// --- iOS DETECTION ---
+// iOS Safari has unique scroll physics (rubber-banding, momentum) that conflict
+// with GSAP's scrub interpolation and expensive filter animations.
+const getIsIOS = () => {
+    if (typeof navigator === 'undefined') return false;
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+};
 
 // --- COMPOSANT : BOUTON DÉCOUVRIR (MARTEAU FLOTTANT SANS FOND) ---
 const RotatingButton = ({ id }) => {
@@ -35,12 +44,20 @@ const RotatingButton = ({ id }) => {
 const StackedCards = ({ items, onEnterMarketplace }) => {
     const containerRef = useRef(null);
     const cardsRef = useRef([]);
+    const isIOS = useMemo(() => getIsIOS(), []);
 
     useLayoutEffect(() => {
         const cards = cardsRef.current;
         if (!cards || cards.length === 0) return;
 
         let ctx;
+
+        // --- iOS-SAFE ANIMATION VALUES ---
+        // iOS Safari cannot handle filter:blur() during scrub without jittering.
+        // We replace blur with opacity fade (GPU-composited, zero repaints).
+        // scrub:true (1:1 mapping) instead of 0.5 avoids fighting iOS momentum physics.
+        const scrubValue = isIOS ? true : 0.5;
+        const exitScrubValue = isIOS ? true : 1.2;
 
         const initGSAP = () => {
             if (ctx) ctx.revert(); // Cleanup if existing (e.g. resize)
@@ -53,7 +70,8 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                         gsap.set(visual, {
                             scale: 1,
                             y: 0,
-                            filter: "blur(0px)",
+                            opacity: 1,
+                            ...(isIOS ? {} : { filter: "blur(0px)" }),
                             transformOrigin: 'center top',
                             force3D: true,
                             clearProps: "all"
@@ -69,26 +87,30 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                     const prevVisual = prevCard?.querySelector('.card-visual');
 
                     if (prevVisual) {
+                        // iOS: Use opacity instead of blur (blur causes per-frame repaint jitter)
+                        // Desktop/Android: Keep the premium blur effect
+                        const animProps = isIOS
+                            ? { scale: 0.80, y: 0, opacity: 0.4 }
+                            : { scale: 0.80, y: 0, filter: "blur(8px)" };
+
+                        const resetProps = isIOS
+                            ? { scale: 1, y: 0, opacity: 1 }
+                            : { scale: 1, y: 0, filter: "blur(0px)" };
+
                         gsap.to(prevVisual, {
-                            scale: 0.80,
-                            y: 0, // <--- FIX: Ne pas descendre la carte pour qu'elle reste bien cachée derrière
-                            filter: "blur(8px)",
+                            ...animProps,
                             ease: "none",
                             force3D: true,
                             scrollTrigger: {
                                 trigger: card,
                                 start: "top 70%",
                                 end: "top 21px",
-                                scrub: 0.5,
+                                scrub: scrubValue,
                                 invalidateOnRefresh: true,
                                 fastScrollEnd: true,
                                 refreshPriority: -1, // Refresh AFTER pinned sections (Process horizontal scroll)
                                 onLeaveBack: () => {
-                                    gsap.set(prevVisual, {
-                                        scale: 1,
-                                        y: 0,
-                                        filter: "blur(0px)"
-                                    });
+                                    gsap.set(prevVisual, resetProps);
                                 }
                             }
                         });
@@ -110,7 +132,7 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                             trigger: spacer,
                             start: "top 110%",
                             end: "top -30%",
-                            scrub: 1.2,
+                            scrub: exitScrubValue,
                             invalidateOnRefresh: true,
                             refreshPriority: -1, // Refresh AFTER pinned sections
                             onLeaveBack: () => {
@@ -146,10 +168,15 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
             setTimeout(() => ScrollTrigger.refresh(), delay)
         );
 
-        // 4. RESIZE OBSERVER (Pour le redimesionnement dynamique)
+        // 4. RESIZE OBSERVER (Pour le redimensionnement dynamique)
         // If the container size changes (images loading, etc.), refresh triggers
+        // iOS FIX: Throttle to prevent firing during address bar hide/show
+        let resizeDebounceTimer;
         const resizeObserver = new ResizeObserver(() => {
-            ScrollTrigger.refresh();
+            clearTimeout(resizeDebounceTimer);
+            resizeDebounceTimer = setTimeout(() => {
+                ScrollTrigger.refresh();
+            }, isIOS ? 300 : 100); // Longer debounce on iOS to avoid mid-scroll refresh
         });
 
         if (containerRef.current) {
@@ -175,11 +202,12 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
             window.removeEventListener('load', onWindowLoad);
             window.removeEventListener('resize', handleWindowResize);
             clearTimeout(resizeTimer);
+            clearTimeout(resizeDebounceTimer);
             refreshTimers.forEach(t => clearTimeout(t));
             resizeObserver.disconnect();
             if (ctx) ctx.revert();
         };
-    }, []);
+    }, [isIOS]);
 
     return (
         // Layout Action 1: pt-32 (Large top padding)
@@ -211,10 +239,16 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                         className={`sticky ${isLastCard ? 'top-[-100vh]' : 'top-[21px]'} w-full min-h-[70vh] flex flex-col items-center justify-start pt-0`}
                         style={{
                             zIndex: index + 10,
-                            willChange: 'transform', // GPU layer hint
-                            transform: 'translate3d(0, 0, 0)', // Force GPU compositing
-                            backfaceVisibility: 'hidden', // Prevent flickering
-                            WebkitBackfaceVisibility: 'hidden', // Safari support
+                            // iOS FIX: Minimal GPU hints to avoid WebKit compositor conflicts with sticky
+                            ...(isIOS ? {
+                                WebkitTransform: 'translate3d(0, 0, 0)',
+                                WebkitBackfaceVisibility: 'hidden',
+                            } : {
+                                willChange: 'transform',
+                                transform: 'translate3d(0, 0, 0)',
+                                backfaceVisibility: 'hidden',
+                                WebkitBackfaceVisibility: 'hidden',
+                            }),
                         }}
                     >
                         {/* VISUAL CARD - PBE "Magazine" Style */}
@@ -223,8 +257,14 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                             style={{
                                 backgroundColor: item.bgColor,
                                 transformOrigin: '50% 100%',
-                                willChange: 'transform, filter', // GPU acceleration hint
-                                contain: 'layout paint' // CSS containment for better isolation
+                                // iOS FIX: Remove willChange:'filter' and contain:'layout paint'
+                                // These cause WebKit to create conflicting compositing layers with sticky
+                                ...(isIOS ? {
+                                    WebkitTransform: 'translateZ(0)',
+                                } : {
+                                    willChange: 'transform, filter',
+                                    contain: 'layout paint',
+                                }),
                             }}
                         >
                             {/* 1. IMAGE ZONE (Top ~60% Mobile / ~55% Desktop) */}
