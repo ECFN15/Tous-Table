@@ -22,7 +22,7 @@ const HOMEPAGE_CONFIG = [
                 format: "Portrait (3:4)",
                 default: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=1200",
                 textSchema: [
-                    { key: "title", label: "Titre Principal", type: "text", placeholder: "Le Plateau d'Antan" },
+                    { key: "title", label: "Titre (Utilisez <br/> pour un retour à la ligne)", type: "text", placeholder: "Le Plateau d'Antan" },
                     { key: "desc", label: "Description / Matières", type: "textarea", placeholder: "Chêne de pays — Finition à la cire d'abeille." }
                 ]
             },
@@ -32,7 +32,7 @@ const HOMEPAGE_CONFIG = [
                 format: "Portrait (4:5)",
                 default: "https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=1200",
                 textSchema: [
-                    { key: "title", label: "Titre Principal", type: "text", placeholder: "La Console Royale" },
+                    { key: "title", label: "Titre (Utilisez <br/> pour un retour à la ligne)", type: "text", placeholder: "La Console Royale" },
                     { key: "desc", label: "Description / Apposition", type: "textarea", placeholder: "Noyer sculpté — XIXème siècle." }
                 ]
             },
@@ -42,7 +42,7 @@ const HOMEPAGE_CONFIG = [
                 format: "Paysage (16:9)",
                 default: "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1400",
                 textSchema: [
-                    { key: "title", label: "Titre (Avec saut de ligne <br/>)", type: "text", placeholder: "La Renaissance <br /> d'un Chef-d'œuvre" },
+                    { key: "title", label: "Titre (Utilisez <br/> pour un retour à la ligne)", type: "text", placeholder: "La Renaissance <br /> d'un Chef-d'œuvre" },
                     { key: "desc", label: "Paragraphe descriptif", type: "textarea", placeholder: "Après 400 heures de restauration méticuleuse..." },
                     { key: "btn", label: "Texte Bouton", type: "text", placeholder: "Découvrir la pièce" }
                 ]
@@ -121,10 +121,10 @@ const HOMEPAGE_CONFIG = [
                 format: "Paysage Panoramique (3:1)",
                 default: "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1200",
                 textSchema: [
-                    { key: "subtitle", label: "Badge (Pillule)", type: "text", placeholder: "Exposition Temporaire" },
-                    { key: "title_1", label: "Titre Ligne 1", type: "text", placeholder: "Le Voltaire" },
-                    { key: "title_2", label: "Titre Ligne 2 (Italique)", type: "text", placeholder: "Signature" },
-                    { key: "desc", label: "Citation / Description", type: "textarea", placeholder: "\"Une renaissance historique pour l'époque contemporaine.\"" }
+                    { key: "subtitle", label: "Badge (Texte dans la pillule)", type: "text", placeholder: "Exposition Temporaire" },
+                    { key: "title_1", label: "Titre Principal", type: "text", placeholder: "Le Voltaire" },
+                    { key: "title_2", label: "Sous-titre (Optionnel - Italique)", type: "text", placeholder: "Signature" },
+                    { key: "desc", label: "Description (Style Museum - Majuscules automatiques)", type: "textarea", placeholder: "Une renaissance historique pour l'époque contemporaine." }
                 ]
             },
             {
@@ -141,10 +141,10 @@ const HOMEPAGE_CONFIG = [
                 format: "Paysage Panoramique (3:1)",
                 default: "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=1200",
                 textSchema: [
-                    { key: "subtitle", label: "Badge (Pillule)", type: "text", placeholder: "Collection Permanente" },
-                    { key: "title_1", label: "Titre Ligne 1", type: "text", placeholder: "Console" },
-                    { key: "title_2", label: "Titre Ligne 2 (Italique)", type: "text", placeholder: "Héritage" },
-                    { key: "desc", label: "Citation / Description", type: "textarea", placeholder: "\"Formes épurées et assemblage traditionnel...\"" }
+                    { key: "subtitle", label: "Badge (Texte dans la pillule)", type: "text", placeholder: "Collection Permanente" },
+                    { key: "title_1", label: "Titre Principal", type: "text", placeholder: "Console" },
+                    { key: "title_2", label: "Sous-titre (Optionnel - Italique)", type: "text", placeholder: "Héritage" },
+                    { key: "desc", label: "Description (Style Museum - Majuscules automatiques)", type: "textarea", placeholder: "Formes épurées et assemblage traditionnel." }
                 ]
             },
             {
@@ -161,10 +161,10 @@ const HOMEPAGE_CONFIG = [
                 format: "Paysage Panoramique (3:1)",
                 default: "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?q=80&w=1200",
                 textSchema: [
-                    { key: "subtitle", label: "Badge (Pillule)", type: "text", placeholder: "Pièce Unique" },
-                    { key: "title_1", label: "Titre Ligne 1", type: "text", placeholder: "Le Secrétaire" },
-                    { key: "title_2", label: "Titre Ligne 2 (Italique)", type: "text", placeholder: "Secret" },
-                    { key: "desc", label: "Citation / Description", type: "textarea", placeholder: "\"Bois de rose et marqueterie complexe...\"" }
+                    { key: "subtitle", label: "Badge (Texte dans la pillule)", type: "text", placeholder: "Pièce Unique" },
+                    { key: "title_1", label: "Titre Principal", type: "text", placeholder: "Le Secrétaire" },
+                    { key: "title_2", label: "Sous-titre (Optionnel - Italique)", type: "text", placeholder: "Secret" },
+                    { key: "desc", label: "Description (Style Museum - Majuscules automatiques)", type: "textarea", placeholder: "Bois de rose et marqueterie complexe." }
                 ]
             },
             {
@@ -181,10 +181,10 @@ const HOMEPAGE_CONFIG = [
                 format: "Paysage Panoramique (3:1)",
                 default: "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?q=80&w=1200",
                 textSchema: [
-                    { key: "subtitle", label: "Badge (Pillule)", type: "text", placeholder: "Nouvelle Acquisition" },
-                    { key: "title_1", label: "Titre Ligne 1", type: "text", placeholder: "Bibliothèque" },
-                    { key: "title_2", label: "Titre Ligne 2 (Italique)", type: "text", placeholder: "Céleste" },
-                    { key: "desc", label: "Citation / Description", type: "textarea", placeholder: "\"Chêne massif et échelles en laiton...\"" }
+                    { key: "subtitle", label: "Badge (Texte dans la pillule)", type: "text", placeholder: "Nouvelle Acquisition" },
+                    { key: "title_1", label: "Titre Principal", type: "text", placeholder: "Bibliothèque" },
+                    { key: "title_2", label: "Sous-titre (Optionnel - Italique)", type: "text", placeholder: "Céleste" },
+                    { key: "desc", label: "Description (Style Museum - Majuscules automatiques)", type: "textarea", placeholder: "Chêne massif et échelles en laiton." }
                 ]
             },
             {

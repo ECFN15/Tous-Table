@@ -1048,7 +1048,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
 
         {/* GRID LAYOUT - VERTICAL STACK SAFE MODE (<1536px)
             Switched to 2XL for the grid. Below 2XL (laptops/desktops), it's a clean, centered vertical stack. */}
-        <div className="grid grid-cols-1 2xl:grid-cols-12 gap-20 2xl:gap-32 items-center">
+        <div className="grid grid-cols-1 2xl:grid-cols-12 gap-16 md:gap-20 2xl:gap-32 items-center">
           <div className="manifesto-item 2xl:col-span-6 space-y-8 flex flex-col items-center 2xl:block 2xl:space-y-12 text-center 2xl:text-left">
             <div className="img-parallax aspect-[3/4] shadow-2xl w-full max-w-xl 2xl:max-w-none mx-auto overflow-hidden">
               <img
@@ -1059,11 +1059,12 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
                 loading="lazy"
               />
             </div>
-            <div className="max-w-sm mx-auto 2xl:mx-0">
-              <h3 className="font-serif text-4xl italic mb-4 text-[#1a1a1a]">
-                {homepageImages['manifesto_1_text']?.title || "Le Plateau d'Antan"}
-              </h3>
-              <p className="text-sm opacity-50 font-light leading-relaxed uppercase tracking-wider text-[#1a1a1a]">
+            <div className="mx-auto 2xl:mx-0">
+              <h3
+                className="font-serif text-4xl md:text-5xl italic mb-4 text-[#1a1a1a] md:whitespace-nowrap"
+                dangerouslySetInnerHTML={{ __html: homepageImages['manifesto_1_text']?.title || "Le Plateau d'Antan" }}
+              />
+              <p className="text-[10px] md:text-xs opacity-60 font-light leading-relaxed uppercase tracking-[0.25em] text-[#1a1a1a]">
                 {homepageImages['manifesto_1_text']?.desc || "Chêne de pays — Finition à la cire d'abeille."}
               </p>
             </div>
@@ -1072,7 +1073,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
           <div className="manifesto-item 2xl:col-span-4 2xl:col-start-9 2xl:mt-40 space-y-8 flex flex-col items-center 2xl:block 2xl:space-y-12 text-center 2xl:text-left">
             <div className="img-parallax aspect-[4/5] shadow-2xl w-full max-w-xl 2xl:max-w-none mx-auto overflow-hidden">
               <img
-                src={homepageImages['manifesto_2'] || "https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=1200"}
+                src={homepageImages['manifesto_2'] || "https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=2000&auto=format&fit=crop"}
                 className="w-full h-full object-cover will-change-transform"
                 alt="Console de style"
                 decoding="async"
@@ -1080,17 +1081,18 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
               />
             </div>
             <div className="text-center 2xl:text-left">
-              <h3 className="font-serif text-3xl italic mb-4 text-[#1a1a1a]">
-                {homepageImages['manifesto_2_text']?.title || "La Console Royale"}
-              </h3>
-              <p className="text-[10px] uppercase tracking-widest opacity-40 text-[#1a1a1a]">
+              <h3
+                className="font-serif text-4xl md:text-5xl italic mb-4 text-[#1a1a1a] md:whitespace-nowrap"
+                dangerouslySetInnerHTML={{ __html: homepageImages['manifesto_2_text']?.title || "La Console Royale" }}
+              />
+              <p className="text-[10px] md:text-xs uppercase tracking-[0.25em] opacity-60 font-light text-[#1a1a1a]">
                 {homepageImages['manifesto_2_text']?.desc || "Noyer sculpté — XIXème siècle."}
               </p>
             </div>
           </div>
 
-          <div className="manifesto-item 2xl:col-span-12 mt-20 2xl:mt-40 flex flex-col 2xl:flex-row gap-12 2xl:gap-20 items-center">
-            <div className="w-full max-w-xl 2xl:max-w-none 2xl:w-3/5 img-parallax aspect-video shadow-2xl mx-auto 2xl:mx-0 overflow-hidden">
+          <div className="manifesto-item 2xl:col-span-12 2xl:mt-40 flex flex-col 2xl:flex-row gap-12 2xl:gap-20 items-center">
+            <div className="w-full max-w-xl 2xl:max-w-none 2xl:w-3/5 img-parallax aspect-[4/3] md:aspect-video shadow-2xl mx-auto 2xl:mx-0 overflow-hidden">
               <img
                 src={homepageImages['manifesto_3'] || "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1400"}
                 className="w-full h-full object-cover will-change-transform"
@@ -1101,10 +1103,10 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
             </div>
             <div className="w-full max-w-lg 2xl:max-w-none 2xl:w-2/5 space-y-8 mx-auto 2xl:mx-0">
               <h3
-                className="font-serif text-5xl italic leading-tight text-[#1a1a1a]"
+                className="font-serif text-4xl md:text-5xl lg:text-6xl italic leading-tight text-[#1a1a1a] md:whitespace-nowrap"
                 dangerouslySetInnerHTML={{ __html: homepageImages['manifesto_3_text']?.title || "La Renaissance <br /> d'un Chef-d'œuvre" }}
               />
-              <p className="text-lg font-light opacity-60 leading-relaxed text-[#1a1a1a]">
+              <p className="text-sm md:text-lg font-light opacity-60 leading-relaxed text-[#1a1a1a]">
                 {homepageImages['manifesto_3_text']?.desc || "Après 400 heures de restauration méticuleuse, cette pièce a retrouvé sa profondeur originelle. Un dialogue suspendu entre le XVIIIème et aujourd'hui."}
               </p>
               <button onClick={onEnterMarketplace} className="flex items-center gap-6 group">

@@ -255,23 +255,26 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                             {/* Pulled up slightly more on desktop (-mt-16) to overlap image nicely */}
                             <div className="relative z-10 w-full h-[42%] md:h-[45%] flex flex-col items-center justify-start pt-4 md:pt-8 lg:pt-10 px-6 md:px-12 text-center -mt-8 md:-mt-16">
 
-                                {/* Title - RESPONSIVE TYPOGRAPHY (Adjusted max size to avoid overflow) */}
-                                <h2 className="font-serif text-[2.5rem] sm:text-5xl md:text-6xl lg:text-7xl xl:text-[5rem] leading-[1.0] md:leading-[0.9] text-[#1a1a1a] mix-blend-multiply mb-3 md:mb-4 lg:mb-6 drop-shadow-sm" style={{ color: item.textColor }}>
-                                    {item.title[0]} <br />
-                                    <span className="italic font-light">{item.title[1]}</span>
+                                {/* Title - RESPONSIVE TYPOGRAPHY - Standardized size and fixed conditional rendering */}
+                                <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl leading-[1.1] md:leading-[0.9] text-[#1a1a1a] mix-blend-multiply mb-4 md:mb-6 drop-shadow-sm" style={{ color: item.textColor }}>
+                                    {item.title[0]}
+                                    {item.title[1] && (
+                                        <>
+                                            <br />
+                                            <span className="italic font-light text-[0.8em]">{item.title[1]}</span>
+                                        </>
+                                    )}
                                 </h2>
 
-                                {/* Description - OPTIMIZED MEASURE & POSITION */}
-                                {/* MOBILE: mt-auto pushes it down, mb-4 keeps it close to button. DESKTOP: mt-0, mb-auto pushes button to bottom. */}
-                                <p className="text-xs sm:text-sm md:text-base lg:text-lg italic font-light max-w-[85%] sm:max-w-md md:max-w-lg lg:max-w-xl leading-relaxed opacity-80 md:opacity-70 mt-auto md:mt-0 mb-4 md:mb-auto" style={{ color: item.textColor }}>
+                                {/* Description - Standardized with Manifesto/Process style: uppercase, tracking, non-italic */}
+                                <p className="text-[10px] md:text-xs lg:text-sm uppercase tracking-[0.25em] font-light max-w-[85%] sm:max-w-md md:max-w-lg lg:max-w-xl leading-relaxed opacity-60 md:opacity-50 mt-auto md:mt-0 mb-6 md:mb-auto" style={{ color: item.textColor }}>
                                     {item.desc}
                                 </p>
 
                                 {/* BOUTON MODIFIÉ : RotatingButton + TEXTE - RESPONSIVE SPACING */}
-                                {/* MOBILE: mt-0 (gap handled by p mb-4). DESKTOP: keep mt margins. */}
-                                <button onClick={onEnterMarketplace} className="flex items-center gap-4 md:gap-5 lg:gap-6 group text-[#1a1a1a] mt-0 md:mt-6 lg:mt-8 mb-6 md:mb-8 flex-shrink-0">
+                                <button onClick={onEnterMarketplace} className="flex items-center gap-4 md:gap-5 lg:gap-6 group text-[#1a1a1a] mt-0 md:mt-8 mb-8 flex-shrink-0">
                                     <RotatingButton id={item.id} />
-                                    <span className="text-[9px] md:text-[10px] lg:text-[11px] uppercase tracking-[0.3em] md:tracking-[0.4em] lg:tracking-[0.5em] font-medium text-[#1a1a1a]">
+                                    <span className="text-[10px] md:text-xs uppercase tracking-[0.4em] font-medium text-[#1a1a1a]">
                                         Découvrir la Galerie
                                     </span>
                                 </button>
