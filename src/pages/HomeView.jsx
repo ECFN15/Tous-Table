@@ -1092,7 +1092,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
           </div>
 
           <div className="manifesto-item 2xl:col-span-12 2xl:mt-40 flex flex-col 2xl:flex-row gap-12 2xl:gap-20 items-center">
-            <div className="w-full max-w-xl 2xl:max-w-none 2xl:w-3/5 img-parallax aspect-[4/3] md:aspect-video shadow-2xl mx-auto 2xl:mx-0 overflow-hidden">
+            <div className="w-full max-w-xl 2xl:max-w-none 2xl:w-3/5 img-parallax aspect-[4/3] md:aspect-[3/2] shadow-2xl mx-auto 2xl:mx-0 overflow-hidden">
               <img
                 src={homepageImages['manifesto_3'] || "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1400"}
                 className="w-full h-full object-cover will-change-transform"
