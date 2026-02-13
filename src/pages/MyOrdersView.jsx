@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, limit } from 'firebase/firestore';
+import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, getDoc, increment, limit } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import { Package, Truck, XCircle, MessageCircle, ArrowLeft, Clock, CheckCircle, Download } from 'lucide-react';
+import { Package, Truck, XCircle, MessageCircle, ArrowLeft, Clock, CheckCircle, Download, CreditCard, Copy, Check } from 'lucide-react';
 import { getMillis } from '../utils/time';
 
 const formatPrice = (price) => {
@@ -11,6 +11,14 @@ const formatPrice = (price) => {
 const MyOrdersView = ({ user, onBack, darkMode }) => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [copied, setCopied] = useState(null);
+    const [showCancelSuccess, setShowCancelSuccess] = useState(false);
+
+    const handleCopy = (text, type) => {
+        navigator.clipboard.writeText(text);
+        setCopied(type);
+        setTimeout(() => setCopied(null), 2000);
+    };
 
     useEffect(() => {
         if (!user) return;
@@ -24,7 +32,10 @@ const MyOrdersView = ({ user, onBack, darkMode }) => {
         );
 
         const unsub = onSnapshot(q, (snap) => {
-            const fetchedOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            const fetchedOrders = snap.docs
+                .map(d => ({ id: d.id, ...d.data() }))
+                .filter(o => o.status !== 'cancelled_by_client' && o.status !== 'cancelled');
+
             // Tri décroissant (Plus récent en premier)
             fetchedOrders.sort((a, b) => {
                 const dateA = a.createdAt?.seconds || 0;
@@ -42,16 +53,63 @@ const MyOrdersView = ({ user, onBack, darkMode }) => {
     }, [user]);
 
     const handleCancelOrder = async (orderId) => {
-        if (!confirm("Êtes-vous sûr de vouloir annuler cette commande ?")) return;
+        const orderToCancel = orders.find(o => o.id === orderId);
+        if (!orderToCancel || !confirm("Souhaitez-vous vraiment annuler votre commande ? les articles seront remis en vente.")) return;
+
         try {
+            setLoading(true);
+            const appId = 'tat-made-in-normandie';
+
+            // 1. Restaurer les stocks intelligemment
+            if (orderToCancel.items) {
+                for (const item of orderToCancel.items) {
+                    const itemId = item.id || item.originalId;
+                    const col = item.collection || item.collectionName || 'furniture';
+
+                    if (itemId) {
+                        const itemRef = doc(db, 'artifacts', appId, 'public', 'data', col, itemId);
+                        const itemSnap = await getDoc(itemRef);
+
+                        if (itemSnap.exists()) {
+                            const currentStock = Number(itemSnap.data().stock || 0);
+
+                            // LOGIQUE INTELLIGENTE :
+                            // Si le stock est déjà à 1 ou plus, c'est que l'admin l'a déjà remis en vente manuellement.
+                            // On ne fait rien pour éviter de passer à 2 tables physiques alors qu'il n'y en a qu'une.
+                            if (currentStock === 0) {
+                                await updateDoc(itemRef, {
+                                    stock: item.quantity || 1,
+                                    sold: false,
+                                    soldAt: null,
+                                    buyerId: null
+                                });
+                                console.log(`Disponibilité rétablie pour ${item.name}`);
+                            } else {
+                                console.log(`Stock déjà présent (${currentStock}) pour ${item.name}, aucune modification effectuée.`);
+                                // On s'assure quand même que l'item n'est plus marqué comme "Vendu" par sécurité
+                                await updateDoc(itemRef, {
+                                    sold: false,
+                                    buyerId: null
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 2. Marquer la commande comme annulée
             await updateDoc(doc(db, 'orders', orderId), {
                 status: 'cancelled_by_client',
-                cancelledAt: new Date()
+                cancelledAt: new Date(),
+                clientNote: "Annulée par l'acheteur"
             });
-            alert("Votre commande a été annulée. Le remboursement sera traité sous peu.");
+
+            setShowCancelSuccess(true);
         } catch (e) {
-            console.error(e);
-            alert("Erreur lors de l'annulation.");
+            console.error("Erreur annulation:", e);
+            alert("Une erreur est survenue lors de l'annulation.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -85,7 +143,7 @@ const MyOrdersView = ({ user, onBack, darkMode }) => {
 
     return (
         <div className={`min-h-screen animate-in fade-in ${darkMode ? 'bg-stone-900 text-white' : 'bg-[#FAF9F6] text-stone-900'}`}>
-            <div className="max-w-4xl mx-auto px-6 py-32 space-y-12">
+            <div className="max-w-6xl mx-auto px-6 py-32 space-y-12">
 
                 {/* HEAD */}
                 <div className="flex items-center gap-6">
@@ -105,57 +163,135 @@ const MyOrdersView = ({ user, onBack, darkMode }) => {
                     ) : orders.map(order => {
                         const status = getStatusInfo(order.status);
                         return (
-                            <div key={order.id} className={`p-6 md:p-8 rounded-[2rem] shadow-sm ring-1 ring-inset transition-all hover:shadow-md transform-gpu ${darkMode ? 'bg-stone-800 ring-stone-700' : 'bg-white ring-stone-100'}`}>
+                            <div key={order.id} className={`p-6 md:p-10 rounded-[2.5rem] shadow-sm ring-1 ring-inset transition-all hover:shadow-md transform-gpu ${darkMode ? 'bg-stone-800 ring-stone-700' : 'bg-white ring-stone-100'}`}>
 
                                 {/* HEADER COMMANDE */}
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 border-b pb-6 border-stone-100 dark:border-stone-700/50">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 border-b pb-8 border-stone-100 dark:border-stone-700/50">
                                     <div className="space-y-1">
                                         <p className="text-xs font-black uppercase tracking-widest opacity-40">Commande #{order.id.slice(0, 8)}</p>
                                         <p className="text-sm font-bold opacity-60">
                                             Passée le {new Date(order.createdAt?.seconds * 1000).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
                                         </p>
                                     </div>
-                                    <div className={`flex items-center gap-3 px-4 py-2 rounded-full ring-1 ring-inset ${darkMode ? 'bg-stone-900 ring-stone-700' : 'bg-stone-50 ring-stone-200'}`}>
-                                        <div className={`w-2 h-2 rounded-full ${status.bg}`}></div>
+                                    <div className={`flex items-center gap-3 px-6 py-2.5 rounded-full ring-1 ring-inset ${darkMode ? 'bg-stone-900 ring-stone-700' : 'bg-stone-50 ring-stone-200'}`}>
+                                        <div className={`w-2.5 h-2.5 rounded-full ${status.bg}`}></div>
                                         <span className={`text-xs font-black uppercase tracking-widest ${status.color}`}>{status.label}</span>
                                     </div>
                                 </div>
 
                                 {/* CONTENT */}
-                                <div className="grid md:grid-cols-3 gap-8">
+                                <div className="grid md:grid-cols-12 gap-12">
                                     {/* ITEMS */}
-                                    <div className="md:col-span-2 space-y-6">
+                                    <div className="md:col-span-7 space-y-8">
                                         {order.items?.map((item, i) => (
-                                            <div key={i} className="flex gap-6 items-start">
-                                                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl bg-stone-100 overflow-hidden flex-shrink-0 border border-stone-100 dark:border-stone-700">
-                                                    {item.image && <img src={item.image} alt={item.name} className="w-full h-full object-cover" />}
+                                            <div key={i} className="flex gap-8 items-center">
+                                                <div className="w-24 h-24 sm:w-40 sm:h-40 rounded-3xl bg-stone-100 overflow-hidden flex-shrink-0 border border-stone-100 dark:border-stone-700 shadow-sm">
+                                                    {item.image && <img src={item.image} alt={item.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />}
                                                 </div>
                                                 <div className="pt-2">
-                                                    <p className="font-bold text-lg">{item.name}</p>
-                                                    <p className="text-sm opacity-50 mt-1">{item.quantity || 1} x {formatPrice(item.price)}</p>
-                                                    {item.collection && <span className="text-[10px] uppercase tracking-widest opacity-40 mt-2 block">{item.collection}</span>}
+                                                    <p className="font-black text-2xl tracking-tight">{item.name}</p>
+                                                    <p className="text-lg font-medium opacity-50 mt-1">{item.quantity || 1} x {formatPrice(item.price)}</p>
+                                                    {item.collection && <span className="px-3 py-1 rounded-lg bg-stone-100 dark:bg-stone-700 text-[9px] font-black uppercase tracking-widest opacity-60 mt-4 inline-block">{item.collection}</span>}
                                                 </div>
                                             </div>
                                         ))}
 
-                                        <div className="pt-2">
+                                        {/* ACTIONS GRID */}
+                                        <div className="pt-8 grid grid-cols-2 gap-4 max-w-sm">
+                                            <button
+                                                onClick={() => {
+                                                    if (window.$crisp) window.$crisp.push(["do", "chat:open"]);
+                                                }}
+                                                className="col-span-2 flex items-center justify-center gap-3 py-4 bg-stone-900 text-white dark:bg-white dark:text-stone-900 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-stone-800 dark:hover:bg-white/90 transition-all shadow-md group"
+                                            >
+                                                <MessageCircle size={16} className="group-hover:scale-110 transition-transform" />
+                                                Contacter le vendeur
+                                            </button>
+
                                             <button
                                                 onClick={() => alert("La facture sera disponible dès l'expédition de votre commande.")}
-                                                className="flex items-center gap-2 px-6 py-3 ring-1 ring-inset ring-stone-200 dark:ring-stone-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors opacity-60 hover:opacity-100"
+                                                className="flex items-center justify-center gap-2 py-4 ring-1 ring-inset ring-stone-200 dark:ring-stone-700 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-stone-50 dark:hover:bg-stone-800 transition-all opacity-60 hover:opacity-100"
                                             >
-                                                <Download size={14} /> Télécharger la facture
+                                                <Download size={14} /> Facture
                                             </button>
+
+                                            {canCancel(order) && (
+                                                <button
+                                                    onClick={() => handleCancelOrder(order.id)}
+                                                    className="flex items-center justify-center py-4 ring-1 ring-inset ring-stone-200 dark:ring-stone-700 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition-all opacity-60 hover:opacity-100"
+                                                >
+                                                    Annuler la commande
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
 
                                     {/* ACTIONS / INFO */}
-                                    <div className="flex flex-col justify-between border-l pl-0 md:pl-8 border-stone-100 dark:border-stone-700/50">
-                                        <div className="space-y-2 mb-6">
-                                            <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Total</p>
-                                            <p className="text-3xl font-serif italic">{formatPrice(order.total)}</p>
+                                    <div className="md:col-span-5 flex flex-col justify-between border-l pl-0 md:pl-12 border-stone-100 dark:border-stone-700/50">
+                                        <div className="space-y-2 mb-8">
+                                            <p className="text-[10px] font-black uppercase tracking-widest opacity-30">Total de la commande</p>
+                                            <p className="text-5xl font-serif italic tracking-tighter">{formatPrice(order.total)}</p>
                                         </div>
 
-                                        <div className="space-y-3">
+                                        <div className="space-y-4">
+                                            {(order.status === 'pending_payment' || order.status === 'pending') && (
+                                                <div className={`p-6 rounded-[2.5rem] border-2 border-dashed ${darkMode ? 'bg-amber-500/5 border-amber-500/20' : 'bg-amber-50 border-amber-200'} space-y-6 shadow-sm`}>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-lg shadow-amber-200/50">
+                                                            <CreditCard size={20} />
+                                                        </div>
+                                                        <p className="text-xs font-black uppercase tracking-widest text-amber-600">Instructions de règlement</p>
+                                                    </div>
+
+                                                    <div className="space-y-4">
+                                                        <div
+                                                            onClick={() => handleCopy("FR76 3002 7160 8000 0506 2940 303", 'iban')}
+                                                            className="group/iban cursor-pointer hover:opacity-80 transition-all relative"
+                                                        >
+                                                            <div className="flex items-center justify-between mb-1.5">
+                                                                <p className="text-[9px] font-black uppercase tracking-widest opacity-40">IBAN (France)</p>
+                                                                {copied === 'iban' ? (
+                                                                    <span className="text-[9px] font-black text-emerald-500 uppercase tracking-tighter flex items-center gap-1 animate-in fade-in zoom-in duration-300">
+                                                                        <Check size={10} /> Copié
+                                                                    </span>
+                                                                ) : (
+                                                                    <Copy size={12} className="opacity-30 group-hover/iban:opacity-60 transition-opacity" />
+                                                                )}
+                                                            </div>
+                                                            <p className="text-[14px] font-mono font-bold tracking-tight text-stone-900 dark:text-white">FR76 3002 7160 8000 0506 2940 303</p>
+                                                        </div>
+
+                                                        <div
+                                                            onClick={() => handleCopy("CMCIFRPP", 'bic')}
+                                                            className="group/bic cursor-pointer hover:opacity-80 transition-all relative"
+                                                        >
+                                                            <div className="flex items-center justify-between mb-1.5">
+                                                                <p className="text-[9px] font-black uppercase tracking-widest opacity-40">Code BIC</p>
+                                                                {copied === 'bic' ? (
+                                                                    <span className="text-[9px] font-black text-emerald-500 uppercase tracking-tighter flex items-center gap-1 animate-in fade-in zoom-in duration-300">
+                                                                        <Check size={10} /> Copié
+                                                                    </span>
+                                                                ) : (
+                                                                    <Copy size={12} className="opacity-30 group-hover/bic:opacity-60 transition-opacity" />
+                                                                )}
+                                                            </div>
+                                                            <p className="text-[14px] font-mono font-bold text-stone-900 dark:text-white">CMCIFRPP</p>
+                                                        </div>
+
+                                                        <div className="border-t border-stone-200/60 dark:border-stone-700/50 pt-5 flex justify-between items-end gap-4">
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="text-[9px] font-black uppercase tracking-widest opacity-40 mb-1.5">Titulaire du compte</p>
+                                                                <p className="text-[11px] font-bold leading-tight uppercase tracking-tight">M O. PEGOIX / MME E. PEGOIX</p>
+                                                            </div>
+                                                            <div className="text-right shrink-0">
+                                                                <p className="text-[9px] font-black uppercase tracking-widest text-amber-600 mb-1.5 font-black">WERO / MOBILE</p>
+                                                                <p className="text-sm font-black whitespace-nowrap tracking-tighter">07 77 32 41 78</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
                                             {order.status === 'shipped' && (
                                                 <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex gap-3 items-start">
                                                     <Truck size={16} className="text-blue-600 mt-0.5" />
@@ -176,23 +312,7 @@ const MyOrdersView = ({ user, onBack, darkMode }) => {
                                                 </div>
                                             )}
 
-                                            {canCancel(order) && (
-                                                <button
-                                                    onClick={() => handleCancelOrder(order.id)}
-                                                    className="w-full py-3 ring-1 ring-inset ring-stone-200 dark:ring-stone-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition-colors"
-                                                >
-                                                    Annuler la commande
-                                                </button>
-                                            )}
 
-                                            <button
-                                                onClick={() => {
-                                                    if (window.$crisp) window.$crisp.push(["do", "chat:open"]);
-                                                }}
-                                                className="w-full flex items-center justify-center gap-2 py-3 bg-stone-900 text-white dark:bg-white dark:text-stone-900 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-stone-800 dark:hover:bg-stone-100 transition-colors shadow-sm"
-                                            >
-                                                <MessageCircle size={14} /> Contacter le vendeur
-                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -201,6 +321,29 @@ const MyOrdersView = ({ user, onBack, darkMode }) => {
                         );
                     })}
                 </div>
+
+                {/* MODAL ANNULATION RÉUSSIE */}
+                {showCancelSuccess && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-stone-900/60 backdrop-blur-md animate-in fade-in duration-300">
+                        <div className={`max-w-md w-full p-10 rounded-[3rem] shadow-2xl text-center space-y-8 ${darkMode ? 'bg-stone-800' : 'bg-white'}`}>
+                            <div className="w-20 h-20 bg-emerald-500 rounded-3xl flex items-center justify-center text-white mx-auto shadow-lg shadow-emerald-500/20">
+                                <CheckCircle size={40} />
+                            </div>
+                            <div className="space-y-4">
+                                <h3 className="text-3xl font-black tracking-tighter">Annulation confirmée</h3>
+                                <p className="text-stone-500 leading-relaxed">
+                                    Votre demande a bien été traitée. Les articles ont été remis en vente et la commande a été retirée de votre historique.
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setShowCancelSuccess(false)}
+                                className="w-full py-4 bg-stone-900 text-white dark:bg-white dark:text-stone-900 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:scale-[1.02] transition-all"
+                            >
+                                J'ai compris
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

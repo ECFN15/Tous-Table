@@ -625,17 +625,29 @@ exports.onOrderCreated = functions.firestore
         };
 
         // --- 2. EMAIL CLIENT ---
+        const paymentInstructions = order.paymentMethod !== 'stripe' ? `
+            <div style="background: #fffbeb; border: 1px solid #fcd34d; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                <h3 style="color: #b45309; margin-top:0;">Instructions de règlement</h3>
+                <p>Pour finaliser votre commande, merci d'effectuer le règlement par <b>Virement</b> ou <b>Wero</b> :</p>
+                <p style="margin-bottom: 5px;"><b>IBAN :</b> FR76 3002 7160 8000 0506 2940 303</p>
+                <p style="margin-top: 0;"><b>Titulaire :</b> M O. PEGOIX OU MME E. PEGOIX</p>
+                <p><b>Wero / Instant :</b> 07 77 32 41 78</p>
+                <p style="font-size: 12px; color: #92400e;"><i>Votre commande sera expédiée dès réception du règlement.</i></p>
+            </div>
+        ` : '';
+
         const clientMailOptions = clientEmail ? {
             from: `Tous à Table <${adminEmail}>`,
             to: clientEmail,
             subject: `Confirmation de votre commande`,
             html: `
-                <div style="font-family: sans-serif; color: #333;">
+                <div style="font-family: sans-serif; color: #333; max-width: 600px;">
                     <h1 style="color: #d97706;">Merci pour votre commande !</h1>
                     <p>Bonjour ${order.shipping?.fullName || ''},</p>
                     <p>Nous avons bien reçu votre commande <b>#${snap.id.slice(0, 8)}</b>.</p>
-                    <p>Nous allons préparer votre colis avec le plus grand soin.</p>
                     
+                    ${paymentInstructions}
+
                     <div style="background: #f5f5f4; padding: 20px; border-radius: 10px; margin: 20px 0;">
                         <h3 style="margin-top:0;">Récapitulatif</h3>
                         <ul>${itemsHtml}</ul>
@@ -643,6 +655,7 @@ exports.onOrderCreated = functions.firestore
                     </div>
 
                     <p>Adresse de livraison :<br/>${shippingInfo}</p>
+                    <hr style="border:none; border-top:1px solid #eee; margin: 20px 0;" />
                     <p>À très vite,<br/><i>L'équipe Tous à Table</i></p>
                 </div>
             `

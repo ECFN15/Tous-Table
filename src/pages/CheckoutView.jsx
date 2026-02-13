@@ -4,7 +4,7 @@ import { functions, db, appId } from '../firebase/config';
 import { httpsCallable } from 'firebase/functions';
 import { doc, onSnapshot } from 'firebase/firestore';
 
-const CheckoutView = ({ cartItems, total, user, onBack, onPlaceOrder }) => {
+const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlaceOrder }) => {
     const [formData, setFormData] = useState({
         fullName: user?.displayName || '',
         email: user?.email || '',
@@ -14,7 +14,7 @@ const CheckoutView = ({ cartItems, total, user, onBack, onPlaceOrder }) => {
         zip: '',
         country: 'France'
     });
-    const [paymentMethod, setPaymentMethod] = useState('stripe'); // 'stripe' | 'deferred'
+    const [paymentMethod, setPaymentMethod] = useState('manual'); // 'manual' | 'deferred'
     const [loading, setLoading] = useState(false);
 
     // État pour les alertes temps réel
@@ -120,23 +120,25 @@ const CheckoutView = ({ cartItems, total, user, onBack, onPlaceOrder }) => {
     };
 
     // Si un item devient indisponible, on affiche une modale bloquante ou un overlay
-    if (unavailableItems.length > 0) {
+    // IMPORTANT : On n'affiche pas cet écran si on est déjà en cours de chargement (loading), 
+    // sinon l'utilisateur verrait un flash "vendu" au moment exact où il achète l'article lui-même.
+    if (unavailableItems.length > 0 && !loading) {
         return (
-            <div className="min-h-screen bg-[#FAF9F6] pt-32 px-6 flex items-center justify-center">
-                <div className="bg-white p-8 rounded-3xl shadow-xl max-w-md text-center space-y-6 border border-stone-100">
+            <div className={`min-h-screen pt-32 px-6 flex items-center justify-center ${darkMode ? 'bg-stone-900' : 'bg-[#FAF9F6]'}`}>
+                <div className={`p-8 rounded-3xl shadow-xl max-w-md text-center space-y-6 border ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
                     <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto">
                         <AlertCircle size={32} />
                     </div>
-                    <h2 className="text-2xl font-black text-stone-900">Oups, victime de son succès...</h2>
-                    <p className="text-stone-500">
+                    <h2 className={`text-2xl font-black ${darkMode ? 'text-white' : 'text-stone-900'}`}>Oups, victime de son succès...</h2>
+                    <p className={darkMode ? 'text-stone-400' : 'text-stone-500'}>
                         {unavailableItems.length === 1
                             ? `L'article "${unavailableItems[0].name}" vient tout juste d'être réservé par un autre passionné.`
                             : "Certains articles de votre panier viennent d'être réservés par d'autres passionnés."}
                     </p>
-                    <p className="text-xs text-stone-400">
+                    <p className={`text-xs ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>
                         Gardez l'œil ouvert : si la commande n'est pas finalisée dans les prochaines minutes, il sera remis en ligne ici même.
                     </p>
-                    <button onClick={onBack} className="w-full py-4 bg-stone-900 text-white rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-stone-800">
+                    <button onClick={onBack} className={`w-full py-4 rounded-xl font-bold uppercase text-xs tracking-widest transition-all ${darkMode ? 'bg-white text-stone-900 hover:bg-stone-200' : 'bg-stone-900 text-white hover:bg-stone-800'}`}>
                         Retourner à la boutique
                     </button>
                 </div>
@@ -145,86 +147,68 @@ const CheckoutView = ({ cartItems, total, user, onBack, onPlaceOrder }) => {
     }
 
     return (
-        <div className="min-h-screen bg-[#FAF9F6] pt-32 px-6 pb-20 animate-in fade-in duration-500">
+        <div className={`min-h-screen pt-28 px-6 pb-20 animate-in fade-in duration-500 ${darkMode ? 'bg-stone-900' : 'bg-[#FAF9F6]'}`}>
             <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 lg:gap-24">
 
                 {/* COLONNE GAUCHE : FORMULAIRE */}
-                <div className="space-y-8">
-                    <button onClick={onBack} className="flex items-center gap-2 text-stone-400 hover:text-stone-900 font-bold text-[10px] uppercase tracking-widest transition-colors">
+                <div className="space-y-4">
+                    <button onClick={onBack} className={`flex items-center gap-2 font-bold text-[10px] uppercase tracking-widest transition-colors relative z-50 ${darkMode ? 'text-stone-500 hover:text-white' : 'text-stone-400 hover:text-stone-900'}`}>
                         <ArrowLeft size={14} /> Retour au panier
                     </button>
 
                     <div>
-                        <h2 className="text-4xl font-black tracking-tighter text-stone-900 mb-6">Livraison & Paiement.</h2>
-                        <form id="checkout-form" onSubmit={handleSubmit} className="space-y-6">
+                        <h2 className={`text-4xl font-black tracking-tighter mb-4 ${darkMode ? 'text-white' : 'text-stone-900'}`}>Livraison & Paiement.</h2>
+                        <form id="checkout-form" onSubmit={handleSubmit} className="space-y-4">
 
                             {/* GROUPE 1 : CONTACT */}
-                            <div className="bg-white p-8 rounded-3xl border border-stone-100 shadow-sm space-y-4">
+                            <div className={`p-6 rounded-3xl border shadow-sm space-y-4 ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
                                 <h3 className="text-xs font-black uppercase tracking-widest text-stone-400 flex items-center gap-2 mb-4"><ShieldCheck size={14} /> Coordonnées</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <input name="fullName" value={formData.fullName} onChange={handleChange} placeholder="Nom complet" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-sm outline-none focus:ring-2 ring-stone-900 text-stone-900 placeholder:text-stone-400" required />
-                                    <input name="phone" value={formData.phone} onChange={handleChange} placeholder="Téléphone" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-sm outline-none focus:ring-2 ring-stone-900 text-stone-900 placeholder:text-stone-400" required />
+                                    <input name="fullName" value={formData.fullName} onChange={handleChange} placeholder="Nom complet" className={`w-full p-4 rounded-xl border font-bold text-sm outline-none focus:ring-2 ring-amber-500 transition-all ${darkMode ? 'bg-stone-900 border-stone-700 text-white placeholder:text-stone-600' : 'bg-stone-50 border-stone-200 text-stone-900 placeholder:text-stone-400'}`} required />
+                                    <input name="phone" value={formData.phone} onChange={handleChange} placeholder="Téléphone" className={`w-full p-4 rounded-xl border font-bold text-sm outline-none focus:ring-2 ring-amber-500 transition-all ${darkMode ? 'bg-stone-900 border-stone-700 text-white placeholder:text-stone-600' : 'bg-stone-50 border-stone-200 text-stone-900 placeholder:text-stone-400'}`} required />
                                 </div>
-                                <input name="email" value={formData.email} onChange={handleChange} placeholder="Email" type="email" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-sm outline-none focus:ring-2 ring-stone-900 text-stone-900 placeholder:text-stone-400" required />
+                                <input name="email" value={formData.email} onChange={handleChange} placeholder="Email" type="email" className={`w-full p-4 rounded-xl border font-bold text-sm outline-none focus:ring-2 ring-amber-500 transition-all ${darkMode ? 'bg-stone-900 border-stone-700 text-white placeholder:text-stone-600' : 'bg-stone-50 border-stone-200 text-stone-900 placeholder:text-stone-400'}`} required />
                             </div>
 
                             {/* GROUPE 2 : ADRESSE */}
-                            <div className="bg-white p-8 rounded-3xl border border-stone-100 shadow-sm space-y-4">
+                            <div className={`p-6 rounded-3xl border shadow-sm space-y-4 ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
                                 <h3 className="text-xs font-black uppercase tracking-widest text-stone-400 flex items-center gap-2 mb-4"><Truck size={14} /> Adresse de livraison</h3>
-                                <input name="address" value={formData.address} onChange={handleChange} placeholder="Adresse (Rue, complément...)" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-sm outline-none focus:ring-2 ring-stone-900 text-stone-900 placeholder:text-stone-400" required />
+                                <input name="address" value={formData.address} onChange={handleChange} placeholder="Adresse (Rue, complément...)" className={`w-full p-4 rounded-xl border font-bold text-sm outline-none focus:ring-2 ring-amber-500 transition-all ${darkMode ? 'bg-stone-900 border-stone-700 text-white placeholder:text-stone-600' : 'bg-stone-50 border-stone-200 text-stone-900 placeholder:text-stone-400'}`} required />
                                 <div className="grid grid-cols-2 gap-4">
-                                    <input name="zip" value={formData.zip} onChange={handleChange} placeholder="Code Postal" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-sm outline-none focus:ring-2 ring-stone-900 text-stone-900 placeholder:text-stone-400" required />
-                                    <input name="city" value={formData.city} onChange={handleChange} placeholder="Ville" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-sm outline-none focus:ring-2 ring-stone-900 text-stone-900 placeholder:text-stone-400" required />
+                                    <input name="zip" value={formData.zip} onChange={handleChange} placeholder="Code Postal" className={`w-full p-4 rounded-xl border font-bold text-sm outline-none focus:ring-2 ring-amber-500 transition-all ${darkMode ? 'bg-stone-900 border-stone-700 text-white placeholder:text-stone-600' : 'bg-stone-50 border-stone-200 text-stone-900 placeholder:text-stone-400'}`} required />
+                                    <input name="city" value={formData.city} onChange={handleChange} placeholder="Ville" className={`w-full p-4 rounded-xl border font-bold text-sm outline-none focus:ring-2 ring-amber-500 transition-all ${darkMode ? 'bg-stone-900 border-stone-700 text-white placeholder:text-stone-600' : 'bg-stone-50 border-stone-200 text-stone-900 placeholder:text-stone-400'}`} required />
                                 </div>
                             </div>
 
                             {/* GROUPE 3 : PAIEMENT */}
-                            <div className="bg-white p-8 rounded-3xl border border-stone-100 shadow-sm space-y-4">
+                            <div className={`p-6 rounded-3xl border shadow-sm space-y-4 ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
                                 <h3 className="text-xs font-black uppercase tracking-widest text-stone-400 flex items-center gap-2 mb-4"><CreditCard size={14} /> Moyen de paiement</h3>
 
-                                <div className="grid grid-cols-1 gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => setPaymentMethod('stripe')}
-                                        className={`p-4 rounded-xl border flex items-center justify-between transition-all ${paymentMethod === 'stripe' ? 'border-amber-500 bg-amber-50 ring-1 ring-amber-500' : 'border-stone-200 bg-stone-50 hover:bg-stone-100'}`}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === 'stripe' ? 'border-amber-500' : 'border-stone-300'}`}>
-                                                {paymentMethod === 'stripe' && <div className="w-2 h-2 rounded-full bg-amber-500"></div>}
-                                            </div>
-                                            <span className="font-bold text-stone-900 text-sm">Carte Bancaire (Stripe)</span>
+                                <div className={`p-6 rounded-2xl border-2 transition-all ${darkMode ? 'border-amber-500/50 bg-amber-500/10 ring-4 ring-amber-500/5' : 'border-amber-500 bg-amber-50/50 ring-4 ring-amber-500/10'}`}>
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-12 h-12 rounded-xl bg-amber-500 flex items-center justify-center text-white shadow-lg shadow-amber-500/20">
+                                            <CreditCard size={24} />
                                         </div>
-                                        <div className="flex gap-2 opacity-60">
-                                            <div className="h-4 w-6 bg-stone-300 rounded"></div>
-                                            <div className="h-4 w-6 bg-stone-300 rounded"></div>
-                                        </div>
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        onClick={() => setPaymentMethod('manual')}
-                                        className={`p-4 rounded-xl border flex items-center justify-between transition-all ${paymentMethod === 'manual' ? 'border-amber-500 bg-amber-50 ring-1 ring-amber-500' : 'border-stone-200 bg-stone-50 hover:bg-stone-100'}`}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === 'manual' ? 'border-amber-500' : 'border-stone-300'}`}>
-                                                {paymentMethod === 'manual' && <div className="w-2 h-2 rounded-full bg-amber-500"></div>}
+                                        <div className="flex-1">
+                                            <div className="flex items-center justify-between">
+                                                <span className={`font-black text-lg tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>Virement ou Wero</span>
+                                                <CheckCircle size={20} className="text-amber-500" />
                                             </div>
-                                            <div className="text-left">
-                                                <span className="font-bold text-stone-900 text-sm block">Paiement différé / manuel</span>
-                                                <span className="text-[10px] text-stone-400 block mt-0.5">Virement ou chèque après validation</span>
-                                            </div>
+                                            <p className={`text-xs mt-1 leading-relaxed font-bold ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
+                                                Simple, sécurisé et privilégié par l'Atelier. <br />
+                                                Les instructions (RIB / QR Code) vous seront présentées après confirmation.
+                                            </p>
                                         </div>
-                                    </button>
+                                    </div>
                                 </div>
                             </div>
-
                         </form>
                     </div>
                 </div>
 
                 {/* COLONNE DROITE : RÉSUMÉ */}
                 <div className="relative">
-                    <div className="sticky top-32 space-y-6">
+                    <div className="sticky top-44 space-y-6">
                         <div className="bg-stone-900 text-white p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden">
                             <div className="relative z-10">
                                 <h3 className="text-xl font-black mb-6">Résumé de la commande</h3>
@@ -254,12 +238,12 @@ const CheckoutView = ({ cartItems, total, user, onBack, onPlaceOrder }) => {
                             {loading ? (
                                 <>Traitement en cours...</>
                             ) : (
-                                <>Confirmer la commande <CheckCircle size={18} /></>
+                                <>Confirmer ma commande <CheckCircle size={18} /></>
                             )}
                         </button>
-                        <p className="text-center text-[10px] text-stone-400 font-medium">
-                            En confirmant, vous acceptez nos CGV. <br />
-                            {paymentMethod === 'manual' ? "Un email vous sera envoyé pour le paiement." : "Vous allez être redirigé vers Stripe."}
+                        <p className="text-center text-[10px] text-stone-400 font-medium px-4">
+                            En confirmant, vous réservez vos articles. <br />
+                            Les détails de paiement vous seront envoyés par email.
                         </p>
                     </div>
                 </div>

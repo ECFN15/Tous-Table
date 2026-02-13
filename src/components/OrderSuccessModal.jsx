@@ -15,14 +15,17 @@ const OrderSuccessModal = ({ onClose }) => {
                     </div>
 
                     <div>
-                        <h2 className="text-3xl font-black tracking-tighter text-stone-900 mb-2">Merci !</h2>
-                        <h3 className="text-lg font-bold text-stone-900">Commande validée.</h3>
-                        <p className="text-stone-500 text-sm mt-4 leading-relaxed">
-                            Nous avons bien reçu votre commande. <br />
-                            Un email de confirmation vient de vous être envoyé.
-                            Nous allons préparer votre pièce avec le plus grand soin.
+                        <h2 className="text-3xl font-black tracking-tighter text-stone-900 mb-2">Presque terminé !</h2>
+                        <h3 className="text-lg font-bold text-stone-900">Commande réservée.</h3>
+                        <p className="text-stone-500 text-sm mt-4 leading-relaxed px-4">
+                            Pour finaliser votre acquisition, merci d'effectuer le règlement par <span className="text-amber-600 font-bold">Virement</span> ou <span className="text-amber-600 font-bold">Wero</span>. <br /><br />
+                            Toutes les informations de paiement sont disponibles dans votre <span className="text-stone-900 font-bold italic">Espace Client (onglet Mes Commandes)</span>.
                         </p>
                     </div>
+
+                    <p className="text-[10px] text-stone-400 leading-relaxed italic px-8">
+                        💡 Un email récapitulatif avec les coordonnées bancaires vous a également été envoyé.
+                    </p>
 
                     <div className="pt-6">
                         <button

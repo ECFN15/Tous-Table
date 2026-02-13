@@ -11,7 +11,7 @@ const CheckoutView = React.lazy(() => import('./pages/CheckoutView'));
 const LoginView = React.lazy(() => import('./pages/LoginView'));
 import {
     LayoutGrid, Palette, ShoppingBag, Settings,
-    CreditCard, Hammer, Gavel, Pencil, Eye, EyeOff, Trash2, Trophy, Mail, Users, Share2
+    CreditCard, Hammer, Gavel, Pencil, Eye, EyeOff, Trash2, Trophy, Mail, Users, Share2, LogOut
 } from 'lucide-react';
 
 const AdminDashboard = React.lazy(() => import('./features/admin/AdminDashboard'));
@@ -60,7 +60,7 @@ const AppRouter = ({
     onOpenCart,
     toggleTheme
 }) => {
-    const { user, isAdmin } = useAuth();
+    const { user, isAdmin, logout } = useAuth();
 
     const handleToggleStatus = async (item, col) => {
         try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', col, item.id), { status: item.status === 'published' ? 'draft' : 'published' }); } catch (e) { console.error(e); }
@@ -145,6 +145,7 @@ const AppRouter = ({
                         cartItems={cartItems}
                         total={cartTotal}
                         user={user}
+                        darkMode={darkMode}
                         onBack={() => setView('gallery')}
                         onPlaceOrder={handlePlaceOrder}
                     />

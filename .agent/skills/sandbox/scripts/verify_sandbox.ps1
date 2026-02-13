@@ -5,11 +5,11 @@ Write-Host "--- AUDIT DE SÉCURITÉ SANDBOX ---" -ForegroundColor Cyan
 
 # 1. Vérification Firebase CLI
 $currentProjectLine = firebase use | Out-String
-if ($currentProjectLine -match "\($expectedProject\)") {
+if ($currentProjectLine -match "$expectedProject") {
     Write-Host "✅ Firebase CLI : OK ($expectedProject)" -ForegroundColor Green
 }
 else {
-    Write-Host "❌ ERREUR : Firebase pointe sur le mauvais projet !" -ForegroundColor Red
+    Write-Host "❌ ERREUR : Firebase pointe sur le mauvais projet ! ($currentProjectLine)" -ForegroundColor Red
     exit 1
 }
 

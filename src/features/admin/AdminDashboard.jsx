@@ -46,16 +46,20 @@ const AdminDashboard = ({ user, darkMode = false }) => {
 
                 ordersSnapshot.forEach(doc => {
                     const data = doc.data();
-                    if (data.status !== 'cancelled') {
+                    const isCancelled = data.status === 'cancelled' || data.status === 'cancelled_by_client';
+
+                    if (!isCancelled) {
                         revenue += (data.total || 0);
                         orderCount++;
                     }
                     orders.push({ id: doc.id, ...data });
                 });
 
-                const sortedOrders = orders.sort((a, b) => getMillis(b.createdAt) - getMillis(a.createdAt)).slice(0, 5);
+                // Filter out cancelled orders for the "Recent Orders" widget to keep dashboard focused on active business
+                const activeOrders = orders.filter(o => o.status !== 'cancelled' && o.status !== 'cancelled_by_client');
+                const sortedOrders = activeOrders.sort((a, b) => getMillis(b.createdAt) - getMillis(a.createdAt)).slice(0, 5);
                 setRecentOrders(sortedOrders);
-                setAllOrders(orders);
+                setAllOrders(orders); // Keep all orders for background usage (e.g. Export)
 
                 // 2. Fetch Items for Stock & Business Stats (Furniture + Boards)
                 const furnitureSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'furniture'));
@@ -313,199 +317,177 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                 />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-                {/* MAIN WIDGET: SALLE DES VENTES & DERNIERS VENDUS */}
-                <div className="lg:col-span-2 space-y-8">
-
-                    {/* RECENTLY SOLD (MOVED TOP) */}
-                    <div className={`p-8 rounded-[2.5rem] shadow-sm overflow-hidden transform-gpu backface-hidden will-change-transform ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : 'bg-white ring-1 ring-inset ring-stone-100'}`}>
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className={`text-lg font-black tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>Dernières Ventes</h3>
-                            <Archive size={20} className="text-stone-400" />
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {recentSales.map(item => (
-                                <div key={item.id} className={`flex items-center gap-3 p-3 rounded-xl opacity-60 hover:opacity-100 transition-opacity ${darkMode ? 'bg-stone-900' : 'bg-stone-50'}`}>
-                                    <img src={item.images?.[0] || item.imageUrl} className="w-10 h-10 rounded-lg object-cover grayscale" alt="" />
-                                    <div className="min-w-0">
-                                        <p className={`text-xs font-bold truncate ${darkMode ? 'text-stone-300' : 'text-stone-700'}`}>{item.name}</p>
-                                        <p className="text-[10px] text-stone-400">Vendu le {new Date(item.soldAt).toLocaleDateString()}</p>
-                                    </div>
-                                    <div className="ml-auto text-emerald-500"><CheckCircle size={16} /></div>
-                                </div>
-                            ))}
-                            {recentSales.length === 0 && <p className="text-xs text-stone-400 italic">Aucune vente archivée.</p>}
-                        </div>
+            {/* SECTION 1 : FLUX D'ACTIVITÉ (MOTEUR DU SITE - FULL WIDTH) */}
+            <div className={`p-8 rounded-[2.5rem] shadow-sm transform-gpu backface-hidden will-change-transform overflow-hidden ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : 'bg-white ring-1 ring-inset ring-stone-100'}`}>
+                <div className="flex justify-between items-center mb-8">
+                    <div>
+                        <h3 className={`text-xl font-black uppercase tracking-[0.2em] ${darkMode ? 'text-white' : 'text-stone-900'}`}>Flux Activité</h3>
+                        <p className="text-[10px] text-stone-400 font-bold mt-1 uppercase tracking-widest">Le moteur du site - Dernières commandes en direct</p>
                     </div>
-
-                    {/* LIVE AUCTIONS (MOVED DOWN) */}
-                    <div className={`p-8 rounded-[2.5rem] shadow-sm overflow-hidden transform-gpu backface-hidden will-change-transform ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : 'bg-white ring-1 ring-inset ring-stone-100'}`}>
-                        <div className="flex justify-between items-center mb-6">
-                            <div>
-                                <h3 className={`text-xl font-black tracking-tight flex items-center gap-2 ${darkMode ? 'text-white' : 'text-stone-900'}`}>
-                                    Salle des Ventes <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded-full animate-pulse">LIVE</span>
-                                </h3>
-                                <p className="text-xs text-stone-400 font-bold uppercase tracking-widest mt-1">Surveillance des enchères en cours</p>
-                            </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            {activeAuctions.length === 0 ? (
-                                <div className="text-center py-10 opacity-50">
-                                    <Gavel size={40} className="mx-auto mb-2 text-stone-300" />
-                                    <p className="text-sm font-bold text-stone-400">Aucune enchère en cours</p>
-                                </div>
-                            ) : (
-                                activeAuctions.map((item) => (
-                                    <div key={item.id} className={`flex items-center justify-between p-4 rounded-2xl ring-1 ring-inset transition-all transform-gpu backface-hidden will-change-transform ${darkMode ? 'ring-stone-700 bg-stone-900/50' : 'ring-stone-100 bg-stone-50'}`}>
-                                        <div className="flex items-center gap-4">
-                                            <div className="relative">
-                                                <img src={item.images?.[0] || item.imageUrl} className="w-12 h-12 rounded-xl object-cover" alt="" />
-                                                <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full ring-2 ring-white flex items-center justify-center text-[8px] font-bold text-white">{item.bidCount}</div>
-                                            </div>
-                                            <div>
-                                                <h4 className={`font-bold text-sm ${darkMode ? 'text-white' : 'text-stone-900'}`}>{item.name}</h4>
-                                                <p className="text-[10px] text-stone-400 uppercase tracking-wider">{item.lastBidderName || 'Aucune offre'}</p>
-                                            </div>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className={`font-black text-lg ${darkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                                                {item.currentPrice || item.startingPrice} €
-                                            </p>
-                                            <p className="text-[10px] font-bold text-stone-400 flex items-center justify-end gap-1">
-                                                <Clock size={10} /> {formatDuration(item.timeLeft)}
-                                            </p>
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    </div>
-
+                    <ShoppingBag size={20} className="text-stone-300" />
                 </div>
 
-                {/* SIDEBAR */}
-                <div className="space-y-6">
-                    {/* Recent Orders */}
-                    <div className={`p-6 rounded-[2rem] shadow-sm transform-gpu backface-hidden will-change-transform overflow-hidden ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : 'bg-white ring-1 ring-inset ring-stone-100'}`}>
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className={`text-sm font-black uppercase tracking-widest ${darkMode ? 'text-white' : 'text-stone-900'}`}>Dernières Commandes</h3>
-                            <button onClick={() => { window.location.href = "/?page=admin&section=orders" }} className="text-[10px] text-blue-500 hover:underline">Voir tout</button>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                    {recentOrders.length === 0 ? (
+                        <div className="col-span-full py-12 text-center border-2 border-dashed border-stone-100 rounded-[2rem]">
+                            <p className="text-xs text-stone-400 italic">En attente d'activité...</p>
                         </div>
-                        <div className="space-y-4">
-                            {recentOrders.length === 0 ? <p className="text-xs text-stone-400">Aucune commande récente.</p> : (
-                                recentOrders.map(order => (
-                                    <div key={order.id} className={`flex items-center gap-3 p-3 rounded-xl transition-colors ring-1 ring-inset ring-transparent ${darkMode ? 'hover:bg-stone-700 hover:ring-stone-600' : 'hover:bg-stone-50 hover:ring-stone-100'}`}>
-                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-[10px] ${darkMode ? 'bg-stone-700 text-stone-300' : 'bg-stone-100 text-stone-500'}`}>
-                                            {order.shipping?.fullName?.[0] || '?'}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className={`text-xs font-bold truncate ${darkMode ? 'text-white' : 'text-stone-900'}`}>{order.shipping?.fullName || 'Client'}</p>
-                                            <p className="text-[9px] text-stone-400">{new Date(getMillis(order.createdAt)).toLocaleDateString()}</p>
-                                        </div>
-                                        <span className={`text-xs font-black ${darkMode ? 'text-white' : 'text-stone-900'}`}>{order.total}€</span>
+                    ) : (
+                        recentOrders.slice(0, 4).map(order => (
+                            <div key={order.id} className={`group relative p-6 rounded-[2.5rem] transition-all border transform-gpu hover:scale-[1.02] ${darkMode ? 'bg-stone-900/40 border-stone-700/50 hover:bg-stone-900/60 hover:border-stone-600' : 'bg-white border-stone-100 hover:shadow-2xl hover:shadow-stone-200/40'}`}>
+                                <div className="flex items-center gap-4 mb-6">
+                                    <div className={`w-12 h-12 rounded-2xl flex-shrink-0 flex items-center justify-center font-black text-sm transition-all shadow-sm ${darkMode ? 'bg-stone-800 text-emerald-400 ring-1 ring-stone-700' : 'bg-stone-900 text-white group-hover:bg-emerald-500 group-hover:scale-105 group-hover:rotate-3'}`}>
+                                        {order.shipping?.fullName?.[0] || '?'}
                                     </div>
-                                ))
-                            )}
-                        </div>
-                    </div>
-
-                    {/* SYSTEM DIAGNOSTICS */}
-                    <div className={`p-6 rounded-[2rem] shadow-sm transform-gpu backface-hidden will-change-transform overflow-hidden ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : 'bg-white ring-1 ring-inset ring-stone-100'}`}>
-                        <h3 className={`text-sm font-black uppercase tracking-widest mb-4 ${darkMode ? 'text-white' : 'text-stone-900'}`}>Diagnostics Système</h3>
-                        <p className="text-xs text-stone-400 mb-4">Vérifiez l'état des services externes.</p>
-
-                        <button
-                            onClick={async () => {
-                                if (!confirm("Envoyer un email de test ?")) return;
-                                try {
-                                    alert("Envoi...");
-                                    const res = await httpsCallable(functions, 'sendTestEmail')();
-                                    if (res.data.success) alert("✅ Email envoyé !");
-                                    else alert("❌ Erreur: " + res.data.error);
-                                } catch (e) { alert("Erreur: " + e.message); }
-                            }}
-                            className={`w-full py-3 rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all shadow-sm flex items-center justify-center gap-2 ring-1 ring-inset ${darkMode ? 'bg-stone-700 text-stone-300 ring-stone-600 hover:bg-stone-600' : 'bg-stone-50 text-stone-600 ring-stone-200 hover:bg-stone-100'}`}
-                        >
-                            <Mail size={14} /> Tester Email
-                        </button>
-                    </div>
-
-                    {/* DANGER ZONE (Uniquement pour Matthis) */}
-                    {user?.email === 'matthis.fradin2@gmail.com' && (
-                        <div className={`p-6 rounded-[2rem] ring-1 ring-inset transform-gpu backface-hidden will-change-transform overflow-hidden ${darkMode ? 'bg-red-900/10 ring-red-900/30' : 'bg-red-50 ring-red-100/50'}`}>
-                            <div className={`flex items-center gap-2 mb-4 ${darkMode ? 'text-red-400' : 'text-red-900'}`}>
-                                <AlertTriangle size={16} />
-                                <h3 className="text-xs font-black uppercase tracking-widest">Zone de Danger</h3>
-                            </div>
-                            <div className="space-y-2">
-                                <button
-                                    onClick={handleResetOrdersClick}
-                                    disabled={resettingOrders}
-                                    className={`w-full py-3 rounded-xl font-bold uppercase text-[9px] tracking-widest transition-all flex items-center justify-center gap-2 ring-1 ring-inset ${darkMode ? 'bg-stone-800 text-red-400 ring-red-900/50 hover:bg-red-900/20' : 'bg-white text-red-500 ring-red-100 hover:bg-red-50'}`}
-                                >
-                                    <RefreshCw size={12} className={resettingOrders ? "animate-spin" : ""} /> Purge Commandes
-                                </button>
-                                <button
-                                    onClick={() => setIsCleaningModalOpen(true)}
-                                    disabled={cleaning}
-                                    className={`w-full py-3 rounded-xl font-bold uppercase text-[9px] tracking-widest transition-all flex items-center justify-center gap-2 ring-1 ring-inset ${darkMode ? 'bg-stone-800 text-orange-400 ring-orange-900/50 hover:bg-orange-900/20' : 'bg-white text-orange-500 ring-orange-100 hover:bg-orange-50'}`}
-                                >
-                                    <RefreshCw size={12} className={cleaning ? "animate-spin" : ""} /> Nettoyage Système
-                                </button>
-                                <button
-                                    onClick={() => setIsResetUsersModalOpen(true)}
-                                    disabled={resettingUsers}
-                                    className={`w-full py-3 rounded-xl font-bold uppercase text-[9px] tracking-widest transition-all flex items-center justify-center gap-2 ring-1 ring-inset ${darkMode ? 'bg-stone-800 text-red-600 ring-red-900/50 hover:bg-red-900/20' : 'bg-white text-red-700 ring-red-100 hover:bg-red-50'}`}
-                                >
-                                    <RefreshCw size={12} className={resettingUsers ? "animate-spin" : ""} /> Purge Utilisateurs
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                    {/* KEEP MODALS AS IS (Order Reset, Cleaning) */}
-                    {isOrderResetModalOpen && (
-                        <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm ${darkMode ? 'bg-black/70' : 'bg-stone-900/50'}`}>
-                            <div className={`rounded-[2rem] p-8 max-w-sm w-full shadow-2xl border text-center space-y-4 ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
-                                <h3 className={`text-lg font-black ${darkMode ? 'text-white' : 'text-stone-900'}`}>Purger Commandes ?</h3>
-                                <p className="text-xs text-stone-400">Export Excel + Suppression définitive.</p>
-                                <div className="flex gap-2">
-                                    <button onClick={confirmResetOrders} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold text-xs">Confirmer</button>
-                                    <button onClick={() => setIsOrderResetModalOpen(false)} className="flex-1 py-3 bg-stone-200 text-stone-600 rounded-xl font-bold text-xs">Annuler</button>
+                                    <div className="min-w-0">
+                                        <p className={`text-xs font-black truncate tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>{order.shipping?.fullName || 'Client Anonyme'}</p>
+                                        <p className="text-[10px] text-stone-400 font-bold mt-0.5 opacity-60">
+                                            {new Date(getMillis(order.createdAt)).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })} • {new Date(getMillis(order.createdAt)).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    )}
-                    {isCleaningModalOpen && (
-                        <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm ${darkMode ? 'bg-black/70' : 'bg-stone-900/50'}`}>
-                            <div className={`rounded-[2rem] p-8 max-w-sm w-full shadow-2xl border text-center space-y-4 ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
-                                <h3 className={`text-lg font-black ${darkMode ? 'text-white' : 'text-stone-900'}`}>Nettoyage Système ?</h3>
-                                <p className="text-xs text-stone-400">Supprime les images orphelines du stockage.</p>
-                                <div className="flex gap-2">
-                                    <button onClick={confirmCleaning} className="flex-1 py-3 bg-orange-500 text-white rounded-xl font-bold text-xs">Lancer</button>
-                                    <button onClick={() => setIsCleaningModalOpen(false)} className="flex-1 py-3 bg-stone-200 text-stone-600 rounded-xl font-bold text-xs">Annuler</button>
+                                <div className="flex items-center justify-between">
+                                    <p className={`text-2xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>{order.total}€</p>
+                                    <div className={`text-[9px] font-black uppercase tracking-[0.15em] px-4 py-1.5 rounded-xl border shadow-sm transition-colors ${order.status === 'shipped'
+                                            ? 'text-indigo-400 border-indigo-400/30 bg-indigo-400/10'
+                                            : (order.status === 'completed' || order.status === 'paid')
+                                                ? 'text-emerald-400 border-emerald-400/30 bg-emerald-400/10'
+                                                : 'text-amber-500 border-amber-500/30 bg-amber-500/10'
+                                        }`}>
+                                        {order.status === 'shipped' ? 'Expédié' : (order.status === 'completed' || order.status === 'paid') ? 'Payé' : 'En attente'}
+                                    </div>
                                 </div>
+                                {/* Subtle indicator line */}
+                                <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-1 rounded-t-full transition-all duration-500 ${order.status === 'shipped' ? 'bg-indigo-500' : (order.status === 'completed' || order.status === 'paid') ? 'bg-emerald-500' : 'bg-amber-500'
+                                    } opacity-0 group-hover:opacity-100 group-hover:w-24`} />
                             </div>
-                        </div>
-                    )}
-                    {isResetUsersModalOpen && (
-                        <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm ${darkMode ? 'bg-black/70' : 'bg-stone-900/50'}`}>
-                            <div className={`rounded-[2rem] p-8 max-w-sm w-full shadow-2xl border text-center space-y-4 ${darkMode ? 'bg-stone-800 border-stone-700 border-red-900/30' : 'bg-white border-stone-100 border-red-100'}`}>
-                                <h3 className={`text-lg font-black text-red-500`}>Danger : Purge Totale ?</h3>
-                                <p className={`text-xs ${darkMode ? 'text-stone-300' : 'text-stone-600'}`}>
-                                    Cela va supprimer <b>TOUS les comptes utilisateurs</b> (clients et tests) de Firebase Auth.<br /><br />
-                                    Seuls les Super Admins (<code>matthis.fradin...</code>) seront épargnés.
-                                </p>
-                                <div className="flex gap-2 pt-2">
-                                    <button onClick={confirmResetUsers} className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg shadow-red-500/20">Confirmer</button>
-                                    <button onClick={() => setIsResetUsersModalOpen(false)} className={`flex-1 py-3 rounded-xl font-bold text-xs uppercase tracking-wider ${darkMode ? 'bg-stone-700 text-stone-300 hover:bg-stone-600' : 'bg-stone-100 text-stone-500 hover:bg-stone-200'}`}>Annuler</button>
-                                </div>
-                            </div>
-                        </div>
+                        ))
                     )}
                 </div>
             </div>
+
+            {/* SECTION 2 : SALLE DES VENTES (FULL WIDTH) */}
+            <div className={`p-8 rounded-[2.5rem] shadow-sm overflow-hidden transform-gpu backface-hidden will-change-transform ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : 'bg-white ring-1 ring-inset ring-stone-100'}`}>
+                <div className="flex justify-between items-center mb-8">
+                    <div>
+                        <h3 className={`text-2xl font-black tracking-tight flex items-center gap-3 ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                            Salle des Ventes <span className="text-[10px] bg-red-500 text-white px-3 py-1 rounded-full animate-pulse tracking-widest uppercase">Live Control</span>
+                        </h3>
+                        <p className="text-xs text-stone-400 font-bold uppercase tracking-widest mt-1">Surveillance des enchères actives en temps réel</p>
+                    </div>
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border ${darkMode ? 'bg-stone-900 border-stone-700 text-stone-400' : 'bg-stone-50 border-stone-100 text-stone-300'}`}>
+                        <Gavel size={24} />
+                    </div>
+                </div>
+
+                <div className="space-y-4">
+                    {activeAuctions.length === 0 ? (
+                        <div className="text-center py-20 opacity-40 border-2 border-dashed border-stone-100 rounded-[2.5rem]">
+                            <Gavel size={48} className="mx-auto mb-4 text-stone-200" />
+                            <p className="text-sm font-bold text-stone-400 uppercase tracking-[0.2em]">Le marteau est au repos</p>
+                        </div>
+                    ) : (
+                        activeAuctions.map((item) => (
+                            <div key={item.id} className={`group flex items-center justify-between p-6 rounded-[2rem] ring-1 ring-inset transition-all transform-gpu hover:scale-[1.01] ${darkMode ? 'ring-stone-700 bg-stone-900/40 hover:bg-stone-900/60' : 'ring-stone-100 bg-stone-50/40 hover:bg-white hover:shadow-2xl hover:shadow-stone-200/40'}`}>
+                                <div className="flex items-center gap-6">
+                                    <div className="relative">
+                                        <img src={item.images?.[0] || item.imageUrl} className="w-16 h-16 rounded-2xl object-cover shadow-lg transition-transform group-hover:rotate-2" alt="" />
+                                        <div className="absolute -top-2 -right-2 w-7 h-7 bg-red-500 rounded-xl ring-4 ring-white flex items-center justify-center text-[10px] font-black text-white shadow-xl">{item.bidCount}</div>
+                                    </div>
+                                    <div>
+                                        <h4 className={`font-black text-lg ${darkMode ? 'text-white' : 'text-stone-900'}`}>{item.name}</h4>
+                                        <p className="text-[11px] font-bold text-amber-600 uppercase tracking-wider flex items-center gap-2 mt-1">
+                                            <Users size={12} className="opacity-50" /> {item.lastBidderName || 'Aucune offre active'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <p className={`font-black text-3xl tracking-tighter ${darkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                                        {item.currentPrice || item.startingPrice} €
+                                    </p>
+                                    <p className="text-[10px] font-black text-stone-400 flex items-center justify-end gap-2 mt-1.5 bg-stone-100/50 px-2 py-0.5 rounded-full inline-flex">
+                                        <Clock size={12} className="text-red-400" /> {formatDuration(item.timeLeft)}
+                                    </p>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </div>
+
+            {/* SECTION 3 : CONTRÔLES & MAINTENANCE (GRID BOTTOM) */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-8 border-t border-dashed border-stone-200 opacity-80 hover:opacity-100 transition-opacity">
+                {/* DIAGNOSTICS */}
+                <div className={`p-8 rounded-[2.5rem] shadow-sm ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : 'bg-white ring-1 ring-inset ring-stone-100'}`}>
+                    <div className="flex items-center gap-3 mb-6 text-stone-400">
+                        <RefreshCw size={18} />
+                        <h3 className={`text-xs font-black uppercase tracking-widest ${darkMode ? 'text-white' : 'text-stone-900'}`}>Contrôles Système</h3>
+                    </div>
+                    <button onClick={async () => {
+                        if (!confirm("Tester flux email ?")) return;
+                        try {
+                            const res = await httpsCallable(functions, 'sendTestEmail')();
+                            alert(res.data.success ? "✅ Mail Flux OK" : "❌ Erreur Mail");
+                        } catch (e) { alert(e.message); }
+                    }} className={`w-full py-4 rounded-xl font-black uppercase text-[10px] tracking-widest border transition-all ${darkMode ? 'bg-stone-700 border-stone-600 text-stone-300 hover:bg-stone-600' : 'bg-stone-50 border-stone-200 text-stone-500 hover:bg-white hover:shadow-sm shadow-inner'}`}>
+                        <Mail size={14} className="inline mr-2" /> Diagnostic Mail
+                    </button>
+                </div>
+
+                {/* DANGER ZONE (FULL SPAN REST) */}
+                {user?.email === 'matthis.fradin2@gmail.com' && (
+                    <div className={`lg:col-span-2 p-8 rounded-[2.5rem] border-2 border-dashed ${darkMode ? 'border-red-900/20 bg-red-900/10' : 'border-red-100 bg-red-50/50'}`}>
+                        <div className="flex items-center gap-3 mb-6 text-red-900/40">
+                            <AlertTriangle size={18} />
+                            <h3 className="text-xs font-black uppercase tracking-widest">Commandes Critiques</h3>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <button onClick={handleResetOrdersClick} className="py-3.5 rounded-xl font-black uppercase text-[10px] bg-white border border-red-100 text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all shadow-sm">Reset Ventes</button>
+                            <button onClick={() => setIsCleaningModalOpen(true)} className="py-3.5 rounded-xl font-black uppercase text-[10px] bg-white border border-orange-100 text-orange-500 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all shadow-sm">Clean Cloud</button>
+                            <button onClick={() => setIsResetUsersModalOpen(true)} className="py-3.5 rounded-xl font-black uppercase text-[10px] bg-white border border-red-200 text-red-700 hover:bg-red-700 hover:text-white hover:border-red-700 transition-all shadow-sm">Purge Clients</button>
+                        </div>
+                    </div>
+                )}
+            </div>
+            {isOrderResetModalOpen && (
+                <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm ${darkMode ? 'bg-black/70' : 'bg-stone-900/50'}`}>
+                    <div className={`rounded-[2rem] p-8 max-w-sm w-full shadow-2xl border text-center space-y-4 ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
+                        <h3 className={`text-lg font-black ${darkMode ? 'text-white' : 'text-stone-900'}`}>Purger Commandes ?</h3>
+                        <p className="text-xs text-stone-400">Export Excel + Suppression définitive.</p>
+                        <div className="flex gap-2">
+                            <button onClick={confirmResetOrders} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold text-xs">Confirmer</button>
+                            <button onClick={() => setIsOrderResetModalOpen(false)} className="flex-1 py-3 bg-stone-200 text-stone-600 rounded-xl font-bold text-xs">Annuler</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {isCleaningModalOpen && (
+                <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm ${darkMode ? 'bg-black/70' : 'bg-stone-900/50'}`}>
+                    <div className={`rounded-[2rem] p-8 max-w-sm w-full shadow-2xl border text-center space-y-4 ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
+                        <h3 className={`text-lg font-black ${darkMode ? 'text-white' : 'text-stone-900'}`}>Nettoyage Système ?</h3>
+                        <p className="text-xs text-stone-400">Supprime les images orphelines du stockage.</p>
+                        <div className="flex gap-2">
+                            <button onClick={confirmCleaning} className="flex-1 py-3 bg-orange-500 text-white rounded-xl font-bold text-xs">Lancer</button>
+                            <button onClick={() => setIsCleaningModalOpen(false)} className="flex-1 py-3 bg-stone-200 text-stone-600 rounded-xl font-bold text-xs">Annuler</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {isResetUsersModalOpen && (
+                <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm ${darkMode ? 'bg-black/70' : 'bg-stone-900/50'}`}>
+                    <div className={`rounded-[2rem] p-8 max-w-sm w-full shadow-2xl border text-center space-y-4 ${darkMode ? 'bg-stone-800 border-stone-700 border-red-900/30' : 'bg-white border-stone-100 border-red-100'}`}>
+                        <h3 className={`text-lg font-black text-red-500`}>Danger : Purge Totale ?</h3>
+                        <p className={`text-xs ${darkMode ? 'text-stone-300' : 'text-stone-600'}`}>
+                            Cela va supprimer <b>TOUS les comptes utilisateurs</b> (clients et tests) de Firebase Auth.<br /><br />
+                            Seuls les Super Admins (<code>matthis.fradin...</code>) seront épargnés.
+                        </p>
+                        <div className="flex gap-2 pt-2">
+                            <button onClick={confirmResetUsers} className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg shadow-red-500/20">Confirmer</button>
+                            <button onClick={() => setIsResetUsersModalOpen(false)} className={`flex-1 py-3 rounded-xl font-bold text-xs uppercase tracking-wider ${darkMode ? 'bg-stone-700 text-stone-300 hover:bg-stone-600' : 'bg-stone-100 text-stone-500 hover:bg-stone-200'}`}>Annuler</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
