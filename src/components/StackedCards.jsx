@@ -1,25 +1,12 @@
-import React, { useLayoutEffect, useRef, useMemo } from 'react';
-import { ArrowRight, Hammer } from 'lucide-react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import React, { useRef } from 'react';
+import { Hammer } from 'lucide-react';
+import { motion, useScroll, useTransform } from 'framer-motion';
 
-gsap.registerPlugin(ScrollTrigger);
-
-// --- iOS DETECTION ---
-// iOS Safari has unique scroll physics (rubber-banding, momentum) that conflict
-// with GSAP's scrub interpolation and expensive filter animations.
-const getIsIOS = () => {
-    if (typeof navigator === 'undefined') return false;
-    return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-};
-
-// --- COMPOSANT : BOUTON DÉCOUVRIR (MARTEAU FLOTTANT SANS FOND) ---
+// --- COMPOSANT : BOUTON DÉCOUVRIR ---
 const RotatingButton = ({ id }) => {
     const pathId = `btnPath-${id}`;
     return (
         <div className="relative w-16 h-16 md:w-24 md:h-24 flex items-center justify-center select-none group-hover:scale-110 transition-transform duration-500">
-            {/* Texte rotatif */}
             <div className="absolute inset-0 animate-spin-slow">
                 <svg width="100%" height="100%" viewBox="0 0 100 100">
                     <defs>
@@ -32,8 +19,6 @@ const RotatingButton = ({ id }) => {
                     </text>
                 </svg>
             </div>
-
-            {/* Marteau Central - SANS CERCLE BLANC */}
             <div className="absolute inset-0 flex items-center justify-center">
                 <Hammer size={20} className="text-[#1a1a1a] md:w-6 md:h-6" strokeWidth={1.5} />
             </div>
@@ -41,176 +26,123 @@ const RotatingButton = ({ id }) => {
     );
 };
 
-const StackedCards = ({ items, onEnterMarketplace }) => {
+// --- SOUS-COMPOSANT : CARTE PARALLAX (Flux Naturel) ---
+const ParallaxCard = ({ item, index, onEnterMarketplace }) => {
     const containerRef = useRef(null);
-    const cardsRef = useRef([]);
-    const isIOS = useMemo(() => getIsIOS(), []);
 
-    useLayoutEffect(() => {
-        const cards = cardsRef.current;
-        if (!cards || cards.length === 0) return;
+    // Track scroll progress of this specific card relative to the window
+    // 'start end': When TOP of card enters BOTTOM of viewport
+    // 'end start': When BOTTOM of card leaves TOP of viewport
+    const { scrollYProgress } = useScroll({
+        target: containerRef,
+        offset: ['start end', 'end start']
+    });
 
-        let ctx;
+    // RESPONSIVE LOGIC (UX Best Practice)
+    // Desktop: Needs stability. Animation starts late (0.75).
+    // Mobile: Needs flow. Animation starts early (0.25) to feel "alive" under the thumb.
 
-        // --- iOS-SAFE SCROLL VALUES ---
-        // scrub:true (1:1 mapping) instead of 0.5 avoids fighting iOS momentum scroll physics.
-        // The blur effect is now KEPT on all platforms — the real jitter causes were:
-        // 1. Duplicate autoprefixer (fixed in postcss.config.js)
-        // 2. Permanent .featured-card GPU promotion (removed from index.css)
-        const scrubValue = isIOS ? true : 0.5;
-        const exitScrubValue = isIOS ? true : 1.2;
+    const [isMobile, setIsMobile] = React.useState(false);
 
-        const initGSAP = () => {
-            if (ctx) ctx.revert(); // Cleanup if existing (e.g. resize)
+    React.useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
-            ctx = gsap.context(() => {
-                // STEP 1: RESET ALL CARDS TO CLEAN SLATE
-                cards.forEach((card) => {
-                    const visual = card?.querySelector('.card-visual');
-                    if (visual) {
-                        gsap.set(visual, {
-                            scale: 1,
-                            y: 0,
-                            filter: "blur(0px)",
-                            transformOrigin: 'center top',
-                            force3D: true,
-                            clearProps: "all"
-                        });
-                    }
-                });
+    // 2. EXIT ANIMATION (Conditional)
+    const scaleStart = isMobile ? 0.25 : 0.75;
+    const opacityStart = isMobile ? 0.85 : 0.95;
 
-                // STEP 2: SETUP ANIMATIONS
-                cards.forEach((card, index) => {
-                    if (index === 0) return;
-
-                    const prevCard = cards[index - 1];
-                    const prevVisual = prevCard?.querySelector('.card-visual');
-
-                    if (prevVisual) {
-                        gsap.to(prevVisual, {
-                            scale: 0.80,
-                            y: 0,
-                            filter: "blur(8px)",
-                            ease: "none",
-                            force3D: true,
-                            scrollTrigger: {
-                                trigger: card,
-                                start: "top 70%",
-                                end: "top 21px",
-                                scrub: scrubValue,
-                                invalidateOnRefresh: true,
-                                fastScrollEnd: true,
-                                refreshPriority: -1, // Refresh AFTER pinned sections (Process horizontal scroll)
-                                onLeaveBack: () => {
-                                    gsap.set(prevVisual, {
-                                        scale: 1,
-                                        y: 0,
-                                        filter: "blur(0px)"
-                                    });
-                                }
-                            }
-                        });
-                    }
-                });
-
-                // Last card exit animation
-                const lastCard = cards[cards.length - 1];
-                const lastVisual = lastCard?.querySelector('.card-visual');
-                const spacer = containerRef.current?.querySelector('.section-spacer');
-
-                if (lastVisual && spacer) {
-                    gsap.to(lastVisual, {
-                        scaleX: 0.90,
-                        scaleY: 0.96,
-                        ease: "none",
-                        force3D: true,
-                        scrollTrigger: {
-                            trigger: spacer,
-                            start: "top 110%",
-                            end: "top -30%",
-                            scrub: exitScrubValue,
-                            invalidateOnRefresh: true,
-                            refreshPriority: -1, // Refresh AFTER pinned sections
-                            onLeaveBack: () => {
-                                gsap.set(lastVisual, { scaleX: 1, scaleY: 1 });
-                            }
-                        }
-                    });
-                }
-            }, containerRef);
-
-            ScrollTrigger.refresh();
-        };
-
-        // RUN INIT:
-        // 1. Immediately
-        initGSAP();
-
-        // 2. On Window Load (Critical)
-        const onWindowLoad = () => {
-            initGSAP();
-        };
-
-        if (document.readyState === 'complete') {
-            onWindowLoad();
-        } else {
-            window.addEventListener('load', onWindowLoad);
-        }
-
-        // 3. SAFETY REFRESH PATTERN (La solution "Vraie")
-        // Force ScrollTrigger to re-calculate periodically during the first few seconds
-        // This fixes the "Desktop First Load" bug where layout isn't fully stable yet
-        const refreshTimers = [100, 500, 1000, 2000].map(delay =>
-            setTimeout(() => ScrollTrigger.refresh(), delay)
-        );
-
-        // 4. RESIZE OBSERVER (Pour le redimensionnement dynamique)
-        // If the container size changes (images loading, etc.), refresh triggers
-        // iOS FIX: Throttle to prevent firing during address bar hide/show
-        let resizeDebounceTimer;
-        const resizeObserver = new ResizeObserver(() => {
-            clearTimeout(resizeDebounceTimer);
-            resizeDebounceTimer = setTimeout(() => {
-                ScrollTrigger.refresh();
-            }, isIOS ? 300 : 100); // Longer debounce on iOS to avoid mid-scroll refresh
-        });
-
-        if (containerRef.current) {
-            resizeObserver.observe(containerRef.current);
-        }
-
-        // 5. WINDOW RESIZE HANDLER (Re-init on viewport width change)
-        // When crossing breakpoints (e.g. 2xl at 1536px), the page layout changes
-        // and trigger positions need full recalculation
-        let lastWidth = window.innerWidth;
-        let resizeTimer;
-        const handleWindowResize = () => {
-            const newWidth = window.innerWidth;
-            if (Math.abs(newWidth - lastWidth) > 20) {
-                lastWidth = newWidth;
-                clearTimeout(resizeTimer);
-                resizeTimer = setTimeout(() => initGSAP(), 300);
-            }
-        };
-        window.addEventListener('resize', handleWindowResize);
-
-        return () => {
-            window.removeEventListener('load', onWindowLoad);
-            window.removeEventListener('resize', handleWindowResize);
-            clearTimeout(resizeTimer);
-            clearTimeout(resizeDebounceTimer);
-            refreshTimers.forEach(t => clearTimeout(t));
-            resizeObserver.disconnect();
-            if (ctx) ctx.revert();
-        };
-    }, [isIOS]);
+    const scale = useTransform(scrollYProgress, [scaleStart, 1], [1, isMobile ? 0.88 : 0.92]);
+    const opacity = useTransform(scrollYProgress, [opacityStart, 1], [1, 0]);
+    // const blur = useTransform(scrollYProgress, [0.8, 1], ['0px', '5px']); // Optional
 
     return (
-        // Layout Action 1: pt-32 (Large top padding)
-        <section className="featured-section relative w-full bg-[#E5E5E5] flex flex-col items-center gap-[20px] pt-32 pb-[10vh]" style={{ overflowX: 'clip' }} ref={containerRef}>
+        <motion.div
+            ref={containerRef}
+            className="group w-full flex flex-col items-center justify-start sticky-substitute"
+            style={{
+                scale,
+                opacity,
+                // filter: blur,
+                marginBottom: '-5vh', // Slight overlap for continuity - Stack effect without sticky
+                zIndex: index
+            }}
+        >
+            <div
+                className="card-visual relative w-[90%] md:w-[97%] max-w-[1800px] h-[80vh] md:h-[88vh] bg-[#FAF9F6] rounded-[2.5rem] md:rounded-[4rem] overflow-hidden shadow-[0_20px_70px_rgba(0,0,0,0.15)] flex flex-col items-center"
+                style={{
+                    backgroundColor: item.bgColor,
+                    willChange: 'transform', // Hint for browser
+                    transform: 'translateZ(0)', // Force GPU
+                }}
+            >
+                {/* 1. IMAGE ZONE (STATIC - NO PARALLAX) */}
+                <div className="relative w-full h-[58%] md:h-[55%] overflow-hidden bg-gray-200">
+                    <div
+                        className="w-full h-full"
+                    >
+                        <picture className="w-full h-full block">
+                            <source media="(max-width: 767px)" srcSet={item.imgMobile} />
+                            <img
+                                src={item.img}
+                                alt={item.title.join(' ')}
+                                loading="eager"
+                                decoding="async"
+                                className="w-full h-full object-cover"
+                            />
+                        </picture>
+                    </div>
+
+                    {/* Gradient Overlay - Fixed to the frame bottom */}
+                    <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/40 to-transparent pointer-events-none"></div>
+
+                    {/* Badge */}
+                    <div className="absolute bottom-6 md:bottom-8 lg:bottom-10 left-1/2 -translate-x-1/2 flex items-center justify-center bg-[#1a1a1a] text-white px-5 py-2.5 md:px-6 md:py-3 rounded-full shadow-2xl z-20 whitespace-nowrap overflow-hidden">
+                        <span className="text-[10px] md:text-[11px] lg:text-xs uppercase tracking-[0.3em] font-bold leading-none translate-y-[0.5px]">
+                            {item.subtitle}
+                        </span>
+                    </div>
+                </div>
+
+                {/* 2. TEXT ZONE */}
+                <div className="relative z-10 w-full h-[42%] md:h-[45%] flex flex-col items-center justify-start pt-6 md:pt-8 lg:pt-10 px-6 md:px-12 text-center -mt-8 md:-mt-16">
+                    <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl leading-[1.1] md:leading-[0.9] text-[#1a1a1a] mix-blend-multiply mb-4 md:mb-6 drop-shadow-sm" style={{ color: item.textColor }}>
+                        {item.title[0]}
+                        {item.title[1] && (
+                            <>
+                                <br />
+                                <span className="italic font-light text-[0.8em]">{item.title[1]}</span>
+                            </>
+                        )}
+                    </h2>
+                    <p className="text-[10px] md:text-xs lg:text-sm uppercase tracking-[0.25em] font-light md:opacity-50 mt-auto mb-auto max-w-[85%] sm:max-w-md bg-white/0" style={{ color: item.textColor }}>
+                        {item.desc}
+                    </p>
+                    <button onClick={onEnterMarketplace} className="flex items-center gap-4 md:gap-5 lg:gap-6 group text-[#1a1a1a] mt-0 md:mt-8 mb-8 md:mb-8 flex-shrink-0">
+                        <RotatingButton id={item.id} />
+                        <span className="text-[10px] md:text-xs uppercase tracking-[0.4em] font-medium text-[#1a1a1a]">
+                            Découvrir la Galerie
+                        </span>
+                    </button>
+                </div>
+
+                {/* Background Texture */}
+                <div className="hidden md:block absolute inset-0 pointer-events-none opacity-[0.03]"
+                    style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/cubes.png")' }}>
+                </div>
+            </div>
+        </motion.div>
+    );
+};
+
+const StackedCards = ({ items, onEnterMarketplace }) => {
+    return (
+        <section className="featured-section relative w-full bg-[#E5E5E5] flex flex-col items-center gap-0 pt-32 pb-[10vh]" style={{ overflowX: 'clip' }}>
 
             {/* MARQUEE */}
-            {/* Layout Action 2: mb-2 (Marquee glued to first card) */}
             <div className="w-full py-6 border-b border-[#1a1a1a]/10 mb-2 overflow-hidden">
                 <div className="whitespace-nowrap flex animate-marquee">
                     {[...Array(6)].map((_, i) => (
@@ -224,110 +156,19 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                 </div>
             </div>
 
-            {items.map((item, index) => {
-                const isLastCard = index === items.length - 1;
-                return (
-                    <div
+            {/* FLUX DE CARTES (No Sticky) - Just Gap */}
+            <div className="w-full flex flex-col items-center gap-[5vh] md:gap-[10vh] pb-24">
+                {items.map((item, index) => (
+                    <ParallaxCard
                         key={item.id}
-                        ref={el => cardsRef.current[index] = el}
-                        // Last card: top far away so it never "sticks" - flows smoothly
-                        // Other cards: sticky at 21px from top
-                        className={`sticky ${isLastCard ? 'top-[-100vh]' : 'top-[21px]'} w-full min-h-[70vh] flex flex-col items-center justify-start pt-0`}
-                        style={{
-                            zIndex: index + 10,
-                            // iOS FIX: Minimal GPU hints to avoid WebKit compositor conflicts with sticky
-                            ...(isIOS ? {
-                                WebkitTransform: 'translate3d(0, 0, 0)',
-                                WebkitBackfaceVisibility: 'hidden',
-                            } : {
-                                willChange: 'transform',
-                                transform: 'translate3d(0, 0, 0)',
-                                backfaceVisibility: 'hidden',
-                                WebkitBackfaceVisibility: 'hidden',
-                            }),
-                        }}
-                    >
-                        {/* VISUAL CARD - PBE "Magazine" Style */}
-                        <div
-                            className="card-visual relative w-[90%] md:w-[97%] max-w-[1800px] h-[88vh] md:h-[88vh] bg-[#FAF9F6] rounded-[2.5rem] md:rounded-[4rem] overflow-hidden shadow-[0_20px_70px_rgba(0,0,0,0.15)] flex flex-col items-center"
-                            style={{
-                                backgroundColor: item.bgColor,
-                                transformOrigin: '50% 100%',
-                                // iOS FIX: Remove willChange:'filter' and contain:'layout paint'
-                                // These cause WebKit to create conflicting compositing layers with sticky
-                                ...(isIOS ? {
-                                    WebkitTransform: 'translateZ(0)',
-                                } : {
-                                    willChange: 'transform, filter',
-                                    contain: 'layout paint',
-                                }),
-                            }}
-                        >
-                            {/* 1. IMAGE ZONE (Top ~60% Mobile / ~55% Desktop) */}
-                            {/* Adjusted heights to give more room to text on desktop */}
-                            <div className="relative w-full h-[58%] md:h-[55%] overflow-hidden">
-                                <picture className="w-full h-full">
-                                    <source media="(max-width: 767px)" srcSet={item.imgMobile} />
-                                    <img
-                                        src={item.img}
-                                        alt={item.title.join(' ')}
-                                        loading="eager"
-                                        decoding="async"
-                                        className="w-full h-full object-cover will-change-transform"
-                                    />
-                                </picture>
-                                {/* Gradient Overlay for legibility */}
-                                <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/30 to-transparent opacity-80"></div>
+                        item={item}
+                        index={index}
+                        onEnterMarketplace={onEnterMarketplace}
+                    />
+                ))}
+            </div>
 
-                                {/* PBE Style Badge - PERFECT CENTERING FIX */}
-                                <div className="absolute bottom-6 md:bottom-8 lg:bottom-10 left-1/2 -translate-x-1/2 flex items-center justify-center bg-[#1a1a1a] text-white px-5 py-2.5 md:px-6 md:py-3 rounded-full shadow-2xl z-20 whitespace-nowrap overflow-hidden">
-                                    <span className="text-[10px] md:text-[11px] lg:text-xs uppercase tracking-[0.3em] font-bold leading-none translate-y-[0.5px]">
-                                        {item.subtitle}
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* 2. TEXT ZONE (Bottom ~40% Mobile / ~45% Desktop) */}
-                            {/* Symmetric distribution: Title at top, Desc in middle (auto margins), Button at bottom */}
-                            <div className="relative z-10 w-full h-[42%] md:h-[45%] flex flex-col items-center justify-start pt-6 md:pt-8 lg:pt-10 px-6 md:px-12 text-center -mt-8 md:-mt-16">
-
-                                {/* Title - RESPONSIVE TYPOGRAPHY */}
-                                <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl leading-[1.1] md:leading-[0.9] text-[#1a1a1a] mix-blend-multiply mb-4 md:mb-6 drop-shadow-sm" style={{ color: item.textColor }}>
-                                    {item.title[0]}
-                                    {item.title[1] && (
-                                        <>
-                                            <br />
-                                            <span className="italic font-light text-[0.8em]">{item.title[1]}</span>
-                                        </>
-                                    )}
-                                </h2>
-
-                                {/* Description - Centering with mt-auto/mb-auto to occupy space symmetrically */}
-                                <p className="text-[10px] md:text-xs lg:text-sm uppercase tracking-[0.25em] font-light max-w-[85%] sm:max-w-md md:max-w-lg lg:max-w-xl leading-relaxed opacity-60 md:opacity-50 mt-auto mb-auto" style={{ color: item.textColor }}>
-                                    {item.desc}
-                                </p>
-
-                                {/* BOUTON FIXE EN BAS */}
-                                <button onClick={onEnterMarketplace} className="flex items-center gap-4 md:gap-5 lg:gap-6 group text-[#1a1a1a] mt-0 md:mt-8 mb-8 md:mb-8 flex-shrink-0">
-                                    <RotatingButton id={item.id} />
-                                    <span className="text-[10px] md:text-xs uppercase tracking-[0.4em] font-medium text-[#1a1a1a]">
-                                        Découvrir la Galerie
-                                    </span>
-                                </button>
-                            </div>
-
-                            {/* Background Texture - Hidden on mobile for performance */}
-                            <div className="hidden md:block absolute inset-0 pointer-events-none opacity-[0.03]"
-                                style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/cubes.png")' }}>
-                            </div>
-                        </div>
-                    </div>
-                )
-            })}
-
-
-            {/* Minimal spacer for ScrollTrigger detection - invisible */}
-            <div className="section-spacer w-full h-0"></div>
+            {/* No extra spacer needed, flex gap handles it */}
         </section>
     );
 };
