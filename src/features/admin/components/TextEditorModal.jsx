@@ -5,12 +5,20 @@ const TextEditorModal = ({ isOpen, onClose, onSave, itemKey, initialData, fields
     const [formData, setFormData] = useState({});
 
     useEffect(() => {
-        if (isOpen && initialData) {
-            setFormData(initialData);
-        } else {
-            setFormData({});
+        if (isOpen) {
+            // Merge initialData with defaults for all fields
+            const initializedData = {};
+            fields.forEach(field => {
+                // If data exists, use it. If not, use empty string (or default for boolean)
+                if (initialData && initialData[field.key] !== undefined) {
+                    initializedData[field.key] = initialData[field.key];
+                } else {
+                    initializedData[field.key] = field.type === 'toggle' ? false : '';
+                }
+            });
+            setFormData(initializedData);
         }
-    }, [isOpen, initialData]);
+    }, [isOpen, initialData, fields]);
 
     if (!isOpen) return null;
 

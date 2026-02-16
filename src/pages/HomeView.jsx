@@ -139,14 +139,14 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
     {
       id: 1,
       bgTitle: "Voltaire",
-      subtitle: homepageImages['featured_1_text']?.subtitle || "Exposition Temporaire",
+      subtitle: (homepageImages && homepageImages['featured_1_text']?.subtitle) || "Exposition Temporaire",
       title: [
-        homepageImages['featured_1_text']?.title_1 || "Le Voltaire",
-        homepageImages['featured_1_text']?.title_2 || "Signature"
+        (homepageImages && homepageImages['featured_1_text']?.title_1) || "Le Voltaire",
+        (homepageImages && homepageImages['featured_1_text']?.title_2) || "Signature"
       ],
-      showTitle2: homepageImages['featured_1_text']?.show_title_2 !== false,
-      desc: homepageImages['featured_1_text']?.desc || "\"Une renaissance historique pour l'époque contemporaine.\"",
-      img: homepageImages.featured_1 || "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1200",
+      showTitle2: (homepageImages && homepageImages['featured_1_text']?.show_title_2) !== false,
+      desc: (homepageImages && homepageImages['featured_1_text']?.desc) || "\"Une renaissance historique pour l'époque contemporaine.\"",
+      img: (homepageImages && homepageImages.featured_1) || "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1200",
       imgMobile: (homepageImages && homepageImages.featured_1_mobile) || (homepageImages && homepageImages.featured_1) || "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=800",
       bgColor: "#FFFEFA",
       textColor: "#1a1a1a",
@@ -209,24 +209,25 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
   // --- STATS DYNAMIQUES (SECTION 12) ---
   const stats = [
     {
-      value: (homepageImages && homepageImages['stat_1_text']?.value) || "25",
-      suffix: (homepageImages && homepageImages['stat_1_text']?.suffix) || "+",
-      label: (homepageImages && homepageImages['stat_1_text']?.label) || "Années d'excellence"
+      // Priorité à la donnée Firebase (même vide), sinon défaut
+      value: (homepageImages?.['stat_1_text']?.value !== undefined) ? homepageImages['stat_1_text'].value : "25",
+      suffix: (homepageImages?.['stat_1_text']?.suffix !== undefined) ? homepageImages['stat_1_text'].suffix : "+",
+      label: (homepageImages?.['stat_1_text']?.label !== undefined) ? homepageImages['stat_1_text'].label : "Années d'excellence"
     },
     {
-      value: (homepageImages && homepageImages['stat_2_text']?.value) || "400",
-      suffix: (homepageImages && homepageImages['stat_2_text']?.suffix) || "h",
-      label: (homepageImages && homepageImages['stat_2_text']?.label) || "Heures par projet"
+      value: (homepageImages?.['stat_2_text']?.value !== undefined) ? homepageImages['stat_2_text'].value : "400",
+      suffix: (homepageImages?.['stat_2_text']?.suffix !== undefined) ? homepageImages['stat_2_text'].suffix : "h",
+      label: (homepageImages?.['stat_2_text']?.label !== undefined) ? homepageImages['stat_2_text'].label : "Heures par projet"
     },
     {
-      value: (homepageImages && homepageImages['stat_3_text']?.value) || "1500",
-      suffix: (homepageImages && homepageImages['stat_3_text']?.suffix) || "",
-      label: (homepageImages && homepageImages['stat_3_text']?.label) || "Outils traditionnels"
+      value: (homepageImages?.['stat_3_text']?.value !== undefined) ? homepageImages['stat_3_text'].value : "1500",
+      suffix: (homepageImages?.['stat_3_text']?.suffix !== undefined) ? homepageImages['stat_3_text'].suffix : "",
+      label: (homepageImages?.['stat_3_text']?.label !== undefined) ? homepageImages['stat_3_text'].label : "Outils traditionnels"
     },
     {
-      value: (homepageImages && homepageImages['stat_4_text']?.value) || "85",
-      suffix: (homepageImages && homepageImages['stat_4_text']?.suffix) || "+",
-      label: (homepageImages && homepageImages['stat_4_text']?.label) || "Patrimoines sauvés"
+      value: (homepageImages?.['stat_4_text']?.value !== undefined) ? homepageImages['stat_4_text'].value : "85",
+      suffix: (homepageImages?.['stat_4_text']?.suffix !== undefined) ? homepageImages['stat_4_text'].suffix : "+",
+      label: (homepageImages?.['stat_4_text']?.label !== undefined) ? homepageImages['stat_4_text'].label : "Patrimoines sauvés"
     }
   ];
 
@@ -649,18 +650,6 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
 
       // 6. STACKING CARDS LOGIC REMOVED (Handled by StackedCards.jsx)
 
-      // 7. Data Counters (GSAP pour la Section 12)
-      const statNumbers = gsap.utils.toArray('.stat-number');
-      statNumbers.forEach(num => {
-        const target = parseInt(num.getAttribute('data-target'));
-        gsap.to(num, {
-          innerText: target,
-          duration: 3,
-          snap: { innerText: 1 },
-          ease: "expo.out",
-          scrollTrigger: { trigger: num, start: "top 90%" }
-        });
-      });
 
       // 8. Team Section - Modern Editorial Reveal (Blur + Stagger)
       const teamElements = gsap.utils.toArray('.team-content-reveal');
@@ -700,6 +689,47 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
     }, componentRef);
     return () => ctx.revert();
   }, [scriptsLoaded]);
+
+  // --- NOUVELLE ANIMATION DÉDIÉE AUX STATS ---
+  useEffect(() => {
+    if (!homepageImages) return;
+
+    let ctx;
+    const timer = setTimeout(() => {
+      if (!componentRef.current) return;
+
+      ctx = gsap.context(() => {
+        const statNumbers = gsap.utils.toArray('.stat-number');
+
+        statNumbers.forEach(num => {
+          const targetAttr = num.getAttribute('data-target');
+          const target = targetAttr ? parseInt(targetAttr) : 0;
+
+          gsap.killTweensOf(num);
+
+          gsap.fromTo(num,
+            { innerText: 0 },
+            {
+              innerText: target,
+              duration: 3,
+              snap: { innerText: 1 },
+              ease: "expo.out",
+              scrollTrigger: {
+                trigger: num,
+                start: "top 90%",
+                toggleActions: "restart none none reverse"
+              }
+            }
+          );
+        });
+      }, componentRef);
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      if (ctx) ctx.revert();
+    };
+  }, [homepageImages]);
 
 
 

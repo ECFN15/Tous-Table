@@ -395,3 +395,32 @@ Une logique différenciée a été codée pour offrir la meilleure expérience s
 ---
 
 *Dernière mise à jour par l'IA : Session du 2026-02-16 (04:15). Global Footer, Dead-Zone Responsiveness Fix & Audit de Sécurité PROD.*
+
+---
+
+## 🔧 13. Hotfix Admin & Homepage (16 Février 2026 - Session 06:25)
+
+**Objectif : Raccorder le contenu dynamique (Admin) au Frontend et corriger les bugs de données.**
+
+Suite au déploiement des fonctionnalités "Admin Homepage", plusieurs incohérences critiques ont été identifiées et corrigées en urgence sur l'environnement de Production.
+
+### 🔗 Connexion Dynamique (Frontend)
+*   **Problème** : Les sections "Textes & Chiffres Clés" (Section 12) affichaient des valeurs codées en dur ("25 Ans", "400h") au lieu des données de Firestore.
+*   **Correction** : Remplacement systématique par les variables `homepageImages['stat_X_text']`.
+*   **Sécurité** : Ajout de **Fail-Safes** (`||`) pour gérer les champs manquants (ex: si le suffixe est vide en base, afficher "").
+
+### 💾 Bug Critique : "Champs Orphelins" (Admin)
+*   **Diagnostic** : L'éditeur de texte (`TextEditorModal`) renvoyait un objet incomplet lors de la sauvegarde si certains champs n'étaient pas touchés (ex: sauvegarde de la `value` seule, écrasant `suffix` et `label` qui devenaient `undefined`).
+*   **Fix** : Réécriture de l'initialisation du formulaire (`useEffect`) pour fusionner systématiquement les données existantes avec des valeurs par défaut (`''`) pour tous les champs du schéma, garantissant l'intégrité de l'objet envoyé à Firestore.
+
+### 🎬 Bug Animation GSAP (Compteurs Bloqués)
+*   **Symptôme** : Les chiffres restaient bloqués sur leur valeur initiale (ex: 25) même après la mise à jour des données (ex: 150).
+*   **Cause** : L'animation GSAP (`innerText`) était initialisée une seule fois au montage du composant (`useLayoutEffect`), capturant la valeur par défaut avant l'arrivée des données Firebase.
+*   **Solution** : Extraction de l'animation dans un `useEffect` dédié, dépendant de `homepageImages`. L'animation est désormais **Réactive** : elle se réinitialise et se rejoue automatiquement dès que les données changent.
+
+### 🔍 Validation SEO
+*   **Google Search Console** : Déploiement du fichier de vérification `google72f08140b6217ed3.html` à la racine pour valider la propriété du domaine.
+
+---
+
+*Dernière mise à jour par l'IA : Session du 2026-02-16 (06:25). Admin Hotfix, GSAP Reactivity, Data Integrity & GSC.*
