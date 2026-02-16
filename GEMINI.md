@@ -1,6 +1,6 @@
 ---
 project_name: "Tous à Table - Atelier Normand"
-last_updated: "2026-02-09 (Sécurisation Enchères & UX Mobile)"
+last_updated: "2026-02-16 (Global Footer & Prod Security Workflow)"
 description: "Site e-commerce et vitrine pour un atelier d'ébénisterie d'art. Vente de meubles (enchères/achat direct) et planches à découper."
 stack:
   frontend: "React + Vite"
@@ -255,7 +255,36 @@ Pour supprimer le CDN, il a fallu convertir toutes les règles CSS "exotiques" (
 
 ---
 
-*Dernière mise à jour par l'IA : Session du 2026-02-11. Suppression CDN Tailwind, Passage en Native v4, Optimisation PageSpeed (+30pts).*
+## 📈 11. Audit & Optimisation SEO / Branding (16 Février 2026)
+
+**Objectif : Harmonisation de l'image de marque et visibilité Google.**
+
+Suite à l'analyse des résultats de recherche Google, une refonte complète des métadonnées a été effectuée pour mieux refléter l'activité réelle de l'atelier et améliorer le taux de clic.
+
+### 🏷️ Nouvelle Stratégie de Positionnement
+*   **Identité de Marque** : Passage de "Tous à Table - Made in Normandie" à **"Atelier Normand — Tous à Table"**.
+*   **Slogan SEO** : `Restauration de Mobilier & Meubles Anciens`.
+*   **Mots-clés Prioritaires** : Chêne, Table de ferme, Armoire parisienne, Buffet, Restauration de meubles.
+*   **Focus Géographique** : Ifs (14123), Caen, Calvados, Normandie.
+*   **Focus Logistique** : Suppression du terme "Intervention" (car l'atelier ne se déplace pas pour les travaux) au profit d'un message fort sur la **Livraison France & Europe**.
+
+### 🛠️ Modifications Techniques de Structure
+*   **Index.html (Statique)** : 
+    *   Mise à jour du titre et de la description `meta`.
+    *   Configuration forcée du **favicon marteau** en `apple-touch-icon` pour faciliter l'affichage du logo dans les résultats Google.
+    *   Correction de l'adresse dans le Schema.org (JSON-LD) : `346 Chemin de Fleury, 14123 Ifs`.
+*   **SEO.jsx (Composant)** : Harmonisation des valeurs par défaut pour tout le site.
+*   **Footer.jsx** : Enrichissement du "Legacy Text" (Bas de page) pour inclure les villes de Normandie et la mention de livraison internationale.
+*   **HomeView.jsx** : Ajout d'une balise `h1` descriptive masquée (`sr-only`) : *"Restauration de mobilier normand et meubles anciens à Caen"*.
+
+### 📊 Impact Attendu
+*   **Taux de clic (CTR)** : Amélioré grâce à une description plus précise et un titre plus luxueux.
+*   **Positionnement Local** : Renforcé sur le Calvados grâce à l'intégration du code postal 14123 et des villes clés (Deauville, Bayeux, etc.).
+*   **Confiance Client** : La visibilité claire de la livraison sur la France et les pays frontaliers rassure les clients hors Normandie.
+
+---
+
+*Dernière mise à jour par l'IA : Session du 2026-02-16. Optimisation SEO, Correction Adresse Ifs, Focus Livraison Nationale.*
 
 ---
 
@@ -321,4 +350,35 @@ Une logique différenciée a été codée pour offrir la meilleure expérience s
 
 ---
 
+---
+
 *Dernière mise à jour par l'IA : Session du 2026-02-16 (02:45). Restauration Easter Egg, Polish Chiffres Romains et Blindage Tactile 2000px.*
+
+---
+
+## 🏛️ 12. Global Footer & Secured Prod Workflow (16 Février 2026 - 04:00)
+
+**Focus : Architecture Globale, Accessibilité Publique & Blindage Environnemental**
+
+### 🌐 Footer Global (Composant Réutilisable)
+*   **Centralisation** : Le pied de page n'est plus un bloc interne à `HomeView`. Il a été extrait dans `src/components/Footer.jsx` et intégré directement dans `app.jsx`.
+*   **Visibilité Intelligente** : S'affiche sur toutes les pages publiques (`home`, `gallery`, `detail`, etc.) mais reste invisible dans le back-office Admin pour un espace de travail pur.
+*   **Performance Firestore** : Intègre son propre `onSnapshot` sur `sys_metadata/contact_info` pour une mise à jour en temps réel des coordonnées sans alourdir le state global de l'application.
+
+### 📱 Responsiveness "Luxe & Longueur"
+*   **Fix Dead-Zone (1024px - 1280px)** : Le passage en mode horizontal (côte-à-côté) a été décalé à **1280px (`xl`)**. Les laptops de 13 pouces conservent ainsi une disposition verticale aérée, évitant que l'adresse email ne soit écrasée par le titre. 
+*   **Email "Anti-Break"** : Implémentation du `break-all` sur mobile pour forcer le retour à la ligne des adresses emails très longues (ex: `tousatablemadeinnormandie@gmail.com`). Réduction de la taille de police (`text-3xl` max sur Desktop) pour un rendu minimaliste.
+*   **Social Hub Animations** : 
+    *   **Couleurs de Marque** : Hover spécifique Instagram (`#E1306C`) et Facebook (`#1877F2`).
+    *   **Layout** : Vertical sur mobile pour le confort du pouce, horizontal sur Desktop pour l'équilibre visuel.
+
+### 🛡️ Blindage du Déploiement (Workflow PROD)
+*   **Audit Obligatoire** : Création d'une règle d'or interdisant le déploiement sur la production sans l'exécution préalable de `.agent/skills/production/scripts/verify_prod.ps1`.
+*   **Isolation des Clés** : Utilisation impérative de `npm run build:prod`. L'usage d'un build standard (`npm run build`) sur le projet client est désormais classé comme une erreur critique (risque de contamination des données Sandbox).
+
+### 🔒 Sécurité Firestore
+*   **Accessibilité Publique** : Ouverture contrôlée de la règle `read` sur le document `sys_metadata/contact_info`. Permet d'afficher instantanément les coordonnées et les textes de marque aux visiteurs non-identifiés sans compromettre le reste des métadonnées système.
+
+---
+
+*Dernière mise à jour par l'IA : Session du 2026-02-16 (04:15). Global Footer, Dead-Zone Responsiveness Fix & Audit de Sécurité PROD.*

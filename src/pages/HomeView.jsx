@@ -733,30 +733,30 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
   return (
     <div ref={componentRef} className="bg-[#FAF9F6] text-[#1a1a1a] transition-colors duration-700 antialiased">
       <SEO
-        title="Tous à Table - Atelier d'Ébénisterie en Normandie"
-        description="Créations uniques et restauration de mobilier d'art. L'excellence du savoir-faire normand au service de votre intérieur."
+        title="Atelier Normand — Tous à Table | Restauration de Mobilier & Meubles Anciens"
+        description="Atelier de restauration de mobilier à Ifs (14123). Vente de meubles normands authentiques en chêne : tables de ferme, armoires parisiennes et buffets. Livraison Caen, Deauville, toute la France et pays frontaliers. Tel: 07 77 32 41 78."
         schema={{
           "@context": "https://schema.org",
           "@type": "LocalBusiness",
-          "name": "Tous à Table - Atelier Normand",
-          "image": "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1200",
+          "name": "Atelier Normand — Tous à Table",
+          "image": "https://firebasestorage.googleapis.com/v0/b/tousatable-client.appspot.com/o/sys_assets%2Flogo_hammer.png?alt=media",
           "@id": "https://tousatable-madeinnormandie.fr",
           "url": "https://tousatable-madeinnormandie.fr",
-          "telephone": "+33 6 00 00 00 00",
+          "telephone": "+33 7 77 32 41 78",
           "address": {
             "@type": "PostalAddress",
-            "addressLocality": "Caen",
+            "addressLocality": "Ifs",
             "addressRegion": "Normandie",
-            "postalCode": "14000",
+            "postalCode": "14123",
             "addressCountry": "FR"
           },
           "geo": {
             "@type": "GeoCoordinates",
-            "latitude": 49.1828,
-            "longitude": -0.3706
+            "latitude": 49.1417,
+            "longitude": -0.3472
           },
           "priceRange": "€€€",
-          "description": "Atelier d'ébénisterie d'art et vente de mobilier en Normandie. Restauration de meubles anciens et créations sur-mesure.",
+          "description": "Atelier de restauration de mobilier à Ifs (14123). Vente de meubles normands authentiques en chêne. Livraison sur Caen, Deauville, partout en France et pays frontaliers.",
           "openingHoursSpecification": [
             {
               "@type": "OpeningHoursSpecification",
@@ -765,10 +765,11 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
                 "Tuesday",
                 "Wednesday",
                 "Thursday",
-                "Friday"
+                "Friday",
+                "Saturday"
               ],
               "opens": "09:00",
-              "closes": "18:00"
+              "closes": "19:00"
             }
           ]
         }}
@@ -872,6 +873,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       <section className="hero-section relative h-[100svh] flex flex-col justify-center px-6 md:px-12 lg:px-[10vw] z-10 pb-12 md:pb-32">
         {/* Title resized to 10.5vw (was 12.5) to free up vertical space for bottom text */}
         <h1 className="font-serif text-[18vw] md:text-[10.5vw] leading-[0.8] uppercase flex flex-col font-light text-[#1a1a1a] mix-blend-multiply">
+          <span className="sr-only">Restauration de mobilier normand et meubles anciens à Caen</span>
           <RevealText text="Le Geste" />
           <div className="flex items-center gap-4 self-end md:mr-[8vw] mt-2 md:mt-0">
             <RevealText text="& L'Âme" className="text-[#9C8268] italic pt-[0.25em] -mt-[0.25em]" />

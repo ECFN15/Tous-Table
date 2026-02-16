@@ -99,7 +99,7 @@ const Footer = ({ darkMode }) => {
                 {/* Bottom Bar */}
                 <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-8 opacity-40 text-[9px] uppercase tracking-[0.3em] font-light relative z-10">
                     <span className="leading-relaxed max-w-2xl">
-                        {contactInfo.legacyText || "Tous à Table — Atelier d'Ébénisterie d'Art & Vente de Meubles Antiques — Caen, Deauville, Paris, Normandie, France"}
+                        {contactInfo.legacyText || "Livraison sur Caen, Deauville, Bayeux, Cabourg & toute la Normandie. Tous à Table made in Normandie livre sur toute la France et pays frontaliers."}
                     </span>
                     <div className="flex gap-8 md:gap-12 lowercase underline underline-offset-4 font-bold tracking-widest">
                         <span className="cursor-pointer hover:text-white transition-colors">privacy policy</span>
