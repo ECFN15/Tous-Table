@@ -164,7 +164,7 @@ const ProcessSection = ({ homepageImages = {} }) => {
                     </p>
                 </div>
 
-                <div className="flex flex-col gap-32 md:gap-48 max-w-6xl mx-auto pb-64">
+                <div className="flex flex-col gap-32 md:gap-48 max-w-6xl mx-auto pb-24">
                     {steps.map((step, i) => (
                         <div key={i} className={`flex flex-col ${i % 2 !== 0 ? 'md:flex-row-reverse' : 'md:flex-row'} items-center gap-12 group`}>
                             <div className="w-full md:w-1/2 relative">
@@ -191,7 +191,7 @@ const ProcessSection = ({ homepageImages = {} }) => {
             <div ref={desktopWrapperRef} className="hidden min-[1920px]:flex h-screen w-full overflow-hidden items-center bg-[#0D0D0D] relative">
 
                 {/* Rolling Content Container */}
-                <div ref={desktopContentRef} className="flex gap-[12vw] pl-[10vw] pr-[60vw] items-center h-full w-max will-change-transform">
+                <div ref={desktopContentRef} className="flex gap-[12vw] pl-[10vw] pr-[100vw] items-center h-full w-max will-change-transform">
 
                     {/* Intro Titre */}
                     <div className="min-w-[40vw] flex flex-col items-start justify-center border-r border-white/5 pr-[8vw] h-auto relative">
