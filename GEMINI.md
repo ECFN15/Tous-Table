@@ -255,7 +255,9 @@ Pour supprimer le CDN, il a fallu convertir toutes les règles CSS "exotiques" (
 
 ---
 
-## 📈 11. Audit & Optimisation SEO / Branding (16 Février 2026)
+---
+
+## 📉 11. Audit & Optimisation SEO / Branding (16 Février 2026)
 
 **Objectif : Harmonisation de l'image de marque et visibilité Google.**
 
@@ -277,14 +279,24 @@ Suite à l'analyse des résultats de recherche Google, une refonte complète des
 *   **Footer.jsx** : Enrichissement du "Legacy Text" (Bas de page) pour inclure les villes de Normandie et la mention de livraison internationale.
 *   **HomeView.jsx** : Ajout d'une balise `h1` descriptive masquée (`sr-only`) : *"Restauration de mobilier normand et meubles anciens à Caen"*.
 
-### 📊 Impact Attendu
-*   **Taux de clic (CTR)** : Amélioré grâce à une description plus précise et un titre plus luxueux.
-*   **Positionnement Local** : Renforcé sur le Calvados grâce à l'intégration du code postal 14123 et des villes clés (Deauville, Bayeux, etc.).
-*   **Confiance Client** : La visibilité claire de la livraison sur la France et les pays frontaliers rassure les clients hors Normandie.
+---
+
+## 🧪 12. Stabilisation "Process Section" (16 Février 2026 - Session 05:20)
+
+**Objectif : Éliminer les sursauts visuels (rollbacks) lors de la transition horizontale vers verticale.**
+
+### 🔍 Problème Identifié
+Le paramètre `scrub: 1` de GSAP créait un délai de fluidité. Lors d'un scroll rapide, la section se "dépinglait" avant que l'animation n'ait fini de rattraper son retard, causant un décalage brutal sur l'image V.
+
+### 🛠️ Solution : "Zone de Stabilisation" (End Buffer)
+*   **Séparation des Triggers** : Le "Pinning" (blocage de la page) est désormais géré par un trigger indépendant de l'animation de translation (`x`).
+*   **Buffer de Sécurité** : Ajout d'une zone morte de **400px** à la fin du scroll. La section reste bloquée après que l'image V a atteint sa position finale, laissant le temps au "scrub" de s'immobiliser totalement.
+*   **Hard-Fix (`onLeave`)** : Utilisation d'un callback forçant la position `x` finale exacte à la sortie de la zone, garantissant zéro pixel de décalage peu importe la vitesse du scroll.
+*   **Padding Desktop** : Ajustement chirurgical à **18vw** pour un équilibre visuel parfait.
 
 ---
 
-*Dernière mise à jour par l'IA : Session du 2026-02-16. Optimisation SEO, Correction Adresse Ifs, Focus Livraison Nationale.*
+*Dernière mise à jour par l'IA : Session du 2026-02-16. Optimisation SEO, Correction Adresse Ifs, Stabilisation Transition Process (End Buffer).*
 
 ---
 

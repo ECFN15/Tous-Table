@@ -87,21 +87,36 @@ const ProcessSection = ({ homepageImages = {} }) => {
 
                 if (!wrapper || !content) return;
 
-                // Calculate exact scroll distance (No buffer, precise stop)
-                const distanceToScroll = content.scrollWidth - window.innerWidth;
+                // Calculate exact scroll distance
+                const scrollDistance = content.scrollWidth - window.innerWidth;
+                const scrollSpeed = 3.5;
+                const totalDistance = scrollDistance * scrollSpeed;
+                const endBuffer = 400; // 400px safety zone to let scrub settle before unpinning
 
-                // Main Pinning Animation
+                // 1. PINNING (The anchor)
+                ScrollTrigger.create({
+                    trigger: wrapper,
+                    start: "top top",
+                    end: () => "+=" + (totalDistance + endBuffer),
+                    pin: true,
+                    anticipatePin: 1,
+                    invalidateOnRefresh: true,
+                    // If user scrolls extremely fast, force 100% position on leave
+                    onLeave: () => {
+                        gsap.set(content, { x: -scrollDistance });
+                    }
+                });
+
+                // 2. HORIZONTAL ANIMATION (The move)
                 const xAnim = gsap.to(content, {
-                    x: -distanceToScroll,
+                    x: -scrollDistance,
                     ease: "none",
                     scrollTrigger: {
                         trigger: wrapper,
                         start: "top top",
-                        end: () => "+=" + (distanceToScroll * 3.5),
-                        pin: true,
+                        end: () => "+=" + totalDistance,
                         scrub: 1,
                         invalidateOnRefresh: true,
-                        anticipatePin: 1
                     }
                 });
 
