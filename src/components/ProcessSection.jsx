@@ -7,6 +7,23 @@ if (typeof window !== 'undefined') {
     gsap.registerPlugin(ScrollTrigger);
 }
 
+// --- ROTATING SYMBOL COMPONENT (Easter Egg Restored) ---
+const RotatingSymbol = ({ className, size = 160 }) => (
+    <div className={`relative flex items-center justify-center opacity-30 animate-spin-slow pointer-events-none select-none ${className}`} style={{ width: size, height: size }}>
+        <svg viewBox="0 0 100 100" className="w-full h-full text-[#9C8268]" style={{ overflow: 'visible' }}>
+            <path id="curve" d="M 50 50 m -37 0 a 37 37 0 1 1 74 0 a 37 37 0 1 1 -74 0" fill="transparent" />
+            <text className="text-[11px] uppercase tracking-[0.3em] font-medium" fill="currentColor">
+                <textPath href="#curve" startOffset="0%">
+                    Atelier • Normand • Design • Unique •
+                </textPath>
+            </text>
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-4xl text-[#9C8268]">✶</span>
+        </div>
+    </div>
+);
+
 // --- DATA CONSTANTS (Original Specs) ---
 const PROCESS_DEFAULTS = [
     {
@@ -137,7 +154,8 @@ const ProcessSection = ({ homepageImages = {} }) => {
             <div className="block min-[1920px]:hidden py-24 px-6 md:px-12 w-full min-h-screen bg-[#0D0D0D]">
                 {/* Titre Mobile */}
                 <div className="text-center mb-32 relative pt-12">
-                    <div className="text-[120px] text-[#9C8268] opacity-20 animate-spin-slow absolute left-1/2 -translate-x-1/2 -top-12 select-none pointer-events-none">✶</div>
+                    <RotatingSymbol className="absolute left-1/2 -translate-x-1/2 -top-12 z-0 opacity-20" size={220} />
+
                     <span className="text-[10px] uppercase tracking-[1.2em] text-[#9C8268] mb-6 block font-bold relative z-10">L'Alchimie</span>
                     <h2 className="font-serif text-6xl md:text-8xl italic text-white relative z-10">Le Rituel.</h2>
                     <p className="mt-8 text-sm md:text-lg opacity-60 max-w-md mx-auto relative z-10 border-l border-[#9C8268] pl-4">
@@ -149,7 +167,8 @@ const ProcessSection = ({ homepageImages = {} }) => {
                     {steps.map((step, i) => (
                         <div key={i} className={`flex flex-col ${i % 2 !== 0 ? 'md:flex-row-reverse' : 'md:flex-row'} items-center gap-12 group`}>
                             <div className="w-full md:w-1/2 relative">
-                                <span className={`absolute -top-16 md:-top-24 ${i % 2 !== 0 ? 'right-0 md:-right-12' : 'left-0 md:-left-12'} font-serif text-[10rem] md:text-[12rem] leading-none text-white/5 z-0 select-none pointer-events-none`}>{step.n}</span>
+                                {/* FIXED: Hover interaction restored (pointer-events-none removed) */}
+                                <span className={`absolute -top-16 md:-top-24 ${i % 2 !== 0 ? 'right-0 md:-right-12' : 'left-0 md:-left-12'} font-serif text-[10rem] md:text-[12rem] leading-none text-white/5 z-30 pointer-events-none select-none transition-colors duration-500 group-hover:text-[#9C8268]/20 italic text-stroke-1`}>{step.n}</span>
                                 <div className="aspect-[4/5] md:aspect-[3/4] w-full border border-white/10 relative overflow-hidden z-10 group-hover:border-white/30 transition-colors duration-500 bg-[#1a1a1a]">
                                     <img src={step.img} alt={step.t} loading="lazy" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                                     <div className="absolute bottom-0 right-0 bg-black border-t border-l border-white/20 px-4 py-2 text-[10px] uppercase tracking-widest text-[#9C8268]">{step.info}</div>
@@ -175,7 +194,9 @@ const ProcessSection = ({ homepageImages = {} }) => {
 
                     {/* Intro Titre */}
                     <div className="min-w-[40vw] flex flex-col items-start justify-center border-r border-white/5 pr-[8vw] h-auto relative">
-                        <div className="text-[160px] text-[#9C8268] opacity-30 animate-spin-slow absolute -top-20 -left-24 font-serif pointer-events-none">✶</div>
+                        {/* RESTORED: RotatingSymbol Easter Egg */}
+                        <RotatingSymbol className="absolute -top-20 -left-24 z-0 opacity-100 mix-blend-screen" size={160} />
+
                         <span className="text-[10px] uppercase tracking-[1.2em] text-[#9C8268] mb-8 block font-black">L'Alchimie</span>
                         <h2 className="font-serif text-[12vw] leading-none font-light italic text-white mb-12">Le Rituel.</h2>
                         <p className="text-xl font-light opacity-50 border-l border-[#9C8268] pl-6 leading-relaxed max-w-lg mt-12">
@@ -186,8 +207,8 @@ const ProcessSection = ({ homepageImages = {} }) => {
                     {/* Horizontal Cards */}
                     {steps.map((step, i) => (
                         <div key={i} className={`process-card-desktop flex flex-col items-start justify-center gap-8 ${step.w} flex-shrink-0 group relative`}>
-                            {/* Floating Number */}
-                            <span className="absolute -top-12 -left-12 font-serif text-[12rem] leading-none text-white/10 select-none z-0 group-hover:text-[#9C8268]/20 transition-colors duration-700 pointer-events-none">{step.n}</span>
+                            {/* FIXED: Roman Number Hover Interaction Restored (removed pointer-events-none) */}
+                            <span className="absolute -top-12 -left-12 font-serif text-[12rem] leading-none text-white/10 select-none z-30 pointer-events-none transition-colors duration-700 group-hover:text-[#9C8268]/20 italic text-stroke-1">{step.n}</span>
 
                             {/* Image (GSAP Target: .p-img) */}
                             <div className={`p-img w-full ${step.h} border border-white/10 relative overflow-hidden z-10 group-hover:border-white/30 transition-all duration-700`}>
@@ -206,8 +227,8 @@ const ProcessSection = ({ homepageImages = {} }) => {
                         </div>
                     ))}
 
-                    {/* Final Spacer */}
-                    <div className="w-[50vw] flex-shrink-0"></div>
+                    {/* FIXED: Reduced final spacer from 50vw to 40vw to tighten the end scroll */}
+                    <div className="w-[40vw] flex-shrink-0"></div>
 
                 </div>
             </div>
