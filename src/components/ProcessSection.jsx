@@ -191,7 +191,7 @@ const ProcessSection = ({ homepageImages = {} }) => {
             <div ref={desktopWrapperRef} className="hidden min-[1920px]:flex h-screen w-full overflow-hidden items-center bg-[#0D0D0D] relative">
 
                 {/* Rolling Content Container */}
-                <div ref={desktopContentRef} className="flex gap-[12vw] pl-[10vw] pr-[100vw] items-center h-full w-max will-change-transform">
+                <div ref={desktopContentRef} className="flex gap-[12vw] pl-[10vw] pr-[18vw] items-center h-full w-max will-change-transform">
 
                     {/* Intro Titre */}
                     <div className="min-w-[40vw] flex flex-col items-start justify-center border-r border-white/5 pr-[8vw] h-auto relative">
