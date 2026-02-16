@@ -1,28 +1,29 @@
 import React, { useRef, useLayoutEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { Star } from 'lucide-react'; // Restored Import
 
 // Register Plugin
 if (typeof window !== 'undefined') {
     gsap.registerPlugin(ScrollTrigger);
 }
 
-// --- ROTATING SYMBOL COMPONENT (Easter Egg Restored) ---
-const RotatingSymbol = ({ className, size = 160 }) => (
-    <div className={`relative flex items-center justify-center opacity-30 animate-spin-slow pointer-events-none select-none ${className}`} style={{ width: size, height: size }}>
-        <svg viewBox="0 0 100 100" className="w-full h-full text-[#9C8268]" style={{ overflow: 'visible' }}>
-            <path id="curve" d="M 50 50 m -37 0 a 37 37 0 1 1 74 0 a 37 37 0 1 1 -74 0" fill="transparent" />
-            <text className="text-[11px] uppercase tracking-[0.3em] font-medium" fill="currentColor">
-                <textPath href="#curve" startOffset="0%">
-                    Atelier • Normand • Design • Unique •
-                </textPath>
-            </text>
-        </svg>
-        <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-4xl text-[#9C8268]">✶</span>
+// --- ROTATING SYMBOL COMPONENT (Original "v26.9" Code) ---
+const RotatingSymbol = ({ className, size = 120, text = "TOUS À TABLE • 2026 • TOUS À TABLE • 2026 •" }) => {
+    return (
+        <div className={`relative flex items-center justify-center pointer-events-none select-none ${className}`}>
+            <svg width={size} height={size} viewBox="0 0 100 100" className="animate-spin-slow" style={{ animationDuration: '20s' }}>
+                <path id="circlePath" d="M 50, 50 m -40, 0 a 40,40 0 1,1 80,0 a 40,40 0 1,1 -80,0" fill="transparent" />
+                <text className="text-[8px] uppercase tracking-[0.2em] font-medium fill-current text-[#9C8268] opacity-60">
+                    <textPath href="#circlePath">{text}</textPath>
+                </text>
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center">
+                <Star size={size / 5} className="opacity-30 text-[#9C8268]" />
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 // --- DATA CONSTANTS (Original Specs) ---
 const PROCESS_DEFAULTS = [
@@ -86,8 +87,8 @@ const ProcessSection = ({ homepageImages = {} }) => {
 
                 if (!wrapper || !content) return;
 
-                // Calculate exact scroll distance
-                const distanceToScroll = content.scrollWidth - window.innerWidth + 200;
+                // Calculate exact scroll distance (No buffer, precise stop)
+                const distanceToScroll = content.scrollWidth - window.innerWidth;
 
                 // Main Pinning Animation
                 const xAnim = gsap.to(content, {
@@ -154,7 +155,7 @@ const ProcessSection = ({ homepageImages = {} }) => {
             <div className="block min-[1920px]:hidden py-24 px-6 md:px-12 w-full min-h-screen bg-[#0D0D0D]">
                 {/* Titre Mobile */}
                 <div className="text-center mb-32 relative pt-12">
-                    <RotatingSymbol className="absolute left-1/2 -translate-x-1/2 -top-12 z-0 opacity-20" size={220} />
+                    <RotatingSymbol className="absolute left-1/2 -translate-x-1/2 -top-12 z-0 opacity-100 mix-blend-screen" size={220} />
 
                     <span className="text-[10px] uppercase tracking-[1.2em] text-[#9C8268] mb-6 block font-bold relative z-10">L'Alchimie</span>
                     <h2 className="font-serif text-6xl md:text-8xl italic text-white relative z-10">Le Rituel.</h2>
@@ -190,12 +191,12 @@ const ProcessSection = ({ homepageImages = {} }) => {
             <div ref={desktopWrapperRef} className="hidden min-[1920px]:flex h-screen w-full overflow-hidden items-center bg-[#0D0D0D] relative">
 
                 {/* Rolling Content Container */}
-                <div ref={desktopContentRef} className="flex gap-[12vw] pl-[10vw] pr-[15vw] items-center h-full w-max will-change-transform">
+                <div ref={desktopContentRef} className="flex gap-[12vw] pl-[10vw] pr-[12vw] items-center h-full w-max will-change-transform">
 
                     {/* Intro Titre */}
                     <div className="min-w-[40vw] flex flex-col items-start justify-center border-r border-white/5 pr-[8vw] h-auto relative">
-                        {/* RESTORED: RotatingSymbol Easter Egg */}
-                        <RotatingSymbol className="absolute -top-20 -left-24 z-0 opacity-100 mix-blend-screen" size={160} />
+                        {/* RESTORED: RotatingSymbol Easter Egg (Forced Right Position via Left-Margin) */}
+                        <RotatingSymbol className="absolute -top-4 left-[22vw] z-0 opacity-100 mix-blend-screen" size={160} />
 
                         <span className="text-[10px] uppercase tracking-[1.2em] text-[#9C8268] mb-8 block font-black">L'Alchimie</span>
                         <h2 className="font-serif text-[12vw] leading-none font-light italic text-white mb-12">Le Rituel.</h2>
@@ -227,8 +228,7 @@ const ProcessSection = ({ homepageImages = {} }) => {
                         </div>
                     ))}
 
-                    {/* FIXED: Reduced final spacer from 50vw to 40vw to tighten the end scroll */}
-                    <div className="w-[40vw] flex-shrink-0"></div>
+                    {/* FIXED: Removed explicit spacer div. Parent padding-right (pr-[15vw]) handles the end spacing cleanly. */}
 
                 </div>
             </div>
