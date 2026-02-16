@@ -41,45 +41,55 @@ const Footer = ({ darkMode }) => {
                     </div>
 
                     <div className="flex flex-col gap-10 md:gap-16 lg:gap-20 self-start lg:self-end mt-4 lg:mt-0">
-                        <div className="space-y-6 md:space-y-8">
-                            {/* Email */}
-                            <a href={`mailto:${contactInfo.email}`} className="block text-xl md:text-3xl lg:text-4xl xl:text-5xl font-light italic hover:text-[#9C8268] transition-colors border-b border-white/10 pb-3">
+                        <div className="space-y-6 md:space-y-8 max-w-full">
+                            {/* Email - Optimized for long addresses */}
+                            <a
+                                href={`mailto:${contactInfo.email}`}
+                                className="block text-base sm:text-xl md:text-2xl lg:text-4xl xl:text-5xl font-light italic hover:text-[#9C8268] transition-colors border-b border-white/10 pb-3 break-words sm:break-normal max-w-[300px] sm:max-w-none"
+                            >
                                 {contactInfo.email}
                             </a>
 
                             <div className="space-y-4">
                                 {/* Phone */}
-                                <a href={`tel:${contactInfo.phone?.replace(/\s/g, '')}`} className="block text-lg md:text-xl lg:text-2xl font-light italic opacity-60 hover:opacity-100 hover:text-[#9C8268] transition-all tracking-wide">
+                                <a href={`tel:${contactInfo.phone?.replace(/\s/g, '')}`} className="block text-base md:text-xl lg:text-2xl font-light italic opacity-60 hover:opacity-100 hover:text-[#9C8268] transition-all tracking-wide">
                                     {contactInfo.phone}
                                 </a>
 
                                 {/* Address */}
                                 {contactInfo.address && (
-                                    <address className="not-italic text-[10px] md:text-xs uppercase tracking-[0.25em] opacity-40 leading-relaxed border-l-2 border-[#9C8268] pl-4 max-w-[280px]">
+                                    <address className="not-italic text-[9px] md:text-xs uppercase tracking-[0.25em] opacity-40 leading-relaxed border-l-2 border-[#9C8268] pl-4 max-w-[280px]">
                                         {contactInfo.address}
                                     </address>
                                 )}
                             </div>
                         </div>
 
-                        <div className="flex flex-col sm:flex-row gap-6 sm:gap-10">
+                        {/* Social Links - Responsive Layout & Premium Hover Animations */}
+                        <div className="flex flex-col md:flex-row gap-8 md:gap-12 lg:gap-16 pt-4 md:pt-0">
                             {/* Instagram */}
                             {contactInfo.instagram && (
-                                <a href={contactInfo.instagram} target="_blank" rel="noopener noreferrer" className="flex gap-4 items-center opacity-40 hover:opacity-100 transition-opacity group">
-                                    <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center group-hover:border-[#E1306C] group-hover:bg-[#E1306C]/10 transition-all">
-                                        <Instagram size={18} className="text-white group-hover:text-[#E1306C] transition-colors" />
+                                <a href={contactInfo.instagram} target="_blank" rel="noopener noreferrer" className="flex gap-4 items-center opacity-40 hover:opacity-100 transition-all duration-500 group">
+                                    <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center group-hover:border-[#E1306C] group-hover:bg-[#E1306C]/10 group-hover:scale-110 transition-all duration-500">
+                                        <Instagram size={20} className="text-white group-hover:text-[#E1306C] transition-colors duration-500" />
                                     </div>
-                                    <span className="text-[9px] uppercase tracking-[0.4em] italic font-medium">Journal de l'Artisan</span>
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] uppercase tracking-[0.4em] italic font-bold group-hover:text-[#E1306C] transition-colors duration-500">Instagram</span>
+                                        <span className="text-[8px] uppercase tracking-[0.2em] opacity-40 mt-0.5">Journal de l'Artisan</span>
+                                    </div>
                                 </a>
                             )}
 
                             {/* Facebook */}
                             {contactInfo.facebook && (
-                                <a href={contactInfo.facebook} target="_blank" rel="noopener noreferrer" className="flex gap-4 items-center opacity-40 hover:opacity-100 transition-opacity group">
-                                    <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center group-hover:border-[#1877F2] group-hover:bg-[#1877F2]/10 transition-all">
-                                        <Facebook size={18} className="text-white group-hover:text-[#1877F2] transition-colors" />
+                                <a href={contactInfo.facebook} target="_blank" rel="noopener noreferrer" className="flex gap-4 items-center opacity-40 hover:opacity-100 transition-all duration-500 group">
+                                    <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center group-hover:border-[#1877F2] group-hover:bg-[#1877F2]/10 group-hover:scale-110 transition-all duration-500">
+                                        <Facebook size={20} className="text-white group-hover:text-[#1877F2] transition-colors duration-500" />
                                     </div>
-                                    <span className="text-[9px] uppercase tracking-[0.4em] italic font-medium">Suivez-nous</span>
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] uppercase tracking-[0.4em] italic font-bold group-hover:text-[#1877F2] transition-colors duration-500">Facebook</span>
+                                        <span className="text-[8px] uppercase tracking-[0.2em] opacity-40 mt-0.5">Suivez-nous</span>
+                                    </div>
                                 </a>
                             )}
                         </div>
