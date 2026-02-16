@@ -155,7 +155,7 @@ const ProcessSection = ({ homepageImages = {} }) => {
             <div className="block min-[1920px]:hidden py-24 px-6 md:px-12 w-full min-h-screen bg-[#0D0D0D]">
                 {/* Titre Mobile */}
                 <div className="text-center mb-32 relative pt-12">
-                    <RotatingSymbol className="absolute left-1/2 -translate-x-1/2 -top-12 z-0 opacity-100 mix-blend-screen" size={220} />
+                    <RotatingSymbol className="absolute left-1/2 -translate-x-1/2 -top-12 z-0 opacity-100 mix-blend-screen" size={150} />
 
                     <span className="text-[10px] uppercase tracking-[1.2em] text-[#9C8268] mb-6 block font-bold relative z-10">L'Alchimie</span>
                     <h2 className="font-serif text-6xl md:text-8xl italic text-white relative z-10">Le Rituel.</h2>
@@ -171,7 +171,7 @@ const ProcessSection = ({ homepageImages = {} }) => {
                                 {/* FIXED: Hover interaction restored (pointer-events-none removed) */}
                                 <span className={`absolute -top-16 md:-top-24 ${i % 2 !== 0 ? 'right-0 md:-right-12' : 'left-0 md:-left-12'} font-serif text-[10rem] md:text-[12rem] leading-none text-white/5 z-30 pointer-events-none select-none transition-colors duration-500 group-hover:text-[#9C8268]/20 italic text-stroke-1`}>{step.n}</span>
                                 <div className="aspect-[4/5] md:aspect-[3/4] w-full border border-white/10 relative overflow-hidden z-10 group-hover:border-white/30 transition-colors duration-500 bg-[#1a1a1a]">
-                                    <img src={step.img} alt={step.t} loading="lazy" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                                    <img src={step.img} alt={step.t} loading="lazy" className="w-full h-full object-cover transition-transform duration-700" />
                                     <div className="absolute bottom-0 right-0 bg-black border-t border-l border-white/20 px-4 py-2 text-[10px] uppercase tracking-widest text-[#9C8268]">{step.info}</div>
                                 </div>
                             </div>
