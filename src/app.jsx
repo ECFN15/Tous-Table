@@ -14,18 +14,10 @@ import { auth, db, appId, functions, googleProvider } from './firebase/config';
 import { getMillis } from './utils/time';
 import { useLiveTheme } from './hooks/useLiveTheme'; // Import hook for forcedMode check
 
-// --- IMPORTS VUES ---
 import AppRouter from './Router';
 import ErrorBoundary from './components/ErrorBoundary';
-
 import CartSidebar from './components/CartSidebar';
-// Other imports removed or moved to Router
-
-
-
-// --- CONFIG ADMIN ---
-// ADMIN_EMAILS removed (handled in Context)
-
+import Footer from './components/Footer';
 import SEO from './components/SEO';
 
 const AppContent = () => {
@@ -677,6 +669,7 @@ const AppContent = () => {
           toggleTheme={() => setDarkMode(!darkMode)}
         />
       </main>
+      {['home', 'gallery', 'detail', 'checkout', 'my-orders'].includes(view) && <Footer darkMode={darkMode} />}
     </div>
   );
 };

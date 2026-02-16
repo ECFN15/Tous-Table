@@ -14,6 +14,7 @@ const ThreeBackground = React.lazy(() => import('../components/ThreeBackground')
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import SEO from '../components/SEO';
+import Footer from '../components/Footer';
 
 // --- COMPOSANT : REVEAL TEXT (CORRIGÉ & ÉLARGI) ---
 const RevealText = ({ text, className, delay = 0 }) => {
@@ -109,13 +110,6 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
   const [menuInteracted, setMenuInteracted] = useState(false); // Prevents initial transition flash
   const [homepageImages, setHomepageImages] = useState({});
 
-  const [contactInfo, setContactInfo] = useState({
-    email: 'atelier@tousatable.fr',
-    phone: '07 77 32 41 78',
-    instagram: '',
-    facebook: ''
-  });
-
   // --- FETCH DYNAMIC IMAGES ---
   useEffect(() => {
     const unsubscribeImages = onSnapshot(doc(db, 'sys_metadata', 'homepage_images'), (docSnap) => {
@@ -124,16 +118,8 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       }
     });
 
-    // Contact Info
-    const unsubscribeContact = onSnapshot(doc(db, 'sys_metadata', 'contact_info'), (docSnap) => {
-      if (docSnap.exists()) {
-        setContactInfo(prev => ({ ...prev, ...docSnap.data() }));
-      }
-    });
-
     return () => {
       unsubscribeImages();
-      unsubscribeContact();
     };
   }, []);
 
@@ -1171,69 +1157,6 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
           </div>
         </div>
       </section>
-
-      {/* FOOTER */}
-      {/* FOOTER - RESPONSIVE REFACTOR */}
-      <footer className="bg-[#111] text-white pt-32 pb-12 px-8 md:px-12 relative z-10">
-        {/* Container: Vertical stack on mobile/tablet/laptopGap. Side-by-side ONLY on XL screens */}
-        <div className="flex flex-col xl:flex-row justify-between items-start gap-16 xl:gap-40 mb-32 relative z-10 text-white">
-
-          <div className="max-w-4xl">
-            <span className="text-[10px] uppercase tracking-[0.6em] text-[#9C8268] mb-8 block italic font-black">{contactInfo.footerSubtitle || "Inquiry"}</span>
-            {/* Title: Safe sizing. No weird VW units that blow up on tablets. */}
-            <h2
-              className="font-serif text-6xl md:text-8xl xl:text-9xl leading-[0.9] font-light italic hover:translate-x-6 transition-transform duration-500 cursor-pointer text-white break-words"
-              dangerouslySetInnerHTML={{ __html: (contactInfo.footerTitle || "Éveiller\nl'Immobile.").replace(/\n/g, '<br />') }}
-            >
-            </h2>
-          </div>
-
-          <div className="flex flex-col gap-12 xl:gap-24 self-start xl:self-end">
-            <div className="space-y-4">
-              {/* Email: Dynamic */}
-              <a href={`mailto:${contactInfo.email}`} className="block text-2xl md:text-4xl lg:text-5xl font-light italic hover:text-[#9C8268] transition-colors border-b border-white/5 pb-2">
-                {contactInfo.email}
-              </a>
-              {/* Phone: Dynamic */}
-              <a href={`tel:${contactInfo.phone.replace(/\s/g, '')}`} className="block text-lg md:text-xl lg:text-2xl font-light italic opacity-50 hover:opacity-100 hover:text-[#9C8268] transition-colors mt-2 tracking-wide">
-                {contactInfo.phone}
-              </a>
-              {/* Address: Dynamic (SEO) */}
-              {contactInfo.address && (
-                <address className="not-italic text-[10px] md:text-xs uppercase tracking-widest opacity-40 mt-6 leading-relaxed border-l-2 border-[#9C8268] pl-4">
-                  {contactInfo.address}
-                </address>
-              )}
-            </div>
-
-            <div className="flex flex-col gap-4">
-              {/* Instagram */}
-              {contactInfo.instagram && (
-                <a href={contactInfo.instagram} target="_blank" rel="noopener noreferrer" className="flex gap-8 items-center opacity-40 hover:opacity-100 transition-opacity group">
-                  <Instagram size={28} className="text-white group-hover:text-[#E1306C] transition-colors" />
-                  <span className="text-[10px] uppercase tracking-[0.4em] italic font-medium">Journal de l'Artisan</span>
-                </a>
-              )}
-
-              {/* Facebook */}
-              {contactInfo.facebook && (
-                <a href={contactInfo.facebook} target="_blank" rel="noopener noreferrer" className="flex gap-8 items-center opacity-40 hover:opacity-100 transition-opacity group">
-                  <Facebook size={28} className="text-white group-hover:text-[#1877F2] transition-colors" />
-                  <span className="text-[10px] uppercase tracking-[0.4em] italic font-medium">Suivez-nous</span>
-                </a>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="pt-16 border-t border-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-8 opacity-40 text-[9px] uppercase tracking-[0.3em] font-light relative z-10">
-          <span className="leading-relaxed max-w-2xl">{contactInfo.legacyText || "Tous à Table — Atelier d'Ébénisterie d'Art & Vente de Meubles Antiques — Caen, Deauville, Paris, Normandie, France"}</span>
-          <div className="flex gap-12 lowercase underline underline-offset-4 font-bold tracking-widest">
-            <span className="cursor-pointer hover:text-white transition-colors">privacy policy</span>
-            <span className="cursor-pointer hover:text-white transition-colors">legal mentions</span>
-          </div>
-        </div>
-      </footer>
     </div >
   );
 };
