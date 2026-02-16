@@ -41,11 +41,11 @@ const Footer = ({ darkMode }) => {
                     </div>
 
                     <div className="flex flex-col gap-10 md:gap-16 lg:gap-20 self-start lg:self-end mt-4 lg:mt-0">
-                        <div className="space-y-6 md:space-y-8 max-w-full">
-                            {/* Email - Optimized for long addresses */}
+                        <div className="space-y-6 md:space-y-8 w-full max-w-full">
+                            {/* Email - Optimized for long addresses & perfectly responsive */}
                             <a
                                 href={`mailto:${contactInfo.email}`}
-                                className="block text-base sm:text-xl md:text-2xl lg:text-4xl xl:text-5xl font-light italic hover:text-[#9C8268] transition-colors border-b border-white/10 pb-3 break-words sm:break-normal max-w-[300px] sm:max-w-none"
+                                className="block text-sm sm:text-lg md:text-xl lg:text-3xl xl:text-3xl font-light italic hover:text-[#9C8268] transition-colors border-b border-white/10 pb-3 break-all sm:break-normal w-full"
                             >
                                 {contactInfo.email}
                             </a>
