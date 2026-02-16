@@ -256,3 +256,39 @@ Pour supprimer le CDN, il a fallu convertir toutes les règles CSS "exotiques" (
 ---
 
 *Dernière mise à jour par l'IA : Session du 2026-02-11. Suppression CDN Tailwind, Passage en Native v4, Optimisation PageSpeed (+30pts).*
+
+---
+
+## 🌀 10. Stacked Cards & iOS Optimization (Upgrade Février 2026)
+
+**Transition Stratégique : GSAP → Framer Motion**
+
+Pour résoudre définitivement le problème de "Jitter" (tremblement) des cartes empilées sur iOS, le composant `StackedCards.jsx` a été entièrement réécrit en utilisant **Framer Motion**.
+
+### 📱 Pourquoi Framer Motion ?
+*   **Conflit GSAP/iOS** : GSAP modifiait le DOM impérativement (`style="..."`) à chaque frame de scroll. Sur iOS, cela entrait en conflit avec le thread de scroll natif ultra-prioritaire, créant des micro-décalages visuels.
+*   **Approche Motion** : Framer Motion utilise des `MotionValues` qui se synchronisent directement avec le cycle de rendu React et l'accélération matérielle, contournant le bottleneck du "Main Thread" JS.
+
+### 🏗️ Nouvelle Architecture "Parallax Flow"
+L'ancien système "Sticky Stack" (où les cartes restaient physiquement collées en haut) a été abandonné au profit d'un **Flux Naturel**.
+1.  **Scroll Standard** : Les cartes défilent normalement (pas de `position: sticky`).
+2.  **Illusion de Profondeur** : L'effet d'empilement est simulé par une animation de **Sortie** (`Exit Animation`).
+    *   Quand une carte monte, elle rétrécit (`scale`) et s'assombrit (`opacity`) juste avant de sortir de l'écran.
+    *   Le cerveau interprète cela comme un empilement 3D, alors que c'est un simple scroll 2D. C'est le secret de la fluidité à 60fps sur mobile.
+
+### 🌓 Logique Hybride (Responsive UX)
+Une logique différenciée a été codée pour offrir la meilleure expérience selon le device :
+
+*   **📱 Mobile (Alive & Flow)** :
+    *   **Scale** : `[0.25 -> 1]`. L'animation commence **très tôt** (dès le bas de l'écran). La carte est en transformation perpétuelle pour accompagner le mouvement du pouce. C'est organique et vivant.
+    *   **Opacité** : `[0.85 -> 1]`. Fade-out progressif pour une transition douce.
+
+*   **💻 Desktop (Stable & Premium)** :
+    *   **Scale** : `[0.75 -> 1]`. La carte reste **immobile** et large pendant 75% du trajet. Elle ne bouge qu'au tout dernier moment. Cela évite l'effet "flottant" sur grand écran et renforce le côté "Galerie d'Art".
+    *   **Opacité** : `[0.95 -> 1]`. Retardée au maximum pour éviter que les couleurs ne ternissent (grisaillement) sur les grands écrans lumineux.
+
+*Note : L'effet Parallax interne (image bougeant dans son cadre) a été retiré pour garantir une netteté absolue et éviter les bandes grises indésirables.*
+
+---
+
+*Dernière mise à jour par l'IA : Session du 2026-02-16. Intégration Framer Motion, Stabilisation iOS, Responsive UX Logic.*
