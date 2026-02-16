@@ -123,7 +123,8 @@ const HOMEPAGE_CONFIG = [
                 textSchema: [
                     { key: "subtitle", label: "Badge (Texte dans la pillule)", type: "text", placeholder: "Exposition Temporaire" },
                     { key: "title_1", label: "Titre Principal", type: "text", placeholder: "Le Voltaire" },
-                    { key: "title_2", label: "Sous-titre (Optionnel - Italique)", type: "text", placeholder: "Signature" },
+                    { key: "title_2", label: "Sous-titre (Italique)", type: "text", placeholder: "Signature" },
+                    { key: "show_title_2", label: "Afficher le sous-titre ?", type: "toggle" },
                     { key: "desc", label: "Description (Style Museum - Majuscules automatiques)", type: "textarea", placeholder: "Une renaissance historique pour l'époque contemporaine." }
                 ]
             },
@@ -143,7 +144,8 @@ const HOMEPAGE_CONFIG = [
                 textSchema: [
                     { key: "subtitle", label: "Badge (Texte dans la pillule)", type: "text", placeholder: "Collection Permanente" },
                     { key: "title_1", label: "Titre Principal", type: "text", placeholder: "Console" },
-                    { key: "title_2", label: "Sous-titre (Optionnel - Italique)", type: "text", placeholder: "Héritage" },
+                    { key: "title_2", label: "Sous-titre (Italique)", type: "text", placeholder: "Héritage" },
+                    { key: "show_title_2", label: "Afficher le sous-titre ?", type: "toggle" },
                     { key: "desc", label: "Description (Style Museum - Majuscules automatiques)", type: "textarea", placeholder: "Formes épurées et assemblage traditionnel." }
                 ]
             },
@@ -163,7 +165,8 @@ const HOMEPAGE_CONFIG = [
                 textSchema: [
                     { key: "subtitle", label: "Badge (Texte dans la pillule)", type: "text", placeholder: "Pièce Unique" },
                     { key: "title_1", label: "Titre Principal", type: "text", placeholder: "Le Secrétaire" },
-                    { key: "title_2", label: "Sous-titre (Optionnel - Italique)", type: "text", placeholder: "Secret" },
+                    { key: "title_2", label: "Sous-titre (Italique)", type: "text", placeholder: "Secret" },
+                    { key: "show_title_2", label: "Afficher le sous-titre ?", type: "toggle" },
                     { key: "desc", label: "Description (Style Museum - Majuscules automatiques)", type: "textarea", placeholder: "Bois de rose et marqueterie complexe." }
                 ]
             },
@@ -183,7 +186,8 @@ const HOMEPAGE_CONFIG = [
                 textSchema: [
                     { key: "subtitle", label: "Badge (Texte dans la pillule)", type: "text", placeholder: "Nouvelle Acquisition" },
                     { key: "title_1", label: "Titre Principal", type: "text", placeholder: "Bibliothèque" },
-                    { key: "title_2", label: "Sous-titre (Optionnel - Italique)", type: "text", placeholder: "Céleste" },
+                    { key: "title_2", label: "Sous-titre (Italique)", type: "text", placeholder: "Céleste" },
+                    { key: "show_title_2", label: "Afficher le sous-titre ?", type: "toggle" },
                     { key: "desc", label: "Description (Style Museum - Majuscules automatiques)", type: "textarea", placeholder: "Chêne massif et échelles en laiton." }
                 ]
             },

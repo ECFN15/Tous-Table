@@ -108,25 +108,45 @@ const ParallaxCard = ({ item, index, onEnterMarketplace }) => {
                 </div>
 
                 {/* 2. TEXT ZONE */}
-                <div className="relative z-10 w-full h-[42%] md:h-[45%] flex flex-col items-center justify-start pt-6 md:pt-8 lg:pt-10 px-6 md:px-12 text-center -mt-8 md:-mt-16">
-                    <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl leading-[1.1] md:leading-[0.9] text-[#1a1a1a] mix-blend-multiply mb-4 md:mb-6 drop-shadow-sm" style={{ color: item.textColor }}>
-                        {item.title[0]}
-                        {item.title[1] && (
-                            <>
-                                <br />
-                                <span className="italic font-light text-[0.8em]">{item.title[1]}</span>
-                            </>
-                        )}
-                    </h2>
-                    <p className="text-[10px] md:text-xs lg:text-sm uppercase tracking-[0.25em] font-light md:opacity-50 mt-auto mb-auto max-w-[85%] sm:max-w-md bg-white/0" style={{ color: item.textColor }}>
-                        {item.desc}
-                    </p>
-                    <button onClick={onEnterMarketplace} className="flex items-center gap-4 md:gap-5 lg:gap-6 group text-[#1a1a1a] mt-0 md:mt-8 mb-8 md:mb-8 flex-shrink-0">
-                        <RotatingButton id={item.id} />
-                        <span className="text-[10px] md:text-xs uppercase tracking-[0.4em] font-medium text-[#1a1a1a]">
-                            Découvrir la Galerie
-                        </span>
-                    </button>
+                <div className="relative z-10 w-full h-[42%] md:h-[45%] flex flex-col items-center pt-4 md:pt-6 pb-6 md:pb-8 px-6 md:px-16 text-center -mt-8 md:-mt-16">
+
+                    {/* 1. TITLES (Top) */}
+                    <div className="w-full flex-shrink-0">
+                        <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl leading-[1.1] md:leading-[1] text-[#1a1a1a] mix-blend-multiply drop-shadow-sm" style={{ color: item.textColor }}>
+                            {item.title[0]}
+                            {(item.showTitle2 !== false && item.title[1]) && (
+                                <>
+                                    <br />
+                                    <span className="italic font-light text-[0.65em] opacity-80 block mt-1 md:mt-2">{item.title[1]}</span>
+                                </>
+                            )}
+                        </h2>
+                    </div>
+
+                    {/* SPACER 1 (Minimum height to avoid sticking) */}
+                    <div className="flex-grow min-h-[1.5rem] md:min-h-[2rem]" />
+
+                    {/* 2. DESCRIPTION (Center - Locked in the middle) */}
+                    <div className="flex-shrink-0 w-full">
+                        <div className="mx-auto max-w-[85%] sm:max-w-xl">
+                            <p className="text-[10px] md:text-xs lg:text-[13px] uppercase tracking-[0.2em] font-light md:opacity-60 leading-[1.6]" style={{ color: item.textColor }}>
+                                {item.desc}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* SPACER 2 (Equal to Spacer 1) */}
+                    <div className="flex-grow min-h-[1.5rem] md:min-h-[2rem]" />
+
+                    {/* 3. ACTION BUTTON (Bottom) */}
+                    <div className="w-full flex justify-center flex-shrink-0">
+                        <button onClick={onEnterMarketplace} className="flex items-center gap-4 md:gap-5 group text-[#1a1a1a]">
+                            <RotatingButton id={item.id} />
+                            <span className="text-[10px] md:text-xs uppercase tracking-[0.4em] font-medium text-[#1a1a1a]">
+                                Découvrir la Galerie
+                            </span>
+                        </button>
+                    </div>
                 </div>
 
                 {/* Background Texture */}

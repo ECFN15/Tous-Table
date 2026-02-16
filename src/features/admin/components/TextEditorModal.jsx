@@ -62,7 +62,14 @@ const TextEditorModal = ({ isOpen, onClose, onSave, itemKey, initialData, fields
                                 {field.label}
                             </label>
 
-                            {field.type === 'textarea' ? (
+                            {field.type === 'toggle' ? (
+                                <div
+                                    onClick={() => setFormData(prev => ({ ...prev, [field.key]: !prev[field.key] }))}
+                                    className={`relative w-14 h-8 rounded-full cursor-pointer transition-all duration-300 p-1 ${formData[field.key] !== false ? 'bg-emerald-500' : 'bg-stone-300'}`}
+                                >
+                                    <div className={`w-6 h-6 rounded-full bg-white shadow-sm transition-transform duration-300 ${formData[field.key] !== false ? 'translate-x-6' : 'translate-x-0'}`} />
+                                </div>
+                            ) : field.type === 'textarea' ? (
                                 <textarea
                                     name={field.key}
                                     value={formData[field.key] || ''}

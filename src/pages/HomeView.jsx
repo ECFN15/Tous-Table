@@ -158,6 +158,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         homepageImages['featured_1_text']?.title_1 || "Le Voltaire",
         homepageImages['featured_1_text']?.title_2 || "Signature"
       ],
+      showTitle2: homepageImages['featured_1_text']?.show_title_2 !== false,
       desc: homepageImages['featured_1_text']?.desc || "\"Une renaissance historique pour l'époque contemporaine.\"",
       img: homepageImages.featured_1 || "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1200",
       imgMobile: homepageImages.featured_1_mobile || homepageImages.featured_1 || "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=800",
@@ -174,6 +175,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         homepageImages['featured_2_text']?.title_1 || "Console",
         homepageImages['featured_2_text']?.title_2 || "Héritage"
       ],
+      showTitle2: homepageImages['featured_2_text']?.show_title_2 !== false,
       desc: homepageImages['featured_2_text']?.desc || "\"Formes épurées et assemblage traditionnel. L'équilibre parfait entre passé et présent.\"",
       img: homepageImages.featured_2 || "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=1200",
       imgMobile: homepageImages.featured_2_mobile || homepageImages.featured_2 || "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=800",
@@ -190,6 +192,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         homepageImages['featured_3_text']?.title_1 || "Le Secrétaire",
         homepageImages['featured_3_text']?.title_2 || "Secret"
       ],
+      showTitle2: homepageImages['featured_3_text']?.show_title_2 !== false,
       desc: homepageImages['featured_3_text']?.desc || "\"Bois de rose et marqueterie complexe. Un gardien de correspondances oubliées.\"",
       img: homepageImages.featured_3 || "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?q=80&w=1200",
       imgMobile: homepageImages.featured_3_mobile || homepageImages.featured_3 || "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?q=80&w=800",
@@ -206,6 +209,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         homepageImages['featured_4_text']?.title_1 || "Bibliothèque",
         homepageImages['featured_4_text']?.title_2 || "Céleste"
       ],
+      showTitle2: homepageImages['featured_4_text']?.show_title_2 !== false,
       desc: homepageImages['featured_4_text']?.desc || "\"Chêne massif et échelles en laiton. Une structure qui élève l'esprit.\"",
       img: homepageImages.featured_4 || "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?q=80&w=1200",
       imgMobile: homepageImages.featured_4_mobile || homepageImages.featured_4 || "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?q=80&w=800",
