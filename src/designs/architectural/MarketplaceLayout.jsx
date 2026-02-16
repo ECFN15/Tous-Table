@@ -110,7 +110,6 @@ const MarketplaceLayout = ({
                         items.map((item, index) => (
                             <div
                                 key={item.id}
-                                onClick={() => onSelectItem(item.id)}
                                 className="w-full group"
                             >
                                 <ProductCard
@@ -118,6 +117,7 @@ const MarketplaceLayout = ({
                                     layoutMode="editorial"
                                     isBig={false}
                                     onToggleWishlist={toggleWishlist}
+                                    onClick={() => onSelectItem(item.id)}
                                 />
                             </div>
                         ))

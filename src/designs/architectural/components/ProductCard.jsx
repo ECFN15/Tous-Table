@@ -12,7 +12,8 @@ const ProductCard = ({
     item,
     layoutMode,
     isBig,
-    onToggleWishlist
+    onToggleWishlist,
+    onClick
 }) => {
     const [isBookmarked, setIsBookmarked] = useState(false);
 
@@ -23,7 +24,18 @@ const ProductCard = ({
     };
 
     return (
-        <div className={`group relative flex flex-col gap-6 w-full cursor-pointer ${layoutMode === 'list' ? 'flex-row items-center gap-12 border-b border-stone-200 dark:border-stone-800 pb-12' : ''}`}>
+        <a
+            href={`/?product=${item.id}`}
+            onClick={(e) => {
+                // Allow Ctrl/Cmd + Click to open in new tab (native browser behavior)
+                // Otherwise prevent default and let parent handle selection logic
+                if (!e.ctrlKey && !e.metaKey) {
+                    e.preventDefault();
+                    if (onClick) onClick();
+                }
+            }}
+            className={`group relative flex flex-col gap-6 w-full cursor-pointer text-inherit no-underline ${layoutMode === 'list' ? 'flex-row items-center gap-12 border-b border-stone-200 dark:border-stone-800 pb-12' : ''}`}
+        >
 
             {/* 1. VISUAL BLOCK */}
             <div className={`relative bg-white dark:bg-[#1A1A1A] overflow-hidden ${layoutMode === 'list' ? 'w-1/3 aspect-[4/3]' : 'w-full aspect-[3/4]'} ${isBig ? 'md:aspect-[16/10]' : ''}`}>
@@ -87,7 +99,7 @@ const ProductCard = ({
                     </p>
                 </div>
             </div>
-        </div>
+        </a>
     );
 };
 

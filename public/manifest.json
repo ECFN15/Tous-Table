@@ -3,9 +3,9 @@
     "name": "Tous à Table - Atelier Normand",
     "icons": [
         {
-            "src": "favgpt.png",
-            "type": "image/png",
-            "sizes": "192x192 512x512"
+            "src": "favicon_wood.svg",
+            "type": "image/svg+xml",
+            "sizes": "any"
         }
     ],
     "start_url": ".",

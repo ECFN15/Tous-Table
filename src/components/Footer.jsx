@@ -102,6 +102,7 @@ const Footer = ({ darkMode }) => {
                         {contactInfo.legacyText || "Livraison sur Caen, Deauville, Bayeux, Cabourg & toute la Normandie. Tous à Table made in Normandie livre sur toute la France et pays frontaliers."}
                     </span>
                     <div className="flex gap-8 md:gap-12 lowercase underline underline-offset-4 font-bold tracking-widest">
+                        <a href="/?page=gallery" className="cursor-pointer hover:text-white transition-colors">La Galerie</a>
                         <span className="cursor-pointer hover:text-white transition-colors">privacy policy</span>
                         <span className="cursor-pointer hover:text-white transition-colors">legal mentions</span>
                     </div>

@@ -1404,3 +1404,67 @@ exports.initSuperAdmin = functions.https.onRequest(async (req, res) => {
     }
 });
 
+
+// ============================================================
+// 13. GENERATEUR SITEMAP XML (SEO DYNAMIQUE)
+// ============================================================
+exports.sitemap = functions.https.onRequest(async (req, res) => {
+    const SITE_URL = 'https://tousatable-madeinnormandie.fr';
+    const collections = ['furniture', 'cutting_boards'];
+    const appId = 'tat-made-in-normandie';
+
+    try {
+        let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>${SITE_URL}/</loc>
+        <changefreq>weekly</changefreq>
+        <priority>1.0</priority>
+    </url>
+    <url>
+        <loc>${SITE_URL}/?page=gallery</loc>
+        <changefreq>daily</changefreq>
+        <priority>0.9</priority>
+    </url>`;
+
+        // Fetch items
+        for (const colName of collections) {
+            const snap = await db.collection(`artifacts/${appId}/public/data/${colName}`).get();
+
+            snap.forEach(doc => {
+                const item = doc.data();
+                // Filter drafts
+                if (item.status && item.status !== 'published') return;
+
+                // Date logic
+                let lastMod = new Date().toISOString().split('T')[0];
+                if (item.updatedAt && typeof item.updatedAt.toDate === 'function') {
+                    lastMod = item.updatedAt.toDate().toISOString().split('T')[0];
+                } else if (item.createdAt && typeof item.createdAt.toDate === 'function') {
+                    lastMod = item.createdAt.toDate().toISOString().split('T')[0];
+                }
+
+                xml += `
+    <url>
+        <loc>${SITE_URL}/?product=${doc.id}</loc>
+        <lastmod>${lastMod}</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>`;
+            });
+        }
+
+        xml += `
+</urlset>`;
+
+        res.set('Content-Type', 'application/xml');
+        // Cache 1h browser, 24h CDN
+        res.set('Cache-Control', 'public, max-age=3600, s-maxage=86400');
+        res.status(200).send(xml);
+
+    } catch (error) {
+        console.error("Sitemap Error:", error);
+        res.status(500).send("Error generating sitemap");
+    }
+});
+
