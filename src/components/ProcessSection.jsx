@@ -214,7 +214,7 @@ const ProcessSection = ({ homepageImages = {} }) => {
                             {/* Image (GSAP Target: .p-img) */}
                             <div className={`p-img w-full ${step.h} border border-white/10 relative overflow-hidden z-10 group-hover:border-white/30 transition-all duration-700`}>
                                 <div className="absolute inset-0 bg-black/30 group-hover:bg-transparent transition-colors duration-500 z-20"></div>
-                                <img src={step.img} alt={step.t} className="w-full h-full object-cover grayscale-[0.5] transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105" />
+                                <img src={step.img} alt={step.t} className="w-full h-full object-cover force-color-tablet grayscale-[0.5] transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105" />
                                 <div className="absolute bottom-6 right-6 z-30 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 delay-100">
                                     <span className="text-[10px] uppercase tracking-widest bg-[#111] px-4 py-2 border border-[#9C8268] text-white font-medium">{step.info}</span>
                                 </div>

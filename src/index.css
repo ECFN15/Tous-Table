@@ -302,3 +302,10 @@ img {
   animation: progress-loading 2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
   transform-origin: left;
 }
+
+/* FORCE COLOR ON MOBILE/TABLET/LARGE-TABLET for Profile & FAQ */
+@media (max-width: 2000px) {
+  .force-color-tablet {
+    filter: grayscale(0) !important;
+  }
+}

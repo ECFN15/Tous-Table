@@ -292,3 +292,33 @@ Une logique différenciée a été codée pour offrir la meilleure expérience s
 ---
 
 *Dernière mise à jour par l'IA : Session du 2026-02-16. Intégration Framer Motion, Stabilisation iOS, Responsive UX Logic.*
+
+---
+
+## 🎨 11. Restauration Expérience Historique & Polish Tactile (16 Février 2026)
+
+**Focus : Authenticité v26.9 & Support Ultra-Tablettes**
+
+### 🥚 Easter Egg "Rotating Symbol" (Restauré)
+*   **Retour aux Sources** : Réimplémentation complète du composant `RotatingSymbol` tel qu'il existait au commit 26.9.
+*   **Design** : Texte circulaire répété ("TOUS À TABLE • 2026 •"), couleur Or Atelier (`#9C8268`), mix-blend `screen` et icône `Star` (Lucide) en contour fin uniquement.
+*   **Positionnement** : Stabilisé pour les versions Desktop (fixe à droite) et Mobile (centré au-dessus du titre).
+
+### 🔢 Chiffres Romains & Process Section
+*   **Esthétique Musée** : Restauration du style original des chiffres (`I`, `II`, `III`) :
+    *   **Italique** & **Text-Stroke** : Pour un tracé fin et élégant.
+    *   **Overlay Z-Index** : Les chiffres passent désormais visuellement *par-dessus* l'image avec une opacité maîtrisée.
+    *   **Pointer Events** : Désactivation des événements de clic sur les chiffres pour permettre l'interaction directe avec l'image sous-jacente.
+*   **Scroll Tightening** : Suppression des espaces vides (spacers) en fin de scroll horizontal pour un arrêt net et professionnel sur Desktop.
+
+### 📱 Optimisation Tactile "Force Color" (2000px)
+*   **Problème** : Les tablettes haute résolution (iPad Pro, Samsung Tab S10 Ultra) étaient détectées comme des PC, bloquant les images en Noir & Blanc (effet hover impossible à déclencher au doigt).
+*   **Solution "Force-Color"** :
+    *   Création d'une utilité CSS `.force-color-tablet` forçant `grayscale(0)`.
+    *   **Seuil critique élevé à 2000px** dans `index.css`. Cette valeur garantit que même les tablettes géantes en mode paysage restent en couleur.
+    *   L'effet Noir & Blanc (Hover) est désormais strictement réservé aux moniteurs Desktop de grande taille (> 2000px).
+*   **Stabilité Mobile** : Suppression systématique des effets `scale-105` (zoom) sur mobile pour éviter les tremblements (jitter) lors du défilement tactile.
+
+---
+
+*Dernière mise à jour par l'IA : Session du 2026-02-16 (02:45). Restauration Easter Egg, Polish Chiffres Romains et Blindage Tactile 2000px.*

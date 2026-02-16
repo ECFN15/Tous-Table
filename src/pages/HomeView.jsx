@@ -1118,7 +1118,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
               <img
                 src={homepageImages['team_main'] || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1600"}
                 alt="Maître Ebéniste"
-                className="w-full h-full object-cover grayscale-0 md:grayscale md:hover:grayscale-0 transition-all duration-1000"
+                className="w-full h-full object-cover force-color-tablet 2xl:grayscale 2xl:hover:grayscale-0 transition-all duration-1000"
               />
               <RotatingSymbol className="absolute -bottom-16 -right-16 text-[#9C8268] opacity-20" size={200} />
             </div>
@@ -1160,7 +1160,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
               <img
                 src={homepageImages['faq_main'] || "https://images.unsplash.com/photo-1610701596007-11502861dcfa?q=80&w=1600"}
                 alt="Détail savoir-faire"
-                className="w-full h-full object-cover scale-110 hover:scale-100 transition-transform duration-[2s] ease-out grayscale hover:grayscale-0"
+                className="w-full h-full object-cover scale-110 hover:scale-100 transition-transform duration-[2s] ease-out force-color-tablet 2xl:grayscale 2xl:hover:grayscale-0"
               />
             </div>
 
