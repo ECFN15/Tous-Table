@@ -26,26 +26,26 @@ const Footer = ({ darkMode }) => {
     return (
         <footer className={`${darkMode ? 'bg-[#0A0A0A]' : 'bg-[#111]'} text-white pt-20 md:pt-32 pb-12 px-6 md:px-12 relative z-10 transition-colors duration-500 border-t ${darkMode ? 'border-white/5' : 'border-none'}`}>
             <div className="max-w-[1920px] mx-auto">
-                {/* Container: Vertical stack on mobile, Side-by-side on LG screens (1024px+) */}
-                <div className="flex flex-col lg:flex-row justify-between items-start gap-12 lg:gap-20 mb-20 md:mb-32 relative z-10">
+                {/* Container: Vertical stack on mobile/tablet/small-laptop. Side-by-side ONLY on XL screens (1280px+) */}
+                <div className="flex flex-col xl:flex-row justify-between items-start gap-12 xl:gap-20 mb-20 md:mb-32 relative z-10">
 
                     <div className="max-w-4xl">
                         <span className="text-[10px] uppercase tracking-[0.6em] text-[#9C8268] mb-6 md:mb-8 block italic font-extrabold antialiased">
                             {contactInfo.footerSubtitle || "Inquiry"}
                         </span>
                         <h2
-                            className="font-serif text-5xl md:text-7xl lg:text-8xl xl:text-9xl leading-[0.95] md:leading-[0.9] font-light italic hover:translate-x-4 transition-transform duration-700 cursor-default text-white break-words"
+                            className="font-serif text-5xl md:text-7xl lg:text-7xl xl:text-8xl 2xl:text-9xl leading-[0.95] md:leading-[0.9] font-light italic hover:translate-x-4 transition-transform duration-700 cursor-default text-white break-words"
                             dangerouslySetInnerHTML={{ __html: (contactInfo.footerTitle || "Éveiller\nl'Immobile.").replace(/\n/g, '<br />') }}
                         >
                         </h2>
                     </div>
 
-                    <div className="flex flex-col gap-10 md:gap-16 lg:gap-20 self-start lg:self-end mt-4 lg:mt-0">
+                    <div className="flex flex-col gap-10 md:gap-16 xl:gap-20 self-start xl:self-end mt-4 xl:mt-0">
                         <div className="space-y-6 md:space-y-8 w-full max-w-full">
                             {/* Email - Optimized for long addresses & perfectly responsive */}
                             <a
                                 href={`mailto:${contactInfo.email}`}
-                                className="block text-sm sm:text-lg md:text-xl lg:text-3xl xl:text-3xl font-light italic hover:text-[#9C8268] transition-colors border-b border-white/10 pb-3 break-all sm:break-normal w-full"
+                                className="block text-sm sm:text-lg md:text-xl lg:text-xl xl:text-2xl font-light italic hover:text-[#9C8268] transition-colors border-b border-white/10 pb-3 break-all sm:break-normal w-full"
                             >
                                 {contactInfo.email}
                             </a>
