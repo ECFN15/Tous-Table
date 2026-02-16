@@ -257,7 +257,7 @@ Pour supprimer le CDN, il a fallu convertir toutes les règles CSS "exotiques" (
 
 ---
 
-## 📉 11. Audit & Optimisation SEO / Branding (16 Février 2026)
+## 📈 11. Audit & Optimisation SEO / Branding (16 Février 2026)
 
 **Objectif : Harmonisation de l'image de marque et visibilité Google.**
 
@@ -275,6 +275,7 @@ Suite à l'analyse des résultats de recherche Google, une refonte complète des
     *   Mise à jour du titre et de la description `meta`.
     *   Configuration forcée du **favicon marteau** en `apple-touch-icon` pour faciliter l'affichage du logo dans les résultats Google.
     *   Correction de l'adresse dans le Schema.org (JSON-LD) : `346 Chemin de Fleury, 14123 Ifs`.
+*   **Google Search Console (GSC)** : Validation de la propriété via fichier HTML (`google72f08140b6217ed3.html`) et lancement d'une **demande d'indexation prioritaire** pour accélérer la prise en compte des changements par Google.
 *   **SEO.jsx (Composant)** : Harmonisation des valeurs par défaut pour tout le site.
 *   **Footer.jsx** : Enrichissement du "Legacy Text" (Bas de page) pour inclure les villes de Normandie et la mention de livraison internationale.
 *   **HomeView.jsx** : Ajout d'une balise `h1` descriptive masquée (`sr-only`) : *"Restauration de mobilier normand et meubles anciens à Caen"*.
@@ -296,7 +297,7 @@ Le paramètre `scrub: 1` de GSAP créait un délai de fluidité. Lors d'un scrol
 
 ---
 
-*Dernière mise à jour par l'IA : Session du 2026-02-16. Optimisation SEO, Correction Adresse Ifs, Stabilisation Transition Process (End Buffer).*
+*Dernière mise à jour par l'IA : Session du 2026-02-16. Optimisation SEO, GSC Validation, Correction Adresse Ifs, Stabilisation Transition Process.*
 
 ---
 

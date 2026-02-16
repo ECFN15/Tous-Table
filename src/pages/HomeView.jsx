@@ -147,7 +147,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       showTitle2: homepageImages['featured_1_text']?.show_title_2 !== false,
       desc: homepageImages['featured_1_text']?.desc || "\"Une renaissance historique pour l'époque contemporaine.\"",
       img: homepageImages.featured_1 || "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1200",
-      imgMobile: homepageImages.featured_1_mobile || homepageImages.featured_1 || "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=800",
+      imgMobile: (homepageImages && homepageImages.featured_1_mobile) || (homepageImages && homepageImages.featured_1) || "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=800",
       bgColor: "#FFFEFA",
       textColor: "#1a1a1a",
       subColor: "#9C8268",
@@ -156,15 +156,15 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
     {
       id: 2,
       bgTitle: "Console",
-      subtitle: homepageImages['featured_2_text']?.subtitle || "Collection Permanente",
+      subtitle: (homepageImages && homepageImages['featured_2_text']?.subtitle) || "Collection Permanente",
       title: [
-        homepageImages['featured_2_text']?.title_1 || "Console",
-        homepageImages['featured_2_text']?.title_2 || "Héritage"
+        (homepageImages && homepageImages['featured_2_text']?.title_1) || "Console",
+        (homepageImages && homepageImages['featured_2_text']?.title_2) || "Héritage"
       ],
-      showTitle2: homepageImages['featured_2_text']?.show_title_2 !== false,
-      desc: homepageImages['featured_2_text']?.desc || "\"Formes épurées et assemblage traditionnel. L'équilibre parfait entre passé et présent.\"",
-      img: homepageImages.featured_2 || "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=1200",
-      imgMobile: homepageImages.featured_2_mobile || homepageImages.featured_2 || "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=800",
+      showTitle2: (homepageImages && homepageImages['featured_2_text']?.show_title_2) !== false,
+      desc: (homepageImages && homepageImages['featured_2_text']?.desc) || "\"Formes épurées et assemblage traditionnel. L'équilibre parfait entre passé et présent.\"",
+      img: (homepageImages && homepageImages.featured_2) || "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=1200",
+      imgMobile: (homepageImages && homepageImages.featured_2_mobile) || (homepageImages && homepageImages.featured_2) || "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=800",
       bgColor: "#FAF4EB",
       textColor: "#1a1a1a",
       subColor: "#9C8268",
@@ -173,15 +173,15 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
     {
       id: 3,
       bgTitle: "Secrétaire",
-      subtitle: homepageImages['featured_3_text']?.subtitle || "Pièce Unique",
+      subtitle: (homepageImages && homepageImages['featured_3_text']?.subtitle) || "Pièce Unique",
       title: [
-        homepageImages['featured_3_text']?.title_1 || "Le Secrétaire",
-        homepageImages['featured_3_text']?.title_2 || "Secret"
+        (homepageImages && homepageImages['featured_3_text']?.title_1) || "Le Secrétaire",
+        (homepageImages && homepageImages['featured_3_text']?.title_2) || "Secret"
       ],
-      showTitle2: homepageImages['featured_3_text']?.show_title_2 !== false,
-      desc: homepageImages['featured_3_text']?.desc || "\"Bois de rose et marqueterie complexe. Un gardien de correspondances oubliées.\"",
-      img: homepageImages.featured_3 || "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?q=80&w=1200",
-      imgMobile: homepageImages.featured_3_mobile || homepageImages.featured_3 || "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?q=80&w=800",
+      showTitle2: (homepageImages && homepageImages['featured_3_text']?.show_title_2) !== false,
+      desc: (homepageImages && homepageImages['featured_3_text']?.desc) || "\"Bois de rose et marqueterie complexe. Un gardien de correspondances oubliées.\"",
+      img: (homepageImages && homepageImages.featured_3) || "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?q=80&w=1200",
+      imgMobile: (homepageImages && homepageImages.featured_3_mobile) || (homepageImages && homepageImages.featured_3) || "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?q=80&w=800",
       bgColor: "#F2E6D8",
       textColor: "#1a1a1a",
       subColor: "#9C8268",
@@ -190,19 +190,43 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
     {
       id: 4,
       bgTitle: "Bibliothèque",
-      subtitle: homepageImages['featured_4_text']?.subtitle || "Nouvelle Acquisition",
+      subtitle: (homepageImages && homepageImages['featured_4_text']?.subtitle) || "Nouvelle Acquisition",
       title: [
-        homepageImages['featured_4_text']?.title_1 || "Bibliothèque",
-        homepageImages['featured_4_text']?.title_2 || "Céleste"
+        (homepageImages && homepageImages['featured_4_text']?.title_1) || "Bibliothèque",
+        (homepageImages && homepageImages['featured_4_text']?.title_2) || "Céleste"
       ],
-      showTitle2: homepageImages['featured_4_text']?.show_title_2 !== false,
-      desc: homepageImages['featured_4_text']?.desc || "\"Chêne massif et échelles en laiton. Une structure qui élève l'esprit.\"",
-      img: homepageImages.featured_4 || "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?q=80&w=1200",
-      imgMobile: homepageImages.featured_4_mobile || homepageImages.featured_4 || "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?q=80&w=800",
+      showTitle2: (homepageImages && homepageImages['featured_4_text']?.show_title_2) !== false,
+      desc: (homepageImages && homepageImages['featured_4_text']?.desc) || "\"Chêne massif et échelles en laiton. Une structure qui élève l'esprit.\"",
+      img: (homepageImages && homepageImages.featured_4) || "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?q=80&w=1200",
+      imgMobile: (homepageImages && homepageImages.featured_4_mobile) || (homepageImages && homepageImages.featured_4) || "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?q=80&w=800",
       bgColor: "#E6D0B8",
       textColor: "#1a1a1a",
       subColor: "#9C8268",
       faintColor: "rgba(0,0,0,0.04)"
+    }
+  ];
+
+  // --- STATS DYNAMIQUES (SECTION 12) ---
+  const stats = [
+    {
+      value: (homepageImages && homepageImages['stat_1_text']?.value) || "25",
+      suffix: (homepageImages && homepageImages['stat_1_text']?.suffix) || "+",
+      label: (homepageImages && homepageImages['stat_1_text']?.label) || "Années d'excellence"
+    },
+    {
+      value: (homepageImages && homepageImages['stat_2_text']?.value) || "400",
+      suffix: (homepageImages && homepageImages['stat_2_text']?.suffix) || "h",
+      label: (homepageImages && homepageImages['stat_2_text']?.label) || "Heures par projet"
+    },
+    {
+      value: (homepageImages && homepageImages['stat_3_text']?.value) || "1500",
+      suffix: (homepageImages && homepageImages['stat_3_text']?.suffix) || "",
+      label: (homepageImages && homepageImages['stat_3_text']?.label) || "Outils traditionnels"
+    },
+    {
+      value: (homepageImages && homepageImages['stat_4_text']?.value) || "85",
+      suffix: (homepageImages && homepageImages['stat_4_text']?.suffix) || "+",
+      label: (homepageImages && homepageImages['stat_4_text']?.label) || "Patrimoines sauvés"
     }
   ];
 
@@ -679,28 +703,6 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
 
 
 
-  const stats = [
-    {
-      label: homepageImages['stat_1_text']?.label || "Années d'excellence",
-      value: homepageImages['stat_1_text']?.value || "25",
-      suffix: homepageImages['stat_1_text']?.suffix || "+"
-    },
-    {
-      label: homepageImages['stat_2_text']?.label || "Heures par projet",
-      value: homepageImages['stat_2_text']?.value || "400",
-      suffix: homepageImages['stat_2_text']?.suffix || "h"
-    },
-    {
-      label: homepageImages['stat_3_text']?.label || "Outils traditionnels",
-      value: homepageImages['stat_3_text']?.value || "1500",
-      suffix: homepageImages['stat_3_text']?.suffix || ""
-    },
-    {
-      label: homepageImages['stat_4_text']?.label || "Patrimoines sauvés",
-      value: homepageImages['stat_4_text']?.value || "85",
-      suffix: homepageImages['stat_4_text']?.suffix || "+"
-    }
-  ];
 
   // DONNÉES FAQ
   // DONNÉES FAQ (DYNAMIQUES)
