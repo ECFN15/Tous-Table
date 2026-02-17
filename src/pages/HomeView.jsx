@@ -1118,8 +1118,8 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
             </div>
 
             {/* Marge augmentée : mt-12 (was mt-8) */}
-            <p className="text-base md:text-lg lg:text-xl xl:text-2xl font-light opacity-60 leading-relaxed italic border-l border-black/10 pl-6 md:pl-6 lg:pl-8 xl:pl-10 mt-12 md:mt-8 lg:mt-12 team-content-reveal">
-              {homepageImages['team_main_text']?.quote || "\"Nous ne luttons pas contre le temps, nous le réapprivoisons. Chaque main possède une mémoire que les outils n'ont pas.\""}
+            <p className="text-base md:text-lg lg:text-xl font-light opacity-60 leading-loose italic border-l border-black/10 pl-6 md:pl-6 lg:pl-8 xl:pl-10 mt-12 md:mt-8 lg:mt-12 team-content-reveal">
+              {homepageImages['team_main_text']?.quote || "\"On ne sauve pas un meuble pour qu'il paraisse neuf, mais pour qu'il reste vrai. L'imperfection est la signature de l'histoire, je suis juste là pour qu'elle continue.\""}
             </p>
 
             {/* Marge augmentée : mt-12 (was mt-8) */}

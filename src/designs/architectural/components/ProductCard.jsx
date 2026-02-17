@@ -47,18 +47,19 @@ const ProductCard = ({
                 />
 
                 {/* PREMIUM OVERLAY (Museum Gallery Hook - Desktop Only) */}
+                {/* PREMIUM OVERLAY (Museum Gallery Hook - Desktop Only, Responsive FLUID 1536px+ -> Infinite - REFINED SPACE) */}
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)] hidden lg:flex items-center justify-center">
-                    <div className="relative py-7 px-10 xl:py-9 xl:px-14 2xl:py-12 2xl:px-18 opacity-0 group-hover:opacity-100 transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)] flex flex-col items-center gap-3 xl:gap-4">
-                        {/* Minimal Architectural Frame (Corners) */}
-                        <div className="absolute top-0 left-0 w-3 h-3 xl:w-4 xl:h-4 border-t border-l border-white/40 translate-x-2 translate-y-2 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)]"></div>
-                        <div className="absolute top-0 right-0 w-3 h-3 xl:w-4 xl:h-4 border-t border-r border-white/40 -translate-x-2 translate-y-2 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)]"></div>
-                        <div className="absolute bottom-0 left-0 w-3 h-3 xl:w-4 xl:h-4 border-b border-l border-white/40 translate-x-2 -translate-y-2 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)]"></div>
-                        <div className="absolute bottom-0 right-0 w-3 h-3 xl:w-4 xl:h-4 border-b border-r border-white/40 -translate-x-2 -translate-y-2 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)]"></div>
+                    <div className="relative py-7 px-10 xl:py-7 xl:px-8 2xl:py-[2.5vw] 2xl:px-[3vw] opacity-0 group-hover:opacity-100 transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)] flex flex-col items-center gap-3 xl:gap-3 2xl:gap-[1vw]">
+                        {/* Minimal Architectural Frame (Corners - Fluid Size) */}
+                        <div className="absolute top-0 left-0 w-3 h-3 xl:w-3 xl:h-3 2xl:w-[0.9vw] 2xl:h-[0.9vw] border-t border-l border-white/40 translate-x-2 translate-y-2 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)]"></div>
+                        <div className="absolute top-0 right-0 w-3 h-3 xl:w-3 xl:h-3 2xl:w-[0.9vw] 2xl:h-[0.9vw] border-t border-r border-white/40 -translate-x-2 translate-y-2 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)]"></div>
+                        <div className="absolute bottom-0 left-0 w-3 h-3 xl:w-3 xl:h-3 2xl:w-[0.9vw] 2xl:h-[0.9vw] border-b border-l border-white/40 translate-x-2 -translate-y-2 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)]"></div>
+                        <div className="absolute bottom-0 right-0 w-3 h-3 xl:w-3 xl:h-3 2xl:w-[0.9vw] 2xl:h-[0.9vw] border-b border-r border-white/40 -translate-x-2 -translate-y-2 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)]"></div>
 
-                        <span className="text-[9px] xl:text-[10px] 2xl:text-[11px] font-sans font-black tracking-[0.4em] xl:tracking-[0.6em] 2xl:tracking-[0.8em] uppercase text-white translate-y-2 group-hover:translate-y-0 transition-transform duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)]">
+                        <span className="text-[9px] xl:text-[10px] 2xl:text-[0.6vw] font-sans font-black tracking-[0.4em] xl:tracking-[0.3em] 2xl:tracking-[0.5em] uppercase text-white translate-y-2 group-hover:translate-y-0 transition-transform duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)]">
                             Découvrir
                         </span>
-                        <div className="w-8 xl:w-10 2xl:w-14 h-[1.5px] bg-white/30 scale-x-0 group-hover:scale-x-100 transition-transform duration-[800ms] ease-[cubic-bezier(0.23,1,0.32,1)] origin-center"></div>
+                        <div className="w-8 xl:w-8 2xl:w-[2.5vw] h-[1.5px] bg-white/30 scale-x-0 group-hover:scale-x-100 transition-transform duration-[800ms] ease-[cubic-bezier(0.23,1,0.32,1)] origin-center"></div>
                     </div>
                 </div>
 
