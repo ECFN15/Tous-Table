@@ -424,3 +424,40 @@ Suite au déploiement des fonctionnalités "Admin Homepage", plusieurs incohére
 ---
 
 *Dernière mise à jour par l'IA : Session du 2026-02-16 (06:25). Admin Hotfix, GSAP Reactivity, Data Integrity & GSC.*
+
+---
+
+## 🚀 14. Branding & SEO Finalization (17 Février 2026)
+
+**Focus : Identité Visuelle, Visibilité Google & Sécurité du Déploiement**
+
+Une étape majeure a été franchie pour professionnaliser l'image de marque et l'infrastructure SEO du projet.
+
+### 🎨 Stratégie Favicon "Full-Bleed"
+*   **Problème** : Les favicons ronds ou détourés (PNG transparents) apparaissaient souvent flous ou trop petits dans les onglets de navigateur (16px).
+*   **Solution "Carré Universel"** : Adoption d'un favicon **Carré Plein** (`favV51.png` -> `favicon_final.png`).
+    *   **Style** : Marteau Or sur Fond Noir Charbon. Contraste maximal pour une lisibilité parfaite.
+    *   **Technique** : En fournissant un carré plein (Bleed), on laisse les plateformes gérer le découpage :
+        *   **Navigateurs PC** : Affichent le carré propre (Standard Moderne).
+        *   **Google Search / Mobile** : Arrondissent automatiquement les coins (Circle/Squircle) pour une intégration native.
+    *   **Implémentation** : Mise à jour de `index.html` et `manifest.json` pour pointer harmonieusement vers cette ressource unique.
+
+### 🗺️ SEO Technique & Sitemap Dynamique
+*   **Sitemap Automatisé** : Création d'une Cloud Function `sitemap` générant le XML en temps réel.
+    *   **Contenu** : Inclut dynamiquement toutes les routes statiques (`/`, `/gallery`) ET les produits actifs (`?product=ID`) depuis Firestore.
+    *   **Routing** : Configuration de `firebase.json` (`rewrites`) pour servir cette fonction sur `/sitemap.xml`.
+*   **Google Business Profile** : Création et validation de la fiche établissement "Atelier Normand — Tous à Table" (Ifs, 14123).
+    *   **Catégorie** : Magasin de meubles / Atelier de restauration.
+    *   **Impact** : Corrige l'affichage erroné (Traiteur) dans le Knowledge Graph de Google.
+
+### 🛡️ Sécurité Déploiement PROD (Rappel Critique)
+*   **Incident "Sandbox Data in Prod"** : Détection d'un risque majeur où un déploiement en production (`firebase use prod`) affichait les données de test.
+*   **Cause** : L'utilisation de la commande standard `npm run build` charge par défaut le fichier `.env` (qui pointe vers la Sandbox), même si l'alias Firebase est sur Prod.
+*   **Correctif** : L'environnement de PRODUCTION nécessite impérativement la commande :
+    ```bash
+    npm run build:prod
+    ```
+    Celle-ci charge `.env.prod` et connecte le Frontend à la base de données de production (`tousatable-client`).
+*   **Workflow Forcé** : Utilisation obligatoire de la commande `/production_workflow` pour garantir l'exécution des scripts de vérification.
+
+---
