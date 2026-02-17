@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Box, ArrowRight, Trophy, Zap, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Box, ArrowRight, Trophy, Zap, Clock, X, ZoomIn, Maximize2 } from 'lucide-react';
 import { db, appId, functions } from '../../firebase/config';
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
@@ -23,6 +23,37 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
     const [bidsHistory, setBidsHistory] = useState([]);
     const [activeBidInc, setActiveBidInc] = useState(null);
     const [bidProgress, setBidProgress] = useState(0);
+
+    // LIGHTBOX & ZOOM STATE
+    const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+    const [isZoomed, setIsZoomed] = useState(false);
+    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+    // TOUCH SWIPE STATE (Mobile)
+    const [touchStart, setTouchStart] = useState(null);
+    const [touchEnd, setTouchEnd] = useState(null);
+    const minSwipeDistance = 50;
+
+    const onTouchStart = (e) => {
+        setTouchEnd(null);
+        setTouchStart(e.targetTouches[0].clientX);
+    };
+
+    const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
+
+    const onTouchEnd = () => {
+        if (!touchStart || !touchEnd) return;
+        const distance = touchStart - touchEnd;
+        const isLeftSwipe = distance > minSwipeDistance;
+        const isRightSwipe = distance < -minSwipeDistance;
+
+        if (isLeftSwipe) {
+            setActiveImg(prev => prev === images.length - 1 ? 0 : prev + 1);
+        }
+        if (isRightSwipe) {
+            setActiveImg(prev => prev === 0 ? images.length - 1 : prev - 1);
+        }
+    };
 
     // WAKE UP CLOUD FUNCTIONS (Anti-Cold Start)
     useEffect(() => {
@@ -182,17 +213,21 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
 
 
                 {/* LEFT COLUMN: IMAGE GALLERY (Sticky on Desktop) */}
-                <div className="w-full md:w-1/2 h-[50vh] md:h-[calc(100vh-6rem)] md:sticky md:top-24 flex flex-col p-6 md:p-12">
+                <div className="w-full md:w-1/2 flex flex-col p-6 md:p-12 md:sticky md:top-24 h-auto md:h-[calc(100vh-6rem)] justify-center">
 
-                    {/* BACK BUTTON (Desktop - Above Image) */}
                     {/* BACK BUTTON (Desktop & Mobile - Above Image) */}
                     <button onClick={onBack} className="flex items-center gap-3 font-bold text-[10px] uppercase tracking-widest transition-colors hover:opacity-60 mb-6 opacity-60 hover:opacity-100">
                         <ChevronLeft size={14} /> Retour Collection
                     </button>
 
-                    {/* ROUNDED IMAGE CONTAINER */}
-                    <div className="relative w-full flex-1 rounded-[2.5rem] overflow-hidden shadow-2xl shadow-black/20 group"
+                    {/* ROUNDED IMAGE CONTAINER (Gallery Style - Full Bleed) */}
+                    <div
+                        className="relative w-full mx-auto rounded-[2.5rem] overflow-hidden shadow-2xl shadow-black/20 group bg-stone-100 dark:bg-[#151515] aspect-[3/4] md:aspect-auto md:h-full"
+                        onTouchStart={onTouchStart}
+                        onTouchMove={onTouchMove}
+                        onTouchEnd={onTouchEnd}
                         onClick={(e) => {
+                            // Standard Navigation on Click (Left/Right zones)
                             const rect = e.currentTarget.getBoundingClientRect();
                             const x = e.clientX - rect.left;
                             if (x < rect.width / 2) {
@@ -200,7 +235,10 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
                             } else {
                                 setActiveImg(prev => prev === images.length - 1 ? 0 : prev + 1);
                             }
-                        }}>
+                        }}
+                    >
+
+                        {/* Main Picture (Object Cover - No Margins) */}
                         <img
                             src={images[activeImg]}
                             className="w-full h-full object-cover transition-transform duration-700 ease-in-out"
@@ -212,13 +250,13 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
                             <>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === 0 ? images.length - 1 : prev - 1); }}
-                                    className="hidden md:flex absolute top-1/2 left-6 -translate-y-1/2 w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer drop-shadow-md bg-black/20 backdrop-blur-md rounded-full hover:bg-black/50 items-center justify-center outline-none ring-0 focus:outline-none focus:ring-0"
+                                    className="hidden md:flex absolute top-1/2 left-6 -translate-y-1/2 w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer drop-shadow-md bg-black/20 backdrop-blur-md rounded-full hover:bg-black/50 items-center justify-center outline-none ring-0 focus:outline-none focus:ring-0 z-20"
                                 >
                                     <ChevronLeft size={24} strokeWidth={2} />
                                 </button>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === images.length - 1 ? 0 : prev + 1); }}
-                                    className="hidden md:flex absolute top-1/2 right-6 -translate-y-1/2 w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer drop-shadow-md bg-black/20 backdrop-blur-md rounded-full hover:bg-black/50 items-center justify-center outline-none ring-0 focus:outline-none focus:ring-0"
+                                    className="hidden md:flex absolute top-1/2 right-6 -translate-y-1/2 w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer drop-shadow-md bg-black/20 backdrop-blur-md rounded-full hover:bg-black/50 items-center justify-center outline-none ring-0 focus:outline-none focus:ring-0 z-20"
                                 >
                                     <ChevronRight size={24} strokeWidth={2} />
                                 </button>
@@ -227,7 +265,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
 
                         {/* Pager (Bottom Overlay) */}
                         {images.length > 1 && (
-                            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3">
+                            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 z-20">
                                 {images.map((_, idx) => (
                                     <button
                                         key={idx}
@@ -237,8 +275,92 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
                                 ))}
                             </div>
                         )}
+
+                        {/* HINT: Click to Expand */}
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsLightboxOpen(true);
+                            }}
+                            className="absolute top-6 right-6 p-3 bg-black/20 backdrop-blur-md rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity duration-500 hover:bg-black/50 cursor-pointer z-30"
+                        >
+                            <Maximize2 size={20} />
+                        </button>
                     </div>
                 </div>
+
+                {/* --- LIGHTBOX FULLSCREEN (PREMIUM ZOOM) --- */}
+                {isLightboxOpen && (
+                    <div className="fixed inset-0 z-[100] bg-stone-950/95 backdrop-blur-2xl flex items-center justify-center animate-in fade-in duration-300">
+
+                        {/* CONTROLS */}
+                        <button
+                            onClick={() => { setIsLightboxOpen(false); setIsZoomed(false); }}
+                            className="absolute top-6 right-6 z-[110] p-4 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition-all"
+                        >
+                            <X size={32} />
+                        </button>
+
+                        <div className="absolute top-6 left-6 z-[110] text-white/50 text-[10px] font-black uppercase tracking-widest flex items-center gap-4">
+                            <span>{activeImg + 1} / {images.length}</span>
+                            <span className="hidden md:inline text-white/20">|</span>
+                            <span className="hidden md:inline">Molette/Clic pour zoomer</span>
+                        </div>
+
+                        {/* NAVIGATION (Desktop Arrows) */}
+                        {images.length > 1 && (
+                            <>
+                                <button className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 p-4 text-white/30 hover:text-white hover:scale-110 transition-all z-[110]"
+                                    onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === 0 ? images.length - 1 : prev - 1); }}>
+                                    <ChevronLeft size={48} strokeWidth={1} />
+                                </button>
+                                <button className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 p-4 text-white/30 hover:text-white hover:scale-110 transition-all z-[110]"
+                                    onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === images.length - 1 ? 0 : prev + 1); }}>
+                                    <ChevronRight size={48} strokeWidth={1} />
+                                </button>
+                            </>
+                        )}
+
+
+                        {/* MAIN IMAGE CONTAINER */}
+                        <div
+                            className={`w-full h-full flex items-center justify-center overflow-hidden transition-all duration-500 ${isZoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'}`}
+                            onClick={() => setIsZoomed(!isZoomed)}
+                            onMouseMove={(e) => {
+                                if (isZoomed) {
+                                    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+                                    const x = ((e.clientX - left) / width) * 100;
+                                    const y = ((e.clientY - top) / height) * 100;
+                                    setMousePos({ x, y });
+                                }
+                            }}
+                            onTouchMove={(e) => {
+                                // Simple Mobile Pan Support
+                                if (isZoomed) {
+                                    const touch = e.touches[0];
+                                    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+                                    const x = ((touch.clientX - left) / width) * 100;
+                                    const y = ((touch.clientY - top) / height) * 100;
+                                    setMousePos({ x, y });
+                                }
+                            }}
+                        >
+                            <img
+                                src={images[activeImg]}
+                                alt="Zoom"
+                                className="max-w-none max-h-none transition-transform duration-200 ease-out will-change-transform"
+                                style={{
+                                    height: isZoomed ? '200vh' : '90vh', // 200vh = Zoom x2 approx
+                                    width: 'auto',
+                                    objectFit: 'contain',
+                                    transformOrigin: `${mousePos.x}% ${mousePos.y}%`,
+                                    transform: isZoomed ? 'scale(1)' : 'scale(1)' // Scale is handled by height
+                                }}
+                                draggable={false}
+                            />
+                        </div>
+                    </div>
+                )}
 
                 {/* RIGHT COLUMN: NATURAL SCROLL (Fix Overflow) */}
                 <div className="w-full md:w-1/2 px-6 md:px-16 py-12 md:py-12 flex flex-col">
