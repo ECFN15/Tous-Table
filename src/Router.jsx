@@ -58,7 +58,8 @@ const AppRouter = ({
     setEditingItem,
     onOpenMenu,
     onOpenCart,
-    toggleTheme
+    toggleTheme,
+    onOpenDiscovery
 }) => {
     const { user, isAdmin, logout } = useAuth();
 
@@ -96,6 +97,7 @@ const AppRouter = ({
                         onEnterMarketplace={completeGalleryTransition}
                         onStartMarketplaceTransition={startGalleryTransition}
                         darkMode={darkMode}
+                        onOpenDiscovery={onOpenDiscovery}
                     />
                 </div>
             )}

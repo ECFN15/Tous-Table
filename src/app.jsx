@@ -141,33 +141,33 @@ const AppContent = () => {
     localStorage.setItem('darkMode', darkMode);
   }, [darkMode]);
 
-  // Marketplace Discovery Trigger (UNE SEULE FOIS par nouveau visiteur)
+  // Marketplace Discovery Trigger (STRICTEMENT sur Accueil)
   useEffect(() => {
-    // 1. Si déjà vu, on sort immédiatement
+    // 1. Si déjà vu, on sort
     const alreadySeen = localStorage.getItem('hasSeenMarketplacePopup');
     if (alreadySeen) return;
 
-    // 2. Ne pas déclencher sur les pages Marketplace
-    const currentView = view || 'home';
-    if (currentView === 'gallery' || currentView === 'detail') return;
+    // 2. Uniquement sur la page d'accueil (Home)
+    if (view !== 'home') return;
 
-    // 3. Attendre 2s pour éviter les faux déclenchements au chargement
+    // 3. Trigger au scroll sur l'accueil
     let scrollHandler = null;
     const timer = setTimeout(() => {
       scrollHandler = () => {
-        const scrollPosition = window.scrollY + window.innerHeight;
-        const pageHeight = document.documentElement.scrollHeight;
-        const isNearBottom = scrollPosition >= pageHeight - 300;
+        // On déclenche par exemple après 300px de scroll sur l'accueil
+        const scrollPosition = window.scrollY;
+        const triggerPoint = 400; // Un peu après le header
 
-        if (isNearBottom) {
-          console.log('MARKETPLACE POPUP TRIGGERED (scroll)');
+        // Sécurité supplémentaire : on vérifie encore la vue au moment du scroll
+        if (scrollPosition > triggerPoint && view === 'home') {
+          console.log('MARKETPLACE POPUP TRIGGERED (scroll on home)');
           setShowMarketplacePopup(true);
           localStorage.setItem('hasSeenMarketplacePopup', 'true');
           window.removeEventListener('scroll', scrollHandler);
         }
       };
       window.addEventListener('scroll', scrollHandler, { passive: true });
-    }, 2000);
+    }, 1500);
 
     return () => {
       clearTimeout(timer);
@@ -752,6 +752,7 @@ const AppContent = () => {
           onOpenMenu={() => setIsMenuOpen(true)}
           onOpenCart={() => { setCartInteracted(true); setIsCartOpen(true); }}
           toggleTheme={() => setDarkMode(!darkMode)}
+          onOpenDiscovery={() => setShowMarketplacePopup(true)}
         />
       </main>
       {['home', 'gallery', 'detail', 'checkout', 'my-orders'].includes(view) && (

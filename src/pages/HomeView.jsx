@@ -111,7 +111,7 @@ const AccordionItem = ({ question, answer, isOpen, onClick }) => {
   );
 };
 
-const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => {
+const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode, onOpenDiscovery }) => {
   // canvasRef removed (moved to ThreeBackground)
   const cursorRef = useRef(null);
   const componentRef = useRef(null);
@@ -867,6 +867,17 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         <div className="flex items-center gap-3 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
           <Hammer size={18} className="group-hover:rotate-45 transition-transform duration-500" />
           <span className="font-serif text-xl tracking-widest uppercase font-light italic text-white">Tous à Table</span>
+        </div>
+
+        {/* BOUTON DÉCOUVERTE MARKETPLACE (DANS LE HEADER ACCUEIL) */}
+        <div className="hidden md:flex items-center gap-6 absolute left-1/2 -translate-x-1/2">
+          <button
+            onClick={onOpenDiscovery}
+            className="group flex flex-col items-center gap-1 focus:outline-none"
+          >
+            <span className="text-[10px] uppercase tracking-[0.4em] font-light opacity-60 group-hover:opacity-100 transition-opacity">Marketplace</span>
+            <div className="h-px w-12 bg-white/20 group-hover:w-20 group-hover:bg-[#9C8268] transition-all duration-500"></div>
+          </button>
         </div>
 
         {/* BOUTON MENU ANIMÉ */}
