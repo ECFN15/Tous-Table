@@ -141,7 +141,7 @@ const AppContent = () => {
     localStorage.setItem('darkMode', darkMode);
   }, [darkMode]);
 
-  // Marketplace Discovery Trigger (STRICTEMENT sur Accueil)
+  // Marketplace Discovery Trigger (STRICTEMENT sur Accueil - Au Footer)
   useEffect(() => {
     // 1. Si déjà vu, on sort
     const alreadySeen = localStorage.getItem('hasSeenMarketplacePopup');
@@ -150,24 +150,23 @@ const AppContent = () => {
     // 2. Uniquement sur la page d'accueil (Home)
     if (view !== 'home') return;
 
-    // 3. Trigger au scroll sur l'accueil
+    // 3. Trigger au scroll (proche du bas / après FAQ)
     let scrollHandler = null;
     const timer = setTimeout(() => {
       scrollHandler = () => {
-        // On déclenche par exemple après 300px de scroll sur l'accueil
-        const scrollPosition = window.scrollY;
-        const triggerPoint = 400; // Un peu après le header
+        const scrollPosition = window.scrollY + window.innerHeight;
+        const pageHeight = document.documentElement.scrollHeight;
+        const triggerPoint = pageHeight - 400; // Proche du footer/après FAQ
 
-        // Sécurité supplémentaire : on vérifie encore la vue au moment du scroll
         if (scrollPosition > triggerPoint && view === 'home') {
-          console.log('MARKETPLACE POPUP TRIGGERED (scroll on home)');
+          console.log('MARKETPLACE POPUP TRIGGERED (bottom of home)');
           setShowMarketplacePopup(true);
           localStorage.setItem('hasSeenMarketplacePopup', 'true');
           window.removeEventListener('scroll', scrollHandler);
         }
       };
       window.addEventListener('scroll', scrollHandler, { passive: true });
-    }, 1500);
+    }, 2000);
 
     return () => {
       clearTimeout(timer);

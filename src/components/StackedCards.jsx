@@ -99,8 +99,8 @@ const ParallaxCard = ({ item, index, onEnterMarketplace }) => {
                     {/* Gradient Overlay - Fixed to the frame bottom */}
                     <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/40 to-transparent pointer-events-none"></div>
 
-                    {/* Badge - Mobile: Straddle (bottom-6 + translate-y-1/2) | Desktop: Float (bottom-8) */}
-                    <div className="absolute bottom-6 translate-y-1/2 md:bottom-8 md:translate-y-0 lg:bottom-10 left-1/2 -translate-x-1/2 flex items-center justify-center bg-[#1a1a1a] text-white px-5 py-2.5 md:px-6 md:py-3 rounded-full shadow-2xl z-20 whitespace-nowrap overflow-hidden">
+                    {/* Badge - Mobile & Desktop: Straddle the line (match -mt-6 / -mt-12) */}
+                    <div className="absolute bottom-6 translate-y-1/2 md:bottom-12 md:translate-y-1/2 left-1/2 -translate-x-1/2 flex items-center justify-center bg-[#1a1a1a] text-white px-5 py-2.5 md:px-6 md:py-3 rounded-full shadow-2xl z-20 whitespace-nowrap overflow-hidden">
                         <span className="text-[10px] md:text-[11px] lg:text-xs uppercase tracking-[0.3em] font-bold leading-none translate-y-[0.5px]">
                             {item.subtitle}
                         </span>
