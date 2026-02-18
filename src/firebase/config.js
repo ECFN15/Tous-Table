@@ -32,7 +32,7 @@ if (typeof window !== 'undefined') {
   }
 
   initializeAppCheck(app, {
-    provider: new ReCaptchaV3Provider('6Lc7OXAsAAAAAHz6Lwl5wWlhEP31TN_hOsWBhWde'),
+    provider: new ReCaptchaV3Provider(import.meta.env.VITE_RECAPTCHA_SITE_KEY),
     isTokenAutoRefreshEnabled: true // Renouvelle automatiquement le token
   });
 }

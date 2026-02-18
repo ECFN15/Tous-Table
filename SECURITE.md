@@ -96,9 +96,11 @@ Tous les headers sont déployés via `firebase.json` → `hosting.headers` sur l
 ### Enforcement (Console Firebase)
 | Service | Sandbox 🧪 | Production 🌍 |
 |---|---|---|
-| **Cloud Firestore** | ✅ **Appliqué** (Enforcement) | ✅ **Appliqué** (Enforcement) |
-| **Authentication** | ✅ **Appliqué** (Enforcement) | ✅ **Appliqué** (Enforcement) |
+| **Cloud Firestore** | 🟢 **Surveillance** (Monitored) | ✅ **Appliqué** (Enforcement) |
+| **Authentication** | 🟢 **Surveillance** (Monitored) | ✅ **Appliqué** (Enforcement) |
 | **Storage** | ⚪ Non appliqué | ⚪ Non appliqué |
+
+**Note Strategique** : L'environnement Sandbox est volontairement laissé en mode "Surveillance" pour faciliter le développement et éviter les blocages liés aux délais de propagation reCAPTCHA. La **Production** est, elle, totalement verrouillée.
 
 **Métriques Production au moment de l'activation** :
 - 82% requêtes Firestore validées
