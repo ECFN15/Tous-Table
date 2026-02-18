@@ -1,6 +1,6 @@
 ---
 project_name: "Tous à Table - Atelier Normand"
-last_updated: "2026-02-16 (Global Footer & Prod Security Workflow)"
+last_updated: "2026-02-18 (App Check & Security Hardening)"
 description: "Site e-commerce et vitrine pour un atelier d'ébénisterie d'art. Vente de meubles (enchères/achat direct) et planches à découper."
 stack:
   frontend: "React + Vite"
@@ -336,6 +336,56 @@ Une logique différenciée a été codée pour offrir la meilleure expérience s
 *Dernière mise à jour par l'IA : Session du 2026-02-16. Intégration Framer Motion, Stabilisation iOS, Responsive UX Logic.*
 
 ---
+
+## 🔒 16. Blindage Sécuritaire & App Check (18 Février 2026)
+
+**Focus : Protection Anti-Bot, Anti-XSS et Suppression de Faille Critique.**
+
+Une refonte majeure de la sécurité a été opérée pour passer d'un site "public" à une véritable forteresse numérique, protégeant l'intégrité des données et du serveur.
+
+### 🔴 Suppression Définitive de la Backdoor
+*   **Action** : Suppression irréversible de la fonction Cloud `initSuperAdmin`.
+*   **Raison** : Cette fonction permettait de promouvoir n'importe quel compte au rang d'admin via un secret textuel, constituant une faille critique de niveau 10/10.
+*   **Alternative** : La gestion des administrateurs se fait désormais exclusivement via la console Firebase (ajout manuel de `role: "admin"` dans le document `users/{uid}`).
+
+### 👻 Firebase App Check (reCAPTCHA v3)
+Mise en place d'un système de vérification silencieuse pour garantir que seules les requêtes venant du **vrai site** (Sandbox ou Prod) sont acceptées par Google.
+*   **Provider** : reCAPTCHA v3 Invisible (pas de puzzles à résoudre pour l'utilisateur).
+*   **Status** : **Mode Observation** actif sur Prod. Permet de monitorer le trafic avant de passer au blocage physique (Enforcement).
+*   **Infrastructure** :
+    *   **Prod** : `tousatable-madeinnormandie.fr` autorisé.
+    *   **Sandbox** : `tatmadeinnormandie.web.app` autorisé.
+    *   **Local** : Token de débogage activé pour le développement sans blocage.
+*   **Auth Anonyme** : Activation obligatoire dans la console Firebase pour permettre l'initialisation du service sans friction.
+
+### 🛡️ Content Security Policy (CSP) "Luxe & Sécurisé"
+Mise en place d'un header `Content-Security-Policy` complet dans `firebase.json` pour prévenir les attaques XSS.
+*   **Stratégie** : `default-src 'self'`. Tout ce qui n'est pas explicitement invité est bloqué.
+*   **Liste Blanche (Whitelist)** :
+    *   **Design** : `fonts.googleapis.com`, `fonts.gstatic.com`, `transparenttextures.com`, `images.unsplash.com`.
+    *   **Infra** : `firebaseio.com`, `googleapis.com`, `cloudfunctions.net`.
+    *   **Paiement** : `js.stripe.com`, `api.stripe.com`, `checkout.stripe.com`.
+    *   **Sécurité** : `www.google.com/recaptcha`, `www.gstatic.com`.
+*   **Résultat** : Un pirate ne peut plus charger de script extérieur malveillant, même s'il trouve une faille d'injection.
+
+### 🩹 Patchs Anti-XSS & Sanitization
+*   **Backend (`functions/index.js`)** :
+    *   **`shareMeta`** : Sanitization stricte du `productId` via Regex (Alphanumérique + Underscore uniquement) avant injection dans le HTML du bot Facebook/Twitter.
+    *   **`sendTestEmail`** : Nettoyage des données de debug pour ne plus fuiter le `cwd` (chemin serveur).
+*   **Frontend (`HomeView.jsx`, `Footer.jsx`)** :
+    *   **`sanitizeHtml` helper** : Création d'un utilitaire filtrant les balises HTML. Autorise uniquement le `<br />` pour la mise en forme.
+    *   **`dangerouslySetInnerHTML`** : Toutes les utilisations de cette fonction React sont désormais "enveloppées" par le sanitizer pour bloquer l'exécution de scripts cachés dans Firestore.
+
+### 📊 Optimisation Firestore (Console Debugging)
+*   **Règles `sys_metadata`** : Passage de la lecture `sys_metadata` en accès public (`allow read: if true`).
+*   **Raison** : Le thème et les images de marque étant essentiels au rendu visuel dès la première seconde, cela élimine les erreurs `Missing or insufficient permissions` dans la console et fluidifie le chargement pour les visiteurs anonymes.
+
+---
+
+*Dernière mise à jour par l'IA : Session du 2026-02-18 (23:10). App Check v3, CSP Hardening, XSS Sanitization & Backdoor Removal.*
+
+---
+
 
 ## 🎨 11. Restauration Expérience Historique & Polish Tactile (16 Février 2026)
 
