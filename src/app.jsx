@@ -275,7 +275,7 @@ const AppContent = () => {
 
   }, [user, isAdmin]); // Re-run when auth state changes
 
-  // --- PERSISTANCE NAVIGATION (HASH) ---
+  // --- PERSISTANCE NAVIGATION (HASH & URL) ---
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '');
@@ -287,18 +287,30 @@ const AppContent = () => {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
+  // Synchronisation URL <-> View State
   useEffect(() => {
-    // Ne pas mettre à jour le hash pour 'detail' pour l'instant (géré par query params ?product=)
-    // Mais pour les vues principales, on synchronise
-    if (view !== 'detail' && view !== 'home') {
-      window.location.hash = view;
+    if (view === 'detail' && selectedItemId) {
+      // Mode Produit : On affiche l'ID dans l'URL pour le partage
+      const newUrl = `/?product=${selectedItemId}`;
+      if (window.location.search !== `?product=${selectedItemId}`) {
+        window.history.pushState({ view: 'detail', itemId: selectedItemId }, '', newUrl);
+      }
+    } else if (view !== 'detail' && view !== 'home') {
+      // Autres vues : On utilise le hash (ex: #gallery)
+      // On nettoie les query params si on sort du détail
+      if (window.location.search.includes('product=')) {
+        const cleanUrl = `${window.location.pathname}#${view}`;
+        window.history.pushState({ view }, '', cleanUrl);
+      } else {
+        window.location.hash = view;
+      }
     } else if (view === 'home') {
-      // Nettoyer le hash si on revient à l'accueil (optionnel)
-      if (window.location.hash) {
+      // Home : Clean URL
+      if (window.location.hash || window.location.search) {
         window.history.replaceState(null, null, ' ');
       }
     }
-  }, [view]);
+  }, [view, selectedItemId]);
 
   // --- TRAITEMENT DEEP LINK ---
   useEffect(() => {

@@ -1415,7 +1415,7 @@ exports.sitemap = functions.https.onRequest(async (req, res) => {
 
     try {
         let xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
     <url>
         <loc>${SITE_URL}/</loc>
         <changefreq>weekly</changefreq>
@@ -1444,12 +1444,20 @@ exports.sitemap = functions.https.onRequest(async (req, res) => {
                     lastMod = item.createdAt.toDate().toISOString().split('T')[0];
                 }
 
+                // Image logic
+                const imgUrl = (item.images && item.images.length > 0) ? item.images[0] : (item.imageUrl || '');
+                const imgTag = imgUrl ? `
+        <image:image>
+            <image:loc>${imgUrl.replace(/&/g, '&amp;')}</image:loc>
+            <image:title>${(item.name || 'Produit').replace(/&/g, '&amp;')}</image:title>
+        </image:image>` : '';
+
                 xml += `
     <url>
         <loc>${SITE_URL}/?product=${doc.id}</loc>
         <lastmod>${lastMod}</lastmod>
         <changefreq>weekly</changefreq>
-        <priority>0.7</priority>
+        <priority>0.7</priority>${imgTag}
     </url>`;
             });
         }
@@ -1457,7 +1465,7 @@ exports.sitemap = functions.https.onRequest(async (req, res) => {
         xml += `
 </urlset>`;
 
-        res.set('Content-Type', 'application/xml');
+        res.set('Content-Type', 'text/xml'); // Better compatibility than application/xml
         // Cache 1h browser, 24h CDN
         res.set('Cache-Control', 'public, max-age=3600, s-maxage=86400');
         res.status(200).send(xml);
