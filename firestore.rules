@@ -89,8 +89,8 @@ service cloud.firestore {
     // System Metadata - PROTECTION CRITIQUE ADMIN
     // System Metadata - PROTECTION CRITIQUE ADMIN
     match /sys_metadata/{docId} {
-      // Les images et les infos de contact sont publiques !
-      allow read: if docId == 'homepage_images' || docId == 'contact_info' || isArtisan();
+      // Toutes les métadonnées système (Thème, Images, Contact) sont publiques !
+      allow read: if true;
       allow write: if isArtisan();
     }
 
