@@ -1,22 +1,30 @@
 const functions = require('firebase-functions/v1');
+const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
 const nodemailer = require('nodemailer');
-require('dotenv').config();
 
 admin.initializeApp();
 const db = admin.firestore();
 
-// Configuration du transporteur Gmail
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.GMAIL_EMAIL,
-        pass: (process.env.GMAIL_PASSWORD || '').replace(/\s/g, '')
-    },
-    tls: {
-        rejectUnauthorized: false
-    }
-});
+// SÉCURITÉ : Définition des Secrets (Secret Manager)
+const GMAIL_EMAIL = defineSecret('GMAIL_EMAIL');
+const GMAIL_PASSWORD = defineSecret('GMAIL_PASSWORD');
+const STRIPE_SECRET_KEY = defineSecret('STRIPE_SECRET_KEY');
+const STRIPE_WH_SECRET = defineSecret('STRIPE_WH_SECRET');
+
+// Configuration Lazy du transporteur Gmail (Dans onCall/onRequest pour accès aux secrets)
+const createTransporter = () => {
+    return nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: GMAIL_EMAIL.value(),
+            pass: GMAIL_PASSWORD.value().replace(/\s/g, '')
+        },
+        tls: {
+            rejectUnauthorized: false
+        }
+    });
+};
 
 // ============================================================
 // 0. HELPERS SÉCURITÉ (CENTRALISATION)
@@ -50,7 +58,7 @@ const checkIsSuperAdmin = (context) => {
 // ============================================================
 // 2. FONCTION ADMIN: RESET TOTAL (GRAND NETTOYAGE)
 // ============================================================
-exports.resetAllStats = functions.https.onCall(async (data, context) => {
+exports.resetAllStats = functions.runWith({ secrets: [GMAIL_EMAIL, GMAIL_PASSWORD] }).https.onCall(async (data, context) => {
     // 1. SÉCURITÉ CRITIQUE : Seul le Super Admin peut réinitialiser les stats globales
     checkIsSuperAdmin(context);
 
@@ -265,7 +273,7 @@ exports.placeBid = functions.https.onCall(async (data, context) => {
 // Stripe initialized inside function
 const Stripe = require('stripe');
 
-exports.createOrder = functions.https.onCall(async (data, context) => {
+exports.createOrder = functions.runWith({ secrets: [STRIPE_SECRET_KEY, GMAIL_EMAIL, GMAIL_PASSWORD] }).https.onCall(async (data, context) => {
     if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'Auth requise.');
 
     // ============================================================
@@ -278,13 +286,7 @@ exports.createOrder = functions.https.onCall(async (data, context) => {
     }
 
     // Initialisation Lazy de Stripe pour éviter les erreurs au déploiement
-    const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
-
-    // Vérification de la clé secrète Stripe
-    if (!process.env.STRIPE_SECRET_KEY) {
-        console.error("STRIPE_SECRET_KEY manquante dans l'environnement !");
-        throw new functions.https.HttpsError('internal', 'Erreur configuration paiement.');
-    }
+    const stripe = Stripe(STRIPE_SECRET_KEY.value());
 
     const userId = context.auth.uid;
     const { orderData } = data;
@@ -447,10 +449,10 @@ exports.createOrder = functions.https.onCall(async (data, context) => {
 });
 
 // Webhook Stripe pour valider la commande APRES paiement (Sécurité Max)
-exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
-    const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+exports.stripeWebhook = functions.runWith({ secrets: [STRIPE_SECRET_KEY, STRIPE_WH_SECRET] }).https.onRequest(async (req, res) => {
+    const stripe = Stripe(STRIPE_SECRET_KEY.value());
     const sig = req.headers['stripe-signature'];
-    const endpointSecret = process.env.STRIPE_WH_SECRET;
+    const endpointSecret = STRIPE_WH_SECRET.value();
 
     // Firebase Functions v1 parses the body automatically, but provides req.rawBody 
     // which is REQUIRED for Stripe signature verification.
@@ -577,25 +579,27 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
     res.json({ received: true });
 });
 
-exports.onOrderCreated = functions.firestore
+exports.onOrderCreated = functions.runWith({ secrets: [GMAIL_EMAIL, GMAIL_PASSWORD] }).firestore
     .document('orders/{orderId}')
     .onCreate(async (snap, context) => {
         console.log("⚡ onOrderCreated TRIGGERED! ID:", context.params.orderId);
 
         const order = snap.data();
         console.log("📧 Config Check:", {
-            hasEmail: !!process.env.GMAIL_EMAIL,
+            hasEmail: !!GMAIL_EMAIL.value(),
             userEmail: order.userEmail,
             total: order.total
         });
 
-        if (!process.env.GMAIL_EMAIL) {
+        if (!GMAIL_EMAIL.value()) {
             console.error("❌ Email non configuré (GMAIL_EMAIL manquant).");
             return;
         }
 
-        const adminEmail = process.env.GMAIL_EMAIL;
+        const adminEmail = GMAIL_EMAIL.value();
         const clientEmail = order.userEmail;
+
+        const transporter = createTransporter();
 
         // --- 1. EMAIL ADMIN ---
         const itemsHtml = (order.items || []).map(i =>
@@ -877,30 +881,34 @@ exports.removeAdminUser = functions.https.onCall(async (data, context) => {
 });
 
 // Outil de diagnostic (Email)
-exports.sendTestEmail = functions.https.onCall(async (data, context) => {
+exports.sendTestEmail = functions.runWith({ secrets: [GMAIL_EMAIL, GMAIL_PASSWORD] }).https.onCall(async (data, context) => {
     // 1. Sécurité (Admin ou Super)
     checkIsAdmin(context);
 
+    // Initialisation du transporteur avec les secrets
+    const transporter = createTransporter();
+    const adminEmail = GMAIL_EMAIL.value();
+
     const debugInfo = {
-        hasEmailEnv: !!process.env.GMAIL_EMAIL,
-        hasPassEnv: !!process.env.GMAIL_PASSWORD,
-        emailConfigured: process.env.GMAIL_EMAIL,
+        hasEmailEnv: !!adminEmail,
+        hasPassEnv: !!GMAIL_PASSWORD.value(),
+        emailConfigured: adminEmail,
         nodeCwd: process.cwd()
     };
 
     console.log("🔍 Diagnostic Email:", debugInfo);
 
-    if (!process.env.GMAIL_EMAIL || !process.env.GMAIL_PASSWORD) {
+    if (!adminEmail || !GMAIL_PASSWORD.value()) {
         return {
             success: false,
-            error: "Variables d'environnement GMAIL manquantes.",
+            error: "Secrets GMAIL manquants.",
             debug: debugInfo
         };
     }
 
     const mailOptions = {
-        from: `Tous à Table Test <${process.env.GMAIL_EMAIL}>`,
-        to: process.env.GMAIL_EMAIL, // S'envoyer à soi-même
+        from: `Tous à Table Test <${adminEmail}>`,
+        to: adminEmail, // S'envoyer à soi-même
         subject: `[Diagnostic] Test Email`,
         text: `Ceci est un test.\n\nDebug Info:\n${JSON.stringify(debugInfo, null, 2)}`
     };
