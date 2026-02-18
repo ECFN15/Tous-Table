@@ -108,38 +108,32 @@ const ParallaxCard = ({ item, index, onEnterMarketplace }) => {
                 </div>
 
                 {/* 2. TEXT ZONE */}
-                <div className="relative z-10 w-full h-[42%] md:h-[45%] flex flex-col items-center pt-4 md:pt-6 pb-6 md:pb-8 px-6 md:px-16 text-center -mt-8 md:-mt-16">
+                <div className="relative z-10 w-full flex-1 flex flex-col items-center justify-between pt-6 pb-8 px-4 md:px-12 text-center -mt-6 md:-mt-12 bg-[#FAF9F6]">
 
                     {/* 1. TITLES (Top) */}
-                    <div className="w-full flex-shrink-0">
-                        <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl leading-[1.1] md:leading-[1] text-[#1a1a1a] mix-blend-multiply drop-shadow-sm" style={{ color: item.textColor }}>
+                    <div className="w-full">
+                        <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-[1.1] text-[#1a1a1a] mix-blend-multiply drop-shadow-sm transition-all duration-300" style={{ color: item.textColor }}>
                             {item.title[0]}
                             {(item.showTitle2 !== false && item.title[1]) && (
                                 <>
                                     <br />
-                                    <span className="italic font-light text-[0.65em] opacity-80 block mt-1 md:mt-2">{item.title[1]}</span>
+                                    <span className="italic font-light text-[0.6em] opacity-80 block mt-1">{item.title[1]}</span>
                                 </>
                             )}
                         </h2>
                     </div>
 
-                    {/* SPACER 1 (Minimum height to avoid sticking) */}
-                    <div className="flex-grow min-h-[1.5rem] md:min-h-[2rem]" />
-
-                    {/* 2. DESCRIPTION (Center - Locked in the middle) */}
-                    <div className="flex-shrink-0 w-full">
-                        <div className="mx-auto max-w-[85%] sm:max-w-xl">
-                            <p className="text-[10px] md:text-xs lg:text-[13px] uppercase tracking-[0.2em] font-light md:opacity-60 leading-[1.6]" style={{ color: item.textColor }}>
+                    {/* 2. DESCRIPTION (Center) */}
+                    <div className="w-full py-4 md:py-6">
+                        <div className="mx-auto max-w-[90%] sm:max-w-md md:max-w-lg">
+                            <p className="text-[9px] sm:text-[10px] md:text-xs uppercase tracking-[0.15em] font-light opacity-70 leading-relaxed" style={{ color: item.textColor }}>
                                 {item.desc}
                             </p>
                         </div>
                     </div>
 
-                    {/* SPACER 2 (Equal to Spacer 1) */}
-                    <div className="flex-grow min-h-[1.5rem] md:min-h-[2rem]" />
-
-                    {/* 3. ACTION BUTTON (Bottom) */}
-                    <div className="w-full flex justify-center flex-shrink-0">
+                    {/* 3. ACTION BUTTON (Bottom - Always Visible) */}
+                    <div className="w-full flex justify-center pb-2">
                         <button onClick={onEnterMarketplace} className="flex items-center gap-4 md:gap-5 group text-[#1a1a1a]">
                             <RotatingButton id={item.id} />
                             <span className="text-[10px] md:text-xs uppercase tracking-[0.4em] font-medium text-[#1a1a1a]">

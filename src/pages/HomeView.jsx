@@ -145,7 +145,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         (homepageImages && homepageImages['featured_1_text']?.title_2) || "Signature"
       ],
       showTitle2: (homepageImages && homepageImages['featured_1_text']?.show_title_2) !== false,
-      desc: (homepageImages && homepageImages['featured_1_text']?.desc) || "\"Une renaissance historique pour l'époque contemporaine.\"",
+      desc: (homepageImages && homepageImages['featured_1_text']?.desc) || "\"Découvrez la finesse d'un bois exotique rouge, sublimé par un travail minutieux.\"",
       img: (homepageImages && homepageImages.featured_1) || "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1200",
       imgMobile: (homepageImages && homepageImages.featured_1_mobile) || (homepageImages && homepageImages.featured_1) || "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=800",
       bgColor: "#FFFEFA",

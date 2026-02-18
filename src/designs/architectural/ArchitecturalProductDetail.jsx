@@ -276,16 +276,20 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
                             </div>
                         )}
 
-                        {/* HINT: Click to Expand */}
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setIsLightboxOpen(true);
-                            }}
-                            className="absolute top-6 right-6 p-3 bg-black/20 backdrop-blur-md rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity duration-500 hover:bg-black/50 cursor-pointer z-30"
-                        >
-                            <Maximize2 size={20} />
-                        </button>
+                        {/* HINT: Click to Expand (With Luminous Ripple) */}
+                        <div className="absolute top-4 right-4 md:top-6 md:right-6 z-30 transition-all duration-500">
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setIsLightboxOpen(true);
+                                }}
+                                className="relative flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/20 backdrop-blur-md border border-white/10 hover:bg-black/40 transition-all active:scale-95 text-white shadow-xl"
+                            >
+                                {/* Ripple Effect (Liseret Lumineux) */}
+                                <span className="absolute inset-0 rounded-full border border-white/60 animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite] opacity-50"></span>
+                                <Maximize2 className="relative z-10 w-4 h-4 md:w-5 md:h-5" />
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -348,13 +352,14 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
                             <img
                                 src={images[activeImg]}
                                 alt="Zoom"
-                                className="max-w-none max-h-none transition-transform duration-200 ease-out will-change-transform"
-                                style={{
-                                    height: isZoomed ? '200vh' : '90vh', // 200vh = Zoom x2 approx
+                                className={`transition-transform duration-200 ease-out will-change-transform ${isZoomed ? '' : 'max-w-full max-h-[90vh] object-contain'}`}
+                                style={isZoomed ? {
+                                    height: '200vh', // Force huge height for zoom
                                     width: 'auto',
-                                    objectFit: 'contain',
-                                    transformOrigin: `${mousePos.x}% ${mousePos.y}%`,
-                                    transform: isZoomed ? 'scale(1)' : 'scale(1)' // Scale is handled by height
+                                    transformOrigin: `${mousePos.x}% ${mousePos.y}%`
+                                } : {
+                                    // Unzoomed: Natural size constrained by max-w/max-h classes
+                                    transform: 'scale(1)'
                                 }}
                                 draggable={false}
                             />
