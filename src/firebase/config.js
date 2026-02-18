@@ -4,6 +4,7 @@ import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 import { getFunctions } from 'firebase/functions';
 import { getAnalytics } from 'firebase/analytics';
+import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
 
 // --- CONFIGURATION FIREBASE (Via Variables d'Environnement) ---
 // Cette configuration est chargée dynamiquement depuis le fichier .env
@@ -18,6 +19,24 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+
+// ============================================================
+// SÉCURITÉ: Firebase App Check (Anti-Bot / Anti-Script)
+// Vérifie silencieusement que les requêtes viennent du vrai site.
+// En mode développement (localhost), utilise un token debug.
+// ============================================================
+if (typeof window !== 'undefined') {
+  // Active le mode debug pour localhost (npm run dev)
+  if (window.location.hostname === 'localhost') {
+    self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+  }
+
+  initializeAppCheck(app, {
+    provider: new ReCaptchaV3Provider('6Lc7OXAsAAAAAHz6Lwl5wWlhEP31TN_hOsWBhWde'),
+    isTokenAutoRefreshEnabled: true // Renouvelle automatiquement le token
+  });
+}
+
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
