@@ -461,3 +461,36 @@ Une étape majeure a été franchie pour professionnaliser l'image de marque et 
 *   **Workflow Forcé** : Utilisation obligatoire de la commande `/production_workflow` pour garantir l'exécution des scripts de vérification.
 
 ---
+
+## 🌀 15. Refonte Marketplace Discovery ("Ondulation") (18 Février 2026 - 04:15)
+
+**Objectif : Design Immersif & Transition Cinématographique**
+
+Une refonte complète de la popup d'incitation à la Marketplace a été réalisée pour maximiser l'élégance et la fluidité de l'expérience utilisateur.
+
+### 🎨 Design "Ondulation" (Héritage Magic UI)
+*   **Identité Visuelle** : Adoption d'un style **Sombre & Profond** (Dark Mode Only).
+*   **Fond Immersif** : Création d'un **Dégradé Radial** (`#2a2a2a` Centre -> `#000000` Bords) qui agit comme un projecteur mettant en lumière le titre.
+*   **Animation Ripple** : Intégration d'un effet d'onde (cercles concentriques) avec un **Masque Dégradé** (`mask-image: linear-gradient`) pour que l'animation s'estompe élégamment vers le bas.
+*   **Typographie** : "MARKETPLACE" en majuscules Serif, très espacé (`tracking-[0.2em]`), centré en majesté.
+
+### 🧠 Logique de Déclenchement (Smart Trigger)
+*   **Détection Scroll** : Abandon de l'`IntersectionObserver` (instable) au profit d'un écouteur de scroll simple vérifiant la proximité du bas de page (< 300px).
+*   **Fréquence** : **Une seule fois par vie**. La popup s'affiche lors de la première visite, puis son état est enregistré définitivement dans le `localStorage`. Elle ne réapparaît plus jamais pour ne pas harceler l'habitué.
+*   **Temporisation** : Délai de sécurité de 2 secondes au chargement pour éviter les déclenchements intempestifs lors de la restauration du scroll.
+
+### 🎬 Transition Cinématographique (Lag-Free)
+*   **Problème** : Le chargement standard de la page Marketplace (`href`) pouvait causer un "blanc" ou un lag visible.
+*   **Solution "Le Rideau"** :
+    1.  **Clic "Explorer"** : La popup joue son animation de fermeture.
+    2.  **Fade to Black** : Le rideau de transition global (`startGalleryTransition`) fond au noir par-dessus l'interface.
+    3.  **Switch Invisible** : Le changement de vue React (`setView('gallery')`) s'opère pendant que l'écran est noir.
+    4.  **Révélation** : Le rideau se lève (`completeGalleryTransition`) sur la Galerie chargée et prête.
+*   **Résultat** : Une navigation ressentie comme **instantanée et premium**.
+
+### 📱 Responsive & Accessibilité
+*   **Bouton "Explorer" Hybride** :
+    *   **Desktop** : Apparaît uniquement au **Survol** (élégance minimaliste).
+    *   **Mobile** : Reste **Toujours Visible** (accessibilité tactile immédiate sans clic préalable).
+
+---

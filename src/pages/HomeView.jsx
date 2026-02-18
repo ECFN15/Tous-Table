@@ -1003,7 +1003,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
                 className="font-serif text-4xl md:text-5xl lg:text-6xl italic leading-tight text-[#1a1a1a] md:whitespace-nowrap"
                 dangerouslySetInnerHTML={{ __html: homepageImages['manifesto_3_text']?.title || "La Renaissance <br /> d'un Chef-d'œuvre" }}
               />
-              <p className="text-sm md:text-lg font-light opacity-60 leading-relaxed text-[#1a1a1a]">
+              <p className="text-[10px] md:text-xs opacity-60 font-light leading-relaxed uppercase tracking-[0.25em] text-[#1a1a1a]">
                 {homepageImages['manifesto_3_text']?.desc || "Après 400 heures de restauration méticuleuse, cette pièce a retrouvé sa profondeur originelle. Un dialogue suspendu entre le XVIIIème et aujourd'hui."}
               </p>
               <button onClick={onEnterMarketplace} className="flex items-center gap-6 group">

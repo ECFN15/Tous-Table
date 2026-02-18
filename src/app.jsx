@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import {
   onSnapshot, collection, doc, updateDoc, deleteDoc, serverTimestamp, addDoc, query, orderBy, getDocs, writeBatch
@@ -6,7 +7,7 @@ import {
 import { httpsCallable } from 'firebase/functions'; // Added for logUserConnection
 // Auth imports removed (handled in Context)
 import {
-  Hammer, LogOut, ShieldCheck, Menu, X, Instagram, Mail, User, Eye, EyeOff, Pencil, Trash2, Trophy, ShoppingBag, Sun, Moon
+  Hammer, LogOut, ShieldCheck, Menu, X, Instagram, Mail, User, Eye, EyeOff, Pencil, Trash2, Trophy, ShoppingBag, Sun, Moon, Facebook
 } from 'lucide-react';
 
 // --- IMPORTS CONFIG & UTILS ---
@@ -20,6 +21,9 @@ import CartSidebar from './components/CartSidebar';
 import Footer from './components/Footer';
 import SEO from './components/SEO';
 
+
+import MarketplaceDiscovery from './components/MarketplaceDiscovery';
+
 const AppContent = () => {
 
   // Use Auth Context
@@ -27,6 +31,24 @@ const AppContent = () => {
 
   const [items, setItems] = useState([]);
   const [boardItems, setBoardItems] = useState([]); // New: Planches
+  const [contactInfo, setContactInfo] = useState({});
+
+
+  const [showMarketplacePopup, setShowMarketplacePopup] = useState(false);
+  const footerRef = useRef(null);
+  const hasTriggeredPopup = useRef(false);
+
+
+
+
+
+  // Fetch Contact Info for Menu
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'sys_metadata', 'contact_info'), (snap) => {
+      if (snap.exists()) setContactInfo(snap.data());
+    });
+    return () => unsub();
+  }, []);
 
   // Cart State
   const [cartItems, setCartItems] = useState([]);
@@ -118,6 +140,41 @@ const AppContent = () => {
     }
     localStorage.setItem('darkMode', darkMode);
   }, [darkMode]);
+
+  // Marketplace Discovery Trigger (UNE SEULE FOIS par nouveau visiteur)
+  useEffect(() => {
+    // 1. Si déjà vu, on sort immédiatement
+    const alreadySeen = localStorage.getItem('hasSeenMarketplacePopup');
+    if (alreadySeen) return;
+
+    // 2. Ne pas déclencher sur les pages Marketplace
+    const currentView = view || 'home';
+    if (currentView === 'gallery' || currentView === 'detail') return;
+
+    // 3. Attendre 2s pour éviter les faux déclenchements au chargement
+    let scrollHandler = null;
+    const timer = setTimeout(() => {
+      scrollHandler = () => {
+        const scrollPosition = window.scrollY + window.innerHeight;
+        const pageHeight = document.documentElement.scrollHeight;
+        const isNearBottom = scrollPosition >= pageHeight - 300;
+
+        if (isNearBottom) {
+          console.log('MARKETPLACE POPUP TRIGGERED (scroll)');
+          setShowMarketplacePopup(true);
+          localStorage.setItem('hasSeenMarketplacePopup', 'true');
+          window.removeEventListener('scroll', scrollHandler);
+        }
+      };
+      window.addEventListener('scroll', scrollHandler, { passive: true });
+    }, 2000);
+
+    return () => {
+      clearTimeout(timer);
+      if (scrollHandler) window.removeEventListener('scroll', scrollHandler);
+    };
+  }, [view]);
+
 
   useEffect(() => {
     const handleScroll = () => {
@@ -569,9 +626,25 @@ const AppContent = () => {
                   <p className={`text-[10px] uppercase tracking-widest ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>Connecté</p>
                 </div>
               )}
-              <div className="flex gap-6">
-                <a href="#" className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${darkMode ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-stone-50 hover:bg-stone-900 hover:text-white'}`}><Instagram size={20} /></a>
-                <a href="mailto:contact@tat.fr" className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${darkMode ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-stone-50 hover:bg-stone-900 hover:text-white'}`}><Mail size={20} /></a>
+              <div className="flex gap-4 sm:gap-6">
+                {contactInfo?.instagram && (
+                  <a
+                    href={contactInfo.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${darkMode ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-stone-50 hover:bg-stone-900 hover:text-white'}`}
+                  >
+                    <Instagram size={20} />
+                  </a>
+                )}
+                {contactInfo?.facebook && (
+                  <a href={contactInfo.facebook} target="_blank" rel="noopener noreferrer" className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${darkMode ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-stone-50 hover:bg-stone-900 hover:text-white'}`}>
+                    <Facebook size={20} />
+                  </a>
+                )}
+                <a href={`mailto:${contactInfo?.email}`} className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${darkMode ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-stone-50 hover:bg-stone-900 hover:text-white'}`}>
+                  <Mail size={20} />
+                </a>
               </div>
             </div>
           </div>
@@ -669,7 +742,24 @@ const AppContent = () => {
           toggleTheme={() => setDarkMode(!darkMode)}
         />
       </main>
-      {['home', 'gallery', 'detail', 'checkout', 'my-orders'].includes(view) && <Footer darkMode={darkMode} />}
+      {['home', 'gallery', 'detail', 'checkout', 'my-orders'].includes(view) && (
+        <div ref={footerRef}>
+          <Footer darkMode={darkMode} />
+        </div>
+      )}
+
+      {/* Global Popups */}
+      <MarketplaceDiscovery
+        isOpen={showMarketplacePopup}
+        onClose={() => setShowMarketplacePopup(false)}
+        onExplore={() => {
+          setShowMarketplacePopup(false);
+          startGalleryTransition();
+          setTimeout(() => {
+            completeGalleryTransition();
+          }, 800);
+        }}
+      />
     </div>
   );
 };

@@ -54,17 +54,18 @@ const MarketplaceLayout = ({
                         Collection 2026
                     </span>
                     <h2 className={`font-serif text-4xl md:text-7xl lg:text-8xl leading-[0.9] min-h-[1.8em] flex items-center justify-center ${darkMode ? 'text-stone-100' : 'text-stone-900'}`}>
-                        {activeCollection === 'furniture' ? (
-                            <TextType
-                                text={["Tous à Table", "Savoir-Faire", "Made in Normandie", "L'Élégance du Temps.", "Votre Intérieur Sublimé."]}
-                                typingSpeed={150}
-                                deletingSpeed={50}
-                                pauseDuration={1500}
-                                loop={true}
-                                showCursor={true}
-                                cursorCharacter="_"
-                            />
-                        ) : 'L\'Art de la Table.'}
+                        <TextType
+                            key={activeCollection}
+                            text={activeCollection === 'furniture'
+                                ? ["Tous à Table", "Savoir-Faire", "Made in Normandie", "L'Élégance du Temps.", "Votre Intérieur Sublimé."]
+                                : ["L'Art de la Table.", "Apéro Chic.", "Pièce Unique.", "Service d'Exception."]}
+                            typingSpeed={150}
+                            deletingSpeed={50}
+                            pauseDuration={1500}
+                            loop={true}
+                            showCursor={true}
+                            cursorCharacter="_"
+                        />
                     </h2>
 
                     {/* MOBILE NAVIGATION BUTTONS (Integrated in Hero space) */}

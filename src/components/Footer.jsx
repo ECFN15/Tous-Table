@@ -69,7 +69,12 @@ const Footer = ({ darkMode }) => {
                         <div className="flex flex-col md:flex-row gap-8 md:gap-12 lg:gap-16 pt-4 md:pt-0">
                             {/* Instagram */}
                             {contactInfo.instagram && (
-                                <a href={contactInfo.instagram} target="_blank" rel="noopener noreferrer" className="flex gap-4 items-center opacity-40 hover:opacity-100 transition-all duration-500 group">
+                                <a
+                                    href={contactInfo.instagram}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex gap-4 items-center opacity-40 hover:opacity-100 transition-all duration-500 group"
+                                >
                                     <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center group-hover:border-[#E1306C] group-hover:bg-[#E1306C]/10 group-hover:scale-110 transition-all duration-500">
                                         <Instagram size={20} className="text-white group-hover:text-[#E1306C] transition-colors duration-500" />
                                     </div>
