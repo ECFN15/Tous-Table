@@ -3,6 +3,13 @@ import { Instagram, Facebook, Mail } from 'lucide-react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
+// SÉCURITÉ: Sanitize HTML — Autorise uniquement <br> et <br /> (Anti-XSS)
+const sanitizeHtml = (html) => {
+    if (!html || typeof html !== 'string') return '';
+    const escaped = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return escaped.replace(/&lt;br\s*\/?&gt;/gi, '<br />');
+};
+
 const Footer = ({ darkMode }) => {
     const [contactInfo, setContactInfo] = useState({
         email: 'atelier@tousatable.fr',
@@ -35,7 +42,7 @@ const Footer = ({ darkMode }) => {
                         </span>
                         <h2
                             className="font-serif text-5xl md:text-7xl lg:text-7xl xl:text-8xl 2xl:text-9xl leading-[0.95] md:leading-[0.9] font-light italic hover:translate-x-4 transition-transform duration-700 cursor-default text-white break-words"
-                            dangerouslySetInnerHTML={{ __html: (contactInfo.footerTitle || "Éveiller\nl'Immobile.").replace(/\n/g, '<br />') }}
+                            dangerouslySetInnerHTML={{ __html: sanitizeHtml((contactInfo.footerTitle || "Éveiller\nl'Immobile.").replace(/\n/g, '<br />')) }}
                         >
                         </h2>
                     </div>

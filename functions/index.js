@@ -682,8 +682,10 @@ exports.onOrderCreated = functions.runWith({ secrets: [GMAIL_EMAIL, GMAIL_PASSWO
 
 exports.shareMeta = functions.https.onRequest(async (req, res) => {
     const SITE_URL = 'https://tatmadeinnormandie.web.app';
-    const productId = req.query.product;
-    // ... Logique existante simple ...
+    // SÉCURITÉ: Sanitize productId — alphanumériques et underscores uniquement (Anti-XSS)
+    const rawProductId = req.query.product || '';
+    const productId = rawProductId.replace(/[^a-zA-Z0-9_-]/g, '');
+
     let title = "Tous à Table";
     let desc = "Atelier Normand";
     let img = `${SITE_URL}/assets/logo.png`;
@@ -695,17 +697,20 @@ exports.shareMeta = functions.https.onRequest(async (req, res) => {
         } catch (e) { }
     }
 
+    // SÉCURITÉ: Échapper les valeurs injectées dans le HTML
+    const escapeHtml = (str) => str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
     const html = `
     <!doctype html>
     <head>
-        <title>${title}</title>
-        <meta property="og:title" content="${title}">
-        <meta property="og:description" content="${desc}">
-        <meta property="og:image" content="${img}">
+        <title>${escapeHtml(title)}</title>
+        <meta property="og:title" content="${escapeHtml(title)}">
+        <meta property="og:description" content="${escapeHtml(desc)}">
+        <meta property="og:image" content="${escapeHtml(img)}">
         <meta name="twitter:card" content="summary_large_image">
     </head>
     <body>
-        <script>window.location.href = "/?product=${productId || ''}";</script>
+        <script>window.location.href = "/?product=${productId}";</script>
     </body>
     `;
     res.send(html);
@@ -889,11 +894,10 @@ exports.sendTestEmail = functions.runWith({ secrets: [GMAIL_EMAIL, GMAIL_PASSWOR
     const transporter = createTransporter();
     const adminEmail = GMAIL_EMAIL.value();
 
+    // SÉCURITÉ: Ne PAS exposer d'infos système (process.cwd, chemins serveur, etc.)
     const debugInfo = {
         hasEmailEnv: !!adminEmail,
-        hasPassEnv: !!GMAIL_PASSWORD.value(),
-        emailConfigured: adminEmail,
-        nodeCwd: process.cwd()
+        hasPassEnv: !!GMAIL_PASSWORD.value()
     };
 
     console.log("🔍 Diagnostic Email:", debugInfo);
@@ -994,6 +998,24 @@ exports.logUserConnection = functions.https.onCall(async (data, context) => {
     // 1. Vérification basique
     if (!context.auth) return { success: false, message: "Unauthenticated" };
 
+    const userId = context.auth.uid;
+
+    // ============================================================
+    // RATE LIMITING: Max 1 appel / 10 minutes par utilisateur
+    // Empêche un attaquant de saturer Firestore avec des écritures en boucle
+    // ============================================================
+    const rateLimitRef = db.doc(`sys_ratelimit/log_${userId}`);
+    const rateLimitSnap = await rateLimitRef.get();
+    const rateLimitData = rateLimitSnap.exists ? rateLimitSnap.data() : { count: 0, resetAt: 0 };
+
+    if (Date.now() < rateLimitData.resetAt && rateLimitData.count >= 1) {
+        // Silently succeed — on ne veut pas bloquer l'UX, juste ignorer les appels excessifs
+        return { success: true, rateLimited: true };
+    }
+
+    // Update rate limit (10 min window)
+    rateLimitRef.set({ count: 1, resetAt: Date.now() + 600000 }).catch(() => { });
+
     try {
         // 2. Extraction IP
         // Sur Cloud Functions, l'IP réelle passe par le load balancer dans 'x-forwarded-for'
@@ -1003,7 +1025,7 @@ exports.logUserConnection = functions.https.onCall(async (data, context) => {
         const userAgent = context.rawRequest.headers['user-agent'] || 'Unknown';
 
         // 3. Stockage Sécurisé dans Firestore
-        const userRef = db.collection('users').doc(context.auth.uid);
+        const userRef = db.collection('users').doc(userId);
 
         // On met à jour la dernière IP et on l'ajoute à l'historique (limité aux 50 dernières pour pas exploser)
         // Note: arrayUnion ajoute seulement si unique, mais ici avec le timestamp ça sera toujours unique.
@@ -1363,54 +1385,11 @@ exports.onArtifactDeleted = functions.runWith({ timeoutSeconds: 300 }).firestore
 
 
 // ============================================================
-// 12. INITIALISATION SUPER ADMIN (ONE SHOT PROD)
 // ============================================================
-exports.initSuperAdmin = functions.https.onRequest(async (req, res) => {
-    // Sécurité par Secret Query Param (pour éviter que n'importe qui lance l'URL)
-    const secret = req.query.secret;
-    if (secret !== 'Normandie2026!') {
-        return res.status(403).send('Forbidden');
-    }
-
-    const email = 'matthis.fradin2@gmail.com';
-
-    try {
-        // 1. Trouver l'UID Auth réel
-        const userRecord = await admin.auth().getUserByEmail(email);
-        const uid = userRecord.uid;
-
-        // 2. Grant Claims (Admin + SuperAdmin)
-        await admin.auth().setCustomUserClaims(uid, { admin: true, super_admin: true });
-
-        // 3. Force Write Firestore (Même si existe déjà, écrase avec les bons droits)
-        await db.doc('sys_metadata/admin_users').set({
-            users: {
-                [uid]: {
-                    uid: uid,
-                    email: email,
-                    name: userRecord.displayName || 'Matthis Fradin',
-                    role: 'super_admin', // LE GRALL
-                    status: 'active',
-                    addedAt: admin.firestore.FieldValue.serverTimestamp(),
-                    protected: true // Marqueur visuel
-                }
-            }
-        }, { merge: true });
-
-        // 4. Update User Document for Frontend Role Check
-        await db.collection('users').doc(uid).set({
-            role: 'super_admin',
-            email: email,
-            name: userRecord.displayName || 'Matthis Fradin',
-            updatedAt: admin.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-
-        return res.send(`✅ SUCCÈS : ${email} est maintenant SUPER ADMIN officiel sur cet environnement.`);
-
-    } catch (error) {
-        return res.status(500).send(`Erreur: ${error.message}`);
-    }
-});
+// 12. [SUPPRIMÉ] initSuperAdmin — BACKDOOR ELIMINÉE (Audit Sécurité 18/02/2026)
+// Cette fonction était un endpoint HTTP public protégé par un mot de passe en clair.
+// Le Super Admin est désormais géré UNIQUEMENT via Custom Claims + Firestore.
+// ============================================================
 
 
 // ============================================================

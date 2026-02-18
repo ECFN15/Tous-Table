@@ -16,6 +16,15 @@ import { db } from '../firebase/config';
 import SEO from '../components/SEO';
 import Footer from '../components/Footer';
 
+// SÉCURITÉ: Sanitize HTML — Autorise uniquement <br> et <br /> (Anti-XSS)
+const sanitizeHtml = (html) => {
+  if (!html || typeof html !== 'string') return '';
+  // 1. Échappe tout le HTML
+  const escaped = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  // 2. Ré-autorise UNIQUEMENT les balises <br> et <br />
+  return escaped.replace(/&lt;br\s*\/?&gt;/gi, '<br />');
+};
+
 // --- COMPOSANT : REVEAL TEXT (CORRIGÉ & ÉLARGI) ---
 const RevealText = ({ text, className, delay = 0 }) => {
   return (
@@ -959,7 +968,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
             <div className="mx-auto 2xl:mx-0 max-w-lg">
               <h3
                 className="font-serif text-4xl md:text-5xl italic mb-4 text-[#1a1a1a] md:whitespace-nowrap"
-                dangerouslySetInnerHTML={{ __html: homepageImages['manifesto_1_text']?.title || "Le Plateau d'Antan" }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(homepageImages['manifesto_1_text']?.title || "Le Plateau d'Antan") }}
               />
               <p className="text-[10px] md:text-xs opacity-60 font-light leading-relaxed uppercase tracking-[0.25em] text-[#1a1a1a]">
                 {homepageImages['manifesto_1_text']?.desc || "Chêne de pays — Finition à la cire d'abeille."}
@@ -980,7 +989,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
             <div className="text-center 2xl:text-left mx-auto 2xl:mx-0 max-w-lg">
               <h3
                 className="font-serif text-4xl md:text-5xl italic mb-4 text-[#1a1a1a] md:whitespace-nowrap"
-                dangerouslySetInnerHTML={{ __html: homepageImages['manifesto_2_text']?.title || "La Console Royale" }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(homepageImages['manifesto_2_text']?.title || "La Console Royale") }}
               />
               <p className="text-[10px] md:text-xs uppercase tracking-[0.25em] opacity-60 font-light text-[#1a1a1a]">
                 {homepageImages['manifesto_2_text']?.desc || "Noyer sculpté — XIXème siècle."}
@@ -1001,7 +1010,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
             <div className="w-full max-w-lg 2xl:max-w-none 2xl:w-2/5 space-y-8 mx-auto 2xl:mx-0">
               <h3
                 className="font-serif text-4xl md:text-5xl lg:text-6xl italic leading-tight text-[#1a1a1a] md:whitespace-nowrap"
-                dangerouslySetInnerHTML={{ __html: homepageImages['manifesto_3_text']?.title || "La Renaissance <br /> d'un Chef-d'œuvre" }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(homepageImages['manifesto_3_text']?.title || "La Renaissance <br /> d'un Chef-d'œuvre") }}
               />
               <p className="text-[10px] md:text-xs opacity-60 font-light leading-relaxed uppercase tracking-[0.25em] text-[#1a1a1a]">
                 {homepageImages['manifesto_3_text']?.desc || "Après 400 heures de restauration méticuleuse, cette pièce a retrouvé sa profondeur originelle. Un dialogue suspendu entre le XVIIIème et aujourd'hui."}
