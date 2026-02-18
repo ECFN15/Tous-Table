@@ -31,6 +31,16 @@ const createTransporter = () => {
 // ============================================================
 const SUPER_ADMIN_EMAIL = 'matthis.fradin2@gmail.com';
 
+/**
+ * Détermine l'URL du site en fonction de l'environnement (Projet Firebase)
+ */
+const getSiteUrl = () => {
+    const projectId = process.env.GCLOUD_PROJECT || 'tatmadeinnormandie';
+    return projectId === 'tousatable-client'
+        ? 'https://tousatable-madeinnormandie.fr'
+        : 'https://tatmadeinnormandie.web.app';
+};
+
 const checkIsAdmin = (context) => {
     if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'Authentification requise.');
     const isSuper = context.auth.token.email === SUPER_ADMIN_EMAIL;
@@ -291,7 +301,7 @@ exports.createOrder = functions.runWith({ secrets: [STRIPE_SECRET_KEY, GMAIL_EMA
     const userId = context.auth.uid;
     const { orderData } = data;
     const appId = 'tat-made-in-normandie';
-    const SITE_URL = 'https://tatmadeinnormandie.web.app'; // URL de prod
+    const SITE_URL = getSiteUrl();
 
     // VALIDATION BASIC
     if (!orderData || !orderData.items || !Array.isArray(orderData.items)) {
@@ -343,7 +353,7 @@ exports.createOrder = functions.runWith({ secrets: [STRIPE_SECRET_KEY, GMAIL_EMA
 
                 // Préparer ligne Stripe
                 // Note: Images doivent être des URLs publiques valides pour s'afficher sur Stripe
-                let imgUrl = itemDb.images && itemDb.images.length > 0 ? itemDb.images[0] : 'https://tatmadeinnormandie.web.app/assets/logo.png';
+                let imgUrl = itemDb.images && itemDb.images.length > 0 ? itemDb.images[0] : `${getSiteUrl()}/assets/logo.png`;
 
                 line_items.push({
                     price_data: {
@@ -624,7 +634,7 @@ exports.onOrderCreated = functions.runWith({ secrets: [GMAIL_EMAIL, GMAIL_PASSWO
                 <hr/>
                 <h3>Livraison :</h3>
                 <p>${shippingInfo}</p>
-                <p><a href="https://tatmadeinnormandie.web.app/admin">Aller au Dashboard</a></p>
+                <p><a href="${getSiteUrl()}/admin">Aller au Dashboard</a></p>
             `
         };
 
@@ -681,7 +691,7 @@ exports.onOrderCreated = functions.runWith({ secrets: [GMAIL_EMAIL, GMAIL_PASSWO
     });
 
 exports.shareMeta = functions.https.onRequest(async (req, res) => {
-    const SITE_URL = 'https://tatmadeinnormandie.web.app';
+    const SITE_URL = getSiteUrl();
     // SÉCURITÉ: Sanitize productId — alphanumériques et underscores uniquement (Anti-XSS)
     const rawProductId = req.query.product || '';
     const productId = rawProductId.replace(/[^a-zA-Z0-9_-]/g, '');
