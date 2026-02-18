@@ -145,7 +145,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         (homepageImages && homepageImages['featured_1_text']?.title_2) || "Signature"
       ],
       showTitle2: (homepageImages && homepageImages['featured_1_text']?.show_title_2) !== false,
-      desc: (homepageImages && homepageImages['featured_1_text']?.desc) || "\"Découvrez la finesse d'un bois exotique rouge, sublimé par un travail minutieux.\"",
+      desc: (homepageImages && homepageImages['featured_1_text']?.desc) || "\"Une renaissance historique pour l'époque contemporaine.\"",
       img: (homepageImages && homepageImages.featured_1) || "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1200",
       imgMobile: (homepageImages && homepageImages.featured_1_mobile) || (homepageImages && homepageImages.featured_1) || "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=800",
       bgColor: "#FFFEFA",
@@ -835,9 +835,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
                   ))}
                 </div>
                 <div className="mt-8 flex items-center gap-4 opacity-0 preloader-footer-element">
-                  <div className="w-12 h-[1px] bg-[#9C8268]"></div>
-                  <span className="text-[8px] uppercase tracking-[0.5em] font-bold">Artisan ébéniste</span>
-                  <div className="w-12 h-[1px] bg-[#9C8268]"></div>
+
                 </div>
               </div>
             </div>
@@ -958,7 +956,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
                 loading="lazy"
               />
             </div>
-            <div className="mx-auto 2xl:mx-0">
+            <div className="mx-auto 2xl:mx-0 max-w-lg">
               <h3
                 className="font-serif text-4xl md:text-5xl italic mb-4 text-[#1a1a1a] md:whitespace-nowrap"
                 dangerouslySetInnerHTML={{ __html: homepageImages['manifesto_1_text']?.title || "Le Plateau d'Antan" }}
@@ -979,7 +977,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
                 loading="lazy"
               />
             </div>
-            <div className="text-center 2xl:text-left">
+            <div className="text-center 2xl:text-left mx-auto 2xl:mx-0 max-w-lg">
               <h3
                 className="font-serif text-4xl md:text-5xl italic mb-4 text-[#1a1a1a] md:whitespace-nowrap"
                 dangerouslySetInnerHTML={{ __html: homepageImages['manifesto_2_text']?.title || "La Console Royale" }}

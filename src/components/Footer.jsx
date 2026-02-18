@@ -98,23 +98,24 @@ const Footer = ({ darkMode }) => {
 
                 {/* Bottom Bar */}
                 <div className="pt-12 border-t border-white/5 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-8 text-[9px] uppercase tracking-[0.3em] font-light relative z-10 text-white/40">
-                    <span className="leading-relaxed max-w-2xl">
+                    <span className="leading-relaxed max-w-lg">
                         {contactInfo.legacyText || "Livraison sur Caen, Deauville, Bayeux, Cabourg & toute la Normandie. Tous à Table made in Normandie livre sur toute la France et pays frontaliers."}
                     </span>
-                    <div className="flex gap-8 md:gap-12 lowercase underline underline-offset-4 font-bold tracking-widest self-start xl:self-auto">
-                        <a href="/?page=gallery" className="cursor-pointer hover:text-white transition-colors">La Galerie</a>
-                        <span className="cursor-pointer hover:text-white transition-colors">privacy policy</span>
-                        <span className="cursor-pointer hover:text-white transition-colors">legal mentions</span>
-                    </div>
 
-                    {/* Developer Credit - 3 Stages: Bottom (Mobile) -> Right (Laptop) -> Center (Huge Screens 1700px+) */}
-                    <div className="flex flex-col items-start xl:items-end min-[1700px]:items-center gap-2 min-[1700px]:absolute min-[1700px]:left-1/2 min-[1700px]:-translate-x-1/2 w-full xl:w-auto pt-6 xl:pt-0 border-t border-white/5 xl:border-none mt-2 xl:mt-0 text-white/60">
-                        <span className="flex items-center gap-2 text-[10px] tracking-[0.2em] font-medium whitespace-nowrap">
+                    {/* Developer Credit - Centered on Desktop (Ordered 2nd) */}
+                    <div className="flex flex-col items-start xl:items-center gap-1 text-white/60 whitespace-nowrap">
+                        <span className="flex items-center gap-2 text-[10px] tracking-[0.2em] font-medium">
                             Made with <span className="text-red-500 text-sm animate-pulse drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]">❤</span> by <span className="font-bold border-b border-white/30 pb-0.5">Matthis Fradin</span>
                         </span>
                         <a href="tel:0782013155" className="text-[9px] tracking-[0.15em] font-medium text-white/60 hover:text-[#9C8268] transition-all duration-300">
                             Contact : 07.82.01.31.55
                         </a>
+                    </div>
+
+                    <div className="flex gap-8 md:gap-12 lowercase underline underline-offset-4 font-bold tracking-widest self-start xl:self-auto">
+                        <a href="/?page=gallery" className="cursor-pointer hover:text-white transition-colors">La Galerie</a>
+                        <span className="cursor-pointer hover:text-white transition-colors">privacy policy</span>
+                        <span className="cursor-pointer hover:text-white transition-colors">legal mentions</span>
                     </div>
                 </div>
             </div>
