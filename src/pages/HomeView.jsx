@@ -1087,7 +1087,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
           <div className="mt-48 flex flex-col md:flex-row justify-between items-end gap-16">
             <div className="max-w-2xl">
               <h3 className="font-serif text-5xl italic mb-10 text-[#9C8268]">La mesure de notre engagement.</h3>
-              <p className="text-lg font-light opacity-40 leading-relaxed uppercase tracking-[0.2em]">
+              <p className="text-xs md:text-lg font-light opacity-40 leading-relaxed uppercase tracking-[0.2em]">
                 Ces données ne sont pas que des chiffres, elles sont le reflet de milliers d'heures de passion dévouées à la transmission du patrimoine normand.
               </p>
             </div>

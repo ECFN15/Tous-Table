@@ -611,7 +611,7 @@ exports.onOrderCreated = functions.runWith({ secrets: [GMAIL_EMAIL, GMAIL_PASSWO
 
         const adminMailOptions = {
             from: `Tous à Table Robot <${adminEmail}>`,
-            to: adminEmail,
+            to: `${adminEmail}, tousatablemadeinnormandie@gmail.com`,
             subject: `💰 Nouvelle Commande : ${order.total}€ (${order.shipping?.fullName})`,
             html: `
                 <h2>Nouvelle commande reçue !</h2>
