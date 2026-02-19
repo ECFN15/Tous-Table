@@ -24,10 +24,8 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
     const [activeBidInc, setActiveBidInc] = useState(null);
     const [bidProgress, setBidProgress] = useState(0);
 
-    // LIGHTBOX & ZOOM STATE
+    // LIGHTBOX STATE
     const [isLightboxOpen, setIsLightboxOpen] = useState(false);
-    const [isZoomed, setIsZoomed] = useState(false);
-    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
     // TOUCH SWIPE STATE (Mobile)
     const [touchStart, setTouchStart] = useState(null);
@@ -299,7 +297,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
 
                         {/* CONTROLS */}
                         <button
-                            onClick={() => { setIsLightboxOpen(false); setIsZoomed(false); }}
+                            onClick={() => setIsLightboxOpen(false)}
                             className="absolute top-6 right-6 z-[110] p-4 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition-all"
                         >
                             <X size={32} />
@@ -307,8 +305,6 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
 
                         <div className="absolute top-6 left-6 z-[110] text-white/50 text-[10px] font-black uppercase tracking-widest flex items-center gap-4">
                             <span>{activeImg + 1} / {images.length}</span>
-                            <span className="hidden md:inline text-white/20">|</span>
-                            <span className="hidden md:inline">Molette/Clic pour zoomer</span>
                         </div>
 
                         {/* NAVIGATION (Desktop Arrows) */}
@@ -327,40 +323,11 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
 
 
                         {/* MAIN IMAGE CONTAINER */}
-                        <div
-                            className={`w-full h-full flex items-center justify-center overflow-hidden transition-all duration-500 ${isZoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'}`}
-                            onClick={() => setIsZoomed(!isZoomed)}
-                            onMouseMove={(e) => {
-                                if (isZoomed) {
-                                    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
-                                    const x = ((e.clientX - left) / width) * 100;
-                                    const y = ((e.clientY - top) / height) * 100;
-                                    setMousePos({ x, y });
-                                }
-                            }}
-                            onTouchMove={(e) => {
-                                // Simple Mobile Pan Support
-                                if (isZoomed) {
-                                    const touch = e.touches[0];
-                                    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
-                                    const x = ((touch.clientX - left) / width) * 100;
-                                    const y = ((touch.clientY - top) / height) * 100;
-                                    setMousePos({ x, y });
-                                }
-                            }}
-                        >
+                        <div className="w-full h-full flex items-center justify-center overflow-hidden">
                             <img
                                 src={images[activeImg]}
-                                alt="Zoom"
-                                className={`transition-transform duration-200 ease-out will-change-transform ${isZoomed ? '' : 'max-w-full max-h-[90vh] object-contain'}`}
-                                style={isZoomed ? {
-                                    height: '200vh', // Force huge height for zoom
-                                    width: 'auto',
-                                    transformOrigin: `${mousePos.x}% ${mousePos.y}%`
-                                } : {
-                                    // Unzoomed: Natural size constrained by max-w/max-h classes
-                                    transform: 'scale(1)'
-                                }}
+                                alt="Detail"
+                                className="max-w-[95%] max-h-[92vh] object-contain transition-all duration-300 animate-in zoom-in-95"
                                 draggable={false}
                             />
                         </div>
