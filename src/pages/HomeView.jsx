@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import { Hammer, Menu, X, ArrowRight, Instagram, Facebook, ArrowDown, Star, Zap, Plus, Minus } from 'lucide-react';
-import StackedCards from '../components/StackedCards'; // New Import
-import ProcessSection from '../components/ProcessSection'; // New Component (Hybrid Layout)
+import StackedCards from '../components/home/StackedCards'; // New Import
+import ProcessSection from '../components/home/ProcessSection'; // New Component (Hybrid Layout)
 
 // --- NPM IMPORTS (remplace les anciens CDN) ---
 import gsap from 'gsap';
@@ -10,11 +10,11 @@ import Lenis from '@studio-freight/lenis';
 gsap.registerPlugin(ScrollTrigger);
 
 // Lazy Load Three.js to improve initial bundle size
-const ThreeBackground = React.lazy(() => import('../components/ThreeBackground'));
+const ThreeBackground = React.lazy(() => import('../components/home/ThreeBackground'));
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import SEO from '../components/SEO';
-import Footer from '../components/Footer';
+import SEO from '../components/shared/SEO';
+import Footer from '../components/layout/Footer';
 
 // SÉCURITÉ: Sanitize HTML — Autorise uniquement <br> et <br /> (Anti-XSS)
 const sanitizeHtml = (html) => {

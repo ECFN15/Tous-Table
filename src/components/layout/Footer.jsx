@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Instagram, Facebook, Mail } from 'lucide-react';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from '../firebase/config';
+import { db } from '../../firebase/config';
 
 // SÉCURITÉ: Sanitize HTML — Autorise uniquement <br> et <br /> (Anti-XSS)
 const sanitizeHtml = (html) => {

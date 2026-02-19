@@ -24,17 +24,25 @@ Le projet a été simplifié en Février 2026 pour ne garder que le design "Arch
 *   `functions/` : Le Backend (Node.js). C'est un sous-projet autonome déployé sur Google Cloud Functions.
 *   `public/` : Fichiers statiques.
 *   `_ARCHIVE/` : 
-    *   `v1_full_theme_backup` : **SAUVEGARDE CRITIQUE** contenant l'intégralité du code avant la simplification (Atelier, thèmes saisonniers, logic de switching). À consulter pour réinstaller un ancien design.
+    *   `v1_full_theme_backup` : **SAUVEGARDE CRITIQUE** contenant l'intégralité du code avant la simplification.
+    *   `misc/` : Fichiers divers et anciens assets.
+*   `_DOCS/` : Documentation du projet (Guides, Sécurité, Environnements).
+    *   `REGLES_ENV.md` : **CRITIQUE**. Guide complet pour la gestion des environnements (Sandbox vs Production). À consulter avant tout déploiement.
 
 ### 📂 Source (`src/`)
 *   **`pages/`** : Les Vues Principales.
     *   `HomeView.jsx` : Vitrine (Three.js, GSAP).
     *   `GalleryView.jsx` : Marketplace (Utilise désormais exclusivement `ArchitecturalLayout`).
     *   `ProductDetail.jsx` : Fiche produit (Utilise désormais exclusivement `ArchitecturalProductDetail`).
+*   **`components/`** : Composants React réutilisables, organisés par domaine :
+    *   `layout/` : Structure globale (Footer, Header).
+    *   `home/` : Composants spécifiques à la page d'accueil (Hero, Process, Gallery Teaser).
+    *   `cart/` : Gestion du panier (Sidebar).
+    *   `orders/` : Modales et confirmation de commande.
+    *   `shared/` : Utilitaires (SEO, ErrorBoundary, Loaders).
 *   **`designs/architectural/`** : Le design system et les layouts par défaut du site.
 *   **`features/admin/`** : Le Back-Office.
     *   `AdminStudio.jsx` : Gère désormais uniquement le forçage du mode (Light/Dark) pour le design Architectural.
-*   **`REGLES_ENV.md`** : Guide complet pour la gestion des environnements (Sandbox vs Production). À consulter avant tout déploiement.
 
 ---
 

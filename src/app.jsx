@@ -16,13 +16,13 @@ import { getMillis } from './utils/time';
 import { useLiveTheme } from './hooks/useLiveTheme'; // Import hook for forcedMode check
 
 import AppRouter from './Router';
-import ErrorBoundary from './components/ErrorBoundary';
-import CartSidebar from './components/CartSidebar';
-import Footer from './components/Footer';
-import SEO from './components/SEO';
+import ErrorBoundary from './components/shared/ErrorBoundary';
+import CartSidebar from './components/cart/CartSidebar';
+import Footer from './components/layout/Footer';
+import SEO from './components/shared/SEO';
 
 
-import MarketplaceDiscovery from './components/MarketplaceDiscovery';
+import MarketplaceDiscovery from './components/home/MarketplaceDiscovery';
 
 const AppContent = () => {
 

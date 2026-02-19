@@ -1,7 +1,7 @@
 
 import React, { Suspense } from 'react';
 import HomeView from './pages/HomeView';
-import OrderSuccessModal from './components/OrderSuccessModal';
+import OrderSuccessModal from './components/orders/OrderSuccessModal';
 
 // --- CODE SPLITTING: Chargement différé des pages secondaires ---
 // Optimisation critique pour mobile : on ne télécharge pas tout d'un coup.

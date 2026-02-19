@@ -3,7 +3,7 @@ import { useLiveTheme } from '../hooks/useLiveTheme';
 
 // DESIGNS (Layouts)
 import ArchitecturalLayout from '../designs/architectural/MarketplaceLayout';
-import SEO from '../components/SEO';
+import SEO from '../components/shared/SEO';
 
 // SEO component is imported at the top.
 

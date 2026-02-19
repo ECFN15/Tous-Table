@@ -5,7 +5,7 @@ import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestor
 import { httpsCallable } from 'firebase/functions';
 import { getMillis } from '../../utils/time';
 import ConfettiRain from '../../components/ui/ConfettiRain';
-import SEO from '../../components/SEO';
+import SEO from '../../components/shared/SEO';
 
 
 import { useLiveTheme } from '../../hooks/useLiveTheme';
