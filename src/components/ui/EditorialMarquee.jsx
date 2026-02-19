@@ -168,7 +168,7 @@ const EditorialMarquee = () => {
                 color="#F0A1A1"
                 direction="left"
                 baseSpeed={0.4}
-                zIndex={3}
+                zIndex={1}
                 style={{ top: '60%', transform: 'rotate(-4deg)' }}
             />
 
@@ -177,7 +177,7 @@ const EditorialMarquee = () => {
                 color="#C5C1EB"
                 direction="right"
                 baseSpeed={0.8}
-                zIndex={2}
+                zIndex={10}
                 style={{ top: '35%', transform: 'rotate(3deg)' }}
             />
         </div>
