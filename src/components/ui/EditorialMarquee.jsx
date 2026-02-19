@@ -13,12 +13,12 @@ const MarqueeRow = ({ items = [], color, direction = 'left', baseSpeed = 1, clas
 
     // Dynamic sizing based on 'large' prop
     const heightClasses = large
-        ? "h-[11vh] sm:h-[18vh] md:h-[26vh] lg:h-[30vh] xl:h-[33vh]"
-        : "h-[10.5vh] sm:h-[20vh] md:h-[24vh] lg:h-[28vh] xl:h-[30vh]";
+        ? "h-[11vh] sm:h-[18vh] md:h-[25vh] lg:h-[30vh] xl:h-[33vh]"
+        : "h-[10.5vh] sm:h-[17vh] md:h-[23vh] lg:h-[27vh] xl:h-[30vh]";
 
     const textClasses = large
-        ? "text-[10.5vh] sm:text-[17vh] md:text-[25vh] lg:text-[29vh] xl:text-[32vh]"
-        : "text-[9.5vh] sm:text-[18.5vh] md:text-[23vh] lg:text-[27vh] xl:text-[29vh]";
+        ? "text-[10.5vh] sm:text-[17vh] md:text-[24vh] lg:text-[29vh] xl:text-[32vh]"
+        : "text-[9.5vh] sm:text-[16vh] md:text-[22vh] lg:text-[26vh] xl:text-[29vh]";
 
     // Sync state and ref for the ticker, with snappy transition
     useEffect(() => {
@@ -171,7 +171,7 @@ const EditorialMarquee = () => {
                 baseSpeed={0.9}
                 zIndex={1}
                 large={true}
-                className="top-[12%] rotate-[-4deg] md:top-[12%] md:rotate-[-3deg]"
+                className="top-[12%] rotate-[-4deg] sm:rotate-[-3deg]"
             />
 
             <MarqueeRow
@@ -181,7 +181,7 @@ const EditorialMarquee = () => {
                 baseSpeed={0.45}
                 zIndex={2}
                 large={true}
-                className="top-[54%] rotate-[-4deg] md:top-[66%] md:rotate-[-3deg]"
+                className="top-[54%] rotate-[-4deg] sm:top-[58%] sm:rotate-[-3deg] md:top-[66%]"
             />
 
             <MarqueeRow
@@ -191,7 +191,7 @@ const EditorialMarquee = () => {
                 baseSpeed={0.8}
                 zIndex={10}
                 turnDuration={0.6}
-                className="top-[35%] rotate-[4deg] md:top-[36%] md:rotate-[2deg]"
+                className="top-[35%] rotate-[4deg] sm:rotate-[3deg] md:top-[36%]"
             />
         </div>
     );
