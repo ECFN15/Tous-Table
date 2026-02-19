@@ -13,12 +13,12 @@ const MarqueeRow = ({ items = [], color, direction = 'left', baseSpeed = 1, clas
 
     // Dynamic sizing based on 'large' prop
     const heightClasses = large
-        ? "h-[18vh] sm:h-[22vh] md:h-[26vh] lg:h-[30vh] xl:h-[33vh]"
-        : "h-[16vh] sm:h-[20vh] md:h-[24vh] lg:h-[28vh] xl:h-[30vh]";
+        ? "h-[14vh] sm:h-[22vh] md:h-[26vh] lg:h-[30vh] xl:h-[33vh]"
+        : "h-[12vh] sm:h-[20vh] md:h-[24vh] lg:h-[28vh] xl:h-[30vh]";
 
     const textClasses = large
-        ? "text-[16vh] sm:text-[19.5vh] md:text-[24vh] lg:text-[28vh] xl:text-[31vh]"
-        : "text-[14vh] sm:text-[17.5vh] md:text-[22vh] lg:text-[26vh] xl:text-[28vh]";
+        ? "text-[13vh] sm:text-[20.5vh] md:text-[25vh] lg:text-[29vh] xl:text-[32vh]"
+        : "text-[11vh] sm:text-[18.5vh] md:text-[23vh] lg:text-[27vh] xl:text-[29vh]";
 
     // Sync state and ref for the ticker, with snappy transition
     useEffect(() => {
@@ -73,7 +73,7 @@ const MarqueeRow = ({ items = [], color, direction = 'left', baseSpeed = 1, clas
                             <React.Fragment key={idx}>
                                 {item.type === 'text' ? (
                                     <span
-                                        className={`${textClasses} italic uppercase tracking-[-0.03em] text-black leading-none py-1 drop-shadow-sm`}
+                                        className={`${textClasses} italic uppercase tracking-[-0.03em] text-black leading-[0.8] drop-shadow-sm pb-[1vh]`}
                                         style={{ fontFamily: '"DM Serif Display", serif' }}
                                     >
                                         {item.content}
@@ -157,7 +157,7 @@ const EditorialMarquee = () => {
     if (loading) return null; // Or a subtle loader
 
     return (
-        <div className="relative w-full h-[60vh] sm:h-[75vh] md:h-[90vh] lg:h-[110vh] xl:h-[120vh] my-8 md:my-24 overflow-hidden bg-transparent select-none">
+        <div className="relative w-full h-[50vh] sm:h-[75vh] md:h-[90vh] lg:h-[110vh] xl:h-[120vh] my-8 md:my-24 overflow-hidden bg-transparent select-none">
             {/*
                BEHAVIOR REFINEMENT:
                - Pink base speed: 0.4
@@ -171,7 +171,7 @@ const EditorialMarquee = () => {
                 baseSpeed={0.9}
                 zIndex={1}
                 large={true}
-                className="top-[12%] rotate-[-3deg]"
+                className="top-[10%] rotate-[-5deg] md:top-[12%] md:rotate-[-3deg]"
             />
 
             <MarqueeRow
@@ -181,7 +181,7 @@ const EditorialMarquee = () => {
                 baseSpeed={0.45}
                 zIndex={2}
                 large={true}
-                className="top-[66%] rotate-[-3deg]"
+                className="top-[60%] rotate-[-5deg] md:top-[66%] md:rotate-[-3deg]"
             />
 
             <MarqueeRow
@@ -191,7 +191,7 @@ const EditorialMarquee = () => {
                 baseSpeed={0.8}
                 zIndex={10}
                 turnDuration={0.6}
-                className="top-[36%] rotate-[2deg]"
+                className="top-[35%] rotate-[5deg] md:top-[36%] md:rotate-[2deg]"
             />
         </div>
     );
