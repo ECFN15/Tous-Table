@@ -14,18 +14,36 @@ const OrderSuccessModal = ({ onClose }) => {
                         <CheckCircle size={40} strokeWidth={2.5} />
                     </div>
 
-                    <div>
+                    <div className="w-full">
                         <h2 className="text-3xl font-black tracking-tighter text-stone-900 mb-2">Presque terminé !</h2>
-                        <h3 className="text-lg font-bold text-stone-900">Commande réservée.</h3>
-                        <p className="text-stone-500 text-sm mt-4 leading-relaxed px-4">
-                            Pour finaliser votre acquisition, merci d'effectuer le règlement par <span className="text-amber-600 font-bold">Virement</span> ou <span className="text-amber-600 font-bold">Wero</span>. <br /><br />
-                            Toutes les informations de paiement sont disponibles dans votre <span className="text-stone-900 font-bold italic">Espace Client (onglet Mes Commandes)</span>.
-                        </p>
+                        <h3 className="text-lg font-bold text-stone-900 mb-6">Commande réservée.</h3>
+
+                        <div className="bg-amber-50 border border-amber-200/50 rounded-[1.5rem] p-6 text-left space-y-4 shadow-sm">
+                            <div>
+                                <h4 className="text-amber-900 font-black mb-1.5 flex items-center gap-2">
+                                    <ShoppingBag size={16} className="text-amber-600" />
+                                    <span>Finaliser la commande</span>
+                                </h4>
+                                <p className="text-amber-800 text-sm leading-relaxed">
+                                    Merci d'effectuer le règlement par <strong className="font-black text-amber-900">Virement</strong> ou <strong className="font-black text-amber-900">Wero</strong>.
+                                </p>
+                            </div>
+
+                            <div className="bg-white rounded-xl p-4 shadow-sm border border-amber-100">
+                                <p className="text-stone-600 text-sm leading-relaxed">
+                                    Toutes les informations (RIB, etc.) sont disponibles dans votre <br />
+                                    <strong className="text-stone-900 font-black mt-1 inline-block">Espace Client (onglet Mes Commandes)</strong>.
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
-                    <p className="text-[10px] text-stone-400 leading-relaxed italic px-8">
-                        💡 Un email récapitulatif avec les coordonnées bancaires vous a également été envoyé.
-                    </p>
+                    <div className="px-2 pt-2">
+                        <p className="text-[11px] text-stone-600 font-medium flex items-center justify-center gap-3 bg-stone-50 p-3.5 rounded-xl border border-stone-100 shadow-sm leading-relaxed text-center">
+                            <span className="text-lg flex-shrink-0">💡</span>
+                            <span>Un email récapitulatif avec les coordonnées bancaires vous a également été envoyé.</span>
+                        </p>
+                    </div>
 
                     <div className="pt-6">
                         <button

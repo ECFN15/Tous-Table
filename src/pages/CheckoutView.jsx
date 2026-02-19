@@ -16,6 +16,26 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
     });
     const [paymentMethod, setPaymentMethod] = useState('manual'); // 'manual' | 'deferred'
     const [loading, setLoading] = useState(false);
+    const [progress, setProgress] = useState(0);
+
+    // Fake progress when loading
+    useEffect(() => {
+        if (loading) {
+            setProgress(0);
+            const interval = setInterval(() => {
+                setProgress(prev => {
+                    if (prev >= 90) {
+                        clearInterval(interval);
+                        return 90;
+                    }
+                    return prev + 10;
+                });
+            }, 300);
+            return () => clearInterval(interval);
+        } else {
+            setProgress(100);
+        }
+    }, [loading]);
 
     // État pour les alertes temps réel
     const [unavailableItems, setUnavailableItems] = useState([]);
@@ -249,6 +269,24 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                 </div>
 
             </div>
+
+            {loading && (
+                <div className="fixed inset-0 z-[500] bg-stone-900/80 backdrop-blur-md flex flex-col items-center justify-center p-6 animate-in fade-in duration-300">
+                    <div className="bg-white p-10 rounded-[2.5rem] max-w-sm w-full shadow-2xl text-center space-y-8 animate-in zoom-in-95 duration-300">
+                        <div className="w-16 h-16 border-4 border-stone-100 border-t-amber-500 rounded-full animate-spin mx-auto"></div>
+                        <div>
+                            <h3 className="text-xl font-black text-stone-900 mb-2">Sécurisation en cours...</h3>
+                            <p className="text-sm text-stone-500 font-medium">Création de votre commande</p>
+                        </div>
+                        <div className="w-full h-2 bg-stone-100 rounded-full overflow-hidden">
+                            <div
+                                className="h-full bg-amber-500 transition-all duration-300 ease-out"
+                                style={{ width: `${progress}%` }}
+                            ></div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

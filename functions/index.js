@@ -669,6 +669,13 @@ exports.onOrderCreated = functions.runWith({ secrets: [GMAIL_EMAIL, GMAIL_PASSWO
                     </div>
 
                     <p>Adresse de livraison :<br/>${shippingInfo}</p>
+                    
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                        <p style="margin: 0 0 5px 0;"><strong>Besoin d'aide ? Contactez-nous :</strong></p>
+                        <p style="margin: 0 0 5px 0; color: #555; font-size: 14px;">📞 07 77 32 41 78</p>
+                        <p style="margin: 0; color: #555; font-size: 14px;">📍 346 Chem. de Fleury IFS, France</p>
+                    </div>
+
                     <hr style="border:none; border-top:1px solid #eee; margin: 20px 0;" />
                     <p>À très vite,<br/><i>L'équipe Tous à Table</i></p>
                 </div>
