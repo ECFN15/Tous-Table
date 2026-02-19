@@ -1,7 +1,7 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Hammer } from 'lucide-react';
+import EditorialMarquee from '../ui/EditorialMarquee'; // New Editorial Marquee
 import { motion, useScroll, useTransform } from 'framer-motion';
-import CurvedLoop from '../ui/CurvedLoop';
 
 // --- COMPOSANT : BOUTON DÉCOUVRIR ---
 const RotatingButton = ({ id }) => {
@@ -43,9 +43,9 @@ const ParallaxCard = ({ item, index, onEnterMarketplace }) => {
     // Desktop: Needs stability. Animation starts late (0.75).
     // Mobile: Needs flow. Animation starts early (0.25) to feel "alive" under the thumb.
 
-    const [isMobile, setIsMobile] = React.useState(false);
+    const [isMobile, setIsMobile] = useState(false);
 
-    React.useEffect(() => {
+    useEffect(() => {
         const checkMobile = () => setIsMobile(window.innerWidth < 1024);
         checkMobile();
         window.addEventListener('resize', checkMobile);
@@ -157,58 +157,12 @@ const ParallaxCard = ({ item, index, onEnterMarketplace }) => {
 };
 
 const StackedCards = ({ items, onEnterMarketplace }) => {
-    // RESPONSIVE LOGIC FOR CURVED LOOP
-    // We need different curves and scaling for Mobile vs Desktop
-    const [curveConfig, setCurveConfig] = React.useState({ amount: 180, className: "text-6xl md:text-8xl", speed: 0.7 });
-
-    React.useEffect(() => {
-        const updateConfig = () => {
-            const width = window.innerWidth;
-            if (width < 768) {
-                // MOBILE: Much flatter curve, HUGE text to fill space
-                setCurveConfig({
-                    amount: 150,
-                    className: "text-[5.2rem] leading-none tracking-tighter lining-nums",
-                    speed: 1.8 // Boosted for more energy
-                });
-            } else if (width < 1024) {
-                // TABLET
-                setCurveConfig({
-                    amount: 120,
-                    className: "text-7xl tracking-tighter lining-nums",
-                    speed: 1.4
-                });
-            } else {
-                // DESKTOP (Locked at validated value)
-                setCurveConfig({
-                    amount: 180,
-                    className: "text-6xl md:text-8xl tracking-tighter lining-nums",
-                    speed: 1.2
-                });
-            }
-        };
-
-        updateConfig();
-        window.addEventListener('resize', updateConfig);
-        return () => window.removeEventListener('resize', updateConfig);
-    }, []);
-
     return (
         <section className="featured-section relative w-full bg-[#E5E5E5] flex flex-col items-center gap-0 pt-20 md:pt-32 pb-[10vh]" style={{ overflowX: 'clip' }}>
 
-            {/* MARQUEE */}
-            {/* NEW MARQUEE (CurvedLoop) */}
-            <div className="w-full relative z-20 pb-20 md:pb-40 overflow-hidden">
-                <div className="scale-[1.8] md:scale-100 origin-center"> {/* HACK: Force scale UP on mobile to fill width */}
-                    <CurvedLoop
-                        marqueeText="Découvrez ✦ nos ✦ pièces ✦ unique ✦ 2026 ✦"
-                        speed={curveConfig.speed}
-                        curveAmount={curveConfig.amount}
-                        direction="left"
-                        interactive
-                        className={`text-[#1a1a1a] fill-current font-serif ${curveConfig.className}`}
-                    />
-                </div>
+            {/* MARQUEE (Editorial Mode) */}
+            <div className="w-full relative z-20 pb-20 md:pb-32 overflow-hidden">
+                <EditorialMarquee />
             </div>
 
             {/* FLUX DE CARTES (No Sticky) - Just Gap */}
