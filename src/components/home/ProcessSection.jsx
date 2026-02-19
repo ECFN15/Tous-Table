@@ -91,7 +91,7 @@ const ProcessSection = ({ homepageImages = {} }) => {
                 const scrollDistance = content.scrollWidth - window.innerWidth;
                 const scrollSpeed = 3.5;
                 const totalDistance = scrollDistance * scrollSpeed;
-                const endBuffer = 400; // 400px safety zone to let scrub settle before unpinning
+                const endBuffer = 700; // Optimized buffer for smooth release
 
                 // 1. PINNING (The anchor)
                 ScrollTrigger.create({
