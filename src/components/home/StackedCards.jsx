@@ -201,7 +201,7 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                         marqueeText="Découvrez ✦ nos ✦ pièces ✦ unique ✦ 2026 ✦"
                         speed={0.7}
                         curveAmount={curveConfig.amount}
-                        direction="right"
+                        direction="left"
                         interactive
                         className={`text-[#1a1a1a] fill-current font-serif ${curveConfig.className}`}
                     />

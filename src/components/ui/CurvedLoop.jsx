@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState, useMemo, useId } from 'react';
+import { useScroll, useVelocity, useAnimationFrame } from 'framer-motion';
 import './CurvedLoop.css';
 
 const CurvedLoop = ({
@@ -49,16 +50,33 @@ const CurvedLoop = ({
         }
     }, [spacing]);
 
+    const { scrollY } = useScroll();
+    const scrollVelocity = useVelocity(scrollY);
+    const [scrollDir, setScrollDir] = useState(direction);
+
+    // Sync direction with scroll
+    useAnimationFrame(() => {
+        const velocity = scrollVelocity.get();
+        if (velocity > 5) {
+            dirRef.current = 'left'; // Scroll Down -> Move Left
+        } else if (velocity < -5) {
+            dirRef.current = 'right'; // Scroll Up -> Move Right
+        }
+    });
+
     useEffect(() => {
         if (!spacing || !ready) return;
         let frame = 0;
         const step = () => {
             if (!dragRef.current && textPathRef.current) {
+                // Direction Logic: 'right' means increasing offset (Left -> Right movement visually)
+                // 'left' means decreasing offset (Right -> Left movement visually)
                 const delta = dirRef.current === 'right' ? speed : -speed;
                 const currentOffset = parseFloat(textPathRef.current.getAttribute('startOffset') || '0');
                 let newOffset = currentOffset + delta;
 
                 const wrapPoint = spacing;
+                // Wrap logic must match direction
                 if (newOffset <= -wrapPoint) newOffset += wrapPoint;
                 if (newOffset > 0) newOffset -= wrapPoint;
 
