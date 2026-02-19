@@ -64,8 +64,10 @@ const MarqueeRow = ({ items = [], color, direction = 'left', baseSpeed = 1, clas
                                         {item.content}
                                     </span>
                                 ) : (
-                                    <div className="h-[80%] aspect-square rounded-full border-[2px] md:border-[4px] border-white/90 overflow-hidden shadow-sm mx-4">
-                                        <img src={item.content} alt="decor" className="w-full h-full object-cover scale-110" />
+                                    <div className="h-[95%] aspect-square rounded-full border-[3px] md:border-[6px] border-white/95 overflow-hidden shadow-md mx-6 flex-shrink-0 relative">
+                                        <img src={item.content} alt="decor" className="w-full h-full object-cover scale-105" />
+                                        {/* Subtle inner ring for depth like the reference 2 */}
+                                        <div className="absolute inset-0 rounded-full border-[1px] border-black/5 pointer-events-none" />
                                     </div>
                                 )}
                             </React.Fragment>
