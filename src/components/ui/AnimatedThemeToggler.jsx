@@ -68,17 +68,25 @@ export function AnimatedThemeToggler({ isDark, toggleTheme }) {
         <button
             ref={buttonRef}
             onClick={handleToggle}
-            className={`relative flex items-center justify-center w-10 h-10 rounded-full transition-colors z-[100] bg-transparent ${isDark ? 'hover:bg-stone-800 text-stone-200' : 'hover:bg-stone-200 text-stone-900'
-                }`}
+            className={`relative flex items-center justify-center w-10 h-10 rounded-full transition-colors z-[100] bg-transparent 
+                ${isDark
+                    ? 'md:hover:bg-stone-800 text-stone-200'  // Desktop only hover
+                    : 'md:hover:bg-stone-200 text-stone-900'} // Desktop only hover
+                `}
+            style={{ WebkitTapHighlightColor: 'transparent' }} // Remove mobile tap highlight
             aria-label={isDark ? "Passer en mode clair" : "Passer en mode sombre"}
         >
-            <AnimatePresence mode="wait" initial={false}>
+            {/* 
+                AnimatePresence mode="popLayout" allows the new element to animate in WHILE the old one is animating out.
+                This removes the delay! 
+            */}
+            <AnimatePresence mode="popLayout" initial={false}>
                 <motion.div
                     key={isDark ? 'dark' : 'light'}
                     initial={{ y: -20, opacity: 0, rotate: -90, scale: 0.5 }}
                     animate={{ y: 0, opacity: 1, rotate: 0, scale: 1 }}
-                    exit={{ y: 20, opacity: 0, rotate: 90, scale: 0.5 }}
-                    transition={{ duration: 0.05, type: "spring", stiffness: 400, damping: 15 }} // ULTRA-RAPIDE (0.05s) et TRÈS NERVEUX
+                    exit={{ y: 20, opacity: 0, rotate: 90, scale: 0.5, transition: { duration: 0.15 } }} // SORTIE DOUCE (0.15s)
+                    transition={{ duration: 0.25, type: "spring", stiffness: 150, damping: 15 }} // ENTRÉE MAJESTUEUSE (Plus lente)
                     className="absolute inset-0 flex items-center justify-center"
                 >
                     {isDark ? (
