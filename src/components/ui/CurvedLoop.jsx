@@ -29,30 +29,43 @@ const CurvedLoop = ({
     const dirRef = useRef(direction);
     const velRef = useRef(0);
 
-    const textLength = spacing;
-    const totalText = textLength
-        ? Array(Math.ceil(1800 / textLength) + 2)
-            .fill(text)
-            .join('')
-        : text;
+    const currentOffsetRef = useRef(0);
+    const totalText = useMemo(() => {
+        if (!spacing) return '';
+        // 8 repetitions: Perfect balance between coverage and performance
+        return Array(8).fill(text).join('');
+    }, [text, spacing]);
+
     const ready = spacing > 0;
 
     useEffect(() => {
-        if (measureRef.current) setSpacing(measureRef.current.getComputedTextLength());
-    }, [text, className]);
+        const measure = () => {
+            if (measureRef.current) {
+                const len = measureRef.current.getComputedTextLength();
+                if (len > 0) {
+                    setSpacing(len);
+                    currentOffsetRef.current = -len * 2; // Start in the middle
+                }
+            }
+        };
 
-    useEffect(() => {
-        if (!spacing) return;
-        if (textPathRef.current) {
-            const initial = -spacing;
-            textPathRef.current.setAttribute('startOffset', initial + 'px');
-            setOffset(initial);
+        // Final precision measurement when fonts are ready
+        if (document.fonts) {
+            document.fonts.ready.then(measure);
         }
-    }, [spacing]);
+
+        measure();
+        const timers = [100, 500].map(ms => setTimeout(measure, ms));
+
+        window.addEventListener('resize', measure);
+        return () => {
+            timers.forEach(clearTimeout);
+            window.removeEventListener('resize', measure);
+        };
+    }, [text, className]);
 
     const { scrollY } = useScroll();
     const scrollVelocity = useVelocity(scrollY);
-    const [scrollDir, setScrollDir] = useState(direction);
 
     // Sync direction with scroll
     useAnimationFrame(() => {
@@ -69,19 +82,15 @@ const CurvedLoop = ({
         let frame = 0;
         const step = () => {
             if (!dragRef.current && textPathRef.current) {
-                // Direction Logic: 'right' means increasing offset (Left -> Right movement visually)
-                // 'left' means decreasing offset (Right -> Left movement visually)
                 const delta = dirRef.current === 'right' ? speed : -speed;
-                const currentOffset = parseFloat(textPathRef.current.getAttribute('startOffset') || '0');
-                let newOffset = currentOffset + delta;
+                currentOffsetRef.current += delta;
 
-                const wrapPoint = spacing;
-                // Wrap logic must match direction
-                if (newOffset <= -wrapPoint) newOffset += wrapPoint;
-                if (newOffset > 0) newOffset -= wrapPoint;
+                // Seamless Modulo: ( (n % m) + m ) % m ensures positive range
+                // We offset it by -spacing * 3 to stay in the middle of repetitions
+                const wrapped = ((currentOffsetRef.current % spacing) + spacing) % spacing;
+                const finalOffset = -spacing * 3 + wrapped;
 
-                textPathRef.current.setAttribute('startOffset', newOffset + 'px');
-                setOffset(newOffset);
+                textPathRef.current.setAttribute('startOffset', finalOffset + 'px');
             }
             frame = requestAnimationFrame(step);
         };
