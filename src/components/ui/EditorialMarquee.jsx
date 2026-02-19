@@ -156,7 +156,7 @@ const EditorialMarquee = () => {
 
             <MarqueeRow
                 items={rows.r1}
-                color="#AECCE4"
+                color="#E5C99BF2"
                 direction="left"
                 baseSpeed={0.8}
                 zIndex={1}
@@ -165,7 +165,7 @@ const EditorialMarquee = () => {
 
             <MarqueeRow
                 items={rows.r3}
-                color="#F0A1A1"
+                color="#D97B6BF2"
                 direction="left"
                 baseSpeed={0.4}
                 zIndex={1}
@@ -174,7 +174,7 @@ const EditorialMarquee = () => {
 
             <MarqueeRow
                 items={rows.r2}
-                color="#C5C1EB"
+                color="#F3B664F2"
                 direction="right"
                 baseSpeed={0.8}
                 zIndex={10}
