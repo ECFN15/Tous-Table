@@ -4,12 +4,21 @@ import { useScroll, useVelocity, useAnimationFrame } from 'framer-motion';
 import { db } from '../../firebase/config';
 import { doc, getDoc } from 'firebase/firestore';
 
-const MarqueeRow = ({ items = [], color, direction = 'left', baseSpeed = 1, className = "", zIndex = 1, style = {} }) => {
+const MarqueeRow = ({ items = [], color, direction = 'left', baseSpeed = 1, className = "", zIndex = 1, style = {}, large = false, turnDuration = 0.25 }) => {
     const contentRef = useRef(null);
     const { scrollY } = useScroll();
     const scrollVelocity = useVelocity(scrollY);
     const velocityRef = useRef(0);
     const logicRef = useRef(1);
+
+    // Dynamic sizing based on 'large' prop
+    const heightClasses = large
+        ? "h-[18vh] sm:h-[22vh] md:h-[26vh] lg:h-[30vh] xl:h-[33vh]"
+        : "h-[16vh] sm:h-[20vh] md:h-[24vh] lg:h-[28vh] xl:h-[30vh]";
+
+    const textClasses = large
+        ? "text-[16vh] sm:text-[19.5vh] md:text-[24vh] lg:text-[28vh] xl:text-[31vh]"
+        : "text-[14vh] sm:text-[17.5vh] md:text-[22vh] lg:text-[26vh] xl:text-[28vh]";
 
     // Sync state and ref for the ticker, with snappy transition
     useEffect(() => {
@@ -18,12 +27,12 @@ const MarqueeRow = ({ items = [], color, direction = 'left', baseSpeed = 1, clas
                 const newLogic = v > 0 ? 1 : -1;
                 if (newLogic !== logicRef.current) {
                     logicRef.current = newLogic;
-                    // Snappier transition (0.3s -> 0.25s) with smoother easing
-                    gsap.to(logicRef, { current: newLogic, duration: 0.25, ease: "power3.out" });
+                    // Snappier transition is configurable via turnDuration
+                    gsap.to(logicRef, { current: newLogic, duration: turnDuration, ease: "power3.out" });
                 }
             }
         });
-    }, [scrollVelocity]);
+    }, [scrollVelocity, turnDuration]);
 
     useEffect(() => {
         if (!contentRef.current) return;
@@ -54,7 +63,7 @@ const MarqueeRow = ({ items = [], color, direction = 'left', baseSpeed = 1, clas
 
     return (
         <div
-            className={`absolute w-[350%] -left-[100%] sm:w-[300%] sm:-left-[100%] flex items-center h-[16vh] sm:h-[20vh] md:h-[24vh] lg:h-[28vh] xl:h-[30vh] overflow-visible ${className}`}
+            className={`absolute w-[350%] -left-[100%] sm:w-[300%] sm:-left-[100%] flex items-center ${heightClasses} overflow-visible ${className}`}
             style={{ backgroundColor: color, zIndex, ...style }}
         >
             <div ref={contentRef} className="flex whitespace-nowrap will-change-transform items-center h-full">
@@ -64,7 +73,7 @@ const MarqueeRow = ({ items = [], color, direction = 'left', baseSpeed = 1, clas
                             <React.Fragment key={idx}>
                                 {item.type === 'text' ? (
                                     <span
-                                        className="text-[12vh] sm:text-[15vh] md:text-[20vh] lg:text-[24vh] xl:text-[26vh] italic uppercase tracking-[-0.03em] text-black leading-none py-1 drop-shadow-sm"
+                                        className={`${textClasses} italic uppercase tracking-[-0.03em] text-black leading-none py-1 drop-shadow-sm`}
                                         style={{ fontFamily: '"DM Serif Display", serif' }}
                                     >
                                         {item.content}
@@ -161,6 +170,7 @@ const EditorialMarquee = () => {
                 direction="left"
                 baseSpeed={0.9}
                 zIndex={1}
+                large={true}
                 className="top-[12%] rotate-[-3deg]"
             />
 
@@ -170,6 +180,7 @@ const EditorialMarquee = () => {
                 direction="left"
                 baseSpeed={0.45}
                 zIndex={2}
+                large={true}
                 className="top-[66%] rotate-[-3deg]"
             />
 
@@ -179,6 +190,7 @@ const EditorialMarquee = () => {
                 direction="right"
                 baseSpeed={0.8}
                 zIndex={10}
+                turnDuration={0.6}
                 className="top-[36%] rotate-[2deg]"
             />
         </div>
