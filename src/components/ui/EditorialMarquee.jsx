@@ -53,7 +53,7 @@ const MarqueeRow = ({ items = [], color, direction = 'left', baseSpeed = 1, clas
 
     return (
         <div
-            className={`absolute w-[300%] -left-[100%] flex items-center h-[20vh] md:h-[26vh] overflow-hidden ${className}`}
+            className={`absolute w-[300%] -left-[100%] flex items-center h-[24vh] md:h-[31vh] overflow-hidden ${className}`}
             style={{ backgroundColor: color, zIndex, ...style }}
         >
             <div ref={contentRef} className="flex whitespace-nowrap will-change-transform items-center h-full">
@@ -62,11 +62,14 @@ const MarqueeRow = ({ items = [], color, direction = 'left', baseSpeed = 1, clas
                         {items.map((item, idx) => (
                             <React.Fragment key={idx}>
                                 {item.type === 'text' ? (
-                                    <span className="text-[14vh] md:text-[24vh] font-serif font-bold italic uppercase tracking-tighter text-black leading-[0.8] py-2">
+                                    <span
+                                        className="text-[18vh] md:text-[28vh] italic uppercase tracking-[-0.02em] text-black leading-none py-2"
+                                        style={{ fontFamily: '"DM Serif Display", serif' }}
+                                    >
                                         {item.content}
                                     </span>
                                 ) : (
-                                    <div className="h-[90%] aspect-square rounded-full border-[3px] md:border-[6px] border-white/95 overflow-hidden shadow-md mx-6 flex-shrink-0 relative">
+                                    <div className="h-[92%] aspect-square rounded-full border-[3px] md:border-[6px] border-white/95 overflow-hidden shadow-md mx-6 flex-shrink-0 relative">
                                         <img src={item.content} alt="decor" className="w-full h-full object-cover scale-105" />
                                         {/* Subtle inner ring for depth like the reference 2 */}
                                         <div className="absolute inset-0 rounded-full border-[1px] border-black/5 pointer-events-none" />
@@ -157,7 +160,7 @@ const EditorialMarquee = () => {
                 direction="left"
                 baseSpeed={0.8}
                 zIndex={1}
-                style={{ top: '13%', transform: 'rotate(-4deg)' }}
+                style={{ top: '10%', transform: 'rotate(-4deg)' }}
             />
 
             <MarqueeRow
@@ -166,7 +169,7 @@ const EditorialMarquee = () => {
                 direction="left"
                 baseSpeed={0.4}
                 zIndex={3}
-                style={{ top: '57%', transform: 'rotate(-4deg)' }}
+                style={{ top: '60%', transform: 'rotate(-4deg)' }}
             />
 
             <MarqueeRow
