@@ -621,7 +621,9 @@ exports.onOrderCreated = functions.runWith({ secrets: [GMAIL_EMAIL, GMAIL_PASSWO
 
         const adminMailOptions = {
             from: `Tous à Table Robot <${adminEmail}>`,
-            to: `${adminEmail}, tousatablemadeinnormandie@gmail.com`,
+            to: process.env.GCLOUD_PROJECT === 'tousatable-client'
+                ? `${adminEmail}, tousatablemadeinnormandie@gmail.com`
+                : adminEmail, // En dev/sandbox, on envoie uniquement à adminEmail (matthis)
             subject: `💰 Nouvelle Commande : ${order.total}€ (${order.shipping?.fullName})`,
             html: `
                 <h2>Nouvelle commande reçue !</h2>

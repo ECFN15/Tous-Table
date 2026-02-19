@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, getDoc, increment, limit } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import { Package, Truck, XCircle, MessageCircle, ArrowLeft, Clock, CheckCircle, Download, CreditCard, Copy, Check } from 'lucide-react';
+import { Package, Truck, XCircle, MessageCircle, ArrowLeft, Clock, CheckCircle, Download, CreditCard, Copy, Check, Loader2 } from 'lucide-react';
 import { getMillis } from '../utils/time';
+import { generateInvoice } from '../utils/generateInvoice';
 
 const formatPrice = (price) => {
     return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(price);
@@ -12,7 +13,20 @@ const MyOrdersView = ({ user, onBack, darkMode }) => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [copied, setCopied] = useState(null);
+    const [downloadingInvoice, setDownloadingInvoice] = useState(null);
     const [showCancelSuccess, setShowCancelSuccess] = useState(false);
+
+    const handleDownloadInvoice = async (order) => {
+        setDownloadingInvoice(order.id);
+        try {
+            await generateInvoice(order);
+        } catch (error) {
+            console.error("Erreur génération facture:", error);
+            alert("Une erreur est survenue lors de la génération de la facture.");
+        } finally {
+            setDownloadingInvoice(null);
+        }
+    };
 
     const handleCopy = (text, type) => {
         navigator.clipboard.writeText(text);
@@ -209,10 +223,15 @@ const MyOrdersView = ({ user, onBack, darkMode }) => {
                                             </button>
 
                                             <button
-                                                onClick={() => alert("La facture sera disponible dès l'expédition de votre commande.")}
-                                                className="flex items-center justify-center gap-2 py-4 ring-1 ring-inset ring-stone-200 dark:ring-stone-700 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-stone-50 dark:hover:bg-stone-800 transition-all opacity-60 hover:opacity-100"
+                                                onClick={() => handleDownloadInvoice(order)}
+                                                disabled={Boolean(downloadingInvoice)}
+                                                className="flex items-center justify-center gap-2 py-4 ring-1 ring-inset ring-stone-200 dark:ring-stone-700 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-stone-50 dark:hover:bg-stone-800 transition-all opacity-60 hover:opacity-100 disabled:opacity-30 disabled:cursor-not-allowed"
                                             >
-                                                <Download size={14} /> Facture
+                                                {downloadingInvoice === order.id ? (
+                                                    <><Loader2 size={14} className="animate-spin" /> Création...</>
+                                                ) : (
+                                                    <><Download size={14} /> Facture</>
+                                                )}
                                             </button>
 
                                             {canCancel(order) && (
