@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLiveTheme } from '../../../hooks/useLiveTheme';
 import { useAuth } from '../../../contexts/AuthContext';
-import { Menu, ShoppingBag, ShieldCheck, Sun, Moon, LogOut, Hammer, LogIn } from 'lucide-react';
+import { Menu, ShoppingBag, ShieldCheck, LogOut, Hammer, LogIn } from 'lucide-react';
+import AnimatedThemeToggler from '../../../components/ui/AnimatedThemeToggler';
 
 /**
  * COMPONENT : ARCHITECTURAL HEADER
@@ -120,13 +121,7 @@ const ArchitecturalHeader = ({
 
                         {/* DARK MODE TOGGLE (Only if Auto) */}
                         {showToggle && toggleTheme && (
-                            <button
-                                onClick={toggleTheme}
-                                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${darkMode ? 'text-stone-400 hover:bg-stone-800 hover:text-amber-500' : 'text-stone-400 hover:bg-stone-200 hover:text-stone-900'}`}
-                                title="Changer de thème"
-                            >
-                                {isDark ? <Sun size={20} strokeWidth={1.5} /> : <Moon size={20} strokeWidth={1.5} />}
-                            </button>
+                            <AnimatedThemeToggler isDark={isDark} toggleTheme={toggleTheme} />
                         )}
 
                         {/* LOGIN / LOGOUT BUTTON (Integrated Mobile + Desktop) */}
