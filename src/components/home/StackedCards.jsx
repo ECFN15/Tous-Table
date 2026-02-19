@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { Hammer } from 'lucide-react';
 import { motion, useScroll, useTransform } from 'framer-motion';
+import CurvedLoop from '../ui/CurvedLoop';
 
 // --- COMPOSANT : BOUTON DÉCOUVRIR ---
 const RotatingButton = ({ id }) => {
@@ -153,20 +154,54 @@ const ParallaxCard = ({ item, index, onEnterMarketplace }) => {
 };
 
 const StackedCards = ({ items, onEnterMarketplace }) => {
+    // RESPONSIVE LOGIC FOR CURVED LOOP
+    // We need different curves and scaling for Mobile vs Desktop
+    const [curveConfig, setCurveConfig] = React.useState({ amount: 180, className: "text-6xl md:text-8xl" });
+
+    React.useEffect(() => {
+        const updateConfig = () => {
+            const width = window.innerWidth;
+            if (width < 768) {
+                // MOBILE: Much flatter curve, HUGE text to fill space
+                setCurveConfig({
+                    amount: 150, // Un tout petit peu moins courbé pour accompagner la réduction
+                    className: "text-[4.2rem] leading-none tracking-tighter lining-nums" // Taille affinée + Chiffres Alignés
+                });
+            } else if (width < 1024) {
+                // TABLET
+                setCurveConfig({
+                    amount: 120,
+                    className: "text-7xl tracking-tighter lining-nums"
+                });
+            } else {
+                // DESKTOP (Locked at validated value)
+                setCurveConfig({
+                    amount: 180,
+                    className: "text-6xl md:text-8xl tracking-tighter lining-nums"
+                });
+            }
+        };
+
+        updateConfig();
+        window.addEventListener('resize', updateConfig);
+        return () => window.removeEventListener('resize', updateConfig);
+    }, []);
+
     return (
-        <section className="featured-section relative w-full bg-[#E5E5E5] flex flex-col items-center gap-0 pt-32 pb-[10vh]" style={{ overflowX: 'clip' }}>
+        <section className="featured-section relative w-full bg-[#E5E5E5] flex flex-col items-center gap-0 pt-20 md:pt-32 pb-[10vh]" style={{ overflowX: 'clip' }}>
 
             {/* MARQUEE */}
-            <div className="w-full py-6 border-b border-[#1a1a1a]/10 mb-2 overflow-hidden">
-                <div className="whitespace-nowrap flex animate-marquee">
-                    {[...Array(6)].map((_, i) => (
-                        <div key={i} className="flex items-center gap-12 mx-6">
-                            <span className="text-[10px] md:text-xs font-bold uppercase tracking-[0.3em] text-[#1a1a1a]">
-                                Découvrez notre collection
-                            </span>
-                            <span className="w-2 h-2 rounded-full bg-[#9C8268]"></span>
-                        </div>
-                    ))}
+            {/* NEW MARQUEE (CurvedLoop) */}
+            <div className="w-full relative z-20 pb-20 md:pb-40 overflow-hidden">
+                <div className="scale-[1.8] md:scale-100 origin-center"> {/* HACK: Force scale UP on mobile to fill width */}
+                    <CurvedLoop
+                        marqueeText="Découvrez ✦ nos ✦ pièces ✦ unique ✦ 2026 ✦"
+                        speed={0.7}
+                        curveAmount={curveConfig.amount}
+                        direction="right"
+                        interactive
+                        className={`text-[#1a1a1a] fill-current font-serif ${curveConfig.className}`}
+                    />
                 </div>
             </div>
 
