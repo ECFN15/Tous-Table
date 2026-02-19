@@ -300,6 +300,78 @@ const HOMEPAGE_CONFIG = [
                 ]
             }
         ]
+    },
+    {
+        section: "Bannière Éditoriale (Marquee)",
+        description: "Les 3 lignes de texte et images défilantes (Style Emily in Paris)",
+        items: [
+            // LIGNE 1
+            {
+                key: "marquee_r1_1",
+                label: "Ligne 1 - Bloc 1",
+                format: "Carré (1:1)",
+                default: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?q=80&w=400",
+                textSchema: [{ key: "word", label: "Mot 1", type: "text", placeholder: "Table" }]
+            },
+            {
+                key: "marquee_r1_2",
+                label: "Ligne 1 - Bloc 2",
+                format: "Carré (1:1)",
+                default: "https://images.unsplash.com/photo-1503602642458-232111445657?q=80&w=400",
+                textSchema: [{ key: "word", label: "Mot 2", type: "text", placeholder: "Chaise" }]
+            },
+            {
+                key: "marquee_r1_3",
+                label: "Ligne 1 - Bloc 3",
+                format: "Carré (1:1)",
+                default: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=400",
+                textSchema: [{ key: "word", label: "Mot 3", type: "text", placeholder: "Buffet" }]
+            },
+            // LIGNE 2
+            {
+                key: "marquee_r2_1",
+                label: "Ligne 2 - Bloc 1",
+                format: "Carré (1:1)",
+                default: "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?q=80&w=400",
+                textSchema: [{ key: "word", label: "Mot 1", type: "text", placeholder: "Armoire" }]
+            },
+            {
+                key: "marquee_r2_2",
+                label: "Ligne 2 - Bloc 2",
+                format: "Carré (1:1)",
+                default: "https://images.unsplash.com/photo-1544457070-4cd773b4d71e?q=80&w=400",
+                textSchema: [{ key: "word", label: "Mot 2", type: "text", placeholder: "Commode" }]
+            },
+            {
+                key: "marquee_r2_3",
+                label: "Ligne 2 - Bloc 3",
+                format: "Carré (1:1)",
+                default: "https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?q=80&w=400",
+                textSchema: [{ key: "word", label: "Mot 3", type: "text", placeholder: "Établi" }]
+            },
+            // LIGNE 3
+            {
+                key: "marquee_r3_1",
+                label: "Ligne 3 - Bloc 1",
+                format: "Carré (1:1)",
+                default: "https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?q=80&w=400",
+                textSchema: [{ key: "word", label: "Mot 1", type: "text", placeholder: "Banc" }]
+            },
+            {
+                key: "marquee_r3_2",
+                label: "Ligne 3 - Bloc 2",
+                format: "Carré (1:1)",
+                default: "https://images.unsplash.com/photo-1596162954151-cd5438f351bf?q=80&w=400",
+                textSchema: [{ key: "word", label: "Mot 2", type: "text", placeholder: "Tabouret" }]
+            },
+            {
+                key: "marquee_r3_3",
+                label: "Ligne 3 - Bloc 3",
+                format: "Carré (1:1)",
+                default: "https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=400",
+                textSchema: [{ key: "word", label: "Mot 3", type: "text", placeholder: "Miroir" }]
+            }
+        ]
     }
 ];
 
