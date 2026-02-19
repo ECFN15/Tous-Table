@@ -14,7 +14,7 @@ const MarqueeRow = ({ items = [], color, direction = 'left', baseSpeed = 1, clas
     // Dynamic sizing based on 'large' prop
     const heightClasses = large
         ? "h-[11vh] sm:h-[18vh] md:h-[25vh] lg:h-[30vh] xl:h-[33vh]"
-        : "h-[10.5vh] sm:h-[17vh] md:h-[23vh] lg:h-[27vh] xl:h-[30vh]";
+        : "h-[10.5vh] sm:h-[17vh] md:h-[24.5vh] lg:h-[28.5vh] xl:h-[31.5vh]";
 
     const textClasses = large
         ? "text-[10.5vh] sm:text-[17vh] md:text-[24vh] lg:text-[29vh] xl:text-[32vh]"
@@ -64,7 +64,16 @@ const MarqueeRow = ({ items = [], color, direction = 'left', baseSpeed = 1, clas
     return (
         <div
             className={`absolute w-[350%] -left-[100%] sm:w-[300%] sm:-left-[100%] flex items-center ${heightClasses} overflow-visible ${className}`}
-            style={{ backgroundColor: color, zIndex, ...style }}
+            style={{
+                backgroundColor: color,
+                zIndex,
+                // Anti-aliasing hacks for rotated edges on mobile/Retina
+                backfaceVisibility: "hidden",
+                WebkitBackfaceVisibility: "hidden",
+                outline: "1px solid transparent",
+                transformStyle: "preserve-3d",
+                ...style
+            }}
         >
             <div ref={contentRef} className="flex whitespace-nowrap will-change-transform items-center h-full">
                 {[...Array(4)].map((_, i) => ( // Increased to 4 reps to fix the 'gap' bug
@@ -157,7 +166,7 @@ const EditorialMarquee = () => {
     if (loading) return null; // Or a subtle loader
 
     return (
-        <div className="relative w-full h-[50vh] sm:h-[75vh] md:h-[90vh] lg:h-[110vh] xl:h-[120vh] my-8 md:my-24 overflow-hidden bg-transparent select-none">
+        <div className="relative w-full h-[42vh] sm:h-[75vh] md:h-[90vh] lg:h-[110vh] xl:h-[120vh] my-2 md:my-24 overflow-hidden bg-transparent select-none">
             {/*
                BEHAVIOR REFINEMENT:
                - Pink base speed: 0.4
@@ -171,7 +180,7 @@ const EditorialMarquee = () => {
                 baseSpeed={0.9}
                 zIndex={1}
                 large={true}
-                className="top-[12%] rotate-[-4deg] sm:rotate-[-3deg]"
+                className="top-[8%] rotate-[-4deg] md:top-[10%] md:rotate-[-3deg]"
             />
 
             <MarqueeRow
@@ -181,7 +190,7 @@ const EditorialMarquee = () => {
                 baseSpeed={0.45}
                 zIndex={2}
                 large={true}
-                className="top-[54%] rotate-[-4deg] sm:top-[58%] sm:rotate-[-3deg] md:top-[66%]"
+                className="top-[64%] rotate-[-4deg] sm:top-[58%] sm:rotate-[-3deg] md:top-[68%]"
             />
 
             <MarqueeRow
@@ -191,7 +200,7 @@ const EditorialMarquee = () => {
                 baseSpeed={0.8}
                 zIndex={10}
                 turnDuration={0.6}
-                className="top-[35%] rotate-[4deg] sm:rotate-[3deg] md:top-[36%]"
+                className="top-[39%] rotate-[4deg] sm:rotate-[3deg] md:top-[39%]"
             />
         </div>
     );
