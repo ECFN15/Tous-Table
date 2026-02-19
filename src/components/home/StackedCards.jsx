@@ -159,7 +159,7 @@ const ParallaxCard = ({ item, index, onEnterMarketplace }) => {
 const StackedCards = ({ items, onEnterMarketplace }) => {
     // RESPONSIVE LOGIC FOR CURVED LOOP
     // We need different curves and scaling for Mobile vs Desktop
-    const [curveConfig, setCurveConfig] = React.useState({ amount: 180, className: "text-6xl md:text-8xl" });
+    const [curveConfig, setCurveConfig] = React.useState({ amount: 180, className: "text-6xl md:text-8xl", speed: 0.7 });
 
     React.useEffect(() => {
         const updateConfig = () => {
@@ -167,20 +167,23 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
             if (width < 768) {
                 // MOBILE: Much flatter curve, HUGE text to fill space
                 setCurveConfig({
-                    amount: 150, // Un tout petit peu moins courbé pour accompagner la réduction
-                    className: "text-[4.2rem] leading-none tracking-tighter lining-nums" // Taille affinée + Chiffres Alignés
+                    amount: 150,
+                    className: "text-[4.8rem] leading-none tracking-tighter lining-nums",
+                    speed: 1.1 // Vitesse boostée sur mobile
                 });
             } else if (width < 1024) {
                 // TABLET
                 setCurveConfig({
                     amount: 120,
-                    className: "text-7xl tracking-tighter lining-nums"
+                    className: "text-7xl tracking-tighter lining-nums",
+                    speed: 0.9
                 });
             } else {
                 // DESKTOP (Locked at validated value)
                 setCurveConfig({
                     amount: 180,
-                    className: "text-6xl md:text-8xl tracking-tighter lining-nums"
+                    className: "text-6xl md:text-8xl tracking-tighter lining-nums",
+                    speed: 0.8 // Un peu plus rapide que l'original (0.7)
                 });
             }
         };
@@ -199,7 +202,7 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                 <div className="scale-[1.8] md:scale-100 origin-center"> {/* HACK: Force scale UP on mobile to fill width */}
                     <CurvedLoop
                         marqueeText="Découvrez ✦ nos ✦ pièces ✦ unique ✦ 2026 ✦"
-                        speed={0.7}
+                        speed={curveConfig.speed}
                         curveAmount={curveConfig.amount}
                         direction="left"
                         interactive
