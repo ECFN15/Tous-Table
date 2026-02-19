@@ -169,21 +169,21 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                 setCurveConfig({
                     amount: 150,
                     className: "text-[5.2rem] leading-none tracking-tighter lining-nums",
-                    speed: 1.4 // Speed boost proportional to small screen
+                    speed: 1.8 // Boosted for more energy
                 });
             } else if (width < 1024) {
                 // TABLET
                 setCurveConfig({
                     amount: 120,
                     className: "text-7xl tracking-tighter lining-nums",
-                    speed: 1.2
+                    speed: 1.4
                 });
             } else {
                 // DESKTOP (Locked at validated value)
                 setCurveConfig({
                     amount: 180,
                     className: "text-6xl md:text-8xl tracking-tighter lining-nums",
-                    speed: 1.1
+                    speed: 1.2
                 });
             }
         };
