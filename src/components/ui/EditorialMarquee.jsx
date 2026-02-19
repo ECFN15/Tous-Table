@@ -18,8 +18,8 @@ const MarqueeRow = ({ items = [], color, direction = 'left', baseSpeed = 1, clas
                 const newLogic = v > 0 ? 1 : -1;
                 if (newLogic !== logicRef.current) {
                     logicRef.current = newLogic;
-                    // Snappier transition (0.3s instead of 0.8s)
-                    gsap.to(logicRef, { current: newLogic, duration: 0.3, ease: "power2.out" });
+                    // Snappier transition (0.3s -> 0.25s) with smoother easing
+                    gsap.to(logicRef, { current: newLogic, duration: 0.25, ease: "power3.out" });
                 }
             }
         });
@@ -34,10 +34,11 @@ const MarqueeRow = ({ items = [], color, direction = 'left', baseSpeed = 1, clas
             const v = scrollVelocity.get();
             const absVelocity = Math.abs(v);
 
-            velocityRef.current += (absVelocity - velocityRef.current) * 0.05;
+            // Reactive physics: low friction (0.1) and high influence (0.005)
+            velocityRef.current += (absVelocity - velocityRef.current) * 0.1;
 
             const dirMultiplier = direction === 'left' ? -1 : 1;
-            const scrollInfluence = velocityRef.current * 0.003;
+            const scrollInfluence = velocityRef.current * 0.005;
 
             // Total Movement = (Base + Scroll) * Switching Logic
             const totalSpeed = (baseSpeed + scrollInfluence) * dirMultiplier * logicRef.current;
@@ -53,26 +54,26 @@ const MarqueeRow = ({ items = [], color, direction = 'left', baseSpeed = 1, clas
 
     return (
         <div
-            className={`absolute w-[300%] -left-[100%] flex items-center h-[24vh] md:h-[31vh] overflow-hidden ${className}`}
+            className={`absolute w-[350%] -left-[100%] sm:w-[300%] sm:-left-[100%] flex items-center h-[16vh] sm:h-[20vh] md:h-[24vh] lg:h-[28vh] xl:h-[30vh] overflow-visible ${className}`}
             style={{ backgroundColor: color, zIndex, ...style }}
         >
             <div ref={contentRef} className="flex whitespace-nowrap will-change-transform items-center h-full">
                 {[...Array(4)].map((_, i) => ( // Increased to 4 reps to fix the 'gap' bug
-                    <div key={i} className="flex items-center gap-12 px-8 h-full">
+                    <div key={i} className="flex items-center gap-4 sm:gap-6 md:gap-10 lg:gap-12 px-2 sm:px-6 h-full">
                         {items.map((item, idx) => (
                             <React.Fragment key={idx}>
                                 {item.type === 'text' ? (
                                     <span
-                                        className="text-[18vh] md:text-[28vh] italic uppercase tracking-[-0.02em] text-black leading-none py-2"
+                                        className="text-[12vh] sm:text-[15vh] md:text-[20vh] lg:text-[24vh] xl:text-[26vh] italic uppercase tracking-[-0.03em] text-black leading-none py-1 drop-shadow-sm"
                                         style={{ fontFamily: '"DM Serif Display", serif' }}
                                     >
                                         {item.content}
                                     </span>
                                 ) : (
-                                    <div className="h-[92%] aspect-square rounded-full border-[3px] md:border-[6px] border-white/95 overflow-hidden shadow-md mx-6 flex-shrink-0 relative">
-                                        <img src={item.content} alt="decor" className="w-full h-full object-cover scale-105" />
-                                        {/* Subtle inner ring for depth like the reference 2 */}
-                                        <div className="absolute inset-0 rounded-full border-[1px] border-black/5 pointer-events-none" />
+                                    <div className="h-[95%] sm:h-[105%] aspect-square rounded-full border-[4px] sm:border-[6px] md:border-[8px] lg:border-[12px] border-[#FDFDFD] overflow-hidden shadow-[0_10px_40px_-10px_rgba(0,0,0,0.3)] mx-3 sm:mx-5 lg:mx-8 flex-shrink-0 relative transform hover:scale-105 transition-transform duration-500 ring-1 ring-black/5">
+                                        <img src={item.content} alt="decor" className="w-full h-full object-cover" />
+                                        {/* Inner texture/bevel effect */}
+                                        <div className="absolute inset-0 rounded-full border-[1px] border-black/5 pointer-events-none mix-blend-multiply" />
                                     </div>
                                 )}
                             </React.Fragment>
@@ -147,7 +148,7 @@ const EditorialMarquee = () => {
     if (loading) return null; // Or a subtle loader
 
     return (
-        <div className="relative w-full h-[90vh] md:h-[120vh] my-12 md:my-24 overflow-hidden bg-transparent select-none">
+        <div className="relative w-full h-[60vh] sm:h-[75vh] md:h-[90vh] lg:h-[110vh] xl:h-[120vh] my-8 md:my-24 overflow-hidden bg-transparent select-none">
             {/*
                BEHAVIOR REFINEMENT:
                - Pink base speed: 0.4
@@ -158,18 +159,18 @@ const EditorialMarquee = () => {
                 items={rows.r1}
                 color="#E5C99BF2"
                 direction="left"
-                baseSpeed={0.8}
+                baseSpeed={0.9}
                 zIndex={1}
-                style={{ top: '10%', transform: 'rotate(-4deg)' }}
+                className="top-[12%] rotate-[-3deg]"
             />
 
             <MarqueeRow
                 items={rows.r3}
                 color="#D97B6BF2"
                 direction="left"
-                baseSpeed={0.4}
-                zIndex={1}
-                style={{ top: '60%', transform: 'rotate(-4deg)' }}
+                baseSpeed={0.45}
+                zIndex={2}
+                className="top-[66%] rotate-[-3deg]"
             />
 
             <MarqueeRow
@@ -178,7 +179,7 @@ const EditorialMarquee = () => {
                 direction="right"
                 baseSpeed={0.8}
                 zIndex={10}
-                style={{ top: '35%', transform: 'rotate(3deg)' }}
+                className="top-[36%] rotate-[2deg]"
             />
         </div>
     );
