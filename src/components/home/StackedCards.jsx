@@ -109,7 +109,10 @@ const ParallaxCard = ({ item, index, onEnterMarketplace }) => {
                 </div>
 
                 {/* 2. TEXT ZONE */}
-                <div className="relative z-10 w-full flex-1 flex flex-col items-center justify-between pt-6 pb-8 px-4 md:px-12 text-center -mt-6 md:-mt-12 bg-[#FAF9F6]">
+                <div
+                    className="relative z-10 w-full flex-1 flex flex-col items-center justify-between pt-6 pb-8 px-4 md:px-12 text-center -mt-6 md:-mt-12 transition-colors duration-500"
+                    style={{ backgroundColor: item.bgColor || '#FAF9F6' }}
+                >
 
                     {/* 1. TITLES (Top) */}
                     <div className="w-full">

@@ -157,7 +157,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       desc: (homepageImages && homepageImages['featured_1_text']?.desc) || "\"Une renaissance historique pour l'époque contemporaine.\"",
       img: (homepageImages && homepageImages.featured_1) || "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1200",
       imgMobile: (homepageImages && homepageImages.featured_1_mobile) || (homepageImages && homepageImages.featured_1) || "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=800",
-      bgColor: "#FFFEFA",
+      bgColor: "#FAF9F6", // Carte 1: Blanc cassé (Base neutre)
       textColor: "#1a1a1a",
       subColor: "#9C8268",
       faintColor: "rgba(0,0,0,0.03)"
@@ -174,7 +174,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       desc: (homepageImages && homepageImages['featured_2_text']?.desc) || "\"Formes épurées et assemblage traditionnel. L'équilibre parfait entre passé et présent.\"",
       img: (homepageImages && homepageImages.featured_2) || "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=1200",
       imgMobile: (homepageImages && homepageImages.featured_2_mobile) || (homepageImages && homepageImages.featured_2) || "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=800",
-      bgColor: "#FAF4EB",
+      bgColor: "#F2E8D9", // Carte 2: Pierre de Tuf (Beige chaud solaire, fini le rose)
       textColor: "#1a1a1a",
       subColor: "#9C8268",
       faintColor: "rgba(0,0,0,0.03)"
@@ -191,7 +191,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       desc: (homepageImages && homepageImages['featured_3_text']?.desc) || "\"Bois de rose et marqueterie complexe. Un gardien de correspondances oubliées.\"",
       img: (homepageImages && homepageImages.featured_3) || "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?q=80&w=1200",
       imgMobile: (homepageImages && homepageImages.featured_3_mobile) || (homepageImages && homepageImages.featured_3) || "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?q=80&w=800",
-      bgColor: "#F2E6D8",
+      bgColor: "#E8D5B5", // Carte 3: Sable d'Or (Ocre doux, contraste marqué)
       textColor: "#1a1a1a",
       subColor: "#9C8268",
       faintColor: "rgba(0,0,0,0.03)"
@@ -208,7 +208,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       desc: (homepageImages && homepageImages['featured_4_text']?.desc) || "\"Chêne massif et échelles en laiton. Une structure qui élève l'esprit.\"",
       img: (homepageImages && homepageImages.featured_4) || "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?q=80&w=1200",
       imgMobile: (homepageImages && homepageImages.featured_4_mobile) || (homepageImages && homepageImages.featured_4) || "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?q=80&w=800",
-      bgColor: "#E6D0B8",
+      bgColor: "#D8BB93", // Carte 4: Terre d'Ocre (Intense et Solaire)
       textColor: "#1a1a1a",
       subColor: "#9C8268",
       faintColor: "rgba(0,0,0,0.04)"
