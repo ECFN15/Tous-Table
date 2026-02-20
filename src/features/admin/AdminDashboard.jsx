@@ -436,15 +436,15 @@ const AdminDashboard = ({ user, darkMode = false }) => {
 
                 {/* DANGER ZONE (FULL SPAN REST) */}
                 {user?.email === 'matthis.fradin2@gmail.com' && (
-                    <div className={`lg:col-span-2 p-8 rounded-[2.5rem] border-2 border-dashed ${darkMode ? 'border-red-900/20 bg-red-900/10' : 'border-red-100 bg-red-50/50'}`}>
-                        <div className="flex items-center gap-3 mb-6 text-red-900/40">
+                    <div className={`lg:col-span-2 p-8 rounded-[2.5rem] border-2 border-dashed transition-all duration-500 ${darkMode ? 'border-red-500/20 bg-red-500/5' : 'border-red-200/50 bg-red-50/30'}`}>
+                        <div className={`flex items-center gap-3 mb-6 ${darkMode ? 'text-red-400' : 'text-red-900/40'}`}>
                             <AlertTriangle size={18} />
-                            <h3 className="text-xs font-black uppercase tracking-widest">Commandes Critiques</h3>
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Commandes Critiques</h3>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <button onClick={handleResetOrdersClick} className="py-3.5 rounded-xl font-black uppercase text-[10px] bg-white border border-red-100 text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all shadow-sm">Reset Ventes</button>
-                            <button onClick={() => setIsCleaningModalOpen(true)} className="py-3.5 rounded-xl font-black uppercase text-[10px] bg-white border border-orange-100 text-orange-500 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all shadow-sm">Clean Cloud</button>
-                            <button onClick={() => setIsResetUsersModalOpen(true)} className="py-3.5 rounded-xl font-black uppercase text-[10px] bg-white border border-red-200 text-red-700 hover:bg-red-700 hover:text-white hover:border-red-700 transition-all shadow-sm">Purge Clients</button>
+                            <button onClick={handleResetOrdersClick} className={`py-3.5 rounded-2xl font-black uppercase text-[9px] tracking-widest transition-all border shadow-sm active:scale-95 ${darkMode ? 'bg-stone-950 border-red-900/40 text-red-500 hover:bg-red-500 hover:text-white' : 'bg-white border-red-100 text-red-500 hover:bg-red-500 hover:text-white'}`}>Reset Ventes</button>
+                            <button onClick={() => setIsCleaningModalOpen(true)} className={`py-3.5 rounded-2xl font-black uppercase text-[9px] tracking-widest transition-all border shadow-sm active:scale-95 ${darkMode ? 'bg-stone-950 border-orange-900/40 text-orange-500 hover:bg-orange-500 hover:text-white' : 'bg-white border-orange-100 text-orange-500 hover:bg-orange-500 hover:text-white'}`}>Clean Cloud</button>
+                            <button onClick={() => setIsResetUsersModalOpen(true)} className={`py-3.5 rounded-2xl font-black uppercase text-[9px] tracking-widest transition-all border shadow-sm active:scale-95 ${darkMode ? 'bg-stone-950 border-red-900/40 text-red-600 hover:bg-red-600 hover:text-white' : 'bg-white border-red-200 text-red-700 hover:bg-red-700 hover:text-white'}`}>Purge Clients</button>
                         </div>
                     </div>
                 )}
