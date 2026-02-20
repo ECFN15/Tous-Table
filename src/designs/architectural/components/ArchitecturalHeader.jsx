@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLiveTheme } from '../../../hooks/useLiveTheme';
 import { useAuth } from '../../../contexts/AuthContext';
-import { Menu, ShoppingBag, ShieldCheck, LogOut, Hammer, LogIn } from 'lucide-react';
+import { Menu, ShoppingBag, ShieldCheck, LogOut, Hammer, LogIn, ChevronLeft } from 'lucide-react';
 import AnimatedThemeToggler from '../../../components/ui/AnimatedThemeToggler';
 
 /**
@@ -66,14 +66,23 @@ const ArchitecturalHeader = ({
 
     return (
         <header
-            className={`sticky top-0 z-[100] backdrop-blur-md transition-all duration-300 ease-in-out transform ${isVisible ? 'translate-y-0' : '-translate-y-full'} ${darkMode ? 'bg-[#0A0A0A]/95' : 'bg-[#FAFAF9]/95'}`}
+            className={`sticky top-0 z-[1000] backdrop-blur-md transition-all duration-300 ease-in-out transform ${isVisible ? 'translate-y-0' : '-translate-y-full'} ${darkMode ? 'bg-[#0A0A0A]/95' : 'bg-[#FAFAF9]/95'}`}
         >
             <div className="max-w-[1920px] mx-auto px-4 md:px-12 h-20 md:h-24 flex items-center justify-between">
 
                 {/* 1. LEFT: LOGO & TABS */}
                 {/* 1. LEFT: NAVIGATION & LOGO */}
                 <div className="flex items-center gap-6">
-
+                    {onBack && (
+                        <button
+                            onClick={onBack}
+                            className={`flex items-center gap-2 pr-4 border-r ${darkMode ? 'border-stone-800 text-stone-200 hover:text-white' : 'border-stone-200 text-stone-900 hover:text-stone-600'} transition-colors group`}
+                            title="Retour"
+                        >
+                            <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+                            <span className="hidden sm:inline text-[10px] font-black uppercase tracking-widest">Retour</span>
+                        </button>
+                    )}
                     <div className="flex items-center gap-8">
                         {/* MINI LOGO TEXT */}
                         <div className="flex flex-col leading-none cursor-pointer group" onClick={() => window.location.href = '/'}>

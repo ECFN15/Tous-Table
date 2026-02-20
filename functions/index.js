@@ -699,6 +699,136 @@ exports.onOrderCreated = functions.runWith({ secrets: [GMAIL_EMAIL, GMAIL_PASSWO
         }
     });
 
+// --- NOTIFICATION D'EXPÉDITION ---
+exports.onOrderUpdated = functions.runWith({ secrets: [GMAIL_EMAIL, GMAIL_PASSWORD] }).firestore
+    .document('orders/{orderId}')
+    .onUpdate(async (change, context) => {
+        const orderBefore = change.before.data();
+        const orderAfter = change.after.data();
+
+        // Check if status changed TO 'shipped'
+        if (orderAfter.status === 'shipped' && orderBefore.status !== 'shipped') {
+            const clientEmail = orderAfter.userEmail || orderAfter.shipping?.email;
+            if (!clientEmail) {
+                console.warn("⚠️ Pas d'email client trouvé pour la notification d'expédition.");
+                return null;
+            }
+
+            if (!GMAIL_EMAIL.value()) {
+                console.error("❌ Email non configuré (GMAIL_EMAIL manquant).");
+                return null;
+            }
+
+            const adminEmail = GMAIL_EMAIL.value();
+            const transporter = createTransporter();
+            const orderId = context.params.orderId;
+
+            const clientMailOptions = {
+                from: `Tous à Table <${adminEmail}>`,
+                to: clientEmail,
+                subject: `📦 Votre commande a été expédiée !`,
+                html: `
+                    <div style="font-family: sans-serif; color: #333; max-width: 600px;">
+                        <h1 style="color: #4f46e5;">Bonne nouvelle !</h1>
+                        <p>Bonjour ${orderAfter.shipping?.fullName || ''},</p>
+                        <p>Votre commande <b>#${orderId.slice(0, 8)}</b> vient d'être expédiée !</p>
+                        
+                        <div style="background: #eef2ff; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                            <h3 style="margin-top:0; color: #4338ca;">En route vers chez vous 🚚</h3>
+                            <p>Votre commande a quitté l'Atelier. Elle arrivera prochainement à l'adresse suivante :</p>
+                            <p><strong>${orderAfter.shipping?.address}, ${orderAfter.shipping?.city} (${orderAfter.shipping?.postalCode})</strong></p>
+                        </div>
+
+                        <p>Vous pouvez retrouver votre facture et suivre votre commande depuis votre <b>Espace Client (onglet Mes Commandes)</b>.</p>
+                        
+                        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                            <p style="margin: 0 0 5px 0;"><strong>Besoin d'aide ? Contactez-nous :</strong></p>
+                            <p style="margin: 0 0 5px 0; color: #555; font-size: 14px;">📞 07 77 32 41 78</p>
+                            <p style="margin: 0; color: #555; font-size: 14px;">📍 346 Chem. de Fleury IFS, France</p>
+                        </div>
+
+                        <hr style="border:none; border-top:1px solid #eee; margin: 20px 0;" />
+                        <p>À très vite,<br/><i>L'équipe Tous à Table</i></p>
+                    </div>
+                `
+            };
+
+            try {
+                await transporter.sendMail(clientMailOptions);
+                console.log("✅ Email d'expédition envoyé à", clientEmail);
+            } catch (e) {
+                console.error("❌ Erreur Envoi Email d'expédition:", e);
+            }
+        }
+
+        // Check if status changed TO 'completed'
+        if (orderAfter.status === 'completed' && orderBefore.status !== 'completed') {
+            const clientEmail = orderAfter.userEmail || orderAfter.shipping?.email;
+            if (!clientEmail) {
+                console.warn("⚠️ Pas d'email client trouvé pour la notification de livraison.");
+                return null;
+            }
+
+            if (!GMAIL_EMAIL.value()) {
+                console.error("❌ Email non configuré (GMAIL_EMAIL manquant).");
+                return null;
+            }
+
+            const adminEmail = GMAIL_EMAIL.value();
+            const transporter = createTransporter();
+            const orderId = context.params.orderId;
+
+            const clientMailOptions = {
+                from: `Tous à Table <${adminEmail}>`,
+                to: clientEmail,
+                subject: `✨ Votre commande est arrivée ! Parlez-nous de votre expérience.`,
+                html: `
+                    <div style="font-family: 'Georgia', serif; color: #1c1917; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e7e5e4; border-radius: 12px;">
+                        <div style="text-align: center; margin-bottom: 30px;">
+                            <h1 style="color: #059669; font-size: 24px; font-family: sans-serif; text-transform: uppercase; letter-spacing: 2px; margin: 0;">Commande Livrée</h1>
+                            <p style="color: #78716c; font-size: 14px; margin-top: 5px; font-family: sans-serif;">La pièce est désormais entre vos mains.</p>
+                        </div>
+                        
+                        <p style="font-size: 16px; line-height: 1.6;">Bonjour <b>${orderAfter.shipping?.fullName || ''}</b>,</p>
+                        
+                        <p style="font-size: 16px; line-height: 1.6;">
+                            Nous espérons que votre nouvelle pièce a trouvé sa place dans votre intérieur et qu'elle vous donne entière satisfaction.
+                        </p>
+                        
+                        <div style="background-color: #f0fdf4; border-left: 4px solid #10b981; padding: 20px; margin: 30px 0; border-radius: 4px;">
+                            <h3 style="margin-top: 0; color: #047857; font-family: sans-serif; font-size: 16px;">🌟 Votre avis est précieux</h3>
+                            <p style="font-size: 15px; line-height: 1.5; color: #065f46; margin-bottom: 20px;">
+                                Si vous êtes satisfait de notre travail, <b>un petit mot de votre part serait la plus belle des récompenses</b> pour notre atelier. Cela aide considérablement d'autres passionnés à découvrir notre savoir-faire.
+                            </p>
+                            <div style="text-align: center;">
+                                <a href="https://g.page/r/CepCisGcSHS2EBM/review" target="_blank" style="background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; font-family: sans-serif; display: inline-block; text-transform: uppercase; letter-spacing: 1px; font-size: 13px;">Laisser un avis sur Google</a>
+                            </div>
+                        </div>
+
+                        <p style="font-size: 16px; line-height: 1.6; margin-top: 30px;">
+                            N'hésitez pas non plus à partager une photo de votre intérieur sur <b>Instagram</b> en nous identifiant, nous adorons voir nos pièces prendre vie chez vous !
+                        </p>
+
+                        <div style="margin-top: 40px; padding-top: 30px; border-top: 1px solid #e7e5e4; text-align: center; color: #78716c; font-family: sans-serif;">
+                            <p style="margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; color: #292524;">Tous à Table — Atelier Normand</p>
+                            <p style="margin: 5px 0 0 0; font-size: 12px;">346 Chem. de Fleury IFS, France</p>
+                            <p style="margin: 5px 0 0 0; font-size: 12px; color: #10b981;">Merci pour votre confiance.</p>
+                        </div>
+                    </div>
+                `
+            };
+
+            try {
+                await transporter.sendMail(clientMailOptions);
+                console.log("✅ Email de Livraison (Avis) envoyé à", clientEmail);
+            } catch (e) {
+                console.error("❌ Erreur Envoi Email de Livraison (Avis):", e);
+            }
+        }
+
+        return null;
+    });
+
 exports.shareMeta = functions.https.onRequest(async (req, res) => {
     const SITE_URL = getSiteUrl();
     // SÉCURITÉ: Sanitize productId — alphanumériques et underscores uniquement (Anti-XSS)

@@ -42,6 +42,7 @@ const AppRouter = ({
     startGalleryTransition,
     completeGalleryTransition,
     darkMode,
+    activeDesignId,
     isSecretGateOpen,
     setShowFullLogin,
     setSelectedItemId,
@@ -59,7 +60,8 @@ const AppRouter = ({
     onOpenMenu,
     onOpenCart,
     toggleTheme,
-    onOpenDiscovery
+    onOpenDiscovery,
+    setHeaderProps
 }) => {
     const { user, isAdmin, logout } = useAuth();
 
@@ -118,6 +120,7 @@ const AppRouter = ({
                             onOpenMenu={onOpenMenu}
                             onOpenCart={onOpenCart}
                             toggleTheme={toggleTheme}
+                            setHeaderProps={setHeaderProps}
                         />
                     </Suspense>
                 </div>
@@ -136,6 +139,7 @@ const AppRouter = ({
                             onOpenCart={onOpenCart}
                             onShowLogin={() => setShowFullLogin(true)}
                             toggleTheme={toggleTheme}
+                            setHeaderProps={setHeaderProps}
                         />
                     </div>
                 </Suspense>
@@ -160,6 +164,7 @@ const AppRouter = ({
                         user={user}
                         onBack={() => setView('gallery')}
                         darkMode={darkMode}
+                        activeDesignId={activeDesignId}
                     />
                 </Suspense>
             )}

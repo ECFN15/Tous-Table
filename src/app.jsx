@@ -23,6 +23,7 @@ import SEO from './components/shared/SEO';
 
 
 import MarketplaceDiscovery from './components/home/MarketplaceDiscovery';
+import ArchitecturalHeader from './designs/architectural/components/ArchitecturalHeader';
 
 const AppContent = () => {
 
@@ -104,6 +105,9 @@ const AppContent = () => {
 
   // Deep Linking State
   const [pendingDeepLink, setPendingDeepLink] = useState(null);
+
+  // Header Props for Architectural Design
+  const [headerProps, setHeaderProps] = useState(null);
 
   // --- SCROLL HEADER LOGIC ---
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
@@ -597,12 +601,12 @@ const AppContent = () => {
       {/* --- NAVBAR & MENU GLOBAUX (NE S'AFFICHENT PAS SUR LA PAGE D'ACCUEIL) --- */}
       {/* --- MENU GLOBAL (Toujours disponible sauf Home) --- */}
       {view !== 'home' && (
-        <div className={`fixed inset-0 z-[110] transition-all duration-300 ${isMenuOpen ? 'visible' : 'invisible pointer-events-none'}`}>
+        <div className={`fixed inset-0 z-[2000] transition-all duration-300 ${isMenuOpen ? 'visible' : 'invisible pointer-events-none'}`}>
           <div
             className={`absolute inset-0 bg-stone-900/60 backdrop-blur-md transition-opacity duration-700 ease-in-out ${isMenuOpen ? 'opacity-100' : 'opacity-0'}`}
             onClick={() => setIsMenuOpen(false)}
           ></div>
-          <div className={`absolute right-0 top-0 bottom-0 w-full md:w-[450px] shadow-2xl transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] p-12 flex flex-col justify-between ${isMenuOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'} 
+          <div className={`absolute right-0 top-0 bottom-0 w-full md:w-[450px] shadow-2xl transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] p-12 flex flex-col justify-between z-[2001] ${isMenuOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'} 
               ${activeDesignId === 'architectural'
               ? (darkMode ? 'bg-[#0A0A0A] border-l border-stone-800 text-stone-200' : 'bg-[#FAFAF9] border-l border-stone-200 text-stone-900')
               : (darkMode ? 'bg-stone-900 border-l border-stone-800' : 'bg-white')}
@@ -631,7 +635,7 @@ const AppContent = () => {
               {user && !user.isAnonymous && (
                 <div className="mb-4">
                   <p className={`text-xs font-bold flex items-center gap-2 ${darkMode ? 'text-white' : 'text-stone-900'}`}>
-                    {user.displayName || user.email}
+                    {user.email || user.displayName}
                     {user.emailVerified && <span className="text-blue-500 text-[10px] bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">Vérifié</span>}
                   </p>
                   <p className={`text-[10px] uppercase tracking-widest ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>Connecté</p>
@@ -662,65 +666,80 @@ const AppContent = () => {
         </div>
       )}
 
-      {/* --- NAVBAR GLOBALE (Masquée sur la Galerie ET Détail en Architecture) --- */}
-      {view !== 'home' && !(activeDesignId === 'architectural' && (view === 'gallery' || view === 'detail')) && (
-        <nav className={`fixed top-0 left-0 right-0 z-[110] px-3 md:px-12 py-3 md:py-8 flex justify-between items-center transition-all duration-500 ease-in-out ${isHeaderVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}>
-          <div className="flex items-center gap-1.5 md:gap-3 cursor-pointer group" onClick={() => { window.hasShownPreloader = true; setView('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
-            <div className={`w-[28px] h-[28px] md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center backdrop-blur-2xl border transition-all group-hover:rotate-6 shadow-sm ${darkMode ? 'bg-white/10 border-white/20 text-white' : 'bg-white border-stone-300 text-stone-900'}`}>
-              <Hammer size={12} strokeWidth={1.5} className="md:w-4 md:h-4" />
-            </div>
-            <div className="flex flex-col justify-center">
-              <h1 className={`text-[13px] md:text-lg font-bold uppercase tracking-tight md:tracking-widest leading-none transition-colors ${darkMode ? 'text-white' : 'text-stone-900 shadow-stone-200/50'}`}>Tous à Table</h1>
-              <p className={`font-serif italic text-[11px] md:text-[14px] tracking-[0.05em] md:tracking-[0.1em] leading-none mt-0.5 md:mt-1 ml-0.5 transition-colors ${darkMode ? 'text-white/80' : 'text-stone-600'}`}>Atelier Normand</p>
-            </div>
-          </div>
-
-          <div className={`flex items-center gap-1 md:gap-4 ${darkMode ? 'text-white' : 'text-stone-900'}`}>
-            {user && !user.isAnonymous ? (
-              <div className="flex items-center gap-1.5 md:gap-4 mr-0.5 md:mr-2">
-                <div className="text-right hidden md:block">
-                  <div className="flex items-center justify-end gap-2">
-                    <p className={`text-[10px] font-black uppercase tracking-widest ${darkMode ? 'text-white' : 'text-stone-900'}`}>{user.displayName || 'Client'}</p>
-                    {user.emailVerified && <ShieldCheck size={14} strokeWidth={3} className={darkMode ? 'text-white' : 'text-stone-900'} title="Compte Vérifié" />}
-                  </div>
+      {/* --- NAVBAR GLOBALE --- */}
+      {view !== 'home' && (
+        <>
+          {activeDesignId === 'architectural' ? (
+            <ArchitecturalHeader
+              headerProps={headerProps}
+              user={user}
+              onShowLogin={() => setShowFullLogin(true)}
+              onOpenMenu={() => setIsMenuOpen(true)}
+              onOpenCart={() => { setCartInteracted(true); setIsCartOpen(true); }}
+              toggleTheme={() => setDarkMode(!darkMode)}
+              darkMode={darkMode}
+              onBack={view === 'detail' ? () => setView('gallery') : null}
+            />
+          ) : (
+            <nav className={`fixed top-0 left-0 right-0 z-[110] px-3 md:px-12 py-3 md:py-8 flex justify-between items-center transition-all duration-500 ease-in-out ${isHeaderVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}>
+              <div className="flex items-center gap-1.5 md:gap-3 cursor-pointer group" onClick={() => { window.hasShownPreloader = true; setView('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
+                <div className={`w-[28px] h-[28px] md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center backdrop-blur-2xl border transition-all group-hover:rotate-6 shadow-sm ${darkMode ? 'bg-white/10 border-white/20 text-white' : 'bg-white border-stone-300 text-stone-900'}`}>
+                  <Hammer size={12} strokeWidth={1.5} className="md:w-4 md:h-4" />
                 </div>
-                <button onClick={() => { logout(); }} className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center backdrop-blur-2xl border shadow-xl transition-all ${darkMode ? 'bg-white/10 border-white/20 text-white hover:bg-white hover:text-stone-900 shadow-white/5' : 'bg-white border-stone-200 text-stone-900 hover:bg-stone-900 hover:text-white shadow-stone-200/50'}`}><LogOut size={12} className="md:w-[15px] md:h-[15px]" /></button>
+                <div className="flex flex-col justify-center">
+                  <h1 className={`text-[13px] md:text-lg font-bold uppercase tracking-tight md:tracking-widest leading-none transition-colors ${darkMode ? 'text-white' : 'text-stone-900 shadow-stone-200/50'}`}>Tous à Table</h1>
+                  <p className={`font-serif italic text-[11px] md:text-[14px] tracking-[0.05em] md:tracking-[0.1em] leading-none mt-0.5 md:mt-1 ml-0.5 transition-colors ${darkMode ? 'text-white/80' : 'text-stone-600'}`}>Atelier Normand</p>
+                </div>
               </div>
-            ) : !isSecretGateOpen && (
-              <button onClick={() => setShowFullLogin(true)} className={`flex items-center gap-2 px-3 py-2 md:px-5 md:py-2.5 rounded-full backdrop-blur-2xl border shadow-xl transition-all text-[9.5px] md:text-[11px] font-bold uppercase tracking-widest mr-0.5 md:mr-2 ${darkMode ? 'bg-white/10 border-white/20 text-white hover:bg-white hover:text-stone-900 shadow-white/5' : 'bg-white border-stone-200 text-stone-900 hover:bg-stone-900 hover:text-white shadow-stone-200/50'}`}><ShieldCheck size={12} className="md:w-3.5 md:h-3.5" /> <span className="hidden md:inline">Connexion</span></button>
-            )}
 
-            {/* CART BUTTON - Uniquement sur marketplace, detail et checkout */}
-            {['gallery', 'detail', 'checkout'].includes(view) && (
-              <button
-                onClick={() => { setCartInteracted(true); setIsCartOpen(true); }}
-                className={`w-8 h-8 md:w-auto md:h-auto px-0 md:px-5 md:py-2.5 rounded-full flex items-center justify-center gap-2.5 backdrop-blur-2xl border shadow-xl transition-all group relative ${darkMode ? 'bg-white/15 border-white/20 text-white hover:bg-amber-500 hover:text-white shadow-white/5' : 'bg-white border-stone-200 text-stone-900 hover:bg-amber-500 hover:text-white shadow-stone-200/50'}`}
-              >
-                <ShoppingBag size={14} className="md:w-[15px] md:h-[15px]" />
-                <span className="hidden md:block text-[9.5px] md:text-[11px] font-bold uppercase tracking-widest">Panier</span>
-                {cartItems.length > 0 && (
-                  <span className="absolute -top-1 -right-1 md:top-1 md:right-1 w-3 h-3 md:w-4 md:h-4 bg-amber-500 text-white flex items-center justify-center text-[7px] md:text-[9px] font-black rounded-full border border-white shadow-md">
-                    {cartItems.length}
-                  </span>
+              <div className={`flex items-center gap-1 md:gap-4 ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                {user && !user.isAnonymous ? (
+                  <div className="flex items-center gap-1.5 md:gap-4 mr-0.5 md:mr-2">
+                    <div className="text-right hidden md:block">
+                      <div className="flex items-center justify-end gap-2">
+                        <p className={`text-[10px] font-black uppercase tracking-widest ${darkMode ? 'text-white' : 'text-stone-900'}`}>{user.displayName || 'Client'}</p>
+                        {user.emailVerified && <ShieldCheck size={14} strokeWidth={3} className={darkMode ? 'text-white' : 'text-stone-900'} title="Compte Vérifié" />}
+                      </div>
+                    </div>
+                    <button onClick={() => { logout(); }} className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center backdrop-blur-2xl border shadow-xl transition-all ${darkMode ? 'bg-white/10 border-white/20 text-white hover:bg-white hover:text-stone-900 shadow-white/5' : 'bg-white border-stone-200 text-stone-900 hover:bg-stone-900 hover:text-white shadow-stone-200/50'}`}><LogOut size={12} className="md:w-[15px] md:h-[15px]" /></button>
+                  </div>
+                ) : !isSecretGateOpen && (
+                  <button onClick={() => setShowFullLogin(true)} className={`flex items-center gap-2 px-3 py-2 md:px-5 md:py-2.5 rounded-full backdrop-blur-2xl border shadow-xl transition-all text-[9.5px] md:text-[11px] font-bold uppercase tracking-widest mr-0.5 md:mr-2 ${darkMode ? 'bg-white/10 border-white/20 text-white hover:bg-white hover:text-stone-900 shadow-white/5' : 'bg-white border-stone-200 text-stone-900 hover:bg-stone-900 hover:text-white shadow-stone-200/50'}`}><ShieldCheck size={12} className="md:w-3.5 md:h-3.5" /> <span className="hidden md:inline">Connexion</span></button>
                 )}
-              </button>
-            )}
 
-            {/* DARK MODE TOGGLE */}
-            {/* DARK MODE TOGGLE - Hidden if Forced */}
-            {!isModeForced && (
-              <button
-                onClick={() => setDarkMode(!darkMode)}
-                className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center backdrop-blur-2xl border shadow-xl transition-all ml-0.5 md:ml-0 ${darkMode ? 'bg-white/15 border-white/20 text-white hover:bg-amber-500 hover:text-white shadow-white/5' : 'bg-white border-stone-200 text-stone-900 hover:bg-amber-500 hover:text-white shadow-stone-200/50'}`}
-                title={darkMode ? 'Mode Clair' : 'Mode Sombre'}
-              >
-                {darkMode ? <Sun size={12} className="md:w-[15px] md:h-[15px]" /> : <Moon size={12} className="md:w-[15px] md:h-[15px]" />}
-              </button>
-            )}
+                {/* CART BUTTON - Uniquement sur marketplace, detail et checkout */}
+                {['gallery', 'detail', 'checkout'].includes(view) && (
+                  <button
+                    onClick={() => { setCartInteracted(true); setIsCartOpen(true); }}
+                    className={`w-8 h-8 md:w-auto md:h-auto px-0 md:px-5 md:py-2.5 rounded-full flex items-center justify-center gap-2.5 backdrop-blur-2xl border shadow-xl transition-all group relative ${darkMode ? 'bg-white/15 border-white/20 text-white hover:bg-amber-500 hover:text-white shadow-white/5' : 'bg-white border-stone-200 text-stone-900 hover:bg-amber-500 hover:text-white shadow-stone-200/50'}`}
+                  >
+                    <ShoppingBag size={14} className="md:w-[15px] md:h-[15px]" />
+                    <span className="hidden md:block text-[9.5px] md:text-[11px] font-bold uppercase tracking-widest">Panier</span>
+                    {cartItems.length > 0 && (
+                      <span className="absolute -top-1 -right-1 md:top-1 md:right-1 w-3 h-3 md:w-4 md:h-4 bg-amber-500 text-white flex items-center justify-center text-[7px] md:text-[9px] font-black rounded-full border border-white shadow-md">
+                        {cartItems.length}
+                      </span>
+                    )}
+                  </button>
+                )}
 
-            <button onClick={() => setIsMenuOpen(true)} className={`w-8 h-8 md:w-auto md:h-auto px-0 md:px-6 md:py-2.5 rounded-full flex items-center justify-center gap-3 backdrop-blur-2xl border shadow-xl group transition-all ml-0.5 md:ml-0 ${darkMode ? 'bg-white/10 border-white/20 text-white hover:bg-white hover:text-stone-900 shadow-white/5' : 'bg-white border-stone-200 text-stone-900 hover:bg-stone-900 hover:text-white shadow-stone-200/50'}`}><span className="hidden md:block text-[9.5px] md:text-[11px] font-bold uppercase tracking-widest">Menu</span><Menu size={14} className="md:w-[15px] md:h-[15px]" /></button>
-          </div>
-        </nav>
+                {/* DARK MODE TOGGLE */}
+                {/* DARK MODE TOGGLE - Hidden if Forced */}
+                {!isModeForced && (
+                  <button
+                    onClick={() => setDarkMode(!darkMode)}
+                    className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center backdrop-blur-2xl border shadow-xl transition-all ml-0.5 md:ml-0 ${darkMode ? 'bg-white/15 border-white/20 text-white hover:bg-amber-500 hover:text-white shadow-white/5' : 'bg-white border-stone-200 text-stone-900 hover:bg-amber-500 hover:text-white shadow-stone-200/50'}`}
+                    title={darkMode ? 'Mode Clair' : 'Mode Sombre'}
+                  >
+                    {darkMode ? <Sun size={12} className="md:w-[15px] md:h-[15px]" /> : <Moon size={12} className="md:w-[15px] md:h-[15px]" />}
+                  </button>
+                )}
+
+                <button onClick={() => setIsMenuOpen(true)} className={`w-8 h-8 md:w-auto md:h-auto px-0 md:px-6 md:py-2.5 rounded-full flex items-center justify-center gap-3 backdrop-blur-2xl border shadow-xl group transition-all ml-0.5 md:ml-0 ${darkMode ? 'bg-white/10 border-white/20 text-white hover:bg-white hover:text-stone-900 shadow-white/5' : 'bg-white border-stone-200 text-stone-900 hover:bg-stone-900 hover:text-white shadow-stone-200/50'}`}><span className="hidden md:block text-[9.5px] md:text-[11px] font-bold uppercase tracking-widest">Menu</span><Menu size={14} className="md:w-[15px] md:h-[15px]" /></button>
+              </div>
+            </nav>
+          )}
+        </>
       )}
 
       {/* --- CONTENU PRINCIPAL --- */}
@@ -734,6 +753,7 @@ const AppContent = () => {
           startGalleryTransition={startGalleryTransition}
           completeGalleryTransition={completeGalleryTransition}
           darkMode={darkMode}
+          activeDesignId={activeDesignId}
           isSecretGateOpen={isSecretGateOpen}
           setShowFullLogin={setShowFullLogin}
           setSelectedItemId={setSelectedItemId}
@@ -752,6 +772,7 @@ const AppContent = () => {
           onOpenCart={() => { setCartInteracted(true); setIsCartOpen(true); }}
           toggleTheme={() => setDarkMode(!darkMode)}
           onOpenDiscovery={() => setShowMarketplacePopup(true)}
+          setHeaderProps={setHeaderProps}
         />
       </main>
       {['home', 'gallery', 'detail', 'checkout', 'my-orders'].includes(view) && (

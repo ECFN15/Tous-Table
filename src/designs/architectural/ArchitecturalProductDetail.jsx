@@ -15,7 +15,7 @@ import AnimatedPrice from '../../components/ui/AnimatedPrice';
 const placeBidFunction = httpsCallable(functions, 'placeBid');
 const wakeUpFunction = httpsCallable(functions, 'wakeUp');
 
-const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, onOpenMenu, onOpenCart, onShowLogin, toggleTheme, darkMode }) => {
+const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, onOpenMenu, onOpenCart, onShowLogin, toggleTheme, darkMode, setHeaderProps }) => {
     const { palette, activeDesignId } = useLiveTheme();
     const [activeImg, setActiveImg] = useState(0);
     const [bidLoading, setBidLoading] = useState(false);
@@ -59,6 +59,13 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
             wakeUpFunction().catch(() => { }); // Silent ping
         }
     }, [item?.id]);
+
+    // SYNC WITH GLOBAL HEADER (Clear tabs on detail view)
+    useEffect(() => {
+        if (setHeaderProps) {
+            setHeaderProps(null);
+        }
+    }, [setHeaderProps]);
 
     // Hooks
     const images = useMemo(() => {
@@ -196,15 +203,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
                 type="product"
                 schema={productSchema}
             />
-            <ArchitecturalHeader
-                user={user}
-                onShowLogin={onShowLogin}
-                onOpenMenu={onOpenMenu}
-                onOpenCart={onOpenCart}
-                toggleTheme={toggleTheme}
-                darkMode={darkMode}
-                onBack={onBack}
-            />
+            {/* ArchitecturalHeader removed here, handled globally in App.jsx */}
 
             <div className="w-full min-h-screen flex flex-col md:flex-row relative">
                 {/* BACK BUTTON (Absolute Top Left - Mobile Only) */}

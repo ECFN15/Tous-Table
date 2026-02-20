@@ -16,10 +16,10 @@ const MarketplaceLayout = ({
     onShowLogin,
     headerProps,
     user,
-    onOpenMenu, // GLOBAL MENU TRIGGER
     onOpenCart,  // GLOBAL CART TRIGGER
     toggleTheme, // Global Theme Toggle
-    darkMode // Explicit state
+    darkMode, // Explicit state
+    setHeaderProps // Global Header Sync
 }) => {
     // Déstructuration des props de header
     const { activeCollection, setActiveCollection, filter, setFilter } = headerProps || {};
@@ -30,20 +30,19 @@ const MarketplaceLayout = ({
         setWishlistCount(prev => val ? prev + 1 : Math.max(0, prev - 1));
     };
 
+    // SYNC WITH GLOBAL HEADER
+    React.useEffect(() => {
+        if (setHeaderProps) {
+            setHeaderProps(headerProps);
+        }
+        return () => {
+            if (setHeaderProps) setHeaderProps(null);
+        };
+    }, [headerProps, setHeaderProps]);
+
     return (
         <div className={`w-full min-h-screen transition-colors duration-700 selection:bg-stone-300 selection:text-black ${darkMode ? 'bg-[#0A0A0A] text-stone-200' : 'bg-[#FAFAF9] text-stone-900'}`}>
-
-            {/* --- HEADER INTÉGRÉ (VIA COMPONENT) --- */}
-            <ArchitecturalHeader
-                headerProps={headerProps}
-                user={user}
-                onShowLogin={onShowLogin}
-                onOpenMenu={onOpenMenu}
-                onOpenCart={onOpenCart}
-                wishlistCount={wishlistCount}
-                toggleTheme={toggleTheme}
-                darkMode={darkMode} // Pass explicit state
-            />
+            {/* ArchitecturalHeader removed here, it's now handled globally in App.jsx */}
 
             {/* --- MAIN CONTENT --- */}
             <main className="max-w-[1920px] mx-auto px-4 md:px-12 py-10 md:pt-8 md:pb-12">

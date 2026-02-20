@@ -22,7 +22,8 @@ export const generateInvoice = async (order) => {
             doc.text("346 chemin de Fleury", 15, 45);
             doc.text("14123 IFS", 15, 50);
             doc.text("Tel : 07 77 32 41 78", 15, 55);
-            doc.text("RCS 325 308 930 000 57 CAEN", 15, 60);
+            doc.text("SIREN : 803 328 756", 15, 60);
+            doc.text("Forme juridique : Entrepreneur individuel", 15, 65);
 
             // Right
             doc.setFontSize(16);

@@ -7,7 +7,7 @@ import SEO from '../components/shared/SEO';
 
 // SEO component is imported at the top.
 
-const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, onSelectItem, onShowLogin, darkMode = false, onOpenMenu, onOpenCart, toggleTheme }) => {
+const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, onSelectItem, onShowLogin, darkMode = false, onOpenMenu, onOpenCart, toggleTheme, setHeaderProps }) => {
     const [filter, setFilter] = useState('fixed');
     const [activeCollection, setActiveCollection] = useState('furniture'); // 'furniture' | 'cutting_boards'
     const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list'
@@ -61,6 +61,7 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                 onOpenMenu={onOpenMenu}
                 onOpenCart={onOpenCart}
                 toggleTheme={toggleTheme}
+                setHeaderProps={setHeaderProps}
                 headerProps={{
                     activeCollection,
                     setActiveCollection,

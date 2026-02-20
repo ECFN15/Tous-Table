@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, getDoc, increment, limit } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import { Package, Truck, XCircle, MessageCircle, ArrowLeft, Clock, CheckCircle, Download, CreditCard, Copy, Check, Loader2 } from 'lucide-react';
+import { Package, Truck, XCircle, MessageCircle, ArrowLeft, Clock, CheckCircle, Download, CreditCard, Copy, Check, Loader2, Star } from 'lucide-react';
 import { getMillis } from '../utils/time';
 import { generateInvoice } from '../utils/generateInvoice';
 
@@ -9,7 +9,7 @@ const formatPrice = (price) => {
     return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(price);
 };
 
-const MyOrdersView = ({ user, onBack, darkMode }) => {
+const MyOrdersView = ({ user, onBack, darkMode, activeDesignId }) => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [copied, setCopied] = useState(null);
@@ -150,13 +150,13 @@ const MyOrdersView = ({ user, onBack, darkMode }) => {
     };
 
     if (loading) return (
-        <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-stone-900 text-white' : 'bg-[#FAF9F6] text-stone-900'}`}>
+        <div className={`min-h-screen flex items-center justify-center ${activeDesignId === 'architectural' ? (darkMode ? 'bg-[#0A0A0A] text-white' : 'bg-[#FAFAF9] text-stone-900') : (darkMode ? 'bg-stone-900 text-white' : 'bg-[#FAF9F6] text-stone-900')}`}>
             <div className="w-10 h-10 border-[3px] border-stone-200 border-t-stone-900 rounded-full animate-spin"></div>
         </div>
     );
 
     return (
-        <div className={`min-h-screen animate-in fade-in ${darkMode ? 'bg-stone-900 text-white' : 'bg-[#FAF9F6] text-stone-900'}`}>
+        <div className={`min-h-screen animate-in fade-in ${activeDesignId === 'architectural' ? (darkMode ? 'bg-[#0A0A0A] text-stone-200' : 'bg-[#FAFAF9] text-stone-900') : (darkMode ? 'bg-stone-900 text-stone-200' : 'bg-[#FAF9F6] text-stone-900')}`}>
             <div className="max-w-6xl mx-auto px-6 py-32 space-y-12">
 
                 {/* HEAD */}
@@ -312,21 +312,54 @@ const MyOrdersView = ({ user, onBack, darkMode }) => {
                                             )}
 
                                             {order.status === 'shipped' && (
-                                                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex gap-3 items-start">
-                                                    <Truck size={16} className="text-blue-600 mt-0.5" />
-                                                    <div className="space-y-1">
-                                                        <p className="text-xs font-bold text-blue-700 dark:text-blue-400">En cours de livraison</p>
-                                                        <p className="text-[10px] opacity-70 leading-tight">Livraison estimée sous 7 à 14 jours.</p>
+                                                <div className={`p-6 md:p-8 rounded-[2.5rem] border-2 border-dashed ${darkMode ? 'bg-indigo-500/5 border-indigo-500/20' : 'bg-indigo-50/50 border-indigo-200'} space-y-6 shadow-sm`}>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-xl bg-indigo-500 text-white flex items-center justify-center shadow-lg shadow-indigo-200/50">
+                                                            <Truck size={20} />
+                                                        </div>
+                                                        <p className="text-xs font-black uppercase tracking-widest text-indigo-600">En cours de livraison</p>
+                                                    </div>
+
+                                                    <div className={`p-4 rounded-xl ${darkMode ? 'bg-stone-900/40' : 'bg-white'} ring-1 ring-inset ${darkMode ? 'ring-stone-700' : 'ring-indigo-100'} shadow-sm`}>
+                                                        <p className={`text-sm font-medium ${darkMode ? 'text-stone-300' : 'text-stone-600'} leading-relaxed`}>
+                                                            Votre commande a quitté notre atelier. Livraison estimée sous <strong className={darkMode ? 'text-white font-black' : 'text-stone-900 font-black'}>7 à 14 jours</strong>.
+                                                        </p>
+                                                    </div>
+                                                    <div className="pt-2">
+                                                        <p className={`text-[11px] font-bold flex items-center gap-2 ${darkMode ? 'text-indigo-400' : 'text-indigo-600/80'}`}>
+                                                            <span className="text-sm">💡</span> Vous avez reçu un email de confirmation d'expédition.
+                                                        </p>
                                                     </div>
                                                 </div>
                                             )}
 
                                             {order.status === 'completed' && (
-                                                <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl flex gap-3 items-start">
-                                                    <CheckCircle size={16} className="text-emerald-600 mt-0.5" />
-                                                    <div className="space-y-1">
-                                                        <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400">Commande Livrée</p>
-                                                        <p className="text-[10px] opacity-70 leading-tight">Nous espérons qu'elle vous plaira.</p>
+                                                <div className={`p-6 md:p-8 rounded-[2.5rem] border-2 border-dashed ${darkMode ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-emerald-50/50 border-emerald-200'} space-y-6 shadow-sm`}>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-200/50">
+                                                            <CheckCircle size={20} />
+                                                        </div>
+                                                        <p className="text-xs font-black uppercase tracking-widest text-emerald-600">Commande Livrée</p>
+                                                    </div>
+
+                                                    <div className={`p-4 rounded-xl ${darkMode ? 'bg-stone-900/40' : 'bg-white'} ring-1 ring-inset ${darkMode ? 'ring-stone-700' : 'ring-emerald-100'} shadow-sm`}>
+                                                        <p className={`text-sm font-medium ${darkMode ? 'text-stone-300' : 'text-stone-600'} leading-relaxed`}>
+                                                            Nous espérons que cette pièce sublimera votre intérieur. N'hésitez pas à nous laisser un avis ou à nous identifier sur <strong className={darkMode ? 'text-white font-black' : 'text-stone-900 font-black'}>Instagram</strong> !
+                                                        </p>
+                                                    </div>
+                                                    <div className="pt-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between border-t border-dashed border-emerald-500/20">
+                                                        <p className={`text-[11px] font-bold flex items-center gap-2 ${darkMode ? 'text-emerald-400' : 'text-emerald-600/80'}`}>
+                                                            <span className="text-sm">👋</span> À très vite ! - L'équipe Tous à Table
+                                                        </p>
+                                                        <a
+                                                            href="https://g.page/r/CepCisGcSHS2EBM/review"
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg hover:-translate-y-0.5 active:translate-y-0 ${darkMode ? 'bg-emerald-500 text-stone-900 shadow-emerald-500/20 hover:bg-emerald-400' : 'bg-emerald-600 text-white shadow-emerald-600/20 hover:bg-emerald-500'}`}
+                                                        >
+                                                            <Star size={14} className={darkMode ? 'fill-stone-900' : 'fill-white'} />
+                                                            Laisser un avis
+                                                        </a>
                                                     </div>
                                                 </div>
                                             )}
