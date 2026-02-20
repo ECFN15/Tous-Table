@@ -10,7 +10,7 @@ const CartSidebar = ({ isOpen, onClose, cartItems, onRemoveItem, totalPrice, onC
     const isArch = activeDesignId === 'architectural';
     const bgClass = isArch
         ? (darkMode ? 'bg-[#0A0A0A] border-l border-stone-800 text-stone-200' : 'bg-[#FAFAF9] border-l border-stone-200 text-stone-900')
-        : (darkMode ? 'bg-stone-900 border-l border-stone-800 text-white' : 'bg-[#FAF9F6] text-stone-900');
+        : (darkMode ? 'bg-[#0A0A0A] border-l border-stone-800 text-white' : 'bg-[#FAFAF9] text-stone-900');
 
     return (
         <div className={`fixed inset-0 z-[120] ${isOpen ? 'visible' : 'invisible delay-700'}`}>

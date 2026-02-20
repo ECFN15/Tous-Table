@@ -369,7 +369,7 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-4 space-y-4">
           <div
-            className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 gap-3 p-4 rounded-3xl transition-all border-2 border-dashed ${isDragging ? (darkMode ? 'border-amber-500/50 bg-amber-900/10' : 'border-amber-500 bg-amber-50/50 scale-[1.02]') : (darkMode ? 'border-stone-700/50' : 'border-stone-100')}`}
+            className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 gap-3 p-4 rounded-3xl transition-all border-2 border-dashed ${isDragging ? (darkMode ? 'border-amber-500/50 bg-amber-900/10' : 'border-amber-500 bg-amber-50/50 scale-[1.02]') : (darkMode ? 'bg-stone-800 border-stone-700/50' : 'border-stone-100')}`}
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}
             onDragOver={handleDragOver}

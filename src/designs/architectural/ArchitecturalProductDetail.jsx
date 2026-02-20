@@ -194,7 +194,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
 
     // --- RENDER ARCHITECTURAL ---
     return (
-        <div className={`min-h-screen transition-colors duration-500 animate-in fade-in ${darkMode ? 'bg-[#0A0A0A] text-stone-200' : 'bg-[#FAFAF9] text-stone-900'}`}>
+        <div className={`min-h-screen transition-colors duration-700 bg-transparent`}>
             <SEO
                 title={item.name}
                 description={item.description}

@@ -41,7 +41,7 @@ const MarketplaceLayout = ({
     }, [headerProps, setHeaderProps]);
 
     return (
-        <div className={`w-full min-h-screen transition-colors duration-700 selection:bg-stone-300 selection:text-black ${darkMode ? 'bg-[#0A0A0A] text-stone-200' : 'bg-[#FAFAF9] text-stone-900'}`}>
+        <div className={`w-full min-h-screen transition-colors duration-700 selection:bg-stone-300 selection:text-black bg-transparent`}>
             {/* ArchitecturalHeader removed here, it's now handled globally in App.jsx */}
 
             {/* --- MAIN CONTENT --- */}

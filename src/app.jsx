@@ -431,7 +431,7 @@ const AppContent = () => {
     console.log("Order placed:", orderData);
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#FAF9F6]"><div className="w-10 h-10 border-[3px] border-stone-200 border-t-stone-900 rounded-full animate-spin"></div></div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-transparent"><div className="w-10 h-10 border-[3px] border-stone-200 border-t-stone-900 rounded-full animate-spin"></div></div>;
 
   // Active Admin List
 
@@ -443,16 +443,16 @@ const AppContent = () => {
   const cartTotal = cartItems.reduce((sum, item) => sum + (item.price || 0), 0);
 
   return (
-    <div className={`min-h-screen font-sans selection:bg-amber-100 transition-colors duration-500 ${darkMode ? 'bg-stone-900 text-white' : 'bg-[#FAF9F6] text-stone-900'}`}>
+    <div className={`min-h-screen font-sans selection:bg-stone-300 transition-colors duration-700 ${darkMode ? 'bg-[#0A0A0A] text-stone-200' : 'bg-[#FAFAF9] text-stone-900'}`}>
       <SEO />
 
       {/* RIDEAU DE TRANSITION GLOBAL (Masque le switch de page) */}
       <div
         className={`fixed inset-0 z-[2000] pointer-events-none transition-opacity duration-400 ease-in-out ${isTransitioning ? 'opacity-100' : 'opacity-0'}`}
-        style={{ backgroundColor: darkMode ? '#111' : '#000' }}
+        style={{ backgroundColor: darkMode ? '#0A0A0A' : '#FAFAF9' }}
       ></div>
 
-      {loading && <div className="fixed inset-0 z-[999] flex items-center justify-center bg-[#FAF9F6]"><div className="w-10 h-10 border-[3px] border-stone-200 border-t-stone-900 rounded-full animate-spin"></div></div>}
+      {loading && <div className="fixed inset-0 z-[999] flex items-center justify-center bg-transparent"><div className="w-10 h-10 border-[3px] border-stone-200 border-t-stone-900 rounded-full animate-spin"></div></div>}
 
       {/* COMPOSANT PANIER - Global (Disponible dès que la navbar est visible) */}
       <CartSidebar

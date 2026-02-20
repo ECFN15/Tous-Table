@@ -349,10 +349,10 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                                 <div className="flex items-center justify-between">
                                     <p className={`text-2xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>{order.total}€</p>
                                     <div className={`text-[9px] font-black uppercase tracking-[0.15em] px-4 py-1.5 rounded-xl border shadow-sm transition-colors ${order.status === 'shipped'
-                                            ? 'text-indigo-400 border-indigo-400/30 bg-indigo-400/10'
-                                            : (order.status === 'completed' || order.status === 'paid')
-                                                ? 'text-emerald-400 border-emerald-400/30 bg-emerald-400/10'
-                                                : 'text-amber-500 border-amber-500/30 bg-amber-500/10'
+                                        ? 'text-indigo-400 border-indigo-400/30 bg-indigo-400/10'
+                                        : (order.status === 'completed' || order.status === 'paid')
+                                            ? 'text-emerald-400 border-emerald-400/30 bg-emerald-400/10'
+                                            : 'text-amber-500 border-amber-500/30 bg-amber-500/10'
                                         }`}>
                                         {order.status === 'shipped' ? 'Expédié' : (order.status === 'completed' || order.status === 'paid') ? 'Payé' : 'En attente'}
                                     </div>

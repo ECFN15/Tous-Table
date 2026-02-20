@@ -150,13 +150,13 @@ const MyOrdersView = ({ user, onBack, darkMode, activeDesignId }) => {
     };
 
     if (loading) return (
-        <div className={`min-h-screen flex items-center justify-center ${activeDesignId === 'architectural' ? (darkMode ? 'bg-[#0A0A0A] text-white' : 'bg-[#FAFAF9] text-stone-900') : (darkMode ? 'bg-stone-900 text-white' : 'bg-[#FAF9F6] text-stone-900')}`}>
+        <div className={`min-h-screen flex items-center justify-center bg-transparent`}>
             <div className="w-10 h-10 border-[3px] border-stone-200 border-t-stone-900 rounded-full animate-spin"></div>
         </div>
     );
 
     return (
-        <div className={`min-h-screen animate-in fade-in ${activeDesignId === 'architectural' ? (darkMode ? 'bg-[#0A0A0A] text-stone-200' : 'bg-[#FAFAF9] text-stone-900') : (darkMode ? 'bg-stone-900 text-stone-200' : 'bg-[#FAF9F6] text-stone-900')}`}>
+        <div className={`min-h-screen animate-in fade-in transition-colors duration-700 bg-transparent`}>
             <div className="max-w-6xl mx-auto px-6 py-32 space-y-12">
 
                 {/* HEAD */}

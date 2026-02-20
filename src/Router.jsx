@@ -109,7 +109,7 @@ const AppRouter = ({
                     className={view === 'gallery' ? 'contents animate-in fade-in duration-500' : 'fixed inset-0 pointer-events-none opacity-0 z-0'}
                     style={{ display: (view === 'gallery' || isPreparingGallery) ? 'block' : 'none' }}
                 >
-                    <Suspense fallback={<div className="min-h-screen bg-[#0A0A0A]"></div>}>
+                    <Suspense fallback={<div className="min-h-screen bg-transparent"></div>}>
                         <GalleryView
                             items={items}
                             boardItems={boardItems}
@@ -127,7 +127,7 @@ const AppRouter = ({
             )}
 
             {view === 'detail' && selectedItemId && (
-                <Suspense fallback={<div className="min-h-screen bg-[#FAFAF9]"></div>}>
+                <Suspense fallback={<div className="min-h-screen bg-transparent"></div>}>
                     <div className="contents">
                         <ProductDetail
                             item={[...items, ...boardItems].find(i => i.id === selectedItemId)}
@@ -146,7 +146,7 @@ const AppRouter = ({
             )}
 
             {view === 'checkout' && (
-                <Suspense fallback={<div className="min-h-screen bg-[#FAFAF9]"></div>}>
+                <Suspense fallback={<div className="min-h-screen bg-transparent"></div>}>
                     <CheckoutView
                         cartItems={cartItems}
                         total={cartTotal}
@@ -159,7 +159,7 @@ const AppRouter = ({
             )}
 
             {view === 'my-orders' && user && (
-                <Suspense fallback={<div className="min-h-screen bg-[#FAF9F6]"></div>}>
+                <Suspense fallback={<div className="min-h-screen bg-transparent"></div>}>
                     <MyOrdersView
                         user={user}
                         onBack={() => setView('gallery')}
