@@ -205,16 +205,15 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
             />
             {/* ArchitecturalHeader removed here, handled globally in App.jsx */}
 
-            <div className="w-full min-h-screen flex flex-col md:flex-row relative">
-                {/* BACK BUTTON (Absolute Top Left - Mobile Only) */}
-
-
+            <div className={`w-full min-h-screen flex flex-col md:flex-row relative pt-28 md:pt-0`}>
                 {/* LEFT COLUMN: IMAGE GALLERY (Sticky on Desktop) */}
                 <div className="w-full md:w-1/2 flex flex-col p-6 md:p-12 md:sticky md:top-24 h-auto md:h-[calc(100vh-6rem)] justify-center">
-
                     {/* BACK BUTTON (Desktop & Mobile - Above Image) */}
-                    <button onClick={onBack} className="flex items-center gap-3 font-bold text-[10px] uppercase tracking-widest transition-colors hover:opacity-60 mb-6 opacity-60 hover:opacity-100">
-                        <ChevronLeft size={14} /> Retour Collection
+                    <button onClick={onBack} className={`flex items-center gap-3 font-black text-[10px] uppercase tracking-widest transition-all hover:opacity-100 mb-6 group ${darkMode ? 'text-white/80' : 'text-stone-900/80'}`}>
+                        <div className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all ${darkMode ? 'border-white/10 group-hover:bg-white/10' : 'border-stone-200 group-hover:bg-stone-100'}`}>
+                            <ChevronLeft size={16} />
+                        </div>
+                        <span>Retour Collection</span>
                     </button>
 
                     {/* ROUNDED IMAGE CONTAINER (Gallery Style - Full Bleed) */}
@@ -292,41 +291,58 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
 
                 {/* --- LIGHTBOX FULLSCREEN (PREMIUM ZOOM) --- */}
                 {isLightboxOpen && (
-                    <div className="fixed inset-0 z-[100] bg-stone-950/95 backdrop-blur-2xl flex items-center justify-center animate-in fade-in duration-300">
+                    <div className={`fixed inset-0 z-[3000] flex items-center justify-center animate-in fade-in duration-300 ${darkMode ? 'bg-[#0A0A0A]' : 'bg-[#FAFAF9]'}`}>
 
                         {/* CONTROLS */}
                         <button
                             onClick={() => setIsLightboxOpen(false)}
-                            className="absolute top-6 right-6 z-[110] p-4 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition-all"
+                            className={`absolute top-6 right-6 z-[3100] w-12 h-12 flex items-center justify-center rounded-full transition-all shadow-xl border ${darkMode ? 'text-white border-white/20 bg-white/10 hover:bg-white/20' : 'text-stone-900 border-stone-200 bg-white hover:bg-stone-50'}`}
                         >
-                            <X size={32} />
+                            <X size={24} strokeWidth={2} />
                         </button>
-
-                        <div className="absolute top-6 left-6 z-[110] text-white/50 text-[10px] font-black uppercase tracking-widest flex items-center gap-4">
+                        <div className={`absolute top-10 left-8 z-[3100] text-[10px] font-black uppercase tracking-[0.4em] flex items-center gap-4 ${darkMode ? 'text-white/40' : 'text-stone-950/40'}`}>
                             <span>{activeImg + 1} / {images.length}</span>
                         </div>
 
-                        {/* NAVIGATION (Desktop Arrows) */}
+                        {/* NAVIGATION (Arrows - Refined & Clearer) */}
                         {images.length > 1 && (
                             <>
-                                <button className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 p-4 text-white/30 hover:text-white hover:scale-110 transition-all z-[110]"
+                                <button className={`absolute left-0 md:left-6 top-1/2 -translate-y-1/2 p-8 transition-all z-[3100] group active:scale-95 hidden md:block`}
                                     onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === 0 ? images.length - 1 : prev - 1); }}>
-                                    <ChevronLeft size={48} strokeWidth={1} />
+                                    <ChevronLeft size={40} strokeWidth={1} className={`transition-all duration-500 group-hover:scale-110 ${darkMode ? 'text-white/50 group-hover:text-white' : 'text-stone-900/50 group-hover:text-stone-900'}`} />
                                 </button>
-                                <button className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 p-4 text-white/30 hover:text-white hover:scale-110 transition-all z-[110]"
+                                <button className={`absolute right-0 md:right-6 top-1/2 -translate-y-1/2 p-8 transition-all z-[3100] group active:scale-95 hidden md:block`}
                                     onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === images.length - 1 ? 0 : prev + 1); }}>
-                                    <ChevronRight size={48} strokeWidth={1} />
+                                    <ChevronRight size={40} strokeWidth={1} className={`transition-all duration-500 group-hover:scale-110 ${darkMode ? 'text-white/50 group-hover:text-white' : 'text-stone-900/50 group-hover:text-stone-900'}`} />
                                 </button>
                             </>
                         )}
 
+                        {/* PAGER INDICATOR (Bottom) */}
+                        {images.length > 1 && (
+                            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-3 z-[3100]">
+                                {images.map((_, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={(e) => { e.stopPropagation(); setActiveImg(idx) }}
+                                        className={`h-1 rounded-full transition-all duration-300 ${activeImg === idx ? (darkMode ? 'w-8 bg-white' : 'w-8 bg-stone-900') : (darkMode ? 'w-2 bg-white/20 hover:bg-white/40' : 'w-2 bg-stone-900/20 hover:bg-stone-900/40')}`}
+                                    />
+                                ))}
+                            </div>
+                        )}
+
 
                         {/* MAIN IMAGE CONTAINER */}
-                        <div className="w-full h-full flex items-center justify-center overflow-hidden">
+                        <div
+                            className="w-full h-full flex items-center justify-center overflow-hidden touch-none"
+                            onTouchStart={onTouchStart}
+                            onTouchMove={onTouchMove}
+                            onTouchEnd={onTouchEnd}
+                        >
                             <img
                                 src={images[activeImg]}
                                 alt="Detail"
-                                className="max-w-[95%] max-h-[92vh] object-contain transition-all duration-300 animate-in zoom-in-95"
+                                className="max-w-[95%] max-h-[92vh] object-contain transition-all duration-300 animate-in zoom-in-95 pointer-events-none"
                                 draggable={false}
                             />
                         </div>

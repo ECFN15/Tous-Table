@@ -73,16 +73,6 @@ const ArchitecturalHeader = ({
                 {/* 1. LEFT: LOGO & TABS */}
                 {/* 1. LEFT: NAVIGATION & LOGO */}
                 <div className="flex items-center gap-6">
-                    {onBack && (
-                        <button
-                            onClick={onBack}
-                            className={`flex items-center gap-2 pr-4 border-r ${darkMode ? 'border-stone-800 text-stone-200 hover:text-white' : 'border-stone-200 text-stone-900 hover:text-stone-600'} transition-colors group`}
-                            title="Retour"
-                        >
-                            <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-                            <span className="hidden sm:inline text-[10px] font-black uppercase tracking-widest">Retour</span>
-                        </button>
-                    )}
                     <div className="flex items-center gap-8">
                         {/* MINI LOGO TEXT */}
                         <div className="flex flex-col leading-none cursor-pointer group" onClick={() => window.location.href = '/'}>
