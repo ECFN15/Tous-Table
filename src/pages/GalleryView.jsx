@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useLiveTheme } from '../hooks/useLiveTheme';
 
 // DESIGNS (Layouts)
@@ -62,18 +62,17 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
                 onOpenCart={onOpenCart}
                 toggleTheme={toggleTheme}
                 setHeaderProps={setHeaderProps}
-                headerProps={{
+                headerProps={useMemo(() => ({
                     activeCollection,
                     setActiveCollection,
                     filter,
                     setFilter,
                     setViewMode,
                     viewMode
-                }}
+                }), [activeCollection, filter, viewMode])}
             />
         </div>
     );
 };
 
 export default GalleryView;
-
