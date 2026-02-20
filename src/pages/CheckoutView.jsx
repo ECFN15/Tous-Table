@@ -144,7 +144,7 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
     // sinon l'utilisateur verrait un flash "vendu" au moment exact où il achète l'article lui-même.
     if (unavailableItems.length > 0 && !loading) {
         return (
-            <div className={`min-h-screen pt-32 px-6 flex items-center justify-center bg-transparent`}>
+            <div className={`min-h-screen pt-12 px-6 flex items-center justify-center bg-transparent`}>
                 <div className={`p-8 rounded-3xl shadow-xl max-w-md text-center space-y-6 border ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
                     <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto">
                         <AlertCircle size={32} />
@@ -167,7 +167,7 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
     }
 
     return (
-        <div className={`min-h-screen pt-28 px-6 pb-20 animate-in fade-in transition-colors duration-700 bg-transparent`}>
+        <div className={`min-h-screen pt-10 px-6 pb-20 animate-in fade-in transition-colors duration-700 bg-transparent`}>
             <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 lg:gap-24">
 
                 {/* COLONNE GAUCHE : FORMULAIRE */}

@@ -157,7 +157,7 @@ const MyOrdersView = ({ user, onBack, darkMode, activeDesignId }) => {
 
     return (
         <div className={`min-h-screen animate-in fade-in transition-colors duration-700 bg-transparent`}>
-            <div className="max-w-6xl mx-auto px-6 py-32 space-y-12">
+            <div className="max-w-6xl mx-auto px-6 pt-10 pb-20 md:py-32 space-y-12">
 
                 {/* HEAD */}
                 <div className="flex items-center gap-6">

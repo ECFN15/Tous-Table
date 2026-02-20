@@ -205,7 +205,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
             />
             {/* ArchitecturalHeader removed here, handled globally in App.jsx */}
 
-            <div className={`w-full min-h-screen flex flex-col md:flex-row relative pt-28 md:pt-0`}>
+            <div className={`w-full min-h-screen flex flex-col md:flex-row relative pt-4 md:pt-0`}>
                 {/* LEFT COLUMN: IMAGE GALLERY (Sticky on Desktop) */}
                 <div className="w-full md:w-1/2 flex flex-col p-6 md:p-12 md:sticky md:top-24 h-auto md:h-[calc(100vh-6rem)] justify-center">
                     {/* BACK BUTTON (Desktop & Mobile - Above Image) */}

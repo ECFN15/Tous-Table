@@ -208,7 +208,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       desc: (homepageImages && homepageImages['featured_4_text']?.desc) || "\"Chêne massif et échelles en laiton. Une structure qui élève l'esprit.\"",
       img: (homepageImages && homepageImages.featured_4) || "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?q=80&w=1200",
       imgMobile: (homepageImages && homepageImages.featured_4_mobile) || (homepageImages && homepageImages.featured_4) || "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?q=80&w=800",
-      bgColor: "#D8BB93", // Carte 4: Terre d'Ocre (Intense et Solaire)
+      bgColor: "#B6735C", // Carte 4: Terre Cuite (Nuance plus claire et solaire)
       textColor: "#1a1a1a",
       subColor: "#9C8268",
       faintColor: "rgba(0,0,0,0.04)"
@@ -774,7 +774,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
   return (
     <div ref={componentRef} className="bg-[#FAF9F6] text-[#1a1a1a] transition-colors duration-700 antialiased">
       <SEO
-        title="Atelier Normand — Tous à Table | Restauration de Mobilier & Meubles Anciens"
+        title="Restauration de Mobilier & Meubles Anciens"
         description="Atelier de restauration de mobilier à Ifs (14123). Vente de meubles normands authentiques en chêne : tables de ferme, armoires parisiennes et buffets. Livraison Caen, Deauville, toute la France et pays frontaliers. Tel: 07 77 32 41 78."
         schema={{
           "@context": "https://schema.org",
