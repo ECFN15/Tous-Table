@@ -95,7 +95,7 @@ const AdminStudio = ({ darkMode }) => {
 
                                 <div className="mt-6 space-y-6">
                                     <p className="text-sm opacity-60 leading-relaxed">
-                                        Choisissez si vous voulez forcer un mode spécifique ou laisser le navigateur décider (Automatique).
+                                        Définissez l'ambiance par défaut du site. Ce mode sera appliqué à l'arrivée des visiteurs, mais ils pourront toujours basculer manuellement via le bouton dédié.
                                     </p>
 
                                     {/* Force Mode Controls */}
@@ -105,12 +105,6 @@ const AdminStudio = ({ darkMode }) => {
                                             className={`flex-1 py-3 rounded-xl flex items-center justify-center gap-3 text-xs font-black uppercase tracking-wider transition-all ${activeForcedMode === 'light' ? 'bg-white text-stone-900 shadow-lg scale-[1.02]' : 'text-stone-400 hover:text-stone-600'}`}
                                         >
                                             <Sun size={16} /> Light Mode
-                                        </button>
-                                        <button
-                                            onClick={(e) => handleForceModeCollection(e, 'architectural', 'auto')}
-                                            className={`flex-1 py-3 rounded-xl flex items-center justify-center gap-3 text-xs font-black uppercase tracking-wider transition-all ${activeForcedMode === 'auto' ? (darkMode ? 'bg-stone-700 text-white shadow-lg' : 'bg-white text-stone-900 shadow-lg scale-[1.02]') : 'text-stone-400 hover:text-stone-600'}`}
-                                        >
-                                            <Smartphone size={16} /> Auto (System)
                                         </button>
                                         <button
                                             onClick={(e) => handleForceModeCollection(e, 'architectural', 'dark')}

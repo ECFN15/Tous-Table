@@ -13,7 +13,7 @@ const CartSidebar = ({ isOpen, onClose, cartItems, onRemoveItem, totalPrice, onC
         : (darkMode ? 'bg-[#0A0A0A] border-l border-stone-800 text-white' : 'bg-[#FAFAF9] text-stone-900');
 
     return (
-        <div className={`fixed inset-0 z-[120] ${isOpen ? 'visible' : 'invisible delay-700'}`}>
+        <div className={`fixed inset-0 z-[2500] ${isOpen ? 'visible' : 'invisible delay-700'}`}>
             {/* Backdrop */}
             <div
                 className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${isOpen ? 'opacity-100' : 'opacity-0'} ${darkMode ? 'bg-stone-900/60 backdrop-blur-md' : 'bg-stone-900/40 backdrop-blur-md'}`}

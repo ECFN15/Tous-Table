@@ -320,7 +320,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
 
                         {/* PAGER INDICATOR (Bottom) */}
                         {images.length > 1 && (
-                            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-3 z-[3100]">
+                            <div className="absolute bottom-12 md:bottom-20 left-1/2 -translate-x-1/2 flex gap-3 z-[3100]">
                                 {images.map((_, idx) => (
                                     <button
                                         key={idx}

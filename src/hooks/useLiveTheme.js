@@ -13,7 +13,7 @@ export const useLiveTheme = (darkMode) => {
             const cached = localStorage.getItem('themeSettings');
             if (cached) return JSON.parse(cached).forcedMode;
         } catch (e) { }
-        return 'auto';
+        return 'light';
     });
 
     const [isThemeLoading, setIsThemeLoading] = useState(true);
@@ -25,7 +25,7 @@ export const useLiveTheme = (darkMode) => {
             if (docSnap.exists()) {
                 const data = docSnap.data();
                 localStorage.setItem('themeSettings', JSON.stringify({ ...data, activeDesignId: 'architectural' }));
-                setForcedMode(data.forcedMode || 'auto');
+                setForcedMode(data.forcedMode || 'light');
             }
             setIsThemeLoading(false);
         }, (err) => {

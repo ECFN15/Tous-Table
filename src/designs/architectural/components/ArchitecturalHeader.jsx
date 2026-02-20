@@ -31,8 +31,8 @@ const ArchitecturalHeader = ({
     const { forcedMode } = useLiveTheme();
     const { logout, isAdmin } = useAuth();
 
-    // We only show toggle if mode is NOT forced
-    const showToggle = forcedMode !== 'light' && forcedMode !== 'dark';
+    // We always show the toggle to allow user override
+    const showToggle = true;
     // We need to know current state for the icon. Since we don't have 'darkMode' prop here (oops, missed it in drilling),
     // we can check document class or localStorage. Or better, just fix the drilling in next step if needed. 
     // Let's assume standard Tailwind 'dark' class presence for icon state.
@@ -46,13 +46,13 @@ const ArchitecturalHeader = ({
         const handleScroll = () => {
             const currentScrollY = window.scrollY;
 
-            // Ignore small movements or top of page (elastic bounce)
-            if (Math.abs(currentScrollY - lastScrollY.current) < 10) return;
-
-            if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
-                // Scrolling DOWN (>100px) -> Hide
+            // Immediate reaction: hide on scroll down, show on scroll up
+            if (currentScrollY <= 0) {
+                setIsVisible(true);
+            } else if (currentScrollY > lastScrollY.current) {
+                // Scrolling DOWN -> Hide
                 setIsVisible(false);
-            } else {
+            } else if (currentScrollY < lastScrollY.current) {
                 // Scrolling UP -> Show
                 setIsVisible(true);
             }
