@@ -466,8 +466,8 @@ const AppContent = () => {
 
       {/* MODAL LOGIN (Pour la Marketplace) */}
       {showFullLogin && (
-        <div className="fixed inset-0 z-[200] bg-stone-900/60 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl max-w-sm w-full text-center space-y-6 animate-in zoom-in-95 relative overflow-hidden">
+        <div className="fixed inset-0 z-[200] bg-stone-900/60 backdrop-blur-md flex items-center justify-center p-4 md:p-6">
+          <div className="bg-white p-6 md:p-10 rounded-3xl md:rounded-[2.5rem] shadow-2xl max-w-sm w-full text-center space-y-4 md:space-y-6 animate-in zoom-in-95 relative overflow-hidden">
 
             {showAuthSuccess ? (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">

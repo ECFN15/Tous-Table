@@ -70,7 +70,7 @@ const MarketplaceDiscovery = ({ isOpen, onClose, onExplore }) => {
                             exit={{ scale: 0.95, opacity: 0, y: 20 }}
                             transition={{ type: "spring", stiffness: 300, damping: 25 }}
                             // WIDE CONTAINER (Back to 4xl/5xl)
-                            className="relative w-full max-w-5xl h-[500px] md:h-[600px] overflow-hidden rounded-[2.5rem] shadow-2xl flex items-center justify-center border border-white/[0.08] group cursor-pointer"
+                            className="relative w-full max-w-5xl h-[400px] md:h-[600px] overflow-hidden rounded-3xl md:rounded-[2.5rem] shadow-2xl flex items-center justify-center border border-white/[0.08] group cursor-pointer"
                             // Radial Gradient: Light Center -> Dark Edges (Depth Effect)
                             style={{
                                 background: 'radial-gradient(circle at center, #2a2a2a 0%, #000000 100%)',
@@ -117,8 +117,8 @@ const MarketplaceDiscovery = ({ isOpen, onClose, onExplore }) => {
                             </a>
 
                             {/* Decorative Corner Lines */}
-                            <div className="absolute top-0 left-0 w-32 h-32 border-t border-l border-white/[0.03] rounded-tl-[2.5rem] pointer-events-none"></div>
-                            <div className="absolute bottom-0 right-0 w-32 h-32 border-b border-r border-white/[0.03] rounded-br-[2.5rem] pointer-events-none"></div>
+                            <div className="absolute top-0 left-0 w-32 h-32 border-t border-l border-white/[0.03] rounded-tl-3xl md:rounded-tl-[2.5rem] pointer-events-none"></div>
+                            <div className="absolute bottom-0 right-0 w-32 h-32 border-b border-r border-white/[0.03] rounded-br-3xl md:rounded-br-[2.5rem] pointer-events-none"></div>
 
                         </motion.div>
                     </motion.div>
