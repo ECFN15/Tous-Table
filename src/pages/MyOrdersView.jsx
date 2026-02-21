@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, getDoc, increment, limit } from 'firebase/firestore';
 import { db } from '../firebase/config';
+import { functions } from '../firebase/config';
+import { httpsCallable } from 'firebase/functions';
 import { Package, Truck, XCircle, MessageCircle, ArrowLeft, Clock, CheckCircle, Download, CreditCard, Copy, Check, Loader2, Star, AlertTriangle } from 'lucide-react';
 import { getMillis } from '../utils/time';
 import { generateInvoice } from '../utils/generateInvoice';
@@ -17,6 +19,7 @@ const MyOrdersView = ({ user, onBack, darkMode, activeDesignId }) => {
     const [showCancelSuccess, setShowCancelSuccess] = useState(false);
     const [showContactPopup, setShowContactPopup] = useState(false);
     const [orderToCancelId, setOrderToCancelId] = useState(null);
+    const [isCancelling, setIsCancelling] = useState(false);
 
     const handleDownloadInvoice = async (order) => {
         setDownloadingInvoice(order.id);
@@ -72,65 +75,19 @@ const MyOrdersView = ({ user, onBack, darkMode, activeDesignId }) => {
         const orderId = orderToCancelId;
         const orderToCancel = orders.find(o => o.id === orderId);
 
-        // Close modal
-        setOrderToCancelId(null);
-
-        if (!orderToCancel) return;
-
         try {
-            setLoading(true);
-            const appId = 'tat-made-in-normandie';
-
-            // 1. Restaurer les stocks intelligemment
-            if (orderToCancel.items) {
-                for (const item of orderToCancel.items) {
-                    // [FIX] Utiliser originalId en priorité car item.id est l'ID du document panier (cart), pas du produit
-                    const itemId = item.originalId || item.id;
-                    const col = item.collection || item.collectionName || 'furniture';
-
-                    if (itemId) {
-                        const itemRef = doc(db, 'artifacts', appId, 'public', 'data', col, itemId);
-                        const itemSnap = await getDoc(itemRef);
-
-                        if (itemSnap.exists()) {
-                            const currentStock = Number(itemSnap.data().stock || 0);
-
-                            // LOGIQUE INTELLIGENTE :
-                            // Si le stock est déjà à 1 ou plus, c'est que l'admin l'a déjà remis en vente manuellement.
-                            // On ne fait rien pour éviter de passer à 2 tables physiques alors qu'il n'y en a qu'une.
-                            if (currentStock === 0) {
-                                await updateDoc(itemRef, {
-                                    stock: item.quantity || 1,
-                                    sold: false,
-                                    soldAt: null,
-                                    buyerId: null
-                                });
-                                console.log(`Disponibilité rétablie pour ${item.name}`);
-                            } else {
-                                console.log(`Stock déjà présent (${currentStock}) pour ${item.name}, aucune modification effectuée.`);
-                                // On s'assure quand même que l'item n'est plus marqué comme "Vendu" par sécurité
-                                await updateDoc(itemRef, {
-                                    sold: false,
-                                    buyerId: null
-                                });
-                            }
-                        }
-                    }
-                }
-            }
-
-            // 2. Marquer la commande comme annulée
-            await updateDoc(doc(db, 'orders', orderId), {
-                status: 'cancelled_by_client',
-                cancelledAt: new Date(),
-                clientNote: "Annulée par l'acheteur"
-            });
+            setIsCancelling(true);
+            const cancelOrderClient = httpsCallable(functions, 'cancelOrderClient');
+            await cancelOrderClient({ orderId: orderId });
 
             setShowCancelSuccess(true);
+            setOrderToCancelId(null);
         } catch (e) {
             console.error("Erreur annulation:", e);
-            alert("Une erreur est survenue lors de l'annulation.");
+            alert("Une erreur est survenue lors de l'annulation. " + (e.message || ""));
+            setOrderToCancelId(null);
         } finally {
+            setIsCancelling(false);
             setLoading(false);
         }
     };
@@ -185,10 +142,10 @@ const MyOrdersView = ({ user, onBack, darkMode, activeDesignId }) => {
                     ) : orders.map(order => {
                         const status = getStatusInfo(order.status);
                         return (
-                            <div key={order.id} className={`p-6 md:p-10 rounded-[2.5rem] shadow-sm ring-1 ring-inset transition-all hover:shadow-md transform-gpu ${darkMode ? 'bg-stone-800 ring-stone-700' : 'bg-white ring-stone-100'}`}>
+                            <div key={order.id} className={`p-5 sm:p-6 md:p-10 rounded-[2rem] sm:rounded-[2.5rem] shadow-sm ring-1 ring-inset transition-all hover:shadow-md transform-gpu ${darkMode ? 'bg-stone-800 ring-stone-700' : 'bg-white ring-stone-100'}`}>
 
                                 {/* HEADER COMMANDE */}
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 border-b pb-8 border-stone-100 dark:border-stone-700/50">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 mb-6 md:mb-10 border-b pb-5 md:pb-8 border-stone-100 dark:border-stone-700/50">
                                     <div className="space-y-1">
                                         <p className="text-xs font-black uppercase tracking-widest opacity-40">Commande #{order.id.slice(0, 8)}</p>
                                         <p className="text-sm font-bold opacity-60">
@@ -202,7 +159,7 @@ const MyOrdersView = ({ user, onBack, darkMode, activeDesignId }) => {
                                 </div>
 
                                 {/* CONTENT */}
-                                <div className="grid md:grid-cols-12 gap-12">
+                                <div className="grid md:grid-cols-12 gap-6 md:gap-12">
                                     {/* ITEMS */}
                                     <div className="md:col-span-7 space-y-8">
                                         {order.items?.map((item, i) => (
@@ -219,31 +176,31 @@ const MyOrdersView = ({ user, onBack, darkMode, activeDesignId }) => {
                                         ))}
 
                                         {/* ACTIONS GRID */}
-                                        <div className="pt-8 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-md">
+                                        <div className="pt-6 sm:pt-8 grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4 max-w-md">
                                             <button
                                                 onClick={() => setShowContactPopup(true)}
-                                                className="sm:col-span-2 flex items-center justify-center gap-3 py-4 bg-stone-900 text-white dark:bg-white dark:text-stone-900 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-stone-800 dark:hover:bg-white/90 transition-all shadow-md active:scale-[0.98] transform-gpu will-change-transform group"
+                                                className="sm:col-span-2 flex items-center justify-center gap-2 sm:gap-3 py-3 sm:py-4 bg-stone-900 text-white dark:bg-white dark:text-stone-900 rounded-xl sm:rounded-2xl text-[10px] sm:text-[11px] font-black uppercase tracking-widest hover:bg-stone-800 dark:hover:bg-white/90 transition-all shadow-md active:scale-[0.98] transform-gpu will-change-transform group"
                                             >
-                                                <MessageCircle size={16} className="group-hover:scale-110 transition-transform" />
+                                                <MessageCircle size={14} className="sm:w-4 sm:h-4 group-hover:scale-110 transition-transform" />
                                                 Contacter le vendeur
                                             </button>
 
                                             <button
                                                 onClick={() => handleDownloadInvoice(order)}
                                                 disabled={Boolean(downloadingInvoice)}
-                                                className="flex items-center justify-center gap-2 py-4 ring-1 ring-inset ring-stone-200 dark:ring-stone-700 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-stone-50 dark:hover:bg-stone-800 active:scale-[0.98] transform-gpu will-change-transform transition-all opacity-60 hover:opacity-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                                                className="flex items-center justify-center gap-2 py-3 sm:py-4 ring-1 ring-inset ring-stone-200 dark:ring-stone-700 rounded-xl sm:rounded-2xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest hover:bg-stone-50 dark:hover:bg-stone-800 active:scale-[0.98] transform-gpu will-change-transform transition-all opacity-60 hover:opacity-100 disabled:opacity-30 disabled:cursor-not-allowed"
                                             >
                                                 {downloadingInvoice === order.id ? (
-                                                    <><Loader2 size={14} className="animate-spin" /> Création...</>
+                                                    <><Loader2 size={12} className="sm:w-3.5 sm:h-3.5 animate-spin" /> Création...</>
                                                 ) : (
-                                                    <><Download size={14} /> Facture</>
+                                                    <><Download size={12} className="sm:w-3.5 sm:h-3.5" /> Facture</>
                                                 )}
                                             </button>
 
                                             {canCancel(order) && (
                                                 <button
                                                     onClick={() => setOrderToCancelId(order.id)}
-                                                    className="flex items-center justify-center py-4 ring-1 ring-inset ring-stone-200 dark:ring-stone-700 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 active:scale-[0.98] transform-gpu will-change-transform transition-all opacity-60 hover:opacity-100"
+                                                    className="flex items-center justify-center py-3 sm:py-4 ring-1 ring-inset ring-stone-200 dark:ring-stone-700 rounded-xl sm:rounded-2xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 active:scale-[0.98] transform-gpu will-change-transform transition-all opacity-60 hover:opacity-100"
                                                 >
                                                     Annuler la commande
                                                 </button>
@@ -252,8 +209,8 @@ const MyOrdersView = ({ user, onBack, darkMode, activeDesignId }) => {
                                     </div>
 
                                     {/* ACTIONS / INFO */}
-                                    <div className="md:col-span-5 flex flex-col justify-between border-t md:border-t-0 md:border-l pt-8 mt-8 md:pt-0 md:mt-0 pl-0 md:pl-12 border-stone-100 dark:border-stone-700/50">
-                                        <div className="space-y-2 mb-8">
+                                    <div className="md:col-span-5 flex flex-col justify-between border-t md:border-t-0 md:border-l pt-6 mt-6 md:pt-0 md:mt-0 pl-0 md:pl-12 border-stone-100 dark:border-stone-700/50">
+                                        <div className="space-y-2 mb-6 md:mb-8">
                                             <p className="text-[10px] font-black uppercase tracking-widest opacity-30">Total de la commande</p>
                                             <p className="text-4xl sm:text-5xl font-serif italic tracking-tighter shrink-0">{formatPrice(order.total)}</p>
                                         </div>
@@ -421,15 +378,21 @@ const MyOrdersView = ({ user, onBack, darkMode, activeDesignId }) => {
                             <div className="grid grid-cols-2 gap-3 md:gap-4 pt-2 md:pt-4">
                                 <button
                                     onClick={() => setOrderToCancelId(null)}
-                                    className={`w-full py-3.5 md:py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors ${darkMode ? 'bg-stone-700 hover:bg-stone-600 text-white' : 'bg-stone-100 hover:bg-stone-200 text-stone-900'}`}
+                                    disabled={isCancelling}
+                                    className={`w-full py-3.5 md:py-4 rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-widest transition-all active:scale-[0.98] transform-gpu will-change-transform disabled:opacity-50 disabled:cursor-not-allowed ${darkMode ? 'bg-stone-700 hover:bg-stone-600 text-white' : 'bg-stone-100 hover:bg-stone-200 text-stone-900'}`}
                                 >
                                     Retour
                                 </button>
                                 <button
                                     onClick={handleConfirmCancel}
-                                    className="w-full py-3.5 md:py-4 bg-red-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-600 transition-colors shadow-lg shadow-red-500/20"
+                                    disabled={isCancelling}
+                                    className="w-full py-3.5 md:py-4 flex items-center justify-center gap-2 bg-red-500 text-white rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-widest hover:bg-red-600 transition-all shadow-lg shadow-red-500/20 active:scale-[0.98] transform-gpu will-change-transform disabled:opacity-70 disabled:cursor-not-allowed"
                                 >
-                                    Confirmer
+                                    {isCancelling ? (
+                                        <><Loader2 size={14} className="animate-spin" /> Traitement</>
+                                    ) : (
+                                        "Confirmer"
+                                    )}
                                 </button>
                             </div>
                         </div>

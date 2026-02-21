@@ -280,6 +280,85 @@ exports.placeBid = functions.https.onCall(async (data, context) => {
 // 4. COMMANDE & META (Code existant conservé et nettoyé)
 // ============================================================
 
+// --- SÉCURITÉ : Annulation Commande par le Client ---
+exports.cancelOrderClient = functions.https.onCall(async (data, context) => {
+    if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'Authentification requise.');
+
+    const { orderId } = data;
+    if (!orderId) throw new functions.https.HttpsError('invalid-argument', 'ID de commande manquant.');
+
+    const userId = context.auth.uid;
+    const userEmail = context.auth.token.email;
+    const orderRef = db.collection('orders').doc(orderId);
+
+    return db.runTransaction(async (transaction) => {
+        const orderSnap = await transaction.get(orderRef);
+        if (!orderSnap.exists) {
+            throw new functions.https.HttpsError('not-found', 'Commande introuvable.');
+        }
+
+        const orderData = orderSnap.data();
+        // Vérifier l'appartenance
+        if (orderData.userId !== userId && orderData.userEmail !== userEmail) {
+            throw new functions.https.HttpsError('permission-denied', 'Cette commande ne vous appartient pas.');
+        }
+
+        // Vérifier l'état et le délai
+        if (orderData.status === 'shipped' || orderData.status === 'completed' || String(orderData.status).includes('cancelled')) {
+            throw new functions.https.HttpsError('failed-precondition', 'Cette commande ne peut plus être annulée.');
+        }
+
+        const orderDate = orderData.createdAt?.toMillis() || 0;
+        const diffDays = (Date.now() - orderDate) / (1000 * 60 * 60 * 24);
+        if (diffDays > 7) {
+            throw new functions.https.HttpsError('failed-precondition', 'Le délai d\'annulation de 7 jours est dépassé.');
+        }
+
+        // Restaurer le stock (si applicable)
+        if (orderData.items && Array.isArray(orderData.items)) {
+            for (const item of orderData.items) {
+                const itemId = item.originalId || item.id;
+                const col = item.collection || item.collectionName || 'furniture';
+                const appId = 'tat-made-in-normandie';
+
+                if (itemId) {
+                    const itemRef = db.doc(`artifacts/${appId}/public/data/${col}/${itemId}`);
+                    const itemSnap = await transaction.get(itemRef);
+                    if (itemSnap.exists) {
+                        const itemDb = itemSnap.data();
+                        const currentStock = Number(itemDb.stock || 0);
+
+                        // LOGIQUE INTELLIGENTE : si le stock est 0, on remet à quantité initiale
+                        if (currentStock === 0) {
+                            transaction.update(itemRef, {
+                                stock: item.quantity || 1,
+                                sold: false,
+                                soldAt: null,
+                                buyerId: null
+                            });
+                        } else {
+                            // On sécurise juste les flags 'sold'
+                            transaction.update(itemRef, {
+                                sold: false,
+                                buyerId: null
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
+        // Annuler la commande en BDD
+        transaction.update(orderRef, {
+            status: 'cancelled_by_client',
+            cancelledAt: admin.firestore.FieldValue.serverTimestamp(),
+            clientNote: "Annulée par l'acheteur"
+        });
+
+        return { success: true };
+    });
+});
+
 // Stripe initialized inside function
 const Stripe = require('stripe');
 
