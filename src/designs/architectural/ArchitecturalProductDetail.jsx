@@ -350,7 +350,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
                 )}
 
                 {/* RIGHT COLUMN: NATURAL SCROLL (Fix Overflow) */}
-                <div className="w-full md:w-1/2 px-6 md:px-16 py-12 md:py-12 flex flex-col">
+                <div className="w-full md:w-1/2 px-6 md:px-16 py-12 md:pt-26 md:pb-12 flex flex-col">
                     <div className="max-w-xl mx-auto w-full h-full flex flex-col">
 
                         {/* Header */}
