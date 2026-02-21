@@ -149,7 +149,7 @@ const ArchitecturalHeader = ({
                                     className={`flex items-center justify-center sm:gap-2 w-10 h-10 sm:w-auto sm:px-4 sm:py-2 rounded-full sm:rounded sm:border transition-all group ${darkMode ? 'sm:border-stone-800 sm:hover:bg-red-900/20 sm:hover:border-red-900/50 text-stone-400 hover:text-red-400' : 'sm:border-stone-200 sm:hover:bg-red-50 sm:hover:border-red-200 text-stone-500 hover:text-red-600'}`}
                                     title="Se déconnecter"
                                 >
-                                    <LogOut size={18} />
+                                    <LogOut size={20} />
                                     <span className="hidden sm:inline text-[10px] font-bold uppercase tracking-widest">Quitter</span>
                                 </button>
                             </div>
@@ -167,7 +167,7 @@ const ArchitecturalHeader = ({
 
                         <button onClick={onOpenMenu} className={`flex items-center justify-center gap-3 group cursor-pointer w-10 h-10 md:w-auto md:px-4 md:py-2 rounded-full md:rounded transition-colors ${darkMode ? 'hover:bg-stone-800' : 'hover:bg-stone-200'}`} title="Menu">
                             <span className={`hidden md:block text-xs font-bold uppercase tracking-widest group-hover:underline underline-offset-4 ${darkMode ? 'text-stone-200' : 'text-stone-900'}`}>Menu</span>
-                            <Menu size={20} strokeWidth={1.5} className={darkMode ? 'text-stone-200' : 'text-stone-900'} />
+                            <Menu size={24} strokeWidth={1.5} className={darkMode ? 'text-stone-200' : 'text-stone-900'} />
                         </button>
                     </div>
                 </div>

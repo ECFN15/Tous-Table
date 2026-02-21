@@ -52,7 +52,7 @@ const MarketplaceLayout = ({
                     <span className={`text-[10px] uppercase font-bold tracking-[0.4em] ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
                         Collection 2026
                     </span>
-                    <h2 className={`font-serif text-3xl sm:text-4xl md:text-7xl lg:text-8xl whitespace-nowrap leading-[0.9] min-h-[1.8em] flex items-center justify-center ${darkMode ? 'text-stone-100' : 'text-stone-900'}`}>
+                    <h2 className={`font-serif text-4xl md:text-7xl lg:text-8xl whitespace-nowrap leading-[0.9] min-h-[1.8em] flex items-center justify-center tracking-tight md:tracking-normal ${darkMode ? 'text-stone-100' : 'text-stone-900'}`}>
                         <TextType
                             key={activeCollection}
                             text={activeCollection === 'furniture'
