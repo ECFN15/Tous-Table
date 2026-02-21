@@ -206,8 +206,8 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
             {/* ArchitecturalHeader removed here, handled globally in App.jsx */}
 
             <div className={`w-full min-h-screen flex flex-col md:flex-row relative pt-4 md:pt-0`}>
-                {/* LEFT COLUMN: IMAGE GALLERY (Sticky on Desktop) */}
-                <div className="w-full md:w-1/2 flex flex-col p-6 md:p-12 md:sticky md:top-24 h-auto md:h-[calc(100vh-6rem)] justify-center">
+                {/* LEFT COLUMN: IMAGE GALLERY (Natural Scroll) */}
+                <div className="w-full md:w-1/2 flex flex-col p-6 md:p-12 h-auto md:h-[calc(100vh-6rem)] justify-center">
                     {/* BACK BUTTON (Desktop & Mobile - Above Image) */}
                     <button onClick={onBack} className={`flex items-center gap-3 font-black text-[10px] uppercase tracking-widest transition-all hover:opacity-100 mb-6 group ${darkMode ? 'text-white/80' : 'text-stone-900/80'}`}>
                         <div className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all ${darkMode ? 'border-white/10 group-hover:bg-white/10' : 'border-stone-200 group-hover:bg-stone-100'}`}>
