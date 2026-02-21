@@ -168,48 +168,46 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
 
     return (
         <div className={`min-h-screen pt-10 px-6 pb-20 animate-in fade-in transition-colors duration-700 bg-transparent`}>
-            <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 lg:gap-24">
-
-                {/* COLONNE GAUCHE : FORMULAIRE */}
-                <div className="space-y-4 md:space-y-6">
-                    <button onClick={onBack} className={`flex items-center gap-1.5 md:gap-2 font-bold text-[9px] md:text-[10px] uppercase tracking-widest transition-colors relative z-50 ${darkMode ? 'text-stone-500 hover:text-white' : 'text-stone-400 hover:text-stone-900'}`}>
+            <div className="max-w-6xl mx-auto">
+                <div className="mb-8 md:mb-10 space-y-4 md:space-y-6">
+                    <button onClick={onBack} className={`flex items-center gap-1.5 md:gap-2 font-bold text-[9px] md:text-[10px] uppercase tracking-widest transition-colors relative z-50 w-fit ${darkMode ? 'text-stone-500 hover:text-white' : 'text-stone-400 hover:text-stone-900'}`}>
                         <ArrowLeft size={12} className="md:w-3.5 md:h-3.5" /> Retour
                     </button>
+                    <h2 className={`text-3xl md:text-4xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>Livraison & Paiement.</h2>
+                </div>
 
-                    <div>
-                        <h2 className={`text-3xl md:text-4xl font-black tracking-tighter mb-4 md:mb-6 ${darkMode ? 'text-white' : 'text-stone-900'}`}>Livraison & Paiement.</h2>
+                <div className="grid md:grid-cols-2 gap-12 lg:gap-24 items-start">
+                    {/* COLONNE GAUCHE : FORMULAIRE */}
+                    <div className="w-full">
                         <form id="checkout-form" onSubmit={handleSubmit} className="space-y-4">
 
                             {/* GROUPE 1 : CONTACT */}
-                            <div className={`p-5 md:p-6 rounded-[2rem] md:rounded-3xl border shadow-sm space-y-4 ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
+                            <div className={`p-5 md:p-6 rounded-[2rem] md:rounded-3xl ring-1 ring-inset shadow-sm space-y-4 transform-gpu will-change-transform ${darkMode ? 'bg-stone-800 ring-stone-700' : 'bg-white ring-stone-100'}`}>
                                 <h3 className="text-[10px] md:text-xs font-black uppercase tracking-widest text-stone-400 flex items-center gap-2 mb-2 md:mb-4"><ShieldCheck size={14} /> Coordonnées</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-                                    <input name="fullName" value={formData.fullName} onChange={handleChange} placeholder="Nom complet" className={`w-full p-3.5 md:p-4 rounded-xl border font-bold text-sm outline-none focus:ring-2 ring-amber-500 transition-all ${darkMode ? 'bg-stone-900 border-stone-700 text-white placeholder:text-stone-600' : 'bg-stone-50 border-stone-200 text-stone-900 placeholder:text-stone-400'}`} required />
-                                    <input name="phone" value={formData.phone} onChange={handleChange} placeholder="Téléphone" className={`w-full p-3.5 md:p-4 rounded-xl border font-bold text-sm outline-none focus:ring-2 ring-amber-500 transition-all ${darkMode ? 'bg-stone-900 border-stone-700 text-white placeholder:text-stone-600' : 'bg-stone-50 border-stone-200 text-stone-900 placeholder:text-stone-400'}`} required />
+                                    <input name="fullName" value={formData.fullName} onChange={handleChange} placeholder="Nom complet" className={`w-full p-3.5 md:p-4 rounded-xl ring-1 ring-inset outline-none focus:ring-2 font-bold text-sm transition-all transform-gpu will-change-transform ${darkMode ? 'bg-stone-900 ring-stone-700 focus:ring-amber-500 text-white placeholder:text-stone-600' : 'bg-stone-50 ring-stone-200 focus:ring-amber-500 text-stone-900 placeholder:text-stone-400'}`} required />
+                                    <input name="phone" value={formData.phone} onChange={handleChange} placeholder="Téléphone" className={`w-full p-3.5 md:p-4 rounded-xl ring-1 ring-inset outline-none focus:ring-2 font-bold text-sm transition-all transform-gpu will-change-transform ${darkMode ? 'bg-stone-900 ring-stone-700 focus:ring-amber-500 text-white placeholder:text-stone-600' : 'bg-stone-50 ring-stone-200 focus:ring-amber-500 text-stone-900 placeholder:text-stone-400'}`} required />
                                 </div>
-                                <input name="email" value={formData.email} onChange={handleChange} placeholder="Email" type="email" className={`w-full p-3.5 md:p-4 rounded-xl border font-bold text-sm outline-none focus:ring-2 ring-amber-500 transition-all ${darkMode ? 'bg-stone-900 border-stone-700 text-white placeholder:text-stone-600' : 'bg-stone-50 border-stone-200 text-stone-900 placeholder:text-stone-400'}`} required />
+                                <input name="email" value={formData.email} onChange={handleChange} placeholder="Email" type="email" className={`w-full p-3.5 md:p-4 rounded-xl ring-1 ring-inset outline-none focus:ring-2 font-bold text-sm transition-all transform-gpu will-change-transform ${darkMode ? 'bg-stone-900 ring-stone-700 focus:ring-amber-500 text-white placeholder:text-stone-600' : 'bg-stone-50 ring-stone-200 focus:ring-amber-500 text-stone-900 placeholder:text-stone-400'}`} required />
                             </div>
 
                             {/* GROUPE 2 : ADRESSE */}
-                            <div className={`p-5 md:p-6 rounded-[2rem] md:rounded-3xl border shadow-sm space-y-4 ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
+                            <div className={`p-5 md:p-6 rounded-[2rem] md:rounded-3xl ring-1 ring-inset shadow-sm space-y-4 transform-gpu will-change-transform ${darkMode ? 'bg-stone-800 ring-stone-700' : 'bg-white ring-stone-100'}`}>
                                 <h3 className="text-[10px] md:text-xs font-black uppercase tracking-widest text-stone-400 flex items-center gap-2 mb-2 md:mb-4"><Truck size={14} /> Adresse de livraison</h3>
-                                <input name="address" value={formData.address} onChange={handleChange} placeholder="Adresse (Rue, complément...)" className={`w-full p-3.5 md:p-4 rounded-xl border font-bold text-sm outline-none focus:ring-2 ring-amber-500 transition-all ${darkMode ? 'bg-stone-900 border-stone-700 text-white placeholder:text-stone-600' : 'bg-stone-50 border-stone-200 text-stone-900 placeholder:text-stone-400'}`} required />
+                                <input name="address" value={formData.address} onChange={handleChange} placeholder="Adresse (Rue, complément...)" className={`w-full p-3.5 md:p-4 rounded-xl ring-1 ring-inset outline-none focus:ring-2 font-bold text-sm transition-all transform-gpu will-change-transform ${darkMode ? 'bg-stone-900 ring-stone-700 focus:ring-amber-500 text-white placeholder:text-stone-600' : 'bg-stone-50 ring-stone-200 focus:ring-amber-500 text-stone-900 placeholder:text-stone-400'}`} required />
                                 <div className="grid grid-cols-2 gap-3 md:gap-4">
-                                    <input name="zip" value={formData.zip} onChange={handleChange} placeholder="Code Postal" className={`w-full p-3.5 md:p-4 rounded-xl border font-bold text-sm outline-none focus:ring-2 ring-amber-500 transition-all ${darkMode ? 'bg-stone-900 border-stone-700 text-white placeholder:text-stone-600' : 'bg-stone-50 border-stone-200 text-stone-900 placeholder:text-stone-400'}`} required />
-                                    <input name="city" value={formData.city} onChange={handleChange} placeholder="Ville" className={`w-full p-3.5 md:p-4 rounded-xl border font-bold text-sm outline-none focus:ring-2 ring-amber-500 transition-all ${darkMode ? 'bg-stone-900 border-stone-700 text-white placeholder:text-stone-600' : 'bg-stone-50 border-stone-200 text-stone-900 placeholder:text-stone-400'}`} required />
+                                    <input name="zip" value={formData.zip} onChange={handleChange} placeholder="Code Postal" className={`w-full p-3.5 md:p-4 rounded-xl ring-1 ring-inset outline-none focus:ring-2 font-bold text-sm transition-all transform-gpu will-change-transform ${darkMode ? 'bg-stone-900 ring-stone-700 focus:ring-amber-500 text-white placeholder:text-stone-600' : 'bg-stone-50 ring-stone-200 focus:ring-amber-500 text-stone-900 placeholder:text-stone-400'}`} required />
+                                    <input name="city" value={formData.city} onChange={handleChange} placeholder="Ville" className={`w-full p-3.5 md:p-4 rounded-xl ring-1 ring-inset outline-none focus:ring-2 font-bold text-sm transition-all transform-gpu will-change-transform ${darkMode ? 'bg-stone-900 ring-stone-700 focus:ring-amber-500 text-white placeholder:text-stone-600' : 'bg-stone-50 ring-stone-200 focus:ring-amber-500 text-stone-900 placeholder:text-stone-400'}`} required />
                                 </div>
                             </div>
 
                             {/* GROUPE 3 : PAIEMENT */}
-                            <div className={`p-5 md:p-6 rounded-[2rem] md:rounded-3xl border shadow-sm space-y-4 ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
+                            <div className={`p-5 md:p-6 rounded-[2rem] md:rounded-3xl ring-1 ring-inset shadow-sm space-y-4 transform-gpu will-change-transform ${darkMode ? 'bg-stone-800 ring-stone-700' : 'bg-white ring-stone-100'}`}>
                                 <h3 className="text-[10px] md:text-xs font-black uppercase tracking-widest text-stone-400 flex items-center gap-2 mb-2 md:mb-4"><CreditCard size={14} /> Moyen de paiement</h3>
 
-                                <div className={`relative p-5 md:p-6 rounded-2xl md:rounded-3xl border-2 transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] group hover:-translate-y-1 hover:shadow-xl hover:shadow-amber-500/10 ${darkMode ? 'border-amber-500/50 bg-amber-500/10 ring-4 ring-amber-500/5 cursor-pointer' : 'border-amber-500 bg-amber-50/50 ring-4 ring-amber-500/10 cursor-pointer'}`}>
-                                    {/* Subtle highlight effect on hover */}
-                                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/[0.05] to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                                    <div className="flex flex-row items-center sm:items-start gap-4 md:gap-5 relative z-10">
-                                        <div className="w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-xl md:rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white shadow-lg shadow-amber-500/30 group-hover:scale-105 transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]">
+                                <div className={`p-5 md:p-6 rounded-2xl md:rounded-3xl ring-2 ring-inset transform-gpu will-change-transform shadow-[0_0_0_8px_rgba(245,158,11,0.05)] ${darkMode ? 'ring-amber-500/50 bg-amber-500/10' : 'ring-amber-500 bg-amber-50/50'}`}>
+                                    <div className="flex flex-row items-center sm:items-start gap-4 md:gap-5">
+                                        <div className="w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-xl md:rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white shadow-lg shadow-amber-500/30 transform-gpu will-change-transform">
                                             <CreditCard size={24} className="md:w-[28px] md:h-[28px]" strokeWidth={1.5} />
                                         </div>
                                         <div className="flex-1 w-full min-w-0">
@@ -219,7 +217,7 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                                                     <CheckCircle size={14} className="text-amber-500 md:w-[16px] md:h-[16px]" strokeWidth={3} />
                                                 </div>
                                             </div>
-                                            <p className={`text-[10px] md:text-xs leading-relaxed font-semibold transition-colors ${darkMode ? 'text-stone-400 group-hover:text-stone-300' : 'text-stone-500 group-hover:text-stone-600'}`}>
+                                            <p className={`text-[10px] md:text-xs leading-relaxed font-semibold ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
                                                 Simple, sécurisé et privilégié par l'Atelier. <br className="hidden sm:block" />
                                                 Les instructions (RIB / QR) s'afficheront après.
                                             </p>
@@ -229,50 +227,50 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                             </div>
                         </form>
                     </div>
-                </div>
 
-                {/* COLONNE DROITE : RÉSUMÉ */}
-                <div className="relative mt-8 md:mt-0">
-                    <div className="sticky top-24 md:top-44 space-y-4 md:space-y-6">
-                        <div className="bg-stone-900 text-white p-6 md:p-8 rounded-3xl md:rounded-[2.5rem] shadow-2xl relative overflow-hidden">
-                            <div className="relative z-10">
-                                <h3 className="text-lg md:text-xl font-black mb-4 md:mb-6">Résumé de la commande</h3>
-                                <div className="space-y-4 mb-8">
-                                    {cartItems.map(item => (
-                                        <div key={item.id} className="flex justify-between items-start text-sm">
-                                            <span className="text-stone-300 max-w-[70%]">{item.name} <span className="text-stone-500 text-xs block">{item.material}</span></span>
-                                            <span className="font-bold">{item.price} €</span>
-                                        </div>
-                                    ))}
+                    {/* COLONNE DROITE : RÉSUMÉ */}
+                    <div className="relative mt-8 md:mt-0">
+                        <div className="space-y-4 md:space-y-6">
+                            <div className="bg-stone-900 text-white p-6 md:p-8 rounded-3xl md:rounded-[2.5rem] shadow-2xl relative overflow-hidden">
+                                <div className="relative z-10">
+                                    <h3 className="text-lg md:text-xl font-black mb-4 md:mb-6">Résumé de la commande</h3>
+                                    <div className="space-y-4 mb-8">
+                                        {cartItems.map(item => (
+                                            <div key={item.id} className="flex justify-between items-start text-sm">
+                                                <span className="text-stone-300 max-w-[70%]">{item.name} <span className="text-stone-500 text-xs block">{item.material}</span></span>
+                                                <span className="font-bold">{item.price} €</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className={`border-t pt-6 flex justify-between items-end transform-gpu will-change-transform ${darkMode ? 'border-stone-700/50' : 'border-stone-100'}`}>
+                                        <span className="text-stone-400 text-xs font-black uppercase tracking-widest">Total à payer</span>
+                                        <span className="text-4xl font-black tracking-tighter">{total} €</span>
+                                    </div>
                                 </div>
-                                <div className="border-t border-white/10 pt-6 flex justify-between items-end">
-                                    <span className="text-stone-400 text-xs font-black uppercase tracking-widest">Total à payer</span>
-                                    <span className="text-4xl font-black tracking-tighter">{total} €</span>
-                                </div>
+                                {/* Abstract Shapes */}
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
                             </div>
-                            {/* Abstract Shapes */}
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+
+                            <button
+                                type="submit"
+                                form="checkout-form"
+                                disabled={loading || unavailableItems.length > 0}
+                                className="w-full py-5 md:py-6 bg-amber-500 text-white rounded-2xl font-black uppercase text-[11px] md:text-sm tracking-widest hover:bg-amber-400 shadow-xl transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 md:gap-3"
+                            >
+                                {loading ? (
+                                    <>Traitement... </>
+                                ) : (
+                                    <>Confirmer ma commande <CheckCircle size={16} className="md:w-[18px] md:h-[18px]" /></>
+                                )}
+                            </button>
+                            <p className="text-center text-[9px] md:text-[10px] text-stone-400 font-medium px-2 md:px-4">
+                                En confirmant, vous réservez vos articles. <br />
+                                Les détails de paiement vous seront envoyés par email.
+                            </p>
                         </div>
-
-                        <button
-                            type="submit"
-                            form="checkout-form"
-                            disabled={loading || unavailableItems.length > 0}
-                            className="w-full py-5 md:py-6 bg-amber-500 text-white rounded-2xl font-black uppercase text-[11px] md:text-sm tracking-widest hover:bg-amber-400 shadow-xl transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 md:gap-3"
-                        >
-                            {loading ? (
-                                <>Traitement... </>
-                            ) : (
-                                <>Confirmer ma commande <CheckCircle size={16} className="md:w-[18px] md:h-[18px]" /></>
-                            )}
-                        </button>
-                        <p className="text-center text-[9px] md:text-[10px] text-stone-400 font-medium px-2 md:px-4">
-                            En confirmant, vous réservez vos articles. <br />
-                            Les détails de paiement vous seront envoyés par email.
-                        </p>
                     </div>
-                </div>
 
+                </div>
             </div>
 
             {loading && (

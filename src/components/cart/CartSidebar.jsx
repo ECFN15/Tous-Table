@@ -57,14 +57,14 @@ const CartSidebar = ({ isOpen, onClose, cartItems, onRemoveItem, totalPrice, onC
                                     alt={item.name}
                                     className={`w-20 h-20 object-cover bg-stone-100 ${isArch ? 'rounded-none' : 'rounded-xl'}`}
                                 />
-                                <div className="flex-1 flex flex-col justify-center">
-                                    <h3 className={`font-bold leading-tight ${darkMode ? 'text-white' : 'text-stone-900'} ${isArch ? 'font-serif text-lg tracking-wide' : ''}`}>{item.name}</h3>
-                                    <p className={`text-xs uppercase tracking-wider mt-1 ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>{item.material}</p>
+                                <div className="flex-1 min-w-0 pr-10 flex flex-col justify-center">
+                                    <h3 className={`font-bold leading-tight line-clamp-2 break-title ${darkMode ? 'text-white' : 'text-stone-900'} ${isArch ? 'font-serif text-lg tracking-wide' : ''}`}>{item.name}</h3>
+                                    <p className={`text-xs uppercase tracking-wider mt-1 truncate ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>{item.material}</p>
                                     <p className="text-sm font-black text-amber-600 mt-2">{item.price} €</p>
                                 </div>
                                 <button
                                     onClick={() => onRemoveItem(item.id)}
-                                    className={`absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center transition-colors ${darkMode ? 'bg-stone-900/50 text-stone-500 hover:bg-red-500/20 hover:text-red-400' : 'bg-stone-50 text-stone-400 hover:bg-red-50 hover:text-red-500'}`}
+                                    className={`absolute top-4 right-4 shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-colors ${darkMode ? 'bg-stone-900/50 text-stone-500 hover:bg-red-500/20 hover:text-red-400' : 'bg-stone-50 text-stone-400 hover:bg-red-50 hover:text-red-500'}`}
                                 >
                                     <Trash2 size={14} />
                                 </button>
