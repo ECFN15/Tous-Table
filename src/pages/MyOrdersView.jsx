@@ -206,23 +206,23 @@ const MyOrdersView = ({ user, onBack, darkMode, activeDesignId }) => {
                                     {/* ITEMS */}
                                     <div className="md:col-span-7 space-y-8">
                                         {order.items?.map((item, i) => (
-                                            <div key={i} className="flex gap-8 items-center">
-                                                <div className="w-24 h-24 sm:w-40 sm:h-40 rounded-3xl bg-stone-100 overflow-hidden flex-shrink-0 border border-stone-100 dark:border-stone-700 shadow-sm">
+                                            <div key={i} className="flex gap-4 sm:gap-8 items-center sm:items-start">
+                                                <div className="w-20 h-20 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-2xl sm:rounded-3xl bg-stone-100 overflow-hidden flex-shrink-0 border border-stone-100 dark:border-stone-700 shadow-sm">
                                                     {item.image && <img src={item.image} alt={item.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />}
                                                 </div>
-                                                <div className="pt-2">
-                                                    <p className="font-black text-2xl tracking-tight">{item.name}</p>
-                                                    <p className="text-lg font-medium opacity-50 mt-1">{item.quantity || 1} x {formatPrice(item.price)}</p>
-                                                    {item.collection && <span className="px-3 py-1 rounded-lg bg-stone-100 dark:bg-stone-700 text-[9px] font-black uppercase tracking-widest opacity-60 mt-4 inline-block">{item.collection}</span>}
+                                                <div className="pt-1 sm:pt-2 flex-1 min-w-0">
+                                                    <p className="font-black text-lg sm:text-2xl tracking-tight leading-tight line-clamp-2">{item.name}</p>
+                                                    <p className="text-base sm:text-lg font-medium opacity-50 mt-1">{item.quantity || 1} × {formatPrice(item.price)}</p>
+                                                    {item.collection && <span className="px-2 sm:px-3 py-1 rounded-md sm:rounded-lg bg-stone-100 dark:bg-stone-700 text-[8px] sm:text-[9px] font-black uppercase tracking-widest opacity-60 mt-2 sm:mt-4 inline-block truncate max-w-full">{item.collection}</span>}
                                                 </div>
                                             </div>
                                         ))}
 
                                         {/* ACTIONS GRID */}
-                                        <div className="pt-8 grid grid-cols-2 gap-4 max-w-sm">
+                                        <div className="pt-8 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-md">
                                             <button
                                                 onClick={() => setShowContactPopup(true)}
-                                                className="col-span-2 flex items-center justify-center gap-3 py-4 bg-stone-900 text-white dark:bg-white dark:text-stone-900 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-stone-800 dark:hover:bg-white/90 transition-all shadow-md group"
+                                                className="sm:col-span-2 flex items-center justify-center gap-3 py-4 bg-stone-900 text-white dark:bg-white dark:text-stone-900 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-stone-800 dark:hover:bg-white/90 transition-all shadow-md active:scale-[0.98] transform-gpu will-change-transform group"
                                             >
                                                 <MessageCircle size={16} className="group-hover:scale-110 transition-transform" />
                                                 Contacter le vendeur
@@ -231,7 +231,7 @@ const MyOrdersView = ({ user, onBack, darkMode, activeDesignId }) => {
                                             <button
                                                 onClick={() => handleDownloadInvoice(order)}
                                                 disabled={Boolean(downloadingInvoice)}
-                                                className="flex items-center justify-center gap-2 py-4 ring-1 ring-inset ring-stone-200 dark:ring-stone-700 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-stone-50 dark:hover:bg-stone-800 transition-all opacity-60 hover:opacity-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                                                className="flex items-center justify-center gap-2 py-4 ring-1 ring-inset ring-stone-200 dark:ring-stone-700 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-stone-50 dark:hover:bg-stone-800 active:scale-[0.98] transform-gpu will-change-transform transition-all opacity-60 hover:opacity-100 disabled:opacity-30 disabled:cursor-not-allowed"
                                             >
                                                 {downloadingInvoice === order.id ? (
                                                     <><Loader2 size={14} className="animate-spin" /> Création...</>
@@ -243,7 +243,7 @@ const MyOrdersView = ({ user, onBack, darkMode, activeDesignId }) => {
                                             {canCancel(order) && (
                                                 <button
                                                     onClick={() => setOrderToCancelId(order.id)}
-                                                    className="flex items-center justify-center py-4 ring-1 ring-inset ring-stone-200 dark:ring-stone-700 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition-all opacity-60 hover:opacity-100"
+                                                    className="flex items-center justify-center py-4 ring-1 ring-inset ring-stone-200 dark:ring-stone-700 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 active:scale-[0.98] transform-gpu will-change-transform transition-all opacity-60 hover:opacity-100"
                                                 >
                                                     Annuler la commande
                                                 </button>
@@ -252,10 +252,10 @@ const MyOrdersView = ({ user, onBack, darkMode, activeDesignId }) => {
                                     </div>
 
                                     {/* ACTIONS / INFO */}
-                                    <div className="md:col-span-5 flex flex-col justify-between border-l pl-0 md:pl-12 border-stone-100 dark:border-stone-700/50">
+                                    <div className="md:col-span-5 flex flex-col justify-between border-t md:border-t-0 md:border-l pt-8 mt-8 md:pt-0 md:mt-0 pl-0 md:pl-12 border-stone-100 dark:border-stone-700/50">
                                         <div className="space-y-2 mb-8">
                                             <p className="text-[10px] font-black uppercase tracking-widest opacity-30">Total de la commande</p>
-                                            <p className="text-5xl font-serif italic tracking-tighter">{formatPrice(order.total)}</p>
+                                            <p className="text-4xl sm:text-5xl font-serif italic tracking-tighter shrink-0">{formatPrice(order.total)}</p>
                                         </div>
 
                                         <div className="space-y-4">
