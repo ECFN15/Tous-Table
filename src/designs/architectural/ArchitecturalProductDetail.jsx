@@ -205,9 +205,9 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
             />
             {/* ArchitecturalHeader removed here, handled globally in App.jsx */}
 
-            <div className={`w-full min-h-screen flex flex-col md:flex-row relative pt-4 md:pt-0`}>
+            <div className={`w-full min-h-screen flex flex-col lg:flex-row relative pt-4 lg:pt-0`}>
                 {/* LEFT COLUMN: IMAGE GALLERY (Natural Scroll) */}
-                <div className="w-full md:w-1/2 flex flex-col p-6 md:p-12 h-auto md:h-[calc(100vh-6rem)] justify-center">
+                <div className="w-full lg:w-1/2 flex flex-col p-6 lg:p-12 h-auto lg:h-[calc(100vh-6rem)] justify-center">
                     {/* BACK BUTTON (Desktop & Mobile - Above Image) */}
                     <button onClick={onBack} className={`flex items-center gap-3 font-black text-[10px] uppercase tracking-widest transition-all hover:opacity-100 mb-6 group ${darkMode ? 'text-white/80' : 'text-stone-900/80'}`}>
                         <div className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all ${darkMode ? 'border-white/10 group-hover:bg-white/10' : 'border-stone-200 group-hover:bg-stone-100'}`}>
@@ -218,7 +218,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
 
                     {/* ROUNDED IMAGE CONTAINER (Gallery Style - Full Bleed) */}
                     <div
-                        className="relative w-full mx-auto rounded-[2.5rem] overflow-hidden shadow-2xl shadow-black/20 group bg-stone-100 dark:bg-[#151515] aspect-[3/4] md:aspect-auto md:h-full"
+                        className="relative w-full md:max-w-2xl mx-auto rounded-[2.5rem] overflow-hidden shadow-2xl shadow-black/20 group bg-stone-100 dark:bg-[#151515] aspect-[3/4] md:aspect-[4/3] lg:aspect-auto lg:h-full lg:max-w-none"
                         onTouchStart={onTouchStart}
                         onTouchMove={onTouchMove}
                         onTouchEnd={onTouchEnd}
@@ -350,8 +350,8 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
                 )}
 
                 {/* RIGHT COLUMN: NATURAL SCROLL (Fix Overflow) */}
-                <div className="w-full md:w-1/2 px-6 md:px-16 py-12 md:pt-26 md:pb-12 flex flex-col">
-                    <div className="max-w-xl mx-auto w-full h-full flex flex-col">
+                <div className="w-full lg:w-1/2 px-6 lg:px-16 py-12 flex flex-col justify-center min-h-[50vh] lg:h-[calc(100vh-6rem)]">
+                    <div className="max-w-xl mx-auto w-full h-full flex flex-col justify-center">
 
                         {/* Header */}
                         <div className="space-y-8 mb-12">
