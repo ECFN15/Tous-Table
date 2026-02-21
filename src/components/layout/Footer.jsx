@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Instagram, Facebook, Mail } from 'lucide-react';
+import { Instagram, Facebook, Mail, MapPin } from 'lucide-react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 
@@ -47,6 +47,21 @@ const Footer = ({ darkMode }) => {
                         </h2>
                     </div>
 
+                    {/* Google Map - Desktop Only */}
+                    <div className="hidden xl:block flex-1 h-[300px] w-full max-w-lg rounded-xl overflow-hidden border border-white/5 opacity-50 hover:opacity-100 transition-all duration-700 self-center mx-8">
+                         <iframe 
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2616.596001234567!2d-0.34809!3d49.153101!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x480a43f5959c8cd9%3A0xb674489cc18a42ea!2sTous%20%C3%A0%20Table%20-%20Atelier%20Normand!5e0!3m2!1sfr!2sfr!4v1700000000000!5m2!1sfr!2sfr"
+                            width="100%" 
+                            height="100%" 
+                            style={{ border: 0 }} 
+                            allowFullScreen="" 
+                            loading="lazy" 
+                            referrerPolicy="no-referrer-when-downgrade"
+                            title="Google Map Atelier"
+                            className="grayscale contrast-[0.9] hover:grayscale-0 hover:contrast-100 transition-all duration-700"
+                        ></iframe>
+                    </div>
+
                     <div className="flex flex-col gap-10 md:gap-16 xl:gap-20 self-start xl:self-end mt-4 xl:mt-0">
                         <div className="space-y-6 md:space-y-8 w-full max-w-full">
                             {/* Email - Optimized for long addresses & perfectly responsive */}
@@ -65,9 +80,22 @@ const Footer = ({ darkMode }) => {
 
                                 {/* Address */}
                                 {contactInfo.address && (
-                                    <address className="not-italic text-[9px] md:text-xs uppercase tracking-[0.25em] opacity-40 leading-relaxed border-l-2 border-[#9C8268] pl-4 max-w-[280px]">
-                                        {contactInfo.address}
-                                    </address>
+                                    <div className="border-l-2 border-[#9C8268] pl-4 flex flex-col gap-4">
+                                        <address className="not-italic text-[9px] md:text-xs uppercase tracking-[0.25em] opacity-40 leading-relaxed max-w-[280px]">
+                                            {contactInfo.address}
+                                        </address>
+
+                                        {/* Mobile Itinerary Link - Hidden on Desktop */}
+                                        <a 
+                                            href="https://www.google.com/maps/dir/?api=1&destination=Tous+à+Table+-+Atelier+Normand+346+Chem.+de+Fleury+14123+Ifs" 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="xl:hidden inline-flex items-center gap-2 text-[9px] md:text-xs uppercase tracking-[0.2em] font-bold text-[#9C8268] hover:text-white transition-colors group w-fit"
+                                        >
+                                            <MapPin size={14} className="group-hover:scale-110 transition-transform" />
+                                            <span>Itinéraire</span>
+                                        </a>
+                                    </div>
                                 )}
                             </div>
                         </div>
