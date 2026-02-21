@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, getDoc, increment, limit } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import { Package, Truck, XCircle, MessageCircle, ArrowLeft, Clock, CheckCircle, Download, CreditCard, Copy, Check, Loader2, Star } from 'lucide-react';
+import { Package, Truck, XCircle, MessageCircle, ArrowLeft, Clock, CheckCircle, Download, CreditCard, Copy, Check, Loader2, Star, AlertTriangle } from 'lucide-react';
 import { getMillis } from '../utils/time';
 import { generateInvoice } from '../utils/generateInvoice';
 
@@ -15,6 +15,8 @@ const MyOrdersView = ({ user, onBack, darkMode, activeDesignId }) => {
     const [copied, setCopied] = useState(null);
     const [downloadingInvoice, setDownloadingInvoice] = useState(null);
     const [showCancelSuccess, setShowCancelSuccess] = useState(false);
+    const [showContactPopup, setShowContactPopup] = useState(false);
+    const [orderToCancelId, setOrderToCancelId] = useState(null);
 
     const handleDownloadInvoice = async (order) => {
         setDownloadingInvoice(order.id);
@@ -66,9 +68,14 @@ const MyOrdersView = ({ user, onBack, darkMode, activeDesignId }) => {
         return () => unsub();
     }, [user]);
 
-    const handleCancelOrder = async (orderId) => {
+    const handleConfirmCancel = async () => {
+        const orderId = orderToCancelId;
         const orderToCancel = orders.find(o => o.id === orderId);
-        if (!orderToCancel || !confirm("Souhaitez-vous vraiment annuler votre commande ? les articles seront remis en vente.")) return;
+        
+        // Close modal
+        setOrderToCancelId(null);
+        
+        if (!orderToCancel) return;
 
         try {
             setLoading(true);
@@ -77,7 +84,8 @@ const MyOrdersView = ({ user, onBack, darkMode, activeDesignId }) => {
             // 1. Restaurer les stocks intelligemment
             if (orderToCancel.items) {
                 for (const item of orderToCancel.items) {
-                    const itemId = item.id || item.originalId;
+                    // [FIX] Utiliser originalId en priorité car item.id est l'ID du document panier (cart), pas du produit
+                    const itemId = item.originalId || item.id;
                     const col = item.collection || item.collectionName || 'furniture';
 
                     if (itemId) {
@@ -213,9 +221,7 @@ const MyOrdersView = ({ user, onBack, darkMode, activeDesignId }) => {
                                         {/* ACTIONS GRID */}
                                         <div className="pt-8 grid grid-cols-2 gap-4 max-w-sm">
                                             <button
-                                                onClick={() => {
-                                                    if (window.$crisp) window.$crisp.push(["do", "chat:open"]);
-                                                }}
+                                                onClick={() => setShowContactPopup(true)}
                                                 className="col-span-2 flex items-center justify-center gap-3 py-4 bg-stone-900 text-white dark:bg-white dark:text-stone-900 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-stone-800 dark:hover:bg-white/90 transition-all shadow-md group"
                                             >
                                                 <MessageCircle size={16} className="group-hover:scale-110 transition-transform" />
@@ -236,7 +242,7 @@ const MyOrdersView = ({ user, onBack, darkMode, activeDesignId }) => {
 
                                             {canCancel(order) && (
                                                 <button
-                                                    onClick={() => handleCancelOrder(order.id)}
+                                                    onClick={() => setOrderToCancelId(order.id)}
                                                     className="flex items-center justify-center py-4 ring-1 ring-inset ring-stone-200 dark:ring-stone-700 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition-all opacity-60 hover:opacity-100"
                                                 >
                                                     Annuler la commande
@@ -392,6 +398,79 @@ const MyOrdersView = ({ user, onBack, darkMode, activeDesignId }) => {
                                 className="w-full py-4 bg-stone-900 text-white dark:bg-white dark:text-stone-900 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:scale-[1.02] transition-all"
                             >
                                 J'ai compris
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* MODAL CONFIRMATION ANNULATION */}
+                {orderToCancelId && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-stone-900/60 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setOrderToCancelId(null)}>
+                        <div className={`max-w-md w-full p-8 md:p-10 rounded-[2.5rem] shadow-2xl text-center space-y-6 ${darkMode ? 'bg-stone-800 ring-1 ring-white/10' : 'bg-white'}`} onClick={e => e.stopPropagation()}>
+                            <div className="w-20 h-20 bg-amber-100 dark:bg-amber-900/30 rounded-3xl flex items-center justify-center text-amber-500 mx-auto shadow-lg">
+                                <AlertTriangle size={40} />
+                            </div>
+                            
+                            <div className="space-y-4">
+                                <h3 className="text-2xl font-black tracking-tighter">Confirmer l'annulation</h3>
+                                <p className={`text-sm font-medium leading-relaxed ${darkMode ? 'text-stone-300' : 'text-stone-500'}`}>
+                                    En confirmant, votre commande sera annulée et les articles seront <strong>remis en vente</strong> sur la boutique.
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 pt-4">
+                                <button
+                                    onClick={() => setOrderToCancelId(null)}
+                                    className={`w-full py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors ${darkMode ? 'bg-stone-700 hover:bg-stone-600 text-white' : 'bg-stone-100 hover:bg-stone-200 text-stone-900'}`}
+                                >
+                                    Retour
+                                </button>
+                                <button
+                                    onClick={handleConfirmCancel}
+                                    className="w-full py-4 bg-red-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-600 transition-colors shadow-lg shadow-red-500/20"
+                                >
+                                    Confirmer
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* MODAL CONTACT TEMP */}
+                {showContactPopup && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-stone-900/60 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowContactPopup(false)}>
+                        <div className={`max-w-md w-full p-8 md:p-10 rounded-[2.5rem] shadow-2xl text-center space-y-8 relative overflow-hidden ${darkMode ? 'bg-stone-800 ring-1 ring-white/10' : 'bg-white'}`} onClick={e => e.stopPropagation()}>
+                            
+                            {/* CLOSE BUTTON */}
+                            <button onClick={() => setShowContactPopup(false)} className={`absolute top-6 right-6 p-2 rounded-full transition-colors ${darkMode ? 'hover:bg-white/10 text-white/50 hover:text-white' : 'hover:bg-stone-100 text-stone-400 hover:text-stone-900'}`}>
+                                <XCircle size={24} />
+                            </button>
+
+                            <div className="w-20 h-20 bg-emerald-500 rounded-3xl flex items-center justify-center text-white mx-auto shadow-lg shadow-emerald-500/20 rotate-3">
+                                <MessageCircle size={40} />
+                            </div>
+                            
+                            <div className="space-y-4">
+                                <h3 className="text-2xl md:text-3xl font-black tracking-tighter">Contact Vendeur</h3>
+                                <div className={`p-6 rounded-2xl ${darkMode ? 'bg-stone-900/50' : 'bg-stone-50'}`}>
+                                    <p className={`text-sm font-medium leading-relaxed ${darkMode ? 'text-stone-300' : 'text-stone-600'}`}>
+                                        Notre messagerie instantanée (WhatsApp) est en cours d'intégration pour vous offrir une meilleure expérience.
+                                    </p>
+                                    <div className="w-12 h-1 bg-stone-200 dark:bg-stone-700 mx-auto my-6 rounded-full"></div>
+                                    <p className={`text-sm font-medium ${darkMode ? 'text-stone-300' : 'text-stone-600'}`}>
+                                        En attendant, pour toute question sur votre commande, veuillez contacter <strong className={darkMode ? 'text-white' : 'text-stone-900'}>Olivier</strong> directement par téléphone :
+                                    </p>
+                                    <a href="tel:+33777324178" className="mt-6 block px-6 py-4 bg-stone-900 text-white dark:bg-white dark:text-stone-900 rounded-xl font-black text-lg tracking-wider hover:scale-[1.02] transition-transform shadow-lg">
+                                        07 77 32 41 78
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <button
+                                onClick={() => setShowContactPopup(false)}
+                                className={`w-full py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-colors ${darkMode ? 'bg-stone-700 hover:bg-stone-600 text-white' : 'bg-stone-100 hover:bg-stone-200 text-stone-900'}`}
+                            >
+                                Fermer
                             </button>
                         </div>
                     </div>
