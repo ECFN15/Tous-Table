@@ -116,12 +116,7 @@ const ArchitecturalHeader = ({
                 <div className="flex items-center gap-6">
 
                     {/* GLOBAL ACTIONS */}
-                    <div className="flex items-center gap-4">
-
-                        {/* DARK MODE TOGGLE (Only if Auto) */}
-                        {showToggle && toggleTheme && (
-                            <AnimatedThemeToggler isDark={isDark} toggleTheme={toggleTheme} />
-                        )}
+                    <div className="flex items-center gap-1 md:gap-4">
 
                         {/* LOGIN / LOGOUT BUTTON (Integrated Mobile + Desktop) */}
                         {(!user || user.isAnonymous) ? (
@@ -158,6 +153,11 @@ const ArchitecturalHeader = ({
                                     <span className="hidden sm:inline text-[10px] font-bold uppercase tracking-widest">Quitter</span>
                                 </button>
                             </div>
+                        )}
+
+                        {/* DARK MODE TOGGLE (Only if Auto) */}
+                        {showToggle && toggleTheme && (
+                            <AnimatedThemeToggler isDark={isDark} toggleTheme={toggleTheme} />
                         )}
 
                         <button onClick={onOpenCart} className={`relative group w-10 h-10 flex items-center justify-center rounded-full transition-colors ${darkMode ? 'hover:bg-stone-800' : 'hover:bg-stone-200'}`} title="Panier">
