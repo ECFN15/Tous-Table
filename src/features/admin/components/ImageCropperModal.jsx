@@ -1,15 +1,17 @@
 import React, { useState, useCallback } from 'react';
 import Cropper from 'react-easy-crop';
-import { X, Check, RotateCw, ZoomIn, ZoomOut } from 'lucide-react';
+import { X, Check, RotateCw, RotateCcw, ZoomIn, ZoomOut } from 'lucide-react';
 import { getCroppedImg } from '../../../utils/imageUtils';
 
 const ImageCropperModal = ({ isOpen, image, onClose, onCropComplete, aspect = 3 / 4, darkMode = false }) => {
     const [crop, setCrop] = useState({ x: 0, y: 0 });
     const [zoom, setZoom] = useState(1);
+    const [rotation, setRotation] = useState(0);
     const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
 
     const onCropChange = (crop) => setCrop(crop);
     const onZoomChange = (zoom) => setZoom(zoom);
+    const onRotationChange = (rotation) => setRotation(rotation);
 
     const onCropCompleteInternal = useCallback((croppedArea, croppedAreaPixels) => {
         setCroppedAreaPixels(croppedAreaPixels);
@@ -18,7 +20,7 @@ const ImageCropperModal = ({ isOpen, image, onClose, onCropComplete, aspect = 3 
     const handleGenerateCroppedImage = async () => {
         try {
             if (!image || !croppedAreaPixels) return;
-            const croppedBlob = await getCroppedImg(image, croppedAreaPixels);
+            const croppedBlob = await getCroppedImg(image, croppedAreaPixels, rotation);
             onCropComplete(croppedBlob);
             onClose();
         } catch (e) {
@@ -53,10 +55,12 @@ const ImageCropperModal = ({ isOpen, image, onClose, onCropComplete, aspect = 3 
                         image={image}
                         crop={crop}
                         zoom={zoom}
+                        rotation={rotation}
                         aspect={aspect}
                         onCropChange={onCropChange}
                         onCropComplete={onCropCompleteInternal}
                         onZoomChange={onZoomChange}
+                        onRotationChange={onRotationChange}
                         classes={{
                             containerClassName: "bg-stone-950",
                             mediaClassName: "opacity-100",
@@ -68,22 +72,43 @@ const ImageCropperModal = ({ isOpen, image, onClose, onCropComplete, aspect = 3 
                 {/* Controls */}
                 <div className={`p-8 space-y-8 ${darkMode ? 'bg-stone-900' : 'bg-stone-50/50'}`}>
 
-                    <div className="flex items-center gap-6">
-                        <ZoomOut size={16} className="text-stone-400" />
-                        <input
-                            type="range"
-                            value={zoom}
-                            min={1}
-                            max={3}
-                            step={0.1}
-                            aria-labelledby="Zoom"
-                            onChange={(e) => setZoom(e.target.value)}
-                            className="flex-1 accent-amber-500 h-1.5 bg-stone-200 dark:bg-stone-800 rounded-full appearance-none cursor-pointer"
-                        />
-                        <ZoomIn size={16} className="text-stone-400" />
+                    <div className="flex flex-col gap-6">
+                        {/* Zoom Control */}
+                        <div className="flex items-center gap-4">
+                            <ZoomOut size={16} className="text-stone-400" />
+                            <input
+                                type="range"
+                                value={zoom}
+                                min={1}
+                                max={3}
+                                step={0.1}
+                                aria-labelledby="Zoom"
+                                onChange={(e) => setZoom(e.target.value)}
+                                className="flex-1 accent-amber-500 h-1.5 bg-stone-200 dark:bg-stone-800 rounded-full appearance-none cursor-pointer"
+                            />
+                            <ZoomIn size={16} className="text-stone-400" />
+                        </div>
+
+                        {/* Rotation Control */}
+                        <div className="flex justify-center gap-6">
+                            <button
+                                onClick={() => setRotation((r) => r - 90)}
+                                className={`p-3 rounded-full border transition-all ${darkMode ? 'border-stone-700 text-stone-300 hover:bg-stone-800' : 'border-stone-200 text-stone-500 hover:bg-white'}`}
+                                title="Pivoter à gauche"
+                            >
+                                <RotateCcw size={20} />
+                            </button>
+                            <button
+                                onClick={() => setRotation((r) => r + 90)}
+                                className={`p-3 rounded-full border transition-all ${darkMode ? 'border-stone-700 text-stone-300 hover:bg-stone-800' : 'border-stone-200 text-stone-500 hover:bg-white'}`}
+                                title="Pivoter à droite"
+                            >
+                                <RotateCw size={20} />
+                            </button>
+                        </div>
                     </div>
 
-                    <div className="flex justify-between items-center gap-4">
+                    <div className="flex justify-between items-center gap-4 pt-4 border-t border-stone-200 dark:border-stone-800">
                         <button
                             onClick={onClose}
                             className={`flex-1 py-4 font-black uppercase text-[9px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] rounded-2xl transition-all border ${darkMode ? 'border-stone-700 text-stone-400 hover:bg-stone-800' : 'border-stone-200 text-stone-500 hover:bg-white shadow-sm'}`}
