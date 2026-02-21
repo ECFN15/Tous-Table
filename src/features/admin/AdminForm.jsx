@@ -47,7 +47,8 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
 
   // [NEW] Metrics
   const totalOriginalSize = galleryItems.reduce((acc, item) => acc + (item.originalSize || (item.file ? item.file.size : 0)), 0);
-  const [totalCompressedSize, setTotalCompressedSize] = useState(0);
+  // Derived state for compressed size (dynamic)
+  const totalCompressedSize = galleryItems.reduce((acc, item) => acc + (item.file ? item.file.size : 0), 0);
 
   // [NEW] Cropper State
   const [cropperConfig, setCropperConfig] = useState({ isOpen: false, image: null, itemId: null, aspect: 3 / 4 });
@@ -114,10 +115,11 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
     galleryItems.forEach(item => { if (item.preview && !item.isExisting) URL.revokeObjectURL(item.preview); });
     setGalleryItems([]);
     setIsCustomMaterial(false);
-    setTotalCompressedSize(0);
   };
 
-  const processFiles = (files) => {
+  const processFiles = async (files) => {
+    setMsg("⏳ Optimisation automatique...");
+
     const newItems = files.map(file => ({
       id: `new-${Date.now()}-${Math.random()}`,
       file: file,
@@ -126,43 +128,38 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
       isExisting: false,
       isCompressed: false
     }));
+
+    // Add unoptimized items first for immediate feedback
     setGalleryItems(prev => [...prev, ...newItems]);
+
+    // Process optimization in background
+    const optimizedItems = await Promise.all(newItems.map(async (item) => {
+      try {
+        const compressed = await compressImage(item.file);
+        return {
+          ...item,
+          file: compressed,
+          isCompressed: true
+        };
+      } catch (error) {
+        console.error("Auto-compression failed for", item.file.name, error);
+        return item;
+      }
+    }));
+
+    // Update state with optimized versions
+    setGalleryItems(prev => prev.map(current => {
+      const optimized = optimizedItems.find(opt => opt.id === current.id);
+      return optimized || current;
+    }));
+
+    setMsg("✅ Images ajoutées et optimisées !");
+    setTimeout(() => setMsg(""), 3000);
   };
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     if (files.length > 0) processFiles(files);
-  };
-
-  const handleOptimizeImages = async (e) => {
-    e.preventDefault(); // Prevent form submission if button is inside form
-    setMsg("⏳ Optimisation en cours...");
-    let newItems = [...galleryItems];
-    let newTotalSize = 0;
-    let anyCompressed = false;
-
-    for (let i = 0; i < newItems.length; i++) {
-      if (newItems[i].file && !newItems[i].isCompressed) {
-        try {
-          const compressed = await compressImage(newItems[i].file);
-          newItems[i].file = compressed;
-          newItems[i].isCompressed = true;
-          // Keep the preview as is, or update if we wanted to show webp specifically
-          newTotalSize += compressed.size;
-          anyCompressed = true;
-        } catch (error) {
-          console.error("Compression failed for", newItems[i].file.name, error);
-          newTotalSize += newItems[i].file.size; // Fallback
-        }
-      } else if (newItems[i].file) {
-        newTotalSize += newItems[i].file.size;
-      }
-    }
-
-    setGalleryItems(newItems);
-    setTotalCompressedSize(newTotalSize);
-    if (anyCompressed) setMsg("✅ Images prêtes !");
-    else setMsg("ℹ️ Déjà optimisées");
   };
 
   const handleDownloadImages = (e) => {
@@ -194,7 +191,6 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
     try {
       let finalImageUrls = [];
       let finalThumbnailUrls = [];
-      let accumulatedCompressedSize = 0;
       let count = 0;
 
       for (const item of galleryItems) {
@@ -223,11 +219,6 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
           await uploadBytes(imageRef, fileToUpload, { cacheControl: 'public, max-age=31536000' });
           const fullUrl = await getDownloadURL(imageRef);
           finalImageUrls.push(fullUrl);
-
-          if (!item.isCompressed) {
-            accumulatedCompressedSize += fileToUpload.size;
-            setTotalCompressedSize(accumulatedCompressedSize);
-          }
         }
       }
 
@@ -564,16 +555,6 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
           </div>
 
           <div className="flex flex-wrap justify-center gap-3 w-full sm:w-auto">
-            {/* Optimization Button */}
-            {galleryItems.some(i => i.file && !i.isCompressed) && (
-              <button
-                onClick={handleOptimizeImages}
-                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-4 rounded-2xl text-[10px] font-black uppercase transition-all shadow-xl active:scale-95 ${darkMode ? 'bg-amber-500 text-stone-950 hover:bg-amber-400' : 'bg-amber-500 text-white hover:bg-amber-600'}`}
-              >
-                <Zap size={16} /> Transformer en WebP
-              </button>
-            )}
-
             {/* Download Button */}
             {totalCompressedSize > 0 && (
               <button
