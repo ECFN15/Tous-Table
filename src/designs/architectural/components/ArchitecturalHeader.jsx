@@ -167,7 +167,7 @@ const ArchitecturalHeader = ({
 
                         <button onClick={onOpenMenu} className={`flex items-center justify-center gap-3 group cursor-pointer w-10 h-10 md:w-auto md:px-4 md:py-2 rounded-full md:rounded transition-colors ${darkMode ? 'hover:bg-stone-800' : 'hover:bg-stone-200'}`} title="Menu">
                             <span className={`hidden md:block text-xs font-bold uppercase tracking-widest group-hover:underline underline-offset-4 ${darkMode ? 'text-stone-200' : 'text-stone-900'}`}>Menu</span>
-                            <Menu size={24} strokeWidth={1.5} className={darkMode ? 'text-stone-200' : 'text-stone-900'} />
+                            <Menu size={24} strokeWidth={1} className={darkMode ? 'text-stone-200' : 'text-stone-900'} />
                         </button>
                     </div>
                 </div>
