@@ -222,7 +222,7 @@ const HOMEPAGE_CONFIG = [
                 default: null,
                 isTextOnly: true,
                 textSchema: [
-                    { key: "value", label: "Chiffre", type: "text", placeholder: "25" },
+                    { key: "value", label: "Chiffre", type: "text", placeholder: "15" },
                     { key: "suffix", label: "Suffixe", type: "text", placeholder: "+" },
                     { key: "label", label: "Label", type: "text", placeholder: "Années d'excellence" }
                 ]
@@ -278,7 +278,7 @@ const HOMEPAGE_CONFIG = [
                     { key: "name_line1", label: "Prénom", type: "text", placeholder: "Jean" },
                     { key: "name_line2", label: "Nom", type: "text", placeholder: "Lefebvre" },
                     { key: "quote", label: "Citation", type: "textarea", placeholder: "\"Nous ne luttons pas contre le temps...\"" },
-                    { key: "exp_years", label: "Années Expérience (chiffres romains)", type: "text", placeholder: "XXV Ans" }
+                    { key: "exp_years", label: "Années Expérience (chiffres romains)", type: "text", placeholder: "XV Ans" }
                 ]
             },
             {

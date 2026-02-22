@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
-import { Hammer, Menu, X, ArrowRight, Instagram, Facebook, ArrowDown, Star, Zap, Plus, Minus } from 'lucide-react';
+import { Hammer, Menu, X, ArrowRight, Instagram, Facebook, ArrowDown, Plus, Minus } from 'lucide-react';
 import StackedCards from '../components/home/StackedCards'; // New Import
 import ProcessSection from '../components/home/ProcessSection'; // New Component (Hybrid Layout)
 
@@ -50,7 +50,7 @@ const RotatingSymbol = ({ className, size = 120, text = "TOUS À TABLE • 2026 
         </text>
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <Star size={size / 5} className="opacity-30 text-[#9C8268]" />
+        <Hammer size={size / 5} className="opacity-30 text-[#9C8268]" strokeWidth={1.5} />
       </div>
     </div>
   );
@@ -219,7 +219,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
   const stats = [
     {
       // Priorité à la donnée Firebase (même vide), sinon défaut
-      value: (homepageImages?.['stat_1_text']?.value !== undefined) ? homepageImages['stat_1_text'].value : "25",
+      value: (homepageImages?.['stat_1_text']?.value !== undefined) ? homepageImages['stat_1_text'].value : "15",
       suffix: (homepageImages?.['stat_1_text']?.suffix !== undefined) ? homepageImages['stat_1_text'].suffix : "+",
       label: (homepageImages?.['stat_1_text']?.label !== undefined) ? homepageImages['stat_1_text'].label : "Années d'excellence"
     },
@@ -1046,15 +1046,15 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         < div className="marquee-wrapper border-y border-white/5 bg-[#0a0a0a] py-12 mb-40" >
           <div className="flex whitespace-nowrap animate-marquee">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="flex items-center gap-24 mx-12">
+              <div key={i} className="flex items-center gap-12 md:gap-24 mx-8 md:mx-12">
                 <span className="font-serif text-5xl md:text-8xl font-light italic uppercase text-white tracking-[0.15em]">
                   {homepageImages['ticker_text']?.text_left || "Patrimoine Durable"}
                 </span>
-                <Star size={32} className="text-[#9C8268] opacity-60" />
+                <Hammer className="w-6 h-6 md:w-12 md:h-12 text-[#9C8268] opacity-60" strokeWidth={1.5} />
                 <span className="font-serif text-5xl md:text-8xl font-light uppercase opacity-20 italic tracking-[0.15em] text-white">
                   {homepageImages['ticker_text']?.text_right || "L'Excellence du geste"}
                 </span>
-                <Star size={32} className="text-[#9C8268] opacity-60" />
+                <Hammer className="w-6 h-6 md:w-12 md:h-12 text-[#9C8268] opacity-60" strokeWidth={1.5} />
               </div>
             ))}
           </div>
@@ -1070,7 +1070,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
                   {/* En-tête de la cellule */}
                   <div className="flex justify-between items-start">
                     <span className="text-[11px] uppercase tracking-[0.5em] font-bold opacity-30 group-hover:opacity-100 group-hover:text-[#9C8268] transition-all duration-700">Mesure 0{idx + 1}</span>
-                    <Zap size={18} className="opacity-20 group-hover:opacity-100 group-hover:text-[#9C8268] transition-all duration-700" />
+                    <Hammer size={18} className="opacity-20 group-hover:opacity-100 group-hover:text-[#9C8268] transition-all duration-700" />
                   </div>
 
                   {/* Chiffres avec taille contrôlée pour éviter l'overflow */}
@@ -1101,7 +1101,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
             </div>
             <div className="flex flex-col items-end gap-6">
               <div className="w-52 h-[1px] bg-white/10"></div>
-              <span className="text-[11px] uppercase tracking-[0.6em] opacity-30">Atelier Tous à Table © — Archive 2024</span>
+              <span className="text-[11px] uppercase tracking-[0.6em] opacity-30">Atelier Tous à Table © — Archive 2026</span>
             </div>
           </div>
         </div >
@@ -1133,11 +1133,11 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
               <div>
                 <span className="block text-[9px] uppercase tracking-widest opacity-30 mb-2 font-black">Expérience</span>
                 <span className="font-serif text-3xl md:text-4xl lg:text-5xl xl:text-6xl italic text-[#9C8268]">
-                  {homepageImages['team_main_text']?.exp_years || "XXV Ans"}
+                  {homepageImages['team_main_text']?.exp_years || "XV Ans"}
                 </span>
               </div>
               <div className="w-[1px] h-12 bg-black/5"></div>
-              <Zap size={32} className="text-[#9C8268] opacity-60" />
+              <Hammer size={32} className="text-[#9C8268] opacity-60" strokeWidth={1.5} />
             </div>
           </div>
 

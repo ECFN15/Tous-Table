@@ -1,7 +1,7 @@
 import React, { useRef, useLayoutEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Star } from 'lucide-react'; // Restored Import
+import { Hammer } from 'lucide-react'; // Updated to Hammer for branding consistency
 
 // Register Plugin
 if (typeof window !== 'undefined') {
@@ -19,7 +19,7 @@ const RotatingSymbol = ({ className, size = 120, text = "TOUS À TABLE • 2026 
                 </text>
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
-                <Star size={size / 5} className="opacity-30 text-[#9C8268]" />
+                <Hammer size={size / 5} className="opacity-30 text-[#9C8268]" strokeWidth={1.5} />
             </div>
         </div>
     );

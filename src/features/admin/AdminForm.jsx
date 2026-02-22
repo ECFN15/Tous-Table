@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Upload, Trash2, Download, Zap } from 'lucide-react';
+import { Upload, Trash2, Download } from 'lucide-react';
 import { db, storage, functions, appId } from '../../firebase/config';
 import { httpsCallable } from 'firebase/functions';
 import { doc, addDoc, updateDoc, collection, serverTimestamp, Timestamp } from 'firebase/firestore';

@@ -7,8 +7,9 @@ import {
 import { httpsCallable } from 'firebase/functions'; // Added for logUserConnection
 // Auth imports removed (handled in Context)
 import {
-  Hammer, LogOut, ShieldCheck, Menu, X, Instagram, Mail, User, Eye, EyeOff, Pencil, Trash2, Trophy, ShoppingBag, Sun, Moon, Facebook
+  Hammer, LogOut, ShieldCheck, Menu, X, Instagram, Mail, User, Eye, EyeOff, Pencil, Trash2, Trophy, ShoppingBag, Sun, Moon, Facebook, AlertTriangle, AlertCircle, ShoppingCart
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // --- IMPORTS CONFIG & UTILS ---
 import { auth, db, appId, functions, googleProvider } from './firebase/config';
@@ -56,6 +57,7 @@ const AppContent = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartInteracted, setCartInteracted] = useState(false); // Prevents initial flash
   const [showOrderSuccess, setShowOrderSuccess] = useState(false);
+  const [stockAlert, setStockAlert] = useState(null); // { currentStock: number }
 
   // Navigation
   const [view, setView] = useState(() => {
@@ -372,7 +374,7 @@ const AppContent = () => {
     const inCartCount = cartItems.filter(c => c.originalId === item.id).length;
 
     if (inCartCount >= currentStock) {
-      alert(`Stock insuffisant. Il ne reste que ${currentStock} exemplaire(s) disponible(s).`);
+      setStockAlert({ currentStock });
       return;
     }
 
@@ -787,6 +789,39 @@ const AppContent = () => {
           }, 800);
         }}
       />
+
+      {/* MODAL STOCK INSUFFISANT (Premium UI) */}
+      <AnimatePresence>
+        {stockAlert && (
+          <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4 md:p-6 bg-stone-900/40 backdrop-blur-md">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              className={`max-w-md w-full p-8 md:p-12 rounded-[2.5rem] shadow-2xl text-center space-y-8 relative overflow-hidden ${darkMode ? 'bg-stone-800' : 'bg-white'}`}
+            >
+              <div className="w-20 h-20 bg-amber-500/10 rounded-[2rem] flex items-center justify-center text-amber-500 mx-auto border border-amber-500/20 shadow-inner">
+                <AlertTriangle size={40} className="animate-pulse" />
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-2xl md:text-4xl font-black tracking-tighter">Stock insuffisant</h3>
+                <div className="w-12 h-1 bg-amber-500 mx-auto rounded-full opacity-30"></div>
+                <p className={`text-base md:text-lg font-medium leading-relaxed px-4 ${darkMode ? 'text-stone-300' : 'text-stone-500'}`}>
+                  Il ne reste que <strong className={darkMode ? 'text-amber-400' : 'text-stone-900'}>{stockAlert.currentStock} exemplaire(s)</strong> disponible(s) pour cette pièce unique.
+                </p>
+              </div>
+
+              <button
+                onClick={() => setStockAlert(null)}
+                className="w-full py-5 bg-stone-950 text-white dark:bg-white dark:text-stone-900 rounded-2xl font-black uppercase text-xs tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-black/10 flex items-center justify-center gap-3 group"
+              >
+                <span>J'ai compris</span>
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
