@@ -1,6 +1,7 @@
 # make_boilerplate.ps1
-# Script pour cloner le projet actuel vers un nouveau dossier "Boilerplate" propre.
-# Usage: ./make_boilerplate.ps1 "CHEMAIN_VERS_LE_NOUVEAU_DOSSIER"
+# Script ultra-puissant pour cloner l'architecture "Tous à Table" vers un nouveau projet
+# tout en générant un Manifeste (Audit) complet pour piloter l'IA sur le nouveau design.
+# Usage: ./make_boilerplate.ps1 "CHEMIN_VERS_LE_NOUVEAU_DOSSIER"
 
 param (
     [Parameter(Mandatory=$true)]
@@ -8,34 +9,19 @@ param (
 )
 
 $SourcePath = Get-Location
-$ExcludeDirs = @("node_modules", ".git", ".firebase", "dist", "_ARCHIVE", ".agent", ".github", ".vscode")
+# On exclut tout l'historique, les caches, et les dossiers IA du projet source
+$ExcludeDirs = @("node_modules", ".git", ".firebase", "dist", "_ARCHIVE", ".github", ".vscode", "competence")
 $ExcludeFiles = @(".firebaserc", ".env", ".env.prod", "package-lock.json", "yarn.lock")
 
 Write-Host "🚀 Démarrage du clonage vers : $DestinationPath" -ForegroundColor Cyan
 
-# Création du dossier destination s'il n'existe pas
 if (-not (Test-Path $DestinationPath)) {
     New-Item -ItemType Directory -Force -Path $DestinationPath | Out-Null
 }
 
-# Copie intelligente avec Robocopy (Windows Native)
-# /E : Copie les sous-répertoires (y compris vides)
-# /XD : Exclure les dossiers
-# /XF : Exclure les fichiers
-# /NFL /NDL : Pas de logs verbeux
-# /NJH /NJS : Pas d'en-tête/pied de page de résumé
-Write-Host "📦 Copie des fichiers source..." -ForegroundColor Yellow
-$RobocopyArgs = @(
-    $SourcePath,
-    $DestinationPath,
-    "/E",
-    "/XD", $ExcludeDirs,
-    "/XF", $ExcludeFiles,
-    "/NFL", "/NDL", "/NJH", "/NJS"
-)
-& robocopy @RobocopyArgs
+Write-Host "📦 Copie intelligente des fichiers source (Robocopy)..." -ForegroundColor Yellow
+robocopy "$SourcePath" "$DestinationPath" /E /XD $ExcludeDirs /XF $ExcludeFiles /NFL /NDL /NJH /NJS
 
-# Vérification du code de retour Robocopy ( < 8 est un succès)
 if ($LASTEXITCODE -ge 8) {
     Write-Error "❌ Erreur critique lors de la copie."
     exit 1
@@ -43,11 +29,8 @@ if ($LASTEXITCODE -ge 8) {
 
 Write-Host "✅ Copie terminée." -ForegroundColor Green
 
-# Post-Traitement : Nettoyage et Initialisation
-
 # 1. Création d'un .env vierge
-$EnvTemplate = @"
-# CLE API FIREBASE (A REMPLACER)
+$EnvTemplate = @'
 VITE_FIREBASE_API_KEY=
 VITE_FIREBASE_AUTH_DOMAIN=
 VITE_FIREBASE_PROJECT_ID=
@@ -55,55 +38,70 @@ VITE_FIREBASE_STORAGE_BUCKET=
 VITE_FIREBASE_MESSAGING_SENDER_ID=
 VITE_FIREBASE_APP_ID=
 VITE_FIREBASE_MEASUREMENT_ID=
-
-# STRIPE (PUBLIC KEY)
+VITE_RECAPTCHA_SITE_KEY=
+VITE_APP_LOGICAL_NAME=nouveau-projet
 VITE_STRIPE_PUBLIC_KEY=
-"@
-Set-Content -Path "$DestinationPath\.env" -Value $EnvTemplate
-Write-Host "📝 Fichier .env vierge créé." -ForegroundColor Gray
+'@
 
-# 2. Reset du package.json (Nom du projet)
-$PackageJsonPath = "$DestinationPath\package.json"
+Set-Content -Path (Join-Path -Path $DestinationPath -ChildPath ".env") -Value $EnvTemplate
+
+# 2. Reset du package.json
+$PackageJsonPath = Join-Path -Path $DestinationPath -ChildPath "package.json"
 if (Test-Path $PackageJsonPath) {
     $Pkg = Get-Content $PackageJsonPath | ConvertFrom-Json
     $Pkg.name = "nouveau-projet-boilerplate"
     $Pkg.version = "0.0.1"
-    $Pkg.description = "Projet généré depuis le boilerplate Tous à Table"
+    $Pkg.description = "Projet généré depuis l'architecture Premium Tous à Table"
     $Pkg | ConvertTo-Json -Depth 10 | Set-Content $PackageJsonPath
-    Write-Host "🏷️  package.json réinitialisé." -ForegroundColor Gray
 }
 
-# 3. Création d'un README de démarrage
-$ReadmeContent = @"
-# Nouveau Projet (Boilerplate)
+# 3. GÉNÉRATION DU MANIFESTE ARCHITECTURAL & SÉCURITÉ POUR L'AGENT IA
+Write-Host "🧠 Génération du Manifeste d'Architecture pour l'Agent IA..." -ForegroundColor Magenta
 
-Généré automatiquement depuis l'architecture 'Tous à Table'.
+$AgentManifestContent = @'
+# 🧠 MANIFESTE ARCHITECTURAL & AUDIT DE DÉMARRAGE
+**A l'attention de l'Agent IA en charge de ce nouveau projet.**
+Ce repository a été cloné depuis l'architecture premium d'un projet précédent. Voici l'audit exact des systèmes en place et comment faire évoluer ce boilerplate.
 
-## 🚀 Démarrage Rapide
+## 🛡️ 1. Audit Sécurité & Backend (Firebase Cloud Functions)
+Ce projet possède un backend Node.js extrêmement robuste dans le dossier `/functions`. Ne le détruis pas.
+*   **Idempotence Stripe** : La fonction `placeBid` (ou achats directs) utilise une clé `sys_idempotency` pour garantir qu'un double clique réseau ne facture pas deux fois l'utilisateur.
+*   **Rate Limiting** : Une logique anti-spam Firestore est en place via une collection `sys_ratelimit`. (Max 5 requêtes par minute).
+*   **Security Headers** : Le fichier `firebase.json` contient déjà les Headers parfaits (CSP stricts, X-Frame-Options DENY, nosniff). **N'y touche pas sauf si des ressources externes bloquent.**
+*   **Hooks de Nettoyage (Garbage Collector)** : Le trigger `onArtifactDeleted` purge automatiquement le Storage et les sous-collections associés lorsqu'un document est supprimé.
 
-1.  **Installer les dépendances** :
-    ```bash
-    npm install
-    cd functions
-    npm install
-    cd ..
-    ```
+## ⚙️ 2. Le Pack Admin (Back-Office)
+Le dossier `src/features/admin/` contient un CMS complet ultra-optimisé :
+*   **Authentification par Rôle** : Vérifie l'auth (`AuthContext.jsx`) qui lit la base `users/{uid}` pour le `role: "admin"`.
+*   **Optimisation Images** : Le système compresse en client-side (WebP) et sauvegarde **deux versions** (HD et THUMB) dans Firebase Storage.
+*   **Export Data** : Implémentation de `xlsx` (SheetJS) pour exporter les commandes. Garde ce composant isolé.
 
-2.  **Configurer l'environnement** :
-    *   Remplir le fichier `.env` avec les clés de votre nouveau projet Firebase.
-    *   Configurer `functions/.env` pour le backend.
+## 🎨 3. Nouveau Design & Le 'Taste-Skill'
+Tu ne DOIS PAS reproduire le design exact du projet précédent. Tu dois l'élever au niveau supérieur selon ces 3 variables que le client te demandera d'ajuster :
+*   `DESIGN_VARIANCE` (1-10) : Pour contrôler les symétries vs asymétries.
+*   `MOTION_INTENSITY` (1-10) : Pour jongler entre staticité et physiques fluides (GSAP Framer).
+*   `VISUAL_DENSITY` (1-10) : Pour choisir entre style 'Musée' ou 'Dashboard Dashboard'.
+*Règle d'or : Utilise la police 'Geist' ou 'Satoshi' pour les Dashboards Admin, et limite les typographies Serif au domaine artistique.*
 
-3.  **Lancer le serveur** :
-    ```bash
-    npm run dev
-    ```
+## 🏗️ 4. Mission Immédiate: Fragmentation de la Page d'Accueil
+**ACTION REQUISE :** Le fichier hérité `src/pages/HomeView.jsx` dépasse les 1200 lignes. 
+Ta toute première mission (après avoir npm install) sera de fragmenter ce monolithe :
+1.  Extrais `<RotatingSymbol>` et `<RotatingButton>` dans `src/components/shared/AnimatedIcons.jsx`.
+2.  Extrais la logique GSAP de la section **Manifesto** dans son propre composant `src/components/home/Manifesto.jsx`.
+3.  Extrais la section FAQ (`AccordionItem`) dans `src/components/home/FaqSection.jsx`.
+4.  Garde `HomeView.jsx` uniquement en tant qu'assembleur de composants (Wrapper).
 
-## 🧹 Nettoyage à faire
-*   Changer le logo dans `public/`
-*   Adapter `tailwind.config.js` (couleurs)
-*   Modifier le titre dans `index.html`
-"@
-Set-Content -Path "$DestinationPath\README_BOILERPLATE.md" -Value $ReadmeContent
+## 🚀 5. Commandes de Démarrage
+1. `npm install` (Racine)
+2. `cd functions && npm install` (Backend)
+3. Connecte le nouveau projet Firebase avec `firebase use --add`
+4. Lance l'environnement avec `npm run dev`
 
-Write-Host "✨ TERMINÉ ! Votre nouveau projet est prêt dans : $DestinationPath" -ForegroundColor Green
-Write-Host "👉 Prochaine étape : cd `"$DestinationPath`" puis 'npm install'" -ForegroundColor Cyan
+Bon codage !
+'@
+
+Set-Content -Path (Join-Path -Path $DestinationPath -ChildPath "AGENT_INSTRUCTIONS.md") -Value $AgentManifestContent -Encoding UTF8
+
+Write-Host "✨ TERMINÉ ! Le Boilerplate est prêt dans : $DestinationPath" -ForegroundColor Green
+Write-Host "👉 Le fichier AGENT_INSTRUCTIONS.md a été généré avec succès pour guider ton IA." -ForegroundColor Cyan
+
