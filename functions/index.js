@@ -1355,6 +1355,63 @@ exports.resetAllUsers = functions.runWith({ timeoutSeconds: 540, memory: '1GB' }
     }
 });
 
+// ============================================================
+// ⚠️ DANGER ZONE: NETTOYAGE COMPTES ANONYMES
+// ============================================================
+exports.purgeAnonymousUsers = functions.runWith({ timeoutSeconds: 540, memory: '1GB' }).https.onCall(async (data, context) => {
+
+    // 1. SÉCURITÉ ABSOLUE : SEUL LE SUPER ADMIN PEUT LANCER ÇA
+    const SUPER_ADMINS = ['matthis.fradin2@gmail.com'];
+    const callerEmail = context.auth?.token.email;
+
+    if (!SUPER_ADMINS.includes(callerEmail)) {
+        throw new functions.https.HttpsError('permission-denied', 'ACCÈS REFUSÉ. Seul le Super Admin peut lancer ce nettoyage.');
+    }
+
+    console.log(`🚨 STARTING ANONYMOUS USER PURGE initiated by ${callerEmail}`);
+
+    try {
+        let nextPageToken;
+        const usersToDelete = [];
+
+        // On boucle pour lister tout le monde
+        do {
+            const listUsersResult = await admin.auth().listUsers(1000, nextPageToken);
+
+            listUsersResult.users.forEach(user => {
+                // S'il n'a pas d'email lié ni de fournisseur
+                // Un compte Firebase sans email / password ni google est un compte anonyme
+                if (!user.email && (!user.providerData || user.providerData.length === 0)) {
+                    usersToDelete.push(user.uid);
+                }
+            });
+
+            nextPageToken = listUsersResult.pageToken;
+        } while (nextPageToken);
+
+        if (usersToDelete.length === 0) {
+            return { success: true, count: 0, message: `Aucun compte anonyme à supprimer.` };
+        }
+
+        // --- DELETE BATCH ---
+        let totalDeleted = 0;
+        const batchSize = 1000;
+
+        for (let i = 0; i < usersToDelete.length; i += batchSize) {
+            const chunk = usersToDelete.slice(i, i + batchSize);
+            const cleanupRes = await admin.auth().deleteUsers(chunk);
+            totalDeleted += cleanupRes.successCount;
+            console.log(`🗑️ Batch delete: ${cleanupRes.successCount} anonymous users removed.`);
+        }
+
+        return { success: true, count: totalDeleted, message: `Nettoyage terminé. ${totalDeleted} connexions anonymes supprimées.` };
+
+    } catch (error) {
+        console.error("❌ Erreur Purge Anonyme :", error);
+        throw new functions.https.HttpsError('internal', error.message);
+    }
+});
+
 // Purge des Commandes (Backend)
 exports.resetAllOrders = functions.https.onCall(async (data, context) => {
     // 1. SÉCURITÉ ABSOLUE

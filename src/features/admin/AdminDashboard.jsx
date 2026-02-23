@@ -34,6 +34,8 @@ const AdminDashboard = ({ user, darkMode = false }) => {
     const [resettingUsers, setResettingUsers] = useState(false);
     const [isResetUsersModalOpen, setIsResetUsersModalOpen] = useState(false);
     const [exportingUsers, setExportingUsers] = useState(false);
+    const [isPurgeAnonymousModalOpen, setIsPurgeAnonymousModalOpen] = useState(false);
+    const [purgingAnonymous, setPurgingAnonymous] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -213,6 +215,22 @@ const AdminDashboard = ({ user, darkMode = false }) => {
             alert("Erreur purge utilisateurs: " + error.message);
         } finally {
             setResettingUsers(false);
+        }
+    };
+
+    const confirmPurgeAnonymous = async () => {
+        setPurgingAnonymous(true);
+        try {
+            const purgeAnonymousFn = httpsCallable(functions, 'purgeAnonymousUsers');
+            const result = await purgeAnonymousFn();
+            const { count, message } = result.data;
+            setIsPurgeAnonymousModalOpen(false);
+            alert(`✅ Succès !\n${message}`);
+        } catch (error) {
+            console.error(error);
+            alert("Erreur purge anonymes: " + error.message);
+        } finally {
+            setPurgingAnonymous(false);
         }
     };
 
@@ -441,9 +459,10 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                             <AlertTriangle size={18} />
                             <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Commandes Critiques</h3>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                             <button onClick={handleResetOrdersClick} className={`py-3.5 rounded-2xl font-black uppercase text-[9px] tracking-widest transition-all border shadow-sm active:scale-95 ${darkMode ? 'bg-stone-950 border-red-900/40 text-red-500 hover:bg-red-500 hover:text-white' : 'bg-white border-red-100 text-red-500 hover:bg-red-500 hover:text-white'}`}>Reset Ventes</button>
                             <button onClick={() => setIsCleaningModalOpen(true)} className={`py-3.5 rounded-2xl font-black uppercase text-[9px] tracking-widest transition-all border shadow-sm active:scale-95 ${darkMode ? 'bg-stone-950 border-orange-900/40 text-orange-500 hover:bg-orange-500 hover:text-white' : 'bg-white border-orange-100 text-orange-500 hover:bg-orange-500 hover:text-white'}`}>Clean Cloud</button>
+                            <button onClick={() => setIsPurgeAnonymousModalOpen(true)} className={`py-3.5 rounded-2xl font-black uppercase text-[9px] tracking-widest transition-all border shadow-sm active:scale-95 ${darkMode ? 'bg-stone-950 border-amber-900/40 text-amber-500 hover:bg-amber-500 hover:text-white' : 'bg-white border-amber-200 text-amber-600 hover:bg-amber-600 hover:text-white'}`}>Purge Anonymes</button>
                             <button onClick={() => setIsResetUsersModalOpen(true)} className={`py-3.5 rounded-2xl font-black uppercase text-[9px] tracking-widest transition-all border shadow-sm active:scale-95 ${darkMode ? 'bg-stone-950 border-red-900/40 text-red-600 hover:bg-red-600 hover:text-white' : 'bg-white border-red-200 text-red-700 hover:bg-red-700 hover:text-white'}`}>Purge Clients</button>
                         </div>
                     </div>
@@ -484,6 +503,23 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                         <div className="flex gap-2 pt-2">
                             <button onClick={confirmResetUsers} className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg shadow-red-500/20">Confirmer</button>
                             <button onClick={() => setIsResetUsersModalOpen(false)} className={`flex-1 py-3 rounded-xl font-bold text-xs uppercase tracking-wider ${darkMode ? 'bg-stone-700 text-stone-300 hover:bg-stone-600' : 'bg-stone-100 text-stone-500 hover:bg-stone-200'}`}>Annuler</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {isPurgeAnonymousModalOpen && (
+                <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm ${darkMode ? 'bg-black/70' : 'bg-stone-900/50'}`}>
+                    <div className={`rounded-[2rem] p-8 max-w-sm w-full shadow-2xl border text-center space-y-4 ${darkMode ? 'bg-stone-800 border-stone-700 border-amber-900/30' : 'bg-white border-stone-100 border-amber-100'}`}>
+                        <h3 className={`text-lg font-black text-amber-500`}>Purge Anonymes ?</h3>
+                        <p className={`text-xs ${darkMode ? 'text-stone-300' : 'text-stone-600'}`}>
+                            Cela va supprimer <b>UNIQUEMENT les comptes anonymes</b> de Firebase Auth.<br /><br />
+                            Vos vrais clients et admins ne seront pas affectés.
+                        </p>
+                        <div className="flex gap-2 pt-2">
+                            <button onClick={confirmPurgeAnonymous} disabled={purgingAnonymous} className="flex-1 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 disabled:opacity-50 flex items-center justify-center">
+                                {purgingAnonymous ? <RefreshCw size={14} className="animate-spin" /> : 'Confirmer'}
+                            </button>
+                            <button onClick={() => setIsPurgeAnonymousModalOpen(false)} disabled={purgingAnonymous} className={`flex-1 py-3 rounded-xl font-bold text-xs uppercase tracking-wider ${darkMode ? 'bg-stone-700 text-stone-300 hover:bg-stone-600' : 'bg-stone-100 text-stone-500 hover:bg-stone-200'} disabled:opacity-50`}>Annuler</button>
                         </div>
                     </div>
                 </div>
