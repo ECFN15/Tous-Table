@@ -666,22 +666,24 @@ const AppContent = () => {
                         return (
                           <motion.div
                             key={item.label}
-                            initial={{ x: 150, opacity: 0, skewX: -10, scale: 0.9 }}
+                            initial={{ x: 140, opacity: 0, skewX: -14, scale: 0.9, filter: 'blur(8px)' }}
                             animate={{
                               x: isClicked ? 15 : (isOtherClicked ? -20 : 0),
                               y: isOtherClicked ? 20 : 0,
                               opacity: isOtherClicked ? 0 : 1,
                               scale: isClicked ? 1.05 : 1,
-                              skewX: 0
+                              skewX: 0,
+                              filter: isOtherClicked ? 'blur(8px)' : 'blur(0px)'
                             }}
-                            exit={{ x: 100, opacity: 0, skewX: 10 }}
+                            exit={{ x: 100, opacity: 0, skewX: 10, filter: 'blur(4px)' }}
                             transition={{
                               type: 'spring',
-                              stiffness: 400,
-                              damping: 30,
-                              mass: 0.8,
-                              delay: clickedMenuItem !== null ? 0 : index * 0.06,
+                              stiffness: 250, // Reduced from 450 for a slower, more deliberate snap
+                              damping: 35, // Increased from 32 to reduce bounce slightly
+                              mass: 0.8, // Slightly heavier for more gravity
+                              delay: clickedMenuItem !== null ? 0 : (index * 0.1), // Increased delay for more pronounced cascade
                             }}
+                            style={{ willChange: 'transform, opacity, filter', transformOrigin: 'left center' }}
                           >
                             {item.href ? (
                               <motion.a
