@@ -601,7 +601,7 @@ const AppContent = () => {
       {/* --- NAVBAR & MENU GLOBAUX (NE S'AFFICHENT PAS SUR LA PAGE D'ACCUEIL) --- */}
       {/* --- MENU GLOBAL (Toujours disponible sauf Home) --- */}
       {view !== 'home' && (
-        <div className={`fixed inset-0 z-[2000] transition-all duration-300 ${isMenuOpen ? 'visible' : 'invisible pointer-events-none'}`} style={{ transitionDelay: isMenuOpen ? '0ms' : '300ms' }}>
+        <div className={`fixed inset-0 z-[2000] transition-all duration-300 ${isMenuOpen ? 'visible' : 'invisible pointer-events-none'}`} style={{ transitionDelay: isMenuOpen ? '0ms' : '500ms' }}>
           <AnimatePresence>
             {isMenuOpen && (
               <motion.div
@@ -619,7 +619,7 @@ const AppContent = () => {
               ? (darkMode ? 'bg-[#0A0A0A] border-l border-stone-800 text-stone-200' : 'bg-[#FAFAF9] border-l border-stone-200 text-stone-900')
               : (darkMode ? 'bg-stone-900 border-l border-stone-800' : 'bg-white')}
             `}
-            style={{ transitionDelay: isMenuOpen ? '0ms' : '100ms' }}
+            style={{ transitionDelay: isMenuOpen ? '0ms' : '250ms' }}
           >
             <div className="space-y-20">
               <div className="flex justify-between items-center">
