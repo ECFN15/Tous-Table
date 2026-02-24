@@ -75,6 +75,7 @@ const AppContent = () => {
   const [showFullLogin, setShowFullLogin] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [clickedMenuItem, setClickedMenuItem] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showAuthSuccess, setShowAuthSuccess] = useState(false);
@@ -615,22 +616,154 @@ const AppContent = () => {
                 <span className={`text-[10px] font-black uppercase tracking-[0.3em] transition-opacity duration-500 ${isMenuOpen ? 'opacity-100' : 'opacity-0'} ${darkMode ? 'text-stone-500' : 'text-stone-300'}`}>Menu</span>
                 <button onClick={() => setIsMenuOpen(false)} className={`w-12 h-12 rounded-full border flex items-center justify-center transition-all duration-300 ${darkMode ? 'border-stone-800 text-white hover:bg-stone-800' : 'border-stone-100 hover:bg-stone-50'}`}><X size={20} /></button>
               </div>
-              <nav className="flex flex-col gap-10">
-                <a href="/" onClick={(e) => { if (!e.ctrlKey && !e.metaKey) { e.preventDefault(); window.hasShownPreloader = true; setView('home'); setIsMenuOpen(false); window.scrollTo(0, 0); } }} className={`text-5xl font-black tracking-tighter transition-colors duration-100 text-left transform transition-transform duration-300 ${isMenuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'} ${activeDesignId === 'architectural' ? 'font-serif italic' : ''} ${darkMode ? 'text-white hover:text-amber-500' : 'text-stone-900 hover:text-amber-600'}`} style={{ transitionDelay: isMenuOpen ? '100ms' : '0ms' }}>
-                  {activeDesignId === 'architectural' ? 'Accueil' : 'Accueil.'}
-                </a>
-                <a href="/?page=gallery" onClick={(e) => { if (!e.ctrlKey && !e.metaKey) { e.preventDefault(); setView('gallery'); setIsMenuOpen(false); window.scrollTo(0, 0); } }} className={`text-5xl font-black tracking-tighter transition-colors duration-100 text-left transform transition-transform duration-300 ${isMenuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'} ${activeDesignId === 'architectural' ? 'font-serif italic' : ''} ${darkMode ? 'text-white hover:text-amber-500' : 'text-stone-900 hover:text-amber-600'}`} style={{ transitionDelay: isMenuOpen ? '200ms' : '0ms' }}>
-                  {activeDesignId === 'architectural' ? 'La Galerie' : 'Marketplace.'}
-                </a>
-                {user && !user.isAnonymous && (
-                  <button onClick={() => { setView('my-orders'); setIsMenuOpen(false); window.scrollTo(0, 0); }} className={`text-5xl font-black tracking-tighter transition-colors duration-100 text-left transform transition-transform duration-300 ${isMenuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'} ${activeDesignId === 'architectural' ? 'font-serif italic' : ''} ${darkMode ? 'text-white hover:text-amber-500' : 'text-stone-900 hover:text-amber-600'}`} style={{ transitionDelay: isMenuOpen ? '250ms' : '0ms' }}>
-                    {activeDesignId === 'architectural' ? 'Mes Commandes' : 'Mes Commandes.'}
-                  </button>
-                )}
-                {isAdmin && <button onClick={() => { setView('admin'); setIsMenuOpen(false); window.scrollTo(0, 0); }} className={`text-5xl font-black tracking-tighter transition-colors duration-100 text-left transform transition-transform duration-300 ${isMenuOpen ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'} ${activeDesignId === 'architectural' ? 'font-serif italic' : ''} ${darkMode ? 'text-stone-600 hover:text-stone-300' : 'opacity-30 hover:text-stone-500'}`} style={{ transitionDelay: isMenuOpen ? '300ms' : '0ms' }}>Admin.</button>}
+              <nav className="flex flex-col gap-8">
+                <AnimatePresence>
+                  {isMenuOpen && (
+                    <>
+                      {[
+                        {
+                          label: activeDesignId === 'architectural' ? 'Accueil' : 'Accueil.',
+                          onClick: (e) => {
+                            if (!e.ctrlKey && !e.metaKey) {
+                              e.preventDefault(); window.hasShownPreloader = true; setView('home'); setIsMenuOpen(false); window.scrollTo(0, 0);
+                            }
+                          },
+                          href: '/'
+                        },
+                        {
+                          label: activeDesignId === 'architectural' ? 'La Galerie' : 'Marketplace.',
+                          onClick: (e) => {
+                            if (!e.ctrlKey && !e.metaKey) {
+                              e.preventDefault(); setView('gallery'); setIsMenuOpen(false); window.scrollTo(0, 0);
+                            }
+                          },
+                          href: '/?page=gallery'
+                        },
+                        // Conditionally add 'Commandes'
+                        ...(user && !user.isAnonymous ? [{
+                          label: activeDesignId === 'architectural' ? 'Commandes' : 'Commandes.',
+                          onClick: () => { setView('my-orders'); setIsMenuOpen(false); window.scrollTo(0, 0); }
+                        }] : []),
+                        // Conditionally add 'Admin'
+                        ...(isAdmin ? [{
+                          label: 'Admin.',
+                          onClick: () => { setView('admin'); setIsMenuOpen(false); window.scrollTo(0, 0); }
+                        }] : [])
+                      ].map((item, index) => {
+                        const isClicked = clickedMenuItem === index;
+                        const isOtherClicked = clickedMenuItem !== null && clickedMenuItem !== index;
+
+                        const handlePremiumClick = (e) => {
+                          if (e) e.preventDefault();
+                          setClickedMenuItem(index);
+                          // Delay the actual navigation to let the premium animation play
+                          setTimeout(() => {
+                            item.onClick(e);
+                            setClickedMenuItem(null);
+                          }, 500);
+                        };
+
+                        return (
+                          <motion.div
+                            key={item.label}
+                            initial={{ x: 150, opacity: 0, skewX: -10, scale: 0.9 }}
+                            animate={{
+                              x: isClicked ? 15 : (isOtherClicked ? -20 : 0),
+                              y: isOtherClicked ? 20 : 0,
+                              opacity: isOtherClicked ? 0 : 1,
+                              scale: isClicked ? 1.05 : 1,
+                              skewX: 0
+                            }}
+                            exit={{ x: 100, opacity: 0, skewX: 10 }}
+                            transition={{
+                              type: 'spring',
+                              stiffness: 400,
+                              damping: 30,
+                              mass: 0.8,
+                              delay: clickedMenuItem !== null ? 0 : index * 0.06,
+                            }}
+                          >
+                            {item.href ? (
+                              <motion.a
+                                initial="initial"
+                                whileHover="hover"
+                                whileTap={{ scale: 0.96, opacity: 0.7 }}
+                                href={item.href}
+                                onClick={handlePremiumClick}
+                                className={`group flex items-center justify-between w-full py-2 text-left text-4xl md:text-5xl font-light tracking-tighter cursor-pointer transition-colors duration-500 ${isClicked ? 'text-amber-500' : 'text-stone-400 hover:text-white'}`}
+                              >
+                                <div className="relative flex overflow-hidden whitespace-nowrap">
+                                  <span className="flex">
+                                    {item.label.split('').map((char, i) => (
+                                      <motion.span
+                                        key={i}
+                                        variants={{ initial: { y: 0 }, hover: { y: '-100%' } }}
+                                        transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1], delay: i * 0.02 }}
+                                      >
+                                        {char === ' ' ? '\u00A0' : char}
+                                      </motion.span>
+                                    ))}
+                                  </span>
+                                  <span className={`absolute inset-0 flex ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                                    {item.label.split('').map((char, i) => (
+                                      <motion.span
+                                        key={i}
+                                        variants={{ initial: { y: '100%' }, hover: { y: 0 } }}
+                                        transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1], delay: i * 0.02 }}
+                                      >
+                                        {char === ' ' ? '\u00A0' : char}
+                                      </motion.span>
+                                    ))}
+                                  </span>
+                                </div>
+                                <div className={`flex-grow ml-4 mr-3 md:ml-6 md:mr-4 h-[1px] border-b border-dashed origin-left transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] opacity-100 scale-x-100 md:opacity-0 md:scale-x-0 md:group-hover:opacity-100 md:group-hover:scale-x-100 ${darkMode ? 'border-stone-800' : 'border-stone-200'}`}></div>
+                                <span className={`text-[10px] md:text-xs font-bold tracking-widest opacity-100 translate-x-0 md:opacity-0 md:translate-x-4 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] md:group-hover:opacity-100 md:group-hover:translate-x-0 ${darkMode ? 'text-amber-500' : 'text-amber-600'}`}>0{index + 1}</span>
+                              </motion.a>
+                            ) : (
+                              <motion.button
+                                initial="initial"
+                                whileHover="hover"
+                                whileTap={{ scale: 0.96, opacity: 0.7 }}
+                                onClick={handlePremiumClick}
+                                className={`group flex items-center justify-between w-full py-2 text-left text-4xl md:text-5xl font-light tracking-tighter cursor-pointer transition-colors duration-500 ${isClicked ? 'text-amber-500' : 'text-stone-400 hover:text-white'}`}
+                              >
+                                <div className="relative flex overflow-hidden whitespace-nowrap">
+                                  <span className="flex">
+                                    {item.label.split('').map((char, i) => (
+                                      <motion.span
+                                        key={i}
+                                        variants={{ initial: { y: 0 }, hover: { y: '-100%' } }}
+                                        transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1], delay: i * 0.02 }}
+                                      >
+                                        {char === ' ' ? '\u00A0' : char}
+                                      </motion.span>
+                                    ))}
+                                  </span>
+                                  <span className={`absolute inset-0 flex ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                                    {item.label.split('').map((char, i) => (
+                                      <motion.span
+                                        key={i}
+                                        variants={{ initial: { y: '100%' }, hover: { y: 0 } }}
+                                        transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1], delay: i * 0.02 }}
+                                      >
+                                        {char === ' ' ? '\u00A0' : char}
+                                      </motion.span>
+                                    ))}
+                                  </span>
+                                </div>
+                                <div className={`flex-grow ml-4 mr-3 md:ml-6 md:mr-4 h-[1px] border-b border-dashed origin-left transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] opacity-100 scale-x-100 md:opacity-0 md:scale-x-0 md:group-hover:opacity-100 md:group-hover:scale-x-100 ${darkMode ? 'border-stone-800' : 'border-stone-200'}`}></div>
+                                <span className={`text-[10px] md:text-xs font-bold tracking-widest opacity-100 translate-x-0 md:opacity-0 md:translate-x-4 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] md:group-hover:opacity-100 md:group-hover:translate-x-0 ${darkMode ? 'text-amber-500' : 'text-amber-600'}`}>0{index + 1}</span>
+                              </motion.button>
+                            )}
+                          </motion.div>
+                        )
+                      })}
+                    </>
+                  )}
+                </AnimatePresence>
               </nav>
             </div>
-            <div className={`space-y-6 pt-10 border-t transition-opacity duration-500 ${isMenuOpen ? 'opacity-100' : 'opacity-0'} ${darkMode ? 'border-stone-800' : 'border-stone-100'}`} style={{ transitionDelay: isMenuOpen ? '400ms' : '0ms' }}>
+            <div className={`space-y-6 pt-10 border-t transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] transform origin-bottom ${isMenuOpen ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95'} ${darkMode ? 'border-stone-800' : 'border-stone-100'}`} style={{ transitionDelay: isMenuOpen ? '300ms' : '0ms' }}>
               {user && !user.isAnonymous && (
                 <div className="mb-4">
                   <p className={`text-xs font-bold flex items-center gap-2 ${darkMode ? 'text-white' : 'text-stone-900'}`}>

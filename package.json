@@ -13,7 +13,7 @@
     "@studio-freight/lenis": "^1.0.42",
     "@tailwindcss/postcss": "^4.1.18",
     "firebase": "^11.1.0",
-    "framer-motion": "^12.34.1",
+    "framer-motion": "^12.34.3",
     "gsap": "^3.12.5",
     "jspdf": "^4.2.0",
     "jspdf-autotable": "^5.0.7",
