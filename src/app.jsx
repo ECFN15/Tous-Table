@@ -601,16 +601,26 @@ const AppContent = () => {
       {/* --- NAVBAR & MENU GLOBAUX (NE S'AFFICHENT PAS SUR LA PAGE D'ACCUEIL) --- */}
       {/* --- MENU GLOBAL (Toujours disponible sauf Home) --- */}
       {view !== 'home' && (
-        <div className={`fixed inset-0 z-[2000] transition-all duration-300 ${isMenuOpen ? 'visible' : 'invisible pointer-events-none'}`}>
-          <div
-            className={`absolute inset-0 bg-stone-900/60 backdrop-blur-md transition-opacity duration-700 ease-in-out ${isMenuOpen ? 'opacity-100' : 'opacity-0'}`}
-            onClick={() => setIsMenuOpen(false)}
-          ></div>
-          <div className={`absolute right-0 top-0 bottom-0 w-full md:w-[450px] shadow-2xl transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] p-12 flex flex-col justify-between z-[2001] ${isMenuOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'} 
+        <div className={`fixed inset-0 z-[2000] transition-all duration-300 ${isMenuOpen ? 'visible' : 'invisible pointer-events-none'}`} style={{ transitionDelay: isMenuOpen ? '0ms' : '300ms' }}>
+          <AnimatePresence>
+            {isMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0, transition: { duration: 0.1 } }}
+                transition={{ duration: 0.5 }}
+                className="absolute inset-0 bg-stone-900/60 backdrop-blur-md"
+                onClick={() => setIsMenuOpen(false)}
+              />
+            )}
+          </AnimatePresence>
+          <div className={`absolute right-0 top-0 bottom-0 w-full md:w-[450px] shadow-2xl transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] p-12 flex flex-col justify-between z-[2001] ${isMenuOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}
               ${activeDesignId === 'architectural'
               ? (darkMode ? 'bg-[#0A0A0A] border-l border-stone-800 text-stone-200' : 'bg-[#FAFAF9] border-l border-stone-200 text-stone-900')
               : (darkMode ? 'bg-stone-900 border-l border-stone-800' : 'bg-white')}
-            `}>
+            `}
+            style={{ transitionDelay: isMenuOpen ? '0ms' : '100ms' }}
+          >
             <div className="space-y-20">
               <div className="flex justify-between items-center">
                 <span className={`text-[10px] font-black uppercase tracking-[0.3em] transition-opacity duration-500 ${isMenuOpen ? 'opacity-100' : 'opacity-0'} ${darkMode ? 'text-stone-500' : 'text-stone-300'}`}>Menu</span>
@@ -649,7 +659,7 @@ const AppContent = () => {
                           label: 'Admin.',
                           onClick: () => { setView('admin'); setIsMenuOpen(false); window.scrollTo(0, 0); }
                         }] : [])
-                      ].map((item, index) => {
+                      ].map((item, index, arr) => {
                         const isClicked = clickedMenuItem === index;
                         const isOtherClicked = clickedMenuItem !== null && clickedMenuItem !== index;
 
@@ -675,7 +685,20 @@ const AppContent = () => {
                               skewX: 0,
                               filter: isOtherClicked ? 'blur(8px)' : 'blur(0px)'
                             }}
-                            exit={{ x: 100, opacity: 0, skewX: 10, filter: 'blur(4px)' }}
+                            exit={{
+                              x: 140,
+                              opacity: 0,
+                              skewX: 14,
+                              scale: 0.9,
+                              filter: 'blur(8px)',
+                              transition: {
+                                type: 'spring',
+                                stiffness: 450,
+                                damping: 30,
+                                mass: 0.7,
+                                delay: clickedMenuItem !== null ? 0 : ((arr.length - 1 - index) * 0.05),
+                              }
+                            }}
                             transition={{
                               type: 'spring',
                               stiffness: 250, // Reduced from 450 for a slower, more deliberate snap
@@ -872,7 +895,8 @@ const AppContent = () => {
             </nav>
           )}
         </>
-      )}
+      )
+      }
 
       {/* --- CONTENU PRINCIPAL --- */}
       <main>
@@ -907,11 +931,13 @@ const AppContent = () => {
           setHeaderProps={setHeaderProps}
         />
       </main>
-      {['home', 'gallery', 'detail', 'checkout', 'my-orders'].includes(view) && (
-        <div ref={footerRef}>
-          <Footer darkMode={darkMode} />
-        </div>
-      )}
+      {
+        ['home', 'gallery', 'detail', 'checkout', 'my-orders'].includes(view) && (
+          <div ref={footerRef}>
+            <Footer darkMode={darkMode} />
+          </div>
+        )
+      }
 
       {/* Global Popups */}
       <MarketplaceDiscovery
@@ -958,7 +984,7 @@ const AppContent = () => {
           </div>
         )}
       </AnimatePresence>
-    </div>
+    </div >
   );
 };
 // Wrapper to provide Context
