@@ -164,7 +164,8 @@ const ArchitecturalHeader = ({
                             <ShoppingBag size={20} strokeWidth={1.5} className={`group-hover:scale-110 transition-transform ${darkMode ? 'text-stone-200' : 'text-stone-900'}`} />
                             {cartCount > 0 && (
                                 <span className="absolute top-2 right-2 flex h-2.5 w-2.5 items-center justify-center">
-                                    <span className="absolute inline-flex h-5 w-5 rounded-full border border-emerald-500 opacity-60 animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite]"></span>
+                                    <span className="absolute inline-flex h-2.5 w-2.5 rounded-full border-[0.5px] border-emerald-400 animate-[radar-ping_3s_ease-out_infinite]"></span>
+                                    <span className="absolute inline-flex h-2.5 w-2.5 rounded-full border-[0.5px] border-emerald-400 animate-[radar-ping_3s_ease-out_infinite]" style={{ animationDelay: '-1.5s' }}></span>
                                     <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 shadow-sm border border-white dark:border-[#0A0A0A]"></span>
                                 </span>
                             )}

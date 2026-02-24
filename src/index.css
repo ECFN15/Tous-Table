@@ -303,6 +303,18 @@ img {
   transform-origin: left;
 }
 
+@keyframes radar-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: scale(3.5);
+    opacity: 0;
+  }
+}
+
 /* FORCE COLOR ON MOBILE/TABLET/LARGE-TABLET for Profile & FAQ */
 @media (max-width: 2000px) {
   .force-color-tablet {
