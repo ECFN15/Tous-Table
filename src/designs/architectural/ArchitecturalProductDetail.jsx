@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Box, ArrowRight, Trophy, Clock, X, ZoomIn, Maximize2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Box, ArrowRight, Trophy, Clock, X, ZoomIn, Maximize2, ShoppingBag } from 'lucide-react';
 import { db, appId, functions } from '../../firebase/config';
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
@@ -15,7 +15,7 @@ import AnimatedPrice from '../../components/ui/AnimatedPrice';
 const placeBidFunction = httpsCallable(functions, 'placeBid');
 const wakeUpFunction = httpsCallable(functions, 'wakeUp');
 
-const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, onOpenMenu, onOpenCart, onShowLogin, toggleTheme, darkMode, setHeaderProps }) => {
+const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, onOpenMenu, onOpenCart, onShowLogin, toggleTheme, darkMode, setHeaderProps, cartItems = [] }) => {
     const { palette, activeDesignId } = useLiveTheme();
     const [activeImg, setActiveImg] = useState(0);
     const [bidLoading, setBidLoading] = useState(false);
@@ -105,6 +105,8 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
 
     const isAuctionOver = item?.auctionActive && getMillis(item.auctionEnd) < Date.now();
     const isWinner = isAuctionOver && user && item?.lastBidderId === user.uid;
+
+    const isInCart = cartItems.some(cartItem => cartItem.originalId === item?.id);
 
     const productSchema = useMemo(() => {
         if (!item) return null;
@@ -470,10 +472,17 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
                                     </div>
                                 </div>
                             ) : !item.auctionActive ? (
-                                <button onClick={() => onAddToCart(item)} className="w-full py-6 text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-emerald-600 transition-all flex items-center justify-center gap-4 bg-black dark:bg-white dark:text-black rounded-none shadow-lg">
-                                    <span>Acquérir cette pièce</span>
-                                    <ArrowRight size={16} />
-                                </button>
+                                isInCart ? (
+                                    <button onClick={onOpenCart} className="w-full py-6 text-white font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-4 bg-emerald-600 hover:bg-emerald-700 shadow-lg" style={{ borderRadius: palette.borderRadius }}>
+                                        <span>Voir ma sélection</span>
+                                        <ShoppingBag size={16} />
+                                    </button>
+                                ) : (
+                                    <button onClick={() => { onAddToCart(item); onOpenCart(); }} className="w-full py-6 text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-emerald-600 transition-all flex items-center justify-center gap-4 bg-black dark:bg-white dark:text-black rounded-none shadow-lg">
+                                        <span>Acquérir cette pièce</span>
+                                        <ArrowRight size={16} />
+                                    </button>
+                                )
                             ) : !isWinner ? (
                                 <div className="text-center py-12 px-6 space-y-4 border border-stone-200 dark:border-stone-800"
                                     style={{ borderRadius: palette.borderRadius }}>

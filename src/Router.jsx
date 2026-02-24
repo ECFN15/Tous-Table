@@ -134,6 +134,7 @@ const AppRouter = ({
                             user={user}
                             onBack={() => { setView('gallery'); setSelectedItemId(null); }}
                             onAddToCart={addToCart}
+                            cartItems={cartItems}
                             darkMode={darkMode}
                             onOpenMenu={onOpenMenu}
                             onOpenCart={onOpenCart}

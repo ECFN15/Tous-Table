@@ -675,6 +675,7 @@ const AppContent = () => {
               onShowLogin={() => setShowFullLogin(true)}
               onOpenMenu={() => setIsMenuOpen(true)}
               onOpenCart={() => { setCartInteracted(true); setIsCartOpen(true); }}
+              cartCount={cartItems.length}
               toggleTheme={() => setDarkMode(!darkMode)}
               darkMode={darkMode}
               onBack={view === 'detail' ? () => setView('gallery') : null}
