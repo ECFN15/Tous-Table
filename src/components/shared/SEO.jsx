@@ -2,7 +2,7 @@ import React from 'react';
 import { Helmet } from 'react-helmet-async';
 
 const SEO = ({ title, description, image, url, type = 'website', schema }) => {
-    const siteTitle = "Tous à Table Made in Normandie — Ameublement";
+    const siteTitle = "Tous à Table Made in Normandie";
     const defaultDescription = "Atelier de restauration de mobilier à Ifs (14123). Vente de meubles normands authentiques en chêne : tables de ferme, armoires parisiennes et buffets. Livraison Caen, Deauville, toute la France et pays frontaliers. Tel: 07 77 32 41 78.";
     const defaultImage = "https://firebasestorage.googleapis.com/v0/b/tousatable-client.appspot.com/o/sys_assets%2Fog_cover.jpg?alt=media";
     const siteUrl = "https://tousatable-madeinnormandie.fr";
