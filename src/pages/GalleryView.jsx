@@ -45,8 +45,8 @@ const GalleryView = ({ items, boardItems = [], isAdmin, isSecretGateOpen, user, 
     return (
         <div className="min-h-screen">
             <SEO
-                title="La Galerie - Marketplace Ébénisterie d'Art"
-                description="Découvrez nos pièces uniques de mobilier et d'objets d'art restaurés ou créés à la main. Enchères exclusives et vente directe."
+                title="La Galerie — Meubles Anciens & Tables de Ferme"
+                description="Découvrez nos pièces uniques de mobilier restauré : tables de ferme en chêne, armoires parisiennes, buffets normands. Enchères et vente directe. Livraison France entière."
                 url="/?page=gallery"
             />
 

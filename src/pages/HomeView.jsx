@@ -774,18 +774,20 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
   return (
     <div ref={componentRef} className="bg-[#FAF9F6] text-[#1a1a1a] transition-colors duration-700 antialiased">
       <SEO
-        title="Restauration de Mobilier & Meubles Anciens"
+        title="Rénovation d'Anciennes Tables de Ferme et de Meubles"
         description="Atelier de restauration de mobilier à Ifs (14123). Vente de meubles normands authentiques en chêne : tables de ferme, armoires parisiennes et buffets. Livraison Caen, Deauville, toute la France et pays frontaliers. Tel: 07 77 32 41 78."
         schema={{
           "@context": "https://schema.org",
-          "@type": "LocalBusiness",
-          "name": "Atelier Normand — Tous à Table",
-          "image": "https://firebasestorage.googleapis.com/v0/b/tousatable-client.appspot.com/o/sys_assets%2Flogo_hammer.png?alt=media",
+          "@type": "FurnitureStore",
+          "name": "Tous à Table Made in Normandie",
+          "alternateName": "Tous à Table — Ameublement",
+          "image": "https://firebasestorage.googleapis.com/v0/b/tousatable-client.appspot.com/o/sys_assets%2Fog_cover.jpg?alt=media",
           "@id": "https://tousatable-madeinnormandie.fr",
           "url": "https://tousatable-madeinnormandie.fr",
           "telephone": "+33 7 77 32 41 78",
           "address": {
             "@type": "PostalAddress",
+            "streetAddress": "346 Chemin de Fleury",
             "addressLocality": "Ifs",
             "addressRegion": "Normandie",
             "postalCode": "14123",
@@ -796,8 +798,8 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
             "latitude": 49.1417,
             "longitude": -0.3472
           },
-          "priceRange": "€€€",
-          "description": "Atelier de restauration de mobilier à Ifs (14123). Vente de meubles normands authentiques en chêne. Livraison sur Caen, Deauville, partout en France et pays frontaliers.",
+          "priceRange": "€€-€€€",
+          "description": "Atelier de restauration de mobilier à Ifs (14123). Vente de meubles normands authentiques en chêne : tables de ferme, armoires parisiennes et buffets. Livraison sur Caen, Deauville, toute la Normandie, la France et pays frontaliers.",
           "openingHoursSpecification": [
             {
               "@type": "OpeningHoursSpecification",

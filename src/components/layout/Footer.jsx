@@ -18,7 +18,7 @@ const Footer = ({ darkMode }) => {
         facebook: '',
         footerTitle: 'Éveiller\nl\'Immobile.',
         footerSubtitle: 'Inquiry',
-        legacyText: 'Tous à Table — Atelier d\'Ébénisterie d\'Art & Vente de Meubles Antiques — Caen, Deauville, Paris, Normandie, France'
+        legacyText: 'Tous à Table — Atelier de restauration de meubles anciens à Ifs (Calvados). Vente de tables de ferme en chêne, armoires parisiennes, buffets normands. Livraison sur Caen, Bayeux, Deauville, Cabourg, toute la Normandie, la France et l\'Europe.'
     });
 
     useEffect(() => {
@@ -49,13 +49,13 @@ const Footer = ({ darkMode }) => {
 
                     {/* Google Map - Desktop Only */}
                     <div className="hidden xl:block flex-1 h-[300px] w-full max-w-lg rounded-xl overflow-hidden border border-white/5 opacity-50 hover:opacity-100 transition-all duration-700 self-center mx-8">
-                         <iframe 
+                        <iframe
                             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2616.596001234567!2d-0.34809!3d49.153101!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x480a43f5959c8cd9%3A0xb674489cc18a42ea!2sTous%20%C3%A0%20Table%20-%20Atelier%20Normand!5e0!3m2!1sfr!2sfr!4v1700000000000!5m2!1sfr!2sfr"
-                            width="100%" 
-                            height="100%" 
-                            style={{ border: 0 }} 
-                            allowFullScreen="" 
-                            loading="lazy" 
+                            width="100%"
+                            height="100%"
+                            style={{ border: 0 }}
+                            allowFullScreen=""
+                            loading="lazy"
                             referrerPolicy="no-referrer-when-downgrade"
                             title="Google Map Atelier"
                             className="grayscale contrast-[0.9] hover:grayscale-0 hover:contrast-100 transition-all duration-700"
@@ -86,9 +86,9 @@ const Footer = ({ darkMode }) => {
                                         </address>
 
                                         {/* Mobile Itinerary Link - Hidden on Desktop */}
-                                        <a 
-                                            href="https://www.google.com/maps/dir/?api=1&destination=Tous+à+Table+-+Atelier+Normand+346+Chem.+de+Fleury+14123+Ifs" 
-                                            target="_blank" 
+                                        <a
+                                            href="https://www.google.com/maps/dir/?api=1&destination=Tous+à+Table+-+Atelier+Normand+346+Chem.+de+Fleury+14123+Ifs"
+                                            target="_blank"
                                             rel="noopener noreferrer"
                                             className="xl:hidden inline-flex items-center gap-2 text-[9px] md:text-xs uppercase tracking-[0.2em] font-bold text-[#9C8268] hover:text-white transition-colors group w-fit"
                                         >

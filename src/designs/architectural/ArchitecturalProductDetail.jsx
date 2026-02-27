@@ -116,7 +116,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
             "name": item.name,
             "image": images,
             "description": item.description,
-            "brand": { "@type": "Brand", "name": "Tous à Table - Atelier Normand" },
+            "brand": { "@type": "Brand", "name": "Tous à Table Made in Normandie" },
             "offers": {
                 "@type": "Offer",
                 "url": `${window.location.origin}/?product=${item.id}`,
