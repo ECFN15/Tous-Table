@@ -1748,3 +1748,119 @@ exports.sitemap = functions.https.onRequest(async (req, res) => {
     }
 });
 
+// ============================================================
+// 12. ANALYTICS - GESTION DES SESSIONS (ANONYMOUS & CLIENTS)
+// ============================================================
+
+const getGeoFromIp = async (ip) => {
+    // Si localhost ou IP masquée
+    if (!ip || ip === 'Unknown' || ip === '127.0.0.1' || ip === '::1' || ip.startsWith('192.168.')) return null;
+    try {
+        const response = await fetch(`http://ip-api.com/json/${ip}?fields=country,regionName,city,status`);
+        const data = await response.json();
+        if (data.status === 'success') {
+            return {
+                country: data.country || 'Unknown',
+                region: data.regionName || 'Unknown',
+                city: data.city || 'Unknown'
+            };
+        }
+        return null;
+    } catch (e) {
+        console.error("GeoLoc Error:", e);
+        return null;
+    }
+};
+
+exports.initLiveSession = functions.https.onCall(async (data, context) => {
+    const rawIp = context.rawRequest.headers['x-forwarded-for'] || context.rawRequest.connection.remoteAddress;
+    const ip = rawIp ? rawIp.split(',')[0].trim() : 'Unknown';
+    const userAgent = context.rawRequest.headers['user-agent'] || 'Unknown';
+    const { userId, type, device, browser, os } = data; // type: 'anonymous' | 'client' | 'admin'
+
+    let geo = await getGeoFromIp(ip);
+
+    const sessionData = {
+        userId: userId || 'unknown',
+        type: type || 'anonymous',
+        ip: ip,
+        startedAt: admin.firestore.FieldValue.serverTimestamp(),
+        lastActivityAt: admin.firestore.FieldValue.serverTimestamp(),
+        duration: 0,
+        device: device || 'Unknown',
+        browser: browser || 'Unknown',
+        os: os || 'Unknown',
+        userAgent: userAgent,
+        geo: geo || { country: 'Unknown', city: 'Unknown', region: 'Unknown' },
+        journey: [],
+        sessionActive: true
+    };
+
+    try {
+        const sessionRef = await db.collection('analytics_sessions').add(sessionData);
+        return { success: true, sessionId: sessionRef.id };
+    } catch (error) {
+        console.error("Init Error:", error);
+        throw new functions.https.HttpsError('internal', 'Init failed');
+    }
+});
+
+exports.syncSession = functions.https.onCall(async (data, context) => {
+    const { sessionId, journey, duration, sessionActive } = data;
+
+    if (!sessionId) return { success: false };
+
+    try {
+        const sessionRef = db.collection('analytics_sessions').doc(sessionId);
+        const updates = {
+            lastActivityAt: admin.firestore.FieldValue.serverTimestamp(),
+            duration: duration || 0,
+            sessionActive: sessionActive !== undefined ? sessionActive : true
+        };
+
+        if (journey && journey.length > 0) {
+            updates.journey = admin.firestore.FieldValue.arrayUnion(...journey);
+        }
+
+        await sessionRef.update(updates);
+        return { success: true };
+    } catch (error) {
+        console.error("Sync Error:", error);
+        return { success: false };
+    }
+});
+
+// ADMIN: Delete a specific session
+exports.deleteSession = functions.https.onCall(async (data, context) => {
+    if (!context.auth || !context.auth.token.admin && context.auth.token.email !== 'matthis.fradin2@gmail.com') {
+        throw new functions.https.HttpsError('permission-denied', 'Admin only');
+    }
+    const { sessionId } = data;
+    if (!sessionId) throw new functions.https.HttpsError('invalid-argument', 'Missing ID');
+
+    try {
+        await db.collection('analytics_sessions').doc(sessionId).delete();
+        return { success: true };
+    } catch (error) {
+        console.error("Delete Error:", error);
+        throw new functions.https.HttpsError('internal', 'Delete failed');
+    }
+});
+
+// ADMIN: Clear all analytics data
+exports.clearAllAnalytics = functions.https.onCall(async (data, context) => {
+    if (!context.auth || !context.auth.token.admin && context.auth.token.email !== 'matthis.fradin2@gmail.com') {
+        throw new functions.https.HttpsError('permission-denied', 'Admin only');
+    }
+
+    try {
+        const sessions = await db.collection('analytics_sessions').get();
+        const batch = db.batch();
+        sessions.docs.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+        return { success: true, count: sessions.size };
+    } catch (error) {
+        console.error("Clear All Error:", error);
+        throw new functions.https.HttpsError('internal', 'Clear failed');
+    }
+});

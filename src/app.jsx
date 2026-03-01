@@ -21,6 +21,7 @@ import ErrorBoundary from './components/shared/ErrorBoundary';
 import CartSidebar from './components/cart/CartSidebar';
 import Footer from './components/layout/Footer';
 import SEO from './components/shared/SEO';
+import AnalyticsProvider from './components/shared/AnalyticsProvider';
 
 
 import MarketplaceDiscovery from './components/home/MarketplaceDiscovery';
@@ -445,6 +446,7 @@ const AppContent = () => {
   return (
     <div className={`min-h-screen font-sans selection:bg-stone-300 transition-colors duration-700 ${darkMode ? 'bg-[#0A0A0A] text-stone-200' : 'bg-[#FAFAF9] text-stone-900'}`}>
       <SEO />
+      <AnalyticsProvider view={view} selectedItemId={selectedItemId} />
 
       {/* RIDEAU DE TRANSITION GLOBAL (Masque le switch de page) */}
       <div

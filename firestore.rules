@@ -109,5 +109,11 @@ service cloud.firestore {
     match /sys_idempotency/{docId} {
       allow read, write: if false; // Backend Admin SDK uniquement
     }
+
+    // Analytics Dashboard (Sessions)
+    match /analytics_sessions/{docId} {
+      allow read: if isArtisan(); // Admins only
+      allow write: if false; // Managed by Cloud Functions
+    }
   }
 }

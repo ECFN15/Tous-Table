@@ -19,5 +19,9 @@
         "nodemailer": "^6.9.4",
         "stripe": "^20.3.0"
     },
-    "private": true
+    "private": true,
+    "devDependencies": {
+        "@types/node": "^25.3.3",
+        "typescript": "^5.9.3"
+    }
 }
