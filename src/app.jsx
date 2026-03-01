@@ -9,7 +9,7 @@ import { httpsCallable } from 'firebase/functions'; // Added for logUserConnecti
 import {
   Hammer, LogOut, ShieldCheck, Menu, X, Instagram, Mail, User, Eye, EyeOff, Pencil, Trash2, Trophy, ShoppingBag, Sun, Moon, Facebook, AlertTriangle, AlertCircle, ShoppingCart
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 
 // --- IMPORTS CONFIG & UTILS ---
 import { auth, db, appId, functions, googleProvider } from './firebase/config';
@@ -26,6 +26,114 @@ import AnalyticsProvider from './components/shared/AnalyticsProvider';
 
 import MarketplaceDiscovery from './components/home/MarketplaceDiscovery';
 import ArchitecturalHeader from './designs/architectural/components/ArchitecturalHeader';
+
+const MenuItemHover = ({ item, index, isClicked, darkMode, handlePremiumClick }) => {
+  const controls = useAnimation();
+  const isHoveredRef = useRef(false);
+  const isAnimatingRef = useRef(false);
+
+  // Pour la ligne et le numéro, on utilise un state très léger
+  const [isActive, setIsActive] = useState(false);
+
+  const handleMouseEnter = () => {
+    isHoveredRef.current = true;
+    setIsActive(true);
+    if (!isAnimatingRef.current) {
+      isAnimatingRef.current = true;
+      controls.start("hover");
+    }
+  };
+
+  const handleMouseLeave = () => {
+    isHoveredRef.current = false;
+    if (!isAnimatingRef.current) {
+      controls.start("initial");
+      setIsActive(false);
+    }
+  };
+
+  const content = (
+    <>
+      <div className="relative flex overflow-hidden whitespace-nowrap">
+        <span className="flex">
+          {item.label.split('').map((char, i) => {
+            const isLast = i === item.label.length - 1;
+            return (
+              <motion.span
+                key={i}
+                variants={{
+                  initial: { y: 0, transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1], delay: i * 0.01 } },
+                  hover: { y: '-100%', transition: { duration: 0.4, ease: [0.19, 1, 0.22, 1], delay: i * 0.015 } }
+                }}
+                initial="initial"
+                animate={controls}
+                onAnimationComplete={(def) => {
+                  if (isLast && def === "hover") {
+                    isAnimatingRef.current = false;
+                    if (!isHoveredRef.current) {
+                      controls.start("initial");
+                      setIsActive(false);
+                    }
+                  }
+                }}
+                style={{ willChange: 'transform' }}
+              >
+                {char === ' ' ? '\u00A0' : char}
+              </motion.span>
+            )
+          })}
+        </span>
+        <span className={`absolute inset-0 flex ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+          {item.label.split('').map((char, i) => (
+            <motion.span
+              key={i}
+              variants={{
+                initial: { y: '100%', transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1], delay: i * 0.01 } },
+                hover: { y: 0, transition: { duration: 0.4, ease: [0.19, 1, 0.22, 1], delay: i * 0.015 } }
+              }}
+              initial="initial"
+              animate={controls}
+              style={{ willChange: 'transform' }}
+            >
+              {char === ' ' ? '\u00A0' : char}
+            </motion.span>
+          ))}
+        </span>
+      </div>
+      <div className={`flex-grow ml-4 mr-3 md:ml-6 md:mr-4 h-[1px] border-b border-dashed origin-left transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] opacity-100 scale-x-100 md:opacity-0 md:scale-x-0 ${isActive ? 'md:opacity-100 md:scale-x-100' : ''} ${darkMode ? 'border-stone-800' : 'border-stone-200'}`}></div>
+      <span className={`text-[10px] md:text-xs font-bold tracking-widest opacity-100 translate-x-0 md:opacity-0 md:translate-x-4 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${isActive ? 'md:opacity-100 md:translate-x-0' : ''} ${darkMode ? 'text-amber-500' : 'text-amber-600'}`}>0{index + 1}</span>
+    </>
+  );
+
+  const className = `group flex items-center justify-between w-full py-2 text-left text-4xl md:text-5xl font-light tracking-tighter cursor-pointer transition-colors duration-500 ${isClicked ? 'text-amber-500' : 'text-stone-400 hover:text-white'}`;
+
+  if (item.href) {
+    return (
+      <motion.a
+        whileTap={{ scale: 0.96, opacity: 0.7 }}
+        href={item.href}
+        onClick={handlePremiumClick}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        className={className}
+      >
+        {content}
+      </motion.a>
+    );
+  }
+
+  return (
+    <motion.button
+      whileTap={{ scale: 0.96, opacity: 0.7 }}
+      onClick={handlePremiumClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className={className}
+    >
+      {content}
+    </motion.button>
+  );
+};
 
 const AppContent = () => {
 
@@ -710,78 +818,13 @@ const AppContent = () => {
                             }}
                             style={{ willChange: 'transform, opacity, filter', transformOrigin: 'left center' }}
                           >
-                            {item.href ? (
-                              <motion.a
-                                initial="initial"
-                                whileHover="hover"
-                                whileTap={{ scale: 0.96, opacity: 0.7 }}
-                                href={item.href}
-                                onClick={handlePremiumClick}
-                                className={`group flex items-center justify-between w-full py-2 text-left text-4xl md:text-5xl font-light tracking-tighter cursor-pointer transition-colors duration-500 ${isClicked ? 'text-amber-500' : 'text-stone-400 hover:text-white'}`}
-                              >
-                                <div className="relative flex overflow-hidden whitespace-nowrap">
-                                  <span className="flex">
-                                    {item.label.split('').map((char, i) => (
-                                      <motion.span
-                                        key={i}
-                                        variants={{ initial: { y: 0 }, hover: { y: '-100%' } }}
-                                        transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1], delay: i * 0.02 }}
-                                      >
-                                        {char === ' ' ? '\u00A0' : char}
-                                      </motion.span>
-                                    ))}
-                                  </span>
-                                  <span className={`absolute inset-0 flex ${darkMode ? 'text-white' : 'text-stone-900'}`}>
-                                    {item.label.split('').map((char, i) => (
-                                      <motion.span
-                                        key={i}
-                                        variants={{ initial: { y: '100%' }, hover: { y: 0 } }}
-                                        transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1], delay: i * 0.02 }}
-                                      >
-                                        {char === ' ' ? '\u00A0' : char}
-                                      </motion.span>
-                                    ))}
-                                  </span>
-                                </div>
-                                <div className={`flex-grow ml-4 mr-3 md:ml-6 md:mr-4 h-[1px] border-b border-dashed origin-left transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] opacity-100 scale-x-100 md:opacity-0 md:scale-x-0 md:group-hover:opacity-100 md:group-hover:scale-x-100 ${darkMode ? 'border-stone-800' : 'border-stone-200'}`}></div>
-                                <span className={`text-[10px] md:text-xs font-bold tracking-widest opacity-100 translate-x-0 md:opacity-0 md:translate-x-4 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] md:group-hover:opacity-100 md:group-hover:translate-x-0 ${darkMode ? 'text-amber-500' : 'text-amber-600'}`}>0{index + 1}</span>
-                              </motion.a>
-                            ) : (
-                              <motion.button
-                                initial="initial"
-                                whileHover="hover"
-                                whileTap={{ scale: 0.96, opacity: 0.7 }}
-                                onClick={handlePremiumClick}
-                                className={`group flex items-center justify-between w-full py-2 text-left text-4xl md:text-5xl font-light tracking-tighter cursor-pointer transition-colors duration-500 ${isClicked ? 'text-amber-500' : 'text-stone-400 hover:text-white'}`}
-                              >
-                                <div className="relative flex overflow-hidden whitespace-nowrap">
-                                  <span className="flex">
-                                    {item.label.split('').map((char, i) => (
-                                      <motion.span
-                                        key={i}
-                                        variants={{ initial: { y: 0 }, hover: { y: '-100%' } }}
-                                        transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1], delay: i * 0.02 }}
-                                      >
-                                        {char === ' ' ? '\u00A0' : char}
-                                      </motion.span>
-                                    ))}
-                                  </span>
-                                  <span className={`absolute inset-0 flex ${darkMode ? 'text-white' : 'text-stone-900'}`}>
-                                    {item.label.split('').map((char, i) => (
-                                      <motion.span
-                                        key={i}
-                                        variants={{ initial: { y: '100%' }, hover: { y: 0 } }}
-                                        transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1], delay: i * 0.02 }}
-                                      >
-                                        {char === ' ' ? '\u00A0' : char}
-                                      </motion.span>
-                                    ))}
-                                  </span>
-                                </div>
-                                <div className={`flex-grow ml-4 mr-3 md:ml-6 md:mr-4 h-[1px] border-b border-dashed origin-left transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] opacity-100 scale-x-100 md:opacity-0 md:scale-x-0 md:group-hover:opacity-100 md:group-hover:scale-x-100 ${darkMode ? 'border-stone-800' : 'border-stone-200'}`}></div>
-                                <span className={`text-[10px] md:text-xs font-bold tracking-widest opacity-100 translate-x-0 md:opacity-0 md:translate-x-4 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] md:group-hover:opacity-100 md:group-hover:translate-x-0 ${darkMode ? 'text-amber-500' : 'text-amber-600'}`}>0{index + 1}</span>
-                              </motion.button>
-                            )}
+                            <MenuItemHover
+                              item={item}
+                              index={index}
+                              isClicked={isClicked}
+                              darkMode={darkMode}
+                              handlePremiumClick={handlePremiumClick}
+                            />
                           </motion.div>
                         )
                       })}
