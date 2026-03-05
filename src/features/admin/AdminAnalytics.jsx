@@ -36,6 +36,13 @@ const AdminAnalytics = ({ darkMode = false }) => {
     const [timeFilter, setTimeFilter] = useState('1h'); // Default to 1h for real-time vibe // '1h', '1j', '7j', '1mois', '1ans'
     const [expandedSessionId, setExpandedSessionId] = useState(null);
     const [scrolledHeader, setScrolledHeader] = useState(false);
+    const [now, setNow] = useState(Date.now());
+
+    // Refresh "now" every 30s to update "Online" vs "Finished" markers
+    useEffect(() => {
+        const i = setInterval(() => setNow(Date.now()), 30000);
+        return () => clearInterval(i);
+    }, []);
 
     // Kpis
     const [kpis, setKpis] = useState({
@@ -373,6 +380,11 @@ const AdminAnalytics = ({ darkMode = false }) => {
                                 const isAdminType = session.type === 'admin';
                                 const startedTime = session.startedAt ? new Date(getMillis(session.startedAt)).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
 
+                                // Session is closed if explicitly marked active:false OR no activity for 60s (heartbeat is 15s)
+                                const lastActiveMs = getMillis(session.lastActivityAt);
+                                const isInactive = (now - lastActiveMs) > 60000;
+                                const isFinished = session.sessionActive === false || isInactive;
+
                                 return (
                                     <React.Fragment key={session.id}>
                                         <tr className={`border-b transition-all group ${darkMode ? 'border-stone-700 hover:bg-stone-700/50' : 'border-stone-100 hover:bg-stone-50'} ${isExpanded ? (darkMode ? 'bg-stone-700/30' : 'bg-stone-50') : ''}`}>
@@ -386,7 +398,10 @@ const AdminAnalytics = ({ darkMode = false }) => {
                                                             <Globe size={12} className={darkMode ? 'text-stone-500' : 'text-stone-400'} />
                                                             {session.geo?.city !== 'Unknown' ? `${session.geo.city}, ${session.geo.country}` : 'Ville Inconnue'}
                                                         </p>
-                                                        <p className="text-[10px] font-mono text-stone-400 mt-0.5">{session.ip}</p>
+                                                        <p className="text-[10px] font-mono text-stone-400 mt-0.5 flex items-center gap-2">
+                                                            {session.ip}
+                                                            {session.email && <span className="text-indigo-500 font-bold truncate max-w-[150px]" title={session.email}>{session.email}</span>}
+                                                        </p>
                                                     </div>
                                                 </div>
                                             </td>
@@ -400,7 +415,18 @@ const AdminAnalytics = ({ darkMode = false }) => {
                                                 </div>
                                             </td>
                                             <td className="py-4">
-                                                <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg border ${darkMode ? 'bg-stone-900 text-stone-300 border-stone-700' : 'bg-white text-stone-600 border-stone-200 shadow-sm'}`}>{startedTime}</span>
+                                                <div className="flex flex-col gap-1">
+                                                    <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg border w-fit ${darkMode ? 'bg-stone-900 text-stone-300 border-stone-700' : 'bg-white text-stone-600 border-stone-200 shadow-sm'}`}>{startedTime}</span>
+                                                    {isFinished ? (
+                                                        <span className="text-[9px] font-bold text-stone-400 uppercase tracking-tighter flex items-center gap-1 ml-1">
+                                                            <div className="w-1 h-1 rounded-full bg-stone-300"></div> Session Terminée
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-tighter flex items-center gap-1 ml-1 animate-pulse">
+                                                            <div className="w-1 h-1 rounded-full bg-emerald-500"></div> En Ligne
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="py-4 font-bold text-xs text-stone-500 dark:text-stone-400">
                                                 {formatDuration(session.duration)}
@@ -446,8 +472,16 @@ const AdminAnalytics = ({ darkMode = false }) => {
                                                                                 Vue : <span className="uppercase text-amber-600 dark:text-amber-400">{step.page}</span>
                                                                             </p>
                                                                             {step.itemId && (
-                                                                                <span className="text-[10px] font-bold bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/20 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
-                                                                                    ID: {step.itemId}
+                                                                                <span className="text-[10px] font-bold bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/20 px-3 py-1 rounded-full inline-flex items-center gap-2">
+                                                                                    {step.itemId.includes('|') ? (
+                                                                                        <>
+                                                                                            <span className="opacity-40 text-[8px]">REF:</span> {step.itemId.split('|')[0].trim()}
+                                                                                            <span className="h-2 w-px bg-indigo-200 dark:bg-indigo-800 mx-1"></span>
+                                                                                            <span className="font-black">{step.itemId.split('|')[1].trim()}</span>
+                                                                                        </>
+                                                                                    ) : (
+                                                                                        <>ID: {step.itemId}</>
+                                                                                    )}
                                                                                 </span>
                                                                             )}
                                                                             <span className="text-[10px] font-black text-stone-400 uppercase tracking-wider ml-auto">
@@ -459,7 +493,7 @@ const AdminAnalytics = ({ darkMode = false }) => {
                                                             )}
                                                             <div className="relative pl-8 opacity-50">
                                                                 <div className="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full bg-stone-300 dark:bg-stone-600 ring-4 ring-white dark:ring-stone-900"></div>
-                                                                <p className="text-[10px] font-black uppercase tracking-widest text-stone-500">{session.sessionActive ? "Navigation en cours..." : "Fin de session"}</p>
+                                                                <p className="text-[10px] font-black uppercase tracking-widest text-stone-500">{!isFinished ? "Navigation en cours..." : "Fin de session"}</p>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -480,17 +514,28 @@ const AdminAnalytics = ({ darkMode = false }) => {
                             const isAdminType = session.type === 'admin';
                             const startedTime = session.startedAt ? new Date(getMillis(session.startedAt)).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
 
+                            const lastActiveMs = getMillis(session.lastActivityAt);
+                            const isInactive = (now - lastActiveMs) > 60000;
+                            const isFinished = session.sessionActive === false || isInactive;
+
                             return (
                                 <div
                                     key={session.id}
                                     className={`p-5 rounded-[2rem] border transition-all relative ${isExpanded ? (darkMode ? 'bg-stone-800 border-amber-500/50 ring-1 ring-amber-500/20' : 'bg-white border-amber-200 shadow-xl') : (darkMode ? 'bg-stone-800/50 border-stone-700' : 'bg-stone-50 border-transparent hover:bg-white hover:border-stone-100')}`}
                                 >
-                                    <span className={`absolute top-6 right-6 text-[9px] font-black px-1.5 py-0.5 rounded border ${darkMode ? 'bg-stone-900 text-stone-400 border-stone-700' : 'bg-white text-stone-500 border-stone-200 shadow-sm'}`}>
-                                        {startedTime}
-                                    </span>
+                                    <div className="absolute top-6 right-6 flex flex-col items-end gap-1">
+                                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded border ${darkMode ? 'bg-stone-900 text-stone-400 border-stone-700' : 'bg-white text-stone-500 border-stone-200 shadow-sm'}`}>
+                                            {startedTime}
+                                        </span>
+                                        {!isFinished ? (
+                                            <span className="text-[8px] font-bold text-emerald-500 uppercase tracking-tighter animate-pulse">En Ligne</span>
+                                        ) : (
+                                            <span className="text-[8px] font-bold text-stone-400 uppercase tracking-tighter">Terminé</span>
+                                        )}
+                                    </div>
 
                                     <div className="flex justify-between items-start mb-4">
-                                        <div className="flex items-center gap-3 overflow-hidden pr-12">
+                                        <div className="flex items-center gap-3 overflow-hidden pr-16">
                                             <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black ${isAdminType ? 'bg-red-100 text-red-600' : (isClient ? 'bg-indigo-100 text-indigo-600 shadow-sm' : 'bg-stone-200 text-stone-600')}`}>
                                                 {isAdminType ? 'AD' : (isClient ? 'CO' : 'AN')}
                                             </div>
@@ -498,17 +543,20 @@ const AdminAnalytics = ({ darkMode = false }) => {
                                                 <p className={`font-bold text-sm tracking-tight truncate ${darkMode ? 'text-white' : 'text-stone-900'}`}>
                                                     {session.geo?.city !== 'Unknown' ? `${session.geo.city}, ${session.geo.country}` : 'Ville Inconnue'}
                                                 </p>
-                                                <p className="text-[10px] font-mono text-stone-400 mt-1 truncate">{session.ip}</p>
+                                                <p className="text-[10px] font-mono text-stone-400 mt-1 truncate flex items-center gap-2">
+                                                    {session.ip}
+                                                    {session.email && <span className="text-indigo-500 font-bold truncate max-w-[120px]">{session.email}</span>}
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center justify-between mb-5 px-1">
+                                    <div className="flex items-center justify-between mb-5 px-1 text-stone-500 dark:text-stone-400">
                                         <div className="flex items-center gap-2">
                                             {session.device === 'Mobile' ? <Smartphone size={14} className="text-stone-400" /> : <Monitor size={14} className="text-stone-400" />}
-                                            <span className="text-[10px] font-bold text-stone-500">{session.os} • {session.browser}</span>
+                                            <span className="text-[10px] font-bold">{session.os} • {session.browser}</span>
                                         </div>
-                                        <div className="flex items-center gap-1.5 font-bold text-[10px] text-stone-400 bg-stone-100 dark:bg-stone-900 px-2 py-0.5 rounded-md">
+                                        <div className="flex items-center gap-1.5 font-bold text-[10px] bg-stone-100 dark:bg-stone-900 px-2 py-0.5 rounded-md">
                                             <Clock size={10} />
                                             {formatDuration(session.duration)}
                                         </div>
@@ -552,6 +600,10 @@ const AdminAnalytics = ({ darkMode = false }) => {
                                                         </div>
                                                     ))
                                                 )}
+                                                <div className="relative pl-6 opacity-50">
+                                                    <div className="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-stone-300 dark:bg-stone-600 ring-2 ring-white dark:ring-stone-800"></div>
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-stone-500 text-left">{!isFinished ? "Navigation en cours..." : "Fin de session"}</p>
+                                                </div>
                                             </div>
                                         </div>
                                     )}

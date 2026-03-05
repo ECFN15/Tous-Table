@@ -61,6 +61,12 @@ service cloud.firestore {
 
     }
 
+    // Newsletter Subscribers - Public can add row, Admin can read/manage
+    match /newsletter_subscribers/{docId} {
+      allow create: if true;
+      allow read, update, delete: if isArtisan();
+    }
+
     // Fonction Validation Cart
     function isValidCartItem() {
       let data = request.resource.data;

@@ -1,0 +1,172 @@
+﻿diff --git a/src/app.jsx b/src/app.jsx
+index f23f55d..27eda5d 100644
+--- a/src/app.jsx
++++ b/src/app.jsx
+@@ -26,6 +26,7 @@ import AnalyticsProvider from './components/shared/AnalyticsProvider';
+ 
+ import MarketplaceDiscovery from './components/home/MarketplaceDiscovery';
+ import ArchitecturalHeader from './designs/architectural/components/ArchitecturalHeader';
++import LoginOrSubscribeModal from './components/auth/LoginOrSubscribeModal';
+ 
+ const MenuItemHover = ({ item, index, isClicked, darkMode, handlePremiumClick }) => {
+   const controls = useAnimation();
+@@ -387,6 +388,17 @@ const AppContent = () => {
+ 
+   }, [user, isAdmin]); // Re-run when auth state changes
+ 
++  // --- DECLENCHEMENT POPUP V2 (Gallery Only) ---
++  useEffect(() => {
++    if (view === 'gallery' && (!user || user.isAnonymous) && !authLoading && !hasTriggeredPopup.current) {
++      hasTriggeredPopup.current = true;
++      const timer = setTimeout(() => {
++        setShowFullLogin(true);
++      }, 1500); // 1.5 seconds delay for a smooth premium UX
++      return () => clearTimeout(timer);
++    }
++  }, [view, user, authLoading]);
++
+   // --- PERSISTANCE NAVIGATION (HASH & URL) ---
+   useEffect(() => {
+     const handleHashChange = () => {
+@@ -578,135 +590,12 @@ const AppContent = () => {
+       />
+ 
+       {/* MODAL LOGIN (Pour la Marketplace) */}
+-      {showFullLogin && (
+-        <div className="fixed inset-0 z-[200] bg-stone-900/60 backdrop-blur-md flex items-center justify-center p-4 md:p-6">
+-          <div className="bg-white p-6 md:p-10 rounded-3xl md:rounded-[2.5rem] shadow-2xl max-w-sm w-full text-center space-y-4 md:space-y-6 animate-in zoom-in-95 relative overflow-hidden">
+-
+-            {showAuthSuccess ? (
+-              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+-                <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-500 border border-emerald-100 shadow-sm">
+-                  <ShieldCheck size={40} />
+-                </div>
+-                <div className="space-y-2">
+-                  <h3 className="text-2xl font-black tracking-tight text-stone-900">V├®rifiez vos emails !</h3>
+-                  <p className="text-sm text-stone-500 font-medium px-2 leading-relaxed">
+-                    Un lien de confirmation vient d'├¬tre envoy├®. <br />
+-                    <span className="text-amber-600 font-bold">Pensez ├á regarder dans vos spams.</span>
+-                  </p>
+-                </div>
+-                <button onClick={() => { setShowFullLogin(false); setShowAuthSuccess(false); }} className="w-full py-4 bg-stone-900 text-white rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-stone-800 transition-all shadow-lg">
+-                  C'est compris
+-                </button>
+-              </div>
+-            ) : (
+-              <>
+-                {/* HEADER */}
+-                <div className="space-y-4">
+-                  <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto text-amber-500 border border-amber-100 shadow-sm">
+-                    <ShieldCheck size={32} />
+-                  </div>
+-                  <h3 className="text-2xl font-black tracking-tight text-stone-900">V├®rification</h3>
+-                  <p className="text-xs text-stone-400 font-medium px-4">Identifiez-vous pour acc├®der ├á la vente.</p>
+-                </div>
+-
+-                {/* FORMULAIRE EMAIL */}
+-                <form onSubmit={async (e) => {
+-                  e.preventDefault();
+-                  const email = e.target.email.value;
+-                  const pass = e.target.password.value;
+-                  const confirmPass = e.target.confirmPassword?.value;
+-                  const isSignUp = e.target.getAttribute('data-signup') === 'true';
+-
+-                  try {
+-                    if (isSignUp) {
+-                      if (pass !== confirmPass) throw new Error("Les mots de passe ne correspondent pas.");
+-                      const userCredential = await signupWithEmail(email, pass);
+-                      await verifyEmail(userCredential.user);
+-                      setShowAuthSuccess(true);
+-                    } else {
+-                      await loginWithEmail(email, pass);
+-                      setShowFullLogin(false);
+-                    }
+-                  } catch (err) {
+-                    let msg = "Une erreur est survenue.";
+-                    if (err.code === 'auth/email-already-in-use') msg = "Cet email est d├®j├á associ├® ├á un compte. Connectez-vous.";
+-                    else if (err.code === 'auth/weak-password') msg = "Le mot de passe doit contenir au moins 6 caract├¿res.";
+-                    else if (err.code === 'auth/invalid-email') msg = "L'adresse email n'est pas valide.";
+-                    else if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') msg = "Email ou mot de passe incorrect.";
+-
+-                    alert(msg);
+-                  }
+-                }} className="space-y-3 pt-2" data-signup="false">
+-
+-                  <input name="email" type="email" placeholder="Adresse email" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-sm outline-none focus:ring-2 ring-stone-900 transition-all text-stone-900 placeholder:text-stone-300" required />
+-
+-                  <div className="relative">
+-                    <input name="password" type={showPassword ? "text" : "password"} placeholder="Mot de passe" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-sm outline-none focus:ring-2 ring-stone-900 transition-all text-stone-900 placeholder:text-stone-300" required />
+-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-900">
+-                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+-                    </button>
+-                  </div>
+-
+-                  <div id="confirm-pass-container" className="hidden transition-all duration-300 overflow-hidden" style={{ maxHeight: '0px' }}>
+-                    <div className="relative mb-3">
+-                      <input name="confirmPassword" type={showConfirmPassword ? "text" : "password"} placeholder="Confirmer mot de passe" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-sm outline-none focus:ring-2 ring-stone-900 transition-all text-stone-900 placeholder:text-stone-300" />
+-                      <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-900">
+-                        {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+-                      </button>
+-                    </div>
+-                  </div>
+-
+-                  <button type="submit" className="w-full py-4 bg-stone-100 text-stone-900 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-stone-200 transition-all">
+-                    <span id="btn-text">Continuer</span>
+-                  </button>
+-                </form>
+-
+-                {/* DIVIDER */}
+-                <div className="flex items-center gap-4 opacity-50">
+-                  <div className="h-px bg-stone-200 flex-1"></div>
+-                  <span className="text-[9px] font-black uppercase text-stone-300">OU</span>
+-                  <div className="h-px bg-stone-200 flex-1"></div>
+-                </div>
+-
+-                {/* GOOGLE */}
+-                <button onClick={() => handleSocialLogin(googleProvider)} className="w-full flex items-center justify-center gap-3 bg-[#1a1a1a] text-white p-4 rounded-xl font-bold hover:scale-[1.02] transition-all shadow-xl group">
+-                  <div className="bg-white rounded-full p-1"><img src="https://www.google.com/favicon.ico" className="w-3 h-3" alt="G" /></div>
+-                  <span>Continuer avec Google</span>
+-                </button>
+-
+-                {/* FOOTER ACTIONS */}
+-                <div className="pt-2 flex justify-between items-center px-1">
+-                  <button onClick={() => {
+-                    const form = document.querySelector('form');
+-                    const container = document.getElementById('confirm-pass-container');
+-                    const isSignUp = form.getAttribute('data-signup') === 'true';
+-
+-                    form.setAttribute('data-signup', !isSignUp);
+-
+-                    if (!isSignUp) { // Opening
+-                      container.classList.remove('hidden');
+-                      void container.offsetWidth;
+-                      container.style.maxHeight = '100px';
+-                      document.querySelector('input[name="confirmPassword"]').required = true;
+-                      setTimeout(() => { container.style.overflow = 'visible'; }, 300);
+-                    } else { // Closing
+-                      container.style.overflow = 'hidden';
+-                      container.style.maxHeight = '0px';
+-                      setTimeout(() => container.classList.add('hidden'), 300);
+-                      document.querySelector('input[name="confirmPassword"]').required = false;
+-                    }
+-
+-                    document.getElementById('btn-text').innerText = !isSignUp ? "S'inscrire" : "Continuer";
+-                    document.getElementById('toggle-text').innerText = !isSignUp ? "J'ai d├®j├á un compte" : "Pas de compte ?";
+-                  }} className="text-[10px] font-bold text-stone-400 hover:text-stone-900 transition-colors" id="toggle-text">Pas de compte ?</button>
+-
+-                  <button onClick={() => setShowFullLogin(false)} className="text-[10px] font-black uppercase text-stone-300 hover:text-red-400 transition-colors">Annuler</button>
+-                </div>
+-              </>
+-            )}
+-          </div>
+-        </div>
+-      )}
++      <LoginOrSubscribeModal
++        showFullLogin={showFullLogin}
++        setShowFullLogin={setShowFullLogin}
++        showAuthSuccess={showAuthSuccess}
++        setShowAuthSuccess={setShowAuthSuccess}
++      />
+ 
+       {/* --- NAVBAR & MENU GLOBAUX (NE S'AFFICHENT PAS SUR LA PAGE D'ACCUEIL) --- */}
+       {/* --- MENU GLOBAL (Toujours disponible sauf Home) --- */}

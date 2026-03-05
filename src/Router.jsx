@@ -23,6 +23,7 @@ const AdminAuctions = React.lazy(() => import('./features/admin/AdminAuctions'))
 const AdminForm = React.lazy(() => import('./features/admin/AdminForm'));
 const AdminItemList = React.lazy(() => import('./features/admin/AdminItemList'));
 const AdminUsers = React.lazy(() => import('./features/admin/AdminUsers'));
+const AdminNewsletter = React.lazy(() => import('./features/admin/AdminNewsletter'));
 const AdminAnalytics = React.lazy(() => import('./features/admin/AdminAnalytics'));
 
 const AdminSEO = React.lazy(() => import('./features/admin/AdminSEO'));
@@ -245,6 +246,13 @@ const AppRouter = ({
                             </button>
 
                             <button
+                                onClick={() => { setAdminCollection('newsletter'); setEditingItem(null); }}
+                                className={`px-3 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center gap-2 ${adminCollection === 'newsletter' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
+                            >
+                                <Mail size={14} className="shrink-0" /> Newsletter
+                            </button>
+
+                            <button
                                 onClick={() => { setAdminCollection('analytics'); setEditingItem(null); }}
                                 className={`px-3 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center gap-2 ${adminCollection === 'analytics' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
                             >
@@ -267,6 +275,8 @@ const AppRouter = ({
                             <AdminStudio darkMode={darkMode} />
                         ) : adminCollection === 'users' ? (
                             <AdminUsers darkMode={darkMode} />
+                        ) : adminCollection === 'newsletter' ? (
+                            <AdminNewsletter darkMode={darkMode} />
                         ) : adminCollection === 'seo' ? (
                             <AdminSEO darkMode={darkMode} />
                         ) : adminCollection === 'analytics' ? (

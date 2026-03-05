@@ -112,7 +112,7 @@ const AdminUsers = ({ darkMode }) => {
                             {user.email !== 'matthis.fradin2@gmail.com' && (
                                 <button
                                     onClick={() => handleRemoveUser(user.uid, user.email)}
-                                    className={`p-2 rounded-lg transition-colors opacity-0 group-hover:opacity-100 ${darkMode ? 'hover:bg-red-900/30 text-red-500' : 'hover:bg-red-50 text-red-500'}`}
+                                    className={`p-2 rounded-lg transition-colors opacity-100 md:opacity-0 group-hover:opacity-100 ${darkMode ? 'bg-red-900/10 hover:bg-red-900/30 text-red-500' : 'bg-red-50 hover:bg-red-100 text-red-500'}`}
                                     title="Révoquer les droits"
                                 >
                                     <Trash2 size={16} />

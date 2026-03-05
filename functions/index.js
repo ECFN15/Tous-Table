@@ -1776,12 +1776,13 @@ exports.initLiveSession = functions.https.onCall(async (data, context) => {
     const rawIp = context.rawRequest.headers['x-forwarded-for'] || context.rawRequest.connection.remoteAddress;
     const ip = rawIp ? rawIp.split(',')[0].trim() : 'Unknown';
     const userAgent = context.rawRequest.headers['user-agent'] || 'Unknown';
-    const { userId, type, device, browser, os } = data; // type: 'anonymous' | 'client' | 'admin'
+    const { userId, email, type, device, browser, os } = data; // type: 'anonymous' | 'client' | 'admin'
 
     let geo = await getGeoFromIp(ip);
 
     const sessionData = {
         userId: userId || 'unknown',
+        email: email || null,
         type: type || 'anonymous',
         ip: ip,
         startedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -1827,6 +1828,54 @@ exports.syncSession = functions.https.onCall(async (data, context) => {
     } catch (error) {
         console.error("Sync Error:", error);
         return { success: false };
+    }
+});
+
+// BEACON ENDPOINT: Reliable session closure on page exit (navigator.sendBeacon)
+exports.syncSessionBeacon = functions.https.onRequest(async (req, res) => {
+    // CORS configuration for Beacon
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+        res.status(204).send('');
+        return;
+    }
+
+    try {
+        let payload;
+        if (typeof req.body === 'string') {
+            payload = JSON.parse(req.body);
+        } else if (req.rawBody) {
+            payload = JSON.parse(req.rawBody.toString());
+        } else {
+            payload = req.body;
+        }
+
+        const { sessionId, journey, duration, sessionActive } = payload;
+
+        if (!sessionId) {
+            res.status(400).send('Missing session ID');
+            return;
+        }
+
+        const sessionRef = db.collection('analytics_sessions').doc(sessionId);
+        const updates = {
+            lastActivityAt: admin.firestore.FieldValue.serverTimestamp(),
+            duration: duration || 0,
+            sessionActive: sessionActive !== undefined ? sessionActive : false // default closure
+        };
+
+        if (journey && journey.length > 0) {
+            updates.journey = admin.firestore.FieldValue.arrayUnion(...journey);
+        }
+
+        await sessionRef.update(updates);
+        res.status(200).send('Session synced via beacon');
+    } catch (error) {
+        console.error("Beacon Sync Error:", error);
+        res.status(500).send('Beacon sync failed');
     }
 });
 

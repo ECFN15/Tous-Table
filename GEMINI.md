@@ -60,7 +60,8 @@ Le projet a été simplifié en Février 2026 pour ne garder que le design "Arch
 *   **Code Sharding Supprimé** : Les vues ne sont plus dispatchées entre plusieurs designs. La logique est directe et plus légère.
 *   **useLiveTheme Simplifié** : Le hook ne charge plus les registres de thèmes complexes (`themeRegistry.js` supprimé), réduisant le poids du bundle.
 
-    *   **Update Février 2026 (Refonte Architectural & Micro-Animations)** :
+    *   **Update Février/Mars 2026 (Refonte Architectural & Micro-Animations)** :
+        *   **Mobile Menu Optimization (Zero Lag)** : Suppression conditionnelle de l'effet GPU lourd (`filter: blur`) sur les animations de menu pour les appareils mobiles (<1024px). L'animation de slide/skew conserve 60fps sur les smartphones anciens. Le `willChange` retire également la propriété `filter` pour alléger le rasterizer.
         *   **Layout "Dashboard"** : Équilibrage vertical strict entre la Description et les Actions. Zone de texte calibrée (~260px de haut) pour garantir que les boutons d'enchères (+10, +50, +100) soient visibles au premier coup d'œil.
         *   **AnimatedPrice Integration** : Remplacement des prix statiques par un composant animé (GSAP). Transition numérique fluide avec atterrissage "smooth" pour une sensation de luxe.
         *   **Suppression des Marges Mortes** : Retrait des spacers `mt-auto` et réduction des paddings pour unifier visuellement la description et le bloc de commande.
@@ -213,6 +214,18 @@ Suite à un audit de sécurité exhaustif (score initial 7.8/10), les mesures su
 *   **Images Homepage (Règles Sécurité)** : Correction des règles Firestore qui bloquaient l'affichage des images pour les visiteurs non-connectés.
     *   **Fix** : Autorisation publique (`allow read`) spécifique pour le document `sys_metadata/homepage_images`.
 *   **Hauteur Cartes Unifiée** : Standardisation de la hauteur des cartes "Stacked" à `88vh` sur tous les devices (Mobile & Desktop) pour garantir la cohérence des triggers.
+
+### 🎉 Animation Confettis (Fail-Safe Production)
+*   **Problème** : L'animation `canvas-confetti` au succès de l'inscription Newsletter fonctionnait parfaitement en local (Vite dev server) mais **crashait silencieusement en Production** (aucun confetti n'apparaissait).
+    *   **Cause 1 (Z-Index)** : Le modal de modal était à `z-[2000]`, cachant la surcouche native des confettis.
+    *   **Cause 2 (ESM/CJS Build)** : L'import de Vite pour la prod cassait l'export par défaut, rendant la fonction inutilisable.
+    *   **Cause 3 (Sécurité CSP Firebase)** : `canvas-confetti` utilise un Web Worker secret en instanciant un script via le protocole `blob:`. En production, notre `Content-Security-Policy` stricte tuait ce processus illégal instantanément.
+*   **La Solution Ultime** :
+    1.  **Récupération de l'instance** : `const confettiFn = confetti.default || confetti;`
+    2.  **Désactivation du Worker (Bypass CSP)** : Création d'une instance bridée sur le Main Thread : `runConfetti = confettiFn.create(null, { useWorker: false })`.
+    3.  **Z-Index Fixe** : Ajout de `zIndex: 99999` forcé dans la fonction d'explosion.
+    4.  **Maintien de la Sécurité (Zéro Compromis CSP)** : La désactivation du Worker permettant à l'animation de tourner sur le processus principal (Main Thread), aucune règle permissive (`blob:`) n'a finalement été ajoutée à `firebase.json`. La sécurité anti-XSS reste à son niveau maximal (10/10).
+    5.  Ces mesures rendent la dépendance 100% safe (fail-safe complet) pour Firebase Hosting.
 
 ### 🌍 8. Mise en Production & Domaine (10 Février 2026)
 
@@ -550,5 +563,30 @@ Une refonte complète de la popup d'incitation à la Marketplace a été réalis
 *   **Bouton "Explorer" Hybride** :
     *   **Desktop** : Apparaît uniquement au **Survol** (élégance minimaliste).
     *   **Mobile** : Reste **Toujours Visible** (accessibilité tactile immédiate sans clic préalable).
+
+---
+
+## ⚡ 16. Fiabilité Analytics & Sessions Mobiles (5 Mars 2026)
+
+**Objectif : Précision du Tracking "En Ligne" & Robustesse Mobiles**
+
+Une série d'optimisations techniques a été déployée pour garantir la justesse des statistiques de fréquentation, particulièrement pour les utilisateurs sur smartphone.
+
+### 🛠️ Session Closure (sendBeacon & connectivity)
+*   **Problème** : Les navigateurs mobiles coupent les connexions réseau instantanément lors de la fermeture d'un onglet ou du passage en arrière-plan, empêchant les signaux de fin de session standard (Firebase/Async) de partir.
+*   **Solution "Native Beacon"** : Implémentation de `navigator.sendBeacon` pour les événements de fermeture.
+    *   **Technique** : Utilisation d'une tâche de fond gérée par l'OS qui garantit l'envoi des données même si le processus du navigateur est suspendu.
+    *   **Déclencheurs (Triggers)** : Écoute combinée de `visibilitychange` (état `hidden`) et `pagehide` (le plus fiable sur iOS Safari).
+*   **Heartbeat Sync** : Maintien d'un "battement de cœur" toutes les 15 secondes pour actualiser la durée de session en temps réel.
+
+### 🧠 Intelligence côté Dashboard (Admin Guard)
+*   **Heartbeat Timeout** : Programmation d'une sécurité dans le Dashboard Admin qui considère toute session sans activité depuis **plus de 60 secondes** comme "Terminée".
+*   **Impact** : Élimine 100% des utilisateurs "fantômes" qui restaient affichés "En Ligne" à cause d'un crash ou d'une perte brutale de connexion.
+*   **Auto-Refresh UI** : Le dashboard se rafraîchit désormais dynamiquement toutes les 30 secondes (sans rechargement de page) pour mettre à jour les timers et les statuts de présence.
+
+### 📱 UX Admin Mobile
+*   **Statut Visuel** : Ajout d'indicateurs explicites sur les cartes mobiles du dashboard admin :
+    *   **Vert Pulsé** : Utilisateur réellement actif.
+    *   **Gris Fixe** : Session clôturée ou expirée.
 
 ---

@@ -26,6 +26,7 @@ import AnalyticsProvider from './components/shared/AnalyticsProvider';
 
 import MarketplaceDiscovery from './components/home/MarketplaceDiscovery';
 import ArchitecturalHeader from './designs/architectural/components/ArchitecturalHeader';
+import NewsletterModal from './components/auth/NewsletterModal';
 
 const MenuItemHover = ({ item, index, isClicked, darkMode, handlePremiumClick }) => {
   const controls = useAnimation();
@@ -188,6 +189,7 @@ const AppContent = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showAuthSuccess, setShowAuthSuccess] = useState(false);
+  const [showNewsletter, setShowNewsletter] = useState(false);
 
   // Admin State
   const [adminCollection, setAdminCollection] = useState('dashboard'); // 'dashboard' | 'furniture' | 'cutting_boards' | 'orders'
@@ -387,6 +389,17 @@ const AppContent = () => {
 
   }, [user, isAdmin]); // Re-run when auth state changes
 
+  // --- DECLENCHEMENT POPUP V2 (Gallery Only) ---
+  useEffect(() => {
+    if (view === 'gallery' && (!user || user.isAnonymous) && !authLoading && !hasTriggeredPopup.current) {
+      hasTriggeredPopup.current = true;
+      const timer = setTimeout(() => {
+        setShowNewsletter(true);
+      }, 1500); // 1.5 seconds delay for a smooth premium UX
+      return () => clearTimeout(timer);
+    }
+  }, [view, user, authLoading]);
+
   // --- PERSISTANCE NAVIGATION (HASH & URL) ---
   useEffect(() => {
     const handleHashChange = () => {
@@ -554,7 +567,12 @@ const AppContent = () => {
   return (
     <div className={`min-h-screen font-sans selection:bg-stone-300 transition-colors duration-700 ${darkMode ? 'bg-[#0A0A0A] text-stone-200' : 'bg-[#FAFAF9] text-stone-900'}`}>
       <SEO />
-      <AnalyticsProvider view={view} selectedItemId={selectedItemId} />
+      <AnalyticsProvider
+        view={view}
+        selectedItemId={selectedItemId}
+        selectedItemName={items.concat(boardItems).find(i => i.id === selectedItemId)?.name}
+        selectedItemPrice={items.concat(boardItems).find(i => i.id === selectedItemId)?.currentPrice || items.concat(boardItems).find(i => i.id === selectedItemId)?.startingPrice}
+      />
 
       {/* RIDEAU DE TRANSITION GLOBAL (Masque le switch de page) */}
       <div
@@ -575,6 +593,12 @@ const AppContent = () => {
         interacted={cartInteracted}
         darkMode={darkMode}
         activeDesignId={activeDesignId}
+      />
+
+      {/* MODAL NEWSLETTER */}
+      <NewsletterModal
+        showNewsletter={showNewsletter}
+        setShowNewsletter={setShowNewsletter}
       />
 
       {/* MODAL LOGIN (Pour la Marketplace) */}
@@ -783,24 +807,34 @@ const AppContent = () => {
                           }, 500);
                         };
 
+                        const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
+                        const blurInitial = isMobile ? 'none' : 'blur(8px)';
+                        const blurActive = isMobile ? 'none' : 'blur(0px)';
+                        const skewInitial = isMobile ? 0 : -14;
+                        const skewExit = isMobile ? 0 : 14;
+                        const scaleInitial = isMobile ? 1 : 0.9;
+
                         return (
                           <motion.div
                             key={item.label}
-                            initial={{ x: 140, opacity: 0, skewX: -14, scale: 0.9, filter: 'blur(8px)' }}
+                            initial={{ x: 140, y: 0, opacity: 0, skewX: skewInitial, scale: scaleInitial, filter: blurInitial, rotateZ: 0.01 }}
                             animate={{
                               x: isClicked ? 15 : (isOtherClicked ? -20 : 0),
                               y: isOtherClicked ? 20 : 0,
                               opacity: isOtherClicked ? 0 : 1,
                               scale: isClicked ? 1.05 : 1,
                               skewX: 0,
-                              filter: isOtherClicked ? 'blur(8px)' : 'blur(0px)'
+                              filter: isOtherClicked ? blurInitial : blurActive,
+                              rotateZ: 0.01
                             }}
                             exit={{
                               x: 140,
+                              y: 0,
                               opacity: 0,
-                              skewX: 14,
-                              scale: 0.9,
-                              filter: 'blur(8px)',
+                              skewX: skewExit,
+                              scale: scaleInitial,
+                              filter: blurInitial,
+                              rotateZ: 0.01,
                               transition: {
                                 type: 'spring',
                                 stiffness: 450,
@@ -811,12 +845,16 @@ const AppContent = () => {
                             }}
                             transition={{
                               type: 'spring',
-                              stiffness: 250, // Reduced from 450 for a slower, more deliberate snap
-                              damping: 35, // Increased from 32 to reduce bounce slightly
-                              mass: 0.8, // Slightly heavier for more gravity
-                              delay: clickedMenuItem !== null ? 0 : (index * 0.1), // Increased delay for more pronounced cascade
+                              stiffness: 250,
+                              damping: 35,
+                              mass: 0.8,
+                              delay: clickedMenuItem !== null ? 0 : (index * 0.1),
                             }}
-                            style={{ willChange: 'transform, opacity, filter', transformOrigin: 'left center' }}
+                            style={{
+                              willChange: isMobile ? 'transform, opacity' : 'transform, opacity, filter',
+                              transformOrigin: 'left center',
+                              transform: isMobile ? 'translateZ(0)' : 'none'
+                            }}
                           >
                             <MenuItemHover
                               item={item}

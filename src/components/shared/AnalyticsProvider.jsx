@@ -26,7 +26,7 @@ const getDeviceInfo = () => {
     return { device, browser, os };
 };
 
-const AnalyticsProvider = ({ view, selectedItemId }) => {
+const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedItemPrice }) => {
     const { user, isAdmin } = useAuth();
     const sessionIdRef = useRef(null);
     const journeyToSend = useRef([]);
@@ -41,6 +41,7 @@ const AnalyticsProvider = ({ view, selectedItemId }) => {
 
             const userInfo = {
                 userId: user?.uid || 'anonymous',
+                email: user?.email || null,
                 type: isAdmin ? 'admin' : (user && !user.isAnonymous ? 'client' : 'anonymous'),
                 ...getDeviceInfo()
             };
@@ -72,16 +73,28 @@ const AnalyticsProvider = ({ view, selectedItemId }) => {
         const actionTime = Date.now();
         const durationSinceLast = Math.round((actionTime - lastActionTimeRef.current) / 1000);
 
+        // Guard: Wait for item details to populate before recording a DETAIL view
+        if (view === 'detail' && selectedItemId && !selectedItemName) return;
+
+        let displayId = null;
+        if (selectedItemId) {
+            if (selectedItemName) {
+                displayId = `${selectedItemId} | ${selectedItemName} ${selectedItemPrice ? `(${selectedItemPrice}€)` : ''}`;
+            } else {
+                displayId = selectedItemId;
+            }
+        }
+
         const newAction = {
             page: view,
-            itemId: selectedItemId || null,
+            itemId: displayId,
             time: new Date().toLocaleTimeString('fr-FR'),
             duration: durationSinceLast
         };
 
         journeyToSend.current.push(newAction);
         lastActionTimeRef.current = actionTime;
-    }, [view, selectedItemId]);
+    }, [view, selectedItemId, selectedItemName, selectedItemPrice]);
 
     // Heartbeat Sync
     useEffect(() => {
@@ -96,7 +109,7 @@ const AnalyticsProvider = ({ view, selectedItemId }) => {
                 sessionId: sessionIdRef.current,
                 duration: totalDuration,
                 journey: chunk,
-                sessionActive: true
+                sessionActive: document.visibilityState === 'visible'
             }).catch(e => {
                 journeyToSend.current = [...chunk, ...journeyToSend.current];
             });
@@ -106,46 +119,57 @@ const AnalyticsProvider = ({ view, selectedItemId }) => {
         return () => clearInterval(interval);
     }, []);
 
-    // Session Closure Detection (Reliable Approach)
+    // Session Closure Detection (Reliable Approach for Mobile & Desktop)
     useEffect(() => {
-        const finalizeSession = () => {
+        const sendSessionUpdate = (isActive = true) => {
             if (!sessionIdRef.current || isAdmin) return;
 
             const totalDuration = Math.round((Date.now() - startTimeRef.current) / 1000);
-            const payload = {
-                data: {
-                    sessionId: sessionIdRef.current,
-                    duration: totalDuration,
-                    journey: journeyToSend.current,
-                    sessionActive: false
-                }
-            };
+            const url = `https://us-central1-${functions.app.options.projectId}.cloudfunctions.net/syncSessionBeacon`;
 
-            // Using fetch with keepalive is the modern, more reliable alternative to sendBeacon
-            // and it works better with Cloud Functions structured JSON expectations
-            const url = `https://us-central1-${functions.app.options.projectId}.cloudfunctions.net/syncSession`;
+            // If we are closing/hiding, we send current journey and mark inactive
+            const chunk = [...journeyToSend.current];
+            if (!isActive) journeyToSend.current = []; // Clear journey if closing
 
-            fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-                keepalive: true
-            }).catch(() => { }); // Fire and forget
+            const payload = JSON.stringify({
+                sessionId: sessionIdRef.current,
+                duration: totalDuration,
+                journey: chunk,
+                sessionActive: isActive
+            });
+
+            // navigator.sendBeacon is highly reliable for tab closures and app switching on mobile
+            // It runs in the background even if the page is being killed/suspended
+            navigator.sendBeacon(url, payload);
         };
 
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'hidden') {
-                // We could finalize here, but on mobile "hidden" happens often.
-                // However, for immediate "Fin de session" feedback, handleBeforeUnload is usually better for Desktop.
+                sendSessionUpdate(false);
+            } else if (document.visibilityState === 'visible') {
+                // Return to active (using standard call is fine here)
+                const totalDuration = Math.round((Date.now() - startTimeRef.current) / 1000);
+                httpsCallable(functions, 'syncSession')({
+                    sessionId: sessionIdRef.current,
+                    duration: totalDuration,
+                    sessionActive: true
+                }).catch(() => { });
             }
         };
 
+        const handleBeforeUnload = () => {
+            sendSessionUpdate(false);
+        };
+
         window.addEventListener('visibilitychange', handleVisibilityChange);
-        window.addEventListener('beforeunload', finalizeSession);
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        // Pagehide is often more reliable than beforeunload on mobile
+        window.addEventListener('pagehide', handleBeforeUnload);
 
         return () => {
             window.removeEventListener('visibilitychange', handleVisibilityChange);
-            window.removeEventListener('beforeunload', finalizeSession);
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+            window.removeEventListener('pagehide', handleBeforeUnload);
         };
     }, []);
 
