@@ -174,197 +174,224 @@ const NewsletterModal = ({ showNewsletter, setShowNewsletter }) => {
                     onClick={() => setShowNewsletter(false)}
                 />
 
-                <button onClick={() => setShowNewsletter(false)} className="absolute top-4 right-4 sm:top-6 sm:right-6 text-white/50 hover:text-white transition-colors z-[2010] p-3 hover:bg-white/10 rounded-full backdrop-blur-md">
-                    <X size={20} strokeWidth={1.5} />
-                </button>
-
-                {/* Main Modal Container */}
+                {/* Main Modal Container With Neon Margin */}
                 <motion.div
                     layoutId="modal-container"
                     initial={{ opacity: 0, scale: 0.95, y: 20, filter: 'blur(10px)' }}
                     animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
                     exit={{ opacity: 0, scale: 0.95, y: -20, filter: 'blur(10px)' }}
                     transition={{ type: "spring", stiffness: 300, damping: 30, mass: 1 }}
-                    className="relative w-full max-w-[480px] rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] bg-white isolation-auto border border-zinc-200/50"
+                    className="relative w-full max-w-[480px] rounded-[2rem] sm:rounded-[2.5rem] p-[5px] overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] isolation-auto"
                 >
-                    {/* Background Mesh/Glow (Subtle) */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-zinc-50 via-white to-zinc-100 z-0"></div>
-
+                    {/* Serpent Néon - Glow Arrière (Très Intense) */}
                     <motion.div
-                        animate={{
-                            scale: [1, 1.1, 1],
-                            opacity: [0.3, 0.5, 0.3],
-                            rotate: [0, 5, 0]
+                        animate={{ rotate: -360 }}
+                        transition={{ repeat: Infinity, duration: 6, ease: "linear" }}
+                        className="absolute inset-[-150%] z-0 blur-2xl opacity-100"
+                        style={{
+                            background: "conic-gradient(from 0deg, transparent 40%, #000 50%, #444 80%, #fff 95%, transparent 100%)",
                         }}
-                        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                        className="absolute -top-32 -right-32 w-80 h-80 bg-stone-200/40 rounded-full blur-[60px] mix-blend-multiply z-0 pointer-events-none"
                     />
 
+                    {/* Serpent Néon - Cœur (Ligne Blanche Éclatante) */}
                     <motion.div
-                        animate={{
-                            scale: [1, 1.2, 1],
-                            opacity: [0.2, 0.4, 0.2]
+                        animate={{ rotate: -360 }}
+                        transition={{ repeat: Infinity, duration: 6, ease: "linear" }}
+                        className="absolute inset-[-120%] z-0"
+                        style={{
+                            background: "conic-gradient(from 0deg, transparent 40%, rgba(0,0,0,1) 50%, rgba(50,50,50,1) 80%, rgba(255,255,255,1) 95%, transparent 100%)",
                         }}
-                        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                        className="absolute -bottom-32 -left-32 w-80 h-80 bg-stone-100/60 rounded-full blur-[60px] mix-blend-multiply z-0 pointer-events-none"
                     />
 
-                    {/* Content Wrapper */}
-                    <div className="relative z-10 p-8 sm:p-12">
-                        <AnimatePresence mode="wait">
-                            {newsletterStep === 1 && (
-                                <motion.div
-                                    key="step1"
-                                    initial={{ opacity: 0, filter: 'blur(8px)', x: -20 }}
-                                    animate={{ opacity: 1, filter: 'blur(0px)', x: 0 }}
-                                    exit={{ opacity: 0, filter: 'blur(4px)', x: 20 }}
-                                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                                    className="space-y-10"
-                                >
-                                    <div className="space-y-6 text-center px-2">
-                                        <h3 className="text-4xl sm:text-[2.5rem] font-medium tracking-tighter text-zinc-950 leading-[1.05] selection:bg-stone-200">
-                                            L'Atelier, en<br />
-                                            <span className="italic text-stone-500 font-serif font-light tracking-normal">avant-première.</span>
-                                        </h3>
+                    {/* Inner White Face */}
+                    <div className="relative w-full h-full rounded-[calc(2rem-5px)] sm:rounded-[calc(2.5rem-5px)] bg-white overflow-hidden border border-zinc-200/50 z-10">
+                        <button onClick={() => setShowNewsletter(false)} className="absolute top-4 right-4 sm:top-6 sm:right-6 text-zinc-400 hover:text-zinc-900 transition-colors z-[2010] p-2 hover:bg-zinc-100 rounded-full">
+                            <X size={20} strokeWidth={1.5} />
+                        </button>
 
-                                        {/* Text Reveal */}
-                                        <div className="text-[15px] text-zinc-500 font-medium leading-relaxed flex flex-wrap justify-center gap-[0.25em]">
-                                            {paragraphWords.map((word, i) => (
-                                                <motion.span
-                                                    key={i}
-                                                    initial={{ opacity: 0, filter: 'blur(4px)', y: 10 }}
-                                                    animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
-                                                    transition={{ delay: 0.1 + i * 0.03, type: "spring", stiffness: 200, damping: 20 }}
-                                                >
-                                                    {word}
-                                                </motion.span>
-                                            ))}
-                                        </div>
-                                    </div>
+                        {/* Background Mesh/Glow (Subtle) */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-zinc-50 via-white to-zinc-100 z-0"></div>
 
-                                    <form onSubmit={handleNewsletterNext} className="space-y-4">
-                                        <div className="relative group">
-                                            <input
-                                                name="contact"
-                                                type="text"
-                                                placeholder="Adresse email ou téléphone"
-                                                className="w-full px-6 py-4.5 rounded-[1.25rem] bg-zinc-50/50 border border-zinc-200 font-medium text-[15px] outline-none focus:bg-white focus:border-zinc-950 focus:ring-4 focus:ring-zinc-900/5 transition-all duration-300 text-zinc-950 placeholder:text-zinc-400 shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]"
-                                                required
-                                            />
-                                        </div>
-                                        <PremiumGlowButton type="submit">
-                                            Continuer
-                                            <ArrowRight size={16} strokeWidth={2} />
-                                        </PremiumGlowButton>
-                                    </form>
-                                </motion.div>
-                            )}
+                        <motion.div
+                            animate={{
+                                scale: [1, 1.1, 1],
+                                opacity: [0.3, 0.5, 0.3],
+                                rotate: [0, 5, 0]
+                            }}
+                            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+                            className="absolute -top-32 -right-32 w-80 h-80 bg-stone-200/40 rounded-full blur-[60px] mix-blend-multiply z-0 pointer-events-none"
+                        />
 
-                            {newsletterStep === 2 && (
-                                <motion.div
-                                    key="step2"
-                                    initial={{ opacity: 0, filter: 'blur(8px)', x: -20 }}
-                                    animate={{ opacity: 1, filter: 'blur(0px)', x: 0 }}
-                                    exit={{ opacity: 0, filter: 'blur(4px)', x: 20 }}
-                                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                                    className="space-y-8"
-                                >
-                                    <div className="space-y-4 text-center relative px-2">
-                                        <h3 className="text-4xl sm:text-[2.5rem] font-medium tracking-tighter text-zinc-950 leading-[1.05] selection:bg-stone-200">
-                                            Faisons<br />
-                                            <span className="italic text-stone-500 font-serif font-light tracking-normal">connaissance.</span>
-                                        </h3>
+                        <motion.div
+                            animate={{
+                                scale: [1, 1.2, 1],
+                                opacity: [0.2, 0.4, 0.2]
+                            }}
+                            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                            className="absolute -bottom-32 -left-32 w-80 h-80 bg-stone-100/60 rounded-full blur-[60px] mix-blend-multiply z-0 pointer-events-none"
+                        />
 
-                                        {/* Text Reveal for Step 2 */}
-                                        <div className="text-[15px] text-zinc-500 font-medium leading-relaxed flex flex-wrap justify-center gap-[0.25em]">
-                                            {"Comment souhaitez-vous que nous vous appelions ?".split(" ").map((word, i) => (
-                                                <motion.span
-                                                    key={i}
-                                                    initial={{ opacity: 0, filter: 'blur(4px)', y: 10 }}
-                                                    animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
-                                                    transition={{ delay: 0.1 + i * 0.03, type: "spring", stiffness: 200, damping: 20 }}
-                                                >
-                                                    {word}
-                                                </motion.span>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <form onSubmit={handleNewsletterSubmit} className="space-y-5 pt-2">
-                                        <div className="space-y-3">
-                                            <input
-                                                name="firstName"
-                                                type="text"
-                                                placeholder="Prénom"
-                                                className="w-full px-6 py-4.5 rounded-[1.25rem] bg-zinc-50/50 border border-zinc-200 font-medium text-[15px] outline-none focus:bg-white focus:border-zinc-950 focus:ring-4 focus:ring-zinc-900/5 transition-all duration-300 text-zinc-950 placeholder:text-zinc-400 shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]"
-                                                required
-                                            />
-                                            <input
-                                                name="lastName"
-                                                type="text"
-                                                placeholder="Nom"
-                                                className="w-full px-6 py-4.5 rounded-[1.25rem] bg-zinc-50/50 border border-zinc-200 font-medium text-[15px] outline-none focus:bg-white focus:border-zinc-950 focus:ring-4 focus:ring-zinc-900/5 transition-all duration-300 text-zinc-950 placeholder:text-zinc-400 shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]"
-                                                required
-                                            />
-                                        </div>
-                                        <PremiumGlowButton type="submit" disabled={newsletterLoading}>
-                                            {newsletterLoading ? (
-                                                <motion.div
-                                                    animate={{ rotate: 360 }}
-                                                    transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                                                    className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
-                                                />
-                                            ) : (
-                                                "S'inscrire"
-                                            )}
-                                        </PremiumGlowButton>
-                                        <button
-                                            type="button"
-                                            onClick={() => setNewsletterStep(1)}
-                                            className="w-full pt-2 pb-1 text-[13px] font-medium text-zinc-400 hover:text-zinc-800 transition-colors"
-                                        >
-                                            Retour
-                                        </button>
-                                    </form>
-                                </motion.div>
-                            )}
-
-                            {newsletterStep === 3 && (
-                                <motion.div
-                                    key="step3"
-                                    initial={{ opacity: 0, scale: 0.95, filter: 'blur(8px)' }}
-                                    animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-                                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                                    className="space-y-8 flex flex-col items-center justify-center text-center py-6"
-                                >
+                        {/* Content Wrapper */}
+                        <div className="relative z-10 p-8 sm:p-12">
+                            <AnimatePresence mode="wait">
+                                {newsletterStep === 1 && (
                                     <motion.div
-                                        initial={{ scale: 0, rotate: -20 }}
-                                        animate={{ scale: 1, rotate: 0 }}
-                                        transition={{ type: "spring", stiffness: 400, damping: 25, delay: 0.1 }}
-                                        className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center shadow-[0_8px_16px_rgba(16,185,129,0.1)] mb-2"
+                                        key="step1"
+                                        initial={{ opacity: 0, filter: 'blur(8px)', x: -20 }}
+                                        animate={{ opacity: 1, filter: 'blur(0px)', x: 0 }}
+                                        exit={{ opacity: 0, filter: 'blur(4px)', x: 20 }}
+                                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                        className="space-y-10"
                                     >
-                                        <Check size={32} strokeWidth={2.5} />
+                                        <div className="space-y-6 text-center px-2">
+                                            <h3 className="text-4xl sm:text-[2.5rem] font-medium tracking-tighter text-zinc-950 leading-[1.05] selection:bg-stone-200">
+                                                L'Atelier, en<br />
+                                                <span className="italic text-stone-500 font-serif font-light tracking-normal">avant-première.</span>
+                                            </h3>
+
+                                            {/* Text Reveal */}
+                                            <div className="text-[15px] text-zinc-500 font-medium leading-relaxed flex flex-wrap justify-center gap-[0.25em]">
+                                                {paragraphWords.map((word, i) => {
+                                                    const isHighlighted = ["newsletter", "restaurations", "exclusives."].includes(word);
+                                                    return (
+                                                        <motion.span
+                                                            key={i}
+                                                            initial={{ opacity: 0, filter: 'blur(4px)', y: 10 }}
+                                                            animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
+                                                            transition={{ delay: 0.1 + i * 0.03, type: "spring", stiffness: 200, damping: 20 }}
+                                                            className={isHighlighted ? "text-zinc-900 font-bold" : ""}
+                                                        >
+                                                            {word}
+                                                        </motion.span>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+
+                                        <form onSubmit={handleNewsletterNext} className="space-y-4">
+                                            <div className="relative group">
+                                                <input
+                                                    name="contact"
+                                                    type="text"
+                                                    placeholder="Adresse email ou téléphone"
+                                                    className="w-full px-6 py-4.5 rounded-[1.25rem] bg-zinc-50/50 border border-zinc-200 font-medium text-[15px] outline-none focus:bg-white focus:border-zinc-950 focus:ring-4 focus:ring-zinc-900/5 transition-all duration-300 text-zinc-950 placeholder:text-zinc-400 shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]"
+                                                    required
+                                                />
+                                            </div>
+                                            <PremiumGlowButton type="submit">
+                                                Continuer
+                                                <ArrowRight size={16} strokeWidth={2} />
+                                            </PremiumGlowButton>
+                                        </form>
                                     </motion.div>
-                                    <div className="space-y-4">
-                                        <h3 className="text-4xl sm:text-[2.2rem] font-medium tracking-tighter text-zinc-950 leading-[1.1]">
-                                            Bienvenue,{' '}
-                                            <span className="text-stone-500 font-light italic capitalize tracking-normal">{leadStore.firstName || "Cher client"}</span>
-                                        </h3>
-                                        <p className="text-[14px] sm:text-[15px] text-zinc-500 font-medium leading-relaxed px-2 sm:px-4">
-                                            Votre inscription est confirmée. <br /> Nos prochaines trouvailles vous seront dévoilées en avant-première.
-                                        </p>
-                                    </div>
-                                    <motion.button
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
-                                        onClick={() => setShowNewsletter(false)}
-                                        className="px-8 py-4 bg-zinc-100/80 text-zinc-950 rounded-[1.25rem] font-semibold text-[13px] tracking-wide hover:bg-zinc-200 transition-colors mt-4 border border-zinc-200/50 shadow-sm"
+                                )}
+
+                                {newsletterStep === 2 && (
+                                    <motion.div
+                                        key="step2"
+                                        initial={{ opacity: 0, filter: 'blur(8px)', x: -20 }}
+                                        animate={{ opacity: 1, filter: 'blur(0px)', x: 0 }}
+                                        exit={{ opacity: 0, filter: 'blur(4px)', x: 20 }}
+                                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                        className="space-y-8"
                                     >
-                                        Fermer
-                                    </motion.button>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                                        <div className="space-y-4 text-center relative px-2">
+                                            <h3 className="text-4xl sm:text-[2.5rem] font-medium tracking-tighter text-zinc-950 leading-[1.05] selection:bg-stone-200">
+                                                Faisons<br />
+                                                <span className="italic text-stone-500 font-serif font-light tracking-normal">connaissance.</span>
+                                            </h3>
+
+                                            {/* Text Reveal for Step 2 */}
+                                            <div className="text-[15px] text-zinc-500 font-medium leading-relaxed flex flex-wrap justify-center gap-[0.25em]">
+                                                {"Comment souhaitez-vous que nous vous appelions ?".split(" ").map((word, i) => (
+                                                    <motion.span
+                                                        key={i}
+                                                        initial={{ opacity: 0, filter: 'blur(4px)', y: 10 }}
+                                                        animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
+                                                        transition={{ delay: 0.1 + i * 0.03, type: "spring", stiffness: 200, damping: 20 }}
+                                                    >
+                                                        {word}
+                                                    </motion.span>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <form onSubmit={handleNewsletterSubmit} className="space-y-5 pt-2">
+                                            <div className="space-y-3">
+                                                <input
+                                                    name="firstName"
+                                                    type="text"
+                                                    placeholder="Prénom"
+                                                    className="w-full px-6 py-4.5 rounded-[1.25rem] bg-zinc-50/50 border border-zinc-200 font-medium text-[15px] outline-none focus:bg-white focus:border-zinc-950 focus:ring-4 focus:ring-zinc-900/5 transition-all duration-300 text-zinc-950 placeholder:text-zinc-400 shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]"
+                                                    required
+                                                />
+                                                <input
+                                                    name="lastName"
+                                                    type="text"
+                                                    placeholder="Nom"
+                                                    className="w-full px-6 py-4.5 rounded-[1.25rem] bg-zinc-50/50 border border-zinc-200 font-medium text-[15px] outline-none focus:bg-white focus:border-zinc-950 focus:ring-4 focus:ring-zinc-900/5 transition-all duration-300 text-zinc-950 placeholder:text-zinc-400 shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]"
+                                                    required
+                                                />
+                                            </div>
+                                            <PremiumGlowButton type="submit" disabled={newsletterLoading}>
+                                                {newsletterLoading ? (
+                                                    <motion.div
+                                                        animate={{ rotate: 360 }}
+                                                        transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                                                        className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
+                                                    />
+                                                ) : (
+                                                    "S'inscrire"
+                                                )}
+                                            </PremiumGlowButton>
+                                            <button
+                                                type="button"
+                                                onClick={() => setNewsletterStep(1)}
+                                                className="w-full pt-2 pb-1 text-[13px] font-medium text-zinc-400 hover:text-zinc-800 transition-colors"
+                                            >
+                                                Retour
+                                            </button>
+                                        </form>
+                                    </motion.div>
+                                )}
+
+                                {newsletterStep === 3 && (
+                                    <motion.div
+                                        key="step3"
+                                        initial={{ opacity: 0, scale: 0.95, filter: 'blur(8px)' }}
+                                        animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                                        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                                        className="space-y-8 flex flex-col items-center justify-center text-center py-6"
+                                    >
+                                        <motion.div
+                                            initial={{ scale: 0, rotate: -20 }}
+                                            animate={{ scale: 1, rotate: 0 }}
+                                            transition={{ type: "spring", stiffness: 400, damping: 25, delay: 0.1 }}
+                                            className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center shadow-[0_8px_16px_rgba(16,185,129,0.1)] mb-2"
+                                        >
+                                            <Check size={32} strokeWidth={2.5} />
+                                        </motion.div>
+                                        <div className="space-y-4">
+                                            <h3 className="text-4xl sm:text-[2.2rem] font-medium tracking-tighter text-zinc-950 leading-[1.1]">
+                                                Bienvenue,{' '}
+                                                <span className="text-stone-500 font-light italic capitalize tracking-normal">{leadStore.firstName || "Cher client"}</span>
+                                            </h3>
+                                            <p className="text-[14px] sm:text-[15px] text-zinc-500 font-medium leading-relaxed px-2 sm:px-4">
+                                                Votre inscription est confirmée. <br /> Nos prochaines trouvailles vous seront dévoilées en avant-première.
+                                            </p>
+                                        </div>
+                                        <motion.button
+                                            whileHover={{ scale: 1.02 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            onClick={() => setShowNewsletter(false)}
+                                            className="px-8 py-4 bg-zinc-100/80 text-zinc-950 rounded-[1.25rem] font-semibold text-[13px] tracking-wide hover:bg-zinc-200 transition-colors mt-4 border border-zinc-200/50 shadow-sm"
+                                        >
+                                            Fermer
+                                        </motion.button>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
                     </div>
                 </motion.div>
             </div>

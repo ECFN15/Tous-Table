@@ -21,13 +21,7 @@ const AdminOrders = ({ darkMode = false }) => {
         return () => unsub();
     }, [orderLimit]);
 
-    const toggleStatus = async (order) => {
-        // Cycle: pending/paid -> shipped -> completed -> pending
-        let newStatus = 'pending_payment';
-        if (order.status === 'pending_payment' || order.status === 'paid' || !order.status) newStatus = 'shipped';
-        else if (order.status === 'shipped') newStatus = 'completed';
-        else if (order.status === 'completed') newStatus = 'pending_payment';
-
+    const updateOrderStatus = async (order, newStatus) => {
         await updateDoc(doc(db, 'orders', order.id), { status: newStatus });
     };
 
@@ -220,13 +214,40 @@ const AdminOrders = ({ darkMode = false }) => {
                                                 <p className="text-[10px] opacity-50 mt-2 font-mono">UID: {order.userId}</p>
                                             </div>
 
-                                            <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); toggleStatus(order); }}
-                                                    className={`flex-1 py-4 sm:py-3 rounded-xl font-bold text-[10px] sm:text-xs transition-colors shadow-sm ${darkMode ? 'bg-white text-stone-900 hover:bg-stone-200' : 'bg-stone-900 text-white hover:bg-stone-800'}`}
-                                                >
-                                                    {order.status === 'shipped' ? 'Marquer comme Livrée' : (order.status === 'completed' ? 'Rouvrir la commande' : 'Expédier la commande')}
-                                                </button>
+                                            <div className="flex flex-col gap-2 pt-4">
+                                                <div className="flex flex-col xl:flex-row gap-2">
+                                                    {/* Status Actions */}
+                                                    {(order.status === 'pending_payment' || order.status === 'paid' || !order.status) ? (
+                                                        <>
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); updateOrderStatus(order, 'shipped'); }}
+                                                                className={`flex-1 py-4 xl:py-3 rounded-xl font-bold text-[10px] sm:text-xs transition-colors shadow-sm ${darkMode ? 'bg-white text-stone-900 hover:bg-stone-200' : 'bg-stone-900 text-white hover:bg-stone-800'}`}
+                                                            >
+                                                                Marqué comme expédié
+                                                            </button>
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); updateOrderStatus(order, 'completed'); }}
+                                                                className={`flex-1 py-4 xl:py-3 rounded-xl font-bold text-[10px] sm:text-xs transition-colors shadow-sm ${darkMode ? 'bg-emerald-500 text-white hover:bg-emerald-400' : 'bg-emerald-600 text-white hover:bg-emerald-700'}`}
+                                                            >
+                                                                Marquer comme Livrée
+                                                            </button>
+                                                        </>
+                                                    ) : order.status === 'shipped' ? (
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); updateOrderStatus(order, 'completed'); }}
+                                                            className={`flex-1 py-4 xl:py-3 rounded-xl font-bold text-[10px] sm:text-xs transition-colors shadow-sm ${darkMode ? 'bg-white text-stone-900 hover:bg-stone-200' : 'bg-stone-900 text-white hover:bg-stone-800'}`}
+                                                        >
+                                                            Marquer comme Livrée
+                                                        </button>
+                                                    ) : order.status === 'completed' ? (
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); updateOrderStatus(order, 'pending_payment'); }}
+                                                            className={`flex-1 py-4 xl:py-3 rounded-xl font-bold text-[10px] sm:text-xs transition-colors shadow-sm ${darkMode ? 'bg-stone-700 text-white hover:bg-stone-600' : 'bg-stone-200 text-stone-900 hover:bg-stone-300'}`}
+                                                        >
+                                                            Rouvrir la commande
+                                                        </button>
+                                                    ) : null}
+                                                </div>
 
                                                 {/* Smart Cancel Button (Restores Stock + Deletes Order) */}
                                                 <button
@@ -234,7 +255,7 @@ const AdminOrders = ({ darkMode = false }) => {
                                                         e.stopPropagation();
                                                         handleCancelAndRestore(order);
                                                     }}
-                                                    className={`w-full sm:w-auto px-4 py-4 sm:py-3 rounded-xl transition-colors font-bold uppercase text-[10px] tracking-widest border shadow-sm ${darkMode ? 'bg-red-950/30 text-red-500 border-red-900/50 hover:bg-red-900/50' : 'bg-red-50 text-red-600 border-red-100 hover:bg-red-100'}`}
+                                                    className={`w-full px-4 py-4 xl:py-3 rounded-xl transition-colors font-bold uppercase text-[10px] tracking-widest border shadow-sm ${darkMode ? 'bg-red-950/30 text-red-500 border-red-900/50 hover:bg-red-900/50' : 'bg-red-50 text-red-600 border-red-100 hover:bg-red-100'}`}
                                                     title="Annuler : Remet le stock et supprime la commande"
                                                 >
                                                     Annuler & Restaurer Stock
