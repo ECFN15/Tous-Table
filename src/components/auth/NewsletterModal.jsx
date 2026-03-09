@@ -158,8 +158,18 @@ const NewsletterModal = ({ showNewsletter, setShowNewsletter }) => {
 
     if (!showNewsletter) return null;
 
-    const paragraphText = "Abonnez-vous à notre newsletter pour ne manquer aucune nouveauté et suivre nos restaurations exclusives.";
-    const paragraphWords = paragraphText.split(" ");
+    const paragraphText = "Abonnez-vous à notre Newsletter pour ne manquer aucune nouveauté et suivre nos Restaurations Exclusives.";
+    const paragraphWords = paragraphText.split(" ").reduce((acc, word, i, arr) => {
+        if (word === "Restaurations" && arr[i + 1] === "Exclusives.") {
+            acc.push("Restaurations Exclusives.");
+            return acc;
+        }
+        if (word === "Exclusives." && arr[i - 1] === "Restaurations") {
+            return acc;
+        }
+        acc.push(word);
+        return acc;
+    }, []);
 
     return (
         <>
@@ -252,16 +262,34 @@ const NewsletterModal = ({ showNewsletter, setShowNewsletter }) => {
                                             {/* Text Reveal */}
                                             <div className="text-[15px] text-zinc-500 font-medium leading-relaxed flex flex-wrap justify-center gap-[0.25em]">
                                                 {paragraphWords.map((word, i) => {
-                                                    const isHighlighted = ["newsletter", "restaurations", "exclusives."].includes(word);
+                                                    const isHighlighted = ["Newsletter", "Restaurations Exclusives."].includes(word);
                                                     return (
                                                         <motion.span
                                                             key={i}
                                                             initial={{ opacity: 0, filter: 'blur(4px)', y: 10 }}
                                                             animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
                                                             transition={{ delay: 0.1 + i * 0.03, type: "spring", stiffness: 200, damping: 20 }}
-                                                            className={isHighlighted ? "text-zinc-900 font-bold" : ""}
+                                                            className={isHighlighted ? "relative inline-block text-zinc-950 font-black tracking-tight" : ""}
                                                         >
                                                             {word}
+                                                            {isHighlighted && (
+                                                                <motion.svg
+                                                                    initial={{ pathLength: 0, opacity: 0 }}
+                                                                    animate={{ pathLength: 1, opacity: 1 }}
+                                                                    transition={{ delay: 0.5 + i * 0.1, duration: 0.8, ease: "easeOut" }}
+                                                                    className="absolute -bottom-1 left-0 w-full h-2 text-zinc-950"
+                                                                    viewBox="0 0 100 10"
+                                                                    preserveAspectRatio="none"
+                                                                >
+                                                                    <path
+                                                                        d={word === "Newsletter" ? "M0,5 Q25,0 50,5 T100,5" : "M0,5 L100,5"}
+                                                                        fill="none"
+                                                                        stroke="currentColor"
+                                                                        strokeWidth="2"
+                                                                        strokeLinecap="round"
+                                                                    />
+                                                                </motion.svg>
+                                                            )}
                                                         </motion.span>
                                                     );
                                                 })}
