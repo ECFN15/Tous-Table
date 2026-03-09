@@ -176,14 +176,15 @@ const AdminItemList = ({ collectionName, darkMode, onEdit, onToggleStatus, onDel
                                                 )}
                                             </div>
                                         </div>
-                                        <div className="flex items-center justify-end md:justify-start gap-2 md:gap-3 w-full md:w-auto mt-2 md:mt-0 border-t md:border-none pt-3 md:pt-0">
+                                        <div className="flex flex-wrap items-center justify-end md:justify-start gap-2.5 md:gap-3 w-full md:w-auto mt-2 md:mt-0 border-t md:border-none pt-4 md:pt-0">
                                             {!item.sold && (
                                                 <button
                                                     onClick={() => onMarkAsSold(item)}
-                                                    className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shadow-sm ring-1 ring-inset transition-all hover:scale-110 ${darkMode ? 'bg-emerald-950/20 text-emerald-500 ring-emerald-900/30 hover:bg-emerald-500 hover:text-white' : 'bg-emerald-50 text-emerald-600 ring-emerald-100 hover:bg-emerald-500 hover:text-white'}`}
+                                                    className={`px-4 py-2.5 md:px-6 md:py-3 rounded-2xl md:rounded-[1.5rem] flex items-center justify-center gap-2 shadow-sm ring-1 ring-inset transition-all hover:scale-105 active:scale-95 whitespace-nowrap flex-grow md:flex-grow-0 ${darkMode ? 'bg-emerald-950/20 text-emerald-400 ring-emerald-900/30 hover:bg-emerald-500 hover:text-white' : 'bg-emerald-50 text-emerald-600 ring-emerald-100 hover:bg-emerald-500 hover:text-white'}`}
                                                     title="Marquer comme VENDU"
                                                 >
-                                                    <CheckCircle size={16} className="md:w-[18px]" />
+                                                    <CheckCircle size={14} className="md:w-4 md:h-4" />
+                                                    <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest">Marquer comme vendu</span>
                                                 </button>
                                             )}
 
