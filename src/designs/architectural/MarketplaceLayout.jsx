@@ -97,7 +97,7 @@ const MarketplaceLayout = ({
                                     transition={{ repeat: Infinity, duration: 6, ease: "linear" }}
                                     className="absolute inset-[-150%] z-0"
                                     style={{
-                                        background: "conic-gradient(from 0deg, transparent 35%, rgba(255,255,255,0) 40%, rgba(255,255,255,1) 50%, rgba(255,255,255,0) 60%, transparent 65%)",
+                                        background: "conic-gradient(from 0deg, transparent 30%, rgba(255,255,255,0) 35%, rgba(255,255,255,1) 50%, rgba(255,255,255,0) 65%, transparent 70%)",
                                     }}
                                 />
                             )}
@@ -121,7 +121,7 @@ const MarketplaceLayout = ({
                                     transition={{ repeat: Infinity, duration: 6, ease: "linear" }}
                                     className="absolute inset-[-150%] z-0"
                                     style={{
-                                        background: "conic-gradient(from 0deg, transparent 35%, rgba(255,255,255,0) 40%, rgba(255,255,255,1) 50%, rgba(255,255,255,0) 60%, transparent 65%)",
+                                        background: "conic-gradient(from 0deg, transparent 30%, rgba(255,255,255,0) 35%, rgba(255,255,255,1) 50%, rgba(255,255,255,0) 65%, transparent 70%)",
                                     }}
                                 />
                             )}
