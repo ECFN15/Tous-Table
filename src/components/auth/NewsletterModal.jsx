@@ -8,59 +8,134 @@ import confetti from 'canvas-confetti';
 
 
 const PremiumGlowButton = ({ children, onClick, type = "button", disabled = false, className = "" }) => {
-    const mouseX = useMotionValue(0);
-    const mouseY = useMotionValue(0);
-
-    function handleMouseMove({ currentTarget, clientX, clientY }) {
-        let { left, top } = currentTarget.getBoundingClientRect();
-        mouseX.set(clientX - left);
-        mouseY.set(clientY - top);
-    }
-
     return (
         <motion.button
-            whileTap={{ scale: 0.97 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={onClick}
             type={type}
             disabled={disabled}
-            className={`group relative flex w-full items-center justify-center overflow-hidden rounded-[1.25rem] bg-zinc-950 py-4.5 text-white transition-all shadow-[0_8px_20px_-6px_rgba(0,0,0,0.2)] hover:shadow-[0_12px_24px_-8px_rgba(0,0,0,0.4)] disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
-            onMouseMove={handleMouseMove}
+            // On utilise exactement les mêmes classes de largeur (w-full max-w-[320px] sm:max-w-sm) que le wrapper
+            className={`relative flex w-full max-w-[320px] sm:max-w-sm mx-auto items-center justify-center rounded-full bg-transparent border border-white/30 py-4 px-6 text-white font-medium text-lg hover:bg-white/10 transition-colors backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
         >
-            {/* 1. Outer Tracking Border Glow (The "Neon" Edge) */}
-            <motion.div
-                className="pointer-events-none absolute -inset-[1px] rounded-[1.25rem] opacity-0 transition duration-300 group-hover:opacity-100 z-0"
-                style={{
-                    background: useMotionTemplate`
-                        radial-gradient(
-                            180px circle at ${mouseX}px ${mouseY}px,
-                            rgba(255, 255, 255, 1),
-                            transparent 80%
-                        )
-                    `,
-                }}
-            />
-
-            {/* 2. Inner mask to block the center of the outer glow, leaving only a 1px border visually */}
-            <div className="absolute inset-[1px] rounded-[calc(1.25rem-1px)] bg-zinc-950 z-10 transition-colors duration-300 group-hover:bg-[#0a0a0a]" />
-
-            {/* 3. Inner tracking light (The "Torch" effect on the button surface) */}
-            <motion.div
-                className="pointer-events-none absolute inset-0 rounded-[1.25rem] opacity-0 transition duration-300 group-hover:opacity-100 z-20 mix-blend-screen"
-                style={{
-                    background: useMotionTemplate`
-                        radial-gradient(
-                            100px circle at ${mouseX}px ${mouseY}px,
-                            rgba(255, 255, 255, 0.08),
-                            transparent 80%
-                        )
-                    `,
-                }}
-            />
-
-            <span className="relative z-30 flex items-center justify-center gap-2 font-semibold text-[14px] tracking-wide text-zinc-300 group-hover:text-white transition-colors duration-300">
-                {children}
-            </span>
+            {children}
         </motion.button>
+    );
+};
+
+const NeonInputWrapper = ({ children, className = "" }) => {
+    return (
+        // Même base de largeur que PremiumGlowButton pour alignement parfait
+        <div className={`relative group p-[1.5px] rounded-full overflow-hidden w-full max-w-[320px] sm:max-w-sm mx-auto ${className}`}>
+            <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ repeat: Infinity, duration: 3, ease: "linear" }}
+                // Utilisation d'un carré géant absolu plutôt que "inset-[-100%]" pour éviter la coupure sur les très grands rectangles (inputs larges)
+                className="absolute top-1/2 left-1/2 h-[800px] w-[800px] origin-center -translate-x-1/2 -translate-y-1/2 z-0"
+                style={{
+                    background: "conic-gradient(from 0deg, transparent 30%, rgba(255,255,255,0) 35%, rgba(255,255,255,1) 50%, rgba(255,255,255,0) 65%, transparent 70%)",
+                }}
+            />
+            <div className="relative w-full h-full rounded-full bg-zinc-950/90 backdrop-blur-md overflow-hidden z-10">
+                {children}
+            </div>
+        </div>
+    );
+};
+
+const AnimatedShowcase = () => {
+    // Photos Unsplash fiables (mobilier, archi, objets), sélectionnées pour être très verticales / portrait
+    const column1 = [
+        { src: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&q=80&w=800", aspect: "aspect-[2/3]" },
+        { src: "https://images.unsplash.com/photo-1592078615290-033ee584e267?auto=format&fit=crop&q=80&w=800", aspect: "aspect-[4/5]" },
+        { src: "https://images.unsplash.com/photo-1503602642458-232111445657?auto=format&fit=crop&q=80&w=800", aspect: "aspect-[3/4]" },
+        { src: "https://images.unsplash.com/photo-1581428982868-e410dd981a90?auto=format&fit=crop&q=80&w=800", aspect: "aspect-[9/16]" },
+        { src: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&q=80&w=800", aspect: "aspect-[2/3]" }
+    ];
+    
+    const column2 = [
+        { src: "https://images.unsplash.com/photo-1538688525198-9b88f6f53126?auto=format&fit=crop&q=80&w=800", aspect: "aspect-[9/16]" },
+        { src: "https://images.unsplash.com/photo-1604578762246-41134e37f9cc?auto=format&fit=crop&q=80&w=800", aspect: "aspect-[3/4]" },
+        { src: "https://images.unsplash.com/photo-1505693314120-0d443867891c?auto=format&fit=crop&q=80&w=800", aspect: "aspect-square" },
+        { src: "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&q=80&w=800", aspect: "aspect-[2/3]" },
+        { src: "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?auto=format&fit=crop&q=80&w=800", aspect: "aspect-[4/5]" }
+    ];
+
+    const column3 = [
+        { src: "https://images.unsplash.com/photo-1540932239986-30128078f3c5?auto=format&fit=crop&q=80&w=800", aspect: "aspect-[4/5]" },
+        { src: "https://images.unsplash.com/photo-1519961655809-34fa156820ff?auto=format&fit=crop&q=80&w=800", aspect: "aspect-[2/3]" },
+        { src: "https://images.unsplash.com/photo-1567016432779-094069958ea5?auto=format&fit=crop&q=80&w=800", aspect: "aspect-[9/16]" },
+        { src: "https://images.unsplash.com/photo-1631679706909-1844bbd07221?auto=format&fit=crop&q=80&w=800", aspect: "aspect-[3/4]" },
+        { src: "https://images.unsplash.com/photo-1616486029423-aaa4789e8c9a?auto=format&fit=crop&q=80&w=800", aspect: "aspect-[2/3]" }
+    ];
+
+    // Pour garantir une boucle infini transparente (seamless loop) : 
+    // On doit empiler les listes d'images assez de fois pour que lorsque ça remonte à 0%, 
+    // on ait parcouru exactement la hauteur d'une "page" complète sans voir la fin.
+    // L'astuce est de dupliquer la liste de façon très longue.
+    const loop1 = [...column1, ...column1, ...column1, ...column1];
+    const loop2 = [...column2, ...column2, ...column2, ...column2];
+    const loop3 = [...column3, ...column3, ...column3, ...column3];
+
+    return (
+        <div className="absolute inset-0 flex gap-1 p-1 overflow-hidden opacity-30 md:opacity-100 bg-[#1c1a17]">
+            {/* Column 1 - Large, portrait images */}
+            <motion.div 
+                className="flex flex-col gap-1 w-1/2 md:w-1/3"
+                animate={{ y: ["0%", "-50%"] }}
+                transition={{ repeat: Infinity, ease: "linear", duration: 60 }}
+            >
+                {loop1.map((item, i) => (
+                    <div key={`c1-${i}`} className={`shrink-0 w-full ${item.aspect} relative bg-stone-900 group overflow-hidden`}>
+                        <img 
+                            src={item.src} 
+                            alt="" 
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" 
+                            loading={i > 5 ? "lazy" : "eager"}
+                        />
+                        <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500" />
+                    </div>
+                ))}
+            </motion.div>
+
+            {/* Column 2 - Large, portrait images */}
+            <motion.div 
+                className="flex flex-col gap-1 w-1/2 md:w-1/3"
+                animate={{ y: ["-50%", "0%"] }}
+                transition={{ repeat: Infinity, ease: "linear", duration: 75 }}
+            >
+                {loop2.map((item, i) => (
+                    <div key={`c2-${i}`} className={`shrink-0 w-full ${item.aspect} relative bg-stone-900 group overflow-hidden`}>
+                        <img 
+                            src={item.src} 
+                            alt="" 
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                            loading={i > 5 ? "lazy" : "eager"}
+                        />
+                        <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500" />
+                    </div>
+                ))}
+            </motion.div>
+
+            {/* Column 3 - Large, portrait images (Hidden on mobile to keep images BIG) */}
+            <motion.div 
+                className="hidden md:flex flex-col gap-1 w-1/3"
+                animate={{ y: ["0%", "-50%"] }}
+                transition={{ repeat: Infinity, ease: "linear", duration: 55 }}
+            >
+                {loop3.map((item, i) => (
+                    <div key={`c3-${i}`} className={`shrink-0 w-full ${item.aspect} relative bg-stone-900 group overflow-hidden`}>
+                        <img 
+                            src={item.src} 
+                            alt="" 
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                            loading={i > 5 ? "lazy" : "eager"}
+                        />
+                        <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500" />
+                    </div>
+                ))}
+            </motion.div>
+        </div>
     );
 };
 
@@ -156,274 +231,246 @@ const NewsletterModal = ({ showNewsletter, setShowNewsletter }) => {
         }
     };
 
+    // Pour bloquer le scroll du body quand le modal est ouvert
+    React.useEffect(() => {
+        if (showNewsletter) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'auto';
+        }
+        return () => {
+            document.body.style.overflow = 'auto';
+        };
+    }, [showNewsletter]);
+
     if (!showNewsletter) return null;
 
-    const paragraphText = "Abonnez-vous à notre Newsletter pour ne manquer aucune nouveauté et suivre nos Restaurations Exclusives.";
-    const paragraphWords = paragraphText.split(" ").reduce((acc, word, i, arr) => {
-        if (word === "Restaurations" && arr[i + 1] === "Exclusives.") {
-            acc.push("Restaurations Exclusives.");
-            return acc;
-        }
-        if (word === "Exclusives." && arr[i - 1] === "Restaurations") {
-            return acc;
-        }
-        acc.push(word);
-        return acc;
-    }, []);
-
     return (
-        <>
-            <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 sm:p-6 overflow-hidden">
-                {/* Background Blur Overlay */}
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.5 }}
-                    className="absolute inset-0 bg-stone-900/40 backdrop-blur-md"
-                    onClick={() => setShowNewsletter(false)}
-                />
+        <AnimatePresence>
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[2000] flex w-full h-[100dvh] bg-stone-900 overflow-hidden"
+            >
+                {/* Animated Showcase Section - Right side on desktop, background on mobile */}
+                <div className="absolute inset-0 lg:relative lg:w-1/2 h-full z-0 lg:order-2 bg-[#1c1a17] overflow-hidden">
+                    {/* Lighter overlay on mobile with subtle blur for readability, subtle dark on desktop */}
+                    <div className="absolute inset-0 bg-stone-900/30 backdrop-blur-[3px] lg:backdrop-blur-none lg:bg-stone-900/30 z-10 pointer-events-none" />
+                    
+                    {/* Add an extra subtle dark gradient at the center on mobile to anchor the text */}
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,0,0,0.5)_0%,transparent_70%)] lg:hidden z-10 pointer-events-none" />
 
-                {/* Main Modal Container With Neon Margin */}
-                <motion.div
-                    layoutId="modal-container"
-                    initial={{ opacity: 0, scale: 0.95, y: 20, filter: 'blur(10px)' }}
-                    animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
-                    exit={{ opacity: 0, scale: 0.95, y: -20, filter: 'blur(10px)' }}
-                    transition={{ type: "spring", stiffness: 300, damping: 30, mass: 1 }}
-                    className="relative w-full max-w-[480px] rounded-[2rem] sm:rounded-[2.5rem] p-[5px] overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] isolation-auto"
-                >
-                    {/* Serpent Néon - Glow Arrière (Très Intense) */}
-                    <motion.div
-                        animate={{ rotate: -360 }}
-                        transition={{ repeat: Infinity, duration: 6, ease: "linear" }}
-                        className="absolute inset-[-150%] z-0 blur-2xl opacity-100"
-                        style={{
-                            background: "conic-gradient(from 0deg, transparent 40%, #000 50%, #444 80%, #fff 95%, transparent 100%)",
-                        }}
-                    />
+                    <AnimatedShowcase />
 
-                    {/* Serpent Néon - Cœur (Ligne Blanche Éclatante) */}
-                    <motion.div
-                        animate={{ rotate: -360 }}
-                        transition={{ repeat: Infinity, duration: 6, ease: "linear" }}
-                        className="absolute inset-[-120%] z-0"
-                        style={{
-                            background: "conic-gradient(from 0deg, transparent 40%, rgba(0,0,0,1) 50%, rgba(50,50,50,1) 80%, rgba(255,255,255,1) 95%, transparent 100%)",
-                        }}
-                    />
+                    {/* Gradient fade to blend with left panel */}
+                    <div className="hidden lg:block absolute inset-y-0 left-0 w-48 bg-gradient-to-r from-[#1c1a17] to-transparent z-20 pointer-events-none" />
+                    <div className="hidden lg:block absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[#1c1a17] to-transparent z-20 pointer-events-none" />
+                    <div className="hidden lg:block absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-[#1c1a17] to-transparent z-20 pointer-events-none" />
+                </div>
 
-                    {/* Inner White Face */}
-                    <div className="relative w-full h-full rounded-[calc(2rem-5px)] sm:rounded-[calc(2.5rem-5px)] bg-white overflow-hidden border border-zinc-200/50 z-10">
-                        <button onClick={() => setShowNewsletter(false)} className="absolute top-4 right-4 sm:top-6 sm:right-6 text-zinc-400 hover:text-zinc-900 transition-colors z-[2010] p-2 hover:bg-zinc-100 rounded-full">
-                            <X size={20} strokeWidth={1.5} />
-                        </button>
+                {/* Content Section - Left side */}
+                {/* On passe en md/lg au lieu de w-full pour que la tablette s'affiche bien (sur tablette on garde le fond pleine page car 50% de l'écran ipad c'est trop petit pour le texte) */}
+                <div className="relative z-10 w-full lg:w-1/2 h-full flex flex-col items-center justify-center p-6 sm:p-12 lg:order-1 text-white">
+                    <button 
+                        onClick={() => setShowNewsletter(false)} 
+                        className="absolute top-4 right-4 sm:top-6 sm:right-6 lg:right-auto lg:left-8 text-white/50 hover:text-white transition-colors z-[2010] p-3 bg-black/20 lg:bg-transparent rounded-full lg:rounded-none backdrop-blur-md lg:backdrop-blur-none"
+                    >
+                        <X size={24} strokeWidth={2} className="sm:w-7 sm:h-7 lg:w-8 lg:h-8 lg:stroke-[1.5]" />
+                    </button>
 
-                        {/* Background Mesh/Glow (Subtle) */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-zinc-50 via-white to-zinc-100 z-0"></div>
+                    <div className="w-full max-w-[90%] sm:max-w-lg lg:max-w-xl mx-auto flex flex-col items-center text-center mt-8 sm:mt-0">
+                        <AnimatePresence mode="wait">
+                            {newsletterStep === 1 && (
+                                <motion.div
+                                    key="step1"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -20 }}
+                                    className="w-full space-y-8 sm:space-y-12"
+                                >
+                                    <div className="space-y-3 sm:space-y-4">
+                                        <h2 className="text-xs sm:text-sm font-bold tracking-[0.2em] text-white/70 uppercase">
+                                            L'Atelier en avant-première
+                                        </h2>
+                                        <h1 className="text-[2.75rem] sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tighter text-white leading-[0.9]">
+                                            REJOIGNEZ<br />
+                                            LE CERCLE
+                                        </h1>
+                                        <p className="text-base sm:text-lg text-white/80 max-w-sm sm:max-w-md mx-auto mt-4 sm:mt-6">
+                                            Pour ne manquer aucune nouveauté et suivre nos restaurations exclusives.
+                                        </p>
+                                    </div>
 
-                        <motion.div
-                            animate={{
-                                scale: [1, 1.1, 1],
-                                opacity: [0.3, 0.5, 0.3],
-                                rotate: [0, 5, 0]
-                            }}
-                            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                            className="absolute -top-32 -right-32 w-80 h-80 bg-stone-200/40 rounded-full blur-[60px] mix-blend-multiply z-0 pointer-events-none"
-                        />
+                                    <form onSubmit={handleNewsletterNext} className="w-full flex flex-col items-center space-y-4 sm:space-y-5 mt-8 sm:mt-12 px-4 sm:px-0">
+                                        <NeonInputWrapper>
+                                            <input
+                                                name="contact"
+                                                type="text"
+                                                placeholder="Email ou téléphone"
+                                                className="w-full px-6 py-3.5 sm:py-4 rounded-full bg-transparent text-white placeholder:text-white/50 text-center text-base sm:text-lg focus:outline-none focus:bg-white/5 transition-colors duration-300"
+                                                required
+                                            />
+                                        </NeonInputWrapper>
+                                        <PremiumGlowButton type="submit" className="!py-[15px] sm:!py-[17px] bg-white/5 mt-2">
+                                            Continuer
+                                        </PremiumGlowButton>
+                                    </form>
 
-                        <motion.div
-                            animate={{
-                                scale: [1, 1.2, 1],
-                                opacity: [0.2, 0.4, 0.2]
-                            }}
-                            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                            className="absolute -bottom-32 -left-32 w-80 h-80 bg-stone-100/60 rounded-full blur-[60px] mix-blend-multiply z-0 pointer-events-none"
-                        />
-
-                        {/* Content Wrapper */}
-                        <div className="relative z-10 p-8 sm:p-12">
-                            <AnimatePresence mode="wait">
-                                {newsletterStep === 1 && (
-                                    <motion.div
-                                        key="step1"
-                                        initial={{ opacity: 0, filter: 'blur(8px)', x: -20 }}
-                                        animate={{ opacity: 1, filter: 'blur(0px)', x: 0 }}
-                                        exit={{ opacity: 0, filter: 'blur(4px)', x: 20 }}
-                                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                                        className="space-y-10"
+                                    <button 
+                                        onClick={() => setShowNewsletter(false)}
+                                        className="text-white/60 hover:text-white text-xs sm:text-sm font-medium transition-colors mt-6 sm:mt-8 inline-block"
                                     >
-                                        <div className="space-y-6 text-center px-2">
-                                            <h3 className="text-4xl sm:text-[2.5rem] font-medium tracking-tighter text-zinc-950 leading-[1.05] selection:bg-stone-200">
-                                                L'Atelier, en<br />
-                                                <span className="italic text-stone-500 font-serif font-light tracking-normal">avant-première.</span>
-                                            </h3>
+                                        Non merci,<br className="sm:hidden" /> je préfère rater les prochaines pièces
+                                    </button>
+                                </motion.div>
+                            )}
 
-                                            {/* Text Reveal */}
-                                            <div className="text-[15px] text-zinc-500 font-medium leading-relaxed flex flex-wrap justify-center gap-[0.25em]">
-                                                {paragraphWords.map((word, i) => {
-                                                    const isHighlighted = ["Newsletter", "Restaurations Exclusives."].includes(word);
-                                                    return (
-                                                        <motion.span
-                                                            key={i}
-                                                            initial={{ opacity: 0, filter: 'blur(4px)', y: 10 }}
-                                                            animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
-                                                            transition={{ delay: 0.1 + i * 0.03, type: "spring", stiffness: 200, damping: 20 }}
-                                                            className={isHighlighted ? "relative inline-block text-zinc-950 font-black tracking-tight" : ""}
-                                                        >
-                                                            {word}
-                                                            {isHighlighted && (
-                                                                <motion.svg
-                                                                    initial={{ pathLength: 0, opacity: 0 }}
-                                                                    animate={{ pathLength: 1, opacity: 1 }}
-                                                                    transition={{ delay: 0.5 + i * 0.1, duration: 0.8, ease: "easeOut" }}
-                                                                    className="absolute -bottom-1 left-0 w-full h-2 text-zinc-950"
-                                                                    viewBox="0 0 100 10"
-                                                                    preserveAspectRatio="none"
-                                                                >
-                                                                    <path
-                                                                        d={word === "Newsletter" ? "M0,5 Q25,0 50,5 T100,5" : "M0,5 L100,5"}
-                                                                        fill="none"
-                                                                        stroke="currentColor"
-                                                                        strokeWidth="2"
-                                                                        strokeLinecap="round"
-                                                                    />
-                                                                </motion.svg>
-                                                            )}
-                                                        </motion.span>
-                                                    );
-                                                })}
-                                            </div>
-                                        </div>
+                            {newsletterStep === 2 && (
+                                <motion.div
+                                    key="step2"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -20 }}
+                                    className="w-full space-y-8 sm:space-y-12"
+                                >
+                                    <div className="space-y-3 sm:space-y-4">
+                                        <h2 className="text-xs sm:text-sm font-bold tracking-[0.2em] text-white/70 uppercase">
+                                            Faisons connaissance
+                                        </h2>
+                                        <h1 className="text-[2.5rem] sm:text-4xl md:text-5xl font-bold tracking-tighter text-white leading-[1]">
+                                            COMMENT<br />
+                                            VOUS APPELER ?
+                                        </h1>
+                                    </div>
 
-                                        <form onSubmit={handleNewsletterNext} className="space-y-4">
-                                            <div className="relative group">
-                                                <input
-                                                    name="contact"
-                                                    type="text"
-                                                    placeholder="Adresse email ou téléphone"
-                                                    className="w-full px-6 py-4.5 rounded-[1.25rem] bg-zinc-50/50 border border-zinc-200 font-medium text-[15px] outline-none focus:bg-white focus:border-zinc-950 focus:ring-4 focus:ring-zinc-900/5 transition-all duration-300 text-zinc-950 placeholder:text-zinc-400 shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]"
-                                                    required
+                                    <form onSubmit={handleNewsletterSubmit} className="w-full flex flex-col items-center space-y-3 sm:space-y-4 mt-8 sm:mt-12 px-4 sm:px-0">
+                                        <input
+                                            name="firstName"
+                                            type="text"
+                                            placeholder="Prénom"
+                                            className="w-full max-w-[320px] sm:max-w-sm px-6 py-3.5 sm:py-4 rounded-full bg-[#141311]/90 backdrop-blur-xl border border-white/10 text-white placeholder:text-white/50 text-center text-base sm:text-lg focus:outline-none focus:bg-white/5 focus:border-white/30 transition-all duration-300"
+                                            required
+                                        />
+                                        <input
+                                            name="lastName"
+                                            type="text"
+                                            placeholder="Nom"
+                                            className="w-full max-w-[320px] sm:max-w-sm px-6 py-3.5 sm:py-4 rounded-full bg-[#141311]/90 backdrop-blur-xl border border-white/10 text-white placeholder:text-white/50 text-center text-base sm:text-lg focus:outline-none focus:bg-white/5 focus:border-white/30 transition-all duration-300"
+                                            required
+                                        />
+                                        
+                                        <PremiumGlowButton type="submit" disabled={newsletterLoading} className="!py-[15px] sm:!py-[17px] mt-4">
+                                            {newsletterLoading ? (
+                                                <motion.div
+                                                    animate={{ rotate: 360 }}
+                                                    transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                                                    className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full mx-auto"
                                                 />
-                                            </div>
-                                            <PremiumGlowButton type="submit">
-                                                Continuer
-                                                <ArrowRight size={16} strokeWidth={2} />
-                                            </PremiumGlowButton>
-                                        </form>
-                                    </motion.div>
-                                )}
-
-                                {newsletterStep === 2 && (
-                                    <motion.div
-                                        key="step2"
-                                        initial={{ opacity: 0, filter: 'blur(8px)', x: -20 }}
-                                        animate={{ opacity: 1, filter: 'blur(0px)', x: 0 }}
-                                        exit={{ opacity: 0, filter: 'blur(4px)', x: 20 }}
-                                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                                        className="space-y-8"
-                                    >
-                                        <div className="space-y-4 text-center relative px-2">
-                                            <h3 className="text-4xl sm:text-[2.5rem] font-medium tracking-tighter text-zinc-950 leading-[1.05] selection:bg-stone-200">
-                                                Faisons<br />
-                                                <span className="italic text-stone-500 font-serif font-light tracking-normal">connaissance.</span>
-                                            </h3>
-
-                                            {/* Text Reveal for Step 2 */}
-                                            <div className="text-[15px] text-zinc-500 font-medium leading-relaxed flex flex-wrap justify-center gap-[0.25em]">
-                                                {"Comment souhaitez-vous que nous vous appelions ?".split(" ").map((word, i) => (
-                                                    <motion.span
-                                                        key={i}
-                                                        initial={{ opacity: 0, filter: 'blur(4px)', y: 10 }}
-                                                        animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
-                                                        transition={{ delay: 0.1 + i * 0.03, type: "spring", stiffness: 200, damping: 20 }}
-                                                    >
-                                                        {word}
-                                                    </motion.span>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        <form onSubmit={handleNewsletterSubmit} className="space-y-5 pt-2">
-                                            <div className="space-y-3">
-                                                <input
-                                                    name="firstName"
-                                                    type="text"
-                                                    placeholder="Prénom"
-                                                    className="w-full px-6 py-4.5 rounded-[1.25rem] bg-zinc-50/50 border border-zinc-200 font-medium text-[15px] outline-none focus:bg-white focus:border-zinc-950 focus:ring-4 focus:ring-zinc-900/5 transition-all duration-300 text-zinc-950 placeholder:text-zinc-400 shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]"
-                                                    required
-                                                />
-                                                <input
-                                                    name="lastName"
-                                                    type="text"
-                                                    placeholder="Nom"
-                                                    className="w-full px-6 py-4.5 rounded-[1.25rem] bg-zinc-50/50 border border-zinc-200 font-medium text-[15px] outline-none focus:bg-white focus:border-zinc-950 focus:ring-4 focus:ring-zinc-900/5 transition-all duration-300 text-zinc-950 placeholder:text-zinc-400 shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]"
-                                                    required
-                                                />
-                                            </div>
-                                            <PremiumGlowButton type="submit" disabled={newsletterLoading}>
-                                                {newsletterLoading ? (
-                                                    <motion.div
-                                                        animate={{ rotate: 360 }}
-                                                        transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                                                        className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
-                                                    />
-                                                ) : (
-                                                    "S'inscrire"
-                                                )}
-                                            </PremiumGlowButton>
-                                            <button
-                                                type="button"
-                                                onClick={() => setNewsletterStep(1)}
-                                                className="w-full pt-2 pb-1 text-[13px] font-medium text-zinc-400 hover:text-zinc-800 transition-colors"
-                                            >
-                                                Retour
-                                            </button>
-                                        </form>
-                                    </motion.div>
-                                )}
-
-                                {newsletterStep === 3 && (
-                                    <motion.div
-                                        key="step3"
-                                        initial={{ opacity: 0, scale: 0.95, filter: 'blur(8px)' }}
-                                        animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-                                        transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                                        className="space-y-8 flex flex-col items-center justify-center text-center py-6"
-                                    >
-                                        <motion.div
-                                            initial={{ scale: 0, rotate: -20 }}
-                                            animate={{ scale: 1, rotate: 0 }}
-                                            transition={{ type: "spring", stiffness: 400, damping: 25, delay: 0.1 }}
-                                            className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center shadow-[0_8px_16px_rgba(16,185,129,0.1)] mb-2"
+                                            ) : (
+                                                "S'inscrire"
+                                            )}
+                                        </PremiumGlowButton>
+                                        
+                                        <button
+                                            type="button"
+                                            onClick={() => setNewsletterStep(1)}
+                                            className="text-white/60 hover:text-white text-xs sm:text-sm font-medium transition-colors mt-6 block w-full text-center"
                                         >
-                                            <Check size={32} strokeWidth={2.5} />
-                                        </motion.div>
-                                        <div className="space-y-4">
-                                            <h3 className="text-4xl sm:text-[2.2rem] font-medium tracking-tighter text-zinc-950 leading-[1.1]">
-                                                Bienvenue,{' '}
-                                                <span className="text-stone-500 font-light italic capitalize tracking-normal">{leadStore.firstName || "Cher client"}</span>
-                                            </h3>
-                                            <p className="text-[14px] sm:text-[15px] text-zinc-500 font-medium leading-relaxed px-2 sm:px-4">
-                                                Votre inscription est confirmée. <br /> Nos prochaines trouvailles vous seront dévoilées en avant-première.
-                                            </p>
-                                        </div>
-                                        <motion.button
-                                            whileHover={{ scale: 1.02 }}
-                                            whileTap={{ scale: 0.98 }}
+                                            Retour
+                                        </button>
+                                    </form>
+                                </motion.div>
+                            )}
+
+                            {newsletterStep === 3 && (
+                                <motion.div
+                                    key="step3"
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="w-full flex flex-col items-center pt-4"
+                                >
+                                    <motion.div
+                                        initial={{ scale: 0, rotate: -20 }}
+                                        animate={{ scale: 1, rotate: 0 }}
+                                        transition={{ type: "spring", stiffness: 400, damping: 25, delay: 0.1 }}
+                                        className="relative w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center mb-8 sm:mb-10"
+                                    >
+                                        {/* Arrière plan du cercle semi-transparent flouté avec une très légère touche émeraude */}
+                                        <div className="absolute inset-0 bg-emerald-950/10 backdrop-blur-xl rounded-full border border-emerald-500/10 shadow-[0_0_30px_rgba(16,185,129,0.1)]" />
+                                        
+                                        {/* Animation SVG de tracé Liquid Glass */}
+                                        <svg className="absolute inset-0 w-full h-full -rotate-90 z-10" viewBox="0 0 100 100">
+                                            {/* Définition du Gradient Vert Liquid / Glass */}
+                                            <defs>
+                                                <linearGradient id="emeraldGlass" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                    <stop offset="0%" stopColor="#6ee7b7" stopOpacity="0.9" /> {/* emerald-300 */}
+                                                    <stop offset="50%" stopColor="#10b981" stopOpacity="0.6" /> {/* emerald-500 */}
+                                                    <stop offset="100%" stopColor="#047857" stopOpacity="0.9" /> {/* emerald-700 */}
+                                                </linearGradient>
+                                                <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                                                    <feGaussianBlur stdDeviation="3" result="blur" />
+                                                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                                                </filter>
+                                            </defs>
+
+                                            {/* Tracé animé du cercle en dégradé, avec effet glow doux */}
+                                            <motion.circle
+                                                cx="50"
+                                                cy="50"
+                                                r="48"
+                                                fill="transparent"
+                                                stroke="url(#emeraldGlass)"
+                                                strokeWidth="1.5"
+                                                strokeLinecap="round"
+                                                filter="url(#glow)"
+                                                initial={{ pathLength: 0, opacity: 0 }}
+                                                animate={{ pathLength: 1, opacity: 1 }}
+                                                transition={{ duration: 1, ease: "easeOut", delay: 0.3 }}
+                                            />
+                                            
+                                            {/* Tracé animé de la coche en dégradé */}
+                                            <motion.path
+                                                d="M 32 50 L 45 63 L 68 37"
+                                                fill="transparent"
+                                                stroke="url(#emeraldGlass)"
+                                                strokeWidth="3.5"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                filter="url(#glow)"
+                                                className="origin-center rotate-90"
+                                                initial={{ pathLength: 0, opacity: 0 }}
+                                                animate={{ pathLength: 1, opacity: 1 }}
+                                                transition={{ duration: 0.7, ease: "backOut", delay: 0.8 }}
+                                            />
+                                        </svg>
+                                    </motion.div>
+                                    
+                                    <div className="space-y-6 sm:space-y-8 text-center w-full">
+                                        <h1 className="text-[2.2rem] sm:text-4xl md:text-5xl font-bold tracking-tighter text-white leading-[1.1]">
+                                            BIENVENUE,<br />
+                                            <span className="capitalize">{leadStore.firstName}</span>
+                                        </h1>
+                                        <p className="text-base sm:text-lg text-white/80 max-w-[280px] sm:max-w-md mx-auto leading-relaxed px-4 sm:px-0">
+                                            Votre inscription est confirmée. Nos prochaines trouvailles vous seront dévoilées en avant-première.
+                                        </p>
+                                    </div>
+
+                                    <div className="w-full mt-10 sm:mt-12 px-4 sm:px-0">
+                                        <PremiumGlowButton 
                                             onClick={() => setShowNewsletter(false)}
-                                            className="px-8 py-4 bg-zinc-100/80 text-zinc-950 rounded-[1.25rem] font-semibold text-[13px] tracking-wide hover:bg-zinc-200 transition-colors mt-4 border border-zinc-200/50 shadow-sm"
+                                            className="bg-white/10 !py-[15px] sm:!py-[17px]"
                                         >
-                                            Fermer
-                                        </motion.button>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </div>
+                                            Découvrir le catalogue
+                                        </PremiumGlowButton>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
-                </motion.div>
-            </div>
-        </>
+                </div>
+            </motion.div>
+        </AnimatePresence>
     );
 };
 
