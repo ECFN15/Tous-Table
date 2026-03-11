@@ -7,6 +7,14 @@ export default {
     darkMode: 'class', // Enable manual toggling via 'dark' class
     theme: {
         extend: {
+            keyframes: {
+                shimmer: {
+                    '100%': { transform: 'translateX(100%)' }
+                }
+            },
+            animation: {
+                shimmer: 'shimmer 1.5s infinite',
+            },
             fontFamily: {
                 sans: ['Plus Jakarta Sans', 'sans-serif'],
                 serif: ['Cormorant Garamond', 'serif'],

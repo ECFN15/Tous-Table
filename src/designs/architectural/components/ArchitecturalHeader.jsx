@@ -1,8 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useLiveTheme } from '../../../hooks/useLiveTheme';
 import { useAuth } from '../../../contexts/AuthContext';
-import { Menu, ShoppingBag, ShieldCheck, LogOut, Hammer, LogIn, ChevronLeft } from 'lucide-react';
+import { Menu, ShoppingBag, ShieldCheck, LogOut, Hammer, LogIn, ChevronLeft, Armchair, Gavel } from 'lucide-react';
+import { motion } from 'framer-motion';
 import AnimatedThemeToggler from '../../../components/ui/AnimatedThemeToggler';
+
+const CuttingBoard = ({ size = 14, strokeWidth = 2, ...props }) => (
+    <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        {...props}
+    >
+        <rect x="3" y="7" width="18" height="12" rx="1.5" />
+        <circle cx="7" cy="13" r="1.2" />
+        <path d="M21 11V15" opacity="0.3" />
+    </svg>
+);
 
 /**
  * COMPONENT : ARCHITECTURAL HEADER
@@ -82,30 +101,57 @@ const ArchitecturalHeader = ({
 
                         {/* COLLECTION TABS */}
                         {setActiveCollection && (
-                            <nav className="hidden md:flex items-center gap-2">
+                            <nav className="hidden md:flex items-center gap-3">
+                                {/* MOBILIER BUTTON */}
                                 <button
                                     onClick={() => {
                                         setActiveCollection('furniture');
                                         if (headerProps?.setFilter) headerProps.setFilter('fixed');
                                     }}
-                                    className={`px-5 py-2 rounded text-xs font-bold uppercase tracking-widest transition-all ${activeCollection === 'furniture' && (!headerProps?.filter || headerProps.filter !== 'auction') ? (darkMode ? 'bg-stone-800 text-white' : 'bg-stone-200 text-black') : (darkMode ? 'text-stone-400 hover:text-stone-300' : 'text-stone-400 hover:text-stone-600')}`}
+                                    className={`relative group overflow-hidden flex items-center gap-2 px-5 py-2 rounded text-[10px] font-bold uppercase tracking-widest transition-all duration-500 border ${
+                                        activeCollection === 'furniture' && (!headerProps?.filter || headerProps.filter !== 'auction') 
+                                            ? (darkMode ? 'bg-stone-200 text-black border-stone-200 shadow-[0_0_20px_rgba(255,255,255,0.05)]' : 'bg-stone-900 text-white border-stone-900 shadow-[0_0_20px_rgba(0,0,0,0.05)]')
+                                            : (darkMode ? 'bg-transparent text-stone-500 border-stone-800 hover:border-stone-400 hover:text-stone-200' : 'bg-transparent text-stone-400 border-stone-200 hover:border-stone-400 hover:text-stone-900')
+                                    }`}
                                 >
-                                    Mobilier
+                                    <Armchair size={15} strokeWidth={2} className={`transition-transform duration-500 ${activeCollection === 'furniture' && (!headerProps?.filter || headerProps.filter !== 'auction') ? 'scale-110' : 'group-hover:scale-110 group-hover:-rotate-3'}`} />
+                                    <span>Mobilier</span>
+                                    {/* Subtle shine effect on hover */}
+                                    <div className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none" />
                                 </button>
+
+                                {/* PLANCHES BUTTON */}
                                 <button
-                                    onClick={() => setActiveCollection('cutting_boards')} // Cutting boards don't have auctions usually
-                                    className={`px-5 py-2 rounded text-xs font-bold uppercase tracking-widest transition-all ${activeCollection === 'cutting_boards' ? (darkMode ? 'bg-stone-800 text-white' : 'bg-stone-200 text-black') : (darkMode ? 'text-stone-400 hover:text-stone-300' : 'text-stone-400 hover:text-stone-600')}`}
+                                    onClick={() => setActiveCollection('cutting_boards')}
+                                    className={`relative group overflow-hidden flex items-center gap-2 px-5 py-2 rounded text-[10px] font-bold uppercase tracking-widest transition-all duration-500 border ${
+                                        activeCollection === 'cutting_boards' 
+                                            ? (darkMode ? 'bg-stone-200 text-black border-stone-200 shadow-[0_0_20px_rgba(255,255,255,0.05)]' : 'bg-stone-900 text-white border-stone-900 shadow-[0_0_20px_rgba(0,0,0,0.05)]')
+                                            : (darkMode ? 'bg-transparent text-stone-500 border-stone-800 hover:border-stone-400 hover:text-stone-200' : 'bg-transparent text-stone-400 border-stone-200 hover:border-stone-400 hover:text-stone-900')
+                                    }`}
                                 >
-                                    Planches
+                                    <div className={`transition-transform duration-500 ${activeCollection === 'cutting_boards' ? 'scale-110' : 'group-hover:scale-110 group-hover:rotate-3'}`}>
+                                        <CuttingBoard size={15} strokeWidth={2} />
+                                    </div>
+                                    <span>Planches</span>
+                                    <div className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none" />
                                 </button>
+
+                                {/* ENCHÈRES BUTTON */}
                                 <button
                                     onClick={() => {
                                         setActiveCollection('furniture');
                                         if (headerProps?.setFilter) headerProps.setFilter('auction');
                                     }}
-                                    className={`px-5 py-2 rounded text-xs font-bold uppercase tracking-widest transition-all ${activeCollection === 'furniture' && headerProps?.filter === 'auction' ? (darkMode ? 'bg-stone-800 text-white' : 'bg-stone-200 text-black') : (darkMode ? 'text-stone-400 hover:text-stone-300' : 'text-stone-400 hover:text-stone-600')}`}
+                                    className={`relative group overflow-hidden flex items-center gap-2 px-5 py-2 rounded text-[10px] font-bold uppercase tracking-widest transition-all duration-500 border ${
+                                        activeCollection === 'furniture' && headerProps?.filter === 'auction' 
+                                            ? (darkMode ? 'bg-stone-200 text-black border-stone-200 shadow-[0_0_20px_rgba(255,255,255,0.05)]' : 'bg-stone-900 text-white border-stone-900 shadow-[0_0_20px_rgba(0,0,0,0.05)]')
+                                            : (darkMode ? 'bg-transparent text-stone-500 border-stone-800 hover:border-amber-600/50 hover:text-amber-500' : 'bg-transparent text-stone-400 border-stone-200 hover:border-amber-600/50 hover:text-amber-700')
+                                    }`}
                                 >
-                                    Enchères
+                                    <Gavel size={15} strokeWidth={2} className={`transition-transform duration-500 ${activeCollection === 'furniture' && headerProps?.filter === 'auction' ? 'scale-110' : 'group-hover:scale-110 group-hover:-rotate-12'}`} />
+                                    <span>Enchères</span>
+                                    {/* Gold shimmer for auctions */}
+                                    <div className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-amber-500/10 to-transparent pointer-events-none" />
                                 </button>
                             </nav>
                         )}
