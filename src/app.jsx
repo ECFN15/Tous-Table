@@ -283,7 +283,17 @@ const AppContent = () => {
 
   // --- DECLENCHEMENT POPUP V2 (Gallery Only) ---
   useEffect(() => {
-    if (view === 'gallery' && (!user || user.isAnonymous) && !authLoading && !hasTriggeredPopup.current) {
+    const isNewsletterSubscribed = localStorage.getItem('newsletterSubscribed') === 'true';
+    const isNewsletterDismissed = localStorage.getItem('newsletterDismissed') === 'true';
+
+    if (
+      view === 'gallery' && 
+      (!user || user.isAnonymous) && 
+      !authLoading && 
+      !hasTriggeredPopup.current &&
+      !isNewsletterSubscribed &&
+      !isNewsletterDismissed
+    ) {
       hasTriggeredPopup.current = true;
       const timer = setTimeout(() => {
         setShowNewsletter(true);

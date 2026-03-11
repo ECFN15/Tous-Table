@@ -220,6 +220,7 @@ const NewsletterModal = ({ showNewsletter, setShowNewsletter }) => {
                 createdAt: serverTimestamp(),
                 source: 'v3_premium_popup',
             });
+            localStorage.setItem('newsletterSubscribed', 'true');
             setLeadStore(prev => ({ ...prev, firstName, lastName }));
             setNewsletterStep(3);
             setTimeout(triggerConfetti, 100);
@@ -318,7 +319,10 @@ const NewsletterModal = ({ showNewsletter, setShowNewsletter }) => {
                                     </form>
 
                                     <button 
-                                        onClick={() => setShowNewsletter(false)}
+                                        onClick={() => {
+                                            localStorage.setItem('newsletterDismissed', 'true');
+                                            setShowNewsletter(false);
+                                        }}
                                         className="text-white/60 hover:text-white text-xs sm:text-sm font-medium transition-colors mt-6 sm:mt-8 inline-block"
                                     >
                                         Non merci,<br className="sm:hidden" /> je préfère rater les prochaines pièces
