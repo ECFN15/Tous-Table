@@ -49,7 +49,7 @@ const AnimatedShowcase = () => {
         { src: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&q=80&w=800", aspect: "aspect-[2/3]" },
         { src: "https://images.unsplash.com/photo-1592078615290-033ee584e267?auto=format&fit=crop&q=80&w=800", aspect: "aspect-[4/5]" },
         { src: "https://images.unsplash.com/photo-1503602642458-232111445657?auto=format&fit=crop&q=80&w=800", aspect: "aspect-[3/4]" },
-        { src: "https://images.unsplash.com/photo-1581428982868-e410dd981a90?auto=format&fit=crop&q=80&w=800", aspect: "aspect-[9/16]" },
+        { src: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&q=80&w=800", aspect: "aspect-[9/16]" },
         { src: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&q=80&w=800", aspect: "aspect-[2/3]" }
     ];
     
