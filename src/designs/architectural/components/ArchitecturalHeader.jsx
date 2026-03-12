@@ -87,53 +87,61 @@ const ArchitecturalHeader = ({
         <header
             className={`sticky top-0 z-[1000] transition-all duration-300 ease-in-out transform ${isVisible ? 'translate-y-0' : '-translate-y-full'} bg-transparent`}
         >
-            <div className="max-w-[1920px] mx-auto px-4 md:px-12 h-20 md:h-24 flex items-center justify-between">
+            <div className="max-w-[1920px] mx-auto px-4 md:px-12 h-20 md:h-24 flex items-center justify-between relative">
 
-                {/* 1. LEFT: LOGO & TABS */}
-                {/* 1. LEFT: NAVIGATION & LOGO */}
-                <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-8">
-                        {/* MINI LOGO TEXT */}
-                        <div className="flex flex-col leading-none cursor-pointer group" onClick={() => window.location.href = '/'}>
-                            <span className={`font-black uppercase text-sm tracking-widest transition-colors ${darkMode ? 'text-stone-200 group-hover:text-stone-400' : 'text-stone-900 group-hover:text-stone-600'}`}>Tous à Table</span>
-                            <span className={`font-serif italic text-xs mt-1 ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>Atelier Normand</span>
-                        </div>
+                {/* 1. LEFT: LOGO */}
+                <div className="flex items-center z-10">
+                    <div className="flex flex-col leading-none cursor-pointer group" onClick={() => window.location.href = '/'}>
+                        <span className={`font-black uppercase text-sm tracking-widest transition-colors ${darkMode ? 'text-stone-200 group-hover:text-stone-400' : 'text-stone-900 group-hover:text-stone-600'}`}>Tous à Table</span>
+                        <span className={`font-serif italic text-xs mt-1 ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>Atelier Normand</span>
+                    </div>
+                </div>
 
-                        {/* COLLECTION TABS */}
-                        {setActiveCollection && (
-                            <nav className="hidden md:flex items-center gap-3">
+                {/* 2. CENTER: COLLECTION TABS */}
+                {setActiveCollection && (
+                    <div className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center justify-center z-0 w-max">
+                        <nav className="flex items-center gap-10">
                                 {/* MOBILIER BUTTON */}
                                 <button
                                     onClick={() => {
                                         setActiveCollection('furniture');
                                         if (headerProps?.setFilter) headerProps.setFilter('fixed');
                                     }}
-                                    className={`relative group overflow-hidden flex items-center gap-2 px-5 py-2 rounded text-[10px] font-bold uppercase tracking-widest transition-all duration-500 border ${
-                                        activeCollection === 'furniture' && (!headerProps?.filter || headerProps.filter !== 'auction') 
-                                            ? (darkMode ? 'bg-stone-200 text-black border-stone-200 shadow-[0_0_20px_rgba(255,255,255,0.05)]' : 'bg-stone-900 text-white border-stone-900 shadow-[0_0_20px_rgba(0,0,0,0.05)]')
-                                            : (darkMode ? 'bg-transparent text-stone-500 border-stone-800 hover:border-stone-400 hover:text-stone-200' : 'bg-transparent text-stone-400 border-stone-200 hover:border-stone-400 hover:text-stone-900')
-                                    }`}
+                                    className={`relative group flex items-center gap-3 py-2 text-[10.5px] font-bold uppercase tracking-[0.2em] transition-all duration-500 overflow-hidden bg-transparent
+                                        ${activeCollection === 'furniture' && (!headerProps?.filter || headerProps.filter !== 'auction') 
+                                            ? (darkMode ? 'text-stone-100' : 'text-stone-900')
+                                            : (darkMode ? 'text-stone-400 hover:text-stone-100' : 'text-stone-500 hover:text-stone-900')
+                                        }
+                                    `}
                                 >
-                                    <Armchair size={15} strokeWidth={2} className={`transition-transform duration-500 ${activeCollection === 'furniture' && (!headerProps?.filter || headerProps.filter !== 'auction') ? 'scale-110' : 'group-hover:scale-110 group-hover:-rotate-3'}`} />
-                                    <span>Mobilier</span>
-                                    {/* Subtle shine effect on hover */}
-                                    <div className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none" />
+                                    {/* Bottom Line expanding */}
+                                    <span className={`absolute bottom-0 left-0 h-[1.5px] bg-current transition-all duration-500 ease-out z-10 
+                                        ${activeCollection === 'furniture' && (!headerProps?.filter || headerProps.filter !== 'auction') ? 'w-full' : 'w-0 group-hover:w-full'}
+                                    `}></span>
+
+                                    <Armchair size={15} strokeWidth={1.5} className="relative z-10 transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:scale-110" />
+                                    <span className="relative z-10">Mobilier</span>
                                 </button>
 
                                 {/* PLANCHES BUTTON */}
                                 <button
                                     onClick={() => setActiveCollection('cutting_boards')}
-                                    className={`relative group overflow-hidden flex items-center gap-2 px-5 py-2 rounded text-[10px] font-bold uppercase tracking-widest transition-all duration-500 border ${
-                                        activeCollection === 'cutting_boards' 
-                                            ? (darkMode ? 'bg-stone-200 text-black border-stone-200 shadow-[0_0_20px_rgba(255,255,255,0.05)]' : 'bg-stone-900 text-white border-stone-900 shadow-[0_0_20px_rgba(0,0,0,0.05)]')
-                                            : (darkMode ? 'bg-transparent text-stone-500 border-stone-800 hover:border-stone-400 hover:text-stone-200' : 'bg-transparent text-stone-400 border-stone-200 hover:border-stone-400 hover:text-stone-900')
-                                    }`}
+                                    className={`relative group flex items-center gap-3 py-2 text-[10.5px] font-bold uppercase tracking-[0.2em] transition-all duration-500 overflow-hidden bg-transparent
+                                        ${activeCollection === 'cutting_boards'
+                                            ? (darkMode ? 'text-stone-100' : 'text-stone-900')
+                                            : (darkMode ? 'text-stone-400 hover:text-stone-100' : 'text-stone-500 hover:text-stone-900')
+                                        }
+                                    `}
                                 >
-                                    <div className={`transition-transform duration-500 ${activeCollection === 'cutting_boards' ? 'scale-110' : 'group-hover:scale-110 group-hover:rotate-3'}`}>
-                                        <CuttingBoard size={15} strokeWidth={2} />
+                                    {/* Bottom Line expanding */}
+                                    <span className={`absolute bottom-0 left-0 h-[1.5px] bg-current transition-all duration-500 ease-out z-10 
+                                        ${activeCollection === 'cutting_boards' ? 'w-full' : 'w-0 group-hover:w-full'}
+                                    `}></span>
+
+                                    <div className="relative z-10 transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:scale-110">
+                                        <CuttingBoard size={15} strokeWidth={1.5} />
                                     </div>
-                                    <span>Planches</span>
-                                    <div className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none" />
+                                    <span className="relative z-10">Planches</span>
                                 </button>
 
                                 {/* ENCHÈRES BUTTON */}
@@ -142,24 +150,27 @@ const ArchitecturalHeader = ({
                                         setActiveCollection('furniture');
                                         if (headerProps?.setFilter) headerProps.setFilter('auction');
                                     }}
-                                    className={`relative group overflow-hidden flex items-center gap-2 px-5 py-2 rounded text-[10px] font-bold uppercase tracking-widest transition-all duration-500 border ${
-                                        activeCollection === 'furniture' && headerProps?.filter === 'auction' 
-                                            ? (darkMode ? 'bg-stone-200 text-black border-stone-200 shadow-[0_0_20px_rgba(255,255,255,0.05)]' : 'bg-stone-900 text-white border-stone-900 shadow-[0_0_20px_rgba(0,0,0,0.05)]')
-                                            : (darkMode ? 'bg-transparent text-stone-500 border-stone-800 hover:border-amber-600/50 hover:text-amber-500' : 'bg-transparent text-stone-400 border-stone-200 hover:border-amber-600/50 hover:text-amber-700')
-                                    }`}
+                                    className={`relative group flex items-center gap-3 py-2 text-[10.5px] font-bold uppercase tracking-[0.2em] transition-all duration-500 overflow-hidden bg-transparent
+                                        ${activeCollection === 'furniture' && headerProps?.filter === 'auction'
+                                            ? (darkMode ? 'text-amber-400' : 'text-amber-700')
+                                            : (darkMode ? 'text-stone-400 hover:text-amber-400' : 'text-stone-500 hover:text-amber-600')
+                                        }
+                                    `}
                                 >
-                                    <Gavel size={15} strokeWidth={2} className={`transition-transform duration-500 ${activeCollection === 'furniture' && headerProps?.filter === 'auction' ? 'scale-110' : 'group-hover:scale-110 group-hover:-rotate-12'}`} />
-                                    <span>Enchères</span>
-                                    {/* Gold shimmer for auctions */}
-                                    <div className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-amber-500/10 to-transparent pointer-events-none" />
+                                    {/* Bottom Line expanding */}
+                                    <span className={`absolute bottom-0 left-0 h-[1.5px] bg-current transition-all duration-500 ease-out z-10 
+                                        ${activeCollection === 'furniture' && headerProps?.filter === 'auction' ? 'w-full' : 'w-0 group-hover:w-full'}
+                                    `}></span>
+
+                                    <Gavel size={15} strokeWidth={1.5} className="relative z-10 transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:scale-110" />
+                                    <span className="relative z-10">Enchères</span>
                                 </button>
                             </nav>
-                        )}
-                    </div>
-                </div>
+                        </div>
+                )}
 
-                {/* 2. RIGHT: ACTIONS */}
-                <div className="flex items-center gap-6">
+                {/* 3. RIGHT: ACTIONS */}
+                <div className="flex items-center gap-6 z-10">
 
                     {/* GLOBAL ACTIONS */}
                     <div className="flex items-center gap-1 md:gap-4">

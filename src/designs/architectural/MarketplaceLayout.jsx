@@ -69,9 +69,6 @@ const MarketplaceLayout = ({
 
                 {/* HERO TITLE */}
                 <div className="mb-10 md:mb-8 flex flex-col items-center text-center gap-4 md:gap-4 max-w-7xl mx-auto">
-                    <span className={`text-[10px] uppercase font-bold tracking-[0.4em] ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
-                        Collection 2026
-                    </span>
                     <h2 className={`font-serif text-4xl md:text-7xl lg:text-8xl whitespace-nowrap leading-[0.9] min-h-[1.8em] flex items-center justify-center tracking-tight md:tracking-normal ${darkMode ? 'text-stone-100' : 'text-stone-900'}`}>
                         <TextType
                             key={activeCollection}
@@ -86,6 +83,9 @@ const MarketplaceLayout = ({
                             cursorCharacter="_"
                         />
                     </h2>
+                    <span className={`-translate-y-4 md:-translate-y-6 text-[10px] uppercase font-bold tracking-[0.4em] ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
+                        Collection 2026
+                    </span>
 
                     {/* MOBILE NAVIGATION BUTTONS (Integrated in Hero space) */}
                     <div className="flex md:hidden flex-wrap justify-center gap-3 mt-6">
