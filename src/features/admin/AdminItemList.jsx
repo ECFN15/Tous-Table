@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, orderBy, limit, onSnapshot, getDocs } from 'firebase/firestore';
 import { db, appId } from '../../firebase/config';
-import { Pencil, Eye, EyeOff, Trash2, Trophy, Mail, Search, Loader2, CheckCircle } from 'lucide-react';
+import { Pencil, Eye, EyeOff, Trash2, Trophy, Mail, Search, Loader2, CheckCircle, RotateCcw } from 'lucide-react';
 import { getMillis } from '../../utils/time';
 
 // Helper pour nettoyer le texte (accents, casse)
@@ -11,7 +11,7 @@ const normalizeText = (text) => {
         .normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // Enlève les accents
 }
 
-const AdminItemList = ({ collectionName, darkMode, onEdit, onToggleStatus, onDelete, onMarkAsSold }) => {
+const AdminItemList = ({ collectionName, darkMode, onEdit, onToggleStatus, onDelete, onMarkAsSold, onMarkAsAvailable }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [items, setItems] = useState([]);
@@ -177,7 +177,7 @@ const AdminItemList = ({ collectionName, darkMode, onEdit, onToggleStatus, onDel
                                             </div>
                                         </div>
                                         <div className="flex flex-wrap items-center justify-end md:justify-start gap-2.5 md:gap-3 w-full md:w-auto mt-2 md:mt-0 border-t md:border-none pt-4 md:pt-0">
-                                            {!item.sold && (
+                                            {!item.sold ? (
                                                 <button
                                                     onClick={() => onMarkAsSold(item)}
                                                     className={`px-4 py-2.5 md:px-6 md:py-3 rounded-2xl md:rounded-[1.5rem] flex items-center justify-center gap-2 shadow-sm ring-1 ring-inset transition-all hover:scale-105 active:scale-95 whitespace-nowrap flex-grow md:flex-grow-0 ${darkMode ? 'bg-emerald-950/20 text-emerald-400 ring-emerald-900/30 hover:bg-emerald-500 hover:text-white' : 'bg-emerald-50 text-emerald-600 ring-emerald-100 hover:bg-emerald-500 hover:text-white'}`}
@@ -185,6 +185,15 @@ const AdminItemList = ({ collectionName, darkMode, onEdit, onToggleStatus, onDel
                                                 >
                                                     <CheckCircle size={14} className="md:w-4 md:h-4" />
                                                     <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest">Marquer comme vendu</span>
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={() => onMarkAsAvailable(item)}
+                                                    className={`px-4 py-2.5 md:px-6 md:py-3 rounded-2xl md:rounded-[1.5rem] flex items-center justify-center gap-2 shadow-sm ring-1 ring-inset transition-all hover:scale-105 active:scale-95 whitespace-nowrap flex-grow md:flex-grow-0 ${darkMode ? 'bg-amber-950/20 text-amber-400 ring-amber-900/30 hover:bg-amber-500 hover:text-white' : 'bg-amber-50 text-amber-600 ring-amber-100 hover:bg-amber-500 hover:text-white'}`}
+                                                    title="Remettre en vente"
+                                                >
+                                                    <RotateCcw size={14} className="md:w-4 md:h-4" />
+                                                    <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest">Remettre en vente</span>
                                                 </button>
                                             )}
 

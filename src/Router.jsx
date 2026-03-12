@@ -93,6 +93,21 @@ const AppRouter = ({
         }
     };
 
+    const handleMarkAsAvailable = async (item, col) => {
+        if (!confirm(`Remettre "${item.name}" en vente ? (Stock à 1)`)) return;
+        try {
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', col, item.id), {
+                sold: false,
+                stock: 1,
+                soldAt: null
+            });
+            alert("✓ Remis en vente avec succès");
+        } catch (e) {
+            console.error(e);
+            alert("❌ Erreur lors de la mise à jour : " + e.message);
+        }
+    };
+
     return (
         <main>
             {(view === 'home' || isPreparingGallery) && (
@@ -298,6 +313,7 @@ const AppRouter = ({
                                         onToggleStatus={(item) => handleToggleStatus(item, adminCollection)}
                                         onDelete={(id) => handleDeleteItem(null, id, adminCollection)}
                                         onMarkAsSold={(item) => handleMarkAsSold(item, adminCollection)}
+                                        onMarkAsAvailable={(item) => handleMarkAsAvailable(item, adminCollection)}
                                     />
                                 </div>
                             </>
