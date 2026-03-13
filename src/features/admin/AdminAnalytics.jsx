@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-    Activity, Users, Clock, Globe, ArrowUpRight, ArrowDownRight, RefreshCw, Smartphone, Monitor, Trash2
+    Users, Clock, Activity, Smartphone, Monitor, Globe, Trash2, AlertCircle
 } from 'lucide-react';
 import { collection, query, orderBy, limit, onSnapshot, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import { db, functions } from '../../firebase/config';
@@ -378,9 +378,10 @@ const AdminAnalytics = ({ darkMode = false }) => {
                                 const isExpanded = expandedSessionId === session.id;
                                 const isClient = session.type === 'client';
                                 const isAdminType = session.type === 'admin';
+                                const isAdminIPDetected = session.adminIPDetected === true;
+                                const isSessionConverted = session.sessionConverted === true;
                                 const startedTime = session.startedAt ? new Date(getMillis(session.startedAt)).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
 
-                                // Session is closed if explicitly marked active:false OR no activity for 60s (heartbeat is 15s)
                                 const lastActiveMs = getMillis(session.lastActivityAt);
                                 const isInactive = (now - lastActiveMs) > 60000;
                                 const isFinished = session.sessionActive === false || isInactive;
@@ -512,6 +513,8 @@ const AdminAnalytics = ({ darkMode = false }) => {
                             const isExpanded = expandedSessionId === session.id;
                             const isClient = session.type === 'client';
                             const isAdminType = session.type === 'admin';
+                            const isAdminIPDetected = session.adminIPDetected === true;
+                            const isSessionConverted = session.sessionConverted === true;
                             const startedTime = session.startedAt ? new Date(getMillis(session.startedAt)).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
 
                             const lastActiveMs = getMillis(session.lastActivityAt);
@@ -614,6 +617,23 @@ const AdminAnalytics = ({ darkMode = false }) => {
                 </div>
             </div>
 
+            {/* INFO SECTION */}
+            <div className={`p-6 rounded-2xl ${darkMode ? 'bg-stone-800 border border-stone-700' : 'bg-stone-50 border border-stone-200'}`}>
+                <div className="flex items-start gap-3">
+                    <AlertCircle size={20} className="text-stone-400 mt-0.5" />
+                    <div className="text-sm text-stone-400">
+                        <p className="mb-2">
+                            <strong>Suppression automatique des sessions admin :</strong> Lorsqu'un administrateur se connecte, toutes ses sessions actives (anonymes ou non) sont automatiquement supprimées pour ne pas polluer les statistiques.
+                        </p>
+                        <p className="mb-2">
+                            <strong>Conversion des sessions clients :</strong> Lorsqu'un client se connecte, ses sessions anonymes sont converties et associées à son compte pour un meilleur suivi.
+                        </p>
+                        <p>
+                            <strong>Exclusion par IP :</strong> Les adresses IP des administrateurs sont blacklistées automatiquement pour exclure toute future session de ces IPs.
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };

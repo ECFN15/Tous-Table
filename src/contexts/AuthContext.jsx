@@ -10,6 +10,8 @@ import {
 } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore'; // Moved top-level
 import { auth, googleProvider, db } from '../firebase/config'; // Added db
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../firebase/config';
 
 // Create the context
 const AuthContext = createContext();
@@ -80,8 +82,16 @@ export const AuthProvider = ({ children }) => {
         return () => unsub();
     }, [user]);
 
-    const loginWithGoogle = () => {
-        return signInWithPopup(auth, googleProvider);
+    const loginWithGoogle = async () => {
+        const result = await signInWithPopup(auth, googleProvider);
+        // Après connexion, nettoyer les sessions anonymes de cette IP
+        try {
+            const res = await httpsCallable(functions, 'updateUserSessions')();
+            console.log('🔴 Sessions cleaned after login:', res.data);
+        } catch (err) {
+            console.error('❌ Failed to clean sessions after login:', err);
+        }
+        return result;
     };
 
     const loginWithEmail = (email, password) => {

@@ -11,7 +11,7 @@ const CheckoutView = React.lazy(() => import('./pages/CheckoutView'));
 const LoginView = React.lazy(() => import('./pages/LoginView'));
 import {
     LayoutGrid, Palette, ShoppingBag, Settings,
-    CreditCard, Hammer, Gavel, Pencil, Eye, EyeOff, Trash2, Trophy, Mail, Users, Share2, LogOut
+    CreditCard, Hammer, Gavel, Pencil, Eye, EyeOff, Trash2, Trophy, Mail, Users, Share2, LogOut, Globe
 } from 'lucide-react';
 
 const AdminDashboard = React.lazy(() => import('./features/admin/AdminDashboard'));
@@ -27,6 +27,9 @@ const AdminNewsletter = React.lazy(() => import('./features/admin/AdminNewslette
 const AdminAnalytics = React.lazy(() => import('./features/admin/AdminAnalytics'));
 
 const AdminSEO = React.lazy(() => import('./features/admin/AdminSEO'));
+const AdminIPManager = React.lazy(() => import('./features/admin/AdminIPManager'));
+
+const AdminIPTracker = React.lazy(() => import('./components/admin/AdminIPTracker'));
 
 const MyOrdersView = React.lazy(() => import('./pages/MyOrdersView'));
 
@@ -195,6 +198,9 @@ const AppRouter = ({
 
             {view === 'admin' && isAdmin && (
                 <div className={`max-w-6xl mx-auto px-4 py-24 md:py-32 space-y-12 md:space-y-16 animate-in fade-in ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                    <Suspense fallback={null}>
+                        <AdminIPTracker />
+                    </Suspense>
                     <div className={`flex justify-between items-center border-b pb-8 ${darkMode ? 'border-stone-700' : 'border-stone-200/60'}`}>
                         <h2 className="text-3xl md:text-4xl font-black tracking-tighter">Gestion Atelier</h2>
                         <button onClick={() => setView('gallery')} className={`text-[10px] font-black border-2 px-4 md:px-6 py-2 rounded-xl transition-all ${darkMode ? 'border-white hover:bg-white hover:text-stone-900' : 'border-stone-900 hover:bg-stone-900 hover:text-white'}`}>Retour</button>
@@ -254,6 +260,13 @@ const AppRouter = ({
                             </button>
 
                             <button
+                                onClick={() => { setAdminCollection('ip_manager'); setEditingItem(null); }}
+                                className={`px-3 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center justify-center gap-2 ${adminCollection === 'ip_manager' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
+                            >
+                                <Globe size={14} className="shrink-0" /> IPs Admin
+                            </button>
+
+                            <button
                                 onClick={() => { setAdminCollection('seo'); setEditingItem(null); }}
                                 className={`px-3 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center justify-center gap-2 ${adminCollection === 'seo' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
                             >
@@ -290,6 +303,8 @@ const AppRouter = ({
                             <AdminStudio darkMode={darkMode} />
                         ) : adminCollection === 'users' ? (
                             <AdminUsers darkMode={darkMode} />
+                        ) : adminCollection === 'ip_manager' ? (
+                            <AdminIPManager darkMode={darkMode} />
                         ) : adminCollection === 'newsletter' ? (
                             <AdminNewsletter darkMode={darkMode} />
                         ) : adminCollection === 'seo' ? (
