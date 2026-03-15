@@ -211,7 +211,7 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                     </h2>
                 </div>
 
-                <div className="grid md:grid-cols-[1fr_400px] gap-8 lg:gap-16 items-start">
+                <div className="grid lg:grid-cols-[minmax(0,550px)_460px] justify-center gap-8 lg:gap-16 items-start">
                     
                     {/* COLONNE GAUCHE : FORMULAIRES & PAIEMENT */}
                     <div className="space-y-6 w-full">
@@ -323,50 +323,67 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                                 </div>
                             </div>
 
-                            {/* BOUTON D'ACTION OU FORMULAIRE STRIPE */}
-                            <div className="pt-4 mt-4 border-t border-stone-100 dark:border-stone-800/50">
-                                <button
-                                    onClick={handleActionClick}
-                                    disabled={!isFormValid || checkoutState === 'fetching_stripe' || checkoutState === 'processing_deferred'}
-                                    className={`w-full py-4 text-stone-900 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:bg-stone-200 disabled:text-stone-400 rounded-xl font-black uppercase text-xs tracking-widest shadow-xl shadow-amber-500/20 transition-all flex items-center justify-center gap-2`}
-                                >
-                                    {checkoutState === 'fetching_stripe' || checkoutState === 'processing_deferred' ? (
-                                        <span className="flex items-center gap-2">Patientez...</span>
-                                    ) : paymentMethod === 'stripe_elements' ? (
-                                        <span className="flex items-center gap-2"><Lock size={16} /> Procéder au paiement sécurisé</span>
-                                    ) : (
-                                        <span className="flex items-center gap-2"><CheckCircle size={16} /> Confirmer la réservation</span>
-                                    )}
-                                </button>
-                            </div>
+                            {/* BOUTON D'ACTION DÉPLACÉ DANS LA COLONNE DE DROITE */}
                         </div>
 
                     </div>
 
                     {/* COLONNE DROITE : RÉSUMÉ STICKY */}
-                    <div className="sticky top-24">
-                        <div className={`p-6 md:p-8 rounded-[2rem] border shadow-2xl relative overflow-hidden ${darkMode ? 'bg-stone-900 border-stone-800' : 'bg-stone-900 text-white'}`}>
-                            <div className="relative z-10">
-                                <h3 className={`text-lg md:text-xl font-black mb-6 ${darkMode ? 'text-white' : 'text-stone-50'}`}>Votre Commande</h3>
-                                <div className="space-y-4 mb-8">
-                                    {cartItems.map(item => (
-                                        <div key={item.id} className="flex justify-between items-start text-sm">
-                                            <span className="text-stone-400 max-w-[70%]">{item.name}</span>
-                                            <span className="font-bold text-stone-100">{item.price} €</span>
-                                        </div>
-                                    ))}
+                    <div className="relative w-full">
+                        <div className="sticky top-24 space-y-6">
+                            <div className={`p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden ${darkMode ? 'bg-stone-900' : 'bg-[#1a1a1a]'} text-white`}>
+                                <div className="relative z-10">
+                                    <h3 className="text-xl font-black mb-6 text-white">Résumé de la commande</h3>
+                                    
+                                    <div className="space-y-4 mb-8">
+                                        {cartItems.map((item, index) => (
+                                            <div key={item.id || index} className="flex justify-between items-start text-sm">
+                                                <div className="flex flex-col max-w-[70%]">
+                                                    <span className="text-stone-300 font-medium">{item.name}</span>
+                                                    {(item.variant || item.woodType || item.size || Object.values(item.options || {}).join(', ')) && (
+                                                        <span className="text-xs text-stone-500 mt-0.5">
+                                                            {item.variant || item.woodType || item.size || Object.values(item.options || {}).join(', ')}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <span className="font-bold text-white tracking-tight">{item.price} €</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    
+                                    <div className="border-t border-stone-800 pt-6 flex justify-between items-end">
+                                        <span className="text-stone-400 text-[10px] font-black uppercase tracking-widest mb-[2px]">Total à payer</span>
+                                        <span className="text-4xl lg:text-5xl font-black tracking-tighter text-white">{total} €</span>
+                                    </div>
                                 </div>
-                                <div className="border-t border-stone-800 pt-6 flex justify-between items-end">
-                                    <span className="text-stone-500 text-[10px] font-black uppercase tracking-widest">Total TTC</span>
-                                    <span className="text-3xl md:text-4xl font-black tracking-tighter text-amber-500">{total} €</span>
-                                </div>
-                                
-                                <div className="mt-8 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-stone-500">
-                                    <ShieldCheck size={14} /> Paiement protégé
-                                </div>
+                                {/* Éclat décoratif en haut à droite */}
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
                             </div>
-                            {/* Éclat décoratif */}
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+                            
+                            {/* BOUTON D'ACTION */}
+                            <div className="flex flex-col gap-4">
+                                <button
+                                    onClick={handleActionClick}
+                                    disabled={!isFormValid || checkoutState === 'fetching_stripe' || checkoutState === 'processing_deferred'}
+                                    className={`w-full py-6 text-white bg-amber-500 hover:bg-amber-400 active:scale-95 disabled:opacity-50 disabled:bg-stone-200 disabled:text-stone-400 rounded-2xl font-black uppercase text-sm tracking-widest shadow-xl transition-all flex items-center justify-center gap-2`}
+                                >
+                                    {checkoutState === 'fetching_stripe' || checkoutState === 'processing_deferred' ? (
+                                        <span>Patientez...</span>
+                                    ) : paymentMethod === 'stripe_elements' ? (
+                                        <><span>Procéder au paiement sécurisé</span> <Lock size={16} /></>
+                                    ) : (
+                                        <><span>Confirmer ma commande</span> <CheckCircle size={18} className="ml-1" /></>
+                                    )}
+                                </button>
+
+                                {/* TEXTE DE RÉASSURANCE POUR VIREMENT (COMME IMAGE 2) */}
+                                {paymentMethod === 'deferred' && (
+                                    <p className="text-center text-[10px] font-medium leading-relaxed text-stone-400 mt-2">
+                                        En confirmant, vous réservez vos articles.<br />
+                                        Les détails de paiement vous seront envoyés par email.
+                                    </p>
+                                )}
+                            </div>
                         </div>
                     </div>
 
