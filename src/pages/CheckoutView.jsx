@@ -196,7 +196,11 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
         );
     }
 
-    const inputClasses = `w-full p-3.5 md:p-4 rounded-xl ring-1 ring-inset outline-none focus:ring-2 focus:ring-amber-500 font-bold text-sm transition-all transform-gpu ${darkMode ? 'bg-stone-900 ring-stone-800 text-white placeholder:text-stone-600' : 'bg-stone-50 ring-stone-200 text-stone-900 placeholder:text-stone-400'}`;
+    const inputClasses = `w-full p-3.5 md:p-4 rounded-xl ring-1 ring-inset outline-none focus:ring-2 focus:ring-amber-500 font-bold text-sm transition-all transform-gpu ${
+        darkMode 
+            ? 'bg-stone-900 ring-stone-800 text-white placeholder:text-stone-600 autofill-dark' 
+            : 'bg-stone-50 ring-stone-200 text-stone-900 placeholder:text-stone-400 autofill-light'
+    }`;
     const cardClasses = `p-5 md:p-6 rounded-3xl border shadow-sm space-y-4 ${darkMode ? 'bg-stone-900/50 border-stone-800/50' : 'bg-white border-stone-100'}`;
 
     return (
@@ -416,15 +420,53 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                                 <button
                                     onClick={handleActionClick}
                                     disabled={!isFormValid || checkoutState === 'fetching_stripe' || checkoutState === 'processing_deferred'}
-                                    className={`w-full py-6 text-white bg-amber-500 hover:bg-amber-400 active:scale-95 disabled:opacity-50 disabled:bg-stone-200 disabled:text-stone-400 rounded-2xl font-black uppercase text-sm tracking-widest shadow-xl transition-all flex items-center justify-center gap-2`}
+                                    className={`relative group p-[1.5px] rounded-2xl overflow-hidden w-full transition-all ${
+                                        (!isFormValid || checkoutState === 'fetching_stripe' || checkoutState === 'processing_deferred')
+                                            ? 'cursor-not-allowed opacity-50'
+                                            : 'cursor-pointer hover:scale-[1.02] active:scale-95'
+                                    }`}
                                 >
-                                    {checkoutState === 'fetching_stripe' || checkoutState === 'processing_deferred' ? (
-                                        <span>Patientez...</span>
-                                    ) : paymentMethod === 'stripe_elements' ? (
-                                        <><span>Procéder au paiement sécurisé</span> <Lock size={16} /></>
-                                    ) : (
-                                        <><span>Confirmer ma commande</span> <CheckCircle size={18} className="ml-1" /></>
+                                    {/* NEON LAYER - ONLY VISIBLE IF FORM IS VALID */}
+                                    {(isFormValid && checkoutState !== 'fetching_stripe' && checkoutState !== 'processing_deferred') && (
+                                        <motion.div
+                                            initial={{ opacity: 0, rotate: 0 }}
+                                            animate={{ opacity: 1, rotate: -360 }}
+                                            transition={{ 
+                                                opacity: { duration: 0.3, delay: 0.1 }, 
+                                                rotate: { repeat: Infinity, duration: 6, ease: "linear" } 
+                                            }}
+                                            className="absolute top-1/2 left-1/2 w-[300%] aspect-square -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none"
+                                            style={{
+                                                background: "conic-gradient(from 0deg, transparent 30%, rgba(255,255,255,0) 35%, rgba(255,255,255,1) 50%, rgba(255,255,255,0) 65%, transparent 70%)",
+                                            }}
+                                        />
                                     )}
+
+                                    {/* DEFAULT BORDER FALLBACK FOR DISABLED STATE */}
+                                    {(!isFormValid || checkoutState === 'fetching_stripe' || checkoutState === 'processing_deferred') && (
+                                        <div className={`absolute inset-0 z-0 rounded-2xl border-2 transition-colors ${darkMode ? 'border-stone-800' : 'border-stone-200'}`} />
+                                    )}
+
+                                    {/* INNER CONTENT - OPAQUE MASKING */}
+                                    <div className={`relative z-10 w-full h-full py-6 px-4 rounded-[15px] flex items-center justify-center gap-2 backdrop-blur-md transition-all ${
+                                        (isFormValid && checkoutState !== 'fetching_stripe' && checkoutState !== 'processing_deferred')
+                                            ? (darkMode ? 'bg-stone-900' : 'bg-[#1a1a1a]') // Opaque dark mask for the neon
+                                            : (darkMode ? 'bg-stone-800' : 'bg-stone-200') // Disabled background
+                                    }`}>
+                                        <span className={`font-black uppercase text-sm tracking-widest ${
+                                            (isFormValid && checkoutState !== 'fetching_stripe' && checkoutState !== 'processing_deferred')
+                                                ? 'text-white' // Text is always white on dark masks
+                                                : (darkMode ? 'text-stone-500' : 'text-stone-400')
+                                        }`}>
+                                            {checkoutState === 'fetching_stripe' || checkoutState === 'processing_deferred' ? (
+                                                "Patientez..."
+                                            ) : paymentMethod === 'stripe_elements' ? (
+                                                "Procéder au paiement sécurisé"
+                                            ) : (
+                                                "Confirmer ma commande"
+                                            )}
+                                        </span>
+                                    </div>
                                 </button>
 
                                 {/* TEXTE DE RÉASSURANCE POUR VIREMENT (COMME IMAGE 2) */}

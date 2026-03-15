@@ -338,6 +338,27 @@ img {
   animation: ripple var(--duration, 2s) ease calc(var(--i, 0) * 0.2s) infinite;
 }
 
+/* --- FIX CHROME AUTOFILL (CHECKOUT & FORMS) --- */
+/* The Transition-Delay Hack overrides Chrome's forced background color while keeping the input's actual rounded box-shadows untouched. */
+
+.autofill-dark:-webkit-autofill,
+.autofill-dark:-webkit-autofill:hover, 
+.autofill-dark:-webkit-autofill:focus, 
+.autofill-dark:-webkit-autofill:active {
+    transition: background-color 5000s ease-in-out 0s !important;
+    -webkit-text-fill-color: white !important;
+    caret-color: white !important;
+}
+
+.autofill-light:-webkit-autofill,
+.autofill-light:-webkit-autofill:hover, 
+.autofill-light:-webkit-autofill:focus, 
+.autofill-light:-webkit-autofill:active {
+    transition: background-color 5000s ease-in-out 0s !important;
+    -webkit-text-fill-color: #1c1917 !important;
+    caret-color: #1c1917 !important;
+}
+
 /* --- VIEW TRANSITION API (THEME TOGGLE) --- */
 
 /* Disable default fade & ensure no static leftover */
