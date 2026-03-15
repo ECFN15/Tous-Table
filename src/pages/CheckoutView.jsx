@@ -252,8 +252,12 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                                     {/* NEON LAYER - ONLY VISIBLE IF SELECTED */}
                                     {paymentMethod === 'stripe_elements' && (
                                         <motion.div
-                                            animate={{ rotate: -360 }}
-                                            transition={{ repeat: Infinity, duration: 6, ease: "linear" }}
+                                            initial={{ opacity: 0, rotate: 0 }}
+                                            animate={{ opacity: 1, rotate: -360 }}
+                                            transition={{ 
+                                                opacity: { duration: 0.3, delay: 0.1 }, 
+                                                rotate: { repeat: Infinity, duration: 6, ease: "linear" } 
+                                            }}
                                             className="absolute top-1/2 left-1/2 w-[300%] aspect-square -translate-x-1/2 -translate-y-1/2 z-0"
                                             style={{
                                                 background: "conic-gradient(from 0deg, transparent 30%, rgba(255,255,255,0) 35%, rgba(255,255,255,1) 50%, rgba(255,255,255,0) 65%, transparent 70%)",
@@ -267,7 +271,7 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                                     )}
 
                                     {/* INNER CONTENT - OPAQUE MASKING (to hide the center of the wave) */}
-                                    <div className={`relative z-10 w-full h-full p-4 rounded-2xl flex flex-col gap-6 transition-all ${paymentMethod === 'stripe_elements' ? (darkMode ? 'bg-stone-900/95' : 'bg-white/95') : (darkMode ? 'bg-transparent group-hover:bg-white/5' : 'bg-transparent group-hover:bg-black/5')} backdrop-blur-md`}>
+                                    <div className={`relative z-10 w-full h-full p-4 rounded-2xl flex flex-col gap-6 transition-all ${paymentMethod === 'stripe_elements' ? (darkMode ? 'bg-stone-900' : 'bg-white') : (darkMode ? 'bg-transparent group-hover:bg-white/5' : 'bg-transparent group-hover:bg-black/5')} backdrop-blur-md`}>
                                         
                                         {/* EN-TÊTE : ICONE + TITRE */}
                                         <div className="flex items-center gap-4">
@@ -320,8 +324,12 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                                     {/* NEON LAYER - ONLY VISIBLE IF SELECTED */}
                                     {paymentMethod === 'deferred' && (
                                         <motion.div
-                                            animate={{ rotate: -360 }}
-                                            transition={{ repeat: Infinity, duration: 6, ease: "linear" }}
+                                            initial={{ opacity: 0, rotate: 0 }}
+                                            animate={{ opacity: 1, rotate: -360 }}
+                                            transition={{ 
+                                                opacity: { duration: 0.3, delay: 0.1 }, 
+                                                rotate: { repeat: Infinity, duration: 6, ease: "linear" } 
+                                            }}
                                             className="absolute top-1/2 left-1/2 w-[300%] aspect-square -translate-x-1/2 -translate-y-1/2 z-0"
                                             style={{
                                                 background: "conic-gradient(from 0deg, transparent 30%, rgba(255,255,255,0) 35%, rgba(255,255,255,1) 50%, rgba(255,255,255,0) 65%, transparent 70%)",
@@ -335,7 +343,7 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                                     )}
 
                                     {/* INNER CONTENT - OPAQUE MASKING (to hide the center of the wave) */}
-                                    <div className={`relative z-10 w-full h-full p-4 rounded-2xl flex flex-col gap-6 transition-all ${paymentMethod === 'deferred' ? (darkMode ? 'bg-stone-900/95' : 'bg-white/95') : (darkMode ? 'bg-transparent group-hover:bg-white/5' : 'bg-transparent group-hover:bg-black/5')} backdrop-blur-md`}>
+                                    <div className={`relative z-10 w-full h-full p-4 rounded-2xl flex flex-col gap-6 transition-all ${paymentMethod === 'deferred' ? (darkMode ? 'bg-stone-900' : 'bg-white') : (darkMode ? 'bg-transparent group-hover:bg-white/5' : 'bg-transparent group-hover:bg-black/5')} backdrop-blur-md`}>
                                         
                                         {/* EN-TÊTE : ICONE + TITRE */}
                                         <div className="flex items-center gap-4">
