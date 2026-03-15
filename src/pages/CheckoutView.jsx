@@ -1,12 +1,117 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { ArrowLeft, CreditCard, Truck, CheckCircle, ShieldCheck, AlertCircle, Landmark, Lock, Wallet } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { functions, db, appId } from '../firebase/config';
 import { httpsCallable } from 'firebase/functions';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { Elements } from '@stripe/react-stripe-js';
 import { stripePromise } from '../main';
 import CheckoutPaymentStep from '../components/cart/CheckoutPaymentStep';
+
+/**
+ * PremiumActionBtn — Bouton Ultra-Premium (Mouse Tracking + Morphing Loading)
+ * Design inspiré par Apple / Linear. Zéro scale on hover, effets de lumière dynamiques.
+ */
+const PremiumActionBtn = ({ children, isLoading, disabled, onClick, darkMode }) => {
+    const buttonRef = React.useRef(null);
+    const [mousePosition, setMousePosition] = React.useState({ x: 0, y: 0 });
+    const [isHovered, setIsHovered] = React.useState(false);
+
+    const handleMouseMove = (e) => {
+        if (!buttonRef.current || disabled) return;
+        const rect = buttonRef.current.getBoundingClientRect();
+        setMousePosition({
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top,
+        });
+    };
+
+    return (
+        <motion.button
+            ref={buttonRef}
+            layout
+            onClick={onClick}
+            disabled={disabled || isLoading}
+            onMouseMove={handleMouseMove}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            whileHover={{}} // IMPORTANT: NO SCALE ON HOVER AS REQUESTED
+            whileTap={!disabled && !isLoading ? { scale: 0.985 } : {}}
+            transition={{ layout: { type: "spring", stiffness: 500, damping: 35 } }}
+            className={`relative overflow-hidden font-black uppercase text-sm tracking-widest flex items-center justify-center mx-auto transition-all duration-700 outline-none
+                ${isLoading ? 'w-[64px] h-[64px] rounded-full p-0 cursor-wait' : 'w-full h-[64px] py-0 px-4 rounded-[1.25rem] cursor-pointer'}
+                ${disabled 
+                    ? (darkMode ? 'bg-stone-900/50 text-stone-600 border border-stone-800/50' : 'bg-stone-100 text-stone-400 border border-stone-200')
+                    : (darkMode 
+                        ? 'bg-[#0a0a0a] text-white shadow-[0_4px_20px_rgba(0,0,0,0.5)] border border-white/5' 
+                        : 'bg-white text-stone-900 shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-black/5')
+                }
+            `}
+        >
+            {/* 1. BORDER GLOW DYNAMIQUE (Suit la souris) */}
+            {!disabled && !isLoading && (
+                <motion.div
+                    className="absolute inset-0 pointer-events-none z-0 p-[1px] rounded-[1.25rem]"
+                    animate={{ opacity: isHovered ? 1 : 0 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    style={{
+                        background: `radial-gradient(120px circle at ${mousePosition.x}px ${mousePosition.y}px, ${darkMode ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.2)'}, transparent 50%)`,
+                    }}
+                >
+                    <div className={`w-full h-full rounded-[calc(1.25rem-1px)] ${darkMode ? 'bg-[#0a0a0a]' : 'bg-white'}`} />
+                </motion.div>
+            )}
+
+            {/* 2. INNER SPOTLIGHT DYNAMIQUE (Suit la souris) */}
+            {!disabled && !isLoading && (
+                <motion.div
+                    className="absolute inset-0 pointer-events-none z-10"
+                    animate={{ opacity: isHovered ? 1 : 0 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    style={{
+                        background: `radial-gradient(80px circle at ${mousePosition.x}px ${mousePosition.y}px, ${darkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.03)'}, transparent 50%)`,
+                    }}
+                />
+            )}
+
+            {/* 3. APPLE-STYLE 3D HIGHLIGHT (Bord supérieur légèrement plus clair) */}
+            {!disabled && !isLoading && (
+                <div className={`absolute inset-0 pointer-events-none z-10 rounded-[1.25rem] ${darkMode ? 'bg-gradient-to-b from-white/10 to-transparent opacity-50' : 'bg-gradient-to-b from-white/60 to-transparent opacity-100'}`} />
+            )}
+
+            {/* CONTENT & LOADING MORPHING */}
+            <AnimatePresence mode="wait">
+                {isLoading ? (
+                    <motion.div
+                        key="loading"
+                        initial={{ opacity: 0, scale: 0.5, rotate: -90 }}
+                        animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                        exit={{ opacity: 0, scale: 0.5, rotate: 90 }}
+                        transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                        className="flex items-center justify-center absolute inset-0 z-20"
+                    >
+                        <svg className="animate-spin h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"></circle>
+                            <path className="opacity-100" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key="text"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                        className="relative z-20 flex items-center justify-center w-full whitespace-nowrap gap-3"
+                    >
+                        {children}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.button>
+    );
+};
+
 
 /**
  * CheckoutView — Flow Single Page Premium (Mars 2026)
@@ -412,64 +517,25 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                                     </div>
                                 </div>
                                 {/* Éclat décoratif en haut à droite */}
-                                <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
                             </div>
                             
-                            {/* BOUTON D'ACTION */}
-                            <div className="flex flex-col gap-4">
-                                <button
+                            {/* BOUTON D'ACTION PREMIUM (Magnetic Spotlight & Layout Morph) */}
+                            <div className="flex flex-col gap-4 items-center">
+                                <PremiumActionBtn
                                     onClick={handleActionClick}
-                                    disabled={!isFormValid || checkoutState === 'fetching_stripe' || checkoutState === 'processing_deferred'}
-                                    className={`relative group p-[1.5px] rounded-2xl overflow-hidden w-full transition-all ${
-                                        (!isFormValid || checkoutState === 'fetching_stripe' || checkoutState === 'processing_deferred')
-                                            ? 'cursor-not-allowed opacity-50'
-                                            : 'cursor-pointer hover:scale-[1.02] active:scale-95'
-                                    }`}
+                                    disabled={!isFormValid}
+                                    isLoading={checkoutState === 'fetching_stripe' || checkoutState === 'processing_deferred'}
+                                    darkMode={darkMode}
                                 >
-                                    {/* NEON LAYER - ONLY VISIBLE IF FORM IS VALID */}
-                                    {(isFormValid && checkoutState !== 'fetching_stripe' && checkoutState !== 'processing_deferred') && (
-                                        <motion.div
-                                            initial={{ opacity: 0, rotate: 0 }}
-                                            animate={{ opacity: 1, rotate: -360 }}
-                                            transition={{ 
-                                                opacity: { duration: 0.3, delay: 0.1 }, 
-                                                rotate: { repeat: Infinity, duration: 6, ease: "linear" } 
-                                            }}
-                                            className="absolute top-1/2 left-1/2 w-[300%] aspect-square -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none"
-                                            style={{
-                                                background: "conic-gradient(from 0deg, transparent 30%, rgba(255,255,255,0) 35%, rgba(255,255,255,1) 50%, rgba(255,255,255,0) 65%, transparent 70%)",
-                                            }}
-                                        />
+                                    {paymentMethod === 'stripe_elements' ? (
+                                        <span>Procéder au paiement sécurisé</span>
+                                    ) : (
+                                        <span>Confirmer ma commande</span>
                                     )}
+                                </PremiumActionBtn>
 
-                                    {/* DEFAULT BORDER FALLBACK FOR DISABLED STATE */}
-                                    {(!isFormValid || checkoutState === 'fetching_stripe' || checkoutState === 'processing_deferred') && (
-                                        <div className={`absolute inset-0 z-0 rounded-2xl border-2 transition-colors ${darkMode ? 'border-stone-800' : 'border-stone-200'}`} />
-                                    )}
-
-                                    {/* INNER CONTENT - OPAQUE MASKING */}
-                                    <div className={`relative z-10 w-full h-full py-6 px-4 rounded-[15px] flex items-center justify-center gap-2 backdrop-blur-md transition-all ${
-                                        (isFormValid && checkoutState !== 'fetching_stripe' && checkoutState !== 'processing_deferred')
-                                            ? (darkMode ? 'bg-stone-900' : 'bg-[#1a1a1a]') // Opaque dark mask for the neon
-                                            : (darkMode ? 'bg-stone-800' : 'bg-stone-200') // Disabled background
-                                    }`}>
-                                        <span className={`font-black uppercase text-sm tracking-widest ${
-                                            (isFormValid && checkoutState !== 'fetching_stripe' && checkoutState !== 'processing_deferred')
-                                                ? 'text-white' // Text is always white on dark masks
-                                                : (darkMode ? 'text-stone-500' : 'text-stone-400')
-                                        }`}>
-                                            {checkoutState === 'fetching_stripe' || checkoutState === 'processing_deferred' ? (
-                                                "Patientez..."
-                                            ) : paymentMethod === 'stripe_elements' ? (
-                                                "Procéder au paiement sécurisé"
-                                            ) : (
-                                                "Confirmer ma commande"
-                                            )}
-                                        </span>
-                                    </div>
-                                </button>
-
-                                {/* TEXTE DE RÉASSURANCE POUR VIREMENT (COMME IMAGE 2) */}
+                                {/* TEXTE DE RÉASSURANCE POUR VIREMENT */}
                                 {paymentMethod === 'deferred' && (
                                     <p className="text-center text-[10px] font-medium leading-relaxed text-stone-400 mt-2">
                                         En confirmant, vous réservez vos articles.<br />
