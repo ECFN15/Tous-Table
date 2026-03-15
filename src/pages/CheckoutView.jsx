@@ -3,6 +3,7 @@ import { ArrowLeft, CreditCard, Truck, CheckCircle, ShieldCheck, AlertCircle } f
 import { functions, db, appId } from '../firebase/config';
 import { httpsCallable } from 'firebase/functions';
 import { doc, onSnapshot } from 'firebase/firestore';
+import StripePaymentModule from '../components/cart/StripePaymentModule';
 
 const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlaceOrder }) => {
     const [formData, setFormData] = useState({
@@ -14,9 +15,11 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
         zip: '',
         country: 'France'
     });
-    const [paymentMethod, setPaymentMethod] = useState('manual'); // 'manual' | 'deferred'
+    const [paymentMethod, setPaymentMethod] = useState('stripe_checkout'); // 'stripe_checkout' | 'stripe_elements' | 'deferred'
     const [loading, setLoading] = useState(false);
     const [progress, setProgress] = useState(0);
+    const [clientSecret, setClientSecret] = useState(null);
+    const [createdOrderId, setCreatedOrderId] = useState(null);
 
     // Fake progress when loading
     useEffect(() => {
@@ -105,10 +108,15 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
 
             if (result.data.success) {
                 if (result.data.url) {
-                    // Redirection vers Stripe
+                    // Redirection vers Stripe (Mode Checkout)
                     window.location.href = result.data.url;
+                } else if (result.data.clientSecret) {
+                    // Mode Stripe Elements (On reste sur la page)
+                    setClientSecret(result.data.clientSecret);
+                    setCreatedOrderId(result.data.orderId);
+                    setLoading(false);
                 } else {
-                    // Succès direct (Paiement différé)
+                    // Succès direct (Paiement différé / Virement)
                     await onPlaceOrder({
                         id: result.data.orderId,
                         ...formData,
@@ -205,22 +213,42 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                             <div className={`p-5 md:p-6 rounded-[2rem] md:rounded-3xl ring-1 ring-inset shadow-sm space-y-4 transform-gpu will-change-transform ${darkMode ? 'bg-stone-800 ring-stone-700' : 'bg-white ring-stone-100'}`}>
                                 <h3 className="text-[10px] md:text-xs font-black uppercase tracking-widest text-stone-400 flex items-center gap-2 mb-2 md:mb-4"><CreditCard size={14} /> Moyen de paiement</h3>
 
-                                <div className={`p-5 md:p-6 rounded-2xl md:rounded-3xl ring-2 ring-inset transform-gpu will-change-transform shadow-[0_0_0_8px_rgba(245,158,11,0.05)] ${darkMode ? 'ring-amber-500/50 bg-amber-500/10' : 'ring-amber-500 bg-amber-50/50'}`}>
-                                    <div className="flex flex-row items-center sm:items-start gap-4 md:gap-5">
-                                        <div className="w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-xl md:rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white shadow-lg shadow-amber-500/30 transform-gpu will-change-transform">
-                                            <CreditCard size={24} className="md:w-[28px] md:h-[28px]" strokeWidth={1.5} />
-                                        </div>
-                                        <div className="flex-1 w-full min-w-0">
-                                            <div className="flex items-center justify-between mb-1">
-                                                <span className={`font-black text-base md:text-lg tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'} truncate mr-2`}>Virement ou Wero</span>
-                                                <div className="w-6 h-6 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
-                                                    <CheckCircle size={14} className="text-amber-500 md:w-[16px] md:h-[16px]" strokeWidth={3} />
-                                                </div>
+                                <div className="space-y-3">
+                                    {/* CARTE BANCAIRE */}
+                                    <div 
+                                        onClick={() => setPaymentMethod('stripe_elements')}
+                                        className={`p-4 rounded-2xl ring-2 ring-inset cursor-pointer transition-all transform-gpu will-change-transform ${paymentMethod === 'stripe_elements' ? (darkMode ? 'ring-indigo-500 bg-indigo-500/10' : 'ring-indigo-500 bg-indigo-50') : (darkMode ? 'ring-stone-700 hover:ring-stone-600' : 'ring-stone-100 hover:ring-stone-200')}`}
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white ${paymentMethod === 'stripe_elements' ? 'bg-indigo-500 shadow-lg shadow-indigo-500/30' : 'bg-stone-400'}`}>
+                                                <CreditCard size={20} />
                                             </div>
-                                            <p className={`text-[10px] md:text-xs leading-relaxed font-semibold ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
-                                                Simple, sécurisé et privilégié par l'Atelier. <br className="hidden sm:block" />
-                                                Les instructions (RIB / QR) s'afficheront après.
-                                            </p>
+                                            <div className="flex-1">
+                                                <div className="flex items-center justify-between">
+                                                    <span className={`font-black text-sm ${darkMode ? 'text-white' : 'text-stone-900'}`}>Carte Bancaire</span>
+                                                    {paymentMethod === 'stripe_elements' && <CheckCircle size={14} className="text-indigo-500" strokeWidth={3} />}
+                                                </div>
+                                                <p className="text-[9px] font-bold text-stone-500 uppercase tracking-wider">Immédiat & Sécurisé</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* VIREMENT / WERO */}
+                                    <div 
+                                        onClick={() => setPaymentMethod('deferred')}
+                                        className={`p-4 rounded-2xl ring-2 ring-inset cursor-pointer transition-all transform-gpu will-change-transform ${paymentMethod === 'deferred' ? (darkMode ? 'ring-amber-500 bg-amber-500/10' : 'ring-amber-500 bg-amber-50') : (darkMode ? 'ring-stone-700 hover:ring-stone-600' : 'ring-stone-100 hover:ring-stone-200')}`}
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white ${paymentMethod === 'deferred' ? 'bg-amber-500 shadow-lg shadow-amber-500/30' : 'bg-stone-400'}`}>
+                                                <Truck size={20} />
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="flex items-center justify-between">
+                                                    <span className={`font-black text-sm ${darkMode ? 'text-white' : 'text-stone-900'}`}>Virement ou Wero</span>
+                                                    {paymentMethod === 'deferred' && <CheckCircle size={14} className="text-amber-500" strokeWidth={3} />}
+                                                </div>
+                                                <p className="text-[9px] font-bold text-stone-500 uppercase tracking-wider">Instructions envoyées par email</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -254,24 +282,65 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                             <button
                                 type="submit"
                                 form="checkout-form"
-                                disabled={loading || unavailableItems.length > 0}
-                                className="w-full py-5 md:py-6 bg-amber-500 text-white rounded-2xl font-black uppercase text-[11px] md:text-sm tracking-widest hover:bg-amber-400 shadow-xl transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 md:gap-3"
+                                disabled={loading || unavailableItems.length > 0 || clientSecret}
+                                className={`w-full py-5 md:py-6 text-white rounded-2xl font-black uppercase text-[11px] md:text-sm tracking-widest shadow-xl transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 md:gap-3 ${paymentMethod === 'stripe_elements' ? 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-500/20' : 'bg-amber-500 hover:bg-amber-400 shadow-amber-500/20'}`}
                             >
                                 {loading ? (
                                     <>Traitement... </>
                                 ) : (
-                                    <>Confirmer ma commande <CheckCircle size={16} className="md:w-[18px] md:h-[18px]" /></>
+                                    <>
+                                        {paymentMethod === 'stripe_elements' ? "Continuer vers le paiement" : "Confirmer ma commande"}
+                                        <CheckCircle size={16} className="md:w-[18px] md:h-[18px]" />
+                                    </>
                                 )}
                             </button>
                             <p className="text-center text-[9px] md:text-[10px] text-stone-400 font-medium px-2 md:px-4">
-                                En confirmant, vous réservez vos articles. <br />
-                                Les détails de paiement vous seront envoyés par email.
+                                {paymentMethod === 'stripe_elements' 
+                                    ? "Prochaine étape : Saisie sécurisée de vos coordonnées bancaires."
+                                    : "En confirmant, vous réservez vos articles. Les détails de paiement vous seront envoyés par email."}
                             </p>
                         </div>
                     </div>
 
                 </div>
             </div>
+
+            {/* MODAL DE PAIEMENT STRIPE (ELEMENTS) */}
+            {clientSecret && (
+                <div className="fixed inset-0 z-[600] bg-stone-900/90 backdrop-blur-xl flex items-center justify-center p-6 animate-in fade-in duration-500">
+                    <div className={`p-8 rounded-[2.5rem] max-w-lg w-full shadow-2xl space-y-8 animate-in slide-in-from-bottom-10 duration-500 ${darkMode ? 'bg-stone-800' : 'bg-stone-50'}`}>
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <h3 className={`text-2xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>Paiement par carte</h3>
+                                <p className="text-stone-400 text-sm font-medium">Commande #{createdOrderId?.slice(-6).toUpperCase()}</p>
+                            </div>
+                            <button 
+                                onClick={() => setClientSecret(null)}
+                                className="p-2 hover:bg-white/5 rounded-full transition-colors text-stone-400"
+                            >
+                                <ArrowLeft size={20} />
+                            </button>
+                        </div>
+
+                        <StripePaymentModule 
+                            clientSecret={clientSecret}
+                            total={total}
+                            onPaymentSuccess={async (paymentIntent) => {
+                                await onPlaceOrder({
+                                    id: createdOrderId,
+                                    ...formData,
+                                    paymentMethod: 'stripe_elements',
+                                    total,
+                                    paymentIntentId: paymentIntent.id
+                                });
+                            }}
+                            onPaymentError={(err) => {
+                                // On peut laisser le message d'erreur dans le module lui-même
+                            }}
+                        />
+                    </div>
+                </div>
+            )}
 
             {loading && (
                 <div className="fixed inset-0 z-[500] bg-stone-900/80 backdrop-blur-md flex flex-col items-center justify-center p-6 animate-in fade-in duration-300">

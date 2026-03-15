@@ -4,6 +4,11 @@ import './index.css';
 import App from './App.jsx';
 
 import { HelmetProvider } from 'react-helmet-async';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
+
+// Initialisation de Stripe (Clé publique depuis .env)
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
 // On récupère l'élément "root" de ton fichier index.html
 const rootElement = document.getElementById('root');
@@ -15,7 +20,9 @@ if (!rootElement) {
   // Ce fichier fait le lien entre ton code React et ta page HTML
   ReactDOM.createRoot(rootElement).render(
     <HelmetProvider>
-      <App />
+      <Elements stripe={stripePromise}>
+        <App />
+      </Elements>
     </HelmetProvider>
   );
 }
