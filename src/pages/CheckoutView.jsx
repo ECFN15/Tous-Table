@@ -248,18 +248,18 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                                     }}
                                     className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${paymentMethod === 'stripe_elements' ? (darkMode ? 'border-amber-500 bg-amber-500/5' : 'border-amber-500 bg-amber-50') : (darkMode ? 'border-stone-800 hover:border-stone-700' : 'border-stone-100 hover:border-stone-200')}`}
                                 >
-                                    <div className="flex flex-col gap-4">
+                                    <div className="flex flex-col gap-6">
                                         {/* EN-TÊTE : ICONE + TITRE */}
                                         <div className="flex items-center gap-4">
-                                            <div className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center ${paymentMethod === 'stripe_elements' ? 'bg-amber-500 text-stone-900 shadow-lg shadow-amber-500/20' : (darkMode ? 'bg-stone-800 text-stone-400' : 'bg-stone-200 text-stone-400')}`}>
-                                                <Wallet size={18} />
+                                            <div className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center ${paymentMethod === 'stripe_elements' ? 'bg-amber-500 text-stone-900 shadow-lg shadow-amber-500/20' : (darkMode ? 'bg-stone-800 text-stone-400' : 'bg-stone-200 text-stone-400')}`}>
+                                                <Wallet size={22} />
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex justify-between items-center">
-                                                    <span className={`font-black text-sm ${darkMode ? 'text-white' : 'text-stone-900'}`}>Carte / Wallets</span>
-                                                    {paymentMethod === 'stripe_elements' && <CheckCircle size={14} className="text-amber-500" strokeWidth={3} />}
+                                                    <span className={`font-black text-base ${darkMode ? 'text-white' : 'text-stone-900'}`}>Carte / Wallets</span>
+                                                    {paymentMethod === 'stripe_elements' && <CheckCircle size={16} className="text-amber-500" strokeWidth={3} />}
                                                 </div>
-                                                <p className="text-[9px] font-bold text-stone-500 uppercase tracking-widest mt-0.5">Rapide & Sécurisé</p>
+                                                <p className="text-[10px] font-bold text-stone-500 uppercase tracking-widest mt-0.5">Rapide & Sécurisé</p>
                                             </div>
                                         </div>
                                         
@@ -298,18 +298,18 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                                     }}
                                     className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${paymentMethod === 'deferred' ? (darkMode ? 'border-amber-500 bg-amber-500/5' : 'border-amber-500 bg-amber-50') : (darkMode ? 'border-stone-800 hover:border-stone-700' : 'border-stone-100 hover:border-stone-200')}`}
                                 >
-                                    <div className="flex flex-col gap-4">
+                                    <div className="flex flex-col gap-6">
                                         {/* EN-TÊTE : ICONE + TITRE */}
                                         <div className="flex items-center gap-4">
-                                            <div className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center ${paymentMethod === 'deferred' ? 'bg-amber-500 text-stone-900 shadow-lg shadow-amber-500/20' : (darkMode ? 'bg-stone-800 text-stone-400' : 'bg-stone-200 text-stone-400')}`}>
-                                                <Landmark size={18} />
+                                            <div className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center ${paymentMethod === 'deferred' ? 'bg-amber-500 text-stone-900 shadow-lg shadow-amber-500/20' : (darkMode ? 'bg-stone-800 text-stone-400' : 'bg-stone-200 text-stone-400')}`}>
+                                                <Landmark size={22} />
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex justify-between items-center">
-                                                    <span className={`font-black text-sm ${darkMode ? 'text-white' : 'text-stone-900'}`}>Virement</span>
-                                                    {paymentMethod === 'deferred' && <CheckCircle size={14} className="text-amber-500" strokeWidth={3} />}
+                                                    <span className={`font-black text-base ${darkMode ? 'text-white' : 'text-stone-900'}`}>Virement</span>
+                                                    {paymentMethod === 'deferred' && <CheckCircle size={16} className="text-amber-500" strokeWidth={3} />}
                                                 </div>
-                                                <p className="text-[9px] font-bold text-stone-500 uppercase tracking-widest mt-0.5">Instructions via email</p>
+                                                <p className="text-[10px] font-bold text-stone-500 uppercase tracking-widest mt-0.5">Instructions via email</p>
                                             </div>
                                         </div>
                                         
