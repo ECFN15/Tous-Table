@@ -149,28 +149,8 @@ exports.createOrder = functions.runWith({ secrets: [STRIPE_SECRET_KEY, GMAIL_EMA
         }
     }
 
-    // 3. Stripe Checkout Session (Redirection vers page Stripe hébergée)
-    if (orderData.paymentMethod === 'stripe_checkout') {
-        try {
-            const session = await stripe.checkout.sessions.create({
-                automatic_payment_methods: { enabled: true },
-                customer_email: context.auth.token.email,
-                line_items: line_items,
-                mode: 'payment',
-                success_url: `${SITE_URL}/?page=gallery&order_success=true&session_id={CHECKOUT_SESSION_ID}`,
-                cancel_url: `${SITE_URL}/?page=checkout&canceled=true`,
-                metadata: {
-                    userId: userId,
-                    shippingMeta: JSON.stringify(orderData.shipping || {}).substring(0, 500)
-                }
-            });
-
-            return { success: true, url: session.url };
-        } catch (error) {
-            console.error("Order Error:", error);
-            throw new functions.https.HttpsError('internal', "Erreur initialisation commande.");
-        }
-    }
+    // 3. Stripe Checkout Session — SUPPRIMÉ (Mars 2026)
+    // Mode externe supprimé au profit du PaymentElement inline (stripe_elements)
 
     // 4. Stripe Elements (PaymentElement intégré — PaymentIntent)
     // Architecture: Commande "pending" AVANT le PaymentIntent
@@ -200,16 +180,27 @@ exports.createOrder = functions.runWith({ secrets: [STRIPE_SECRET_KEY, GMAIL_EMA
         try {
             await orderRef.set(pendingOrder);
 
+            const shippingData = orderData.shipping || {};
             const paymentIntent = await stripe.paymentIntents.create({
                 amount: Math.round(totalAmount * 100),
                 currency: 'eur',
                 automatic_payment_methods: { enabled: true },
                 receipt_email: context.auth.token.email,
+                shipping: {
+                    name: shippingData.fullName || '',
+                    address: {
+                        line1: shippingData.address || '',
+                        city: shippingData.city || '',
+                        postal_code: shippingData.zip || '',
+                        country: 'FR',
+                    },
+                    phone: shippingData.phone || '',
+                },
                 metadata: {
                     userId: userId,
                     userEmail: context.auth.token.email || '',
                     orderId: orderRef.id,
-                    shippingMeta: JSON.stringify(orderData.shipping || {}).substring(0, 500),
+                    shippingMeta: JSON.stringify(shippingData).substring(0, 500),
                     itemsMeta: JSON.stringify(pendingOrder.items.map(i => ({ id: i.id, col: i.collectionName, qty: i.quantity }))).substring(0, 500)
                 }
             });
