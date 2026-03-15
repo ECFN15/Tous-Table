@@ -42,10 +42,10 @@ const PremiumActionBtn = ({ children, isLoading, disabled, onClick, darkMode }) 
             whileHover={{}} // ABSOLUMENT AUCUN SCALE AU HOVER (Premium Static Layout)
             whileTap={!disabled && !isLoading ? { scale: 0.985 } : {}}
             transition={{ layout: { type: "spring", stiffness: 450, damping: 35 } }}
-            className={`relative overflow-hidden font-black uppercase text-sm tracking-widest flex items-center justify-center mx-auto transition-colors duration-700 outline-none
-                ${isLoading ? 'w-[64px] h-[64px] rounded-full p-0 cursor-wait shadow-none' : 'w-full h-[64px] py-0 px-4 rounded-[1.25rem] cursor-pointer shadow-xl'}
+            className={`relative overflow-hidden font-black uppercase text-sm tracking-widest flex items-center justify-center mx-auto transition-colors duration-700 outline-none w-full h-[64px] py-0 px-4 rounded-[1.25rem]
+                ${isLoading ? 'cursor-wait' : 'cursor-pointer'}
                 ${disabled 
-                    ? `${disabledBg} ${darkMode ? 'text-stone-600 border border-stone-800/50' : 'text-stone-400 border border-stone-200'}`
+                    ? `${disabledBg} ${darkMode ? 'text-stone-600 border border-stone-800/50' : 'text-stone-400 border border-stone-200'} opacity-60`
                     : `${bgColor} text-white shadow-[0_8px_30px_rgba(0,0,0,0.15)]`
                 }
             `}
@@ -77,26 +77,27 @@ const PremiumActionBtn = ({ children, isLoading, disabled, onClick, darkMode }) 
                 />
             )}
 
-            {/* 3. NEON BORDER LOADING TRANSITION (Liseré rotatif morphing) */}
+            {/* 3. NEON BORDER LOADING TRANSITION (Faisceau lumineux balayant le grand rectangle) */}
             <AnimatePresence>
                 {isLoading && (
                     <motion.div
                         key="neon-spinner"
-                        className="absolute inset-0 pointer-events-none z-0 p-[2px] rounded-full overflow-hidden"
+                        className="absolute inset-0 pointer-events-none z-0 p-[2px] rounded-[1.25rem] overflow-hidden"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        transition={{ duration: 0.4 }} // Fade in très fluide pendant que le bouton rétrécit
+                        transition={{ duration: 0.4 }} // Fade in très fluide
                     >
+                        {/* Le conteneur à -300% assure que le centre du dégradé (la source lumineuse) est très loin pour lécher les bords horizontaux */}
                         <motion.div 
                             animate={{ rotate: 360 }}
-                            transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+                            transition={{ repeat: Infinity, duration: 2.5, ease: "linear" }}
                             className="absolute top-1/2 left-1/2 w-[300%] aspect-square -translate-x-1/2 -translate-y-1/2 z-0"
                             style={{
-                                background: "conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0) 10%, rgba(255,255,255,1) 40%, rgba(255,255,255,0) 60%, transparent 100%)",
+                                background: "conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0) 25%, rgba(255,255,255,1) 50%, rgba(255,255,255,0) 75%, transparent 100%)",
                             }}
                         />
-                        <div className={`relative z-10 w-full h-full rounded-full ${bgColor}`} />
+                        <div className={`relative z-10 w-full h-full rounded-[calc(1.25rem-2px)] ${bgColor}`} />
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -106,18 +107,22 @@ const PremiumActionBtn = ({ children, isLoading, disabled, onClick, darkMode }) 
                 <div className="absolute inset-0 pointer-events-none z-10 rounded-[1.25rem] bg-gradient-to-b from-white/10 to-transparent opacity-60" style={{ maskImage: 'linear-gradient(to bottom, black 5%, transparent 30%)', WebkitMaskImage: 'linear-gradient(to bottom, black 5%, transparent 30%)' }} />
             )}
 
-            {/* CONTENT MORPHING (Texte -> Loader pur minimaliste) */}
+            {/* CONTENT TRANSITION (Texte -> Loader pur minimaliste) */}
             <AnimatePresence mode="wait">
                 {isLoading ? (
                     <motion.div
                         key="loading"
-                        initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.5 }}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-                        className="flex items-center justify-center absolute inset-0 z-20"
+                        className="flex items-center justify-center absolute inset-0 z-20 gap-3"
                     >
-                        <Lock size={18} className="text-white/80" />
+                        <svg className="animate-spin h-5 w-5 opacity-70" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-100" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span className="text-white/80">Sécurisation...</span>
                     </motion.div>
                 ) : (
                     <motion.div
@@ -576,7 +581,9 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
             {/* MODAL STRIPE (POP-UP) */}
             {checkoutState === 'ready_to_pay' && clientSecret && stripeElementsOptions && paymentMethod === 'stripe_elements' && (
                 <div className="fixed inset-0 z-[999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-300">
-                    <div className={`w-full max-w-lg relative p-6 md:p-8 rounded-[2rem] shadow-2xl animate-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar ${darkMode ? 'bg-stone-900 ring-1 ring-stone-800' : 'bg-white ring-1 ring-stone-200'}`}>
+                    <div className={`w-full max-w-lg relative p-6 md:p-8 rounded-[2rem] shadow-2xl animate-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar ${darkMode ? 'bg-[#0a0a0a] ring-1 ring-white/5' : 'bg-white ring-1 ring-stone-200'}`}>
+                        
+                        {/* BOUTON FERMER (Hitbox élargie pour plus de précision) */}
                         <button 
                             type="button"
                             onClick={(e) => {
@@ -584,16 +591,17 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                                 e.stopPropagation();
                                 setCheckoutState('editing');
                             }}
-                            className={`absolute z-50 top-4 right-4 p-2.5 rounded-full transition-colors cursor-pointer ${darkMode ? 'bg-stone-800 text-stone-400 hover:text-white' : 'bg-stone-100 text-stone-500 hover:text-stone-900'}`}
+                            className={`absolute z-50 top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full transition-colors cursor-pointer ${darkMode ? 'hover:bg-white/10 text-stone-400 hover:text-white' : 'hover:bg-stone-100 text-stone-500 hover:text-stone-900'}`}
+                            aria-label="Fermer le paiement"
                         >
-                            <svg className="w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            <svg className="w-5 h-5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
                         
-                        <div className="mb-6 pr-8">
-                            <h3 className={`text-2xl font-black tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>Paiement.</h3>
-                            <p className={`text-xs mt-1 font-medium ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>Finalisez votre transaction en toute sécurité.</p>
+                        <div className="mb-6 pr-10">
+                            <h3 className={`text-2xl font-black tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>Paiement sécurisé.</h3>
+                            <p className={`text-xs mt-1 font-medium ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>Finalisez votre transaction via Stripe.</p>
                         </div>
 
                         <Elements stripe={stripePromise} options={stripeElementsOptions}>

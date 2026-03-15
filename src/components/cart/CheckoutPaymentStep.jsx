@@ -78,14 +78,14 @@ const CheckoutPaymentStep = ({ total, orderId, onPaymentSuccess, onPaymentError,
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-500 mt-4">
-            {/* BADGE SÉCURITÉ */}
-            <div className={`flex items-center gap-3 p-4 rounded-xl ring-1 ring-inset ${darkMode ? 'bg-amber-500/5 ring-amber-500/20' : 'bg-amber-50/50 ring-amber-100'}`}>
-                <div className="p-2 bg-amber-500/10 rounded-lg">
-                    <ShieldCheck size={18} className="text-amber-600 dark:text-amber-500" />
+            {/* BADGE SÉCURITÉ PREMIUM */}
+            <div className={`flex items-center gap-4 p-4 rounded-xl ring-1 ring-inset ${darkMode ? 'bg-[#0a0a0a] ring-white/10' : 'bg-stone-50 ring-stone-200'}`}>
+                <div className={`p-2.5 rounded-lg ${darkMode ? 'bg-white/5 text-white' : 'bg-white shadow-sm text-stone-900'}`}>
+                    <ShieldCheck size={18} strokeWidth={2} />
                 </div>
                 <div>
-                    <p className={`text-xs font-bold ${darkMode ? 'text-amber-400' : 'text-amber-800'}`}>Paiement 100% sécurisé</p>
-                    <p className={`text-[10px] ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>Cryptage SSL 256 bits — Stripe PCI DSS</p>
+                    <p className={`text-xs font-black tracking-wide ${darkMode ? 'text-white' : 'text-stone-900'}`}>Paiement 100% sécurisé</p>
+                    <p className={`text-[10px] font-medium mt-0.5 ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>Cryptage SSL 256 bits — Stripe PCI DSS</p>
                 </div>
             </div>
 
@@ -152,25 +152,45 @@ const CheckoutPaymentStep = ({ total, orderId, onPaymentSuccess, onPaymentError,
                     </div>
                 )}
 
-                {/* BOUTON PAYER TOTAL */}
-                <button
-                    type="submit"
-                    disabled={!stripe || isProcessing}
-                    className={`w-full py-4 md:py-5 text-stone-900 bg-amber-500 hover:bg-amber-400 disabled:opacity-60 disabled:cursor-not-allowed rounded-xl font-black uppercase text-[11px] md:text-xs tracking-widest transition-all active:scale-[0.98] flex items-center justify-center gap-3 shadow-xl ${darkMode ? 'shadow-amber-500/10' : 'shadow-amber-500/20'}`}
-                >
+            {/* BOUTON PAYER TOTAL PREMIUM */}
+            <button
+                type="submit"
+                disabled={!stripe || isProcessing}
+                className={`relative w-full overflow-hidden py-4 md:py-5 rounded-[1rem] font-black uppercase text-[11px] md:text-xs tracking-widest transition-all duration-500 flex items-center justify-center gap-3 shadow-xl outline-none group
+                    ${(!stripe || isProcessing) ? 'cursor-wait' : 'cursor-pointer active:scale-[0.985] hover:shadow-[0_8px_30px_rgba(255,255,255,0.15)]'}
+                    ${(!stripe || isProcessing)
+                        ? (darkMode ? 'bg-stone-800/50 text-stone-500 opacity-70' : 'bg-stone-200 text-stone-400 opacity-70')
+                        : (darkMode ? 'bg-white text-stone-900 shadow-[0_4px_20px_rgba(0,0,0,0.5)]' : 'bg-stone-900 text-white shadow-[0_4px_20px_rgba(0,0,0,0.1)]')
+                    }
+                `}
+            >
+                {/* Effet Shimmer de base pour le bouton au hover */}
+                {!isProcessing && stripe && (
+                    <div className={`absolute inset-0 -translate-x-[150%] group-hover:animate-[shimmer-sweep_2s_infinite_cubic-bezier(0.16,1,0.3,1)] w-1/2 skew-x-12 blur-md pointer-events-none ${
+                        darkMode 
+                            ? 'bg-gradient-to-r from-transparent via-stone-400/20 to-transparent' 
+                            : 'bg-gradient-to-r from-transparent via-white/20 to-transparent'
+                    }`} />
+                )}
+
+                <div className="relative z-10 flex items-center justify-center gap-3 w-full">
                     {isProcessing ? (
                         <>
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                            Traitement en cours...
+                            <svg className={`animate-spin h-5 w-5 ${darkMode ? 'text-stone-500' : 'text-stone-400'}`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span className={darkMode ? 'text-stone-500' : 'text-stone-400'}>Traitement en cours...</span>
                         </>
                     ) : (
                         <>
-                            <Lock size={16} />
+                            <Lock size={16} className={darkMode ? 'text-stone-900/80' : 'text-white/80'} />
                             Payer {total} €
                         </>
                     )}
-                </button>
-            </form>
+                </div>
+            </button>
+        </form>
         </div>
     );
 };

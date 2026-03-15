@@ -85,3 +85,172 @@ export const NeonSelectionCard = ({ selected, onClick, children, darkMode = true
 ```
 
 ---
+
+## 💎 2. Premium Action Button (Spotlight Magnétique & Sweep Loading)
+
+### 📝 Description
+Un bouton d'appel à l'action (CTA) ultra-premium inspiré des standards les plus élevés du web moderne (Apple, Vercel, Linear). Contrairement aux boutons classiques qui grossissent au survol, celui-ci reste purement statique et majestueux. Son interaction repose entièrement sur un système de **lumières magnétiques qui suivent la souris** (Spotlight Effect) et une transition de chargement où un rayon néon court sur tout le périmètre du bouton.
+
+### 🎨 Rendu Visuel
+- **Survol (Hover) : Zéro Scale** : Le bouton ne change pas de taille. À la place, un double projecteur lumineux caché sous le bouton suit les coordonnées exactes du curseur, révélant dynamiquement le contour et le fond du bouton là où se trouve la souris.
+- **Top Highlight (3D Edge)** : Le bord supérieur du bouton est continuellement éclairé par un très fin reflet, simulant une touche de lumière rasante sur un objet matériel en 3D.
+- **Clic (Tap)** : Une compression physique ultra-serrée (`scale: 0.985`) avec une physique de type "ressort" tendu (Spring) pour imiter la densité d'un vrai bouton mécanique.
+- **Chargement (Transition de validation)** : Le texte s'efface en douceur. Au lieu de rétrécir bêtement en cercle (ce qui créerait des distorsions), le bouton garde sa largeur. La bordure s'active soudainement sous forme d'un rayon laser balayant tout le périmètre extérieur (le bouton lui-même devient la barre de chargement), pendant qu'une icône de cadenas apparaît au centre.
+
+### 🛠️ Technologies Utilisées
+- **React (useRef, useState)** : Pour intercepter et stocker en temps réel les coordonnées X et Y de la souris relatives à la position du bouton.
+- **Framer Motion (`useMotionValue` ou state local)** : Pour animer la position des lueurs (`radial-gradient`) de manière parfaitement fluide.
+- **CSS Avançé (`clip-path` ou `mask-image`)** : Pour sculpter le reflet 3D sur le rebord supérieur.
+
+### ⚙️ Fonctionnement Technique (Le Secret des Lumières)
+
+L'effet "Magnetic Spotlight" est obtenu en empilant de multiples couches `absolute` à l'intérieur du bouton, toutes en `pointer-events-none` :
+
+1. **La Couche Bordure (Border Glow)** : 
+   Une `div` avec un padding de `2px` (`p-[2px]`), contenant elle-même le masque central. Le fond de cette `div` n'est pas une couleur unie, mais un `radial-gradient` (halo) dont le centre est mappé sur `mousePosition.x` et `y`.
+   
+2. **La Couche Lumière Interne (Inner Glow)** : 
+   Un second `radial-gradient` posé par-dessus, plus petit et très très doux (ex: `rgba(255,255,255,0.06)`), pour donner l'impression que la lumière traverse le matériau du bouton (effet verre poli).
+   
+3. **Le Top Highlight 3D** :
+   Un simple gradient linéaire blanc vers transparent, posé en `absolute inset-0`, qui est littéralement tronqué/effacé à 95% par un `mask-image` (qui masque tout sauf le haut de la div).
+
+> **💡 L'astuce du Neon Perimeter Sweep :**
+> Lors du chargement de l'API (Stripe par exemple), on réutilise exactement la même technique du *Conic Gradient Masking* (vue dans l'astuce 🌟 1). Sauf qu'ici, on ralentit l'animation (`duration: 2.5s`) pour que le faisceau blanc ait le temps de balayer le très long rectangle. Le résultat donne l'illusion qu'un fil de lumière court physiquement le long du câble périmétrique !
+
+### 💻 Code Snippet (Composant PremiumActionBtn)
+
+```jsx
+import React, { useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Lock } from 'lucide-react';
+
+const PremiumActionBtn = ({ children, isLoading, disabled, onClick, darkMode = true }) => {
+    const buttonRef = useRef(null);
+    const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+    const [isHovered, setIsHovered] = useState(false);
+
+    // Fonction de Mouse Tracking
+    const handleMouseMove = (e) => {
+        if (!buttonRef.current || disabled) return;
+        const rect = buttonRef.current.getBoundingClientRect();
+        setMousePosition({
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top,
+        });
+    };
+
+    const bgColor = darkMode ? 'bg-stone-900' : 'bg-[#1a1a1a]';
+
+    return (
+        <motion.button
+            ref={buttonRef}
+            onClick={onClick}
+            disabled={disabled || isLoading}
+            onMouseMove={handleMouseMove}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            whileHover={{}} // IMPORTANT : PAS DE SCALE AU SURVOL !
+            whileTap={!disabled && !isLoading ? { scale: 0.985 } : {}}
+            transition={{ type: "spring", stiffness: 450, damping: 35 }}
+            className={`relative overflow-hidden font-black uppercase text-sm tracking-widest flex items-center justify-center mx-auto transition-colors duration-700 outline-none w-full h-[64px] py-0 px-4 rounded-[1.25rem]
+                ${isLoading ? 'cursor-wait' : 'cursor-pointer'}
+                ${disabled 
+                    ? 'opacity-60 cursor-not-allowed bg-stone-900/50 text-stone-600'
+                    : \`\${bgColor} text-white shadow-[0_8px_30px_rgba(0,0,0,0.15)]\`
+                }
+            `}
+        >
+            {/* 1. MAGNETIC SPOTLIGHT BORDER GLOW (Liseré dynamique de 2px suivant la souris) */}
+            {!disabled && !isLoading && (
+                <motion.div
+                    className="absolute inset-0 pointer-events-none z-0 p-[2px] rounded-[1.25rem]"
+                    animate={{ opacity: isHovered ? 1 : 0 }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    style={{
+                        background: \`radial-gradient(160px circle at \${mousePosition.x}px \${mousePosition.y}px, rgba(255,255,255,0.7), transparent 60%)\`,
+                    }}
+                >
+                    {/* Le masque opaque garantit que seule la bordure de 2px s'illumine */}
+                    <div className={\`w-full h-full rounded-[calc(1.25rem-2px)] \${bgColor}\`} />
+                </motion.div>
+            )}
+
+            {/* 2. INNER MAGNETIC GLOW (Halo interne très diffus) */}
+            {!disabled && !isLoading && (
+                <motion.div
+                    className="absolute inset-0 pointer-events-none z-10 rounded-[1.25rem]"
+                    animate={{ opacity: isHovered ? 1 : 0 }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    style={{
+                        background: \`radial-gradient(100px circle at \${mousePosition.x}px \${mousePosition.y}px, rgba(255,255,255,0.06), transparent 50%)\`,
+                    }}
+                />
+            )}
+
+            {/* 3. NEON PERIMETER SWEEP (Liseré de chargement qui court sur la bordure) */}
+            <AnimatePresence>
+                {isLoading && (
+                    <motion.div
+                        key="neon-spinner"
+                        className="absolute inset-0 pointer-events-none z-0 p-[2px] rounded-[1.25rem] overflow-hidden"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.4 }}
+                    >
+                        {/* Le faisceau lumineux rotatif extra-large (w-[300%]) */}
+                        <motion.div 
+                            animate={{ rotate: 360 }}
+                            transition={{ repeat: Infinity, duration: 2.5, ease: "linear" }}
+                            className="absolute top-1/2 left-1/2 w-[300%] aspect-square -translate-x-1/2 -translate-y-1/2 z-0"
+                            style={{
+                                background: "conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0) 25%, rgba(255,255,255,1) 50%, rgba(255,255,255,0) 75%, transparent 100%)",
+                            }}
+                        />
+                        <div className={\`relative z-10 w-full h-full rounded-[calc(1.25rem-2px)] \${bgColor}\`} />
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* 4. APPLE-STYLE 3D TOP HIGHLIGHT (Ligne lumineuse encastrée sur le dessus) */}
+            {!disabled && !isLoading && (
+                <div 
+                    className="absolute inset-0 pointer-events-none z-10 rounded-[1.25rem] bg-gradient-to-b from-white/10 to-transparent opacity-60" 
+                    style={{ maskImage: 'linear-gradient(to bottom, black 5%, transparent 30%)' }} 
+                />
+            )}
+
+            {/* CONTENT MORPHING (Remplacement du texte par l'icône de chargement) */}
+            <AnimatePresence mode="wait">
+                {isLoading ? (
+                    <motion.div
+                        key="loading"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                        className="flex items-center justify-center absolute inset-0 z-20 gap-3"
+                    >
+                        <Lock size={18} className="text-white/80" />
+                        <span className="text-white/80">Sécurisation...</span>
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key="text"
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -5 }}
+                        transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+                        className="relative z-20 flex items-center justify-center w-full whitespace-nowrap gap-3"
+                    >
+                        {children}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.button>
+    );
+};
+```
+
+---
