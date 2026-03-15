@@ -211,7 +211,7 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                     </h2>
                 </div>
 
-                <div className="grid lg:grid-cols-[minmax(0,550px)_460px] justify-center gap-8 lg:gap-16 items-start">
+                <div className="grid lg:grid-cols-[1fr_460px] gap-8 lg:gap-16 items-start">
                     
                     {/* COLONNE GAUCHE : FORMULAIRES & PAIEMENT */}
                     <div className="space-y-6 w-full">
