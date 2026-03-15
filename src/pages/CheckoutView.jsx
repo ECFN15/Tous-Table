@@ -26,6 +26,10 @@ const PremiumActionBtn = ({ children, isLoading, disabled, onClick, darkMode }) 
         });
     };
 
+    // Couleurs globales partagées avec la carte de résumé (CheckoutView)
+    const bgColor = darkMode ? 'bg-stone-900' : 'bg-[#1a1a1a]';
+    const disabledBg = darkMode ? 'bg-stone-900/50' : 'bg-stone-100';
+
     return (
         <motion.button
             ref={buttonRef}
@@ -35,73 +39,93 @@ const PremiumActionBtn = ({ children, isLoading, disabled, onClick, darkMode }) 
             onMouseMove={handleMouseMove}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
-            whileHover={{}} // IMPORTANT: NO SCALE ON HOVER AS REQUESTED
+            whileHover={{}} // ABSOLUMENT AUCUN SCALE AU HOVER (Premium Static Layout)
             whileTap={!disabled && !isLoading ? { scale: 0.985 } : {}}
-            transition={{ layout: { type: "spring", stiffness: 500, damping: 35 } }}
-            className={`relative overflow-hidden font-black uppercase text-sm tracking-widest flex items-center justify-center mx-auto transition-all duration-700 outline-none
-                ${isLoading ? 'w-[64px] h-[64px] rounded-full p-0 cursor-wait' : 'w-full h-[64px] py-0 px-4 rounded-[1.25rem] cursor-pointer'}
+            transition={{ layout: { type: "spring", stiffness: 450, damping: 35 } }}
+            className={`relative overflow-hidden font-black uppercase text-sm tracking-widest flex items-center justify-center mx-auto transition-colors duration-700 outline-none
+                ${isLoading ? 'w-[64px] h-[64px] rounded-full p-0 cursor-wait shadow-none' : 'w-full h-[64px] py-0 px-4 rounded-[1.25rem] cursor-pointer shadow-xl'}
                 ${disabled 
-                    ? (darkMode ? 'bg-stone-900/50 text-stone-600 border border-stone-800/50' : 'bg-stone-100 text-stone-400 border border-stone-200')
-                    : (darkMode 
-                        ? 'bg-[#0a0a0a] text-white shadow-[0_4px_20px_rgba(0,0,0,0.5)] border border-white/5' 
-                        : 'bg-white text-stone-900 shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-black/5')
+                    ? `${disabledBg} ${darkMode ? 'text-stone-600 border border-stone-800/50' : 'text-stone-400 border border-stone-200'}`
+                    : `${bgColor} text-white shadow-[0_8px_30px_rgba(0,0,0,0.15)]`
                 }
             `}
         >
-            {/* 1. BORDER GLOW DYNAMIQUE (Suit la souris) */}
+            {/* 1. MAGNETIC SPOTLIGHT BORDER GLOW (Épaissi à 2px, Suit la souris) */}
             {!disabled && !isLoading && (
                 <motion.div
-                    className="absolute inset-0 pointer-events-none z-0 p-[1px] rounded-[1.25rem]"
+                    className="absolute inset-0 pointer-events-none z-0 p-[2px] rounded-[1.25rem]"
                     animate={{ opacity: isHovered ? 1 : 0 }}
-                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
                     style={{
-                        background: `radial-gradient(120px circle at ${mousePosition.x}px ${mousePosition.y}px, ${darkMode ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.2)'}, transparent 50%)`,
+                        background: `radial-gradient(160px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(255,255,255,0.7), transparent 60%)`,
                     }}
                 >
-                    <div className={`w-full h-full rounded-[calc(1.25rem-1px)] ${darkMode ? 'bg-[#0a0a0a]' : 'bg-white'}`} />
+                    {/* Le masque interne opaque garantit que seule la bordure est éclairée */}
+                    <div className={`w-full h-full rounded-[calc(1.25rem-2px)] ${bgColor}`} />
                 </motion.div>
             )}
 
-            {/* 2. INNER SPOTLIGHT DYNAMIQUE (Suit la souris) */}
+            {/* 2. INNER MAGNETIC GLOW (Reflet interne délicat suivant la souris) */}
             {!disabled && !isLoading && (
                 <motion.div
-                    className="absolute inset-0 pointer-events-none z-10"
+                    className="absolute inset-0 pointer-events-none z-10 rounded-[1.25rem]"
                     animate={{ opacity: isHovered ? 1 : 0 }}
-                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
                     style={{
-                        background: `radial-gradient(80px circle at ${mousePosition.x}px ${mousePosition.y}px, ${darkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.03)'}, transparent 50%)`,
+                        background: `radial-gradient(100px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(255,255,255,0.06), transparent 50%)`,
                     }}
                 />
             )}
 
-            {/* 3. APPLE-STYLE 3D HIGHLIGHT (Bord supérieur légèrement plus clair) */}
+            {/* 3. NEON BORDER LOADING TRANSITION (Liseré rotatif morphing) */}
+            <AnimatePresence>
+                {isLoading && (
+                    <motion.div
+                        key="neon-spinner"
+                        className="absolute inset-0 pointer-events-none z-0 p-[2px] rounded-full overflow-hidden"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.4 }} // Fade in très fluide pendant que le bouton rétrécit
+                    >
+                        <motion.div 
+                            animate={{ rotate: 360 }}
+                            transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+                            className="absolute top-1/2 left-1/2 w-[300%] aspect-square -translate-x-1/2 -translate-y-1/2 z-0"
+                            style={{
+                                background: "conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0) 10%, rgba(255,255,255,1) 40%, rgba(255,255,255,0) 60%, transparent 100%)",
+                            }}
+                        />
+                        <div className={`relative z-10 w-full h-full rounded-full ${bgColor}`} />
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* 4. APPLE-STYLE 3D TOP HIGHLIGHT (Bord supérieur légèrement lumineux au repos) */}
             {!disabled && !isLoading && (
-                <div className={`absolute inset-0 pointer-events-none z-10 rounded-[1.25rem] ${darkMode ? 'bg-gradient-to-b from-white/10 to-transparent opacity-50' : 'bg-gradient-to-b from-white/60 to-transparent opacity-100'}`} />
+                <div className="absolute inset-0 pointer-events-none z-10 rounded-[1.25rem] bg-gradient-to-b from-white/10 to-transparent opacity-60" style={{ maskImage: 'linear-gradient(to bottom, black 5%, transparent 30%)', WebkitMaskImage: 'linear-gradient(to bottom, black 5%, transparent 30%)' }} />
             )}
 
-            {/* CONTENT & LOADING MORPHING */}
+            {/* CONTENT MORPHING (Texte -> Loader pur minimaliste) */}
             <AnimatePresence mode="wait">
                 {isLoading ? (
                     <motion.div
                         key="loading"
-                        initial={{ opacity: 0, scale: 0.5, rotate: -90 }}
-                        animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                        exit={{ opacity: 0, scale: 0.5, rotate: 90 }}
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.5 }}
                         transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
                         className="flex items-center justify-center absolute inset-0 z-20"
                     >
-                        <svg className="animate-spin h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"></circle>
-                            <path className="opacity-100" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
+                        <Lock size={18} className="text-white/80" />
                     </motion.div>
                 ) : (
                     <motion.div
                         key="text"
-                        initial={{ opacity: 0, y: 10 }}
+                        initial={{ opacity: 0, y: 5 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                        exit={{ opacity: 0, y: -5 }}
+                        transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
                         className="relative z-20 flex items-center justify-center w-full whitespace-nowrap gap-3"
                     >
                         {children}
