@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { ArrowLeft, CreditCard, Truck, CheckCircle, ShieldCheck, AlertCircle, Landmark, Lock, Wallet } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { functions, db, appId } from '../firebase/config';
 import { httpsCallable } from 'firebase/functions';
 import { doc, onSnapshot } from 'firebase/firestore';
@@ -246,18 +247,36 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                                         setPaymentMethod('stripe_elements');
                                         setCheckoutState('editing'); // Reset si on change d'avis
                                     }}
-                                    className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${paymentMethod === 'stripe_elements' ? (darkMode ? 'border-amber-500 bg-amber-500/5' : 'border-amber-500 bg-amber-50') : (darkMode ? 'border-stone-800 hover:border-stone-700' : 'border-stone-100 hover:border-stone-200')}`}
+                                    className={`relative group p-[1.5px] rounded-[1.125rem] overflow-hidden cursor-pointer w-full transition-all`}
                                 >
-                                    <div className="flex flex-col gap-6">
+                                    {/* NEON LAYER - ONLY VISIBLE IF SELECTED */}
+                                    {paymentMethod === 'stripe_elements' && (
+                                        <motion.div
+                                            animate={{ rotate: -360 }}
+                                            transition={{ repeat: Infinity, duration: 6, ease: "linear" }}
+                                            className="absolute top-1/2 left-1/2 w-[300%] aspect-square -translate-x-1/2 -translate-y-1/2 z-0"
+                                            style={{
+                                                background: "conic-gradient(from 0deg, transparent 30%, rgba(255,255,255,0) 35%, rgba(255,255,255,1) 50%, rgba(255,255,255,0) 65%, transparent 70%)",
+                                            }}
+                                        />
+                                    )}
+
+                                    {/* DEFAULT BORDER FALLBACK */}
+                                    {paymentMethod !== 'stripe_elements' && (
+                                        <div className={`absolute inset-0 z-0 rounded-[1.125rem] border-2 transition-colors ${darkMode ? 'border-stone-800' : 'border-stone-200'}`} />
+                                    )}
+
+                                    {/* INNER CONTENT - OPAQUE MASKING (to hide the center of the wave) */}
+                                    <div className={`relative z-10 w-full h-full p-4 rounded-2xl flex flex-col gap-6 transition-all ${paymentMethod === 'stripe_elements' ? (darkMode ? 'bg-stone-900/95' : 'bg-white/95') : (darkMode ? 'bg-transparent group-hover:bg-white/5' : 'bg-transparent group-hover:bg-black/5')} backdrop-blur-md`}>
+                                        
                                         {/* EN-TÊTE : ICONE + TITRE */}
                                         <div className="flex items-center gap-4">
-                                            <div className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center ${paymentMethod === 'stripe_elements' ? 'bg-amber-500 text-stone-900 shadow-lg shadow-amber-500/20' : (darkMode ? 'bg-stone-800 text-stone-400' : 'bg-stone-200 text-stone-400')}`}>
+                                            <div className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center transition-colors ${paymentMethod === 'stripe_elements' ? (darkMode ? 'bg-stone-800 text-white' : 'bg-stone-900 text-white') : (darkMode ? 'bg-stone-800/50 text-stone-500' : 'bg-stone-100 text-stone-400')}`}>
                                                 <Wallet size={22} />
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex justify-between items-center">
                                                     <span className={`font-black text-base ${darkMode ? 'text-white' : 'text-stone-900'}`}>Carte / Wallets</span>
-                                                    {paymentMethod === 'stripe_elements' && <CheckCircle size={16} className="text-amber-500" strokeWidth={3} />}
                                                 </div>
                                                 <p className="text-[10px] font-bold text-stone-500 uppercase tracking-widest mt-0.5">Rapide & Sécurisé</p>
                                             </div>
@@ -296,18 +315,36 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                                         setPaymentMethod('deferred');
                                         setCheckoutState('editing');
                                     }}
-                                    className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${paymentMethod === 'deferred' ? (darkMode ? 'border-amber-500 bg-amber-500/5' : 'border-amber-500 bg-amber-50') : (darkMode ? 'border-stone-800 hover:border-stone-700' : 'border-stone-100 hover:border-stone-200')}`}
+                                    className={`relative group p-[1.5px] rounded-[1.125rem] overflow-hidden cursor-pointer w-full transition-all`}
                                 >
-                                    <div className="flex flex-col gap-6">
+                                    {/* NEON LAYER - ONLY VISIBLE IF SELECTED */}
+                                    {paymentMethod === 'deferred' && (
+                                        <motion.div
+                                            animate={{ rotate: -360 }}
+                                            transition={{ repeat: Infinity, duration: 6, ease: "linear" }}
+                                            className="absolute top-1/2 left-1/2 w-[300%] aspect-square -translate-x-1/2 -translate-y-1/2 z-0"
+                                            style={{
+                                                background: "conic-gradient(from 0deg, transparent 30%, rgba(255,255,255,0) 35%, rgba(255,255,255,1) 50%, rgba(255,255,255,0) 65%, transparent 70%)",
+                                            }}
+                                        />
+                                    )}
+
+                                    {/* DEFAULT BORDER FALLBACK */}
+                                    {paymentMethod !== 'deferred' && (
+                                        <div className={`absolute inset-0 z-0 rounded-[1.125rem] border-2 transition-colors ${darkMode ? 'border-stone-800' : 'border-stone-200'}`} />
+                                    )}
+
+                                    {/* INNER CONTENT - OPAQUE MASKING (to hide the center of the wave) */}
+                                    <div className={`relative z-10 w-full h-full p-4 rounded-2xl flex flex-col gap-6 transition-all ${paymentMethod === 'deferred' ? (darkMode ? 'bg-stone-900/95' : 'bg-white/95') : (darkMode ? 'bg-transparent group-hover:bg-white/5' : 'bg-transparent group-hover:bg-black/5')} backdrop-blur-md`}>
+                                        
                                         {/* EN-TÊTE : ICONE + TITRE */}
                                         <div className="flex items-center gap-4">
-                                            <div className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center ${paymentMethod === 'deferred' ? 'bg-amber-500 text-stone-900 shadow-lg shadow-amber-500/20' : (darkMode ? 'bg-stone-800 text-stone-400' : 'bg-stone-200 text-stone-400')}`}>
+                                            <div className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center transition-colors ${paymentMethod === 'deferred' ? (darkMode ? 'bg-stone-800 text-white' : 'bg-stone-900 text-white') : (darkMode ? 'bg-stone-800/50 text-stone-500' : 'bg-stone-100 text-stone-400')}`}>
                                                 <Landmark size={22} />
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex justify-between items-center">
                                                     <span className={`font-black text-base ${darkMode ? 'text-white' : 'text-stone-900'}`}>Virement</span>
-                                                    {paymentMethod === 'deferred' && <CheckCircle size={16} className="text-amber-500" strokeWidth={3} />}
                                                 </div>
                                                 <p className="text-[10px] font-bold text-stone-500 uppercase tracking-widest mt-0.5">Instructions via email</p>
                                             </div>
