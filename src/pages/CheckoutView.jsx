@@ -200,7 +200,7 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
 
     return (
         <div className={`min-h-screen pt-10 px-4 md:px-6 pb-20 animate-in fade-in transition-colors duration-700 bg-transparent`}>
-            <div className="max-w-6xl mx-auto">
+            <div className="max-w-[1240px] mx-auto w-full">
                 {/* HEADER RETOUR */}
                 <div className="mb-8 md:mb-12">
                     <button onClick={onBack} className={`flex items-center gap-2 font-bold text-[10px] md:text-xs uppercase tracking-widest transition-colors mb-6 ${darkMode ? 'text-stone-500 hover:text-white' : 'text-stone-400 hover:text-stone-900'}`}>
