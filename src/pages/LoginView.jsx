@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { Lock } from 'lucide-react';
-import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
-import { auth, googleProvider } from '../firebase/config';
+import { useAuth } from '../contexts/AuthContext';
 
 function LoginView({ onSuccess }) {
+  const { loginWithGoogle, loginWithEmail } = useAuth();
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const handle = async (e) => {
     e.preventDefault();
-    try { await signInWithEmailAndPassword(auth, email, pass); onSuccess(); }
+    try { await loginWithEmail(email, pass); onSuccess(); }
     catch (err) { setErrorMsg("Identifiants incorrects."); }
   };
   return (
@@ -22,7 +22,7 @@ function LoginView({ onSuccess }) {
       <div className="space-y-4">
         <button
           onClick={async () => {
-            try { await signInWithPopup(auth, googleProvider); onSuccess(); }
+            try { await loginWithGoogle(); onSuccess(); }
             catch (e) { setErrorMsg("Erreur Google : " + e.message); }
           }}
           className="w-full py-4 bg-white text-stone-900 border-2 border-stone-200 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg hover:bg-stone-50 hover:border-stone-300 transition-all flex items-center justify-center gap-3"
@@ -43,10 +43,10 @@ function LoginView({ onSuccess }) {
         </div>
 
         <form onSubmit={handle} className="space-y-3">
-          <input type="email" placeholder="Email artisan" className="w-full p-4 rounded-xl bg-white border border-stone-200 font-bold outline-none focus:ring-4 ring-amber-50 transition-all shadow-sm text-stone-900 text-sm" onChange={e => setEmail(e.target.value)} required />
-          <input type="password" placeholder="Mot de passe" className="w-full p-4 rounded-xl bg-white border border-stone-200 font-bold outline-none focus:ring-4 ring-amber-50 transition-all shadow-sm text-stone-900 text-sm" onChange={e => setPass(e.target.value)} required />
+          <input type="email" placeholder="Email artisan" className="w-full p-4 rounded-xl bg-white border border-stone-200 font-bold outline-none focus:ring-4 ring-amber-50 transition-all shadow-sm text-stone-900 text-base" onChange={e => setEmail(e.target.value)} required />
+          <input type="password" placeholder="Mot de passe" className="w-full p-4 rounded-xl bg-white border border-stone-200 font-bold outline-none focus:ring-4 ring-amber-50 transition-all shadow-sm text-stone-900 text-base" onChange={e => setPass(e.target.value)} required />
           {errorMsg && <p className="text-[10px] text-red-600 font-bold bg-red-50 py-2 rounded-lg">{errorMsg}</p>}
-          <button type="submit" className="w-full py-4 bg-stone-900 text-white rounded-xl font-black uppercase text-xs tracking-widest shadow-lg hover:bg-stone-800 active:scale-95 transition-all text-white">Connexion</button>
+          <button type="submit" className="w-full py-4 bg-stone-900 text-white rounded-xl font-black uppercase text-xs tracking-widest shadow-lg hover:bg-stone-800 active:scale-95 transition-all">Connexion</button>
         </form>
       </div>
     </div>

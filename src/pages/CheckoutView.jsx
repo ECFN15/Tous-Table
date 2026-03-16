@@ -177,16 +177,22 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
     const addressInputRef = useRef(null); // input adresse uniquement (pour position dropdown)
     const dropdownRef = useRef(null);     // portal dropdown (pour handleClickOutside)
     const searchTimeout = useRef(null);
-    const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
+    const [dropdownPos, setDropdownPos] = useState({ mobile: false, top: 0, left: 0, width: 0 });
 
     const updateDropdownPosition = () => {
+        if (window.innerWidth < 768) {
+            // Mobile : bottom sheet ancré au bas du visual viewport, au-dessus du clavier
+            setDropdownPos({ mobile: true });
+            return;
+        }
+        // Desktop : dropdown positionné sous l'input
         const el = addressInputRef.current;
         if (!el) return;
         const rect = el.getBoundingClientRect();
-        // Compense le décalage du visual viewport (clavier mobile)
         const vvTop = window.visualViewport ? window.visualViewport.offsetTop : 0;
         const vvLeft = window.visualViewport ? window.visualViewport.offsetLeft : 0;
         setDropdownPos({
+            mobile: false,
             top: rect.bottom + 4 - vvTop,
             left: rect.left - vvLeft,
             width: rect.width,
@@ -463,7 +469,7 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
 
     return (
         <>
-        <div className={`min-h-screen pt-10 px-4 md:px-6 pb-20 animate-in fade-in transition-colors duration-700 bg-transparent`}>
+        <div className={`min-h-screen pt-10 px-4 md:px-6 pb-20 safe-area-bottom animate-in fade-in transition-colors duration-700 bg-transparent`}>
             <div className="max-w-[1240px] mx-auto w-full">
                 {/* HEADER RETOUR */}
                 <div className="mb-8 md:mb-12">
@@ -804,24 +810,53 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
             )}
         </div>
 
-        {/* PORTAL — dropdown suggestions rendu à la racine du body pour éviter tout clipping */}
+        {/* PORTAL — dropdown suggestions rendu à la racine du body */}
         {showSuggestions && suggestions.length > 0 && createPortal(
-            <div
-                ref={dropdownRef}
-                style={{ position: 'fixed', top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width, zIndex: 9999 }}
-                className={`p-2 rounded-2xl border shadow-2xl max-h-64 overflow-y-auto ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}
-            >
-                {suggestions.map((s, i) => (
-                    <div
-                        key={i}
-                        onPointerDown={(e) => { e.preventDefault(); handleSelectSuggestion(s); }}
-                        className={`p-3 rounded-xl cursor-pointer transition-colors flex flex-col gap-0.5 ${darkMode ? 'hover:bg-stone-700 active:bg-stone-600' : 'hover:bg-stone-50 active:bg-stone-100'}`}
-                    >
-                        <span className={`font-bold text-sm leading-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>{s.properties.name}</span>
-                        <span className={`text-[11px] font-medium uppercase tracking-wider ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>{s.properties.postcode} {s.properties.city}</span>
+            dropdownPos.mobile ? (
+                /* ── MOBILE : bottom sheet ancré au-dessus du clavier ── */
+                <div
+                    ref={dropdownRef}
+                    style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999, borderRadius: '20px 20px 0 0' }}
+                    className={`shadow-2xl overflow-hidden ${darkMode ? 'bg-stone-900 border-t border-stone-700' : 'bg-white border-t border-stone-100'}`}
+                >
+                    {/* Handle bar */}
+                    <div className="flex justify-center pt-3 pb-1">
+                        <div className={`w-10 h-1 rounded-full ${darkMode ? 'bg-stone-600' : 'bg-stone-200'}`} />
                     </div>
-                ))}
-            </div>,
+                    <div className="overflow-y-auto" style={{ maxHeight: '42vh' }}>
+                        {suggestions.map((s, i) => (
+                            <div
+                                key={i}
+                                onPointerDown={(e) => { e.preventDefault(); handleSelectSuggestion(s); }}
+                                className={`px-5 py-4 flex flex-col gap-0.5 ${i < suggestions.length - 1 ? (darkMode ? 'border-b border-stone-800' : 'border-b border-stone-50') : ''} ${darkMode ? 'active:bg-stone-800' : 'active:bg-stone-50'}`}
+                            >
+                                <span className={`font-bold text-base leading-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>{s.properties.name}</span>
+                                <span className={`text-xs font-medium uppercase tracking-wider ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>{s.properties.postcode} {s.properties.city}</span>
+                            </div>
+                        ))}
+                        {/* safe-area iOS home indicator */}
+                        <div style={{ height: 'env(safe-area-inset-bottom, 8px)' }} />
+                    </div>
+                </div>
+            ) : (
+                /* ── DESKTOP : dropdown positionné sous l'input ── */
+                <div
+                    ref={dropdownRef}
+                    style={{ position: 'fixed', top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width, zIndex: 9999 }}
+                    className={`p-2 rounded-2xl border shadow-2xl max-h-64 overflow-y-auto ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}
+                >
+                    {suggestions.map((s, i) => (
+                        <div
+                            key={i}
+                            onPointerDown={(e) => { e.preventDefault(); handleSelectSuggestion(s); }}
+                            className={`p-3 rounded-xl cursor-pointer transition-colors flex flex-col gap-0.5 ${darkMode ? 'hover:bg-stone-700 active:bg-stone-600' : 'hover:bg-stone-50 active:bg-stone-100'}`}
+                        >
+                            <span className={`font-bold text-sm leading-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>{s.properties.name}</span>
+                            <span className={`text-[11px] font-medium uppercase tracking-wider ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>{s.properties.postcode} {s.properties.city}</span>
+                        </div>
+                    ))}
+                </div>
+            ),
             document.body
         )}
         </>

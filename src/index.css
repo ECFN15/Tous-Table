@@ -53,6 +53,13 @@ body.modal-open {
   }
 }
 
+/* iPhone X+ safe area — pad bottom-anchored elements above the home indicator */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
 .font-serif {
   font-family: 'Cormorant Garamond', serif;
 }
