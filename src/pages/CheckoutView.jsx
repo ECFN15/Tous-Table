@@ -27,7 +27,7 @@ const PremiumActionBtn = ({ children, isLoading, disabled, onClick, darkMode }) 
     };
 
     // Couleurs globales partagées avec la carte de résumé (CheckoutView)
-    const bgColor = darkMode ? 'bg-stone-900' : 'bg-[#1a1a1a]';
+    const bgColor = darkMode ? 'bg-stone-900' : 'bg-white';
     const disabledBg = darkMode ? 'bg-stone-900/50' : 'bg-stone-100';
 
     return (
@@ -46,7 +46,7 @@ const PremiumActionBtn = ({ children, isLoading, disabled, onClick, darkMode }) 
                 ${isLoading ? 'cursor-wait' : 'cursor-pointer'}
                 ${disabled 
                     ? `${disabledBg} ${darkMode ? 'text-stone-600 border border-stone-800/50' : 'text-stone-400 border border-stone-200'} opacity-60`
-                    : `${bgColor} text-white shadow-[0_8px_30px_rgba(0,0,0,0.15)]`
+                    : `${bgColor} ${darkMode ? 'text-white' : 'text-stone-900'} shadow-[0_8px_30px_rgba(0,0,0,0.15)]`
                 }
             `}
         >
@@ -57,7 +57,7 @@ const PremiumActionBtn = ({ children, isLoading, disabled, onClick, darkMode }) 
                     animate={{ opacity: isHovered ? 1 : 0 }}
                     transition={{ duration: 0.4, ease: "easeOut" }}
                     style={{
-                        background: `radial-gradient(160px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(255,255,255,0.7), transparent 60%)`,
+                        background: `radial-gradient(160px circle at ${mousePosition.x}px ${mousePosition.y}px, ${darkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.5)'}, transparent 60%)`,
                     }}
                 >
                     {/* Le masque interne opaque garantit que seule la bordure est éclairée */}
@@ -72,7 +72,7 @@ const PremiumActionBtn = ({ children, isLoading, disabled, onClick, darkMode }) 
                     animate={{ opacity: isHovered ? 1 : 0 }}
                     transition={{ duration: 0.4, ease: "easeOut" }}
                     style={{
-                        background: `radial-gradient(100px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(255,255,255,0.06), transparent 50%)`,
+                        background: `radial-gradient(100px circle at ${mousePosition.x}px ${mousePosition.y}px, ${darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'}, transparent 50%)`,
                     }}
                 />
             )}
@@ -94,7 +94,9 @@ const PremiumActionBtn = ({ children, isLoading, disabled, onClick, darkMode }) 
                             transition={{ repeat: Infinity, duration: 2.5, ease: "linear" }}
                             className="absolute top-1/2 left-1/2 w-[300%] aspect-square -translate-x-1/2 -translate-y-1/2 z-0"
                             style={{
-                                background: "conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0) 25%, rgba(255,255,255,1) 50%, rgba(255,255,255,0) 75%, transparent 100%)",
+                                background: darkMode 
+                                    ? "conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0) 25%, rgba(255,255,255,1) 50%, rgba(255,255,255,0) 75%, transparent 100%)"
+                                    : "conic-gradient(from 0deg, transparent 0%, rgba(0,0,0,0) 25%, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 75%, transparent 100%)",
                             }}
                         />
                         <div className={`relative z-10 w-full h-full rounded-[calc(1.25rem-2px)] ${bgColor}`} />
@@ -104,7 +106,7 @@ const PremiumActionBtn = ({ children, isLoading, disabled, onClick, darkMode }) 
 
             {/* 4. APPLE-STYLE 3D TOP HIGHLIGHT (Bord supérieur légèrement lumineux au repos) */}
             {!disabled && !isLoading && (
-                <div className="absolute inset-0 pointer-events-none z-10 rounded-[1.25rem] bg-gradient-to-b from-white/10 to-transparent opacity-60" style={{ maskImage: 'linear-gradient(to bottom, black 5%, transparent 30%)', WebkitMaskImage: 'linear-gradient(to bottom, black 5%, transparent 30%)' }} />
+                <div className={`absolute inset-0 pointer-events-none z-10 rounded-[1.25rem] bg-gradient-to-b ${darkMode ? 'from-white/10' : 'from-black/5'} to-transparent opacity-60`} style={{ maskImage: 'linear-gradient(to bottom, black 5%, transparent 30%)', WebkitMaskImage: 'linear-gradient(to bottom, black 5%, transparent 30%)' }} />
             )}
 
             {/* CONTENT TRANSITION (Texte -> Loader pur minimaliste) */}
@@ -118,11 +120,11 @@ const PremiumActionBtn = ({ children, isLoading, disabled, onClick, darkMode }) 
                         transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
                         className="flex items-center justify-center absolute inset-0 z-20 gap-3"
                     >
-                        <svg className="animate-spin h-5 w-5 opacity-70" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <svg className={`animate-spin h-5 w-5 ${darkMode ? 'opacity-70' : 'text-stone-900 opacity-70'}`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-100" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        <span className="text-white/80">Sécurisation...</span>
+                        <span className={darkMode ? "text-white/80" : "text-stone-900/80"}>Sécurisation...</span>
                     </motion.div>
                 ) : (
                     <motion.div
