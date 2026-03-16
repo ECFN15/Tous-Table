@@ -47,6 +47,20 @@ const AppContent = () => {
 
 
 
+  // --- iOS viewport height fix (--vh variable for reliable 100vh) ---
+  useEffect(() => {
+    const setVh = () => {
+      document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
+    };
+    setVh();
+    window.addEventListener('resize', setVh);
+    window.addEventListener('orientationchange', setVh);
+    return () => {
+      window.removeEventListener('resize', setVh);
+      window.removeEventListener('orientationchange', setVh);
+    };
+  }, []);
+
   // Fetch Contact Info for Menu
   useEffect(() => {
     const unsub = onSnapshot(doc(db, 'sys_metadata', 'contact_info'), (snap) => {
@@ -82,6 +96,25 @@ const AppContent = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showAuthSuccess, setShowAuthSuccess] = useState(false);
   const [showNewsletter, setShowNewsletter] = useState(false);
+  const scrollYRef = useRef(0);
+
+  // iOS-safe body scroll lock for modals
+  useEffect(() => {
+    const anyModalOpen = showFullLogin || showOrderSuccess || stockAlert;
+    if (anyModalOpen) {
+      scrollYRef.current = window.scrollY;
+      document.body.classList.add('modal-open');
+      document.body.style.top = `-${scrollYRef.current}px`;
+    } else {
+      document.body.classList.remove('modal-open');
+      document.body.style.top = '';
+      window.scrollTo(0, scrollYRef.current);
+    }
+    return () => {
+      document.body.classList.remove('modal-open');
+      document.body.style.top = '';
+    };
+  }, [showFullLogin, showOrderSuccess, stockAlert]);
 
   // Admin State
   const [adminCollection, setAdminCollection] = useState('dashboard'); // 'dashboard' | 'furniture' | 'cutting_boards' | 'orders'
@@ -505,8 +538,11 @@ const AppContent = () => {
 
       {/* MODAL LOGIN (Pour la Marketplace) */}
       {showFullLogin && (
-        <div className="fixed inset-0 z-[200] bg-stone-900/60 backdrop-blur-md flex items-center justify-center p-4 md:p-6">
-          <div className="bg-white p-6 md:p-10 rounded-3xl md:rounded-[2.5rem] shadow-2xl max-w-sm w-full text-center space-y-4 md:space-y-6 animate-in zoom-in-95 relative overflow-hidden">
+        <div
+          className="fixed inset-0 z-[200] bg-stone-900/60 backdrop-blur-md flex items-center justify-center p-4 md:p-6"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowFullLogin(false); }}
+        >
+          <div className="bg-white p-6 md:p-10 rounded-3xl md:rounded-[2.5rem] shadow-2xl max-w-sm w-full text-center space-y-4 md:space-y-6 animate-in zoom-in-95 relative overflow-hidden max-h-[85dvh] overflow-y-auto ios-modal-scroll">
 
             {showAuthSuccess ? (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
@@ -564,10 +600,10 @@ const AppContent = () => {
                   }
                 }} className="space-y-3 pt-2" data-signup="false">
 
-                  <input name="email" type="email" placeholder="Adresse email" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-sm outline-none focus:ring-2 ring-stone-900 transition-all text-stone-900 placeholder:text-stone-300" required />
+                  <input name="email" type="email" placeholder="Adresse email" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-base outline-none focus:ring-2 ring-stone-900 transition-all text-stone-900 placeholder:text-stone-300" required autoComplete="email" />
 
                   <div className="relative">
-                    <input name="password" type={showPassword ? "text" : "password"} placeholder="Mot de passe" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-sm outline-none focus:ring-2 ring-stone-900 transition-all text-stone-900 placeholder:text-stone-300" required />
+                    <input name="password" type={showPassword ? "text" : "password"} placeholder="Mot de passe" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-base outline-none focus:ring-2 ring-stone-900 transition-all text-stone-900 placeholder:text-stone-300" required autoComplete="current-password" />
                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-900">
                       {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
@@ -575,7 +611,7 @@ const AppContent = () => {
 
                   <div id="confirm-pass-container" className="hidden transition-all duration-300 overflow-hidden" style={{ maxHeight: '0px' }}>
                     <div className="relative mb-3">
-                      <input name="confirmPassword" type={showConfirmPassword ? "text" : "password"} placeholder="Confirmer mot de passe" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-sm outline-none focus:ring-2 ring-stone-900 transition-all text-stone-900 placeholder:text-stone-300" />
+                      <input name="confirmPassword" type={showConfirmPassword ? "text" : "password"} placeholder="Confirmer mot de passe" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-base outline-none focus:ring-2 ring-stone-900 transition-all text-stone-900 placeholder:text-stone-300" autoComplete="new-password" />
                       <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-900">
                         {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                       </button>

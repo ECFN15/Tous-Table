@@ -232,15 +232,21 @@ const NewsletterModal = ({ showNewsletter, setShowNewsletter }) => {
         }
     };
 
-    // Pour bloquer le scroll du body quand le modal est ouvert
+    // iOS-safe body scroll lock
+    const scrollYRef = React.useRef(0);
     React.useEffect(() => {
         if (showNewsletter) {
-            document.body.style.overflow = 'hidden';
+            scrollYRef.current = window.scrollY;
+            document.body.classList.add('modal-open');
+            document.body.style.top = `-${scrollYRef.current}px`;
         } else {
-            document.body.style.overflow = 'auto';
+            document.body.classList.remove('modal-open');
+            document.body.style.top = '';
+            window.scrollTo(0, scrollYRef.current);
         }
         return () => {
-            document.body.style.overflow = 'auto';
+            document.body.classList.remove('modal-open');
+            document.body.style.top = '';
         };
     }, [showNewsletter]);
 
@@ -252,7 +258,8 @@ const NewsletterModal = ({ showNewsletter, setShowNewsletter }) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[2000] flex w-full h-[100dvh] bg-stone-900 overflow-hidden"
+                className="fixed inset-0 z-[2000] flex w-full h-full bg-stone-900 overflow-hidden"
+                style={{ height: 'calc(var(--vh, 1vh) * 100)' }}
             >
                 {/* Animated Showcase Section - Right side on desktop, background on mobile */}
                 <div className="absolute inset-0 lg:relative lg:w-1/2 h-full z-0 lg:order-2 bg-[#1c1a17] overflow-hidden">

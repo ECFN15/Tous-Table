@@ -84,13 +84,10 @@ export const AuthProvider = ({ children }) => {
 
     const loginWithGoogle = async () => {
         const result = await signInWithPopup(auth, googleProvider);
-        // Après connexion, nettoyer les sessions anonymes de cette IP
-        try {
-            const res = await httpsCallable(functions, 'updateUserSessions')();
-            console.log('🔴 Sessions cleaned after login:', res.data);
-        } catch (err) {
-            console.error('❌ Failed to clean sessions after login:', err);
-        }
+        // Fire-and-forget: ne PAS bloquer le retour UI en attendant le nettoyage réseau
+        httpsCallable(functions, 'updateUserSessions')()
+            .then(res => console.log('Sessions cleaned after login:', res.data))
+            .catch(err => console.error('Failed to clean sessions after login:', err));
         return result;
     };
 

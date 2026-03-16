@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { ArrowLeft, CreditCard, Truck, CheckCircle, ShieldCheck, AlertCircle, Landmark, Lock, Wallet } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { functions, db, appId } from '../firebase/config';
@@ -167,6 +167,25 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
     const [createdOrderId, setCreatedOrderId] = useState(null);
     const [unavailableItems, setUnavailableItems] = useState([]);
 
+    // --- iOS-safe body scroll lock for Stripe modal ---
+    const scrollYRef = useRef(0);
+    useEffect(() => {
+        const isModalOpen = checkoutState === 'ready_to_pay' && clientSecret;
+        if (isModalOpen) {
+            scrollYRef.current = window.scrollY;
+            document.body.classList.add('modal-open');
+            document.body.style.top = `-${scrollYRef.current}px`;
+        } else {
+            document.body.classList.remove('modal-open');
+            document.body.style.top = '';
+            if (scrollYRef.current) window.scrollTo(0, scrollYRef.current);
+        }
+        return () => {
+            document.body.classList.remove('modal-open');
+            document.body.style.top = '';
+        };
+    }, [checkoutState, clientSecret]);
+
     // --- TEMPS RÉEL : SURVEILLANCE STOCK ---
     useEffect(() => {
         if (cartItems.length === 0) return;
@@ -330,7 +349,7 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
         );
     }
 
-    const inputClasses = `w-full p-3.5 md:p-4 rounded-xl ring-1 ring-inset outline-none focus:ring-2 focus:ring-amber-500 font-bold text-sm transition-all transform-gpu ${
+    const inputClasses = `w-full p-3.5 md:p-4 rounded-xl ring-1 ring-inset outline-none focus:ring-2 focus:ring-amber-500 font-bold text-base transition-all transform-gpu ${
         darkMode 
             ? 'bg-stone-900 ring-stone-800 text-white placeholder:text-stone-600 autofill-dark' 
             : 'bg-stone-50 ring-stone-200 text-stone-900 placeholder:text-stone-400 autofill-light'
@@ -580,8 +599,11 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
 
             {/* MODAL STRIPE (POP-UP) */}
             {checkoutState === 'ready_to_pay' && clientSecret && stripeElementsOptions && paymentMethod === 'stripe_elements' && (
-                <div className="fixed inset-0 z-[999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-300">
-                    <div className={`w-full max-w-lg relative p-6 md:p-8 rounded-[2rem] shadow-2xl animate-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar ${darkMode ? 'bg-[#0a0a0a] ring-1 ring-white/5' : 'bg-white ring-1 ring-stone-200'}`}>
+                <div
+                    className="fixed inset-0 z-[999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-300"
+                    onClick={(e) => { if (e.target === e.currentTarget) setCheckoutState('editing'); }}
+                >
+                    <div className={`w-full max-w-lg relative p-6 md:p-8 rounded-[2rem] shadow-2xl animate-in zoom-in-95 duration-300 max-h-[85dvh] overflow-y-auto ios-modal-scroll custom-scrollbar ${darkMode ? 'bg-[#0a0a0a] ring-1 ring-white/5' : 'bg-white ring-1 ring-stone-200'}`}>
                         
                         {/* BOUTON FERMER (Hitbox élargie pour plus de précision) */}
                         <button 

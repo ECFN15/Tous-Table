@@ -29,6 +29,28 @@ body,
   overscroll-behavior-x: none;
 }
 
+/* iOS-safe body scroll lock for modals */
+body.modal-open {
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+  height: 100% !important;
+  /* iOS Safari: position:fixed + storing scrollY prevents background scroll */
+}
+
+/* iOS-safe modal container */
+.ios-modal-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* iOS input zoom prevention — ensure all form inputs are >= 16px */
+@supports (-webkit-touch-callout: none) {
+  input, select, textarea {
+    font-size: max(16px, 1em) !important;
+  }
+}
+
 .font-serif {
   font-family: 'Cormorant Garamond', serif;
 }

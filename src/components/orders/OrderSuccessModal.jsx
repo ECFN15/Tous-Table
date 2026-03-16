@@ -4,7 +4,7 @@ import { CheckCircle, ArrowRight, ShoppingBag } from 'lucide-react';
 const OrderSuccessModal = ({ onClose }) => {
     return (
         <div className="fixed inset-0 z-[300] bg-stone-900/80 backdrop-blur-md flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-300">
-            <div className="bg-white rounded-3xl md:rounded-[2.5rem] shadow-2xl max-w-md w-full p-6 md:p-10 text-center relative overflow-hidden animate-in zoom-in-95 duration-300 slide-in-from-bottom-4">
+            <div className="bg-white rounded-3xl md:rounded-[2.5rem] shadow-2xl max-w-md w-full max-h-[85dvh] overflow-y-auto ios-modal-scroll p-6 md:p-10 text-center relative overflow-hidden animate-in zoom-in-95 duration-300 slide-in-from-bottom-4">
 
                 {/* Decorative Background */}
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl"></div>
