@@ -103,7 +103,7 @@ const CheckoutPaymentStep = ({ total, orderId, onPaymentSuccess, onPaymentError,
                         },
                         layout: {
                             maxColumns: 2,
-                            maxRows: 2,
+                            maxRows: 1,
                             overflow: 'auto',
                         }
                     }}
