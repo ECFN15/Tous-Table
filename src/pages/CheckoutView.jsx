@@ -166,6 +166,63 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
     const [clientSecret, setClientSecret] = useState(null);
     const [createdOrderId, setCreatedOrderId] = useState(null);
     const [unavailableItems, setUnavailableItems] = useState([]);
+    
+    // --- ADDRESS AUTOCOMPLETE ---
+    const [suggestions, setSuggestions] = useState([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const suggestionRef = useRef(null);
+    const searchTimeout = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (suggestionRef.current && !suggestionRef.current.contains(event.target)) {
+                setShowSuggestions(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const fetchAddresses = async (query) => {
+        if (!query || query.length < 3) {
+            setSuggestions([]);
+            setShowSuggestions(false);
+            return;
+        }
+        try {
+            const res = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5`);
+            const data = await res.json();
+            setSuggestions(data.features || []);
+            setShowSuggestions(true);
+        } catch (e) {
+            console.error("API Adresse error:", e);
+        }
+    };
+
+    const handleAddressRelatedChange = (e) => {
+        handleChange(e); // Updates formData
+        const { name, value } = e.target;
+        
+        // Build query using the latest value for the changed field
+        const newForm = { ...formData, [name]: value };
+        const query = [newForm.address, newForm.zip, newForm.city].filter(Boolean).join(' ');
+
+        if (searchTimeout.current) clearTimeout(searchTimeout.current);
+        searchTimeout.current = setTimeout(() => {
+            fetchAddresses(query);
+        }, 400);
+    };
+
+    const handleSelectSuggestion = (suggestion) => {
+        setFormData(prev => ({
+            ...prev,
+            address: suggestion.properties.name || '',
+            zip: suggestion.properties.postcode || '',
+            city: suggestion.properties.city || ''
+        }));
+        setSuggestions([]);
+        setShowSuggestions(false);
+    };
 
     // --- iOS-safe body scroll lock for Stripe modal ---
     const scrollYRef = useRef(0);
@@ -299,7 +356,7 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
             appearance: {
                 theme: darkMode ? 'night' : 'stripe',
                 variables: {
-                    colorPrimary: '#f59e0b', // amber-500
+                    colorPrimary: darkMode ? '#ffffff' : '#1c1917',
                     colorBackground: darkMode ? '#1c1917' : '#ffffff',
                     colorText: darkMode ? '#fafaf9' : '#1c1917',
                     colorDanger: '#ef4444',
@@ -314,8 +371,8 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                         boxShadow: 'none',
                     },
                     '.Input:focus': {
-                        borderColor: '#f59e0b',
-                        boxShadow: '0 0 0 1px #f59e0b',
+                        borderColor: darkMode ? '#ffffff' : '#1c1917',
+                        boxShadow: darkMode ? '0 0 0 1px #ffffff' : '0 0 0 1px #1c1917',
                     },
                     '.Label': {
                         fontWeight: '600',
@@ -349,10 +406,10 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
         );
     }
 
-    const inputClasses = `w-full p-3.5 md:p-4 rounded-xl ring-1 ring-inset outline-none focus:ring-2 focus:ring-amber-500 font-bold text-base transition-all transform-gpu ${
+    const inputClasses = `w-full p-3.5 md:p-4 rounded-xl ring-1 ring-inset outline-none focus:ring-2 font-bold text-base transition-all transform-gpu ${
         darkMode 
-            ? 'bg-stone-900 ring-stone-800 text-white placeholder:text-stone-600 autofill-dark' 
-            : 'bg-stone-50 ring-stone-200 text-stone-900 placeholder:text-stone-400 autofill-light'
+            ? 'bg-stone-900 ring-stone-800 focus:ring-white text-white placeholder:text-stone-600 autofill-dark' 
+            : 'bg-stone-50 ring-stone-200 focus:ring-stone-900 text-stone-900 placeholder:text-stone-400 autofill-light'
     }`;
     const cardClasses = `p-5 md:p-6 rounded-3xl border shadow-sm space-y-4 ${darkMode ? 'bg-stone-900/50 border-stone-800/50' : 'bg-white border-stone-100'}`;
 
@@ -384,10 +441,64 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                                 <input name="phone" value={formData.phone} onChange={handleChange} placeholder="Téléphone" className={inputClasses} required />
                             </div>
                             <input name="email" value={formData.email} onChange={handleChange} placeholder="Email" type="email" className={inputClasses} required />
-                            <input name="address" value={formData.address} onChange={handleChange} placeholder="Adresse (N°, Rue)" className={inputClasses} required />
-                            <div className="grid grid-cols-2 gap-3 md:gap-4">
-                                <input name="zip" value={formData.zip} onChange={handleChange} placeholder="Code Postal" className={inputClasses} required />
-                                <input name="city" value={formData.city} onChange={handleChange} placeholder="Ville" className={inputClasses} required />
+                            
+                            {/* ADRESSE AVEC AUTOCOMPLÉTION INTELLIGENTE */}
+                            <div className="flex flex-col gap-3 md:gap-4 relative" ref={suggestionRef}>
+                                <input 
+                                    name="address" 
+                                    value={formData.address} 
+                                    onChange={handleAddressRelatedChange} 
+                                    onFocus={() => suggestions.length > 0 && setShowSuggestions(true)} 
+                                    placeholder="Adresse (N°, Rue)" 
+                                    className={inputClasses} 
+                                    required 
+                                    autoComplete="off" 
+                                />
+                                
+                                <AnimatePresence>
+                                    {showSuggestions && suggestions.length > 0 && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: -10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -10 }}
+                                            className={`absolute z-50 top-[52px] md:top-[60px] left-0 right-0 p-2 rounded-2xl border shadow-2xl ios-modal-scroll max-h-64 overflow-y-auto ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}
+                                        >
+                                            {suggestions.map((s, i) => (
+                                                <div
+                                                    key={i}
+                                                    onClick={() => handleSelectSuggestion(s)}
+                                                    className={`p-3 rounded-xl cursor-pointer transition-colors flex flex-col gap-0.5 ${darkMode ? 'hover:bg-stone-700' : 'hover:bg-stone-50'}`}
+                                                >
+                                                    <span className={`font-bold text-sm leading-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>{s.properties.name}</span>
+                                                    <span className={`text-[11px] font-medium uppercase tracking-wider ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>{s.properties.postcode} {s.properties.city}</span>
+                                                </div>
+                                            ))}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
+                                <div className="grid grid-cols-2 gap-3 md:gap-4">
+                                    <input 
+                                        name="zip" 
+                                        value={formData.zip} 
+                                        onChange={handleAddressRelatedChange} 
+                                        onFocus={() => suggestions.length > 0 && setShowSuggestions(true)} 
+                                        placeholder="Code Postal" 
+                                        className={inputClasses} 
+                                        required 
+                                        autoComplete="off" 
+                                    />
+                                    <input 
+                                        name="city" 
+                                        value={formData.city} 
+                                        onChange={handleAddressRelatedChange} 
+                                        onFocus={() => suggestions.length > 0 && setShowSuggestions(true)} 
+                                        placeholder="Ville" 
+                                        className={inputClasses} 
+                                        required 
+                                        autoComplete="off" 
+                                    />
+                                </div>
                             </div>
                         </div>
 
@@ -417,7 +528,9 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                                             }}
                                             className="absolute top-1/2 left-1/2 w-[300%] aspect-square -translate-x-1/2 -translate-y-1/2 z-0"
                                             style={{
-                                                background: "conic-gradient(from 0deg, transparent 30%, rgba(255,255,255,0) 35%, rgba(255,255,255,1) 50%, rgba(255,255,255,0) 65%, transparent 70%)",
+                                                background: darkMode 
+                                                    ? "conic-gradient(from 0deg, transparent 30%, rgba(255,255,255,0) 35%, rgba(255,255,255,1) 50%, rgba(255,255,255,0) 65%, transparent 70%)"
+                                                    : "conic-gradient(from 0deg, transparent 30%, rgba(0,0,0,0) 35%, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 65%, transparent 70%)",
                                             }}
                                         />
                                     )}
@@ -489,7 +602,9 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                                             }}
                                             className="absolute top-1/2 left-1/2 w-[300%] aspect-square -translate-x-1/2 -translate-y-1/2 z-0"
                                             style={{
-                                                background: "conic-gradient(from 0deg, transparent 30%, rgba(255,255,255,0) 35%, rgba(255,255,255,1) 50%, rgba(255,255,255,0) 65%, transparent 70%)",
+                                                background: darkMode 
+                                                    ? "conic-gradient(from 0deg, transparent 30%, rgba(255,255,255,0) 35%, rgba(255,255,255,1) 50%, rgba(255,255,255,0) 65%, transparent 70%)"
+                                                    : "conic-gradient(from 0deg, transparent 30%, rgba(0,0,0,0) 35%, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 65%, transparent 70%)",
                                             }}
                                         />
                                     )}
