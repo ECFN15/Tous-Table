@@ -753,7 +753,8 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
             {/* MODAL STRIPE (POP-UP) */}
             {checkoutState === 'ready_to_pay' && clientSecret && stripeElementsOptions && paymentMethod === 'stripe_elements' && (
                 <div
-                    className="fixed inset-0 z-[999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-300"
+                    className="fixed inset-0 z-[999] flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-300"
+                    style={{ background: 'rgba(0,0,0,0.82)' }}
                     onClick={(e) => { if (e.target === e.currentTarget) setCheckoutState('editing'); }}
                 >
                     <div className={`w-full max-w-lg relative p-6 md:p-8 rounded-[2rem] shadow-2xl animate-in zoom-in-95 duration-300 max-h-[85dvh] overflow-y-auto ios-modal-scroll custom-scrollbar ${darkMode ? 'bg-[#0a0a0a] ring-1 ring-white/5' : 'bg-white ring-1 ring-stone-200'}`}>
