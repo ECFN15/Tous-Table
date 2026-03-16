@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { ArrowLeft, CreditCard, Truck, CheckCircle, ShieldCheck, AlertCircle, Landmark, Lock, Wallet } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { functions, db, appId } from '../firebase/config';
@@ -172,18 +173,58 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
     // --- ADDRESS AUTOCOMPLETE ---
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
-    const suggestionRef = useRef(null);
+    const suggestionRef = useRef(null);   // container div des inputs adresse
+    const addressInputRef = useRef(null); // input adresse uniquement (pour position dropdown)
+    const dropdownRef = useRef(null);     // portal dropdown (pour handleClickOutside)
     const searchTimeout = useRef(null);
+    const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
+
+    const updateDropdownPosition = () => {
+        const el = addressInputRef.current;
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        // Compense le décalage du visual viewport (clavier mobile)
+        const vvTop = window.visualViewport ? window.visualViewport.offsetTop : 0;
+        const vvLeft = window.visualViewport ? window.visualViewport.offsetLeft : 0;
+        setDropdownPos({
+            top: rect.bottom + 4 - vvTop,
+            left: rect.left - vvLeft,
+            width: rect.width,
+        });
+    };
 
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (suggestionRef.current && !suggestionRef.current.contains(event.target)) {
+            const insideInput = suggestionRef.current && suggestionRef.current.contains(event.target);
+            const insideDropdown = dropdownRef.current && dropdownRef.current.contains(event.target);
+            if (!insideInput && !insideDropdown) {
                 setShowSuggestions(false);
             }
         };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        document.addEventListener('pointerdown', handleClickOutside);
+        return () => {
+            document.removeEventListener('pointerdown', handleClickOutside);
+        };
     }, []);
+
+    useEffect(() => {
+        if (!showSuggestions) return;
+        const update = () => updateDropdownPosition();
+        window.addEventListener('scroll', update, true);
+        window.addEventListener('resize', update);
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', update);
+            window.visualViewport.addEventListener('scroll', update);
+        }
+        return () => {
+            window.removeEventListener('scroll', update, true);
+            window.removeEventListener('resize', update);
+            if (window.visualViewport) {
+                window.visualViewport.removeEventListener('resize', update);
+                window.visualViewport.removeEventListener('scroll', update);
+            }
+        };
+    }, [showSuggestions]);
 
     const fetchAddresses = async (query) => {
         if (!query || query.length < 3) {
@@ -195,6 +236,7 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
             const res = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5`);
             const data = await res.json();
             setSuggestions(data.features || []);
+            updateDropdownPosition();
             setShowSuggestions(true);
         } catch (e) {
             console.error("API Adresse error:", e);
@@ -216,11 +258,15 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
     };
 
     const handleSelectSuggestion = (suggestion) => {
+        const zipValue = suggestion.properties.postcode || '';
+        const cityValue = suggestion.properties.city || '';
+        const addressValue = suggestion.properties.name || '';
+
         setFormData(prev => ({
             ...prev,
-            address: suggestion.properties.name || '',
-            zip: suggestion.properties.postcode || '',
-            city: suggestion.properties.city || ''
+            address: addressValue,
+            zip: zipValue,
+            city: cityValue
         }));
         setSuggestions([]);
         setShowSuggestions(false);
@@ -416,6 +462,7 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
     const cardClasses = `p-5 md:p-6 rounded-3xl border shadow-sm space-y-4 ${darkMode ? 'bg-stone-900/50 border-stone-800/50' : 'bg-white border-stone-100'}`;
 
     return (
+        <>
         <div className={`min-h-screen pt-10 px-4 md:px-6 pb-20 animate-in fade-in transition-colors duration-700 bg-transparent`}>
             <div className="max-w-[1240px] mx-auto w-full">
                 {/* HEADER RETOUR */}
@@ -445,60 +492,49 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                             <input name="email" value={formData.email} onChange={handleChange} placeholder="Email" type="email" className={inputClasses} required />
                             
                             {/* ADRESSE AVEC AUTOCOMPLÉTION INTELLIGENTE */}
-                            <div className="flex flex-col gap-3 md:gap-4 relative" ref={suggestionRef}>
-                                <input 
-                                    name="address" 
-                                    value={formData.address} 
-                                    onChange={handleAddressRelatedChange} 
-                                    onFocus={() => suggestions.length > 0 && setShowSuggestions(true)} 
-                                    placeholder="Adresse (N°, Rue)" 
-                                    className={inputClasses} 
-                                    required 
-                                    autoComplete="off" 
+                            <div className="flex flex-col gap-3 md:gap-4" ref={suggestionRef}>
+                                <input
+                                    ref={addressInputRef}
+                                    name="address"
+                                    value={formData.address}
+                                    onChange={handleAddressRelatedChange}
+                                    onFocus={(e) => {
+                                        e.target.select();
+                                        if (suggestions.length > 0) { updateDropdownPosition(); setShowSuggestions(true); }
+                                    }}
+                                    placeholder="Adresse (N°, Rue)"
+                                    className={inputClasses}
+                                    required
+                                    autoComplete="off"
                                 />
-                                
-                                <AnimatePresence>
-                                    {showSuggestions && suggestions.length > 0 && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: -10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: -10 }}
-                                            className={`absolute z-50 top-[52px] md:top-[60px] left-0 right-0 p-2 rounded-2xl border shadow-2xl ios-modal-scroll max-h-64 overflow-y-auto ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}
-                                        >
-                                            {suggestions.map((s, i) => (
-                                                <div
-                                                    key={i}
-                                                    onClick={() => handleSelectSuggestion(s)}
-                                                    className={`p-3 rounded-xl cursor-pointer transition-colors flex flex-col gap-0.5 ${darkMode ? 'hover:bg-stone-700' : 'hover:bg-stone-50'}`}
-                                                >
-                                                    <span className={`font-bold text-sm leading-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>{s.properties.name}</span>
-                                                    <span className={`text-[11px] font-medium uppercase tracking-wider ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>{s.properties.postcode} {s.properties.city}</span>
-                                                </div>
-                                            ))}
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
 
                                 <div className="grid grid-cols-2 gap-3 md:gap-4">
-                                    <input 
-                                        name="zip" 
-                                        value={formData.zip} 
-                                        onChange={handleAddressRelatedChange} 
-                                        onFocus={() => suggestions.length > 0 && setShowSuggestions(true)} 
-                                        placeholder="Code Postal" 
-                                        className={inputClasses} 
-                                        required 
-                                        autoComplete="off" 
+                                    <input
+                                        name="zip"
+                                        value={formData.zip}
+                                        onChange={handleAddressRelatedChange}
+                                        onFocus={(e) => {
+                                            e.target.select();
+                                            if (suggestions.length > 0) { updateDropdownPosition(); setShowSuggestions(true); }
+                                        }}
+                                        placeholder="Code Postal"
+                                        className={inputClasses}
+                                        required
+                                        autoComplete="off"
+                                        inputMode="numeric"
                                     />
-                                    <input 
-                                        name="city" 
-                                        value={formData.city} 
-                                        onChange={handleAddressRelatedChange} 
-                                        onFocus={() => suggestions.length > 0 && setShowSuggestions(true)} 
-                                        placeholder="Ville" 
-                                        className={inputClasses} 
-                                        required 
-                                        autoComplete="off" 
+                                    <input
+                                        name="city"
+                                        value={formData.city}
+                                        onChange={handleAddressRelatedChange}
+                                        onFocus={(e) => {
+                                            e.target.select();
+                                            if (suggestions.length > 0) { updateDropdownPosition(); setShowSuggestions(true); }
+                                        }}
+                                        placeholder="Ville"
+                                        className={inputClasses}
+                                        required
+                                        autoComplete="off"
                                     />
                                 </div>
                             </div>
@@ -766,6 +802,28 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                 </div>
             )}
         </div>
+
+        {/* PORTAL — dropdown suggestions rendu à la racine du body pour éviter tout clipping */}
+        {showSuggestions && suggestions.length > 0 && createPortal(
+            <div
+                ref={dropdownRef}
+                style={{ position: 'fixed', top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width, zIndex: 9999 }}
+                className={`p-2 rounded-2xl border shadow-2xl max-h-64 overflow-y-auto ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}
+            >
+                {suggestions.map((s, i) => (
+                    <div
+                        key={i}
+                        onPointerDown={(e) => { e.preventDefault(); handleSelectSuggestion(s); }}
+                        className={`p-3 rounded-xl cursor-pointer transition-colors flex flex-col gap-0.5 ${darkMode ? 'hover:bg-stone-700 active:bg-stone-600' : 'hover:bg-stone-50 active:bg-stone-100'}`}
+                    >
+                        <span className={`font-bold text-sm leading-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>{s.properties.name}</span>
+                        <span className={`text-[11px] font-medium uppercase tracking-wider ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>{s.properties.postcode} {s.properties.city}</span>
+                    </div>
+                ))}
+            </div>,
+            document.body
+        )}
+        </>
     );
 };
 

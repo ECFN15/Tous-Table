@@ -478,7 +478,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowCom
                                         <ShoppingBag size={16} />
                                     </button>
                                 ) : (
-                                    <button onClick={() => { onAddToCart(item); onOpenCart(); }} className="w-full py-6 text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-emerald-600 transition-all flex items-center justify-center gap-4 bg-black dark:bg-white dark:text-black rounded-none shadow-lg">
+                                    <button onClick={() => { onAddToCart(item); }} className="w-full py-6 text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-emerald-600 transition-all flex items-center justify-center gap-4 bg-black dark:bg-white dark:text-black rounded-none shadow-lg">
                                         <span>Acquérir cette pièce</span>
                                         <ArrowRight size={16} />
                                     </button>

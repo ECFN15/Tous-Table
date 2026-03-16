@@ -96,6 +96,7 @@ const AppContent = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showAuthSuccess, setShowAuthSuccess] = useState(false);
   const [showNewsletter, setShowNewsletter] = useState(false);
+  const [pendingItem, setPendingItem] = useState(null);
   const scrollYRef = useRef(0);
 
   // iOS-safe body scroll lock for modals
@@ -407,6 +408,15 @@ const AppContent = () => {
     }
   }, [user]);
 
+  // --- AUTO-ADD PENDING ITEM AFTER LOGIN ---
+  useEffect(() => {
+    if (user && !user.isAnonymous && pendingItem) {
+      console.log("Adding pending item to cart after login:", pendingItem.name);
+      addToCart(pendingItem);
+      setPendingItem(null);
+    }
+  }, [user, pendingItem]);
+
   // --- ACTIONS ---
   // Admin actions moved to Router.jsx
 
@@ -423,8 +433,9 @@ const AppContent = () => {
     // console.log("Add to cart clicked", user);
     if (!user || user.isAnonymous) {
       // console.log("User is not logged in or anonymous, showing login modal");
+      setPendingItem(item); // Store for after login
       setShowFullLogin(true);
-      return;
+      return false;
     }
 
     // [NEW] Check Stock Limit
@@ -433,7 +444,7 @@ const AppContent = () => {
 
     if (inCartCount >= currentStock) {
       setStockAlert({ currentStock });
-      return;
+      return false;
     }
 
     const cartItemData = {
@@ -452,9 +463,11 @@ const AppContent = () => {
       await addDoc(collection(db, 'users', user.uid, 'cart'), cartItemData);
       setCartInteracted(true);
       setIsCartOpen(true);
+      return true;
     } catch (e) {
       console.error("Error add cart", e);
       alert("Erreur ajout panier : " + e.message);
+      return false;
     }
   };
 
