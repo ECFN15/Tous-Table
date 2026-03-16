@@ -106,6 +106,10 @@ Un bouton d'appel à l'action (CTA) ultra-premium inspiré des standards les plu
 
 L'effet "Magnetic Spotlight" est obtenu en empilant de multiples couches `absolute` à l'intérieur du bouton, toutes en `pointer-events-none` :
 
+> **💡 L'astuce du "Fade-Out Asymétrique" :**
+> Lors du survol, le faisceau lumineux apparaît rapidement (ex: `0.3s`) pour être réactif à la souris. En revanche, lorsque le curseur quitte le bouton, on ralentit volontairement l'animation d'opacité (`duration: 0.6s`).
+> Cette asymétrie (`isHovered ? 0.3 : 0.6`) crée un effet de rémanence très doux et luxueux, comme un écran OLED ou un filament phosphorescent qui s'éteint lentement. Un paramètre idéal se situe autour de `0.6s` (0.8s pouvant paraître un peu long, et 1.2s fantomatique).
+
 1. **La Couche Bordure (Border Glow)** : 
    Une `div` avec un padding de `2px` (`p-[2px]`), contenant elle-même le masque central. Le fond de cette `div` n'est pas une couleur unie, mais un `radial-gradient` (halo) dont le centre est mappé sur `mousePosition.x` et `y`.
    
@@ -166,7 +170,8 @@ const PremiumActionBtn = ({ children, isLoading, disabled, onClick, darkMode = t
                 <motion.div
                     className="absolute inset-0 pointer-events-none z-0 p-[2px] rounded-[1.25rem]"
                     animate={{ opacity: isHovered ? 1 : 0 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    // Fade-out asymétrique (0.3s apparition, 0.6s disparition)
+                    transition={{ duration: isHovered ? 0.3 : 0.6, ease: "easeOut" }}
                     style={{
                         background: \`radial-gradient(160px circle at \${mousePosition.x}px \${mousePosition.y}px, rgba(255,255,255,0.7), transparent 60%)\`,
                     }}
@@ -181,7 +186,7 @@ const PremiumActionBtn = ({ children, isLoading, disabled, onClick, darkMode = t
                 <motion.div
                     className="absolute inset-0 pointer-events-none z-10 rounded-[1.25rem]"
                     animate={{ opacity: isHovered ? 1 : 0 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    transition={{ duration: isHovered ? 0.3 : 0.6, ease: "easeOut" }}
                     style={{
                         background: \`radial-gradient(100px circle at \${mousePosition.x}px \${mousePosition.y}px, rgba(255,255,255,0.06), transparent 50%)\`,
                     }}
