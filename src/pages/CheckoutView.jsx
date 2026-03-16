@@ -55,7 +55,7 @@ const PremiumActionBtn = ({ children, isLoading, disabled, onClick, darkMode }) 
                 <motion.div
                     className="absolute inset-0 pointer-events-none z-0 p-[2px] rounded-[1.25rem]"
                     animate={{ opacity: isHovered ? 1 : 0 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    transition={{ duration: isHovered ? 0.3 : 0.8, ease: "easeOut" }}
                     style={{
                         background: `radial-gradient(160px circle at ${mousePosition.x}px ${mousePosition.y}px, ${darkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.5)'}, transparent 60%)`,
                     }}
@@ -70,7 +70,7 @@ const PremiumActionBtn = ({ children, isLoading, disabled, onClick, darkMode }) 
                 <motion.div
                     className="absolute inset-0 pointer-events-none z-10 rounded-[1.25rem]"
                     animate={{ opacity: isHovered ? 1 : 0 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    transition={{ duration: isHovered ? 0.3 : 0.8, ease: "easeOut" }}
                     style={{
                         background: `radial-gradient(100px circle at ${mousePosition.x}px ${mousePosition.y}px, ${darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'}, transparent 50%)`,
                     }}
