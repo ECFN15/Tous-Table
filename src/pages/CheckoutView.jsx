@@ -179,11 +179,19 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
             try {
                 const cancelOrder = httpsCallable(functions, 'cancelOrderClient');
                 await cancelOrder({ orderId: createdOrderId });
+                
+                // FORCE le nettoyage côté Frontend pour ignorer la latence de Firestore.
+                // Sinon, le onSnapshot n'aura pas encore reçu "sold: false" et affichera "Victime de son succès".
+                setUnavailableItems([]);
+                
             } catch (e) {
                 // Non-bloquant : si l'annulation échoue, l'admin peut gérer manuellement
                 console.error("Cleanup pending order failed:", e);
             } finally {
-                setIsCleaningUp(false);
+                // Un court délai de sécurité avant de débloquer l'état "isCleaningUp"
+                setTimeout(() => {
+                    setIsCleaningUp(false);
+                }, 500);
             }
             setCreatedOrderId(null);
             setClientSecret(null);
@@ -299,25 +307,6 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
         setSuggestions([]);
         setShowSuggestions(false);
     };
-
-    // --- iOS-safe body scroll lock for Stripe modal ---
-    const scrollYRef = useRef(0);
-    useEffect(() => {
-        const isModalOpen = checkoutState === 'ready_to_pay' && clientSecret;
-        if (isModalOpen) {
-            scrollYRef.current = window.scrollY;
-            document.body.classList.add('modal-open');
-            document.body.style.top = `-${scrollYRef.current}px`;
-        } else {
-            document.body.classList.remove('modal-open');
-            document.body.style.top = '';
-            if (scrollYRef.current) window.scrollTo(0, scrollYRef.current);
-        }
-        return () => {
-            document.body.classList.remove('modal-open');
-            document.body.style.top = '';
-        };
-    }, [checkoutState, clientSecret]);
 
     // --- TEMPS RÉEL : SURVEILLANCE STOCK ---
     useEffect(() => {
@@ -460,7 +449,12 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
 
 
     // --- RENDU OUT OF STOCK ---
-    if (unavailableItems.length > 0 && checkoutState !== 'processing_deferred' && checkoutState !== 'fetching_stripe') {
+    // On ne bloque pas si on est en train de processer une commande (fetching_stripe, processing_deferred)
+    // OU si on vient de générer le PaymentIntent (ready_to_pay), car dans ce cas, c'est NOUS qui avons 
+    // mis le stock à sold=true pour le réserver !
+    // On ne bloque pas non plus si on est en cours de nettoyage (isCleaningUp) après avoir fermé la modale Stripe, 
+    // pour laisser le temps au serveur de remettre sold=false sans déclencher l'alerte !
+    if (unavailableItems.length > 0 && checkoutState !== 'processing_deferred' && checkoutState !== 'fetching_stripe' && checkoutState !== 'ready_to_pay' && !isCleaningUp) {
         return (
             <div className={`min-h-screen pt-12 px-6 flex items-center justify-center bg-transparent`}>
                 <div className={`p-8 rounded-3xl shadow-xl max-w-md text-center space-y-6 border ${darkMode ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-100'}`}>
@@ -777,59 +771,61 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                 </div>
             </div>
 
-            {/* MODAL STRIPE (POP-UP) */}
-            {checkoutState === 'ready_to_pay' && clientSecret && stripeElementsOptions && paymentMethod === 'stripe_elements' && (
-                <div
-                    className="fixed inset-0 z-[999] flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-300"
-                    style={{ background: 'rgba(0,0,0,0.82)' }}
-                    onClick={(e) => { if (e.target === e.currentTarget) handleClosePaymentModal(); }}
-                >
-                    <div className={`w-full max-w-lg relative p-6 md:p-8 rounded-[2rem] shadow-2xl animate-in zoom-in-95 duration-300 max-h-[85dvh] overflow-y-auto ios-modal-scroll custom-scrollbar ${darkMode ? 'bg-[#0a0a0a] ring-1 ring-white/5' : 'bg-white ring-1 ring-stone-200'}`}>
-
-                        {/* BOUTON FERMER (Hitbox élargie pour plus de précision) */}
-                        <button
-                            type="button"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                handleClosePaymentModal();
-                            }}
-                            className={`absolute z-50 top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full transition-colors cursor-pointer ${darkMode ? 'hover:bg-white/10 text-stone-400 hover:text-white' : 'hover:bg-stone-100 text-stone-500 hover:text-stone-900'}`}
-                            aria-label="Fermer le paiement"
-                        >
-                            <svg className="w-5 h-5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                        
-                        <div className="mb-6 pr-10">
-                            <h3 className={`text-2xl font-black tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>Paiement sécurisé.</h3>
-                            <p className={`text-xs mt-1 font-medium ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>Finalisez votre transaction via Stripe.</p>
-                        </div>
-
-                        <Elements stripe={stripePromise} options={stripeElementsOptions}>
-                            <CheckoutPaymentStep
-                                total={total}
-                                orderId={createdOrderId}
-                                darkMode={darkMode}
-                                onPaymentSuccess={async (paymentIntent) => {
-                                    await onPlaceOrder({
-                                        id: createdOrderId,
-                                        ...formData,
-                                        paymentMethod: 'stripe_elements',
-                                        total,
-                                        paymentIntentId: paymentIntent.id
-                                    });
-                                }}
-                                onPaymentError={(err) => {
-                                    console.error("Payment error inline:", err);
-                                }}
-                            />
-                        </Elements>
-                    </div>
-                </div>
-            )}
         </div>
+
+        {/* MODAL STRIPE (POP-UP) RENDU DANS UN PORTAL POUR ÉVITER LES BUGS Z-INDEX ET STACKING CONTEXT SUR IOS */}
+        {checkoutState === 'ready_to_pay' && clientSecret && stripeElementsOptions && paymentMethod === 'stripe_elements' && createPortal(
+            <div
+                className="fixed inset-0 z-[99999] flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-300"
+                style={{ background: 'rgba(0,0,0,0.82)' }}
+                onClick={(e) => { if (e.target === e.currentTarget) handleClosePaymentModal(); }}
+            >
+                <div className={`w-full max-w-lg relative p-6 md:p-8 rounded-[2rem] shadow-2xl animate-in zoom-in-95 duration-300 max-h-[85dvh] overflow-y-auto ios-modal-scroll custom-scrollbar ${darkMode ? 'bg-[#0a0a0a] ring-1 ring-white/5' : 'bg-white ring-1 ring-stone-200'}`}>
+
+                    {/* BOUTON FERMER (Hitbox élargie pour plus de précision) */}
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleClosePaymentModal();
+                        }}
+                        className={`absolute z-50 top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full transition-colors cursor-pointer ${darkMode ? 'hover:bg-white/10 text-stone-400 hover:text-white' : 'hover:bg-stone-100 text-stone-500 hover:text-stone-900'}`}
+                        aria-label="Fermer le paiement"
+                    >
+                        <svg className="w-5 h-5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                    
+                    <div className="mb-6 pr-10">
+                        <h3 className={`text-2xl font-black tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>Paiement sécurisé.</h3>
+                        <p className={`text-xs mt-1 font-medium ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>Finalisez votre transaction via Stripe.</p>
+                    </div>
+
+                    <Elements stripe={stripePromise} options={stripeElementsOptions}>
+                        <CheckoutPaymentStep
+                            total={total}
+                            orderId={createdOrderId}
+                            darkMode={darkMode}
+                            onPaymentSuccess={async (paymentIntent) => {
+                                await onPlaceOrder({
+                                    id: createdOrderId,
+                                    ...formData,
+                                    paymentMethod: 'stripe_elements',
+                                    total,
+                                    paymentIntentId: paymentIntent.id
+                                });
+                            }}
+                            onPaymentError={(err) => {
+                                console.error("Payment error inline:", err);
+                            }}
+                        />
+                    </Elements>
+                </div>
+            </div>,
+            document.body
+        )}
 
         {/* PORTAL — dropdown suggestions rendu à la racine du body */}
         {showSuggestions && suggestions.length > 0 && createPortal(

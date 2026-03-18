@@ -1,4 +1,4 @@
-# Rapport de Session — Audit Marketplace & iOS
+bui# Rapport de Session — Audit Marketplace & iOS
 **Date** : 18 mars 2026 — 11h54
 **Agent** : Claude Sonnet 4.6
 **Projet** : Tous à Table Made in Normandie (`tousatable-madeinnormandie.fr`)
@@ -26,6 +26,29 @@ Suite aux mises à jour précédentes (notamment sur la politique de sécurité 
 **Fix implémenté** :
 - `X-Frame-Options` : Modifié de `DENY` à `SAMEORIGIN`.
 - `Content-Security-Policy` (`frame-src`) : Ajout de `'self'` dans la liste des sources autorisées.
+
+### 🔴 BUG — Modale Stripe (PaymentElement) invisible / bloquée hors écran (CRITIQUE IOS)
+**Fichier** : `src/pages/CheckoutView.jsx`
+
+**Problème** : Sur iPhone, lorsque l'utilisateur cliquait sur "Procéder au paiement", l'écran s'assombrissait (couche `rgba` noire) mais la modale blanche Stripe ne s'affichait jamais. Ce comportement était causé par un bug de rendu CSS natif à Safari iOS (le *Stacking Context*). La modale Stripe (`position: fixed`) était imbriquée à l'intérieur d'un conteneur qui possédait des règles d'animation `transform` (`animate-in fade-in`). Sur iOS, cela casse le positionnement absolu par rapport au *viewport* et propulse la modale hors de l'écran du téléphone.
+De plus, la mécanique de blocage de scroll iOS (verrouillage de `body.modal-open` avec `top` négatif) venait empirer le comportement en décalant l'écran.
+
+**Fix implémenté** :
+- **`createPortal`** : La modale Stripe a été sortie de l'arborescence DOM complexe du conteneur parent. Elle est désormais injectée à la racine absolue du site (`document.body`) grâce à `createPortal`, avec un `z-index` de `99999`, ce qui garantit son affichage centré sur 100% des appareils, contournant les bugs de "Stacking Context" d'iOS.
+- Suppression du script lourd de *body scroll lock* natif dans `CheckoutView` qui causait des décalages imprévisibles sur Safari Mobile PWA.
+
+### 🔴 BUG — Faux Positif : Erreur "Victime de son succès" déclenchée par l'acheteur légitime (CRITIQUE)
+**Fichier** : `src/pages/CheckoutView.jsx`
+
+**Problème** : L'agent précédent avait implémenté un système de sécurité "Anti-Race Condition" (réservation instantanée du meuble dans Firestore lors du clic sur "Procéder au paiement"). 
+Cependant, l'interface Frontend de React écoute la base de données en temps réel (`onSnapshot`). Ainsi, quand l'acheteur légitime cliquait sur le bouton de paiement :
+1. Le serveur réservait le meuble pour lui (`sold: true`).
+2. L'interface React voyait le meuble comme "Vendu", paniquait, et affichait l'écran d'erreur *"Victime de son succès"* en empêchant l'utilisateur de voir sa modale Stripe. 
+Le problème se manifestait aussi lors de l'annulation d'un paiement Stripe (le délai de 500ms du serveur pour remettre le meuble en `sold: false` déclenchait l'écran d'erreur).
+
+**Fix implémenté** :
+- Le Frontend est désormais "intelligent". L'alerte "Victime de son succès" ne se déclenche plus si l'application sait que la réservation est effectuée par *l'utilisateur lui-même* (état `ready_to_pay`) ou pendant le nettoyage de l'annulation de la commande Stripe (`isCleaningUp: true`). 
+- Le système "Anti-doublon / Race Condition" reste intact, mais protège désormais l'acheteur légitime.
 
 ---
 
