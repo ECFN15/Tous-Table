@@ -582,7 +582,7 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                         </div>
 
                         {/* GROUPE 2 : CHOIX DU PAIEMENT */}
-                        <div className={`${cardClasses} ${!stripeEnabled ? 'w-fit' : ''}`}>
+                        <div className={`${cardClasses} ${!stripeEnabled ? 'w-[calc(50%+0.75rem)] md:w-[calc(50%+1rem)]' : ''}`}>
                             <h3 className="text-[10px] md:text-xs font-black uppercase tracking-widest text-stone-400 flex items-center gap-2 mb-4">
                                 <CreditCard size={14} /> Moyen de Paiement
                             </h3>

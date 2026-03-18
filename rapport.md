@@ -182,3 +182,76 @@ style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 6rem)' }}
 - La toolbar "stripe >" reste visible sur toutes les pages en mode **test** car `loadStripe` est appelé globalement dans `main.jsx`. Ce comportement est propre à Stripe en mode test et **disparaît automatiquement en production** avec une clé `pk_live_`.
 - En production, répéter les étapes d'enregistrement de domaine Apple Pay pour `tousatable-madeinnormandie.fr` dans le compte Stripe production.
 - **Pattern général iOS PWA** : ne jamais combiner une classe Tailwind `pb-X` avec `safe-area-bottom` sur le même élément — utiliser `calc(env(safe-area-inset-bottom, 0px) + Xrem)` en inline style. Même règle pour le top avec `max(env(safe-area-inset-top, 0px), Xrem)`.
+
+---
+
+# Rapport — Système de gestion des moyens de paiement (19 Mars 2026)
+
+## Objectif
+
+Permettre à l'admin de désactiver les paiements par carte/wallet (Stripe) en un clic, sans supprimer aucune fonctionnalité de code. Quand désactivé, seul le virement/Wero est proposé au client. Réactivation possible à tout moment.
+
+---
+
+## Fichiers créés
+
+### `src/features/admin/AdminPaymentSettings.jsx`
+Nouveau composant admin avec :
+- Toggle ON/OFF pour Stripe (Carte / Wallets)
+- Carte "Virement / Wero" toujours active (non toggleable)
+- Écoute Firestore en temps réel (`onSnapshot`)
+- Sauvegarde dans `sys_metadata/payment_settings` (`stripeEnabled: true/false`)
+- Info box expliquant que désactiver masque l'option sans supprimer le code
+
+---
+
+## Fichiers modifiés
+
+### `src/Router.jsx`
+- Import lazy de `AdminPaymentSettings`
+- Ajout du bouton onglet **"Paiement"** (avec icône `CreditCard`) dans la barre de navigation admin
+- Ajout du cas `adminCollection === 'payment_settings'` dans le rendu conditionnel
+
+### `src/pages/CheckoutView.jsx`
+- Ajout d'un state `stripeEnabled` initialisé depuis `localStorage` (cache pour éviter le flash)
+- Listener `onSnapshot` sur `sys_metadata/payment_settings` qui :
+  - Met à jour `stripeEnabled`
+  - Force `paymentMethod` à `'deferred'` si Stripe est désactivé
+  - Met en cache dans `localStorage`
+- Quand `stripeEnabled === false` :
+  - Le bloc "Moyen de Paiement" reste visible mais affiche uniquement la carte Virement
+  - Le grid `sm:grid-cols-2` est retiré (un seul enfant, pas de colonne vide)
+  - L'outer card prend `w-[calc(50%+0.75rem)] md:w-[calc(50%+1rem)]` — taille pixel-perfect identique à une carte dans le mode 2 options (calcul : `50% + padding - gap/2`, avec `p-5`/`p-6` et `gap-4`)
+- Quand `stripeEnabled === true` : comportement identique à avant, rien ne change
+
+---
+
+## Base de données Firestore
+
+### Collection : `sys_metadata/payment_settings`
+```json
+{
+  "stripeEnabled": true,
+  "updatedAt": 1234567890
+}
+```
+- **Lecture** : publique (règles `sys_metadata` existantes couvrent déjà)
+- **Écriture** : admin uniquement (règles existantes inchangées)
+
+---
+
+## Comportement
+
+| Admin toggle | Checkout client |
+|---|---|
+| Stripe **ON** | Deux cartes visibles : Carte/Wallets + Virement. Sélection libre. |
+| Stripe **OFF** | Un seul bloc Virement visible, même taille qu'une carte en mode 2 options. `paymentMethod` auto-forcé à `'deferred'`. |
+
+Le changement est **instantané** (temps réel via `onSnapshot`) sans rechargement de page.
+
+## Ce qui n'a PAS changé
+
+- Tout le code Stripe (Elements, `createOrder`, `cancelOrderClient`, modal de paiement) est intact
+- Les règles Firestore sont inchangées
+- Les commandes existantes ne sont pas affectées
+- Aucune Cloud Function modifiée
