@@ -162,18 +162,25 @@ const MyOrdersView = ({ user, onBack, darkMode, activeDesignId }) => {
                                 <div className="grid md:grid-cols-12 gap-6 md:gap-12">
                                     {/* ITEMS */}
                                     <div className="md:col-span-7 space-y-8">
-                                        {order.items?.map((item, i) => (
-                                            <div key={i} className="flex gap-4 sm:gap-8 items-center sm:items-start">
-                                                <div className="w-20 h-20 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-2xl sm:rounded-3xl bg-stone-100 overflow-hidden flex-shrink-0 border border-stone-100 dark:border-stone-700 shadow-sm">
-                                                    {item.image && <img src={item.image} alt={item.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />}
+                                        {order.items?.map((item, i) => {
+                                            const imgUrl = Array.isArray(item.image) ? item.image[0] : (Array.isArray(item.images) ? item.images[0] : (item.image || item.imageUrl));
+                                            return (
+                                                <div key={i} className="flex gap-4 sm:gap-8 items-center sm:items-start">
+                                                    <div className="w-20 h-20 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-2xl sm:rounded-3xl bg-stone-100 dark:bg-stone-800 overflow-hidden flex-shrink-0 border border-stone-100 dark:border-stone-700 shadow-sm flex items-center justify-center">
+                                                        {imgUrl ? (
+                                                            <img src={imgUrl} alt={item.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                                                        ) : (
+                                                            <Package size={32} className="text-stone-300 dark:text-stone-600" />
+                                                        )}
+                                                    </div>
+                                                    <div className="pt-1 sm:pt-2 flex-1 min-w-0">
+                                                        <p className="font-black text-lg sm:text-2xl tracking-tight leading-tight line-clamp-2">{item.name}</p>
+                                                        <p className="text-base sm:text-lg font-medium opacity-50 mt-1">{item.quantity || 1} × {formatPrice(item.price)}</p>
+                                                        {item.collection && <span className="px-2 sm:px-3 py-1 rounded-md sm:rounded-lg bg-stone-100 dark:bg-stone-700 text-[8px] sm:text-[9px] font-black uppercase tracking-widest opacity-60 mt-2 sm:mt-4 inline-block truncate max-w-full">{item.collection}</span>}
+                                                    </div>
                                                 </div>
-                                                <div className="pt-1 sm:pt-2 flex-1 min-w-0">
-                                                    <p className="font-black text-lg sm:text-2xl tracking-tight leading-tight line-clamp-2">{item.name}</p>
-                                                    <p className="text-base sm:text-lg font-medium opacity-50 mt-1">{item.quantity || 1} × {formatPrice(item.price)}</p>
-                                                    {item.collection && <span className="px-2 sm:px-3 py-1 rounded-md sm:rounded-lg bg-stone-100 dark:bg-stone-700 text-[8px] sm:text-[9px] font-black uppercase tracking-widest opacity-60 mt-2 sm:mt-4 inline-block truncate max-w-full">{item.collection}</span>}
-                                                </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
 
                                         {/* ACTIONS GRID */}
                                         <div className="pt-6 sm:pt-8 grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4 max-w-md">

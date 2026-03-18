@@ -169,7 +169,8 @@ exports.createOrder = functions.runWith({ secrets: [STRIPE_SECRET_KEY, GMAIL_EMA
                 collectionName: i.collectionName || 'furniture',
                 name: i.name,
                 price: i.price,
-                quantity: i.quantity || 1
+                quantity: i.quantity || 1,
+                image: i.image || (i.images && i.images.length > 0 ? i.images[0] : (i.imageUrl || null))
             })),
             shipping: orderData.shipping || {},
             total: totalAmount,
