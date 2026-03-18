@@ -1,0 +1,184 @@
+# Rapport de Corrections — Session du 18 Mars 2026
+
+## 1. Header iOS PWA / Dynamic Island
+
+### Problème
+En mode application (ajout à l'écran d'accueil iPhone), le header était caché derrière le Dynamic Island. L'utilisateur ne pouvait ni se connecter ni accéder au menu marketplace car les boutons étaient physiquement inaccessibles sous le Dynamic Island (~59px).
+
+### Cause
+`apple-mobile-web-app-status-bar-style: black-translucent` + `viewport-fit=cover` font que le contenu démarre en y=0, derrière le Dynamic Island. Aucun composant n'avait de `padding-top: env(safe-area-inset-top)`.
+
+### Solution
+Ajout d'une classe CSS `.pwa-safe-top` activée uniquement en mode standalone PWA (`@media (display-mode: standalone)`), sans effet dans un navigateur normal :
+
+```css
+@media (display-mode: standalone) {
+  .pwa-safe-top {
+    padding-top: env(safe-area-inset-top) !important;
+  }
+}
+```
+
+### Fichiers modifiés
+- `src/index.css` — ajout de la règle `.pwa-safe-top`
+- `src/designs/architectural/components/ArchitecturalHeader.jsx` — classe `pwa-safe-top` sur `<header>`
+- `src/app.jsx` — classe `pwa-safe-top` sur `<nav>`
+- `src/components/layout/GlobalMenu.jsx` — classe `pwa-safe-top` sur le panneau slide-in (`p-12` = 48px < 59px Dynamic Island)
+- `src/components/cart/CartSidebar.jsx` — classe `pwa-safe-top` sur le panneau slide-in (`p-6` = 24px < 59px Dynamic Island)
+
+---
+
+## 2. Paiement par carte — "Une erreur inattendue est survenue"
+
+### Problème
+La carte de test Stripe `4242 4242 4242 4242` retournait toujours "Une erreur inattendue est survenue" (catch block), rendant tout paiement par carte impossible.
+
+### Cause
+Deux problèmes combinés :
+1. `elements.submit()` appelé avant `confirmPayment` alors que `ExpressCheckoutElement` ET `PaymentElement` étaient montés simultanément dans le même contexte `Elements`. Avec `@stripe/react-stripe-js` v5.x, cela provoque un throw.
+2. `fields.billingDetails: 'never'` sans les fournir manuellement dans `confirmPayment`.
+
+### Solution
+- Suppression de `elements.submit()` — dans `@stripe/stripe-js` v8.x / `@stripe/react-stripe-js` v5.x, `confirmPayment` gère la validation en interne.
+- `fields.billingDetails` passé de `'never'` à `'auto'` — Stripe collecte les champs nécessaires selon le moyen de paiement.
+
+### Fichiers modifiés
+- `src/components/cart/CheckoutPaymentStep.jsx`
+
+---
+
+## 3. Apple Pay absent sur iPhone
+
+### Problème
+Apple Pay ne s'affichait pas sur iPhone malgré une configuration activée dans le dashboard Stripe.
+
+### Cause (double)
+1. **Domaine non enregistré** : seul `checkout.stripe.com` était déclaré dans Stripe. Le domaine `tatmadeinnormandie.web.app` était absent de la liste des domaines autorisés.
+2. **`firebase.json` bloquait `.well-known/`** : le pattern `"**/.*"` dans la section `ignore` excluait tous les fichiers et dossiers commençant par `.`, ce qui empêchait le déploiement du dossier `.well-known` nécessaire à la vérification Apple Pay.
+
+### Solution
+1. Ajout du domaine `tatmadeinnormandie.web.app` dans Stripe Dashboard → Settings → Domaines des moyens de paiement. Pour les domaines `*.web.app` (Firebase), Stripe vérifie automatiquement sans fichier supplémentaire.
+2. Remplacement de `"**/.*"` par des patterns spécifiques dans `firebase.json` :
+```json
+"ignore": [
+  "firebase.json",
+  "**/.git",
+  "**/.github",
+  "**/.gitignore",
+  "**/.env*",
+  "**/node_modules/**"
+]
+```
+3. Création du dossier `public/.well-known/` (nécessaire pour le domaine de production `tousatable-madeinnormandie.fr` qui nécessitera le fichier fourni par Stripe).
+
+### Fichiers modifiés
+- `firebase.json`
+- `public/.well-known/apple-developer-merchantid-domain-association` (placeholder — à remplacer par le fichier Stripe pour la production)
+
+### À faire en production
+Répéter l'enregistrement du domaine `tousatable-madeinnormandie.fr` dans le compte Stripe **production** (pas test).
+
+---
+
+## 4. Google Pay — Affichage incohérent
+
+### Problème
+Google Pay ne s'affichait pas toujours, même lorsque Apple Pay était disponible simultanément.
+
+### Cause
+`layout.maxRows: 1` dans `ExpressCheckoutElement` : un seul bouton wallet pouvait s'afficher à la fois.
+
+### Solution
+`maxRows: 2` — permet l'affichage simultané d'Apple Pay et Google Pay.
+
+### Fichiers modifiés
+- `src/components/cart/CheckoutPaymentStep.jsx`
+
+---
+
+## 5. Bouton Stripe Link affiché dans le formulaire
+
+### Problème
+Le bouton Stripe Link (sauvegarde de coordonnées bancaires) s'affichait dans l'`ExpressCheckoutElement` malgré le fait que Link soit désactivé dans le dashboard Stripe.
+
+### Cause
+Link peut s'afficher dans l'`ExpressCheckoutElement` indépendamment de son statut dans le dashboard, car il est intégré différemment dans le produit Elements.
+
+### Solution
+Ajout de `paymentMethods: { link: 'never' }` dans les options de l'`ExpressCheckoutElement`.
+
+### Fichiers modifiés
+- `src/components/cart/CheckoutPaymentStep.jsx`
+
+---
+
+## 6. Toolbar Stripe persistante après paiement
+
+### Problème
+La toolbar développeur Stripe ("stripe >") restait visible sur la page marketplace après la finalisation d'un paiement.
+
+### Cause
+Après `onPaymentSuccess`, `checkoutState` restait sur `'ready_to_pay'`, maintenant le portal `Elements` monté dans le DOM. La toolbar Stripe est liée à la présence d'Elements Stripe dans le DOM.
+
+### Solution
+Appel de `setCheckoutState('editing')` en début de `onPaymentSuccess` pour démonter immédiatement le portal `Elements` avant `onPlaceOrder`.
+
+### Fichiers modifiés
+- `src/pages/CheckoutView.jsx`
+
+---
+
+---
+
+## 7. Bouton ✕ Newsletter inaccessible (Dynamic Island)
+
+### Problème
+Sur iPhone en mode PWA (ajout à l'écran d'accueil), le bouton de fermeture de la modale newsletter était positionné derrière le Dynamic Island (~59px). Impossible de fermer la modale.
+
+### Cause
+Le bouton était positionné avec `absolute top-4` (16px) et `sm:top-6` (24px) — largement en dessous des 59px du Dynamic Island sur les iPhone 14 Pro / 15 Pro / 16 Pro.
+
+### Solution
+Remplacement des classes Tailwind `top-4 sm:top-6` par un inline style utilisant `max()` :
+
+```jsx
+style={{ top: 'max(env(safe-area-inset-top, 0px), 1rem)' }}
+```
+
+- iPhone PWA avec Dynamic Island : `max(59px, 16px)` = 59px → bouton sous le Dynamic Island ✓
+- Desktop / navigateur normal : `max(0px, 16px)` = 16px → comportement identique à avant ✓
+
+### Fichier modifié
+- `src/components/auth/NewsletterModal.jsx`
+
+---
+
+## 8. Page Checkout — Contenu collé au footer sur mobile
+
+### Problème
+Sur iPhone en mode PWA, le bas de la page checkout (boutons de paiement "VIREMENT", "WERO", bouton "PROCÉDER AU PAIEMENT SÉCURISÉ") était collé directement au footer sans espacement, rendant l'expérience visuelle dégradée.
+
+### Cause (double)
+1. Le conteneur utilisait `pb-20 safe-area-bottom` sur le même élément. Les deux classes ciblent `padding-bottom`. `.safe-area-bottom` étant défini **après** les utilities Tailwind dans `index.css`, il **écrasait** `pb-20` au lieu de s'y ajouter — résultat : seulement `~34px` de padding au lieu de `80px`.
+2. Sur mobile, le layout single-colonne compresse le contenu vers le bas sans respiration suffisante.
+
+### Solution
+Remplacement de `pb-20 safe-area-bottom` par un inline style `calc()` qui **combine** les deux valeurs :
+
+```jsx
+style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 6rem)' }}
+```
+
+- iPhone PWA : `~34px (home indicator) + 96px = ~130px` ✓
+- Desktop : `0px + 96px = 96px` ✓
+
+### Fichier modifié
+- `src/pages/CheckoutView.jsx`
+
+---
+
+## Notes finales
+
+- La toolbar "stripe >" reste visible sur toutes les pages en mode **test** car `loadStripe` est appelé globalement dans `main.jsx`. Ce comportement est propre à Stripe en mode test et **disparaît automatiquement en production** avec une clé `pk_live_`.
+- En production, répéter les étapes d'enregistrement de domaine Apple Pay pour `tousatable-madeinnormandie.fr` dans le compte Stripe production.
+- **Pattern général iOS PWA** : ne jamais combiner une classe Tailwind `pb-X` avec `safe-area-bottom` sur le même élément — utiliser `calc(env(safe-area-inset-bottom, 0px) + Xrem)` en inline style. Même règle pour le top avec `max(env(safe-area-inset-top, 0px), Xrem)`.

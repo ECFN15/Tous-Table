@@ -12,7 +12,10 @@
     "public": "dist",
     "ignore": [
       "firebase.json",
-      "**/.*",
+      "**/.git",
+      "**/.github",
+      "**/.gitignore",
+      "**/.env*",
       "**/node_modules/**"
     ],
     "rewrites": [

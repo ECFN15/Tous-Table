@@ -6,7 +6,7 @@ import { Loader2, AlertCircle, Lock, ShieldCheck } from 'lucide-react';
  * CheckoutPaymentStep — Placé INLINE dans la page de checkout
  * Couleurs Premium : Amber / Stone / Noir (Zéro violet)
  */
-const CheckoutPaymentStep = ({ total, orderId, onPaymentSuccess, onPaymentError, darkMode = false }) => {
+const CheckoutPaymentStep = ({ total, orderId, onPaymentSuccess, onPaymentError, darkMode = false, shipping }) => {
     const stripe = useStripe();
     const elements = useElements();
     const [isProcessing, setIsProcessing] = useState(false);
@@ -21,13 +21,6 @@ const CheckoutPaymentStep = ({ total, orderId, onPaymentSuccess, onPaymentError,
         setErrorMessage(null);
 
         try {
-            const { error: submitError } = await elements.submit();
-            if (submitError) {
-                setErrorMessage(submitError.message);
-                setIsProcessing(false);
-                return;
-            }
-
             const { error, paymentIntent } = await stripe.confirmPayment({
                 elements,
                 confirmParams: {
@@ -44,7 +37,7 @@ const CheckoutPaymentStep = ({ total, orderId, onPaymentSuccess, onPaymentError,
                 onPaymentSuccess?.(paymentIntent);
             }
         } catch (err) {
-            setErrorMessage("Une erreur inattendue est survenue.");
+            setErrorMessage(err?.message || "Une erreur inattendue est survenue.");
             setIsProcessing(false);
         }
     };
@@ -103,9 +96,12 @@ const CheckoutPaymentStep = ({ total, orderId, onPaymentSuccess, onPaymentError,
                         },
                         layout: {
                             maxColumns: 2,
-                            maxRows: 1,
+                            maxRows: 2,
                             overflow: 'auto',
-                        }
+                        },
+                        paymentMethods: {
+                            link: 'never',
+                        },
                     }}
                 />
             </div>
@@ -131,7 +127,7 @@ const CheckoutPaymentStep = ({ total, orderId, onPaymentSuccess, onPaymentError,
                                 spacedAccordionItems: true,
                             },
                             fields: {
-                                billingDetails: 'never',
+                                billingDetails: 'auto',
                             },
                             wallets: {
                                 applePay: 'never',

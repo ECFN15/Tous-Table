@@ -484,7 +484,10 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
 
     return (
         <>
-        <div className={`min-h-screen pt-10 px-4 md:px-6 pb-20 safe-area-bottom animate-in fade-in transition-colors duration-700 bg-transparent`}>
+        <div
+            className={`min-h-screen pt-10 px-4 md:px-6 animate-in fade-in transition-colors duration-700 bg-transparent`}
+            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 6rem)' }}
+        >
             <div className="max-w-[1240px] mx-auto w-full">
                 {/* HEADER RETOUR */}
                 <div className="mb-8 md:mb-12">
@@ -808,7 +811,9 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                             total={total}
                             orderId={createdOrderId}
                             darkMode={darkMode}
+                            shipping={formData}
                             onPaymentSuccess={async (paymentIntent) => {
+                                setCheckoutState('editing');
                                 await onPlaceOrder({
                                     id: createdOrderId,
                                     ...formData,

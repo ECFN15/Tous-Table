@@ -280,9 +280,10 @@ const NewsletterModal = ({ showNewsletter, setShowNewsletter }) => {
                 {/* Content Section - Left side */}
                 {/* On passe en md/lg au lieu de w-full pour que la tablette s'affiche bien (sur tablette on garde le fond pleine page car 50% de l'écran ipad c'est trop petit pour le texte) */}
                 <div className="relative z-10 w-full lg:w-1/2 h-full flex flex-col items-center justify-center p-6 sm:p-12 lg:order-1 text-white">
-                    <button 
-                        onClick={() => setShowNewsletter(false)} 
-                        className="absolute top-4 right-4 sm:top-6 sm:right-6 lg:right-auto lg:left-8 text-white/50 hover:text-white transition-colors z-[2010] p-3 bg-black/20 lg:bg-transparent rounded-full lg:rounded-none backdrop-blur-md lg:backdrop-blur-none"
+                    <button
+                        onClick={() => setShowNewsletter(false)}
+                        className="absolute right-4 sm:right-6 lg:right-auto lg:left-8 text-white/50 hover:text-white transition-colors z-[2010] p-3 bg-black/20 lg:bg-transparent rounded-full lg:rounded-none backdrop-blur-md lg:backdrop-blur-none"
+                        style={{ top: 'max(env(safe-area-inset-top, 0px), 1rem)' }}
                     >
                         <X size={24} strokeWidth={2} className="sm:w-7 sm:h-7 lg:w-8 lg:h-8 lg:stroke-[1.5]" />
                     </button>
