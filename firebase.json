@@ -35,7 +35,7 @@
           },
           {
             "key": "X-Frame-Options",
-            "value": "DENY"
+            "value": "SAMEORIGIN"
           },
           {
             "key": "Referrer-Policy",
@@ -43,7 +43,7 @@
           },
           {
             "key": "Content-Security-Policy",
-            "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://www.gstatic.com https://www.google.com https://js.stripe.com https://*.firebaseapp.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob: https://*.stripe.com https://firebasestorage.googleapis.com https://storage.googleapis.com; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.cloudfunctions.net https://api.stripe.com https://m.stripe.network https://firebasestorage.googleapis.com https://ip-api.com https://*.firebaseapp.com https://api-adresse.data.gouv.fr; frame-src https://accounts.google.com https://js.stripe.com https://www.google.com https://recaptcha.google.com https://hooks.stripe.com https://*.firebaseapp.com;"
+            "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://www.gstatic.com https://www.google.com https://js.stripe.com https://*.firebaseapp.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob: https://*.stripe.com https://firebasestorage.googleapis.com https://storage.googleapis.com; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.cloudfunctions.net https://api.stripe.com https://m.stripe.network https://firebasestorage.googleapis.com https://ip-api.com https://*.firebaseapp.com https://api-adresse.data.gouv.fr; frame-src 'self' https://accounts.google.com https://js.stripe.com https://www.google.com https://recaptcha.google.com https://hooks.stripe.com https://*.firebaseapp.com;"
           }
 
         ]
