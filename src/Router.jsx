@@ -28,6 +28,7 @@ const AdminAnalytics = React.lazy(() => import('./features/admin/AdminAnalytics'
 
 const AdminSEO = React.lazy(() => import('./features/admin/AdminSEO'));
 const AdminIPManager = React.lazy(() => import('./features/admin/AdminIPManager'));
+const AdminPaymentSettings = React.lazy(() => import('./features/admin/AdminPaymentSettings'));
 
 const AdminIPTracker = React.lazy(() => import('./components/admin/AdminIPTracker'));
 
@@ -286,6 +287,13 @@ const AppRouter = ({
                             >
                                 Data Users
                             </button>
+
+                            <button
+                                onClick={() => { setAdminCollection('payment_settings'); setEditingItem(null); }}
+                                className={`px-3 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center gap-2 ${adminCollection === 'payment_settings' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
+                            >
+                                <CreditCard size={14} className="shrink-0" /> Paiement
+                            </button>
                         </div>
                     </div>
 
@@ -311,6 +319,8 @@ const AppRouter = ({
                             <AdminSEO darkMode={darkMode} />
                         ) : adminCollection === 'analytics' ? (
                             <AdminAnalytics darkMode={darkMode} />
+                        ) : adminCollection === 'payment_settings' ? (
+                            <AdminPaymentSettings darkMode={darkMode} />
                         ) : (
                             <>
                                 <AdminForm

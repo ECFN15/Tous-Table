@@ -161,8 +161,25 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
         country: 'France'
     });
     
+    const [stripeEnabled, setStripeEnabled] = useState(() => {
+        try { const c = localStorage.getItem('paymentSettings'); if (c) return JSON.parse(c).stripeEnabled !== false; } catch (e) {}
+        return true;
+    });
     const [paymentMethod, setPaymentMethod] = useState('stripe_elements'); // 'stripe_elements' | 'deferred'
-    
+
+    // Écoute en temps réel du flag admin pour carte/wallets
+    useEffect(() => {
+        const unsub = onSnapshot(doc(db, 'sys_metadata', 'payment_settings'), (snap) => {
+            if (snap.exists()) {
+                const enabled = snap.data().stripeEnabled !== false;
+                localStorage.setItem('paymentSettings', JSON.stringify({ stripeEnabled: enabled }));
+                setStripeEnabled(enabled);
+                if (!enabled) setPaymentMethod('deferred');
+            }
+        });
+        return () => unsub();
+    }, []);
+
     // Status global : 'editing' -> 'fetching_stripe' -> 'ready_to_pay' -> 'processing_deferred'
     const [checkoutState, setCheckoutState] = useState('editing'); 
     
@@ -565,14 +582,14 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                         </div>
 
                         {/* GROUPE 2 : CHOIX DU PAIEMENT */}
-                        <div className={cardClasses}>
+                        <div className={`${cardClasses} ${!stripeEnabled ? 'w-fit' : ''}`}>
                             <h3 className="text-[10px] md:text-xs font-black uppercase tracking-widest text-stone-400 flex items-center gap-2 mb-4">
                                 <CreditCard size={14} /> Moyen de Paiement
                             </h3>
                             
-                            <div className="grid sm:grid-cols-2 gap-4">
+                            <div className={stripeEnabled ? 'grid sm:grid-cols-2 gap-4' : ''}>
                                 {/* PAIEMENT DIRECT */}
-                                <div 
+                                {stripeEnabled && <div
                                     onClick={() => {
                                         setPaymentMethod('stripe_elements');
                                         setCheckoutState('editing'); // Reset si on change d'avis
@@ -643,7 +660,7 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </div>}
 
                                 {/* VIREMENT / WERO */}
                                 <div 
