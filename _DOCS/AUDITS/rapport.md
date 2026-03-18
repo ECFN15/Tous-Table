@@ -6,6 +6,23 @@ bui# Rapport de Session — Audit Marketplace & iOS
 
 ---
 
+# Rapport de Session Complémentaire — Amélioration UX Modale Stripe (Restauration immédiate)
+**Date** : 18 mars 2026
+**Agent** : Cline
+**Projet** : Tous à Table Made in Normandie
+**Branches** : `main`
+
+## Amélioration UX : Restauration optimiste du meuble à la fermeture de Stripe
+
+**Problème** : Lors de la fermeture de la modale Stripe via la croix, l'annulation de la commande et la remise en stock sont déclenchées. Cependant, durant le court délai de confirmation de la base de données, le listener temps réel React considérait encore l'article comme "vendu" et pouvait paniquer en affichant l'écran d'erreur "Victime de son succès".
+
+**Fix implémenté** :
+- **Fichier** : `src/pages/CheckoutView.jsx`
+- La croix de la modale Stripe supprime désormais immédiatement l'article de la liste "indisponible" du côté de votre navigateur, avant même d'attendre la confirmation de la base de données (mise à jour optimiste).
+- Ainsi, le navigateur ne peut plus se tromper en affichant "Victime de son succès" quand c'est vous-même qui venez de relâcher le meuble. Le comportement de la page est maintenant d'une logique parfaite.
+
+---
+
 # Rapport de Session Complémentaire — Audit Interopérabilité Auth iOS / Desktop
 **Date** : 18 mars 2026 — 12h27
 **Agent** : Cline
