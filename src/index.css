@@ -60,6 +60,13 @@ body.modal-open {
   }
 }
 
+/* PWA Standalone: push fixed/sticky headers below Dynamic Island / notch */
+@media (display-mode: standalone) {
+  .pwa-safe-top {
+    padding-top: env(safe-area-inset-top) !important;
+  }
+}
+
 .font-serif {
   font-family: 'Cormorant Garamond', serif;
 }
