@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import {
     onAuthStateChanged,
     signInAnonymously,
@@ -22,6 +22,12 @@ const isIOSStandalone = () => {
         window.matchMedia('(display-mode: standalone)').matches;
 };
 
+// Persist redirect flag across page reloads (useRef resets on reload, sessionStorage doesn't)
+const REDIRECT_KEY = 'tat_google_redirect_pending';
+const setRedirectPending = () => sessionStorage.setItem(REDIRECT_KEY, 'true');
+const clearRedirectPending = () => sessionStorage.removeItem(REDIRECT_KEY);
+const isRedirectPending = () => sessionStorage.getItem(REDIRECT_KEY) === 'true';
+
 // Create the context
 const AuthContext = createContext();
 
@@ -35,14 +41,13 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
-    const googleLoginInProgress = useRef(false);
 
     // Authentication relies on Firestore Rules & Custom Claims now.
     // No hardcoded emails in client bundle.
 
     // 1. Handle redirect result FIRST (before signInAnonymously can fire)
-    // This prevents the race condition where signInAnonymously fires
-    // before the OAuth redirect result is processed on iOS
+    // On page reload after signInWithRedirect, getRedirectResult resolves with the Google user.
+    // The sessionStorage flag prevents signInAnonymously from racing with this.
     useEffect(() => {
         let cancelled = false;
         const handleRedirect = async () => {
@@ -56,6 +61,9 @@ export const AuthProvider = ({ children }) => {
                 if (!cancelled) {
                     console.error('Redirect auth error:', error);
                 }
+            } finally {
+                // Always clear the flag — redirect is done (success or failure)
+                clearRedirectPending();
             }
         };
         handleRedirect();
@@ -68,9 +76,9 @@ export const AuthProvider = ({ children }) => {
             setUser(currentUser);
             setLoading(false);
 
-            // Auto-login anonymously — but NOT if a Google login is in progress
-            // (prevents race condition where anonymous auth fires during OAuth flow)
-            if (!currentUser && !googleLoginInProgress.current) {
+            // Auto-login anonymously — but NOT if a Google redirect is pending
+            // sessionStorage survives page reloads (unlike useRef which resets)
+            if (!currentUser && !isRedirectPending()) {
                 signInAnonymously(auth).catch((error) => console.error("Anonymous auth failed", error));
             }
         });
@@ -114,22 +122,19 @@ export const AuthProvider = ({ children }) => {
     }, [user]);
 
     const loginWithGoogle = async () => {
-        googleLoginInProgress.current = true;
-        try {
-            if (isIOSStandalone()) {
-                // iOS standalone (PWA home screen): signInWithPopup is blocked by WebKit
-                // Use signInWithRedirect — page will reload and getRedirectResult handles it above
-                await signInWithRedirect(auth, googleProvider);
-                return null; // Page reloads, this line won't execute
-            }
-            // Normal browser (Safari, Chrome, etc.): signInWithPopup works fine
-            const result = await signInWithPopup(auth, googleProvider);
-            httpsCallable(functions, 'updateUserSessions')()
-                .catch(err => console.error('Failed to clean sessions after login:', err));
-            return result;
-        } finally {
-            googleLoginInProgress.current = false;
+        if (isIOSStandalone()) {
+            // iOS standalone (PWA home screen): signInWithPopup is blocked by WebKit
+            // Use signInWithRedirect — page will reload and getRedirectResult handles it above
+            // Flag persists in sessionStorage so signInAnonymously won't race after reload
+            setRedirectPending();
+            await signInWithRedirect(auth, googleProvider);
+            return null; // Page reloads, this line won't execute
         }
+        // Normal browser (Safari, Chrome, etc.): signInWithPopup works fine
+        const result = await signInWithPopup(auth, googleProvider);
+        httpsCallable(functions, 'updateUserSessions')()
+            .catch(err => console.error('Failed to clean sessions after login:', err));
+        return result;
     };
 
     const loginWithEmail = (email, password) => {
