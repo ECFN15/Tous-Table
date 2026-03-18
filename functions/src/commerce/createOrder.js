@@ -153,13 +153,15 @@ exports.createOrder = functions.runWith({ secrets: [STRIPE_SECRET_KEY, GMAIL_EMA
     // Mode externe supprimé au profit du PaymentElement inline (stripe_elements)
 
     // 4. Stripe Elements (PaymentElement intégré — PaymentIntent)
-    // Architecture: Commande "pending" AVANT le PaymentIntent
-    // 1. On crée la commande en Firestore (status: pending_payment)
-    // 2. On crée le PaymentIntent avec l'orderId en metadata
-    // 3. Le webhook payment_intent.succeeded confirme la commande
+    // Architecture anti-survente (fix Mars 2026):
+    // 1. Transaction atomique: réserve le stock + crée la commande (stockReserved: true)
+    // 2. Crée le PaymentIntent Stripe avec l'orderId en metadata
+    // 3. En cas d'échec Stripe: restaure le stock + supprime la commande en transaction
+    // 4. Le webhook payment_intent.succeeded confirme la commande (sans re-décrémenter le stock)
+    // 5. Le webhook payment_intent.payment_failed restaure le stock
     if (orderData.paymentMethod === 'stripe_elements') {
         const orderRef = db.collection('orders').doc();
-        const pendingOrder = {
+        const orderBase = {
             userId: userId,
             userEmail: context.auth.token.email || orderData.shipping?.email,
             items: orderData.items.map(i => ({
@@ -173,14 +175,52 @@ exports.createOrder = functions.runWith({ secrets: [STRIPE_SECRET_KEY, GMAIL_EMA
             total: totalAmount,
             paymentMethod: 'stripe_elements',
             status: 'pending_payment',
+            stockReserved: false,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             stripePaymentIntentId: null
         };
 
+        // Transaction 2 : Réserver le stock atomiquement + créer la commande
+        // Empêche la survente si deux utilisateurs achètent simultanément le même article
         try {
-            await orderRef.set(pendingOrder);
+            await db.runTransaction(async (transaction) => {
+                const stockTracker = {};
+                for (const item of orderData.items) {
+                    const colName = item.collectionName || 'furniture';
+                    const realItemId = item.originalId || item.id;
+                    const itemRef = db.doc(`artifacts/${APP_ID}/public/data/${colName}/${realItemId}`);
+                    const itemDoc = await transaction.get(itemRef);
 
-            const shippingData = orderData.shipping || {};
+                    if (!itemDoc.exists) throw new functions.https.HttpsError('not-found', `Produit "${realItemId}" introuvable.`);
+
+                    const alreadyTaken = stockTracker[realItemId] || 0;
+                    const currentStock = itemDoc.data().stock !== undefined ? Number(itemDoc.data().stock) : 1;
+
+                    if (currentStock - alreadyTaken <= 0 || itemDoc.data().sold) {
+                        throw new functions.https.HttpsError('failed-precondition', `Article indisponible (Stock épuisé): ${itemDoc.data().name}`);
+                    }
+
+                    const newStock = Math.max(0, currentStock - 1 - alreadyTaken);
+                    const updates = { stock: newStock };
+                    if (newStock === 0) {
+                        updates.sold = true;
+                        updates.soldAt = admin.firestore.FieldValue.serverTimestamp();
+                        updates.buyerId = userId;
+                    }
+
+                    transaction.update(itemRef, updates);
+                    stockTracker[realItemId] = alreadyTaken + 1;
+                }
+                transaction.set(orderRef, { ...orderBase, stockReserved: true });
+            });
+        } catch (e) {
+            console.error("Stock Reservation Error:", e);
+            throw e;
+        }
+
+        // Créer le PaymentIntent (après la réservation du stock)
+        const shippingData = orderData.shipping || {};
+        try {
             const paymentIntent = await stripe.paymentIntents.create({
                 amount: Math.round(totalAmount * 100),
                 currency: 'eur',
@@ -201,7 +241,7 @@ exports.createOrder = functions.runWith({ secrets: [STRIPE_SECRET_KEY, GMAIL_EMA
                     userEmail: context.auth.token.email || '',
                     orderId: orderRef.id,
                     shippingMeta: JSON.stringify(shippingData).substring(0, 500),
-                    itemsMeta: JSON.stringify(pendingOrder.items.map(i => ({ id: i.id, col: i.collectionName, qty: i.quantity }))).substring(0, 500)
+                    itemsMeta: JSON.stringify(orderBase.items.map(i => ({ id: i.id, col: i.collectionName, qty: i.quantity }))).substring(0, 500)
                 }
             });
 
@@ -214,8 +254,30 @@ exports.createOrder = functions.runWith({ secrets: [STRIPE_SECRET_KEY, GMAIL_EMA
                 orderId: orderRef.id
             };
         } catch (error) {
-            try { await orderRef.delete(); } catch (e) { /* ignore cleanup error */ }
-            console.error("PaymentIntent Error:", error);
+            // Échec Stripe : restaurer le stock + supprimer la commande en transaction
+            console.error("PaymentIntent Error, restoring stock:", error);
+            try {
+                await db.runTransaction(async (transaction) => {
+                    for (const item of orderData.items) {
+                        const colName = item.collectionName || 'furniture';
+                        const realItemId = item.originalId || item.id;
+                        const itemRef = db.doc(`artifacts/${APP_ID}/public/data/${colName}/${realItemId}`);
+                        const itemDoc = await transaction.get(itemRef);
+                        if (!itemDoc.exists) continue;
+                        const currentStock = itemDoc.data().stock !== undefined ? Number(itemDoc.data().stock) : 0;
+                        const qtyToRestore = item.quantity || 1;
+                        transaction.update(itemRef, {
+                            stock: currentStock + qtyToRestore,
+                            sold: false,
+                            soldAt: admin.firestore.FieldValue.delete(),
+                            buyerId: admin.firestore.FieldValue.delete()
+                        });
+                    }
+                    transaction.delete(orderRef);
+                });
+            } catch (restoreError) {
+                console.error("CRITICAL: Stock restore failed after PI error:", restoreError);
+            }
             throw new functions.https.HttpsError('internal', "Erreur initialisation paiement sécurisé.");
         }
     }

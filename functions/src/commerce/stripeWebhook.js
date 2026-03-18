@@ -72,36 +72,39 @@ exports.stripeWebhook = functions.runWith({ secrets: [STRIPE_SECRET_KEY, STRIPE_
             }
 
             await db.runTransaction(async (transaction) => {
-                // Décrémenter le stock pour chaque item
-                for (const item of (order.items || [])) {
-                    const itemId = item.id || item.originalId;
-                    const col = item.collectionName || item.collection || 'furniture';
+                // Si stockReserved=true, le stock a déjà été décrémenté lors de la création
+                // de la commande — ne pas décrémenter une seconde fois (fix anti-survente)
+                if (!order.stockReserved) {
+                    for (const item of (order.items || [])) {
+                        const itemId = item.id || item.originalId;
+                        const col = item.collectionName || item.collection || 'furniture';
 
-                    if (!itemId) {
-                        console.warn("Item sans ID:", item.name);
-                        continue;
+                        if (!itemId) {
+                            console.warn("Item sans ID:", item.name);
+                            continue;
+                        }
+
+                        const itemRef = db.doc(`artifacts/${APP_ID}/public/data/${col}/${itemId}`);
+                        const itemDoc = await transaction.get(itemRef);
+
+                        if (!itemDoc.exists) {
+                            console.warn("Item introuvable:", itemId);
+                            continue;
+                        }
+
+                        const currentStock = itemDoc.data().stock !== undefined ? Number(itemDoc.data().stock) : 1;
+                        const qtyPurchased = item.quantity || 1;
+                        const newStock = Math.max(0, currentStock - qtyPurchased);
+
+                        const updates = { stock: newStock, buyerId: userId };
+                        if (newStock === 0) {
+                            updates.sold = true;
+                            updates.soldAt = admin.firestore.FieldValue.serverTimestamp();
+                            console.log(`🔒 Item SOLD OUT: ${itemId}`);
+                        }
+
+                        transaction.update(itemRef, updates);
                     }
-
-                    const itemRef = db.doc(`artifacts/${APP_ID}/public/data/${col}/${itemId}`);
-                    const itemDoc = await transaction.get(itemRef);
-
-                    if (!itemDoc.exists) {
-                        console.warn("Item introuvable:", itemId);
-                        continue;
-                    }
-
-                    const currentStock = itemDoc.data().stock !== undefined ? Number(itemDoc.data().stock) : 1;
-                    const qtyPurchased = item.quantity || 1;
-                    const newStock = Math.max(0, currentStock - qtyPurchased);
-
-                    const updates = { stock: newStock, buyerId: userId };
-                    if (newStock === 0) {
-                        updates.sold = true;
-                        updates.soldAt = admin.firestore.FieldValue.serverTimestamp();
-                        console.log(`🔒 Item SOLD OUT: ${itemId}`);
-                    }
-
-                    transaction.update(itemRef, updates);
                 }
 
                 // Confirmer la commande
@@ -198,7 +201,7 @@ exports.stripeWebhook = functions.runWith({ secrets: [STRIPE_SECRET_KEY, STRIPE_
     }
 
     // ============================================================
-    // HANDLER: payment_intent.payment_failed (Log des échecs)
+    // HANDLER: payment_intent.payment_failed (Log + restauration stock)
     // ============================================================
     if (event.type === 'payment_intent.payment_failed') {
         const pi = event.data.object;
@@ -207,12 +210,51 @@ exports.stripeWebhook = functions.runWith({ secrets: [STRIPE_SECRET_KEY, STRIPE_
 
         if (orderId) {
             try {
-                await db.collection('orders').doc(orderId).update({
-                    status: 'payment_failed',
-                    failedAt: admin.firestore.FieldValue.serverTimestamp(),
-                    failureReason: pi.last_payment_error?.message || 'Payment failed'
-                });
-            } catch (e) { /* ignore */ }
+                const orderRef = db.collection('orders').doc(orderId);
+                const orderSnap = await orderRef.get();
+
+                if (!orderSnap.exists) return res.json({ received: true });
+                const order = orderSnap.data();
+
+                // Si le stock a été réservé à la création de la commande, le restaurer
+                if (order.stockReserved && order.status !== 'paid') {
+                    await db.runTransaction(async (transaction) => {
+                        for (const item of (order.items || [])) {
+                            const itemId = item.id || item.originalId;
+                            const col = item.collectionName || item.collection || 'furniture';
+                            if (!itemId) continue;
+
+                            const itemRef = db.doc(`artifacts/${APP_ID}/public/data/${col}/${itemId}`);
+                            const itemDoc = await transaction.get(itemRef);
+                            if (!itemDoc.exists) continue;
+
+                            const currentStock = itemDoc.data().stock !== undefined ? Number(itemDoc.data().stock) : 0;
+                            const qtyToRestore = item.quantity || 1;
+                            transaction.update(itemRef, {
+                                stock: currentStock + qtyToRestore,
+                                sold: false,
+                                soldAt: admin.firestore.FieldValue.delete(),
+                                buyerId: admin.firestore.FieldValue.delete()
+                            });
+                        }
+                        transaction.update(orderRef, {
+                            status: 'payment_failed',
+                            failedAt: admin.firestore.FieldValue.serverTimestamp(),
+                            failureReason: pi.last_payment_error?.message || 'Payment failed',
+                            stockReserved: false
+                        });
+                    });
+                    console.log(`♻️ Stock restauré après échec de paiement: ${orderId}`);
+                } else {
+                    await orderRef.update({
+                        status: 'payment_failed',
+                        failedAt: admin.firestore.FieldValue.serverTimestamp(),
+                        failureReason: pi.last_payment_error?.message || 'Payment failed'
+                    });
+                }
+            } catch (e) {
+                console.error("Error handling payment_failed:", e);
+            }
         }
     }
 

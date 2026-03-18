@@ -57,11 +57,15 @@ exports.cancelOrderClient = functions.https.onCall(async (data, context) => {
 
                     if (itemSnap.exists) {
                         const itemData = itemSnap.data();
-                        if (itemData.sold) {
+                        // Restaurer le stock réservé (qu'il soit sold=true ou juste décrémenté)
+                        if (itemData.sold || orderData.stockReserved) {
+                            const currentStock = itemData.stock !== undefined ? Number(itemData.stock) : 0;
+                            const qtyToRestore = item.quantity || 1;
                             transaction.update(itemRef, {
-                                stock: 1,
+                                stock: currentStock + qtyToRestore,
                                 sold: false,
-                                buyerId: null
+                                soldAt: admin.firestore.FieldValue.delete(),
+                                buyerId: admin.firestore.FieldValue.delete()
                             });
                         }
                     }

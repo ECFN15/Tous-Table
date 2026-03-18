@@ -4,7 +4,7 @@ import { ArrowLeft, CreditCard, Truck, CheckCircle, ShieldCheck, AlertCircle, La
 import { motion, AnimatePresence } from 'framer-motion';
 import { functions, db, appId } from '../firebase/config';
 import { httpsCallable } from 'firebase/functions';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, deleteDoc } from 'firebase/firestore';
 import { Elements } from '@stripe/react-stripe-js';
 import { stripePromise } from '../main';
 import CheckoutPaymentStep from '../components/cart/CheckoutPaymentStep';
@@ -169,6 +169,27 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
     const [clientSecret, setClientSecret] = useState(null);
     const [createdOrderId, setCreatedOrderId] = useState(null);
     const [unavailableItems, setUnavailableItems] = useState([]);
+    const [isCleaningUp, setIsCleaningUp] = useState(false);
+
+    // Annule la commande pending_payment et restaure le stock quand l'utilisateur
+    // ferme le modal Stripe sans payer — évite les commandes orphelines et le stock bloqué
+    const handleClosePaymentModal = async () => {
+        if (createdOrderId && !isCleaningUp) {
+            setIsCleaningUp(true);
+            try {
+                const cancelOrder = httpsCallable(functions, 'cancelOrderClient');
+                await cancelOrder({ orderId: createdOrderId });
+            } catch (e) {
+                // Non-bloquant : si l'annulation échoue, l'admin peut gérer manuellement
+                console.error("Cleanup pending order failed:", e);
+            } finally {
+                setIsCleaningUp(false);
+            }
+            setCreatedOrderId(null);
+            setClientSecret(null);
+        }
+        setCheckoutState('editing');
+    };
     
     // --- ADDRESS AUTOCOMPLETE ---
     const [suggestions, setSuggestions] = useState([]);
@@ -250,9 +271,10 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
     };
 
     const handleAddressRelatedChange = (e) => {
-        handleChange(e); // Updates formData
         const { name, value } = e.target;
-        
+        setFormData(prev => ({ ...prev, [name]: value }));
+        if (checkoutState === 'ready_to_pay') setCheckoutState('editing');
+
         // Build query using the latest value for the changed field
         const newForm = { ...formData, [name]: value };
         const query = [newForm.address, newForm.zip, newForm.city].filter(Boolean).join(' ');
@@ -323,11 +345,10 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
 
     // --- ON CHANGE FORM ---
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-        // Si l'utilisateur modifie ses infos alors qu'il était prêt à payer, on reset l'état Stripe.
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
         if (checkoutState === 'ready_to_pay') {
             setCheckoutState('editing');
-            // Optionnel: on détruit le clientSecret pour forcer une nouvelle création
         }
     };
 
@@ -761,17 +782,17 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                 <div
                     className="fixed inset-0 z-[999] flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-300"
                     style={{ background: 'rgba(0,0,0,0.82)' }}
-                    onClick={(e) => { if (e.target === e.currentTarget) setCheckoutState('editing'); }}
+                    onClick={(e) => { if (e.target === e.currentTarget) handleClosePaymentModal(); }}
                 >
                     <div className={`w-full max-w-lg relative p-6 md:p-8 rounded-[2rem] shadow-2xl animate-in zoom-in-95 duration-300 max-h-[85dvh] overflow-y-auto ios-modal-scroll custom-scrollbar ${darkMode ? 'bg-[#0a0a0a] ring-1 ring-white/5' : 'bg-white ring-1 ring-stone-200'}`}>
-                        
+
                         {/* BOUTON FERMER (Hitbox élargie pour plus de précision) */}
-                        <button 
+                        <button
                             type="button"
                             onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                setCheckoutState('editing');
+                                handleClosePaymentModal();
                             }}
                             className={`absolute z-50 top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full transition-colors cursor-pointer ${darkMode ? 'hover:bg-white/10 text-stone-400 hover:text-white' : 'hover:bg-stone-100 text-stone-500 hover:text-stone-900'}`}
                             aria-label="Fermer le paiement"

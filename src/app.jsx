@@ -489,7 +489,6 @@ const AppContent = () => {
     for (const item of cartItems) {
       await deleteDoc(doc(db, 'users', user.uid, 'cart', item.id));
     }
-    setCartItems([]); // Optimistic update
 
     // 3. Handle Payment Redirect or Success
     setCartItems([]); // Clear UI cart immediately
