@@ -6,6 +6,44 @@
 
 ---
 
+# Rapport de Session Complémentaire — Audit Interopérabilité Auth iOS / Desktop
+**Date** : 18 mars 2026 — 12h27
+**Agent** : Cline
+**Projet** : Tous à Table Made in Normandie (Sandbox `tatmadeinnormandie`)
+**Branches** : `main`
+
+## Contexte de la session complémentaire
+
+Suite aux mises à jour précédentes (notamment sur la politique de sécurité CSP), les utilisateurs ont signalé que l'authentification Google ne fonctionnait plus ni sur Desktop (Windows) ni sur Mobile (Android). Le processus tournait dans le vide puis renvoyait vers le panneau de connexion sans succès.
+
+## Bugs corrigés
+
+### 🔴 BUG — Authentification Google bloquée silencieusement (CRITIQUE)
+**Fichier** : `firebase.json`
+
+**Problème** : Lors de l'ajout des headers de sécurité, la politique `X-Frame-Options` a été réglée sur `DENY` et la politique `Content-Security-Policy` pour `frame-src` n'incluait pas `'self'`. Firebase Authentication s'appuie sur une iframe cachée (ex: `/__/auth/iframe`) pour relayer l'état de connexion, surtout lors de l'utilisation de `signInWithPopup` (Desktop) ou pour maintenir la session via OAuth. Le navigateur bloquait cette iframe, ce qui faisait échouer silencieusement le processus d'authentification sur tous les environnements modernes.
+
+**Fix implémenté** :
+- `X-Frame-Options` : Modifié de `DENY` à `SAMEORIGIN`.
+- `Content-Security-Policy` (`frame-src`) : Ajout de `'self'` dans la liste des sources autorisées.
+
+---
+
+## Audit d'interopérabilité iOS (PWA et Safari)
+
+Un audit de l'implémentation iOS (`AuthContext.jsx` et environnement) a été réalisé pour garantir que la méthode de connexion est la plus optimale :
+
+| Mécanisme | État / Analyse |
+|-----------|----------------|
+| **Détection iOS Standalone (PWA)** | ✅ Excellente pratique. Le WebKit d'Apple bloque les popups si l'app est ajoutée à l'écran d'accueil. Rediriger vers `signInWithRedirect` dans ce cas précis est obligatoire. |
+| **Persistance anti-race condition** | ✅ L'utilisation de `sessionStorage` (`tat_google_redirect_pending`) pour empêcher le déclenchement de `signInAnonymously` au retour de la redirection Google est la solution idéale, car l'état React ne survit pas au rechargement complet de la page. |
+| **Filet de sécurité (Email/Mot de passe)** | ✅ Indispensable. Sur iOS, le comportement des redirections OAuth en PWA (ITP - Intelligent Tracking Prevention) peut parfois renvoyer l'utilisateur vers Safari au lieu de la PWA. Conserver la méthode par email garantit qu'aucun utilisateur n'est bloqué. |
+
+> **⚠️ Recommandation pour la Production**
+> Pour éviter les blocages de cookies cross-domain (ITP) par Safari, assurez-vous que `VITE_FIREBASE_AUTH_DOMAIN` dans `.env.prod` correspond à `tousatable-madeinnormandie.fr`, et que ce domaine est bien ajouté dans les "Authorized redirect URIs" de la console Google Cloud (`https://tousatable-madeinnormandie.fr/__/auth/handler`).
+
+---
+
 ## Contexte de la session
 
 L'utilisateur a signalé des problèmes récents sur iOS. Une session précédente (16 mars 2026) avait déjà traité les fixes iOS de base (auth Google standalone, CSP, scroll lock, safe-area). Cette session a réalisé un **audit complet** de la logique marketplace, authentification et paiements, puis a corrigé les bugs identifiés.
