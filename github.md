@@ -25,7 +25,7 @@ git remote add origin https://ECFN15@github.com/ECFN15/<NOM_DU_PROJET>.git
 On ajoute une deuxième adresse de "push" à la destination `origin` existante :
 ```bash
 # Remplacez <NOM_DU_PROJET> par le nom du dépôt sur GitHub
-git remote set-url --add --push origin https://github.com/MFcv1/<NOM_DU_PROJET>.git
+git remote set-url --add --push origin https://MFcv1@github.com/MFcv1/<NOM_DU_PROJET>.git
 ```
 
 ### 3. Garantir l'envoi sur les deux adresses
