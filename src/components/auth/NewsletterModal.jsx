@@ -303,8 +303,8 @@ const NewsletterModal = ({ showNewsletter, setShowNewsletter }) => {
                                             L'Atelier en avant-première
                                         </h2>
                                         <h1 className="text-[2.75rem] sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tighter text-white leading-[0.9]">
-                                            REJOIGNEZ<br />
-                                            LE CERCLE
+                                            REJOIGNEZ NOTRE<br />
+                                            NEWSLETTER
                                         </h1>
                                         <p className="text-base sm:text-lg text-white/80 max-w-sm sm:max-w-md mx-auto mt-4 sm:mt-6">
                                             Pour ne manquer aucune nouveauté et suivre nos restaurations exclusives.
