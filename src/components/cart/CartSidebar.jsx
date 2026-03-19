@@ -75,7 +75,7 @@ const CartSidebar = ({ isOpen, onClose, cartItems, onRemoveItem, totalPrice, onC
 
                 {/* Footer / Checkout */}
                 {cartItems.length > 0 && (
-                    <div className={`pt-8 mt-4 border-t space-y-6 ${darkMode ? 'border-stone-800' : 'border-stone-200'}`}>
+                    <div className={`pt-8 mt-4 pb-6 md:pb-8 border-t space-y-6 ${darkMode ? 'border-stone-800' : 'border-stone-200'}`}>
                         <div className="flex justify-between items-end">
                             <span className={`text-[10px] font-black uppercase tracking-widest ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>Total Estimé</span>
                             <span className={`text-4xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'} ${isArch ? 'font-serif' : ''}`}>{totalPrice} €</span>
