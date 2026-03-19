@@ -1,50 +1,49 @@
-# Configuration Git Double-Compte (Dual-Remote)
+# Mode d'emploi GitHub : Travail Principal + Backup
 
-Ce fichier sert de guide pour configurer un projet local afin qu'il soit synchronisé automatiquement sur deux comptes GitHub différents (`ECFN15` et `MFcv1`) en une seule action de push.
+Ce fichier explique comment travailler quotidiennement sur un projet vers le compte git principal (origin) et comment faire des sauvegardes périodiques vers un second compte (backup).
 
-## 🚀 Étape de Configuration Initiale
+---
 
-Si le projet n'est pas encore sur Git :
+## 🏗️ 1. Configuration Initiale (À faire une seule fois)
+
+Cette étape permet de lier votre projet aux deux comptes.
+
+**Ouvrez un terminal dans VS Code (Ctrl + J) et lancez :**
 
 ```bash
-git init
+# 1. On lie le projet au compte principal (MFcv1) - celui qu'on utilise tous les jours
+git remote add origin https://github.com/MFcv1/<NOM_DU_PROJET>.git
+
+# 2. On ajoute une adresse de sauvegarde vers le nouveau compte (ECFN15)
+git remote add backup https://github.com/ECFN15/<NOM_DU_PROJET>.git
+```
+*(N'oubliez pas de remplacer `<NOM_DU_PROJET>` par le nom du dépôt).*
+
+---
+
+## 🛠️ 2. Travail Quotidien (sur MFcv1)
+
+C'est simple, rien ne change ! Vous travaillez exactement comme d'habitude.
+Utilisez l'interface de VS Code pour créer vos commits et cliquez sur le bouton **Synchroniser**. 
+
+Dans le terminal, cela correspond à :
+```bash
 git add .
-git commit -m "Initial commit"
+git commit -m "Mon message de commit"
+git push origin main
 ```
+*Si on vous demande de vous connecter : choisissez l'identité MFcv1 (votre compte classique).*
 
-## 🔗 Liaison aux deux comptes GitHub
+---
 
-### 1. Ajouter le compte principal (ECFN15)
-On force l'utilisateur dans l'URL pour éviter les conflits d'authentification :
+## 💾 3. Faire une Sauvegarde sur le Nouveau Compte (ECFN15)
+
+Quand vous avez bien avancé (en fin de journée ou de semaine) et que vous voulez envoyer une copie sur l'autre compte GitHub :
+
+1. Ouvrez le terminal.
+2. Tapez exactement cette commande :
 ```bash
-# Remplacez <NOM_DU_PROJET> par le nom du dépôt sur GitHub
-git remote add origin https://ECFN15@github.com/ECFN15/<NOM_DU_PROJET>.git
+git push backup main
 ```
 
-### 2. Ajouter le compte de sauvegarde (MFcv1)
-On ajoute une deuxième adresse de "push" à la destination `origin` existante :
-```bash
-# Remplacez <NOM_DU_PROJET> par le nom du dépôt sur GitHub
-git remote set-url --add --push origin https://MFcv1@github.com/MFcv1/<NOM_DU_PROJET>.git
-```
-
-### 3. Garantir l'envoi sur les deux adresses
-Pour être sûr que Git envoie bien aux deux endroits (car `set-url --add` peut parfois écraser la première adresse de push si elle n'était pas explicitement définie) :
-```bash
-git remote set-url --add --push origin https://ECFN15@github.com/ECFN15/<NOM_DU_PROJET>.git
-```
-
-## ✅ Mode d'emploi quotidien
-
-Une fois configuré, utilisez simplement :
-```bash
-git push
-```
-Ou le bouton **"Synchroniser les modifications"** de VS Code. Git s'occupera d'envoyer le code successivement aux deux dépôts.
-
-## 🔍 Vérification de la configuration
-Pour vérifier que les deux adresses de push sont bien actives :
-```bash
-git remote -v
-```
-Vous devriez voir **deux lignes (push)** différentes pour l'origine `origin`.
+*Attention : Lors de ce push "backup", une fenêtre Github Windows va probablement s'ouvrir. À ce moment-là seulement, il faudra peut-être te connecter avec le compte de sauvegarde `ECFN15`.*
