@@ -67,7 +67,9 @@ const AppRouter = ({
     onOpenCart,
     toggleTheme,
     onOpenDiscovery,
-    setHeaderProps
+    setHeaderProps,
+    persistentGalleryState,
+    saveGalleryState
 }) => {
     const { user, isAdmin, logout } = useAuth();
 
@@ -142,6 +144,8 @@ const AppRouter = ({
                             onOpenCart={onOpenCart}
                             toggleTheme={toggleTheme}
                             setHeaderProps={setHeaderProps}
+                            persistentGalleryState={persistentGalleryState}
+                            saveGalleryState={saveGalleryState}
                         />
                     </Suspense>
                 </div>
@@ -153,7 +157,18 @@ const AppRouter = ({
                         <ProductDetail
                             item={[...items, ...boardItems].find(i => i.id === selectedItemId)}
                             user={user}
-                            onBack={() => { setView('gallery'); setSelectedItemId(null); }}
+                            onBack={() => { 
+                                // Restore sub-view before returning
+                                if (persistentGalleryState) {
+                                    setHeaderProps(prev => ({
+                                        ...prev,
+                                        activeCollection: persistentGalleryState.activeCollection,
+                                        filter: persistentGalleryState.filter
+                                    }));
+                                }
+                                setView('gallery'); 
+                                setSelectedItemId(null); 
+                            }}
                             onAddToCart={addToCart}
                             cartItems={cartItems}
                             darkMode={darkMode}
@@ -174,7 +189,16 @@ const AppRouter = ({
                         total={cartTotal}
                         user={user}
                         darkMode={darkMode}
-                        onBack={() => setView('gallery')}
+                        onBack={() => {
+                            if (persistentGalleryState) {
+                                setHeaderProps(prev => ({
+                                    ...prev,
+                                    activeCollection: persistentGalleryState.activeCollection,
+                                    filter: persistentGalleryState.filter
+                                }));
+                            }
+                            setView('gallery');
+                        }}
                         onPlaceOrder={handlePlaceOrder}
                     />
                 </Suspense>

@@ -42,6 +42,7 @@ const AppContent = () => {
   const [showMarketplacePopup, setShowMarketplacePopup] = useState(false);
   const footerRef = useRef(null);
   const hasTriggeredPopup = useRef(false);
+  const hasViewedProduct = useRef(false); // [NEWSLETTER] Track if user visited at least one product detail
 
 
 
@@ -148,6 +149,16 @@ const AppContent = () => {
 
   // Header Props for Architectural Design
   const [headerProps, setHeaderProps] = useState(null);
+
+  // [NEW] Persistent Gallery State (To restore collection after detail/checkout)
+  const [persistentGalleryState, setPersistentGalleryState] = useState({
+    activeCollection: 'furniture',
+    filter: 'fixed'
+  });
+
+  const saveGalleryState = (state) => {
+    setPersistentGalleryState(prev => ({ ...prev, ...state }));
+  };
 
   // --- SCROLL HEADER LOGIC ---
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
@@ -315,13 +326,23 @@ const AppContent = () => {
 
   }, [user, isAdmin]); // Re-run when auth state changes
 
-  // --- DECLENCHEMENT POPUP V2 (Gallery Only) ---
+  // --- [NEWSLETTER] Track product detail visits ---
+  useEffect(() => {
+    if (view === 'detail') {
+      hasViewedProduct.current = true;
+    }
+  }, [view]);
+
+  // --- DECLENCHEMENT POPUP V2 (After first product visit) ---
+  // Strategy: Only trigger AFTER the user has viewed at least one product and returned to gallery.
+  // This is much less aggressive - the user has already shown engagement.
   useEffect(() => {
     const isNewsletterSubscribed = localStorage.getItem('newsletterSubscribed') === 'true';
     const isNewsletterDismissed = localStorage.getItem('newsletterDismissed') === 'true';
 
     if (
       view === 'gallery' && 
+      hasViewedProduct.current &&  // Must have viewed at least one product
       (!user || user.isAnonymous) && 
       !authLoading && 
       !hasTriggeredPopup.current &&
@@ -331,7 +352,7 @@ const AppContent = () => {
       hasTriggeredPopup.current = true;
       const timer = setTimeout(() => {
         setShowNewsletter(true);
-      }, 1500); // 1.5 seconds delay for a smooth premium UX
+      }, 2000); // 2s delay after return for smooth UX
       return () => clearTimeout(timer);
     }
   }, [view, user, authLoading]);
@@ -494,10 +515,20 @@ const AppContent = () => {
     setCartItems([]); // Clear UI cart immediately
     setIsCartOpen(false);
     setShowOrderSuccess(true); // Trigger Success Modal
+
+    // Restore gallery state if we have it
+    if (persistentGalleryState) {
+      setHeaderProps(prev => ({
+        ...prev,
+        activeCollection: persistentGalleryState.activeCollection,
+        filter: persistentGalleryState.filter
+      }));
+    }
+
     setView('gallery'); // Go to Marketplace (behind the modal)
 
     // Email simulation log
-    console.log("Order placed:", orderData);
+    console.log("Order placed restoration:", persistentGalleryState, orderData);
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-transparent"><div className="w-10 h-10 border-[3px] border-stone-200 border-t-stone-900 rounded-full animate-spin"></div></div>;
@@ -803,6 +834,8 @@ const AppContent = () => {
           toggleTheme={() => setDarkMode(!darkMode)}
           onOpenDiscovery={() => setShowMarketplacePopup(true)}
           setHeaderProps={setHeaderProps}
+          persistentGalleryState={persistentGalleryState}
+          saveGalleryState={saveGalleryState}
         />
       </main>
       {
