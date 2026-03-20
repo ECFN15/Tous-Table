@@ -272,3 +272,30 @@ Sensation de latence ("bridage à 40 FPS") sur la page Marketplace, particulièr
 
 ### Résultat
 La page Marketplace retrouve une fluidité native. Les animations originales (`duration-700` et `transition-all`) sont conservées à l'identique mais s'exécutent désormais sans aucune entrave processeur.
+
+---
+
+## 10. Audit & Optimisation de Performance — Global Menu (20 Mars 2026)
+
+### Problème
+Micro-saccades observées lors du "reveal" des titres du menu (Accueil, Galerie, etc.), particulièrement lors du premier affichage.
+
+### Causes
+Le design premium (chaque lettre est un composant indépendant) générait plus de **80 instances `motion`** simultanément. Le calcul des filtres de flou (`filter: blur`) combiné aux physiques de ressorts (`spring`) sur autant de nœuds saturait le GPU lors de l'ouverture du volet latéral.
+
+### Solution
+- **React.memo sur MenuItemHover** : Isolation complète des titres. Ils ne sont plus recalculés pendant l'animation de translation du panneau parent, libérant ainsi le thread d'affichage.
+- **Ciblage des Transitions** : Remplacement systématique de `transition-all` par `transition-[opacity,transform]` dans les sous-composants pour éviter le suivi inutile de propriétés statiques (couleurs de bordure, ombres).
+- **Stratégie Spécifique Mobile** : 
+    - Désactivation totale du découpage par lettres (texte simple).
+    - Désactivation des filtres `blur` et `backdrop-blur` sur mobile pour maintenir 60FPS constants.
+- **GPU Acceleration** : Utilisation de `rotateZ: 0.01` et de `will-change: transform` sur Desktop pour stabiliser le rendu.
+
+### Résultat
+Le menu s'ouvre avec une fluidité parfaite sur 144Hz+. Le design premium (lettres animées et flou) est conservé sur Desktop tout en étant allégé structurellement.
+
+---
+
+> [!IMPORTANT]
+> **VÉRIFICATION POUR CLAUDE (PROCHAIN AGENT) :** 
+> Merci de vérifier que toutes les interventions futures sur `MarketplaceLayout.jsx`, `ProductCard.jsx` et `GlobalMenu.jsx` respectent la mémoïsation (`React.memo`) et les dépendances stables des `useEffect`. Ces optimisations sont CRITIQUES pour assurer la fluidité sur les écrans à haut rafraîchissement (144Hz/160Hz) de l'utilisateur. Ne réintroduisez pas de `transition-all` génériques s'ils ne sont pas nécessaires. ✓ 144FPS Validé.

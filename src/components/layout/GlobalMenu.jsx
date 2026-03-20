@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { X, Instagram, Facebook, Mail } from 'lucide-react';
 
-const MenuItemHover = ({ item, index, isClicked, darkMode, handlePremiumClick, isMobile }) => {
+const MenuItemHover = React.memo(({ item, index, isClicked, darkMode, handlePremiumClick, isMobile }) => {
     const controls = useAnimation();
     const isHoveredRef = useRef(false);
     const isAnimatingRef = useRef(false);
@@ -85,8 +85,8 @@ const MenuItemHover = ({ item, index, isClicked, darkMode, handlePremiumClick, i
                     </>
                 )}
             </div>
-            <div className={`flex-grow ml-4 mr-3 md:ml-6 md:mr-4 h-[1px] border-b border-dashed origin-left transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] opacity-100 scale-x-100 md:opacity-0 md:scale-x-0 ${isActive ? 'md:opacity-100 md:scale-x-100' : ''} ${darkMode ? 'border-stone-800' : 'border-stone-200'}`}></div>
-            <span className={`text-[10px] md:text-xs font-bold tracking-widest opacity-100 translate-x-0 md:opacity-0 md:translate-x-4 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${isActive ? 'md:opacity-100 md:translate-x-0' : ''} ${darkMode ? 'text-amber-500' : 'text-amber-600'}`}>0{index + 1}</span>
+            <div className={`flex-grow ml-4 mr-3 md:ml-6 md:mr-4 h-[1px] border-b border-dashed origin-left transition-[opacity,transform] duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] opacity-100 scale-x-100 md:opacity-0 md:scale-x-0 ${isActive ? 'md:opacity-100 md:scale-x-100' : ''} ${darkMode ? 'border-stone-800' : 'border-stone-200'}`}></div>
+            <span className={`text-[10px] md:text-xs font-bold tracking-widest opacity-100 translate-x-0 md:opacity-0 md:translate-x-4 transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${isActive ? 'md:opacity-100 md:translate-x-0' : ''} ${darkMode ? 'text-amber-500' : 'text-amber-600'}`}>0{index + 1}</span>
         </>
     );
 
@@ -118,7 +118,7 @@ const MenuItemHover = ({ item, index, isClicked, darkMode, handlePremiumClick, i
             {content}
         </motion.button>
     );
-};
+});
 
 const GlobalMenu = ({
     isMenuOpen,
@@ -219,8 +219,8 @@ const GlobalMenu = ({
                             const skewExit = isMobile ? 0 : 14;
                             const scaleInitial = isMobile ? 1 : 0.9;
 
-                            // OPTIMISATION GPU MOBILE : on supprime totalement la déclaration "filter" (blur)
-                            // du state de motion lorsqu'on est sur mobile.
+                            // OPTIMISATION GPU : on garde le "blur" car il fait partie du design premium, 
+                            // mais la mémoïsation de MenuItemHover empêche ce flou de ramer.
                             const animateState = isMenuOpen
                                 ? {
                                     x: isClicked ? 15 : (isOtherClicked ? -20 : 0),
