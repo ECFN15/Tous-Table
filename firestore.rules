@@ -61,9 +61,17 @@ service cloud.firestore {
 
     }
 
-    // Newsletter Subscribers - Public can add row, Admin can read/manage
+    // Newsletter Subscribers - Authenticated users can subscribe, Admin can read/manage
     match /newsletter_subscribers/{docId} {
-      allow create: if true;
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['contactInfo', 'firstName', 'lastName', 'createdAt', 'source'])
+        && request.resource.data.firstName is string
+        && request.resource.data.firstName.size() > 0
+        && request.resource.data.firstName.size() < 100
+        && request.resource.data.lastName is string
+        && request.resource.data.lastName.size() > 0
+        && request.resource.data.lastName.size() < 100
+        && request.resource.data.source is string;
       allow read, update, delete: if isArtisan();
     }
 

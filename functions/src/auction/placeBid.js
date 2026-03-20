@@ -26,22 +26,7 @@ exports.placeBid = functions.https.onCall(async (data, context) => {
         throw new functions.https.HttpsError('invalid-argument', 'Données invalides.');
     }
 
-    // --- RATE LIMITING (5 enchères/minute) ---
     const rateLimitRef = db.doc(`sys_ratelimit/bid_${userId}`);
-    const rateLimitSnap = await rateLimitRef.get();
-    const rateLimitData = rateLimitSnap.exists ? rateLimitSnap.data() : { count: 0, resetAt: 0 };
-
-    if (Date.now() < rateLimitData.resetAt && rateLimitData.count >= 5) {
-        throw new functions.https.HttpsError('resource-exhausted', 'Trop de tentatives. Réessayez dans une minute.');
-    }
-
-    // Update rate limit counter (fire-and-forget)
-    if (Date.now() > rateLimitData.resetAt) {
-        rateLimitRef.set({ count: 1, resetAt: Date.now() + 60000 }).catch(() => { });
-    } else {
-        rateLimitRef.update({ count: admin.firestore.FieldValue.increment(1) }).catch(() => { });
-    }
-
     const itemRef = db.doc(`artifacts/${APP_ID}/public/data/${collectionName}/${itemId}`);
 
     // --- IDEMPOTENCE CHECK ---
@@ -62,8 +47,23 @@ exports.placeBid = functions.https.onCall(async (data, context) => {
         }
     }
 
-    // --- TRANSACTION ENCHÈRE ---
+    // --- TRANSACTION ENCHÈRE (avec rate limiting atomique) ---
     return db.runTransaction(async (transaction) => {
+        // --- RATE LIMITING ATOMIQUE (5 enchères/minute) ---
+        const rateLimitSnap = await transaction.get(rateLimitRef);
+        const rateLimitData = rateLimitSnap.exists ? rateLimitSnap.data() : { count: 0, resetAt: 0 };
+        const now = Date.now();
+
+        if (now < rateLimitData.resetAt && rateLimitData.count >= 5) {
+            throw new functions.https.HttpsError('resource-exhausted', 'Trop de tentatives. Réessayez dans une minute.');
+        }
+
+        if (now > rateLimitData.resetAt) {
+            transaction.set(rateLimitRef, { count: 1, resetAt: now + 60000 });
+        } else {
+            transaction.update(rateLimitRef, { count: admin.firestore.FieldValue.increment(1) });
+        }
+
         const snap = await transaction.get(itemRef);
         if (!snap.exists) throw new functions.https.HttpsError('not-found', 'Produit introuvable.');
 

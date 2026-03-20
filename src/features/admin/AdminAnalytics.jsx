@@ -40,7 +40,7 @@ const AdminAnalytics = ({ darkMode = false }) => {
 
     // Refresh "now" every 30s to update "Online" vs "Finished" markers
     useEffect(() => {
-        const i = setInterval(() => setNow(Date.now()), 30000);
+        const i = setInterval(() => setNow(Date.now()), 10000);
         return () => clearInterval(i);
     }, []);
 
@@ -118,8 +118,9 @@ const AdminAnalytics = ({ darkMode = false }) => {
             return time >= cutoff && s.type !== 'admin';
         });
 
-        // 1. Calcul des KPIs
-        const uniques = realTraffic.length;
+        // 1. Calcul des KPIs (dédupliqué par IP)
+        const uniqueIPs = new Set(realTraffic.map(s => s.ip).filter(Boolean));
+        const uniques = uniqueIPs.size;
         const totalDuration = realTraffic.reduce((acc, s) => acc + (s.duration || 0), 0);
         const avgDur = uniques > 0 ? Math.round(totalDuration / uniques) : 0;
         const bounces = realTraffic.filter(s => (s.journey && s.journey.length <= 1) || s.duration < 10).length;
@@ -383,7 +384,7 @@ const AdminAnalytics = ({ darkMode = false }) => {
                                 const startedTime = session.startedAt ? new Date(getMillis(session.startedAt)).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
 
                                 const lastActiveMs = getMillis(session.lastActivityAt);
-                                const isInactive = (now - lastActiveMs) > 60000;
+                                const isInactive = (now - lastActiveMs) > 30000;
                                 const isFinished = session.sessionActive === false || isInactive;
 
                                 return (
@@ -518,7 +519,7 @@ const AdminAnalytics = ({ darkMode = false }) => {
                             const startedTime = session.startedAt ? new Date(getMillis(session.startedAt)).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
 
                             const lastActiveMs = getMillis(session.lastActivityAt);
-                            const isInactive = (now - lastActiveMs) > 60000;
+                            const isInactive = (now - lastActiveMs) > 30000;
                             const isFinished = session.sessionActive === false || isInactive;
 
                             return (
@@ -546,10 +547,8 @@ const AdminAnalytics = ({ darkMode = false }) => {
                                                 <p className={`font-bold text-sm tracking-tight truncate ${darkMode ? 'text-white' : 'text-stone-900'}`}>
                                                     {session.geo?.city !== 'Unknown' ? `${session.geo.city}, ${session.geo.country}` : 'Ville Inconnue'}
                                                 </p>
-                                                <p className="text-[10px] font-mono text-stone-400 mt-1 truncate flex items-center gap-2">
-                                                    {session.ip}
-                                                    {session.email && <span className="text-indigo-500 font-bold truncate max-w-[120px]">{session.email}</span>}
-                                                </p>
+                                                <p className="text-[10px] font-mono text-stone-400 mt-1 truncate">{session.ip}</p>
+                                                {session.email && <p className="text-[10px] font-bold text-indigo-500 truncate mt-0.5">{session.email}</p>}
                                             </div>
                                         </div>
                                     </div>
@@ -591,7 +590,7 @@ const AdminAnalytics = ({ darkMode = false }) => {
                                                     session.journey.map((step, idx) => (
                                                         <div key={idx} className="relative pl-6">
                                                             <div className="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-white dark:ring-stone-800"></div>
-                                                            <div className="flex flex-col gap-1">
+                                                            <div className="flex flex-col gap-1.5">
                                                                 <div className="flex items-center justify-between">
                                                                     <span className="text-[9px] font-black text-amber-600 bg-amber-50 dark:bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-100 dark:border-amber-500/20">{step.time}</span>
                                                                     <span className="text-[9px] font-bold text-stone-400 uppercase tracking-wider">{formatDuration(step.duration)}</span>
@@ -599,6 +598,19 @@ const AdminAnalytics = ({ darkMode = false }) => {
                                                                 <p className={`font-bold text-xs ${darkMode ? 'text-white' : 'text-stone-900'}`}>
                                                                     Vue : <span className="uppercase text-amber-500">{step.page}</span>
                                                                 </p>
+                                                                {step.itemId && (
+                                                                    <span className="text-[9px] font-bold bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/20 px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 w-fit flex-wrap">
+                                                                        {step.itemId.includes('|') ? (
+                                                                            <>
+                                                                                <span className="opacity-40 text-[7px]">REF:</span> <span className="truncate max-w-[100px]">{step.itemId.split('|')[0].trim()}</span>
+                                                                                <span className="h-2 w-px bg-indigo-200 dark:bg-indigo-800"></span>
+                                                                                <span className="font-black">{step.itemId.split('|')[1].trim()}</span>
+                                                                            </>
+                                                                        ) : (
+                                                                            <>ID: {step.itemId}</>
+                                                                        )}
+                                                                    </span>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     ))

@@ -98,7 +98,21 @@ exports.syncSession = functions.https.onCall(async (data, context) => {
 });
 
 exports.syncSessionBeacon = functions.https.onRequest(async (req, res) => {
-    res.set('Access-Control-Allow-Origin', '*');
+    const allowedOrigins = [
+        'https://tousatable-madeinnormandie.fr',
+        'https://tatmadeinnormandie.web.app',
+        'https://tousatable-client.web.app',
+        'https://tousatable-client.firebaseapp.com',
+        'http://localhost:5173',
+        'http://localhost:3000'
+    ];
+
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+        res.set('Access-Control-Allow-Origin', origin);
+    } else {
+        res.set('Access-Control-Allow-Origin', allowedOrigins[0]);
+    }
     res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.set('Access-Control-Allow-Headers', 'Content-Type');
 
@@ -155,11 +169,22 @@ exports.clearAllSessions = functions.https.onCall(async (data, context) => {
         throw new functions.https.HttpsError('permission-denied', 'Admin only');
     }
     try {
-        const sessions = await db.collection('analytics_sessions').get();
-        const batch = db.batch();
-        sessions.forEach(doc => batch.delete(doc.ref));
-        await batch.commit();
-        return { success: true, count: sessions.size };
+        const sessionsRef = db.collection('analytics_sessions');
+        let totalDeleted = 0;
+
+        while (true) {
+            const snapshot = await sessionsRef.limit(500).get();
+            if (snapshot.empty) break;
+
+            const batch = db.batch();
+            snapshot.docs.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+            totalDeleted += snapshot.size;
+
+            if (snapshot.size < 500) break;
+        }
+
+        return { success: true, count: totalDeleted };
     } catch (error) {
         console.error("Clear All Error:", error);
         throw new functions.https.HttpsError('internal', 'Clear failed');

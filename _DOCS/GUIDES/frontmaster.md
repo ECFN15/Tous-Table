@@ -997,3 +997,35 @@ LetterSpacingCrush + FadeThoughColor + ScaleSpringPop = TECH MINIMAL (Outpost/Me
 TypewriterCursor + InsetFrameShrink + ZigzagStagger = VINTAGE EDITORIAL (Wrights). Nostalgique, texturé, artisanal.
 ZAxisPerspective + DiamondExpand + Flip3DEntry = AVANT-GARDE EXPÉRIMENTAL. Maximum de 3D, réservé aux pages de présentation courtes.
 GradientWipe + HorizontalSlide + DrawBorder = PORTFOLIO CRÉATIF. Clean, dynamique, professionnel.
+
+# 📐 10. RESPONSIVE ARCHITECTURE & COMPONENT HUGGING (Shrink-Wrap Logic)
+Règles de construction structurelles pour garantir un rendu fluide sur 100% des Breakpoints (façon Apple/Linear), en évitant la compression de contenu (Squishing) et les vides structurels (Ghost Columns).
+
+## 10.1 The Anti-Squish Rule (Proscrire les pourcentages enfants)
+Ne JAMAIS utiliser de largeur relative fixe (ex: `md:w-1/2` ou `md:w-[50%]`) sur un conteneur qui risque de devenir l'enfant d'une grille CSS parente aux breakpoints supérieurs (`lg`).
+Si le parent passe d'un affichage pleine-page à une vue "Colonne étroite" (ex: 500px), l'enfant demandera 50% de ces 500px, aboutissant à un écrasement illisible (250px) et ruinant l'UI.
+**Solution Premium (Clamping) :** Utiliser des dimensions maximales absolues.
+```jsx
+// ❌ MAUVAIS : Crash visuel garanti sur la transition Laptop
+<div className="w-full md:w-[calc(50%+1rem)]">
+
+// ✅ PARFAIT : Mobile fluide 100%, stoppé et verrouillé à une taille ergonomique parfaite sur Desktop, peu importe la largeur de la colonne parente.
+<div className="w-full md:max-w-[400px]">
+```
+
+## 10.2 Dynamic Shrink-Wrap Engine (L'Art d'Epouser l'UI)
+Lors du développement de composants "Conditionnels" (ex: des cartes de choix où une option peut ne pas s'afficher), conserver un moteur Grid vide crée des trous béants sur l'écran. L'arrière-plan du module étire le vide.
+**Solution Premium :** Switcher dynamiquement le moteur de Layout (`Grid` -> `Flex`).
+```jsx
+// Enveloppe globale : On clamp si on a une seule option pour ne pas étirer l'écran.
+<div className={`card-background ${!hasMultiOptions ? 'w-full md:max-w-[400px]' : ''}`}>
+  
+  {/* Switch du Moteur : Grille si tout est là, Flex exclusif si un seul */}
+  <div className={hasMultiOptions ? 'grid sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4' : 'flex flex-col'}>
+     <CardOptionA />
+     {hasMultiOptions && <CardOptionB />}
+  </div>
+
+</div>
+```
+**Résultat :** Le conteneur "Background" va s'écraser physiquement sur le composant solitaire (shrink-wrap/hugging). Le rendu restera massif et intentionnel, validant l'expérience premium.

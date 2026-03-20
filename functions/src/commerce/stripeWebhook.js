@@ -166,30 +166,39 @@ exports.stripeWebhook = functions.runWith({ secrets: [STRIPE_SECRET_KEY, STRIPE_
             };
 
             await db.runTransaction(async (transaction) => {
-                for (const item of items) {
-                    if (!item.id) {
-                        console.warn("⚠️ Item sans ID Firestore (Metadata manquantes ?):", item.name);
-                        continue;
+                // Check if an existing order already reserved stock (stockReserved flag)
+                // If so, skip stock decrement to avoid double-decrement
+                const existingOrderSnap = await transaction.get(orderRef);
+                const skipStockDecrement = existingOrderSnap.exists && existingOrderSnap.data().stockReserved === true;
+
+                if (!skipStockDecrement) {
+                    for (const item of items) {
+                        if (!item.id) {
+                            console.warn("⚠️ Item sans ID Firestore (Metadata manquantes ?):", item.name);
+                            continue;
+                        }
+                        const colName = item.collectionName || 'furniture';
+                        const itemRef = db.doc(`artifacts/${APP_ID}/public/data/${colName}/${item.id}`);
+                        const itemSnap = await transaction.get(itemRef);
+
+                        if (!itemSnap.exists) continue;
+                        const itemDb = itemSnap.data();
+                        const currentStock = itemDb.stock !== undefined ? itemDb.stock : 1;
+
+                        const updates = {};
+                        if (currentStock <= 1) {
+                            updates.sold = true;
+                            updates.buyerId = userId;
+                            updates.soldAt = admin.firestore.FieldValue.serverTimestamp();
+                            console.log(`🔒 Item SOLD OUT: ${item.id}`);
+                        } else {
+                            updates.stock = currentStock - 1;
+                        }
+
+                        transaction.update(itemRef, updates);
                     }
-                    const colName = item.collectionName || 'furniture';
-                    const itemRef = db.doc(`artifacts/${APP_ID}/public/data/${colName}/${item.id}`);
-                    const itemSnap = await transaction.get(itemRef);
-
-                    if (!itemSnap.exists) continue;
-                    const itemDb = itemSnap.data();
-                    const currentStock = itemDb.stock !== undefined ? itemDb.stock : 1;
-
-                    const updates = {};
-                    if (currentStock <= 1) {
-                        updates.sold = true;
-                        updates.buyerId = userId;
-                        updates.soldAt = admin.firestore.FieldValue.serverTimestamp();
-                        console.log(`🔒 Item SOLD OUT: ${item.id}`);
-                    } else {
-                        updates.stock = currentStock - 1;
-                    }
-
-                    transaction.update(itemRef, updates);
+                } else {
+                    console.log("⚡ Stock already reserved (stockReserved=true), skipping decrement for session:", session.id);
                 }
                 transaction.set(orderRef, orderData);
             });
@@ -254,6 +263,62 @@ exports.stripeWebhook = functions.runWith({ secrets: [STRIPE_SECRET_KEY, STRIPE_
                 }
             } catch (e) {
                 console.error("Error handling payment_failed:", e);
+            }
+        }
+    }
+
+    // ============================================================
+    // HANDLER: payment_intent.canceled (PaymentIntent expiré ou annulé)
+    // ============================================================
+    if (event.type === 'payment_intent.canceled') {
+        const pi = event.data.object;
+        const orderId = pi.metadata?.orderId;
+        console.warn(`⏰ Payment CANCELED for PI ${pi.id}, Order: ${orderId || 'N/A'}`);
+
+        if (orderId) {
+            try {
+                const orderRef = db.collection('orders').doc(orderId);
+                const orderSnap = await orderRef.get();
+
+                if (!orderSnap.exists) return res.json({ received: true });
+                const order = orderSnap.data();
+
+                // Si le stock a été réservé à la création de la commande, le restaurer
+                if (order.stockReserved && order.status !== 'paid') {
+                    await db.runTransaction(async (transaction) => {
+                        for (const item of (order.items || [])) {
+                            const itemId = item.id || item.originalId;
+                            const col = item.collectionName || item.collection || 'furniture';
+                            if (!itemId) continue;
+
+                            const itemRef = db.doc(`artifacts/${APP_ID}/public/data/${col}/${itemId}`);
+                            const itemDoc = await transaction.get(itemRef);
+                            if (!itemDoc.exists) continue;
+
+                            const currentStock = itemDoc.data().stock !== undefined ? Number(itemDoc.data().stock) : 0;
+                            const qtyToRestore = item.quantity || 1;
+                            transaction.update(itemRef, {
+                                stock: currentStock + qtyToRestore,
+                                sold: false,
+                                soldAt: admin.firestore.FieldValue.delete(),
+                                buyerId: admin.firestore.FieldValue.delete()
+                            });
+                        }
+                        transaction.update(orderRef, {
+                            status: 'canceled',
+                            canceledAt: admin.firestore.FieldValue.serverTimestamp(),
+                            stockReserved: false
+                        });
+                    });
+                    console.log(`♻️ Stock restauré après annulation/expiration PI: ${orderId}`);
+                } else {
+                    await orderRef.update({
+                        status: 'canceled',
+                        canceledAt: admin.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+            } catch (e) {
+                console.error("Error handling payment_intent.canceled:", e);
             }
         }
     }

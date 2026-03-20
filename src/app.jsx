@@ -22,6 +22,7 @@ import CartSidebar from './components/cart/CartSidebar';
 import Footer from './components/layout/Footer';
 import SEO from './components/shared/SEO';
 import AnalyticsProvider from './components/shared/AnalyticsProvider';
+import { ToastProvider, useToast } from './components/ui/Toast';
 
 
 import MarketplaceDiscovery from './components/home/MarketplaceDiscovery';
@@ -30,6 +31,7 @@ import NewsletterModal from './components/auth/NewsletterModal';
 import GlobalMenu from './components/layout/GlobalMenu';
 
 const AppContent = () => {
+  const toast = useToast();
 
   // Use Auth Context
   const { user, isAdmin, loading: authLoading, loginWithGoogle, loginWithEmail, signupWithEmail, logout, verifyEmail } = useAuth();
@@ -487,7 +489,7 @@ const AppContent = () => {
       return true;
     } catch (e) {
       console.error("Error add cart", e);
-      alert("Erreur ajout panier : " + e.message);
+      toast("Erreur ajout panier : " + e.message, { type: 'error' });
       return false;
     }
   };
@@ -639,7 +641,7 @@ const AppContent = () => {
                     else if (err.code === 'auth/invalid-email') msg = "L'adresse email n'est pas valide.";
                     else if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') msg = "Email ou mot de passe incorrect.";
 
-                    alert(msg);
+                    toast(msg, { type: 'error' });
                   }
                 }} className="space-y-3 pt-2" data-signup="false">
 
@@ -900,7 +902,9 @@ export default function App() {
   return (
     <AuthProvider>
       <ErrorBoundary>
-        <AppContent />
+        <ToastProvider>
+          <AppContent />
+        </ToastProvider>
       </ErrorBoundary>
     </AuthProvider>
   );

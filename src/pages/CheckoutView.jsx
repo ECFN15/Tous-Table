@@ -8,6 +8,7 @@ import { doc, onSnapshot, deleteDoc } from 'firebase/firestore';
 import { Elements } from '@stripe/react-stripe-js';
 import { stripePromise } from '../main';
 import CheckoutPaymentStep from '../components/cart/CheckoutPaymentStep';
+import { useToast } from '../components/ui/Toast';
 
 /**
  * PremiumActionBtn — Bouton Ultra-Premium (Mouse Tracking + Morphing Loading)
@@ -150,6 +151,7 @@ const PremiumActionBtn = ({ children, isLoading, disabled, onClick, darkMode }) 
  * Tout sur la même page : formulaire au-dessus, choix du paiement, et Stripe injecté en dessous.
  */
 const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlaceOrder }) => {
+    const toast = useToast();
     // --- STATE ---
     const [formData, setFormData] = useState({
         fullName: user?.displayName || '',
@@ -367,7 +369,7 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
     const handleActionClick = async () => {
         if (!isFormValid) return;
         if (unavailableItems.length > 0) {
-            alert("Attention : Un article de votre panier n'est plus disponible.");
+            toast("Attention : Un article de votre panier n'est plus disponible.", { type: 'warning' });
             return;
         }
 
@@ -425,7 +427,7 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
             } else if (error.message) {
                 msg = error.message;
             }
-            alert(msg);
+            toast(msg, { type: 'error' });
         }
     };
 
@@ -508,7 +510,7 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
             <div className="max-w-[1240px] mx-auto w-full">
                 {/* HEADER RETOUR */}
                 <div className="mb-8 md:mb-12">
-                    <button onClick={onBack} className={`flex items-center gap-2 font-bold text-[10px] md:text-xs uppercase tracking-widest transition-colors mb-6 ${darkMode ? 'text-stone-500 hover:text-white' : 'text-stone-400 hover:text-stone-900'}`}>
+                    <button onClick={onBack} aria-label="Retour au panier" className={`flex items-center gap-2 font-bold text-[10px] md:text-xs uppercase tracking-widest transition-colors mb-6 ${darkMode ? 'text-stone-500 hover:text-white' : 'text-stone-400 hover:text-stone-900'}`}>
                         <ArrowLeft size={14} /> Retour au panier
                     </button>
                     <h2 className={`text-3xl md:text-5xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>
@@ -527,67 +529,88 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                                 <Truck size={14} /> Informations de Livraison
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-                                <input name="fullName" value={formData.fullName} onChange={handleChange} placeholder="Nom complet" className={inputClasses} required />
-                                <input name="phone" value={formData.phone} onChange={handleChange} placeholder="Téléphone" className={inputClasses} required />
+                                <div>
+                                    <label htmlFor="checkout-fullName" className="sr-only">Nom complet</label>
+                                    <input id="checkout-fullName" name="fullName" value={formData.fullName} onChange={handleChange} placeholder="Nom complet" className={inputClasses} required />
+                                </div>
+                                <div>
+                                    <label htmlFor="checkout-phone" className="sr-only">Téléphone</label>
+                                    <input id="checkout-phone" name="phone" value={formData.phone} onChange={handleChange} placeholder="Téléphone" className={inputClasses} required />
+                                </div>
                             </div>
-                            <input name="email" value={formData.email} onChange={handleChange} placeholder="Email" type="email" className={inputClasses} required />
+                            <div>
+                                <label htmlFor="checkout-email" className="sr-only">Email</label>
+                                <input id="checkout-email" name="email" value={formData.email} onChange={handleChange} placeholder="Email" type="email" className={inputClasses} required />
+                            </div>
                             
                             {/* ADRESSE AVEC AUTOCOMPLÉTION INTELLIGENTE */}
                             <div className="flex flex-col gap-3 md:gap-4" ref={suggestionRef}>
-                                <input
-                                    ref={addressInputRef}
-                                    name="address"
-                                    value={formData.address}
-                                    onChange={handleAddressRelatedChange}
-                                    onFocus={(e) => {
-                                        e.target.select();
-                                        if (suggestions.length > 0) { updateDropdownPosition(); setShowSuggestions(true); }
-                                    }}
-                                    placeholder="Adresse (N°, Rue)"
-                                    className={inputClasses}
-                                    required
-                                    autoComplete="off"
-                                />
-
-                                <div className="grid grid-cols-2 gap-3 md:gap-4">
+                                <div>
+                                    <label htmlFor="checkout-address" className="sr-only">Adresse (N°, Rue)</label>
                                     <input
-                                        name="zip"
-                                        value={formData.zip}
+                                        id="checkout-address"
+                                        ref={addressInputRef}
+                                        name="address"
+                                        value={formData.address}
                                         onChange={handleAddressRelatedChange}
                                         onFocus={(e) => {
                                             e.target.select();
                                             if (suggestions.length > 0) { updateDropdownPosition(); setShowSuggestions(true); }
                                         }}
-                                        placeholder="Code Postal"
-                                        className={inputClasses}
-                                        required
-                                        autoComplete="off"
-                                        inputMode="numeric"
-                                    />
-                                    <input
-                                        name="city"
-                                        value={formData.city}
-                                        onChange={handleAddressRelatedChange}
-                                        onFocus={(e) => {
-                                            e.target.select();
-                                            if (suggestions.length > 0) { updateDropdownPosition(); setShowSuggestions(true); }
-                                        }}
-                                        placeholder="Ville"
+                                        placeholder="Adresse (N°, Rue)"
                                         className={inputClasses}
                                         required
                                         autoComplete="off"
                                     />
                                 </div>
+
+                                <div className="grid grid-cols-2 gap-3 md:gap-4">
+                                    <div>
+                                        <label htmlFor="checkout-zip" className="sr-only">Code Postal</label>
+                                        <input
+                                            id="checkout-zip"
+                                            name="zip"
+                                            value={formData.zip}
+                                            onChange={handleAddressRelatedChange}
+                                            onFocus={(e) => {
+                                                e.target.select();
+                                                if (suggestions.length > 0) { updateDropdownPosition(); setShowSuggestions(true); }
+                                            }}
+                                            placeholder="Code Postal"
+                                            className={inputClasses}
+                                            required
+                                            autoComplete="off"
+                                            inputMode="numeric"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="checkout-city" className="sr-only">Ville</label>
+                                        <input
+                                            id="checkout-city"
+                                            name="city"
+                                            value={formData.city}
+                                            onChange={handleAddressRelatedChange}
+                                            onFocus={(e) => {
+                                                e.target.select();
+                                                if (suggestions.length > 0) { updateDropdownPosition(); setShowSuggestions(true); }
+                                            }}
+                                            placeholder="Ville"
+                                            className={inputClasses}
+                                            required
+                                            autoComplete="off"
+                                        />
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         {/* GROUPE 2 : CHOIX DU PAIEMENT */}
-                        <div className={`${cardClasses} ${!stripeEnabled ? 'w-full md:w-[calc(50%+1rem)]' : ''}`}>
+                        <div className={`${cardClasses} ${!stripeEnabled ? 'w-full md:max-w-[400px]' : ''}`}>
                             <h3 className="text-[10px] md:text-xs font-black uppercase tracking-widest text-stone-400 flex items-center gap-2 mb-4">
                                 <CreditCard size={14} /> Moyen de Paiement
                             </h3>
                             
-                            <div className={stripeEnabled ? 'grid sm:grid-cols-2 gap-4' : ''}>
+                            <div className={stripeEnabled ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4' : 'flex flex-col'}>
                                 {/* PAIEMENT DIRECT */}
                                 {stripeEnabled && <div
                                     onClick={() => {

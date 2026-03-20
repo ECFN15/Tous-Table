@@ -38,65 +38,44 @@ exports.createOrder = functions.runWith({ secrets: [STRIPE_SECRET_KEY, GMAIL_EMA
     }
 
     // 1. Validation de stock et calcul du prix TOTAL réel (côté serveur)
+    // Note: pour stripe_elements, cette étape est intégrée dans la transaction de réservation unique (section 4)
     let totalAmount = 0;
-    const line_items = [];
-    const itemsToMarkSold = [];
 
-    try {
-        await db.runTransaction(async (transaction) => {
-            const stockTracker = {};
+    if (orderData.paymentMethod === 'manual' || orderData.paymentMethod === 'deferred') {
+        try {
+            await db.runTransaction(async (transaction) => {
+                const stockTracker = {};
 
-            for (const item of orderData.items) {
-                const colName = item.collectionName || 'furniture';
-                const realItemId = item.originalId || item.id;
-                const itemRef = db.doc(`artifacts/${APP_ID}/public/data/${colName}/${realItemId}`);
-                const itemSnap = await transaction.get(itemRef);
+                for (const item of orderData.items) {
+                    const colName = item.collectionName || 'furniture';
+                    const realItemId = item.originalId || item.id;
+                    const itemRef = db.doc(`artifacts/${APP_ID}/public/data/${colName}/${realItemId}`);
+                    const itemSnap = await transaction.get(itemRef);
 
-                if (!itemSnap.exists) {
-                    throw new functions.https.HttpsError('not-found', `Produit "${realItemId}" introuvable.`);
+                    if (!itemSnap.exists) {
+                        throw new functions.https.HttpsError('not-found', `Produit "${realItemId}" introuvable.`);
+                    }
+
+                    const itemDb = itemSnap.data();
+                    const alreadyTaken = stockTracker[realItemId] || 0;
+                    const currentDbStock = itemDb.stock !== undefined ? Number(itemDb.stock) : 1;
+                    const availableStock = currentDbStock - alreadyTaken;
+
+                    if (availableStock <= 0 || itemDb.sold) {
+                        throw new functions.https.HttpsError('failed-precondition', `Article indisponible (Stock épuisé): ${itemDb.name}`);
+                    }
+
+                    stockTracker[realItemId] = alreadyTaken + 1;
+
+                    // Prix prioritaire : Enchère gagnante > Prix actuel > Prix départ
+                    let realPrice = itemDb.currentPrice || itemDb.startingPrice || 0;
+                    totalAmount += realPrice;
                 }
-
-                const itemDb = itemSnap.data();
-                const alreadyTaken = stockTracker[realItemId] || 0;
-                const currentDbStock = itemDb.stock !== undefined ? Number(itemDb.stock) : 1;
-                const availableStock = currentDbStock - alreadyTaken;
-
-                if (availableStock <= 0 || itemDb.sold) {
-                    throw new functions.https.HttpsError('failed-precondition', `Article indisponible (Stock épuisé): ${itemDb.name}`);
-                }
-
-                stockTracker[realItemId] = alreadyTaken + 1;
-
-                // Prix prioritaire : Enchère gagnante > Prix actuel > Prix départ
-                let realPrice = itemDb.currentPrice || itemDb.startingPrice || 0;
-
-                totalAmount += realPrice;
-                itemsToMarkSold.push({ ref: itemRef, name: itemDb.name });
-
-                // Préparer ligne Stripe
-                let imgUrl = itemDb.images && itemDb.images.length > 0 ? itemDb.images[0] : '';
-
-                line_items.push({
-                    price_data: {
-                        currency: 'eur',
-                        product_data: {
-                            name: itemDb.name,
-                            description: itemDb.description ? itemDb.description.substring(0, 100) + '...' : '',
-                            images: imgUrl ? [imgUrl] : [],
-                            metadata: {
-                                id: realItemId,
-                                collection: colName
-                            }
-                        },
-                        unit_amount: Math.round(realPrice * 100),
-                    },
-                    quantity: 1,
-                });
-            }
-        });
-    } catch (e) {
-        console.error("Stock Check Error", e);
-        throw e;
+            });
+        } catch (e) {
+            console.error("Stock Check Error", e);
+            throw e;
+        }
     }
 
     const SITE_URL = getSiteUrl();
@@ -154,38 +133,23 @@ exports.createOrder = functions.runWith({ secrets: [STRIPE_SECRET_KEY, GMAIL_EMA
 
     // 4. Stripe Elements (PaymentElement intégré — PaymentIntent)
     // Architecture anti-survente (fix Mars 2026):
-    // 1. Transaction atomique: réserve le stock + crée la commande (stockReserved: true)
+    // 1. Transaction atomique unique: valide stock + calcule prix serveur + réserve stock + crée commande
     // 2. Crée le PaymentIntent Stripe avec l'orderId en metadata
     // 3. En cas d'échec Stripe: restaure le stock + supprime la commande en transaction
     // 4. Le webhook payment_intent.succeeded confirme la commande (sans re-décrémenter le stock)
     // 5. Le webhook payment_intent.payment_failed restaure le stock
     if (orderData.paymentMethod === 'stripe_elements') {
         const orderRef = db.collection('orders').doc();
-        const orderBase = {
-            userId: userId,
-            userEmail: context.auth.token.email || orderData.shipping?.email,
-            items: orderData.items.map(i => ({
-                id: i.originalId || i.id,
-                collectionName: i.collectionName || 'furniture',
-                name: i.name,
-                price: i.price,
-                quantity: i.quantity || 1,
-                image: i.image || (i.images && i.images.length > 0 ? i.images[0] : (i.imageUrl || null))
-            })),
-            shipping: orderData.shipping || {},
-            total: totalAmount,
-            paymentMethod: 'stripe_elements',
-            status: 'pending_payment',
-            stockReserved: false,
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            stripePaymentIntentId: null
-        };
 
-        // Transaction 2 : Réserver le stock atomiquement + créer la commande
-        // Empêche la survente si deux utilisateurs achètent simultanément le même article
+        // Transaction unique : valider stock + calculer prix serveur + réserver stock + créer commande
+        // Remplace l'ancienne double-transaction (validation puis réservation) par une seule opération atomique
+        let serverTotalAmount = 0;
         try {
             await db.runTransaction(async (transaction) => {
                 const stockTracker = {};
+                let txTotal = 0;
+                const serverItems = [];
+
                 for (const item of orderData.items) {
                     const colName = item.collectionName || 'furniture';
                     const realItemId = item.originalId || item.id;
@@ -194,12 +158,26 @@ exports.createOrder = functions.runWith({ secrets: [STRIPE_SECRET_KEY, GMAIL_EMA
 
                     if (!itemDoc.exists) throw new functions.https.HttpsError('not-found', `Produit "${realItemId}" introuvable.`);
 
+                    const itemDb = itemDoc.data();
                     const alreadyTaken = stockTracker[realItemId] || 0;
-                    const currentStock = itemDoc.data().stock !== undefined ? Number(itemDoc.data().stock) : 1;
+                    const currentStock = itemDb.stock !== undefined ? Number(itemDb.stock) : 1;
 
-                    if (currentStock - alreadyTaken <= 0 || itemDoc.data().sold) {
-                        throw new functions.https.HttpsError('failed-precondition', `Article indisponible (Stock épuisé): ${itemDoc.data().name}`);
+                    if (currentStock - alreadyTaken <= 0 || itemDb.sold) {
+                        throw new functions.https.HttpsError('failed-precondition', `Article indisponible (Stock épuisé): ${itemDb.name}`);
                     }
+
+                    // Prix recalculé côté serveur (jamais confiance au client)
+                    const realPrice = itemDb.currentPrice || itemDb.startingPrice || 0;
+                    txTotal += realPrice;
+
+                    serverItems.push({
+                        id: realItemId,
+                        collectionName: colName,
+                        name: itemDb.name,
+                        price: realPrice,
+                        quantity: item.quantity || 1,
+                        image: item.image || (item.images && item.images.length > 0 ? item.images[0] : (item.imageUrl || null))
+                    });
 
                     const newStock = Math.max(0, currentStock - 1 - alreadyTaken);
                     const updates = { stock: newStock };
@@ -212,7 +190,21 @@ exports.createOrder = functions.runWith({ secrets: [STRIPE_SECRET_KEY, GMAIL_EMA
                     transaction.update(itemRef, updates);
                     stockTracker[realItemId] = alreadyTaken + 1;
                 }
-                transaction.set(orderRef, { ...orderBase, stockReserved: true });
+
+                serverTotalAmount = txTotal;
+
+                transaction.set(orderRef, {
+                    userId: userId,
+                    userEmail: context.auth.token.email || orderData.shipping?.email,
+                    items: serverItems,
+                    shipping: orderData.shipping || {},
+                    total: txTotal,
+                    paymentMethod: 'stripe_elements',
+                    status: 'pending_payment',
+                    stockReserved: true,
+                    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                    stripePaymentIntentId: null
+                });
             });
         } catch (e) {
             console.error("Stock Reservation Error:", e);
@@ -223,7 +215,7 @@ exports.createOrder = functions.runWith({ secrets: [STRIPE_SECRET_KEY, GMAIL_EMA
         const shippingData = orderData.shipping || {};
         try {
             const paymentIntent = await stripe.paymentIntents.create({
-                amount: Math.round(totalAmount * 100),
+                amount: Math.round(serverTotalAmount * 100),
                 currency: 'eur',
                 automatic_payment_methods: { enabled: true },
                 receipt_email: context.auth.token.email,
@@ -242,7 +234,7 @@ exports.createOrder = functions.runWith({ secrets: [STRIPE_SECRET_KEY, GMAIL_EMA
                     userEmail: context.auth.token.email || '',
                     orderId: orderRef.id,
                     shippingMeta: JSON.stringify(shippingData).substring(0, 500),
-                    itemsMeta: JSON.stringify(orderBase.items.map(i => ({ id: i.id, col: i.collectionName, qty: i.quantity }))).substring(0, 500)
+                    itemsMeta: JSON.stringify(orderData.items.map(i => ({ id: i.originalId || i.id, col: i.collectionName || 'furniture', qty: i.quantity || 1 }))).substring(0, 500)
                 }
             });
 
