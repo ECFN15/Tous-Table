@@ -158,9 +158,9 @@ const AppContent = () => {
     filter: 'fixed'
   });
 
-  const saveGalleryState = (state) => {
+  const saveGalleryState = React.useCallback((state) => {
     setPersistentGalleryState(prev => ({ ...prev, ...state }));
-  };
+  }, []);
 
   // --- SCROLL HEADER LOGIC ---
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);

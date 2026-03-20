@@ -104,4 +104,10 @@ const ProductCard = ({
     );
 };
 
-export default ProductCard;
+export default React.memo(ProductCard, (prev, next) => {
+    return prev.item?.id === next.item?.id && 
+           prev.item?.updatedAt === next.item?.updatedAt &&
+           prev.layoutMode === next.layoutMode && 
+           prev.isBig === next.isBig &&
+           prev.darkMode === next.darkMode;
+});

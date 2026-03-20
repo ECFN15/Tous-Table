@@ -52,13 +52,13 @@ const MarketplaceLayout = ({
 
     // SYNC WITH GLOBAL HEADER
     React.useEffect(() => {
-        if (setHeaderProps) {
+        if (setHeaderProps && headerProps) {
             setHeaderProps(headerProps);
         }
         return () => {
             if (setHeaderProps) setHeaderProps(null);
         };
-    }, [headerProps, setHeaderProps]);
+    }, [activeCollection, filter, setHeaderProps]); // Stable dependencies to avoid infinite loop
 
     return (
         <div className={`w-full min-h-screen transition-colors duration-700 selection:bg-stone-300 selection:text-black bg-transparent`}>
@@ -165,6 +165,7 @@ const MarketplaceLayout = ({
                                     item={item}
                                     layoutMode="editorial"
                                     isBig={false}
+                                    darkMode={darkMode}
                                     onToggleWishlist={toggleWishlist}
                                     onClick={() => onSelectItem(item.id)}
                                 />

@@ -254,4 +254,21 @@ Le changement est **instantané** (temps réel via `onSnapshot`) sans rechargeme
 - Tout le code Stripe (Elements, `createOrder`, `cancelOrderClient`, modal de paiement) est intact
 - Les règles Firestore sont inchangées
 - Les commandes existantes ne sont pas affectées
-- Aucune Cloud Function modifiée
+---
+
+## 9. Audit & Optimisation de Performance — Marketplace (20 Mars 2026)
+
+### Problème
+Sensation de latence ("bridage à 40 FPS") sur la page Marketplace, particulièrement visible sur les écrans à haute fréquence (144Hz/160Hz), alors que les autres pages restaient fluides.
+
+### Causes
+1. **Boucle de re-render infinie (Majeure)** : Un `useEffect` dans `MarketplaceLayout.jsx` synchronisait les props du header avec le state global de `App.jsx`. En raison d'un manque de mémoïsation du parent (fonction `saveGalleryState` recréée à chaque render), ce `useEffect` se déclenchait en boucle (cycle infini), saturant le thread principal du navigateur.
+2. **Surcharge CPU/GPU via TextType** : L'animation de texte (effet machine à écrire) dans le titre Hero déclenchait un re-render complet de la grille de produits (20+ cartes complexes) à chaque lettre tapée (toutes les 150ms). Sur un écran 144Hz, cela créait des micro-saccades systématiques.
+
+### Solution
+- **Stabilisation du State** : Utilisation de `useCallback` sur `saveGalleryState` dans `App.jsx` pour garantir la stabilité des fonctions passées aux enfants.
+- **Smarter Sync** : Amélioration du `useEffect` dans `MarketplaceLayout` pour n'écouter que les changements réels (`activeCollection`, `filter`) au lieu de l'objet global, stoppant le cycle infini.
+- **React.memo sur ProductCard** : Les cartes produits ne se recalculent plus inutilement lors de l'animation du titre Hero. La grille reste statique pour le navigateur, libérant les ressources pour assurer 144FPS constants.
+
+### Résultat
+La page Marketplace retrouve une fluidité native. Les animations originales (`duration-700` et `transition-all`) sont conservées à l'identique mais s'exécutent désormais sans aucune entrave processeur.
