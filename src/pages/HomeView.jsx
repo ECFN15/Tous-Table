@@ -660,31 +660,94 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       // 6. STACKING CARDS LOGIC REMOVED (Handled by StackedCards.jsx)
 
 
-      // 8. Team Section - Modern Editorial Reveal (Blur + Stagger)
-      const teamElements = gsap.utils.toArray('.team-content-reveal');
-      teamElements.forEach((el, i) => {
-        gsap.fromTo(el,
-          {
-            y: 30,
-            opacity: 0,
-            filter: 'blur(8px)', // Modern "Apple-like" blur
-            scale: 0.98
-          },
-          {
-            y: 0,
-            opacity: 1,
-            filter: 'blur(0px)',
-            scale: 1,
-            duration: 1.2,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: '.team-section',
-              start: "top 60%", // Trigger slightly later
-              toggleActions: "play none none reverse"
-            },
-            delay: i * 0.15 // Consistent stagger calculated manually for cleaner control
+      // 8. Profile Section - Architectural Editorial Reveal (Frontmaster A.01, A.04, A.11)
+      // Reveal Text Lines for Name (Masked)
+      const nameLines = gsap.utils.toArray('.name-reveal-line');
+      if (nameLines.length > 0) {
+        gsap.to(nameLines, {
+          y: 0,
+          duration: 1.5,
+          ease: "expo.out",
+          stagger: 0.2,
+          scrollTrigger: {
+            trigger: '.team-section',
+            start: "top 70%",
+            once: true
           }
+        });
+      }
+
+      // Quote Reveal (Bordure + Mots avec flou cinétique)
+      const quoteWords = gsap.utils.toArray('.quote-word');
+      const quoteBorder = document.querySelector('.quote-border');
+      
+      if (quoteWords.length > 0) {
+        const quoteTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: '.team-section',
+            start: "top 65%",
+            once: true
+          }
+        });
+
+        // 1. La bordure s'étire
+        quoteTl.fromTo(quoteBorder, 
+          { scaleY: 0 }, 
+          { scaleY: 1, duration: 1, ease: "slow(0.7, 0.7, false)" }
         );
+
+        // 2. Les mots glissent et deviennent nets (A.02/A.04 hybride)
+        quoteTl.fromTo(quoteWords, {
+          opacity: 0,
+          x: -10,
+          filter: 'blur(10px)',
+          scale: 0.9
+        }, {
+          opacity: 0.6,
+          x: 0,
+          filter: 'blur(0px)',
+          scale: 1,
+          stagger: 0.02,
+          duration: 1,
+          ease: "back.out(1.7)"
+        }, "-=0.5");
+      }
+
+      // Experience Counter (A.11)
+      const expValue = homepageImages['team_main_text']?.exp_years || "15";
+      const expNum = parseInt(expValue.match(/\d+/) || [0])[0];
+      const counterTarget = { val: 0 };
+      const counterEl = document.querySelector('.exp-counter');
+
+      if (counterEl) {
+        gsap.to(counterTarget, {
+          val: expNum || 15,
+          duration: 3,
+          ease: "power3.inOut",
+          scrollTrigger: {
+            trigger: '.team-section',
+            start: "top 50%",
+            once: true
+          },
+          onUpdate: () => {
+             // Si c'est en chiffres romains dans la donnée, on garde un truc spécial ou juste le chiffre
+             counterEl.innerText = Math.round(counterTarget.val);
+          }
+        });
+      }
+
+      // Elements secondaires (Titre de section)
+      gsap.from('.team-tag', {
+        opacity: 0,
+        x: -20,
+        letterSpacing: "0.4em",
+        duration: 2,
+        ease: "power4.out",
+        scrollTrigger: {
+          trigger: '.team-section',
+          start: "top 75%",
+          once: true
+        }
       });
 
       // 9. Curseur (Desktop uniquement)
@@ -1118,24 +1181,43 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
           {/* md: tablettes (768px+), lg: laptops (1024px+), xl: desktops (1280px+) */}
           <div className="w-full md:w-1/2 md:sticky md:top-0 md:h-auto lg:h-screen flex flex-col md:justify-start lg:justify-center px-8 md:px-8 lg:px-[6vw] pt-24 pb-0 md:pt-[15vh] md:pb-16 lg:py-0 text-[#1a1a1a]">
             {/* Espacement interne augmenté : space-y-8 (was space-y-6) */}
-            <div className="space-y-8 md:space-y-8 lg:space-y-10 team-content-reveal">
-              <span className="text-[10px] md:text-[11px] lg:text-[12px] uppercase tracking-[1.2em] md:tracking-[1.4em] text-[#9C8268] block font-black italic">La Direction</span>
+            <div className="space-y-8 md:space-y-8 lg:space-y-10">
+              <span className="team-tag text-[10px] md:text-[11px] lg:text-[12px] uppercase tracking-[1.4em] text-[#9C8268] block font-black italic">La Direction</span>
+              
+              {/* Name Split Reveal (A.01 MaskSlideUp) */}
               <h2 className="font-serif text-5xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-[8vw] leading-[1.1] md:leading-[0.9] font-light italic tracking-tight text-[#1a1a1a]">
-                {homepageImages['team_main_text']?.name_line1 || "Jean"} <br /> {homepageImages['team_main_text']?.name_line2 || "Lefebvre"}
+                <div className="overflow-hidden block">
+                  <span className="name-reveal-line inline-block translate-y-full">
+                    {homepageImages['team_main_text']?.name_line1 || "Jean"}
+                  </span>
+                </div>
+                <div className="overflow-hidden block">
+                  <span className="name-reveal-line inline-block translate-y-full">
+                    {homepageImages['team_main_text']?.name_line2 || "Lefebvre"}
+                  </span>
+                </div>
               </h2>
             </div>
 
-            {/* Marge augmentée : mt-12 (was mt-8) */}
-            <p className="text-base md:text-lg lg:text-xl font-light opacity-60 leading-loose italic border-l border-black/10 pl-6 md:pl-6 lg:pl-8 xl:pl-10 mt-12 md:mt-8 lg:mt-12 team-content-reveal">
-              {homepageImages['team_main_text']?.quote || "\"On ne sauve pas un meuble pour qu'il paraisse neuf, mais pour qu'il reste vrai. L'imperfection est la signature de l'histoire, je suis juste là pour qu'elle continue.\""}
+            {/* Quote Reveal (A.04 WordByWordFade Amélioré) */}
+            <p className="text-base md:text-lg lg:text-xl font-light leading-loose italic pl-6 md:pl-6 lg:pl-8 xl:pl-10 mt-12 md:mt-8 lg:mt-12 overflow-hidden relative">
+               {/* Bordure animée séparée */}
+               <span className="quote-border absolute left-0 top-0 bottom-0 w-[1px] bg-black/20 origin-top transform-gpu" />
+               
+               {(homepageImages['team_main_text']?.quote || "On ne sauve pas un meuble pour qu'il paraisse neuf, mais pour qu'il reste vrai. L'imperfection est la signature de l'histoire, je suis juste là pour qu'elle continue.").split(' ').map((word, i) => (
+                 <span key={i} className="quote-word inline-block mr-[0.25em] will-change-[transform,opacity,filter]">
+                   {word}
+                 </span>
+               ))}
             </p>
 
             {/* Marge augmentée : mt-12 (was mt-8) */}
-            <div className="flex gap-6 md:gap-8 lg:gap-12 xl:gap-16 pt-8 md:pt-8 lg:pt-12 border-t border-black/5 items-center mt-12 md:mt-8 lg:mt-12 team-content-reveal">
+            <div className="flex gap-6 md:gap-8 lg:gap-12 xl:gap-16 pt-8 md:pt-8 lg:pt-12 border-t border-black/5 items-center mt-12 md:mt-8 lg:mt-12">
               <div>
                 <span className="block text-[9px] uppercase tracking-widest opacity-30 mb-2 font-black">Expérience</span>
-                <span className="font-serif text-3xl md:text-4xl lg:text-5xl xl:text-6xl italic text-[#9C8268]">
-                  {homepageImages['team_main_text']?.exp_years || "XV Ans"}
+                <span className="font-serif text-3xl md:text-4xl lg:text-5xl xl:text-6xl italic text-[#9C8268] flex items-baseline">
+                   <span className="exp-counter">0</span>
+                   <span className="ml-2 text-xl md:text-2xl opacity-60">Ans</span>
                 </span>
               </div>
               <div className="w-[1px] h-12 bg-black/5"></div>

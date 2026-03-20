@@ -158,7 +158,11 @@ const ParallaxCard = ({ item, index, onEnterMarketplace }) => {
 
 const StackedCards = ({ items, onEnterMarketplace }) => {
     return (
-        <section className="featured-section relative w-full bg-[#E5E5E5] flex flex-col items-center gap-0 pt-20 md:pt-32 pb-[10vh]" style={{ overflowX: 'clip' }}>
+        <section className="featured-section relative w-full flex flex-col items-center gap-0 pt-20 md:pt-32 pb-[10vh]" 
+                 style={{ 
+                   background: 'linear-gradient(to bottom, #FFFFFF 0%, #F4D8B3 100%)',
+                   overflowX: 'clip' 
+                 }}>
 
             {/* MARQUEE (Editorial Mode) */}
             <div className="w-full relative z-20 pb-20 md:pb-32 overflow-hidden">
