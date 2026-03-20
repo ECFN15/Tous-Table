@@ -169,20 +169,16 @@ const GlobalMenu = ({
     ];
 
     return (
-        <div className={`fixed inset-0 z-[2000] transition-all duration-300 ${isMenuOpen ? 'visible' : 'invisible pointer-events-none'}`} style={{ transitionDelay: isMenuOpen ? '0ms' : '500ms' }}>
-            <AnimatePresence>
-                {isMenuOpen && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0, transition: { duration: 0.1 } }}
-                        transition={{ duration: 0.5 }}
-                        // OPTIMISATION MOBILE : on enlève le backdrop-blur sur mobile car c'est un tueur de performances
-                        className={`absolute inset-0 bg-stone-900/60 ${!isMobile ? 'backdrop-blur-md' : ''}`}
-                        onClick={() => setIsMenuOpen(false)}
-                    />
-                )}
-            </AnimatePresence>
+        <div className={`fixed inset-0 z-[2000] ${isMenuOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: isMenuOpen ? 1 : 0 }}
+                transition={{ duration: 0.5 }}
+                // OPTIMISATION : On garde le div monté mais on anime son opacité pour forcer le pré-calcul GPU.
+                className={`absolute inset-0 bg-stone-900/60 ${!isMobile ? 'backdrop-blur-md' : ''} ${isMenuOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
+                style={{ willChange: 'opacity' }}
+                onClick={() => setIsMenuOpen(false)}
+            />
 
             {/* OPTIMISATION PRINCIPALE : remplacement de transition-all par transition-transform pour empêcher le moteur
                 de recalculer l'animation de l'ombre portée (shadow-2xl) ultra coûteuse à chaque frame */}
@@ -270,8 +266,7 @@ const GlobalMenu = ({
                                     animate={animateState}
                                     style={{
                                         willChange: isMobile ? 'transform, opacity' : 'transform, opacity, filter',
-                                        transformOrigin: 'left center',
-                                        transform: isMobile ? 'translateZ(0)' : 'none'
+                                        transformOrigin: 'left center'
                                     }}
                                 >
                                     <MenuItemHover

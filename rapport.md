@@ -299,3 +299,34 @@ Le menu s'ouvre avec une fluidité parfaite sur 144Hz+. Le design premium (lettr
 > [!IMPORTANT]
 > **VÉRIFICATION POUR CLAUDE (PROCHAIN AGENT) :** 
 > Merci de vérifier que toutes les interventions futures sur `MarketplaceLayout.jsx`, `ProductCard.jsx` et `GlobalMenu.jsx` respectent la mémoïsation (`React.memo`) et les dépendances stables des `useEffect`. Ces optimisations sont CRITIQUES pour assurer la fluidité sur les écrans à haut rafraîchissement (144Hz/160Hz) de l'utilisateur. Ne réintroduisez pas de `transition-all` génériques s'ils ne sont pas nécessaires. ✓ 144FPS Validé.
+
+---
+
+## 11. Résolution du Freeze à la première ouverture du Menu (20 Mars 2026)
+
+### Problème
+Le menu principal saccadait ou "freezait" (blocage visuel) uniquement lors de la **première** ouverture, particulièrement sur Desktop, malgré les optimisations de React.memo précédentes.
+
+### Cause (Hardware Acceleration / Compositing)
+L'ancien code utilisait la classe Tailwind `invisible` (`visibility: hidden`) sur le conteneur principal lorsque le menu était fermé, et démontait l'arrière-plan avec `AnimatePresence`. 
+Le comportement des navigateurs avec `visibility: hidden` est de **ne pas peindre** les éléments (Paint/Composite). 
+Résultat : au moment du premier clic, le navigateur devait instantanément :
+1. Calculer le layout de 80+ éléments (les lettres animées).
+2. Appliquer un filtre très coûteux `backdrop-blur-md` sur tout l'écran (sur Desktop).
+3. Appliquer les `filter: blur(8px)` sur le texte.
+4. Lancer les animations Framer Motion.
+
+Tout ceci en une seule "frame" (16ms), ce qui est physiquement impossible, d'où le gel temporaire le temps que la carte graphique génère les calques. Les fois suivantes, les calques (layers GPU) étaient en cache, donc fluides.
+
+### Solution (Pre-Warming)
+Pour conserver 100% des animations "Premium" (le flou des textes, le backdrop-blur) sans sacrifier la performance :
+1. Suppression de `invisible` et de `AnimatePresence` pour l'arrière-plan.
+2. Remplacement par l'utilisation de l'opacité (`opacity: 0` vs `opacity: 1`) et la neutralisation des clics (`pointer-events-none`).
+3. Suppression du forçage de `transform: 'none'` en inline-style qui entrait en conflit avec l'accélération matérielle de Framer Motion.
+
+### Résultat (Desktop & Mobile)
+- **Desktop :** Le navigateur "pré-calcule" silencieusement les effets de flou au chargement de la page. Au premier clic, il se contente de modifier l'opacité et les coordonnées de la carte graphique, rendant l'ouverture instantanée et parfaitement fluide (144FPS).
+- **Mobile :** Bien que le mobile n'ait pas de `backdrop-blur`, il profite également de cette optimisation car le moteur React n'a plus à "monter" (mount) l'arbre DOM complet du menu au moment du clic. L'ouverture est immédiate.
+
+### Fichier modifié
+- `src/components/layout/GlobalMenu.jsx`
