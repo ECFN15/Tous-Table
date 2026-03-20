@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import ProductCard from './components/ProductCard';
-import ArchitecturalHeader from './components/ArchitecturalHeader';
 import TextType from '../../components/ui/TextType';
-import { Bookmark, LayoutGrid, Rows, GripHorizontal, ChevronDown, Menu, ShoppingBag, ShieldCheck, Armchair, Gavel } from 'lucide-react';
+import { Armchair, Gavel } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 /**
@@ -31,23 +30,16 @@ const CuttingBoard = ({ size = 14, strokeWidth = 2, ...props }) => (
 
 const MarketplaceLayout = ({
     items,
-    palette,
     onSelectItem,
-    onShowLogin,
     headerProps,
-    user,
-    onOpenCart,  // GLOBAL CART TRIGGER
-    toggleTheme, // Global Theme Toggle
     darkMode, // Explicit state
     setHeaderProps // Global Header Sync
 }) => {
     // Déstructuration des props de header
     const { activeCollection, setActiveCollection, filter, setFilter } = headerProps || {};
-    const [viewMode, setViewMode] = useState('editorial'); // 'catalog', 'editorial', 'list'
-    const [wishlistCount, setWishlistCount] = useState(0);
 
-    const toggleWishlist = (val) => {
-        setWishlistCount(prev => val ? prev + 1 : Math.max(0, prev - 1));
+    const toggleWishlist = () => {
+        // keep for placeholder
     };
 
     // SYNC WITH GLOBAL HEADER
@@ -156,7 +148,7 @@ const MarketplaceLayout = ({
                             Aucune pièce disponible.
                         </div>
                     ) : (
-                        items.map((item, index) => (
+                        items.map((item) => (
                             <div
                                 key={item.id}
                                 className="w-full group"

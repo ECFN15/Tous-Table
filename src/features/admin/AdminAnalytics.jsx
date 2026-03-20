@@ -2,12 +2,11 @@ import React, { useState, useEffect } from 'react';
 import {
     Users, Clock, Activity, Smartphone, Monitor, Globe, Trash2, AlertCircle
 } from 'lucide-react';
-import { collection, query, orderBy, limit, onSnapshot, getDocs, doc, deleteDoc } from 'firebase/firestore';
+import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { db, functions } from '../../firebase/config';
 import { httpsCallable } from 'firebase/functions';
 import { getMillis } from '../../utils/time';
-import {
-    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart, Bar, BarChart
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Bar, BarChart
 } from 'recharts';
 
 const CustomActiveBar = (props) => {
@@ -35,7 +34,6 @@ const AdminAnalytics = ({ darkMode = false }) => {
     const [loading, setLoading] = useState(true);
     const [timeFilter, setTimeFilter] = useState('1h'); // Default to 1h for real-time vibe // '1h', '1j', '7j', '1mois', '1ans'
     const [expandedSessionId, setExpandedSessionId] = useState(null);
-    const [scrolledHeader, setScrolledHeader] = useState(false);
     const [now, setNow] = useState(Date.now());
 
     // Refresh "now" every 30s to update "Online" vs "Finished" markers
@@ -139,15 +137,15 @@ const AdminAnalytics = ({ darkMode = false }) => {
         const timeline = [];
         for (let t = cutoff; t <= now; t += step) {
             const d = new Date(t);
-            let name = '';
-            if (filter === '1h') name = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-            else if (filter === '1j') name = d.getHours() + 'h';
-            else if (filter === '7j' || filter === '1mois') name = d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-            else name = d.toLocaleDateString('fr-FR', { month: '2-digit', year: 'numeric' });
+            const timeLabelStr =
+                filter === '1h' ? d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) :
+                filter === '1j' ? d.getHours() + 'h' :
+                (filter === '7j' || filter === '1mois') ? d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) :
+                d.toLocaleDateString('fr-FR', { month: '2-digit', year: 'numeric' });
 
             timeline.push({
                 timestamp: t,
-                name: name,
+                name: timeLabelStr,
                 visites: 0
             });
         }
@@ -379,8 +377,6 @@ const AdminAnalytics = ({ darkMode = false }) => {
                                 const isExpanded = expandedSessionId === session.id;
                                 const isClient = session.type === 'client';
                                 const isAdminType = session.type === 'admin';
-                                const isAdminIPDetected = session.adminIPDetected === true;
-                                const isSessionConverted = session.sessionConverted === true;
                                 const startedTime = session.startedAt ? new Date(getMillis(session.startedAt)).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
 
                                 const lastActiveMs = getMillis(session.lastActivityAt);
@@ -514,8 +510,6 @@ const AdminAnalytics = ({ darkMode = false }) => {
                             const isExpanded = expandedSessionId === session.id;
                             const isClient = session.type === 'client';
                             const isAdminType = session.type === 'admin';
-                            const isAdminIPDetected = session.adminIPDetected === true;
-                            const isSessionConverted = session.sessionConverted === true;
                             const startedTime = session.startedAt ? new Date(getMillis(session.startedAt)).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
 
                             const lastActiveMs = getMillis(session.lastActivityAt);

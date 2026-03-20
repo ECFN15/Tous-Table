@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { PaymentElement, ExpressCheckoutElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { Loader2, AlertCircle, Lock, ShieldCheck } from 'lucide-react';
+import { AlertCircle, Lock, ShieldCheck } from 'lucide-react';
 
 /**
  * CheckoutPaymentStep — Placé INLINE dans la page de checkout
  * Couleurs Premium : Amber / Stone / Noir (Zéro violet)
  */
-const CheckoutPaymentStep = ({ total, orderId, onPaymentSuccess, onPaymentError, darkMode = false, shipping }) => {
+const CheckoutPaymentStep = ({ total, onPaymentSuccess, onPaymentError, darkMode = false }) => {
     const stripe = useStripe();
     const elements = useElements();
     const [isProcessing, setIsProcessing] = useState(false);
@@ -63,7 +63,7 @@ const CheckoutPaymentStep = ({ total, orderId, onPaymentSuccess, onPaymentError,
             } else if (paymentIntent && paymentIntent.status === 'succeeded') {
                 onPaymentSuccess?.(paymentIntent);
             }
-        } catch (err) {
+        } catch {
             setErrorMessage("Erreur lors du paiement express.");
             setIsProcessing(false);
         }

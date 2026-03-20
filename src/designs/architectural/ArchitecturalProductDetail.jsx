@@ -1,25 +1,23 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Box, ArrowRight, Trophy, Clock, X, ZoomIn, Maximize2, ShoppingBag } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Box, ArrowRight, Trophy, Clock, X, Maximize2, ShoppingBag } from 'lucide-react';
 import { db, appId, functions } from '../../firebase/config';
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { getMillis } from '../../utils/time';
-import ConfettiRain from '../../components/ui/ConfettiRain';
 import SEO from '../../components/shared/SEO';
 
 
 import { useLiveTheme } from '../../hooks/useLiveTheme';
-import ArchitecturalHeader from './components/ArchitecturalHeader';
 import AnimatedPrice from '../../components/ui/AnimatedPrice';
 
 const placeBidFunction = httpsCallable(functions, 'placeBid');
 const wakeUpFunction = httpsCallable(functions, 'wakeUp');
 
-const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onShowComments, onOpenMenu, onOpenCart, onShowLogin, toggleTheme, darkMode, setHeaderProps, cartItems = [] }) => {
-    const { palette, activeDesignId } = useLiveTheme();
+const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCart, onShowLogin, darkMode, setHeaderProps, cartItems = [] }) => {
+    const { palette } = useLiveTheme();
     const [activeImg, setActiveImg] = useState(0);
     const [bidLoading, setBidLoading] = useState(false);
-    const [msg, setMsg] = useState(null);
+    const [, setMsg] = useState(null);
     const [bidsHistory, setBidsHistory] = useState([]);
     const [activeBidInc, setActiveBidInc] = useState(null);
     const [bidProgress, setBidProgress] = useState(0);

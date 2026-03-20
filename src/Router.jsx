@@ -9,9 +9,8 @@ const GalleryView = React.lazy(() => import('./pages/GalleryView'));
 const ProductDetail = React.lazy(() => import('./pages/ProductDetail'));
 const CheckoutView = React.lazy(() => import('./pages/CheckoutView'));
 const LoginView = React.lazy(() => import('./pages/LoginView'));
-import {
-    LayoutGrid, Palette, ShoppingBag, Settings,
-    CreditCard, Hammer, Gavel, Pencil, Eye, EyeOff, Trash2, Trophy, Mail, Users, Share2, LogOut, Globe
+import { Palette,
+    CreditCard, Gavel, Mail, Users, Share2, Globe
 } from 'lucide-react';
 
 const AdminDashboard = React.lazy(() => import('./features/admin/AdminDashboard'));
@@ -34,7 +33,6 @@ const AdminIPTracker = React.lazy(() => import('./components/admin/AdminIPTracke
 
 const MyOrdersView = React.lazy(() => import('./pages/MyOrdersView'));
 
-import { getMillis } from './utils/time';
 import { useAuth } from './contexts/AuthContext';
 import { doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { db, appId } from './firebase/config';

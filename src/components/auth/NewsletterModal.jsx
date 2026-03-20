@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { ArrowRight, Check, X } from 'lucide-react';
-import { motion, AnimatePresence, useMotionTemplate, useMotionValue } from 'framer-motion';
+import { X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import confetti from 'canvas-confetti';

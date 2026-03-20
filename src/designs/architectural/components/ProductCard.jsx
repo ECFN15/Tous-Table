@@ -1,5 +1,4 @@
-import React, { useState, Suspense } from 'react';
-import { Bookmark, MoveRight, Eye } from 'lucide-react';
+import React, { Suspense } from 'react';
 import AuctionTimer from '../../../components/ui/AuctionTimer';
 
 /**
@@ -12,17 +11,8 @@ const ProductCard = ({
     item,
     layoutMode,
     isBig,
-    onToggleWishlist,
     onClick
 }) => {
-    const [isBookmarked, setIsBookmarked] = useState(false);
-
-    const handleBookmark = (e) => {
-        e.stopPropagation();
-        setIsBookmarked(!isBookmarked);
-        onToggleWishlist(!isBookmarked);
-    };
-
     return (
         <a
             href={`/?product=${item.id}`}

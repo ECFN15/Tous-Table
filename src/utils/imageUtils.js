@@ -7,7 +7,7 @@
  */
 export const compressImage = (file, quality = 0.8, maxWidth = 1920) => {
     return new Promise((resolve, reject) => {
-        const reader = new FileReader();
+        const reader = new window.FileReader();
         reader.readAsDataURL(file);
 
         reader.onload = (event) => {

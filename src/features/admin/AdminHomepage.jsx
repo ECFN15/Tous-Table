@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import React, { useState, useEffect } from 'react';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../../firebase/config';
-import { Upload, X, Save, Image as ImageIcon, Loader, Info, Check, Download } from 'lucide-react';
+import { X } from 'lucide-react';
 
-import { compressImage } from '../../utils/imageUtils';
 import AdminImageCard from './components/AdminImageCard';
 import TextEditorModal from './components/TextEditorModal';
 import ImageCropperModal from './components/ImageCropperModal';
@@ -439,7 +438,7 @@ const AdminHomepage = ({ darkMode = false }) => {
             return false;
         });
 
-        const reader = new FileReader();
+        const reader = new window.FileReader();
         reader.onload = () => {
             setCropperConfig({
                 isOpen: true,
@@ -500,7 +499,7 @@ const AdminHomepage = ({ darkMode = false }) => {
     };
 
     const handleReset = async (item) => {
-        if (!confirm('Revenir à l\'image par défaut ?')) return;
+        if (!window.confirm('Revenir à l\'image par défaut ?')) return;
         const newImages = { ...images };
         delete newImages[item.key];
         setImages(newImages);

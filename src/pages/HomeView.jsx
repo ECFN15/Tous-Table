@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
-import { Hammer, Menu, X, ArrowRight, Instagram, Facebook, ArrowDown, Plus, Minus } from 'lucide-react';
+import { Hammer, Menu, X, ArrowRight, ArrowDown, Plus } from 'lucide-react';
 import StackedCards from '../components/home/StackedCards'; // New Import
 import ProcessSection from '../components/home/ProcessSection'; // New Component (Hybrid Layout)
 
@@ -14,7 +14,6 @@ const ThreeBackground = React.lazy(() => import('../components/home/ThreeBackgro
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import SEO from '../components/shared/SEO';
-import Footer from '../components/layout/Footer';
 
 // SÉCURITÉ: Sanitize HTML — Autorise uniquement <br> et <br /> (Anti-XSS)
 const sanitizeHtml = (html) => {
@@ -56,32 +55,6 @@ const RotatingSymbol = ({ className, size = 120, text = "TOUS À TABLE • 2026 
   );
 };
 
-// --- COMPOSANT : BOUTON DÉCOUVRIR (MARTEAU FLOTTANT SANS FOND) ---
-const RotatingButton = ({ id }) => {
-  const pathId = `btnPath-${id}`;
-  return (
-    <div className="relative w-16 h-16 md:w-24 md:h-24 flex items-center justify-center select-none group-hover:scale-110 transition-transform duration-500">
-      {/* Texte rotatif */}
-      <div className="absolute inset-0 animate-spin-slow">
-        <svg width="100%" height="100%" viewBox="0 0 100 100">
-          <defs>
-            <path id={pathId} d="M 50, 50 m -34, 0 a 34,34 0 1,1 68,0 a 34,34 0 1,1 -68,0" fill="transparent" />
-          </defs>
-          <text className="text-[10px] uppercase font-bold tracking-[0.25em] fill-current">
-            <textPath xlinkHref={`#${pathId}`} startOffset="0%">
-              TOUS À TABLE • TOUS À TABLE •
-            </textPath>
-          </text>
-        </svg>
-      </div>
-
-      {/* Marteau Central - SANS CERCLE BLANC */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <Hammer size={20} className="text-current md:w-6 md:h-6" strokeWidth={1.5} />
-      </div>
-    </div>
-  );
-};
 
 // --- COMPOSANT : ACCORDION ITEM (POUR LA FAQ - RESSERRÉ) ---
 const AccordionItem = ({ question, answer, isOpen, onClick }) => {
@@ -134,8 +107,6 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
 
   // State pour la FAQ
   const [openFaqIndex, setOpenFaqIndex] = useState(0);
-
-  const isMobile = typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
 
   // Scripts are always available via npm imports (no CDN loading needed)
   const scriptsLoaded = true;
@@ -327,7 +298,6 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
   });
 
   // --- GSAP ORCHESTRATION (SIMPLIFIED & ROBUST) ---
-  const tlHeroRef = useRef(null);
 
   // Force hidden state BEFORE any painting happens to avoid "flash"
   useLayoutEffect(() => {

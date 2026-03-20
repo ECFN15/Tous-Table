@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
-    TrendingUp, ShoppingBag, ArrowUpRight, AlertTriangle, RefreshCw, Mail,
-    Gavel, Package, CheckCircle, Clock, Archive, Users
+    TrendingUp, ShoppingBag, AlertTriangle, RefreshCw, Mail,
+    Gavel, Package, Clock, Archive, Users
 } from 'lucide-react';
-import { collection, getDocs, writeBatch, doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, appId, functions } from '../../firebase/config';
 import { getMillis } from '../../utils/time';
@@ -21,17 +21,13 @@ const AdminDashboard = ({ user, darkMode = false }) => {
     });
 
     const [activeAuctions, setActiveAuctions] = useState([]); // [NEW] List of live auctions
-    const [recentSales, setRecentSales] = useState([]); // [NEW] Recently sold items list
     const [recentOrders, setRecentOrders] = useState([]);
     const [loading, setLoading] = useState(true);
 
     // Modal States
     const [isOrderResetModalOpen, setIsOrderResetModalOpen] = useState(false);
-    const [resettingOrders, setResettingOrders] = useState(false);
     const [allOrders, setAllOrders] = useState([]);
-    const [cleaning, setCleaning] = useState(false);
     const [isCleaningModalOpen, setIsCleaningModalOpen] = useState(false);
-    const [resettingUsers, setResettingUsers] = useState(false);
     const [isResetUsersModalOpen, setIsResetUsersModalOpen] = useState(false);
     const [exportingUsers, setExportingUsers] = useState(false);
     const [isPurgeAnonymousModalOpen, setIsPurgeAnonymousModalOpen] = useState(false);
@@ -116,7 +112,6 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                 soldItems.sort((a, b) => b.soldAt - a.soldAt);
 
                 setActiveAuctions(auctions);
-                setRecentSales(soldItems.slice(0, 5)); // Top 5 sold
 
                 setStats({
                     totalRevenue: revenue,
@@ -165,7 +160,6 @@ const AdminDashboard = ({ user, darkMode = false }) => {
     };
 
     const confirmResetOrders = async () => {
-        setResettingOrders(true);
         try {
             await exportToExcel(allOrders);
             const resetOrdersFn = httpsCallable(functions, 'resetAllOrders');
@@ -180,13 +174,10 @@ const AdminDashboard = ({ user, darkMode = false }) => {
         } catch (error) {
             console.error(error);
             alert("Erreur purge commandes: " + error.message);
-        } finally {
-            setResettingOrders(false);
         }
     };
 
     const confirmCleaning = async () => {
-        setCleaning(true);
         try {
             const garbageCollectorFn = httpsCallable(functions, 'runGarbageCollector');
             const result = await garbageCollectorFn();
@@ -197,24 +188,19 @@ const AdminDashboard = ({ user, darkMode = false }) => {
         } catch (error) {
             console.error(error);
             alert("Erreur nettoyage: " + error.message);
-        } finally {
-            setCleaning(false);
         }
     };
 
     const confirmResetUsers = async () => {
-        setResettingUsers(true);
         try {
             const resetUsersFn = httpsCallable(functions, 'resetAllUsers');
             const result = await resetUsersFn();
-            const { count, message } = result.data;
+            const { message } = result.data;
             setIsResetUsersModalOpen(false);
             alert(`✅ Succès !\n${message}`);
         } catch (error) {
             console.error(error);
             alert("Erreur purge utilisateurs: " + error.message);
-        } finally {
-            setResettingUsers(false);
         }
     };
 
@@ -223,7 +209,7 @@ const AdminDashboard = ({ user, darkMode = false }) => {
         try {
             const purgeAnonymousFn = httpsCallable(functions, 'purgeAnonymousUsers');
             const result = await purgeAnonymousFn();
-            const { count, message } = result.data;
+            const { message } = result.data;
             setIsPurgeAnonymousModalOpen(false);
             alert(`✅ Succès !\n${message}`);
         } catch (error) {
@@ -442,7 +428,7 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                         <h3 className={`text-xs font-black uppercase tracking-widest ${darkMode ? 'text-white' : 'text-stone-900'}`}>Contrôles Système</h3>
                     </div>
                     <button onClick={async () => {
-                        if (!confirm("Tester flux email ?")) return;
+                        if (!window.confirm("Tester flux email ?")) return;
                         try {
                             const res = await httpsCallable(functions, 'sendTestEmail')();
                             alert(res.data.success ? "✅ Mail Flux OK" : "❌ Erreur Mail");

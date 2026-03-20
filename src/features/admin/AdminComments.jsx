@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, Search, ArrowRight, Trash2, Send, CornerDownRight } from 'lucide-react';
+import { MessageCircle, ArrowRight, Trash2, Send, CornerDownRight } from 'lucide-react';
 import { db, appId } from '../../firebase/config';
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, addDoc, serverTimestamp, increment } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, doc, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { getMillis } from '../../utils/time';
 
 const AdminComments = ({ darkMode = false }) => {
@@ -11,7 +11,6 @@ const AdminComments = ({ darkMode = false }) => {
     const [selectedItemCollection, setSelectedItemCollection] = useState('furniture'); // 'furniture' | 'cutting_boards'
     const [activeComments, setActiveComments] = useState([]);
     const [replyText, setReplyText] = useState('');
-    const [loading, setLoading] = useState(true);
 
     const messagesEndRef = useRef(null);
 
@@ -40,7 +39,6 @@ const AdminComments = ({ darkMode = false }) => {
                 .sort((a, b) => (b.commentCount || 0) - (a.commentCount || 0)); // Sort by popularity for now
 
             setItemsWithComments(all);
-            setLoading(false);
         };
 
         const cleanup = fetchItems();
@@ -88,7 +86,7 @@ const AdminComments = ({ darkMode = false }) => {
     };
 
     const handleDeleteComment = async (commentId) => {
-        if (!confirm("Supprimer ce message ?")) return;
+        if (!window.confirm("Supprimer ce message ?")) return;
         try {
             await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', selectedItemCollection, selectedItemId, 'comments', commentId));
 

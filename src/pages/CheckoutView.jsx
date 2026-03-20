@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, CreditCard, Truck, CheckCircle, ShieldCheck, AlertCircle, Landmark, Lock, Wallet } from 'lucide-react';
+import { ArrowLeft, CreditCard, Truck, AlertCircle, Landmark, Wallet } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { functions, db, appId } from '../firebase/config';
 import { httpsCallable } from 'firebase/functions';
-import { doc, onSnapshot, deleteDoc } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { Elements } from '@stripe/react-stripe-js';
 import { stripePromise } from '../main';
 import CheckoutPaymentStep from '../components/cart/CheckoutPaymentStep';
@@ -164,7 +164,7 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
     });
     
     const [stripeEnabled, setStripeEnabled] = useState(() => {
-        try { const c = localStorage.getItem('paymentSettings'); if (c) return JSON.parse(c).stripeEnabled !== false; } catch (e) {}
+        try { const c = localStorage.getItem('paymentSettings'); if (c) return JSON.parse(c).stripeEnabled !== false; } catch { /* ignore error */ }
         return true;
     });
     const [paymentMethod, setPaymentMethod] = useState('stripe_elements'); // 'stripe_elements' | 'deferred'
