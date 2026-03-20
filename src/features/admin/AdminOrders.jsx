@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, limit } from 'firebase/firestore';
 import { db } from '../../firebase/config';
-import { Package, Clock, CheckCircle, Trash2, Mail, ChevronDown, ChevronUp, Download, Loader2, Truck, XCircle } from 'lucide-react';
+import { Package, Clock, CheckCircle, Mail, ChevronDown, ChevronUp, Download, Loader2, Truck, XCircle } from 'lucide-react';
 
 const AdminOrders = ({ darkMode = false }) => {
     const [orders, setOrders] = useState([]);
@@ -25,12 +25,6 @@ const AdminOrders = ({ darkMode = false }) => {
         await updateDoc(doc(db, 'orders', order.id), { status: newStatus });
     };
 
-    const handleDelete = async (orderId) => {
-        // ... (Keep existing if needed, or remove if unused. I'll replace it with the new logic completely for cleaner code, but user said remove button).
-        // Since I removed the button calling this, I can replace this function or add the new one.
-        // I will REPLACE this block with `handleCancelAndRestore`
-    };
-
     // Helper to get collection name (handles inconsistencies/legacy data)
     const getCollectionFromItem = (item) => {
         if (item.collection) return item.collection; // New Stripe Format
@@ -41,7 +35,7 @@ const AdminOrders = ({ darkMode = false }) => {
     };
 
     const handleCancelAndRestore = async (order) => {
-        if (!confirm("⚠️ ATTENTION : \n\nVous allez ANNULER cette commande.\n\nACTIONS AUTOMATIQUES :\n1. Le stock des produits sera REMIS à jour (+1).\n2. Les produits seront marqués comme 'Non Vendu'.\n3. La commande sera SUPPRIMÉE définitivement (invisible client/admin).\n\nConfirmer ?")) return;
+        if (!window.confirm("⚠️ ATTENTION : \n\nVous allez ANNULER cette commande.\n\nACTIONS AUTOMATIQUES :\n1. Le stock des produits sera REMIS à jour (+1).\n2. Les produits seront marqués comme 'Non Vendu'.\n3. La commande sera SUPPRIMÉE définitivement (invisible client/admin).\n\nConfirmer ?")) return;
 
         try {
             setIsLoading(true);
@@ -49,7 +43,7 @@ const AdminOrders = ({ darkMode = false }) => {
             // 1. Restaurer le Stock pour chaque article
             if (order.items && order.items.length > 0) {
                 // Import increment dynamically
-                const { increment, doc: docRef, updateDoc, getDoc } = await import('firebase/firestore');
+                const { increment, updateDoc, getDoc } = await import('firebase/firestore');
                 // Note: db and appId form closure
                 const appId = 'tat-made-in-normandie';
 

@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLiveTheme } from '../../../hooks/useLiveTheme';
 import { useAuth } from '../../../contexts/AuthContext';
-import { Menu, ShoppingBag, ShieldCheck, LogOut, Hammer, LogIn, ChevronLeft, Armchair, Gavel } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Menu, ShoppingBag, ShieldCheck, LogOut, LogIn, Armchair, Gavel } from 'lucide-react';
 import AnimatedThemeToggler from '../../../components/ui/AnimatedThemeToggler';
 
 const CuttingBoard = ({ size = 14, strokeWidth = 2, ...props }) => (
@@ -37,17 +36,11 @@ const ArchitecturalHeader = ({
     cartCount = 0,
     toggleTheme,
 
-    darkMode, // Explicit prop
-    onBack // New prop for navigation
+    darkMode // Explicit prop
 }) => {
     // Optional props destructuring with defaults
     const { activeCollection, setActiveCollection } = headerProps || {};
-    // Check if mode is forced (we need to pass current darkmode state to hook if we want it to react, 
-    // but here we just need to know if it is forced. We can pass a dummy or read from localStorage if needed, 
-    // but cleaner to just trust the hook default or pass it via props. 
-    // Since we don't receive darkMode boolean here, we'll let useLiveTheme resolve it or rely on parent.
-    // Actually, forcedMode comes from Firestore.
-    const { forcedMode } = useLiveTheme();
+    useLiveTheme(); // Used for side effects, no need to extract unused forcedMode
     const { logout, isAdmin } = useAuth();
 
     // We always show the toggle to allow user override

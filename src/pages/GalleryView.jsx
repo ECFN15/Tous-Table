@@ -8,7 +8,7 @@ import SEO from '../components/shared/SEO';
 // SEO component is imported at the top.
 
 const GalleryView = ({ 
-    items, boardItems = [], isAdmin, isSecretGateOpen, user, onSelectItem, onShowLogin, darkMode = false, 
+    items, boardItems = [], user, onSelectItem, onShowLogin, darkMode = false,
     onOpenMenu, onOpenCart, toggleTheme, setHeaderProps,
     persistentGalleryState, saveGalleryState 
 }) => {

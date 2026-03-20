@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { httpsCallable } from 'firebase/functions';
-import { collection, doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { functions, db } from '../../firebase/config';
 import { Users, UserPlus, Trash2, Shield, Loader, AlertCircle } from 'lucide-react';
 
@@ -69,7 +69,7 @@ const AdminUsers = ({ darkMode }) => {
 
     // --- 3. Remove User Handler ---
     const handleRemoveUser = async (uid, email) => {
-        if (!confirm(`Voulez-vous vraiment retirer les droits d'administration à ${email} ?`)) return;
+        if (!window.confirm(`Voulez-vous vraiment retirer les droits d'administration à ${email} ?`)) return;
 
         try {
             const removeAdminFn = httpsCallable(functions, 'removeAdminUser');

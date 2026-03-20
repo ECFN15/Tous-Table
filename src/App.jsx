@@ -2,17 +2,17 @@ import React, { useState, useEffect, useRef } from 'react';
 
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import {
-  onSnapshot, collection, doc, updateDoc, deleteDoc, serverTimestamp, addDoc, query, orderBy, getDocs, writeBatch
+  onSnapshot, collection, doc, deleteDoc, serverTimestamp, addDoc, query, getDocs, writeBatch
 } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions'; // Added for logUserConnection
 // Auth imports removed (handled in Context)
 import {
-  Hammer, LogOut, ShieldCheck, Menu, X, Instagram, Mail, User, Eye, EyeOff, Pencil, Trash2, Trophy, ShoppingBag, Sun, Moon, Facebook, AlertTriangle, AlertCircle, ShoppingCart
+  Hammer, LogOut, ShieldCheck, Menu, Eye, EyeOff, ShoppingBag, Sun, Moon, AlertTriangle
 } from 'lucide-react';
-import { motion, AnimatePresence, useAnimation } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // --- IMPORTS CONFIG & UTILS ---
-import { auth, db, appId, functions, googleProvider } from './firebase/config';
+import { db, appId, functions, googleProvider } from './firebase/config';
 import { getMillis } from './utils/time';
 import { useLiveTheme } from './hooks/useLiveTheme'; // Import hook for forcedMode check
 

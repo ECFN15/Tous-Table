@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Upload, Trash2, Download } from 'lucide-react';
-import { db, storage, functions, appId } from '../../firebase/config';
-import { httpsCallable } from 'firebase/functions';
+import { db, storage, appId } from '../../firebase/config';
 import { doc, addDoc, updateDoc, collection, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getMillis } from '../../utils/time';
@@ -165,7 +164,7 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
   const handleDownloadImages = (e) => {
     e.preventDefault();
     let count = 0;
-    galleryItems.forEach((item, index) => {
+    galleryItems.forEach((item) => {
       if (item.file && item.isCompressed) {
         setTimeout(() => {
           const url = URL.createObjectURL(item.file);
@@ -190,7 +189,6 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
 
     try {
       let finalImageUrls = [];
-      let finalThumbnailUrls = [];
       let count = 0;
 
       for (const item of galleryItems) {
@@ -278,7 +276,7 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
   const onDragStartItem = (e, index) => {
     setDraggedItemIndex(index);
   };
-  const onDragOverItem = (e, index) => {
+  const onDragOverItem = (e) => {
     e.preventDefault();
   };
   const onDropItem = (e, dropIndex) => {

@@ -10,7 +10,7 @@ function LoginView({ onSuccess }) {
   const handle = async (e) => {
     e.preventDefault();
     try { await loginWithEmail(email, pass); onSuccess(); }
-    catch (err) { setErrorMsg("Identifiants incorrects."); }
+    catch { setErrorMsg("Identifiants incorrects."); }
   };
   return (
     <div className="max-w-xs mx-auto py-40 text-center space-y-6 animate-in zoom-in-95 text-stone-900">

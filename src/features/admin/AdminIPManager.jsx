@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { httpsCallable } from 'firebase/functions';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { functions, db } from '../../firebase/config';
-import { Globe, Clock, Trash2, AlertCircle, Shield } from 'lucide-react';
+import { db } from '../../firebase/config';
+import { Clock, AlertCircle, Shield } from 'lucide-react';
 
 const AdminIPManager = ({ darkMode }) => {
     const [adminIPs, setAdminIPs] = useState({});

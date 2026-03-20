@@ -31,7 +31,7 @@ const AdminNewsletter = ({ darkMode }) => {
     }, []);
 
     const handleDelete = async (id, email) => {
-        if (!confirm(`Voulez-vous vraiment supprimer l'abonné ${email} ?`)) return;
+        if (!window.confirm(`Voulez-vous vraiment supprimer l'abonné ${email} ?`)) return;
         try {
             await deleteDoc(doc(db, 'newsletter_subscribers', id));
         } catch (error) {
