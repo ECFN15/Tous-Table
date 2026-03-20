@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { collection, query, orderBy, onSnapshot, getDocs, limit, where } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, getDocs, where } from 'firebase/firestore';
 import { db, appId } from '../../firebase/config';
-import { Gavel, History, Download, ChevronDown, ChevronUp, User, Mail, Calendar, Clock } from 'lucide-react';
+import { Gavel, History, Download, ChevronDown, ChevronUp, User, Mail, Calendar } from 'lucide-react';
 import { getMillis } from '../../utils/time';
 
 const AdminAuctions = ({ darkMode = false }) => {
@@ -189,7 +189,7 @@ const AdminAuctions = ({ darkMode = false }) => {
                                                         <td colSpan="4" className="py-10 text-center text-stone-400 italic text-sm">Aucune offre pour le moment sur cette pièce.</td>
                                                     </tr>
                                                 ) : (
-                                                    bids.map((bid, idx) => (
+                                                    bids.map((bid) => (
                                                         <tr key={bid.id} className={`group transition-all ${darkMode ? 'hover:bg-stone-800' : 'hover:bg-white shadow-sm hover:shadow-md'}`}>
                                                             <td className={`py-4 pl-4 rounded-l-2xl border-y ${darkMode ? 'border-stone-700' : 'bg-white border-stone-100'}`}>
                                                                 <div className="flex flex-col">

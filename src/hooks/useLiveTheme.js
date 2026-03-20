@@ -7,12 +7,12 @@ import { db } from '../firebase/config';
  * Forces the 'architectural' design as the primary and only frontend.
  * Still listens to Firestore for 'forcedMode' (Light/Dark/Auto) to respect Admin settings.
  */
-export const useLiveTheme = (darkMode) => {
+export const useLiveTheme = () => {
     const [forcedMode, setForcedMode] = useState(() => {
         try {
             const cached = localStorage.getItem('themeSettings');
             if (cached) return JSON.parse(cached).forcedMode;
-        } catch (e) { }
+        } catch { /* ignore error */ }
         return 'light';
     });
 

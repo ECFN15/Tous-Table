@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../firebase/config';
 import { useAuth } from '../../contexts/AuthContext';
@@ -110,7 +110,7 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
                 duration: totalDuration,
                 journey: chunk,
                 sessionActive: document.visibilityState === 'visible'
-            }).catch(e => {
+            }).catch(() => {
                 journeyToSend.current = [...chunk, ...journeyToSend.current];
             });
 

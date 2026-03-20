@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, getDoc, increment, limit } from 'firebase/firestore';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { functions } from '../firebase/config';
 import { httpsCallable } from 'firebase/functions';
-import { Package, Truck, XCircle, MessageCircle, ArrowLeft, Clock, CheckCircle, Download, CreditCard, Copy, Check, Loader2, Star, AlertTriangle } from 'lucide-react';
-import { getMillis } from '../utils/time';
+import { Package, Truck, XCircle, MessageCircle, ArrowLeft, CheckCircle, Download, CreditCard, Copy, Check, Loader2, Star, AlertTriangle } from 'lucide-react';
 import { generateInvoice } from '../utils/generateInvoice';
 
 const formatPrice = (price) => {
     return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(price);
 };
 
-const MyOrdersView = ({ user, onBack, darkMode, activeDesignId }) => {
+const MyOrdersView = ({ user, onBack, darkMode }) => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [copied, setCopied] = useState(null);
@@ -73,7 +72,6 @@ const MyOrdersView = ({ user, onBack, darkMode, activeDesignId }) => {
 
     const handleConfirmCancel = async () => {
         const orderId = orderToCancelId;
-        const orderToCancel = orders.find(o => o.id === orderId);
 
         try {
             setIsCancelling(true);

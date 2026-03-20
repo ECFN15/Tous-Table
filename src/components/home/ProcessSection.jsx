@@ -122,7 +122,7 @@ const ProcessSection = ({ homepageImages = {} }) => {
 
                 // Internal Reveal Animations (Synced with Horizontal Scroll)
                 const cards = gsap.utils.toArray('.process-card-desktop');
-                cards.forEach((card, i) => {
+                cards.forEach((card) => {
                     const img = card.querySelector('.p-img');
                     const caption = card.querySelector('.p-text');
 

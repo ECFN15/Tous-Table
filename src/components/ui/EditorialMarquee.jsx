@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import gsap from 'gsap';
-import { useScroll, useVelocity, useAnimationFrame } from 'framer-motion';
+import { useScroll, useVelocity } from 'framer-motion';
 import { db } from '../../firebase/config';
 import { doc, getDoc } from 'firebase/firestore';
 
@@ -57,7 +57,7 @@ const MarqueeRow = ({ items = [], color, direction = 'left', baseSpeed = 1, clas
             if (x > 0) x -= totalWidth;
             content.style.transform = `translate3d(${x}px, 0, 0)`;
         };
-        const ticker = gsap.ticker.add(update);
+        gsap.ticker.add(update);
         return () => gsap.ticker.remove(update);
     }, [baseSpeed, direction]);
 

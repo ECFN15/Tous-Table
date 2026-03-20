@@ -2,15 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { useLiveTheme } from '../../hooks/useLiveTheme';
-import { Check, Sun, Moon, Smartphone, Layout, Sparkles, Box } from 'lucide-react';
+import { Check, Sun, Moon, Layout, Sparkles } from 'lucide-react';
 
 const AdminStudio = ({ darkMode }) => {
     // État global (Firestore)
     const { forcedMode } = useLiveTheme(darkMode);
 
     // Architectural is now the only design
-    const activeDesignId = 'architectural';
-    const activeTab = 'collection';
 
     const [activeForcedMode, setActiveForcedMode] = useState(forcedMode);
 

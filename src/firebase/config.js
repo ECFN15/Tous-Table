@@ -28,7 +28,7 @@ const app = initializeApp(firebaseConfig);
 if (typeof window !== 'undefined') {
   // Active le mode debug pour localhost (npm run dev)
   if (window.location.hostname === 'localhost') {
-    self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+    window.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
   }
 
   initializeAppCheck(app, {
