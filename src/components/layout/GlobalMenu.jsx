@@ -64,7 +64,8 @@ const MenuItemHover = React.memo(({ item, index, isClicked, darkMode, handlePrem
                                                 }
                                             }
                                         }}
-                                        style={{ willChange: 'transform' }}
+                                        // Le will-change est géré dynamiquement par Framer Motion. 
+                                        // Le retirer du repos libère 80+ calques VRAM inutiles.
                                     >
                                         {char === ' ' ? '\u00A0' : char}
                                     </motion.span>
@@ -81,7 +82,6 @@ const MenuItemHover = React.memo(({ item, index, isClicked, darkMode, handlePrem
                                     }}
                                     initial="initial"
                                     animate={controls}
-                                    style={{ willChange: 'transform' }}
                                 >
                                     {char === ' ' ? '\u00A0' : char}
                                 </motion.span>
@@ -207,7 +207,9 @@ const GlobalMenu = ({
             if (isClicked) return {
                 transform: isMobile ? 'translate3d(15px,0,0)' : 'translate3d(15px,0,0) scale(1.05) rotateZ(0.01deg)',
                 opacity: 1,
-                ...(!isMobile && { filter: 'blur(0px)' }),
+                // On utilise 0.01px au lieu de 0px pour forcer le navigateur
+                // à garder le pipeline shader actif en cache vidéo (évite le stutter)
+                ...(!isMobile && { filter: 'blur(0.01px)' }),
                 transition: buildTransition(300, EASE_OPEN),
             };
             return {
@@ -222,7 +224,7 @@ const GlobalMenu = ({
         if (isMenuOpen) return {
             transform: isMobile ? 'translate3d(0,0,0)' : 'translate3d(0,0,0) skewX(0deg) scale(1) rotateZ(0.01deg)',
             opacity: 1,
-            ...(!isMobile && { filter: 'blur(0px)' }),
+            ...(!isMobile && { filter: 'blur(0.01px)' }), // Cache Shader actif
             transition: buildTransition(650, EASE_OPEN, index * 100),
         };
 
@@ -244,6 +246,7 @@ const GlobalMenu = ({
                     opacity: isMenuOpen ? 1 : 0,
                     transition: 'opacity 500ms ease',
                     willChange: 'opacity',
+                    transform: 'translateZ(0)', // Force GPU layer optimal
                 }}
                 onClick={() => setIsMenuOpen(false)}
             />
@@ -264,6 +267,7 @@ const GlobalMenu = ({
                     willChange: 'transform',
                     backfaceVisibility: 'hidden',
                     WebkitBackfaceVisibility: 'hidden',
+                    contain: 'content', // Isolate layout et rendering du document (crucial pour 144Hz)
                 }}
             >
                 <div className="space-y-20">
