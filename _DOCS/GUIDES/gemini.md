@@ -6,6 +6,13 @@
 
 ---
 
+# Intervention — Section Stacked Cards & Colorimétrie (21-22 Mars 2026)
+* Remplacement du dégradé linéaire classique de la section principale par un gradient à 5 arrêts (`#FFFFFF 0%, #FDF4E3 20%, #F8E2C4 50%, #F0C49B 80%, #D9956C 100%`) qui englobe les cartes et agit comme source lumineuse douce.
+* Restructuration thermique (`bgColor`) des 4 `featuredItems` dans `HomeView.jsx` vers un dégradé Solaire assumé : Vanille, Miel Doré, Caramel et Brique.
+* Supression de toutes les balises hardcodées (tailwind `text-[#1a1a1a]`) dans `StackedCards.jsx` sur la typo et le SVG Button pour leur implémenter `style={{ color: item.textColor || '#1a1a1a' }}`.
+
+---
+
 # Rapport de débogage — Autocomplétion Adresse (Checkout)
 
 ## Contexte

@@ -10,6 +10,10 @@
 2. **Resynchronisation du GlobalMenu** : Le header passe désormais derrière le GlobalMenu (`z-50` et `z-[110]`), imitant le comportement immersif du `CartSidebar` (`z-[2001]`).
 3. **Animation Hamburger -> Croix** : Intégration d'une icône combinée (Menu morphant en X) placée au sein du `GlobalMenu`.
 4. **Marges Mobile** : Augmentation du padding horizontal mobile (`px-4` -> `px-8`) et alignement horizontal de la croix (`-right-2`) avec les numéros du menu.
+
+### Optimisation Couleurs et Dégradé "Golden Hour" (StackedCards)
+**Fichiers** : `src/pages/HomeView.jsx`, `src/components/home/StackedCards.jsx`
+**Action** : Refonte de la colorimétrie de la section "StackedCards". Les fonds des cartes passent d'un camaïeu fade à un dégradé très chaleureux et solaire (Crème Vanille, Miel Doré, Caramel, Terre Cuite). Ajout de l'héritage automatique de couleur au bouton "Découvrir la galerie" (`textColor`). Le grand dégradé d'arrière-plan a été revu (`#FFFFFF` -> `#D9956C`) pour créer une aura lumineuse enveloppante qui met particulièrement en valeur les images des meubles.
 ---
 
 > Ce fichier documente chaque intervention de Claude sur le projet **Tous à Table Made in Normandie**.

@@ -11,6 +11,16 @@ Le header tentait de rester au-dessus du menu modal (GlobalMenu) pour que l'anim
 3. **Optimisation Mobile** : Les paddings latéraux du conteneur ont été doublés (`px-8` -> 32px), et l'alignement de la nouvelle croix a été ajusté sur son bord droit grâce à `-right-2`, venant s'indexer au pixel près sur la typographie des numéros de sections.
 4. **Style Premium** : Remplacement systématique des `hover:bg` par des `group-hover:text-amber`, alignement épuré par retrait du mot redondant "MENU", et conservation de la hauteur native standard (`md:pt-[28px]` sur le bloc croix).
 
+## 2. Refonte Colorimétrique : Stacked Cards (Golden Hour)
+
+### Problème
+Les anciennes couleurs de la section "StackedCards" (notamment la carte 2 `#fcead6`) manquaient de force et se faisaient engloutir par le massif dégradé de fond couleur "pêche". Le tout paraissait un peu trop froid ou pastel par rapport à la noblesse chaleureuse de l'ébénisterie. Enfin, le bouton rotatif limitait les contrastes car son noir `#1a1a1a` était codé en dur.
+
+### Solution
+1. **Palette Solaire** : Injection de teintes chaudes et vibrantes (Vanille `#FDF0D5`, Miel `#EFC894`, Caramel `#DE8F59` et Terre Cuite `#BC5735`) pour les 4 cartes (`HomeView.jsx`), donnant une personnalité lumineuse forte.
+2. **Couleurs Accessibles** : Modification logicielle du composant `RotatingButton` pour hériter dynamiquement de la `textColor` de la carte de base, libérant les designers.
+3. **Le "Sunset Tracking" Background** : Ajout d'un tout nouveau dégradé css linéaire à 5 stops sur la balise `<section>`, agissant comme un léger halo lumineux très subtil (un demi-ton plus clair que les cartes respectives) pour glorifier les cartes sans se superposer à elles.
+
 ---
 
 # Rapport de Corrections — Session du 18 Mars 2026
