@@ -898,7 +898,14 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       {/* NAVIGATION - FIXED SAFE AREA */
         /* Increased to max(3rem) for tablets with thick status bars */
       }
-      <header className="fixed top-0 left-0 w-full p-5 md:p-12 pt-[max(2rem,env(safe-area-inset-top))] pr-[max(1.5rem,env(safe-area-inset-right))] pl-[max(1.5rem,env(safe-area-inset-left))] flex justify-between items-center z-[210] mix-blend-difference text-white">
+      <header
+          className="fixed top-0 left-0 w-full p-5 md:p-12 flex justify-between items-center z-[210] mix-blend-difference text-white"
+          style={{
+              paddingTop: 'calc(env(safe-area-inset-top, 0px) + 2rem)',
+              paddingRight: 'calc(env(safe-area-inset-right, 0px) + 1.5rem)',
+              paddingLeft: 'calc(env(safe-area-inset-left, 0px) + 1.5rem)'
+          }}
+      >
         <div className="flex items-center gap-3 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
           <Hammer size={18} className="group-hover:rotate-45 transition-transform duration-500" />
           <span className="font-serif text-xl tracking-widest uppercase font-light italic text-white">Tous à Table</span>

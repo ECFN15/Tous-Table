@@ -78,8 +78,8 @@ const ArchitecturalHeader = ({
 
     return (
         <header
-            className={`sticky top-0 z-[1000] transition-all duration-300 ease-in-out transform ${isVisible ? 'translate-y-0' : '-translate-y-full'} bg-transparent
-                pt-[max(0rem,env(safe-area-inset-top))]`}
+            className={`sticky top-0 z-[1000] transition-all duration-300 ease-in-out transform ${isVisible ? 'translate-y-0' : '-translate-y-full'} bg-transparent`}
+            style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
         >
             <div className="max-w-[1920px] mx-auto px-4 md:px-12 h-20 md:h-24 flex items-center justify-between relative">
 
