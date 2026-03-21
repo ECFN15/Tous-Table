@@ -4,7 +4,6 @@ import { X, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
 const CartSidebar = ({ isOpen, onClose, cartItems, onRemoveItem, totalPrice, onCheckout, interacted, darkMode, activeDesignId }) => {
     // We only want transitions AFTER the first interaction to avoid the "closing on mount" bug
     const transitionEnabled = interacted || isOpen;
-    const baseTransition = transitionEnabled ? 'duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]' : 'duration-0';
 
     // ARCHITECTURAL THEME LOGIC
     const isArch = activeDesignId === 'architectural';
@@ -22,9 +21,19 @@ const CartSidebar = ({ isOpen, onClose, cartItems, onRemoveItem, totalPrice, onC
 
             {/* Sidebar Panel */}
             <div
-                className={`absolute right-0 top-0 bottom-0 w-full md:w-[500px] shadow-2xl transition-all ${baseTransition} transform-gpu 
-                px-6 pb-6 md:px-8 md:pb-8 flex flex-col safe-area-bottom ${isOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'} ${bgClass}`}
-                style={{ paddingTop: 'max(4.5rem, calc(env(safe-area-inset-top, 0px) + 2rem))' }}
+                className={`absolute right-0 top-0 bottom-0 w-full md:w-[500px] shadow-2xl
+                px-6 pb-6 md:px-8 md:pb-8 flex flex-col safe-area-bottom ${bgClass}`}
+                style={{
+                    paddingTop: 'max(4.5rem, calc(env(safe-area-inset-top, 0px) + 2rem))',
+                    transform: isOpen ? 'translate3d(0,0,0)' : 'translate3d(100%,0,0)',
+                    opacity: isOpen ? 1 : 0,
+                    transition: transitionEnabled
+                        ? 'transform 700ms cubic-bezier(0.23,1,0.32,1), opacity 700ms cubic-bezier(0.23,1,0.32,1)'
+                        : 'none',
+                    willChange: 'transform',
+                    backfaceVisibility: 'hidden',
+                    WebkitBackfaceVisibility: 'hidden'
+                }}
             >
 
                 {/* Header */}
