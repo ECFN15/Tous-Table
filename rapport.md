@@ -1,3 +1,18 @@
+# Rapport de Corrections — Session du 21 Mars 2026
+
+## 1. Refonte du Menu Principal (GlobalMenu) & Header
+
+### Problème
+Le header tentait de rester au-dessus du menu modal (GlobalMenu) pour que l'animation "Hamburger vers Croix" soit visible. Cela provoquait le passage intempestif d'autres icônes (Connexion, Lune, Panier) par-dessus le panneau latéral qui s'ouvrait. De plus, les marges du menu sur petits écrans étaient trop minces, et l'iconographie au survol manquait d'élégance "premium".
+
+### Solution
+1. **Réajustement des Z-Index** : Remise de `ArchitecturalHeader` (`z-50`) et `App.jsx` (`z-[110]`) pour que le header s'efface naturellement **sous** le Menu Modal (`z-[2000]`), évitant toute collision visuelle.
+2. **Transfert de l'Animation** : La complexe animation CSS compositor-thread "Hamburger -> Croix" a été intégrée directement à l'intérieur du `GlobalMenu.jsx`, positionnée spécifiquement pour donner l'illusion d'une transition sur place par rapport à l'icône originale.
+3. **Optimisation Mobile** : Les paddings latéraux du conteneur ont été doublés (`px-8` -> 32px), et l'alignement de la nouvelle croix a été ajusté sur son bord droit grâce à `-right-2`, venant s'indexer au pixel près sur la typographie des numéros de sections.
+4. **Style Premium** : Remplacement systématique des `hover:bg` par des `group-hover:text-amber`, alignement épuré par retrait du mot redondant "MENU", et conservation de la hauteur native standard (`md:pt-[28px]` sur le bloc croix).
+
+---
+
 # Rapport de Corrections — Session du 18 Mars 2026
 
 ## 1. Header iOS PWA / Dynamic Island

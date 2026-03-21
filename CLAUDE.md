@@ -1,5 +1,17 @@
 # CLAUDE.md — Journal de bord technique
 
+## 21 mars 2026 — Refonte de l'UX/UI du Menu Global et Header
+
+**Fichiers** : `src/App.jsx`, `src/designs/architectural/components/ArchitecturalHeader.jsx`, `src/components/layout/GlobalMenu.jsx`
+
+**Problème** : L'expérience du menu principal souffrait de superpositions avec les boutons du header. L'animation de fermeture n'existait pas pour le hamburger, et les marges mobiles du panneau latéral étaient insuffisantes.
+**Solutions appliquées** :
+1. **Épuration visuelle** : Suppression du mot "MENU" dans le header, retrait des fonds au survol (pastilles rouges) remplacés par une teinte subtile ambre sur le SVG.
+2. **Resynchronisation du GlobalMenu** : Le header passe désormais derrière le GlobalMenu (`z-50` et `z-[110]`), imitant le comportement immersif du `CartSidebar` (`z-[2001]`).
+3. **Animation Hamburger -> Croix** : Intégration d'une icône combinée (Menu morphant en X) placée au sein du `GlobalMenu`.
+4. **Marges Mobile** : Augmentation du padding horizontal mobile (`px-4` -> `px-8`) et alignement horizontal de la croix (`-right-2`) avec les numéros du menu.
+---
+
 > Ce fichier documente chaque intervention de Claude sur le projet **Tous à Table Made in Normandie**.
 > Chaque entrée est datée, détaille le problème d'origine, la solution appliquée, et les fichiers modifiés.
 

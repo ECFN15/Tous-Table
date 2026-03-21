@@ -254,7 +254,7 @@ const GlobalMenu = ({
             {/* Panel — GPU pre-promoted : translate3d + will-change permanent
                 Le compositing layer est créé AVANT l'animation → zéro jank premier frame */}
             <div className={`absolute right-0 top-0 bottom-0 w-full md:w-[450px] shadow-2xl
-                pt-[max(1.5rem,calc(env(safe-area-inset-top,0px)+1.5rem))] px-4 md:px-12 pb-12 md:pb-12 md:pt-[28px]
+                pt-[max(1.5rem,calc(env(safe-area-inset-top,0px)+1.5rem))] px-8 md:px-12 pb-12 md:pb-12 md:pt-[28px]
                 flex flex-col justify-between z-[2001]
               ${activeDesignId === 'architectural'
                     ? (darkMode ? 'bg-[#0A0A0A] border-l border-stone-800 text-stone-200' : 'bg-[#FAFAF9] border-l border-stone-200 text-stone-900')
@@ -275,7 +275,7 @@ const GlobalMenu = ({
                         <span className={`text-[10px] font-black uppercase tracking-[0.3em] transition-opacity duration-500 ${isMenuOpen ? 'opacity-100' : 'opacity-0'} ${darkMode ? 'text-stone-500' : 'text-stone-300'}`}>Menu</span>
                         
                         {/* Animated Close Button - Hamburger morphing to Cross */}
-                        <div className="absolute right-0 flex items-center justify-center">
+                        <div className="absolute -right-2 flex items-center justify-center">
                             <button 
                                 onClick={(e) => {
                                     setIsMenuOpen(false);

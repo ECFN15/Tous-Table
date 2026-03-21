@@ -1,3 +1,11 @@
+# Intervention — UX/UI Menu Global (21 Mars 2026)
+* Menu modal repositionné en superposition absolue (`z-[2001]`) par-dessus les headers pour effacer les collisions avec les autres boutons de navigation.
+* Remplacement des backgrounds hover des boutons du menu par des `group-hover:text-amber` fluides et premium.
+* Restitution de l'animation CSS Hamburger-to-Cross non plus au sein du header mais intégrée au sein du `GlobalMenu` pendant son apparition latérale. L'effet de morphing est identique mais indépendant des autres z-index.
+* Réajustement des marges (`px-8`) sur la grille flex du panneau mobile pour une respirabilité améliorée. Décalage de l'icône de fermeture de 8px pour la cadrer avec le bord typographique abstrait de la navigation numérique de droite.
+
+---
+
 # Rapport de débogage — Autocomplétion Adresse (Checkout)
 
 ## Contexte
