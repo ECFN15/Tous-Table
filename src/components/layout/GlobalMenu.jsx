@@ -284,7 +284,6 @@ const GlobalMenu = ({
                                         setIsMenuOpen(false);
                                     }, 400);
                                 }} 
-                                whileHover={{ scale: 1.15 }} 
                                 initial={{ rotate: 0, opacity: 0 }}
                                 animate={{ rotate: 0, opacity: 1 }}
                                 transition={{ 

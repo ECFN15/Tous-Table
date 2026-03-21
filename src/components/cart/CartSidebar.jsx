@@ -1,5 +1,5 @@
-import React from 'react';
 import { X, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const CartSidebar = ({ isOpen, onClose, cartItems, onRemoveItem, totalPrice, onCheckout, interacted, darkMode, activeDesignId }) => {
     // We only want transitions AFTER the first interaction to avoid the "closing on mount" bug
@@ -35,9 +35,30 @@ const CartSidebar = ({ isOpen, onClose, cartItems, onRemoveItem, totalPrice, onC
                             {isArch ? 'Votre Sélection' : 'Votre Panier'}
                         </h2>
                     </div>
-                    <button onClick={onClose} className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${darkMode ? 'bg-stone-800 border-stone-700 text-white hover:bg-white hover:text-stone-900' : 'bg-white border-stone-200 text-stone-900 hover:bg-stone-900 hover:text-white'}`}>
-                        <X size={18} />
-                    </button>
+                    
+                    {/* Animated Close Button - Same as Menu (X to +) */}
+                    <div className="relative w-12 h-12 flex items-center justify-center">
+                        <motion.button 
+                            onClick={(e) => {
+                                const btn = e.currentTarget;
+                                btn.style.transition = 'transform 0.4s cubic-bezier(0.23, 1, 0.32, 1)';
+                                btn.style.transform = 'rotate(45deg)'; 
+                                
+                                setTimeout(() => {
+                                    onClose();
+                                }, 400);
+                            }} 
+                            initial={{ rotate: 0, opacity: 0 }}
+                            animate={{ rotate: 0, opacity: 1 }}
+                            transition={{ 
+                                rotate: { type: "spring", stiffness: 450, damping: 25 },
+                                opacity: { duration: 0.3 }
+                            }}
+                            className={`flex items-center justify-center will-change-transform ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}
+                        >
+                            <X size={26} strokeWidth={1} />
+                        </motion.button>
+                    </div>
                 </div>
 
                 {/* Cart Items List */}
