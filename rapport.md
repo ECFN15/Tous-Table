@@ -330,3 +330,46 @@ Pour conserver 100% des animations "Premium" (le flou des textes, le backdrop-bl
 
 ### Fichier modifié
 - `src/components/layout/GlobalMenu.jsx`
+
+---
+
+## 12. Authentification Google PWA sur Android (21 Mars 2026)
+
+### Problème
+Lors de l'utilisation du site installé en tant qu'application (PWA) sur Android (Samsung S24 Ultra, Xiaomi), la connexion Google ne fonctionnait pas. L'utilisateur restait en mode "Anonyme", et les menus **Commande** et **Admin** ne s'affichaient pas.
+
+### Cause
+Une fonction `isIOSStandalone` dans `src/contexts/AuthContext.jsx` forçait l'utilisation de `signInWithRedirect` au lieu de `signInWithPopup` dès que le site était en mode "standalone" (PWA), sans vérifier si l'appareil était réellement sous iOS. 
+Sur Android, `signInWithRedirect` dans une PWA peut rompre le lien avec l'application installée (ouverture dans un onglet externe), empêchant la session de se propager correctement à l'application.
+
+### Solution
+Modification de la fonction `isIOSStandalone` pour inclure une vérification stricte de l'OS (`iPad|iPhone|iPod` ou Mac tactile). Désormais :
+- **iOS PWA** : continue d'utiliser `signInWithRedirect` (car les popups sont bloqués par WebKit en standalone).
+- **Android PWA / Desktop** : utilise `signInWithPopup`, ce qui permet une connexion fluide sans quitter l'application.
+
+### Fichier modifié
+- `src/contexts/AuthContext.jsx`
+
+---
+
+## 13. Optimisation des espacements supérieurs (Mobile/PWA) (21 Mars 2026)
+
+### Problème
+Sur les téléphones Android (ex: S24 Ultra) et navigateurs génériques, un espace vide (padding) excessif de 72px (4.5rem) apparaissait systématiquement en haut du Menu Principal et du Panier latéral. Cette contrainte était conçue pour prévenir le chevauchement avec l'encoche (Dynamic Island) des iPhones, mais elle gaspillait la zone d'affichage sur les autres terminaux.
+
+### Cause
+L'implémentation de marge "iOS-safe" utilisait la règle CSS Tailwind `pt-[max(4.5rem,env(safe-area-inset-top)+2rem)]`.
+- `max()` prenait **toujours la valeur minimum de 4.5rem** (~72px).
+- Sur Android, `env(safe-area-inset-top)` vaut souvent `0px`, résultant en une énorme perte d'espace injustifiée. 
+
+### Solution
+Mise en place d'un calcul "intelligent" conditionné `pt-[max(1.5rem,calc(env(safe-area-inset-top,0px)+0.5rem))]`.
+- **Sur Android (sans encoche API)** : `max(24px, 8px)` = **24px** de padding supérieur, exploitant au maximum la surface de l'écran. 
+- **Sur iPhone (Dynamic Island ~59px)** : `max(24px, 67px)` = **67px** de padding supérieur, évitant ainsi le Dynamic Island parfaitement.
+- Desktop est intact car les utilitaires Tailwind `md:pt-16` / `md:pt-12` priment automatiquement au-delà de 768px.
+
+### Fichiers modifiés
+- `src/components/layout/GlobalMenu.jsx`
+- `src/components/cart/CartSidebar.jsx`
+
+*Note: La balise `viewport-fit=cover` présente dans `index.html` est correctement en place, assurant la validité du calcul sur iOS.*

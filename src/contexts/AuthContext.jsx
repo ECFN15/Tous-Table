@@ -18,8 +18,9 @@ import { functions } from '../firebase/config';
 // Detect iOS standalone PWA mode (added to home screen)
 // In this mode, signInWithPopup is blocked by WebKit — must use signInWithRedirect
 const isIOSStandalone = () => {
-    return window.navigator.standalone === true ||
-        window.matchMedia('(display-mode: standalone)').matches;
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.userAgent.includes("Mac") && "ontouchend" in document);
+    const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+    return isIOS && isStandalone;
 };
 
 // Persist redirect flag across page reloads (useRef resets on reload, sessionStorage doesn't)

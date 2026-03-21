@@ -74,3 +74,50 @@ Le dropdown étant dans un portal (`document.body`), son DOM est hors de `sugges
 ## Leçon clé
 
 > Toujours vérifier le CSP (`firebase.json`) en premier quand une fonctionnalité marche en local mais pas en production. Le navigateur bloque silencieusement les requêtes réseau non autorisées — aucune erreur visible dans l'UI, seulement dans la console (onglet Réseau, statut `blocked:csp`).
+
+---
+
+# Rapport de débogage — Authentification Google PWA (Android)
+
+## Contexte
+Le site fonctionne parfaitement dans Chrome sur Android, mais une fois installé sur l'écran d'accueil (PWA), la connexion Google devenait impossible sur certains modèles (Samsung S24 Ultra, Xiaomi). L'utilisateur restait bloqué en accès visiteur (anonyme).
+
+---
+
+## Cause racine
+Dans `src/contexts/AuthContext.jsx`, une logique de contournement pour iOS était trop large :
+```javascript
+const isIOSStandalone = () => {
+    return window.navigator.standalone === true ||
+        window.matchMedia('(display-mode: standalone)').matches;
+};
+```
+Cette fonction retournait `true` sur **tous** les mobiles quand l'app était installée. Elle forçait `signInWithRedirect(auth, googleProvider)`.
+Sur Android, ce comportement sort l'utilisateur de la PWA pour l'envoyer vers le navigateur système, perdant ainsi le contexte de l'application installée lors du retour.
+
+---
+
+## Solution
+Rendre la détection spécifique à iOS, car Android gère très bien les popups même en mode PWA.
+
+```javascript
+const isIOSStandalone = () => {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                  (navigator.userAgent.includes("Mac") && "ontouchend" in document);
+    const isStandalone = window.navigator.standalone === true || 
+                         window.matchMedia('(display-mode: standalone)').matches;
+    return isIOS && isStandalone;
+};
+```
+
+---
+
+## État final
+- **Android PWA** : Utilise désormais `signInWithPopup`. L'utilisateur se connecte dans une fenêtre superposée et reste dans la PWA.
+- **iOS PWA** : Conserve `signInWithRedirect` car WebKit bloque encore les popups en standalone.
+- **Déploiement** : Solution validée en production (`tousatable-client`).
+
+---
+
+## Leçon clé (Gemini)
+> Ne jamais supposer qu'une contrainte WebKit (iOS) s'applique à Chromium (Android). Toujours isoler les "hacks" spécifiques à un OS via un check de `userAgent` pour éviter de dégrader l'expérience sur les autres plateformes.

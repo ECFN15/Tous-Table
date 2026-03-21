@@ -301,6 +301,73 @@ style={{
 
 ---
 
+## 21 mars 2026 — Merge PR #2 : Fix mobile safe-area insets (Jules / Google Jules Bot)
+
+**Référence** : PR #2 `fix-mobile-safe-area-insets` par ECFN15 (via Google Jules Bot)
+**Objectif** : Fiabiliser le rendu sur les appareils à encoche (iPhone X+, Dynamic Island) en remplaçant les classes Tailwind arbitraires contenant `env()` par des inline styles CSS.
+
+---
+
+### Contexte — Pourquoi ce changement
+
+Tailwind JIT ne parse pas toujours correctement `env(safe-area-inset-*)` dans les valeurs arbitraires (`pt-[max(4.5rem,env(safe-area-inset-top)+2rem)]`). Le CSS généré peut être invalide selon la version de PostCSS, ce qui fait que le padding safe-area est ignoré → le contenu passe sous l'encoche sur iPhone.
+
+La solution : déplacer ces valeurs dans des `style={{}}` inline pour que le CSS arrive tel quel au navigateur, sans transformation PostCSS/Tailwind.
+
+---
+
+### Corrections appliquées par Jules (commits 1-3)
+
+**1. App.jsx — Barre de navigation**
+- `pt-[max(4.5rem,env(safe-area-inset-top)+2rem)]` → `style={{ paddingTop: 'max(4.5rem, calc(env(safe-area-inset-top, 0px) + 2rem))' }}`
+
+**2. NewsletterModal.jsx — Modale newsletter**
+- Ajout de `style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1.5rem)' }}` pour dégager la barre Home des iPhones
+
+**3. CartSidebar.jsx — Panneau panier**
+- Safe-area en inline style + restauration du pattern GPU performant (translate3d, willChange, backfaceVisibility)
+- `md:p-8` → `md:px-8 md:pb-8` pour éviter le conflit de spécificité inline vs Tailwind
+
+**4. ArchitecturalHeader.jsx — Header design architectural**
+- `pt-[max(0rem,env(safe-area-inset-top))]` → `style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}`
+
+**5. package.json — Dépendance react-is**
+- Ajout de `react-is: ^18.3.1` (peer dependency de recharts, explicitement déclarée)
+
+---
+
+### Corrections appliquées lors du merge (review Claude)
+
+**6. HomeView.jsx — Header page d'accueil**
+- Jules avait utilisé `calc()` au lieu de `max()` : `calc(env(safe-area-inset-top, 0px) + 2rem)` donnait trop de padding sur iPhone (notch + 2rem au lieu de max des deux)
+- Corrigé en : `max(2rem, env(safe-area-inset-top, 0px))` pour paddingTop, paddingRight, paddingLeft
+
+**7. GlobalMenu.jsx — Conflit résolu**
+- Jules avait remplacé le pattern GPU (translate3d, willChange, backfaceVisibility) par des classes Tailwind (transition-transform, translate-x-0/full) → régression performance
+- Conflit résolu en gardant la version performante existante (inline translate3d + will-change)
+
+---
+
+### Erreurs de Jules corrigées pendant la review
+
+| Erreur | Fichier | Correction |
+|--------|---------|------------|
+| `calc()` au lieu de `max()` — trop de padding sur notch | App.jsx, CartSidebar, HomeView | Remplacé par `max(valeur, calc(env(...) + offset))` |
+| `md:p-8` conflicte avec inline `paddingTop` | CartSidebar | Éclaté en `md:px-8 md:pb-8` |
+| `react-is: ^19.2.4` avec React 18 | package.json | Corrigé en `^18.3.1` |
+| Pattern GPU supprimé (translate3d → Tailwind) | CartSidebar, GlobalMenu | Restauré le pattern inline performant |
+
+---
+
+### Impact utilisateur
+
+- **iPhone à encoche / Dynamic Island** : le contenu ne passe plus sous l'encoche (nav, panier, newsletter, header accueil)
+- **iPhone barre Home** : le bas de la modale newsletter n'est plus masqué
+- **Android / Desktop** : aucun changement visible (`env()` retourne `0px`)
+- **Performance** : aucune régression — les patterns GPU sont préservés
+
+---
+
 ## Fichiers modifiés — Récapitulatif complet (19 mars 2026)
 
 | Fichier | Type | Modifications |
@@ -316,3 +383,41 @@ style={{
 | `src/pages/CheckoutView.jsx` | Frontend | Toast + accessibilité labels |
 | `src/components/ui/TextType.jsx` | Frontend | Fix useMemo (bug animation) |
 | `src/features/admin/AdminAnalytics.jsx` | Frontend | Sessions temps réel + uniques IP + mobile |
+
+---
+
+## 21 mars 2026 — Correction de l'authentification PWA sur Android
+
+**Objectif** : Rétablir la connexion Google pour les utilisateurs ayant installé l'application sur Android.
+
+---
+
+### 15. Fix : Conflit de méthode d'authentification (Redirect vs Popup)
+
+**Fichier** : `src/contexts/AuthContext.jsx`
+
+**Problème** : L'application installée (PWA) sur Android ne parvenait pas à connecter l'utilisateur via Google. La méthode de redirection était forcée par erreur sur tous les appareils en mode standalone.
+
+**Solution** : 
+- Raffinement de la détection iOS Standalone.
+- Limitation de `signInWithRedirect` aux seuls appareils iOS (où elle est indispensable).
+- Restauration de `signInWithPopup` pour Android standalone, garantissant que la session reste dans l'application.
+
+**Résultat** : Connexion fonctionnelle sur S24 Ultra et Xiaomi en mode application. Accès immédiat aux onglets Commande et Admin.
+
+---
+
+### 16. Optimisation Layout : Marge supérieure dynamique (Mobile)
+
+**Fichiers** : `src/components/layout/GlobalMenu.jsx`, `src/components/cart/CartSidebar.jsx`
+
+**Problème** : Grosse perte d'espace au sommet de l'écran (`~4.5rem` minimum de padding imposé) sur les appareils Android dans le menu et le panier, suite à l'introduction des fixes iOS safe-area.
+ 
+**Solution** : 
+- Remplacement du padding minimum arbitraire de Tailwind par : `pt-[max(1.5rem,calc(env(safe-area-inset-top,0px)+0.5rem))]`
+- Permet un padding serré (`1.5rem/24px`) quand il n'y a pas d'encoche/Dynamic Island (ex: majorité d'Android).
+- Absorbe dynamiquement la taille du Dynamic Island (`~59px + 8px = 67px`) pour préserver un safe-area pertinent sur iPhone.
+
+**Résultat** : Récupération optimale de la taille de l'écran UI mobile, tout en restant compatible iOS.
+
+---

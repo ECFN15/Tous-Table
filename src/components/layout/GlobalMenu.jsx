@@ -251,7 +251,7 @@ const GlobalMenu = ({
             {/* Panel — GPU pre-promoted : translate3d + will-change permanent
                 Le compositing layer est créé AVANT l'animation → zéro jank premier frame */}
             <div className={`absolute right-0 top-0 bottom-0 w-full md:w-[450px] shadow-2xl
-                pt-[max(4.5rem,env(safe-area-inset-top)+2rem)] px-8 pb-12 md:p-12 md:pt-16
+                pt-[max(1.5rem,calc(env(safe-area-inset-top,0px)+0.5rem))] px-8 pb-12 md:p-12 md:pt-16
                 flex flex-col justify-between z-[2001]
               ${activeDesignId === 'architectural'
                     ? (darkMode ? 'bg-[#0A0A0A] border-l border-stone-800 text-stone-200' : 'bg-[#FAFAF9] border-l border-stone-200 text-stone-900')
@@ -269,7 +269,15 @@ const GlobalMenu = ({
                 <div className="space-y-20">
                     <div className="flex justify-between items-center">
                         <span className={`text-[10px] font-black uppercase tracking-[0.3em] transition-opacity duration-500 ${isMenuOpen ? 'opacity-100' : 'opacity-0'} ${darkMode ? 'text-stone-500' : 'text-stone-300'}`}>Menu</span>
-                        <button onClick={() => setIsMenuOpen(false)} className={`w-12 h-12 rounded-full border flex items-center justify-center transition-colors duration-300 ${darkMode ? 'border-stone-800 text-white hover:bg-stone-800' : 'border-stone-100 hover:bg-stone-50'}`}><X size={20} /></button>
+                        <motion.button 
+                            onClick={() => setIsMenuOpen(false)} 
+                            whileHover={{ scale: 1.1, rotate: 90 }}
+                            whileTap={{ scale: 0.9 }}
+                            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                            className={`w-12 h-12 flex items-center justify-center transition-colors duration-300 ${darkMode ? 'text-white hover:text-amber-500' : 'text-stone-900 hover:text-amber-600'}`}
+                        >
+                            <X size={24} strokeWidth={1.5} />
+                        </motion.button>
                     </div>
                     <nav className="flex flex-col gap-8">
                         {menuItems.map((item, index, arr) => {

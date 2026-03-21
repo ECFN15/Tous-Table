@@ -23,7 +23,7 @@ const CartSidebar = ({ isOpen, onClose, cartItems, onRemoveItem, totalPrice, onC
             {/* Sidebar Panel */}
             <div
                 className={`absolute right-0 top-0 bottom-0 w-full md:w-[500px] shadow-2xl transition-all ${baseTransition} transform-gpu 
-                pt-[max(4.5rem,env(safe-area-inset-top)+2rem)] px-6 pb-6 md:p-8
+                pt-[max(1.5rem,calc(env(safe-area-inset-top,0px)+0.5rem))] px-6 pb-6 md:p-8 md:pt-12
                 flex flex-col safe-area-bottom ${isOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'} ${bgClass}`}
             >
 
