@@ -1156,12 +1156,12 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
               
               {/* Name Split Reveal (A.01 MaskSlideUp) */}
               <h2 className="font-serif text-5xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-[8vw] leading-[1.1] md:leading-[0.9] font-light italic tracking-tight text-[#1a1a1a]">
-                <div className="overflow-hidden block">
+                <div className="overflow-hidden block pb-[0.15em] -mb-[0.15em]">
                   <span className="name-reveal-line inline-block translate-y-full">
                     {homepageImages['team_main_text']?.name_line1 || "Jean"}
                   </span>
                 </div>
-                <div className="overflow-hidden block">
+                <div className="overflow-hidden block pb-[0.15em] -mb-[0.15em]">
                   <span className="name-reveal-line inline-block translate-y-full">
                     {homepageImages['team_main_text']?.name_line2 || "Lefebvre"}
                   </span>

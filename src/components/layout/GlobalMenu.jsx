@@ -182,7 +182,9 @@ const GlobalMenu = ({
 
             {/* OPTIMISATION PRINCIPALE : remplacement de transition-all par transition-transform pour empêcher le moteur
                 de recalculer l'animation de l'ombre portée (shadow-2xl) ultra coûteuse à chaque frame */}
-            <div className={`pwa-safe-top absolute right-0 top-0 bottom-0 w-full md:w-[450px] shadow-2xl transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] p-12 flex flex-col justify-between z-[2001] ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}
+            <div className={`absolute right-0 top-0 bottom-0 w-full md:w-[450px] shadow-2xl transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] 
+                pt-[max(4.5rem,env(safe-area-inset-top)+2rem)] px-8 pb-12 md:p-12 md:pt-16
+                flex flex-col justify-between z-[2001] ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}
               ${activeDesignId === 'architectural'
                     ? (darkMode ? 'bg-[#0A0A0A] border-l border-stone-800 text-stone-200' : 'bg-[#FAFAF9] border-l border-stone-200 text-stone-900')
                     : (darkMode ? 'bg-stone-900 border-l border-stone-800' : 'bg-white')}
