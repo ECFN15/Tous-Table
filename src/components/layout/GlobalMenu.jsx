@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, useAnimation } from 'framer-motion';
-import { X, Instagram, Facebook, Mail, Plus } from 'lucide-react';
+import { X, Menu, Instagram, Facebook, Mail, Plus } from 'lucide-react';
 
 // ── Courbes d'easing (approximation fidèle des springs Framer Motion) ──
 // Open spring (stiffness:250, damping:35, mass:0.8) → ζ≈1.24 overdamped → pas d'oscillation
@@ -254,7 +254,7 @@ const GlobalMenu = ({
             {/* Panel — GPU pre-promoted : translate3d + will-change permanent
                 Le compositing layer est créé AVANT l'animation → zéro jank premier frame */}
             <div className={`absolute right-0 top-0 bottom-0 w-full md:w-[450px] shadow-2xl
-                pt-[max(1.5rem,calc(env(safe-area-inset-top,0px)+0.5rem))] px-8 pb-12 md:p-12 md:pt-6
+                pt-[max(1.5rem,calc(env(safe-area-inset-top,0px)+1.5rem))] px-4 md:px-12 pb-12 md:pb-12 md:pt-[28px]
                 flex flex-col justify-between z-[2001]
               ${activeDesignId === 'architectural'
                     ? (darkMode ? 'bg-[#0A0A0A] border-l border-stone-800 text-stone-200' : 'bg-[#FAFAF9] border-l border-stone-200 text-stone-900')
@@ -271,33 +271,21 @@ const GlobalMenu = ({
                 }}
             >
                 <div className="space-y-20">
-                    <div className="flex justify-between items-center relative">
+                    <div className="flex justify-between items-center h-10 relative">
                         <span className={`text-[10px] font-black uppercase tracking-[0.3em] transition-opacity duration-500 ${isMenuOpen ? 'opacity-100' : 'opacity-0'} ${darkMode ? 'text-stone-500' : 'text-stone-300'}`}>Menu</span>
                         
-                        {/* Animated Close Button - FAQ Physical Spring (Stiffness: 400, Damping: 20) */}
-                        <div className="relative w-12 h-12 flex items-center justify-center">
-                            <motion.button 
+                        {/* Animated Close Button - Hamburger morphing to Cross */}
+                        <div className="absolute right-0 flex items-center justify-center">
+                            <button 
                                 onClick={(e) => {
-                                    // 1. Déclencher UNIQUEMENT la rotation (pas de scale(0) ni d'opacity:0 ici)
-                                    const btn = e.currentTarget;
-                                    btn.style.transition = 'transform 0.4s cubic-bezier(0.23, 1, 0.32, 1)';
-                                    btn.style.transform = 'rotate(45deg)'; // Transforme le X en + (croquis)
-                                    
-                                    // 2. On attend la fin de cette rotation avant de fermer
-                                    setTimeout(() => {
-                                        setIsMenuOpen(false);
-                                    }, 400);
+                                    setIsMenuOpen(false);
                                 }} 
-                                initial={{ rotate: 0, opacity: 0 }}
-                                animate={{ rotate: 0, opacity: 1 }}
-                                transition={{ 
-                                    rotate: { type: "spring", stiffness: 450, damping: 25 },
-                                    opacity: { duration: 0.3 }
-                                }}
-                                className={`flex items-center justify-center will-change-transform ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}
+                                className={`flex items-center justify-center group w-10 h-10 rounded-full cursor-pointer transition-colors`}
+                                title="Fermer le menu"
                             >
-                                <X size={26} strokeWidth={1} />
-                            </motion.button>
+                                <Menu size={24} strokeWidth={1} className={`absolute transition-all duration-500 ease-in-out ${darkMode ? 'text-stone-200 group-hover:text-amber-400' : 'text-stone-900 group-hover:text-amber-600'} ${isMenuOpen ? 'opacity-0 rotate-90 scale-50' : 'opacity-100 rotate-0 scale-100'} delay-100`} />
+                                <X size={24} strokeWidth={1} className={`absolute transition-all duration-500 ease-in-out ${darkMode ? 'text-stone-200 group-hover:text-amber-400' : 'text-stone-900 group-hover:text-amber-600'} ${isMenuOpen ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-50'} delay-100`} />
+                            </button>
                         </div>
                     </div>
                     <nav className="flex flex-col gap-8">

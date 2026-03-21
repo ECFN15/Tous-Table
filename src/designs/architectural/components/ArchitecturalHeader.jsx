@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLiveTheme } from '../../../hooks/useLiveTheme';
 import { useAuth } from '../../../contexts/AuthContext';
-import { Menu, ShoppingBag, ShieldCheck, LogOut, LogIn, Armchair, Gavel } from 'lucide-react';
+import { Menu, X, ShoppingBag, ShieldCheck, LogOut, LogIn, Armchair, Gavel } from 'lucide-react';
 import AnimatedThemeToggler from '../../../components/ui/AnimatedThemeToggler';
 
 const CuttingBoard = ({ size = 14, strokeWidth = 2, ...props }) => (
@@ -32,6 +32,7 @@ const ArchitecturalHeader = ({
     user,
     onShowLogin,
     onOpenMenu,
+    isMenuOpen,
     onOpenCart,
     cartCount = 0,
     toggleTheme,
@@ -78,7 +79,7 @@ const ArchitecturalHeader = ({
 
     return (
         <header
-            className={`sticky top-0 z-[1000] transition-all duration-300 ease-in-out transform ${isVisible ? 'translate-y-0' : '-translate-y-full'} bg-transparent
+            className={`sticky top-0 z-50 transition-all duration-300 ease-in-out transform ${isVisible ? 'translate-y-0' : '-translate-y-full'} bg-transparent
                 pt-[max(0rem,env(safe-area-inset-top))]`}
         >
             <div className="max-w-[1920px] mx-auto px-4 md:px-12 h-20 md:h-24 flex items-center justify-between relative">
@@ -211,8 +212,8 @@ const ArchitecturalHeader = ({
                             <AnimatedThemeToggler isDark={isDark} toggleTheme={toggleTheme} />
                         )}
 
-                        <button onClick={onOpenCart} className={`relative group w-10 h-10 flex items-center justify-center rounded-full transition-colors ${darkMode ? 'hover:bg-stone-800' : 'hover:bg-stone-200'}`} title="Panier">
-                            <ShoppingBag size={20} strokeWidth={1.5} className={`group-hover:scale-110 transition-transform ${darkMode ? 'text-stone-200' : 'text-stone-900'}`} />
+                        <button onClick={onOpenCart} className={`relative group w-10 h-10 flex items-center justify-center rounded-full transition-colors`} title="Panier">
+                            <ShoppingBag size={20} strokeWidth={1.5} className={`transition-colors duration-300 ${darkMode ? 'text-stone-200 group-hover:text-amber-400' : 'text-stone-900 group-hover:text-amber-600'}`} />
                             {cartCount > 0 && (
                                 <span className="absolute top-2 right-2 flex h-2.5 w-2.5 items-center justify-center">
                                     <span className="absolute inline-flex h-2.5 w-2.5 rounded-full border-[0.5px] border-emerald-400 animate-[radar-ping_3s_ease-out_infinite]"></span>
@@ -222,9 +223,9 @@ const ArchitecturalHeader = ({
                             )}
                         </button>
 
-                        <button onClick={onOpenMenu} className={`flex items-center justify-center gap-3 group cursor-pointer w-10 h-10 md:w-auto md:px-4 md:py-2 rounded-full md:rounded transition-colors ${darkMode ? 'hover:bg-stone-800' : 'hover:bg-stone-200'}`} title="Menu">
-                            <span className={`hidden md:block text-xs font-bold uppercase tracking-widest group-hover:underline underline-offset-4 ${darkMode ? 'text-stone-200' : 'text-stone-900'}`}>Menu</span>
-                            <Menu size={24} strokeWidth={1} className={darkMode ? 'text-stone-200' : 'text-stone-900'} />
+                        <button onClick={onOpenMenu} className={`relative flex items-center justify-center group w-10 h-10 md:w-10 md:h-10 rounded-full cursor-pointer transition-colors`} title="Menu">
+                            <Menu size={24} strokeWidth={1} className={`absolute transition-all duration-500 ease-in-out ${darkMode ? 'text-stone-200 group-hover:text-amber-400' : 'text-stone-900 group-hover:text-amber-600'} ${isMenuOpen ? 'opacity-0 rotate-90 scale-50' : 'opacity-100 rotate-0 scale-100'}`} />
+                            <X size={24} strokeWidth={1} className={`absolute transition-all duration-500 ease-in-out ${darkMode ? 'text-stone-200 group-hover:text-amber-400' : 'text-stone-900 group-hover:text-amber-600'} ${isMenuOpen ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-50'}`} />
                         </button>
                     </div>
                 </div>

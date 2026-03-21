@@ -797,7 +797,10 @@ const AppContent = () => {
                   {darkMode ? <Sun size={12} className="md:w-[15px] md:h-[15px]" /> : <Moon size={12} className="md:w-[15px] md:h-[15px]" />}
                 </button>
 
-                <button onClick={() => setIsMenuOpen(true)} className={`w-8 h-8 md:w-auto md:h-auto px-0 md:px-6 md:py-2.5 rounded-full flex items-center justify-center gap-3 backdrop-blur-2xl border shadow-xl group transition-all ml-0.5 md:ml-0 ${darkMode ? 'bg-white/10 border-white/20 text-white hover:bg-white hover:text-stone-900 shadow-white/5' : 'bg-white border-stone-200 text-stone-900 hover:bg-stone-900 hover:text-white shadow-stone-200/50'}`}><span className="hidden md:block text-[9.5px] md:text-[11px] font-bold uppercase tracking-widest">Menu</span><Menu size={14} className="md:w-[15px] md:h-[15px]" /></button>
+                <button onClick={() => setIsMenuOpen(!isMenuOpen)} className={`relative w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center backdrop-blur-2xl border shadow-xl group transition-all ml-0.5 md:ml-0 ${darkMode ? 'bg-white/10 border-white/20 hover:bg-white shadow-white/5' : 'bg-white border-stone-200 hover:bg-stone-900 shadow-stone-200/50'}`}>
+                  <Menu size={14} className={`absolute md:w-[15px] md:h-[15px] transition-all duration-500 ease-in-out ${darkMode ? 'text-white group-hover:text-stone-900' : 'text-stone-900 group-hover:text-white'} ${isMenuOpen ? 'opacity-0 rotate-90 scale-50' : 'opacity-100 rotate-0 scale-100'}`} />
+                  <X size={14} className={`absolute md:w-[15px] md:h-[15px] transition-all duration-500 ease-in-out ${darkMode ? 'text-white group-hover:text-stone-900' : 'text-stone-900 group-hover:text-white'} ${isMenuOpen ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-50'}`} />
+                </button>
               </div>
             </nav>
           )}

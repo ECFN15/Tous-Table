@@ -69,10 +69,7 @@ export function AnimatedThemeToggler({ isDark, toggleTheme }) {
             ref={buttonRef}
             onClick={handleToggle}
             className={`relative flex items-center justify-center w-10 h-10 rounded-full transition-colors z-[100] bg-transparent 
-                ${isDark
-                    ? 'md:hover:bg-stone-800 text-stone-200'  // Desktop only hover
-                    : 'md:hover:bg-stone-200 text-stone-900'} // Desktop only hover
-                `}
+                ${isDark ? 'text-stone-200 hover:text-amber-400' : 'text-stone-900 hover:text-amber-600'}`}
             style={{ WebkitTapHighlightColor: 'transparent' }} // Remove mobile tap highlight
             aria-label={isDark ? "Passer en mode clair" : "Passer en mode sombre"}
         >
