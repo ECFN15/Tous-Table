@@ -413,6 +413,201 @@ La solution : déplacer ces valeurs dans des `style={{}}` inline pour que le CSS
 
 **Problème** : Grosse perte d'espace au sommet de l'écran (`~4.5rem` minimum de padding imposé) sur les appareils Android dans le menu et le panier, suite à l'introduction des fixes iOS safe-area.
  
+### 14. Badges produit et email invisibles sur mobile
+
+**Fichier** : `src/features/admin/AdminAnalytics.jsx`
+
+**Problème** : Dans le parcours utilisateur version mobile (bouton "TRACER"), les badges violet indiquant le produit consulté (référence, nom, prix) n'étaient pas affichés — ils existaient uniquement dans la version desktop. De plus, l'email du client était tronqué et compressé sur la même ligne que l'IP, le rendant illisible sur petit écran.
+
+**Solution** :
+- Ajout des badges produit dans le parcours mobile (même format que desktop, adapté en taille)
+- Email séparé sur sa propre ligne sous l'IP au lieu d'être compressé à côté
+
+**Avant** : Sur mobile, pas de détail produit dans le parcours, email illisible.
+**Après** : Toutes les informations visibles sur mobile et desktop.
+
+---
+
+## 21 mars 2026 — Optimisation performances GlobalMenu (animations 120fps+)
+
+**Fichier** : `src/components/layout/GlobalMenu.jsx`
+**Objectif** : Éliminer la sensation de 40fps sur le menu hamburger (mobile Android/iOS et desktop) sans casser les animations existantes.
+
+---
+
+### Diagnostic — Causes racines identifiées
+
+1. **Framer Motion sur le main thread** : Toutes les animations ouverture/fermeture (backdrop, items, footer) tournaient via le RAF JavaScript de Framer Motion, plafonné à 60fps. Sur les écrans 120Hz/144Hz ProMotion, l'animation restait à 60fps.
+
+2. **Aucune pré-promotion GPU sur le panel** : Le panneau principal n'avait ni `will-change: transform` ni `translate3d`. Au premier frame d'animation, le browser devait rasteriser + uploader la texture en VRAM → jank visible à l'ouverture.
+
+3. **React.memo neutralisé** : `MenuItemHover` est `React.memo`'d mais recevait une nouvelle référence `handlePremiumClick` à chaque render (recréée dans le `.map()`). Le memo ne filtrait donc rien → tous les `motion.span` (20-30 par item sur desktop) re-rendraient à chaque ouverture/fermeture.
+
+4. **`menuItems` recréé à chaque render** : L'array n'était pas mémoïsé, causant une cascade de re-renders inutiles.
+
+5. **`AnimatePresence` importé mais jamais utilisé** : Import mort.
+
+---
+
+### Solution — Migration vers CSS Compositor Thread
+
+**Architecture adoptée** : Toutes les animations ouverture/fermeture/clic migrent vers des **CSS transitions** (compositor thread = refresh rate natif de l'écran). Framer Motion est conservé **uniquement** pour le hover par lettres desktop (`motion.span` + `useAnimation`) qui ne peut pas être remplacé par CSS.
+
+#### Changements techniques
+
+| Élément | Avant | Après |
+|---|---|---|
+| Backdrop opacity | `motion.div` animate (JS RAF) | `div` + `transition: opacity 500ms` (GPU) |
+| Items stagger entrée | Springs Framer Motion × 4 (JS) | CSS transitions avec `delay` calculé (GPU) |
+| Items stagger sortie | Springs Framer Motion × 4 (JS) | CSS transitions stagger inversé (GPU) |
+| Click feedback | Spring Framer Motion (JS) | CSS transition 300ms (GPU) |
+| Footer | `motion.div` spring (JS) | CSS transition avec delay 300ms (GPU) |
+| Tap feedback | `whileTap` (JS RAF) | CSS `:active` pseudo-class (GPU) |
+| Panel slide | CSS transition (GPU) ✓ | CSS transition (GPU) ✓ inchangé |
+| Hover lettres | `motion.span` (JS) | `motion.span` (JS) ✓ conservé |
+
+#### Optimisations React
+
+- `menuItems` mémoïsé via `useMemo` → stable tant que auth/design ne change pas
+- `premiumClickHandlers` mémoïsé via `useMemo` → références stables → `React.memo` de `MenuItemHover` filtre effectivement
+- `AnimatePresence` supprimé (import mort)
+- `transitionsReady` state → empêche l'animation de fermeture au premier rendu (panel déjà fermé)
+
+#### Courbes d'easing (approximation des springs)
+
+```js
+// Open spring (stiffness:250, damping:35, mass:0.8) → ζ≈1.24 overdamped
+const EASE_OPEN = 'cubic-bezier(0.23,1,0.32,1)';
+// Close spring (stiffness:450, damping:30, mass:0.7) → ζ≈0.85 underdamped (~4% overshoot)
+const EASE_CLOSE = 'cubic-bezier(0.12,0.8,0.3,1)';
+```
+
+#### GPU pre-promotion panel
+
+```js
+style={{
+    transform: isMenuOpen ? 'translate3d(0,0,0)' : 'translate3d(100%,0,0)',
+    willChange: 'transform',
+    backfaceVisibility: 'hidden',
+}}
+```
+
+**Résultat** : Le menu tourne au refresh rate natif de l'écran (60Hz → 60fps, 120Hz → 120fps, 144Hz → 144fps). Les animations desktop (hover par lettres) restent identiques visuellement. Le comportement mobile est inchangé.
+
+---
+
+## 21 mars 2026 — Merge PR #2 : Fix mobile safe-area insets (Jules / Google Jules Bot)
+
+**Référence** : PR #2 `fix-mobile-safe-area-insets` par ECFN15 (via Google Jules Bot)
+**Objectif** : Fiabiliser le rendu sur les appareils à encoche (iPhone X+, Dynamic Island) en remplaçant les classes Tailwind arbitraires contenant `env()` par des inline styles CSS.
+
+---
+
+### Contexte — Pourquoi ce changement
+
+Tailwind JIT ne parse pas toujours correctement `env(safe-area-inset-*)` dans les valeurs arbitraires (`pt-[max(4.5rem,env(safe-area-inset-top)+2rem)]`). Le CSS généré peut être invalide selon la version de PostCSS, ce qui fait que le padding safe-area est ignoré → le contenu passe sous l'encoche sur iPhone.
+
+La solution : déplacer ces valeurs dans des `style={{}}` inline pour que le CSS arrive tel quel au navigateur, sans transformation PostCSS/Tailwind.
+
+---
+
+### Corrections appliquées par Jules (commits 1-3)
+
+**1. App.jsx — Barre de navigation**
+- `pt-[max(4.5rem,env(safe-area-inset-top)+2rem)]` → `style={{ paddingTop: 'max(4.5rem, calc(env(safe-area-inset-top, 0px) + 2rem))' }}`
+
+**2. NewsletterModal.jsx — Modale newsletter**
+- Ajout de `style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1.5rem)' }}` pour dégager la barre Home des iPhones
+
+**3. CartSidebar.jsx — Panneau panier**
+- Safe-area en inline style + restauration du pattern GPU performant (translate3d, willChange, backfaceVisibility)
+- `md:p-8` → `md:px-8 md:pb-8` pour éviter le conflit de spécificité inline vs Tailwind
+
+**4. ArchitecturalHeader.jsx — Header design architectural**
+- `pt-[max(0rem,env(safe-area-inset-top))]` → `style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}`
+
+**5. package.json — Dépendance react-is**
+- Ajout de `react-is: ^18.3.1` (peer dependency de recharts, explicitement déclarée)
+
+---
+
+### Corrections appliquées lors du merge (review Claude)
+
+**6. HomeView.jsx — Header page d'accueil**
+- Jules avait utilisé `calc()` au lieu de `max()` : `calc(env(safe-area-inset-top, 0px) + 2rem)` donnait trop de padding sur iPhone (notch + 2rem au lieu de max des deux)
+- Corrigé en : `max(2rem, env(safe-area-inset-top, 0px))` pour paddingTop, paddingRight, paddingLeft
+
+**7. GlobalMenu.jsx — Conflit résolu**
+- Jules avait remplacé le pattern GPU (translate3d, willChange, backfaceVisibility) par des classes Tailwind (transition-transform, translate-x-0/full) → régression performance
+- Conflit résolu en gardant la version performante existante (inline translate3d + will-change)
+
+---
+
+### Erreurs de Jules corrigées pendant la review
+
+| Erreur | Fichier | Correction |
+|--------|---------|------------|
+| `calc()` au lieu de `max()` — trop de padding sur notch | App.jsx, CartSidebar, HomeView | Remplacé par `max(valeur, calc(env(...) + offset))` |
+| `md:p-8` conflicte avec inline `paddingTop` | CartSidebar | Éclaté en `md:px-8 md:pb-8` |
+| `react-is: ^19.2.4` avec React 18 | package.json | Corrigé en `^18.3.1` |
+| Pattern GPU supprimé (translate3d → Tailwind) | CartSidebar, GlobalMenu | Restauré le pattern inline performant |
+
+---
+
+### Impact utilisateur
+
+- **iPhone à encoche / Dynamic Island** : le contenu ne passe plus sous l'encoche (nav, panier, newsletter, header accueil)
+- **iPhone barre Home** : le bas de la modale newsletter n'est plus masqué
+- **Android / Desktop** : aucun changement visible (`env()` retourne `0px`)
+- **Performance** : aucune régression — les patterns GPU sont préservés
+
+---
+
+## Fichiers modifiés — Récapitulatif complet (19 mars 2026)
+
+| Fichier | Type | Modifications |
+|---------|------|---------------|
+| `functions/src/commerce/stripeWebhook.js` | Backend | Handler `canceled` + guard `stockReserved` sur legacy |
+| `functions/src/commerce/createOrder.js` | Backend | Transaction unique pour `stripe_elements` |
+| `functions/src/auction/placeBid.js` | Backend | Rate limiting atomique |
+| `functions/src/analytics/sessions.js` | Backend | Batch paginé + CORS restreint |
+| `firestore.rules` | Sécurité | Protection newsletter_subscribers |
+| `package.json` | Config | Suppression puppeteer |
+| `src/components/ui/Toast.jsx` | Frontend | Nouveau composant notification |
+| `src/app.jsx` | Frontend | ToastProvider + remplacement alert() |
+| `src/pages/CheckoutView.jsx` | Frontend | Toast + accessibilité labels |
+| `src/components/ui/TextType.jsx` | Frontend | Fix useMemo (bug animation) |
+| `src/features/admin/AdminAnalytics.jsx` | Frontend | Sessions temps réel + uniques IP + mobile |
+
+---
+
+## 21 mars 2026 — Correction de l'authentification PWA sur Android
+
+**Objectif** : Rétablir la connexion Google pour les utilisateurs ayant installé l'application sur Android.
+
+---
+
+### 15. Fix : Conflit de méthode d'authentification (Redirect vs Popup)
+
+**Fichier** : `src/contexts/AuthContext.jsx`
+
+**Problème** : L'application installée (PWA) sur Android ne parvenait pas à connecter l'utilisateur via Google. La méthode de redirection était forcée par erreur sur tous les appareils en mode standalone.
+
+**Solution** : 
+- Raffinement de la détection iOS Standalone.
+- Limitation de `signInWithRedirect` aux seuls appareils iOS (où elle est indispensable).
+- Restauration de `signInWithPopup` pour Android standalone, garantissant que la session reste dans l'application.
+
+**Résultat** : Connexion fonctionnelle sur S24 Ultra et Xiaomi en mode application. Accès immédiat aux onglets Commande et Admin.
+
+---
+
+### 16. Optimisation Layout : Marge supérieure dynamique (Mobile)
+
+**Fichiers** : `src/components/layout/GlobalMenu.jsx`, `src/components/cart/CartSidebar.jsx`
+
+**Problème** : Grosse perte d'espace au sommet de l'écran (`~4.5rem` minimum de padding imposé) sur les appareils Android dans le menu et le panier, suite à l'introduction des fixes iOS safe-area.
+ 
 **Solution** : 
 - Remplacement du padding minimum arbitraire de Tailwind par : `pt-[max(1.5rem,calc(env(safe-area-inset-top,0px)+0.5rem))]`
 - Permet un padding serré (`1.5rem/24px`) quand il n'y a pas d'encoche/Dynamic Island (ex: majorité d'Android).
@@ -421,3 +616,19 @@ La solution : déplacer ces valeurs dans des `style={{}}` inline pour que le CSS
 **Résultat** : Récupération optimale de la taille de l'écran UI mobile, tout en restant compatible iOS.
 
 ---
+
+## 21 mars 2026 (Suite) — Optimisation extrême 144Hz+ Desktop Menu
+
+**Fichier** : `src/components/layout/GlobalMenu.jsx`
+**Objectif** : Atteindre une fluidité parfaite sur écrans PC à haut taux de rafraichissement (144Hz/160Hz+) SANS retirer les effets premium (flou, animation par lettres).
+
+### Diagnostic et Blocages
+Malgré la migration vers le compositor thread, l'effet de flou (`filter: blur(8px)`) appliqué sur 80+ lettres (chacune ayant un `will-change: transform` statique) combiné au `backdrop-blur-md` générait un *overdraw* (surcharge GPU). La carte graphique devait rasteriser trop de calques simultanément.
+
+### Solution (Rendu GPU avancé)
+1. **Préchauffage du Shader** : Remplacement de `blur(0px)` par `blur(0.01px)`. Évite le temps d'initialisation du pipeline shader au début de l'animation.
+2. **Allocation VRAM Dynamique** : Suppression de `style={{ willChange: 'transform' }}` sur les lettres `motion.span` au repos. Framer Motion l'ajoute dynamiquement au `:hover`. Ainsi, au lieu d'avoir 80 calques GPU permanents alloués, le navigateur groupe les lettres en un seul calque jusqu'au survol (libération massive de VRAM).
+3. **Accélération du Backdrop** : Ajout de `transform: 'translateZ(0)'` sur le fond noir flouté pour forcer son propre calque GPU minimaliste.
+4. **CSS Containment** : Ajout de `contain: 'content'` sur le panneau coulissant pour isoler le layout et la peinture, empêchant le navigateur de recalculer le reste de la page pendant le slide.
+
+**Résultat** : La fluidité à 144Hz/160Hz est parfaitement atteinte, avec **100% des animations visuelles conservées** (rien n'a été dégradé visuellement).

@@ -121,3 +121,10 @@ const isIOSStandalone = () => {
 
 ## Leçon clé (Gemini)
 > Ne jamais supposer qu'une contrainte WebKit (iOS) s'applique à Chromium (Android). Toujours isoler les "hacks" spécifiques à un OS via un check de `userAgent` pour éviter de dégrader l'expérience sur les autres plateformes.
+
+---
+
+## Leçon clé (Gemini) — Optimisation GPU 144Hz (21 Mars 2026)
+> Ne jamais supprimer arbitrairement une animation premium réclamée par le client pour pallier un problème de performance. Il faut descendre au niveau de l'architecture GPU du navigateur.
+> - `blur(0px)` bloque souvent le premier frame car le pipeline shader s'éteint. `blur(0.01px)` le maintient "chaud".
+> - Des dizaines de `will-change: transform` statiques (ex: mots découpés en lettres) forcent la VRAM à réserver des calques inutiles au repos, tuant le compositing d'un composant parent. Laisser des librairies comme Framer Motion gérer le `will-change` dynamiquement au moment de l'interaction (hover) est la clé d'un 144FPS stable sans transiger sur le design.

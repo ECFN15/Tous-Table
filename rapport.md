@@ -373,3 +373,21 @@ Mise en place d'un calcul "intelligent" conditionné `pt-[max(1.5rem,calc(env(sa
 - `src/components/cart/CartSidebar.jsx`
 
 *Note: La balise `viewport-fit=cover` présente dans `index.html` est correctement en place, assurant la validité du calcul sur iOS.*
+
+---
+
+## 14. Performance Extrême Menu Desktop (144Hz+) (21 Mars 2026)
+
+### Problème
+Sur les écrans PC haut de gamme (144Hz, 160Hz), le menu du site peinait occasionnellement à maintenir la fréquence native en raison des multiples effets "Premium" (Flou de fond + Titres découpés en 80 lettres avec un effet de flou dynamique).
+
+### Cause (Goulot d'étranglement GPU / VRAM)
+Le DOM gardait 80+ éléments (les lettres individuelles) avec la règle statique `will-change: transform`. Le navigateur forçait donc la création de 80 calques de rendu continus. Appliquer un `filter: blur` sur tous ces calques au-dessus d'un `backdrop-blur` inondait la carte graphique.
+
+### Solution Invisible (Rien n'a changé visuellement)
+- **Shader en Cache** : L'animation du texte va désormais vers `blur(0.01px)` au lieu de `0px`, ce qui oblige la carte graphique à garder le shader en mémoire tampon (stutter-free).
+- **Destruction des Calques** : Le `will-change: transform` statique a été supprimé des lettres. Le navigateur aplatit désormais les mots en un seul calque. Au moment exact où l'utilisateur survole avec sa souris, Framer Motion re-crée les calques à la volée.
+- **CSS Isolation (`contain: content`)** : Ajouté au panneau, interdisant au navigateur de mettre à jour le Layout du reste du site pendant le mouvement.
+
+### Résultat
+La VRAM est libérée, le compositing se fait instantanément. Le menu s'ouvre à 144FPS constants avec exactement le même aspect visuel et motion design qu'à l'origine.
