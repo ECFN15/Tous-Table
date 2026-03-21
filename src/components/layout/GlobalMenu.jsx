@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, useAnimation } from 'framer-motion';
-import { X, Instagram, Facebook, Mail } from 'lucide-react';
+import { X, Instagram, Facebook, Mail, Plus } from 'lucide-react';
 
 // ── Courbes d'easing (approximation fidèle des springs Framer Motion) ──
 // Open spring (stiffness:250, damping:35, mass:0.8) → ζ≈1.24 overdamped → pas d'oscillation
@@ -267,17 +267,35 @@ const GlobalMenu = ({
                 }}
             >
                 <div className="space-y-20">
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center relative">
                         <span className={`text-[10px] font-black uppercase tracking-[0.3em] transition-opacity duration-500 ${isMenuOpen ? 'opacity-100' : 'opacity-0'} ${darkMode ? 'text-stone-500' : 'text-stone-300'}`}>Menu</span>
-                        <motion.button 
-                            onClick={() => setIsMenuOpen(false)} 
-                            whileHover={{ scale: 1.1, rotate: 90 }}
-                            whileTap={{ scale: 0.9 }}
-                            transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                            className={`w-12 h-12 flex items-center justify-center transition-colors duration-300 ${darkMode ? 'text-white hover:text-amber-500' : 'text-stone-900 hover:text-amber-600'}`}
-                        >
-                            <X size={24} strokeWidth={1.5} />
-                        </motion.button>
+                        
+                        {/* Animated Close Button - FAQ Physical Spring (Stiffness: 400, Damping: 20) */}
+                        <div className="relative w-12 h-12 flex items-center justify-center">
+                            <motion.button 
+                                onClick={(e) => {
+                                    // 1. Déclencher UNIQUEMENT la rotation (pas de scale(0) ni d'opacity:0 ici)
+                                    const btn = e.currentTarget;
+                                    btn.style.transition = 'transform 0.4s cubic-bezier(0.23, 1, 0.32, 1)';
+                                    btn.style.transform = 'rotate(45deg)'; // Transforme le X en + (croquis)
+                                    
+                                    // 2. On attend la fin de cette rotation avant de fermer
+                                    setTimeout(() => {
+                                        setIsMenuOpen(false);
+                                    }, 400);
+                                }} 
+                                whileHover={{ scale: 1.15 }} 
+                                initial={{ rotate: 0, opacity: 0 }}
+                                animate={{ rotate: 0, opacity: 1 }}
+                                transition={{ 
+                                    rotate: { type: "spring", stiffness: 450, damping: 25 },
+                                    opacity: { duration: 0.3 }
+                                }}
+                                className={`flex items-center justify-center will-change-transform ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}
+                            >
+                                <X size={26} strokeWidth={1} />
+                            </motion.button>
+                        </div>
                     </div>
                     <nav className="flex flex-col gap-8">
                         {menuItems.map((item, index, arr) => {
