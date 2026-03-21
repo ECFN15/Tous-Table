@@ -391,3 +391,19 @@ Le DOM gardait 80+ éléments (les lettres individuelles) avec la règle statiqu
 
 ### Résultat
 La VRAM est libérée, le compositing se fait instantanément. Le menu s'ouvre à 144FPS constants avec exactement le même aspect visuel et motion design qu'à l'origine.
+
+---
+
+## 15. Symétrie Millimétrée du Header Desktop (Menu & Panier) (21 Mars 2026)
+
+### Problème
+Lors de l'ouverture du Menu Global de la Marketplace ou du Panier, le bouton "✕" de fermeture du panneau latéral affichait un sérieux décalage vertical par rapport à la position du bouton "MENU" du header d'origine, rompant la symétrie du design premium sur Desktop. L'axe central du header était à `48px` du haut, tandis que celui des panneaux était à `88px` (Menu) et `72px` (Panier).
+
+### Cause
+Les paddings supérieurs desktop (`md:pt-16` et `md:pt-12`) ajoutés sur les panneaux latéraux ne prenaient pas en compte l'alignement absolu avec l'axe central du composant `ArchitecturalHeader` (`h-24`).
+
+### Solution
+Rationalisation des espacements supérieurs avec la classe `md:pt-6` (24px) sur le `GlobalMenu` et le `CartSidebar`. Mathématiquement : avec un bloc de titre de `48px` (`h-12`), son centre se positionne à exactement `24px + 24px = 48px`, fusionnant sa hauteur au pixel près avec celle du header principal. L'agencement mobile (`safe-area`) a été délibérément préservé intact en ne touchant qu'aux préfixes `md:`.
+
+### Résultat
+Une transition fluide et une symétrie visuelle parfaite pour les interfaces Desktop.

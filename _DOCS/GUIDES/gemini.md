@@ -128,3 +128,9 @@ const isIOSStandalone = () => {
 > Ne jamais supprimer arbitrairement une animation premium réclamée par le client pour pallier un problème de performance. Il faut descendre au niveau de l'architecture GPU du navigateur.
 > - `blur(0px)` bloque souvent le premier frame car le pipeline shader s'éteint. `blur(0.01px)` le maintient "chaud".
 > - Des dizaines de `will-change: transform` statiques (ex: mots découpés en lettres) forcent la VRAM à réserver des calques inutiles au repos, tuant le compositing d'un composant parent. Laisser des librairies comme Framer Motion gérer le `will-change` dynamiquement au moment de l'interaction (hover) est la clé d'un 144FPS stable sans transiger sur le design.
+
+---
+
+## Leçon clé (Gemini) — Attention aux détails et Symétrie UI (21 Mars 2026)
+> Lors de la conception de sidebars (Menu/Panier) recouvrant la page, il est crucial d'aligner mathématiquement le bouton de fermeture (`✕`) avec son bouton déclencheur d'origine (`☰`) présent dans le header sous-jacent.
+> Sur ce projet, le composant `ArchitecturalHeader` posait son axe central sur 48px (sur une hauteur `md:h-24` = 96px). L'application d'un banal `md:pt-16` sur le panneau repoussait le bouton de fermeture vers le bas, brisant "l'illusion" continue du menu. Le passage structuré à `md:pt-6` (24px), qui couplé à la hauteur du bouton (`h-12` -> 48px), donne un axe central de 48px, a permis un agencement visuel pixel-perfect tout en préservant intact le layout mobile à encoche.

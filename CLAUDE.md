@@ -632,3 +632,20 @@ Malgré la migration vers le compositor thread, l'effet de flou (`filter: blur(8
 4. **CSS Containment** : Ajout de `contain: 'content'` sur le panneau coulissant pour isoler le layout et la peinture, empêchant le navigateur de recalculer le reste de la page pendant le slide.
 
 **Résultat** : La fluidité à 144Hz/160Hz est parfaitement atteinte, avec **100% des animations visuelles conservées** (rien n'a été dégradé visuellement).
+
+---
+
+## 21 mars 2026 (Suite) — Alignement parfait Header Desktop (Menu & Panier)
+
+**Fichiers** : `src/components/layout/GlobalMenu.jsx`, `src/components/cart/CartSidebar.jsx`
+**Objectif** : Aligner verticalement le bouton de fermeture "X" des panneaux latéraux (`GlobalMenu` et `CartSidebar`) de manière parfaitement symétrique avec le bouton "MENU" du header principal sur la version Desktop.
+
+### Problème
+Sur desktop, le header principal (`ArchitecturalHeader`) a une hauteur de `96px` (`md:h-24`), plaçant l'axe central de ses boutons à **48px** du haut. Les panneaux latéraux avaient un padding supérieur de `md:pt-16` (64px) ou `md:pt-12` (48px). Avec un conteneur d'en-tête de panneau de `48px` (`h-12`), le bouton "X" se retrouvait respectivement centré à **88px** ou **72px** du haut de l'écran. 
+
+### Solution
+- Remplacement du padding desktop par `md:pt-6` (24px) sur les deux panneaux (`GlobalMenu` et `CartSidebar`).
+- Le axe du conteneur d'en-tête (`24px` de padding + `24px` représentant la moitié du conteneur haut) est maintenant exactement à **48px** du haut de l'écran.
+- Le réglage mobile complexe (`pt-[max(...)]`) a été scrupuleusement préservé intact pour ne pas briser les espacements liés à l'encoche iOS (Dynamic Island).
+
+**Résultat** : Une symétrie absolue de l'interface sur Desktop lors de l'ouverture du Menu ou du Panier.
