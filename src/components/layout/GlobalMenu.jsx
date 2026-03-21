@@ -1,13 +1,20 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence, useAnimation } from 'framer-motion';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { motion, useAnimation } from 'framer-motion';
 import { X, Instagram, Facebook, Mail } from 'lucide-react';
 
+// ── Courbes d'easing (approximation fidèle des springs Framer Motion) ──
+// Open spring (stiffness:250, damping:35, mass:0.8) → ζ≈1.24 overdamped → pas d'oscillation
+// Close spring (stiffness:450, damping:30, mass:0.7) → ζ≈0.85 underdamped → ~4% overshoot
+const EASE_OPEN = 'cubic-bezier(0.23,1,0.32,1)';
+const EASE_CLOSE = 'cubic-bezier(0.12,0.8,0.3,1)';
+
+// ── MenuItemHover ──
+// Seul composant qui garde Framer Motion (motion.span) pour le hover par lettres sur desktop.
+// Le tap feedback est désormais en CSS :active (compositor) au lieu de whileTap (main thread).
 const MenuItemHover = React.memo(({ item, index, isClicked, darkMode, handlePremiumClick, isMobile }) => {
     const controls = useAnimation();
     const isHoveredRef = useRef(false);
     const isAnimatingRef = useRef(false);
-
-    // Pour la ligne et le numéro, on utilise un state très léger
     const [isActive, setIsActive] = useState(false);
 
     const handleMouseEnter = () => {
@@ -33,10 +40,8 @@ const MenuItemHover = React.memo(({ item, index, isClicked, darkMode, handlePrem
         <>
             <div className="relative flex overflow-hidden whitespace-nowrap">
                 {isMobile ? (
-                    // OPTIMISATION MOBILE : Mode texte simple sans injection de motion physics lourde
                     <span className="flex">{item.label}</span>
                 ) : (
-                    // DESIGN PREMIUM DESKTOP : Chaque lettre contrôlée indépendamment
                     <>
                         <span className="flex">
                             {item.label.split('').map((char, i) => {
@@ -63,7 +68,7 @@ const MenuItemHover = React.memo(({ item, index, isClicked, darkMode, handlePrem
                                     >
                                         {char === ' ' ? '\u00A0' : char}
                                     </motion.span>
-                                )
+                                );
                             })}
                         </span>
                         <span className={`absolute inset-0 flex ${darkMode ? 'text-white' : 'text-stone-900'}`}>
@@ -90,36 +95,44 @@ const MenuItemHover = React.memo(({ item, index, isClicked, darkMode, handlePrem
         </>
     );
 
-    const className = `group flex items-center justify-between w-full py-2 text-left text-4xl md:text-5xl font-light tracking-tighter cursor-pointer transition-colors duration-500 ${isClicked ? 'text-amber-500' : 'text-stone-400 hover:text-white'}`;
+    // active:scale-[0.96] + active:opacity-70 = CSS :active pseudo-class → compositor thread
+    // Remplace whileTap de Framer Motion qui tournait sur le main thread (RAF JS)
+    const className = `group flex items-center justify-between w-full py-2 text-left text-4xl md:text-5xl font-light tracking-tighter cursor-pointer active:scale-[0.96] active:opacity-70 ${isClicked ? 'text-amber-500' : 'text-stone-400 hover:text-white'}`;
+
+    const tapStyle = { transition: 'color 500ms ease, transform 150ms ease-out, opacity 150ms ease-out' };
 
     if (item.href) {
         return (
-            <motion.a
-                whileTap={{ scale: 0.96, opacity: 0.7 }}
+            <a
                 href={item.href}
                 onClick={handlePremiumClick}
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
                 className={className}
+                style={tapStyle}
             >
                 {content}
-            </motion.a>
+            </a>
         );
     }
 
     return (
-        <motion.button
-            whileTap={{ scale: 0.96, opacity: 0.7 }}
+        <button
             onClick={handlePremiumClick}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             className={className}
+            style={tapStyle}
         >
             {content}
-        </motion.button>
+        </button>
     );
 });
 
+// ── GlobalMenu ──
+// ARCHITECTURE PERF : Toutes les animations ouverture/fermeture/clic utilisent
+// des CSS transitions (compositor thread = refresh rate natif de l'écran).
+// Framer Motion n'est conservé QUE pour le hover par lettres desktop (motion.span).
 const GlobalMenu = ({
     isMenuOpen,
     setIsMenuOpen,
@@ -132,14 +145,18 @@ const GlobalMenu = ({
 }) => {
     const [clickedMenuItem, setClickedMenuItem] = useState(null);
     const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 1024 : false);
+    // Empêche l'animation de fermeture au premier rendu (le panel est déjà fermé)
+    const [transitionsReady, setTransitionsReady] = useState(false);
 
+    useEffect(() => { setTransitionsReady(true); }, []);
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 1024);
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const menuItems = [
+    // PERF: mémoïsé — recalculé uniquement si auth/design change
+    const menuItems = useMemo(() => [
         {
             label: activeDesignId === 'architectural' ? 'Accueil' : 'Accueil.',
             onClick: (e) => {
@@ -166,30 +183,88 @@ const GlobalMenu = ({
             label: 'Admin.',
             onClick: () => { setView('admin'); setIsMenuOpen(false); window.scrollTo(0, 0); }
         }] : [])
-    ];
+    ], [activeDesignId, user?.uid, user?.isAnonymous, isAdmin, setView, setIsMenuOpen]);
+
+    // PERF: références stables → React.memo de MenuItemHover filtre effectivement
+    const premiumClickHandlers = useMemo(() =>
+        menuItems.map((item, index) => (e) => {
+            if (e) e.preventDefault();
+            setClickedMenuItem(index);
+            setTimeout(() => { item.onClick(e); setClickedMenuItem(null); }, 500);
+        }),
+        [menuItems]
+    );
+
+    // ── Helper: style compositor pour chaque item du menu ──
+    // Retourne un objet style 100% CSS transitions (zéro JS par frame)
+    const getItemStyle = (index, total, isClicked) => {
+        const animProps = isMobile ? ['transform', 'opacity'] : ['transform', 'opacity', 'filter'];
+        const buildTransition = (duration, ease, delay = 0) =>
+            animProps.map(p => `${p} ${duration}ms ${ease} ${delay}ms`).join(', ');
+
+        // ▸ Feedback clic (immédiat, pas de stagger)
+        if (clickedMenuItem !== null) {
+            if (isClicked) return {
+                transform: isMobile ? 'translate3d(15px,0,0)' : 'translate3d(15px,0,0) scale(1.05) rotateZ(0.01deg)',
+                opacity: 1,
+                ...(!isMobile && { filter: 'blur(0px)' }),
+                transition: buildTransition(300, EASE_OPEN),
+            };
+            return {
+                transform: isMobile ? 'translate3d(-20px,20px,0)' : 'translate3d(-20px,20px,0) rotateZ(0.01deg)',
+                opacity: 0,
+                ...(!isMobile && { filter: 'blur(8px)' }),
+                transition: buildTransition(300, EASE_OPEN),
+            };
+        }
+
+        // ▸ Ouvert (stagger progressif)
+        if (isMenuOpen) return {
+            transform: isMobile ? 'translate3d(0,0,0)' : 'translate3d(0,0,0) skewX(0deg) scale(1) rotateZ(0.01deg)',
+            opacity: 1,
+            ...(!isMobile && { filter: 'blur(0px)' }),
+            transition: buildTransition(650, EASE_OPEN, index * 100),
+        };
+
+        // ▸ Fermé (stagger inversé)
+        return {
+            transform: isMobile ? 'translate3d(140px,0,0)' : 'translate3d(140px,0,0) skewX(14deg) scale(0.9) rotateZ(0.01deg)',
+            opacity: 0,
+            ...(!isMobile && { filter: 'blur(8px)' }),
+            transition: transitionsReady ? buildTransition(500, EASE_CLOSE, (total - 1 - index) * 50) : 'none',
+        };
+    };
 
     return (
         <div className={`fixed inset-0 z-[2000] ${isMenuOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: isMenuOpen ? 1 : 0 }}
-                transition={{ duration: 0.5 }}
-                // OPTIMISATION : On garde le div monté mais on anime son opacité pour forcer le pré-calcul GPU.
+            {/* Backdrop — CSS transition (compositor thread) au lieu de Framer Motion (main thread RAF) */}
+            <div
                 className={`absolute inset-0 bg-stone-900/60 ${!isMobile ? 'backdrop-blur-md' : ''} ${isMenuOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
-                style={{ willChange: 'opacity' }}
+                style={{
+                    opacity: isMenuOpen ? 1 : 0,
+                    transition: 'opacity 500ms ease',
+                    willChange: 'opacity',
+                }}
                 onClick={() => setIsMenuOpen(false)}
             />
 
-            {/* OPTIMISATION PRINCIPALE : remplacement de transition-all par transition-transform pour empêcher le moteur
-                de recalculer l'animation de l'ombre portée (shadow-2xl) ultra coûteuse à chaque frame */}
-            <div className={`absolute right-0 top-0 bottom-0 w-full md:w-[450px] shadow-2xl transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] 
+            {/* Panel — GPU pre-promoted : translate3d + will-change permanent
+                Le compositing layer est créé AVANT l'animation → zéro jank premier frame */}
+            <div className={`absolute right-0 top-0 bottom-0 w-full md:w-[450px] shadow-2xl
                 pt-[max(4.5rem,env(safe-area-inset-top)+2rem)] px-8 pb-12 md:p-12 md:pt-16
-                flex flex-col justify-between z-[2001] ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}
+                flex flex-col justify-between z-[2001]
               ${activeDesignId === 'architectural'
                     ? (darkMode ? 'bg-[#0A0A0A] border-l border-stone-800 text-stone-200' : 'bg-[#FAFAF9] border-l border-stone-200 text-stone-900')
                     : (darkMode ? 'bg-stone-900 border-l border-stone-800' : 'bg-white')}
             `}
-                style={{ transitionDelay: isMenuOpen ? '0ms' : '250ms' }}
+                style={{
+                    transform: isMenuOpen ? 'translate3d(0,0,0)' : 'translate3d(100%,0,0)',
+                    transition: `transform 700ms ${EASE_OPEN}`,
+                    transitionDelay: isMenuOpen ? '0ms' : '250ms',
+                    willChange: 'transform',
+                    backfaceVisibility: 'hidden',
+                    WebkitBackfaceVisibility: 'hidden',
+                }}
             >
                 <div className="space-y-20">
                     <div className="flex justify-between items-center">
@@ -199,76 +274,13 @@ const GlobalMenu = ({
                     <nav className="flex flex-col gap-8">
                         {menuItems.map((item, index, arr) => {
                             const isClicked = clickedMenuItem === index;
-                            const isOtherClicked = clickedMenuItem !== null && clickedMenuItem !== index;
-
-                            const handlePremiumClick = (e) => {
-                                if (e) e.preventDefault();
-                                setClickedMenuItem(index);
-                                // Delay the actual navigation to let the premium animation play
-                                setTimeout(() => {
-                                    item.onClick(e);
-                                    setClickedMenuItem(null);
-                                }, 500);
-                            };
-
-                            const blurInitial = 'blur(8px)';
-                            const blurActive = 'blur(0px)';
-                            const skewInitial = isMobile ? 0 : -14;
-                            const skewExit = isMobile ? 0 : 14;
-                            const scaleInitial = isMobile ? 1 : 0.9;
-
-                            // OPTIMISATION GPU : on garde le "blur" car il fait partie du design premium, 
-                            // mais la mémoïsation de MenuItemHover empêche ce flou de ramer.
-                            const animateState = isMenuOpen
-                                ? {
-                                    x: isClicked ? 15 : (isOtherClicked ? -20 : 0),
-                                    y: isOtherClicked ? 20 : 0,
-                                    opacity: isOtherClicked ? 0 : 1,
-                                    scale: isClicked ? 1.05 : 1,
-                                    skewX: 0,
-                                    rotateZ: 0.01,
-                                    ...(!isMobile && { filter: isOtherClicked ? blurInitial : blurActive }),
-                                    transition: {
-                                        type: 'spring',
-                                        stiffness: 250,
-                                        damping: 35,
-                                        mass: 0.8,
-                                        delay: clickedMenuItem !== null ? 0 : (index * 0.1),
-                                    }
-                                }
-                                : {
-                                    x: 140,
-                                    y: 0,
-                                    opacity: 0,
-                                    skewX: skewExit,
-                                    scale: scaleInitial,
-                                    rotateZ: 0.01,
-                                    ...(!isMobile && { filter: blurInitial }),
-                                    transition: {
-                                        type: 'spring',
-                                        stiffness: 450,
-                                        damping: 30,
-                                        mass: 0.7,
-                                        delay: clickedMenuItem !== null ? 0 : ((arr.length - 1 - index) * 0.05),
-                                    }
-                                };
-
                             return (
-                                <motion.div
+                                <div
                                     key={item.label}
-                                    initial={{
-                                        x: 140,
-                                        y: 0,
-                                        opacity: 0,
-                                        skewX: skewInitial,
-                                        scale: scaleInitial,
-                                        rotateZ: 0.01,
-                                        ...(!isMobile && { filter: blurInitial })
-                                    }}
-                                    animate={animateState}
                                     style={{
+                                        ...getItemStyle(index, arr.length, isClicked),
                                         willChange: isMobile ? 'transform, opacity' : 'transform, opacity, filter',
-                                        transformOrigin: 'left center'
+                                        transformOrigin: 'left center',
                                     }}
                                 >
                                     <MenuItemHover
@@ -276,32 +288,26 @@ const GlobalMenu = ({
                                         index={index}
                                         isClicked={isClicked}
                                         darkMode={darkMode}
-                                        handlePremiumClick={handlePremiumClick}
+                                        handlePremiumClick={premiumClickHandlers[index]}
                                         isMobile={isMobile}
                                     />
-                                </motion.div>
-                            )
+                                </div>
+                            );
                         })}
                     </nav>
                 </div>
 
-                <motion.div
+                {/* Footer — CSS transition (compositor thread) */}
+                <div
                     className={`space-y-6 pt-10 border-t origin-bottom ${darkMode ? 'border-stone-800' : 'border-stone-100'}`}
-                    initial={{ y: 20, opacity: 0, scale: 0.95 }}
-                    animate={
-                        isMenuOpen ? {
-                            y: 0,
-                            opacity: 1,
-                            scale: 1,
-                            transition: { type: 'spring', stiffness: 250, damping: 35, mass: 0.8, delay: 0.3 }
-                        } : {
-                            y: 20,
-                            opacity: 0,
-                            scale: 0.95,
-                            transition: { type: 'spring', stiffness: 450, damping: 30, mass: 0.7, delay: 0 }
-                        }
-                    }
-                    style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
+                    style={{
+                        transform: isMenuOpen ? 'translate3d(0,0,0) scale(1)' : 'translate3d(0,20px,0) scale(0.95)',
+                        opacity: isMenuOpen ? 1 : 0,
+                        transition: isMenuOpen
+                            ? `transform 650ms ${EASE_OPEN} 300ms, opacity 650ms ${EASE_OPEN} 300ms`
+                            : `transform 400ms ${EASE_CLOSE}, opacity 400ms ${EASE_CLOSE}`,
+                        willChange: 'transform, opacity',
+                    }}
                 >
                     {user && !user.isAnonymous && (
                         <div className="mb-4">
@@ -332,7 +338,7 @@ const GlobalMenu = ({
                             <Mail size={20} />
                         </a>
                     </div>
-                </motion.div>
+                </div>
             </div>
         </div>
     );

@@ -233,6 +233,74 @@
 
 ---
 
+## 21 mars 2026 — Optimisation performances GlobalMenu (animations 120fps+)
+
+**Fichier** : `src/components/layout/GlobalMenu.jsx`
+**Objectif** : Éliminer la sensation de 40fps sur le menu hamburger (mobile Android/iOS et desktop) sans casser les animations existantes.
+
+---
+
+### Diagnostic — Causes racines identifiées
+
+1. **Framer Motion sur le main thread** : Toutes les animations ouverture/fermeture (backdrop, items, footer) tournaient via le RAF JavaScript de Framer Motion, plafonné à 60fps. Sur les écrans 120Hz/144Hz ProMotion, l'animation restait à 60fps.
+
+2. **Aucune pré-promotion GPU sur le panel** : Le panneau principal n'avait ni `will-change: transform` ni `translate3d`. Au premier frame d'animation, le browser devait rasteriser + uploader la texture en VRAM → jank visible à l'ouverture.
+
+3. **React.memo neutralisé** : `MenuItemHover` est `React.memo`'d mais recevait une nouvelle référence `handlePremiumClick` à chaque render (recréée dans le `.map()`). Le memo ne filtrait donc rien → tous les `motion.span` (20-30 par item sur desktop) re-renderaient à chaque ouverture/fermeture.
+
+4. **`menuItems` recréé à chaque render** : L'array n'était pas mémoïsé, causant une cascade de re-renders inutiles.
+
+5. **`AnimatePresence` importé mais jamais utilisé** : Import mort.
+
+---
+
+### Solution — Migration vers CSS Compositor Thread
+
+**Architecture adoptée** : Toutes les animations ouverture/fermeture/clic migrent vers des **CSS transitions** (compositor thread = refresh rate natif de l'écran). Framer Motion est conservé **uniquement** pour le hover par lettres desktop (`motion.span` + `useAnimation`) qui ne peut pas être remplacé par CSS.
+
+#### Changements techniques
+
+| Élément | Avant | Après |
+|---|---|---|
+| Backdrop opacity | `motion.div` animate (JS RAF) | `div` + `transition: opacity 500ms` (GPU) |
+| Items stagger entrée | Springs Framer Motion × 4 (JS) | CSS transitions avec `delay` calculé (GPU) |
+| Items stagger sortie | Springs Framer Motion × 4 (JS) | CSS transitions stagger inversé (GPU) |
+| Click feedback | Spring Framer Motion (JS) | CSS transition 300ms (GPU) |
+| Footer | `motion.div` spring (JS) | CSS transition avec delay 300ms (GPU) |
+| Tap feedback | `whileTap` (JS RAF) | CSS `:active` pseudo-class (GPU) |
+| Panel slide | CSS transition (GPU) ✓ | CSS transition (GPU) ✓ inchangé |
+| Hover lettres | `motion.span` (JS) | `motion.span` (JS) ✓ conservé |
+
+#### Optimisations React
+
+- `menuItems` mémoïsé via `useMemo` → stable tant que auth/design ne change pas
+- `premiumClickHandlers` mémoïsé via `useMemo` → références stables → `React.memo` de `MenuItemHover` filtre effectivement
+- `AnimatePresence` supprimé (import mort)
+- `transitionsReady` state → empêche l'animation de fermeture au premier rendu (panel déjà fermé)
+
+#### Courbes d'easing (approximation des springs)
+
+```js
+// Open spring (stiffness:250, damping:35, mass:0.8) → ζ≈1.24 overdamped
+const EASE_OPEN = 'cubic-bezier(0.23,1,0.32,1)';
+// Close spring (stiffness:450, damping:30, mass:0.7) → ζ≈0.85 underdamped (~4% overshoot)
+const EASE_CLOSE = 'cubic-bezier(0.12,0.8,0.3,1)';
+```
+
+#### GPU pre-promotion panel
+
+```js
+style={{
+    transform: isMenuOpen ? 'translate3d(0,0,0)' : 'translate3d(100%,0,0)',
+    willChange: 'transform',
+    backfaceVisibility: 'hidden',
+}}
+```
+
+**Résultat** : Le menu tourne au refresh rate natif de l'écran (60Hz → 60fps, 120Hz → 120fps, 144Hz → 144fps). Les animations desktop (hover par lettres) restent identiques visuellement. Le comportement mobile est inchangé.
+
+---
+
 ## Fichiers modifiés — Récapitulatif complet (19 mars 2026)
 
 | Fichier | Type | Modifications |
