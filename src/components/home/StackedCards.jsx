@@ -160,7 +160,7 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
     return (
         <section className="featured-section relative w-full flex flex-col items-center gap-0 pt-20 md:pt-32 pb-[10vh]" 
                  style={{ 
-                   background: 'linear-gradient(to bottom, #FFFFFF 0%, #FFF6E5 20%, #F5DBBA 45%, #EBBBA0 70%, #DE9E85 100%)',
+                   background: 'linear-gradient(to bottom, #FFFFFF 0%, #FDF4E3 20%, #F8E2C4 50%, #F0C49B 80%, #D9956C 100%)',
                    overflowX: 'clip' 
                  }}>
 
