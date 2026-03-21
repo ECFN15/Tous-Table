@@ -128,7 +128,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       desc: (homepageImages && homepageImages['featured_1_text']?.desc) || "\"Une renaissance historique pour l'époque contemporaine.\"",
       img: (homepageImages && homepageImages.featured_1) || "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1200",
       imgMobile: (homepageImages && homepageImages.featured_1_mobile) || (homepageImages && homepageImages.featured_1) || "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=800",
-      bgColor: "#FFF8EE", // Carte 1: Blanc Crème (Solaire)
+      bgColor: "#FDF0D5", // Carte 1: Crème Vanille (Mieux intégré, moins blanc vif)
       textColor: "#1a1a1a",
       subColor: "#9C8268",
       faintColor: "rgba(0,0,0,0.03)"
