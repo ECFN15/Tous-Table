@@ -128,7 +128,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       desc: (homepageImages && homepageImages['featured_1_text']?.desc) || "\"Une renaissance historique pour l'époque contemporaine.\"",
       img: (homepageImages && homepageImages.featured_1) || "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1200",
       imgMobile: (homepageImages && homepageImages.featured_1_mobile) || (homepageImages && homepageImages.featured_1) || "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=800",
-      bgColor: "#fff9f0", // Carte 1: Blanc Crème
+      bgColor: "#FFF8EE", // Carte 1: Blanc Crème (Solaire)
       textColor: "#1a1a1a",
       subColor: "#9C8268",
       faintColor: "rgba(0,0,0,0.03)"
@@ -145,7 +145,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       desc: (homepageImages && homepageImages['featured_2_text']?.desc) || "\"Formes épurées et assemblage traditionnel. L'équilibre parfait entre passé et présent.\"",
       img: (homepageImages && homepageImages.featured_2) || "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=1200",
       imgMobile: (homepageImages && homepageImages.featured_2_mobile) || (homepageImages && homepageImages.featured_2) || "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=800",
-      bgColor: "#fcead6", // Carte 2: Sable Clair
+      bgColor: "#EFC894", // Carte 2: Miel Doré / Sable Solaire (Chaleur et caractère)
       textColor: "#1a1a1a",
       subColor: "#9C8268",
       faintColor: "rgba(0,0,0,0.03)"
@@ -162,7 +162,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       desc: (homepageImages && homepageImages['featured_3_text']?.desc) || "\"Bois de rose et marqueterie complexe. Un gardien de correspondances oubliées.\"",
       img: (homepageImages && homepageImages.featured_3) || "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?q=80&w=1200",
       imgMobile: (homepageImages && homepageImages.featured_3_mobile) || (homepageImages && homepageImages.featured_3) || "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?q=80&w=800",
-      bgColor: "#f5d1a6", // Carte 3: Sable Doré Intense
+      bgColor: "#DE8F59", // Carte 3: Caramel Rayonnant / Terre d'Ombre
       textColor: "#1a1a1a",
       subColor: "#9C8268",
       faintColor: "rgba(0,0,0,0.03)"
@@ -179,7 +179,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       desc: (homepageImages && homepageImages['featured_4_text']?.desc) || "\"Chêne massif et échelles en laiton. Une structure qui élève l'esprit.\"",
       img: (homepageImages && homepageImages.featured_4) || "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?q=80&w=1200",
       imgMobile: (homepageImages && homepageImages.featured_4_mobile) || (homepageImages && homepageImages.featured_4) || "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?q=80&w=800",
-      bgColor: "#c48b68", // Carte 4: Terre Cuite (Nuance plus terreuse et chaleureuse)
+      bgColor: "#BC5735", // Carte 4: Terre Cuite Ensoleillée / Brique
       textColor: "#1a1a1a",
       subColor: "#9C8268",
       faintColor: "rgba(0,0,0,0.04)"
