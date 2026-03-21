@@ -23,8 +23,8 @@ const CartSidebar = ({ isOpen, onClose, cartItems, onRemoveItem, totalPrice, onC
             {/* Sidebar Panel */}
             <div
                 className={`absolute right-0 top-0 bottom-0 w-full md:w-[500px] shadow-2xl transition-all ${baseTransition} transform-gpu 
-                px-6 pb-6 md:p-8 flex flex-col safe-area-bottom ${isOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'} ${bgClass}`}
-                style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 4.5rem)' }}
+                px-6 pb-6 md:px-8 md:pb-8 flex flex-col safe-area-bottom ${isOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'} ${bgClass}`}
+                style={{ paddingTop: 'max(4.5rem, calc(env(safe-area-inset-top, 0px) + 2rem))' }}
             >
 
                 {/* Header */}
