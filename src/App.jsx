@@ -77,6 +77,7 @@ const AppContent = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartInteracted, setCartInteracted] = useState(false); // Prevents initial flash
   const [showOrderSuccess, setShowOrderSuccess] = useState(false);
+  const [orderSuccessMethod, setOrderSuccessMethod] = useState(''); // Tracks which payment method was used
   const [stockAlert, setStockAlert] = useState(null); // { currentStock: number }
 
   // Navigation
@@ -286,6 +287,7 @@ const AppContent = () => {
 
       const clearCartAfterStripe = async () => {
         // 1. Déclencher l'UI succès immédiatement
+        setOrderSuccessMethod('stripe_elements');
         setShowOrderSuccess(true);
         setView('gallery');
 
@@ -516,6 +518,7 @@ const AppContent = () => {
     // 3. Handle Payment Redirect or Success
     setCartItems([]); // Clear UI cart immediately
     setIsCartOpen(false);
+    setOrderSuccessMethod(orderData.paymentMethod || 'deferred');
     setShowOrderSuccess(true); // Trigger Success Modal
 
     // Restore gallery state if we have it
@@ -830,6 +833,7 @@ const AppContent = () => {
           handlePlaceOrder={handlePlaceOrder}
           showOrderSuccess={showOrderSuccess}
           setShowOrderSuccess={setShowOrderSuccess}
+          orderSuccessMethod={orderSuccessMethod}
           adminCollection={adminCollection}
           setAdminCollection={setAdminCollection}
           editingItem={editingItem}

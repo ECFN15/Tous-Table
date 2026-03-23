@@ -57,6 +57,7 @@ const AppRouter = ({
     handlePlaceOrder,
     showOrderSuccess,
     setShowOrderSuccess,
+    orderSuccessMethod,
     adminCollection,
     setAdminCollection,
     editingItem,
@@ -213,7 +214,7 @@ const AppRouter = ({
                 </Suspense>
             )}
 
-            {showOrderSuccess && <OrderSuccessModal onClose={() => setShowOrderSuccess(false)} />}
+            {showOrderSuccess && <OrderSuccessModal onClose={() => setShowOrderSuccess(false)} paymentMethod={orderSuccessMethod} />}
 
 
 
