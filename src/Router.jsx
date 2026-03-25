@@ -77,18 +77,18 @@ const AppRouter = ({
     const [isMoreMenuOpen, setIsMoreMenuOpen] = React.useState(false);
 
     const adminTabs = [
-        { id: 'studio', label: 'Studio', icon: Palette },
         { id: 'dashboard', label: 'Stats', icon: Activity },
+        { id: 'analytics', label: 'Data', icon: BarChart3 },
+        { id: 'furniture', label: 'Mobilier', icon: Layout },
+        { id: 'cutting_boards', label: 'Planches', icon: LayoutPanelTop },
+        { id: 'studio', label: 'Studio', icon: Palette },
         { id: 'homepage', label: 'Accueil', icon: Home },
         { id: 'orders', label: 'Ventes', icon: Package },
         { id: 'auctions', label: 'Enchères', icon: Gavel },
-        { id: 'furniture', label: 'Mobilier', icon: Layout },
-        { id: 'cutting_boards', label: 'Planches', icon: LayoutPanelTop },
         { id: 'users', label: 'Clients', icon: Users },
         { id: 'ip_manager', label: 'Sécurité', icon: Globe },
         { id: 'seo', label: 'SEO', icon: Share2 },
         { id: 'newsletter', label: 'Infos', icon: Mail },
-        { id: 'analytics', label: 'Data', icon: BarChart3 },
         { id: 'payment_settings', label: 'Paiement', icon: CreditCard },
     ];
 
