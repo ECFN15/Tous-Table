@@ -29,6 +29,7 @@ const getDeviceInfo = () => {
 const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedItemPrice }) => {
     const { user, isAdmin } = useAuth();
     const sessionIdRef = useRef(null);
+    const initCalledRef = useRef(false); // Anti-doublon synchrone
     const journeyToSend = useRef([]);
     const startTimeRef = useRef(Date.now());
     const lastActionTimeRef = useRef(Date.now());
@@ -37,7 +38,15 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
         // Initialize Session ONCE
         let isMounted = true;
         const initSession = async () => {
-            if (sessionIdRef.current || !isMounted || isAdmin) return;
+            // Triple guard: session déjà créée, init déjà en cours, ou admin
+            if (sessionIdRef.current || initCalledRef.current || !isMounted || isAdmin) return;
+
+            // Ne pas créer de session si l'auth n'est pas encore résolue
+            // Cela évite la session fantôme à 0s quand user passe de null → anonymousUser
+            if (!user) return;
+
+            // Verrouiller immédiatement (synchrone) avant l'appel async
+            initCalledRef.current = true;
 
             const userInfo = {
                 userId: user?.uid || 'anonymous',
@@ -50,15 +59,18 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
                 const initRes = await httpsCallable(functions, 'initLiveSession')(userInfo);
                 if (initRes.data.success && isMounted) {
                     sessionIdRef.current = initRes.data.sessionId;
+                } else {
+                    initCalledRef.current = false; // Réouvrir si échec
                 }
             } catch (error) {
                 console.error("Analytics Init Error:", error);
+                initCalledRef.current = false; // Réouvrir si erreur réseau
             }
         };
 
         const timeout = setTimeout(() => {
-            if (!sessionIdRef.current) initSession();
-        }, 2000);
+            if (!sessionIdRef.current && !initCalledRef.current) initSession();
+        }, 2500); // 2.5s pour laisser Firebase Auth se stabiliser
 
         return () => {
             isMounted = false;
