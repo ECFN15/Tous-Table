@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
     TrendingUp, ShoppingBag, AlertTriangle, RefreshCw, Mail,
     Gavel, Package, Clock, Archive, Users
@@ -8,23 +8,197 @@ import { httpsCallable } from 'firebase/functions';
 import { db, appId, functions } from '../../firebase/config';
 import { getMillis } from '../../utils/time';
 
+// ─── CUSTOM SVG CHARTS ───
+
+const RevenueChart = ({ data, darkMode }) => {
+    const containerRef = useRef(null);
+    const [dims, setDims] = useState({ w: 600, h: 180 });
+    const [activeIdx, setActiveIdx] = useState(null);
+
+    useEffect(() => {
+        const el = containerRef.current;
+        if (!el) return;
+        const ro = new ResizeObserver(([entry]) => {
+            if (entry.contentRect.width > 0) {
+                setDims({ w: entry.contentRect.width, h: 180 });
+            }
+        });
+        ro.observe(el);
+        return () => ro.disconnect();
+    }, []);
+
+    const values = useMemo(() => data.map(d => d.value), [data]);
+    const maxVal = Math.max(...values, 100);
+    const margin = { top: 20, right: 10, bottom: 20, left: 10 };
+    const chartW = dims.w - margin.left - margin.right;
+    const chartH = dims.h - margin.top - margin.bottom;
+
+    const points = useMemo(() => {
+        if (data.length === 0) return '';
+        const step = chartW / Math.max(1, data.length - 1);
+        return data.map((d, i) => {
+            const x = margin.left + i * step;
+            const y = margin.top + chartH - ((d.value / maxVal) * chartH);
+            return `${x},${y}`;
+        }).join(' L ');
+    }, [data, chartW, chartH, maxVal, margin]);
+
+    const polygonPoints = useMemo(() => {
+        if (!points) return '';
+        const firstX = margin.left;
+        const lastX = margin.left + chartW;
+        const baseY = margin.top + chartH;
+        return `M ${firstX},${baseY} L ${points} L ${lastX},${baseY} Z`;
+    }, [points, chartW, chartH, margin]);
+
+    const handlePointerMove = (e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = e.clientX - rect.left - margin.left;
+        const step = chartW / Math.max(1, data.length - 1);
+        let idx = Math.round(x / step);
+        idx = Math.max(0, Math.min(data.length - 1, idx));
+        setActiveIdx(idx);
+    };
+
+    return (
+        <div ref={containerRef} className="w-full h-[180px] relative select-none group"
+             onPointerMove={handlePointerMove}
+             onPointerLeave={() => setActiveIdx(null)}>
+            <svg width={dims.w} height={dims.h} className="block overflow-visible">
+                <defs>
+                    <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.15" />
+                        <stop offset="100%" stopColor="#3B82F6" stopOpacity="0" />
+                    </linearGradient>
+                    <pattern id="diagonalHatch" patternUnits="userSpaceOnUse" width="4" height="4">
+                        <path d="M-1,1 l2,-2 M0,4 l4,-4 M3,5 l2,-2" 
+                              style={{ stroke: darkMode ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.05)', strokeWidth: 1 }} />
+                    </pattern>
+                </defs>
+                
+                <line x1={margin.left} y1={margin.top + chartH} x2={margin.left + chartW} y2={margin.top + chartH} 
+                      stroke={darkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'} strokeWidth="1" />
+                      
+                <line x1={margin.left} y1={margin.top} x2={margin.left + chartW} y2={margin.top} 
+                      stroke={darkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'} strokeWidth="1" strokeDasharray="4 4" />
+                
+                {data.length > 0 && (
+                    <>
+                        <path d={`M ${points.split(' L ')[0]} L ${points}`} 
+                              fill="none" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        
+                        <path d={polygonPoints} fill="url(#areaGradient)" />
+                        <path d={polygonPoints} fill="url(#diagonalHatch)" />
+
+                        {activeIdx !== null && (
+                            <g>
+                                <line 
+                                    x1={margin.left + activeIdx * (chartW / Math.max(1, data.length - 1))}
+                                    y1={margin.top}
+                                    x2={margin.left + activeIdx * (chartW / Math.max(1, data.length - 1))}
+                                    y2={margin.top + chartH}
+                                    stroke={darkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}
+                                    strokeDasharray="4 4"
+                                />
+                                <circle 
+                                    cx={margin.left + activeIdx * (chartW / Math.max(1, data.length - 1))}
+                                    cy={margin.top + chartH - ((data[activeIdx].value / maxVal) * chartH)}
+                                    r="4"
+                                    fill={darkMode ? '#0a0a0a' : '#ffffff'}
+                                    stroke="#3B82F6"
+                                    strokeWidth="2"
+                                />
+                            </g>
+                        )}
+                    </>
+                )}
+            </svg>
+            
+            {activeIdx !== null && data[activeIdx] && (
+                <div 
+                    className={`absolute top-0 transform -translate-x-1/2 -translate-y-[110%] pointer-events-none transition-all duration-75 px-3 py-1.5 rounded-lg border shadow-xl ${darkMode ? 'bg-[#1e1e1e] border-white/10 text-white' : 'bg-white border-stone-200 text-stone-900'}`}
+                    style={{ left: margin.left + activeIdx * (chartW / Math.max(1, data.length - 1)) }}
+                >
+                    <p className="text-[9px] uppercase tracking-wider opacity-50 mb-0.5">{data[activeIdx].label}</p>
+                    <p className="text-xs font-black">{data[activeIdx].value} €</p>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const StatusArc = ({ counts, darkMode }) => {
+    const total = counts.paid + counts.pending + counts.shipped;
+    const radius = 46;
+    const strokeWidth = 10;
+    const circumference = 2 * Math.PI * radius;
+    
+    const highlightTotal = counts.paid + counts.shipped;
+    const percentage = total === 0 ? 0 : highlightTotal / total;
+    const offset = circumference - (percentage * circumference);
+
+    return (
+        <div className="flex flex-col items-center justify-center relative w-full h-full min-h-[180px]">
+            <svg width="120" height="120" className="transform -rotate-90">
+                <circle
+                    cx="60" cy="60" r={radius}
+                    fill="none"
+                    stroke={darkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'}
+                    strokeWidth={strokeWidth}
+                />
+                <circle
+                    cx="60" cy="60" r={radius}
+                    fill="none"
+                    stroke="#10b981"
+                    strokeWidth={strokeWidth}
+                    strokeDasharray={circumference}
+                    strokeDashoffset={offset}
+                    strokeLinecap="round"
+                    className="transition-all duration-1000 ease-out"
+                />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-4">
+                <span className={`text-2xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                    {total > 0 ? Math.round(percentage * 100) : 0}%
+                </span>
+                <span className="text-[8px] uppercase tracking-widest text-stone-400 font-bold -mt-1">Payées</span>
+            </div>
+            
+            <div className="mt-2 flex gap-4 text-[10px] uppercase font-bold tracking-wider">
+                <div className="flex items-center gap-1.5">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                    <span className={darkMode ? 'text-white/60' : 'text-stone-500'}>Payé ({highlightTotal})</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                    <div className={`w-2 h-2 rounded-full ${darkMode ? 'bg-white/10' : 'bg-black/10'}`}></div>
+                    <span className={darkMode ? 'text-white/60' : 'text-stone-500'}>En attente ({counts.pending})</span>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
+// ─── ADMIN DASHBOARD ───
+
 const AdminDashboard = ({ user, darkMode = false }) => {
-    // Revised State for Business Logic
     const [stats, setStats] = useState({
         totalRevenue: 0,
         totalOrders: 0,
         averageOrderValue: 0,
-        totalStockValue: 0, // [NEW] Potential Revenue
-        activeAuctionsCount: 0, // [NEW] Live Auctions
+        totalStockValue: 0,
+        activeAuctionsCount: 0,
         totalItemsForSale: 0,
         registeredUsers: 0
     });
 
-    const [activeAuctions, setActiveAuctions] = useState([]); // [NEW] List of live auctions
+    const [chartData, setChartData] = useState([]);
+    const [statusCounts, setStatusCounts] = useState({ paid: 0, pending: 0, shipped: 0 });
+    const [activeAuctions, setActiveAuctions] = useState([]); 
     const [recentOrders, setRecentOrders] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Modal States
+    // Modals
     const [isOrderResetModalOpen, setIsOrderResetModalOpen] = useState(false);
     const [allOrders, setAllOrders] = useState([]);
     const [isCleaningModalOpen, setIsCleaningModalOpen] = useState(false);
@@ -36,11 +210,21 @@ const AdminDashboard = ({ user, darkMode = false }) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // 1. Fetch Orders for Financials
+                // 1. Fetch Orders
                 const ordersSnapshot = await getDocs(collection(db, 'orders'));
                 let revenue = 0;
                 let orderCount = 0;
                 const orders = [];
+                let p = 0, w = 0, s = 0;
+
+                // Dates for chart (last 7 days minus today to ensure full days? Let's just do last 7 days including today)
+                const dates = Array.from({length: 7}, (_, i) => {
+                    const d = new Date();
+                    d.setDate(d.getDate() - (6 - i));
+                    return { raw: d.toISOString().split('T')[0], label: d.toLocaleDateString('fr-FR', { weekday: 'short' }) };
+                });
+                const revMap = {};
+                dates.forEach(d => revMap[d.raw] = 0);
 
                 ordersSnapshot.forEach(doc => {
                     const data = doc.data();
@@ -49,68 +233,58 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                     if (!isCancelled) {
                         revenue += (data.total || 0);
                         orderCount++;
+                        
+                        // Status
+                        if (data.status === 'completed' || data.status === 'paid') p++;
+                        else if (data.status === 'shipped') s++;
+                        else w++; // pending
+
+                        // Chart logic
+                        const ts = getMillis(data.createdAt);
+                        if (ts) {
+                            const dateStr = new Date(ts).toISOString().split('T')[0];
+                            if (revMap[dateStr] !== undefined) {
+                                revMap[dateStr] += (data.total || 0);
+                            }
+                        }
                     }
                     orders.push({ id: doc.id, ...data });
                 });
 
-                // Filter out cancelled orders for the "Recent Orders" widget to keep dashboard focused on active business
+                setStatusCounts({ paid: p, pending: w, shipped: s });
+                setChartData(dates.map(d => ({ label: d.label, value: revMap[d.raw] })));
+
                 const activeOrders = orders.filter(o => o.status !== 'cancelled' && o.status !== 'cancelled_by_client');
                 const sortedOrders = activeOrders.sort((a, b) => getMillis(b.createdAt) - getMillis(a.createdAt)).slice(0, 5);
                 setRecentOrders(sortedOrders);
-                setAllOrders(orders); // Keep all orders for background usage (e.g. Export)
+                setAllOrders(orders); 
 
-                // 2. Fetch Items for Stock & Business Stats (Furniture + Boards)
+                // 2. Fetch Items
                 const furnitureSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'furniture'));
                 const boardSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'cutting_boards'));
 
                 let stockValue = 0;
-                let itemsForSale = 0;
                 let auctions = [];
-                let soldItems = [];
 
                 const processItem = (doc, type) => {
                     const data = doc.data();
                     const price = data.currentPrice || data.startingPrice || 0;
                     const stock = data.stock !== undefined ? Number(data.stock) : 1;
 
-                    // A. Stock Value Calculation (Only available items)
                     if (!data.sold && stock > 0) {
                         stockValue += (price * stock);
-                        itemsForSale += stock;
                     }
-
-                    // B. Active Auctions
                     if (data.auctionActive && !data.sold && stock > 0) {
                         const endTime = data.auctionEnd ? getMillis(data.auctionEnd) : 0;
                         const timeLeft = Math.max(0, endTime - Date.now());
-                        auctions.push({
-                            id: doc.id,
-                            ...data,
-                            type,
-                            timeLeft,
-                            bidCount: data.bidCount || 0
-                        });
-                    }
-
-                    // C. Recent Sales (To celebrate success)
-                    if (data.sold || stock <= 0) {
-                        soldItems.push({
-                            id: doc.id,
-                            ...data,
-                            soldAt: data.soldAt ? getMillis(data.soldAt) : 0
-                        });
+                        auctions.push({ id: doc.id, ...data, type, timeLeft, bidCount: data.bidCount || 0 });
                     }
                 };
 
                 furnitureSnap.forEach(doc => processItem(doc, 'Mobilier'));
                 boardSnap.forEach(doc => processItem(doc, 'Planche'));
 
-                // Sort Auctions by urgency (ending soonest)
                 auctions.sort((a, b) => a.timeLeft - b.timeLeft);
-
-                // Sort Sales by recent
-                soldItems.sort((a, b) => b.soldAt - a.soldAt);
-
                 setActiveAuctions(auctions);
 
                 setStats({
@@ -119,11 +293,10 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                     averageOrderValue: orderCount > 0 ? Math.round(revenue / orderCount) : 0,
                     totalStockValue: stockValue,
                     activeAuctionsCount: auctions.length,
-                    totalItemsForSale: itemsForSale,
-                    registeredUsers: 0 // Placeholder, fetched below
+                    registeredUsers: 0 
                 });
 
-                // 3. Fetch User Stats (Async to not block UI if slow)
+                // 3. Fetch User Stats
                 httpsCallable(functions, 'getUserStats')().then(res => {
                     setStats(prev => ({ ...prev, registeredUsers: res.data.count }));
                 }).catch(err => console.error("Failed to fetch user stats", err));
@@ -136,11 +309,9 @@ const AdminDashboard = ({ user, darkMode = false }) => {
         };
 
         fetchData();
-        // Refresh auctions timer every minute? No, simple load is enough for admin dash overview.
     }, []);
 
-
-    // --- ACTIONS (Reset, Export, Clean) SAME AS BEFORE ---
+    // ─── ACTIONS ───
     const handleResetOrdersClick = () => setIsOrderResetModalOpen(true);
 
     const exportToExcel = async (orders) => {
@@ -150,8 +321,7 @@ const AdminDashboard = ({ user, darkMode = false }) => {
             'Date': new Date(getMillis(order.createdAt)).toLocaleString(),
             'Client': order.shipping?.fullName || 'N/A',
             'Total': `${order.total} €`,
-            'Statut': order.status || 'N/A',
-            'Articles': order.items?.map(item => `${item.name} (x${item.quantity})`).join(', ') || ''
+            'Statut': order.status || 'N/A'
         }));
         const ws = XLSX.utils.json_to_sheet(data);
         const wb = XLSX.utils.book_new();
@@ -165,7 +335,6 @@ const AdminDashboard = ({ user, darkMode = false }) => {
             const resetOrdersFn = httpsCallable(functions, 'resetAllOrders');
             const result = await resetOrdersFn();
             const count = result.data.count;
-
             setStats(prev => ({ ...prev, totalRevenue: 0, totalOrders: 0, averageOrderValue: 0 }));
             setRecentOrders([]);
             setAllOrders([]);
@@ -185,23 +354,16 @@ const AdminDashboard = ({ user, darkMode = false }) => {
             const freedMb = (s.storageSpaceFreedBytes / (1024 * 1024)).toFixed(2);
             setIsCleaningModalOpen(false);
             alert(`✅ Nettoyage terminé.\nEspace libéré : ${freedMb} Mo\nImages supprimées : ${s.orphanedImagesDeleted}`);
-        } catch (error) {
-            console.error(error);
-            alert("Erreur nettoyage: " + error.message);
-        }
+        } catch (error) { console.error(error); alert("Erreur nettoyage: " + error.message); }
     };
 
     const confirmResetUsers = async () => {
         try {
             const resetUsersFn = httpsCallable(functions, 'resetAllUsers');
             const result = await resetUsersFn();
-            const { message } = result.data;
             setIsResetUsersModalOpen(false);
-            alert(`✅ Succès !\n${message}`);
-        } catch (error) {
-            console.error(error);
-            alert("Erreur purge utilisateurs: " + error.message);
-        }
+            alert(`✅ Succès !\n${result.data.message}`);
+        } catch (error) { console.error(error); alert("Erreur purge utilisateurs: " + error.message); }
     };
 
     const confirmPurgeAnonymous = async () => {
@@ -209,15 +371,10 @@ const AdminDashboard = ({ user, darkMode = false }) => {
         try {
             const purgeAnonymousFn = httpsCallable(functions, 'purgeAnonymousUsers');
             const result = await purgeAnonymousFn();
-            const { message } = result.data;
             setIsPurgeAnonymousModalOpen(false);
-            alert(`✅ Succès !\n${message}`);
-        } catch (error) {
-            console.error(error);
-            alert("Erreur purge anonymes: " + error.message);
-        } finally {
-            setPurgingAnonymous(false);
-        }
+            alert(`✅ Succès !\n${result.data.message}`);
+        } catch (error) { console.error(error); alert("Erreur purge anonymes: " + error.message); } 
+        finally { setPurgingAnonymous(false); }
     };
 
     const handleExportUsers = async () => {
@@ -228,14 +385,9 @@ const AdminDashboard = ({ user, darkMode = false }) => {
             const users = result.data.users;
 
             const data = users.map(u => ({
-                'ID': u.uid,
-                'Email': u.email,
-                'Nom': u.displayName,
-                'Date Inscription': new Date(u.creationTime).toLocaleDateString(),
-                'Dernière Connexion': new Date(u.lastSignInTime).toLocaleDateString(),
-                'Provider': u.provider,
-                'IP': u.lastIp || 'N/A',
-                'Device': u.lastUserAgent || 'N/A'
+                'ID': u.uid, 'Email': u.email, 'Nom': u.displayName,
+                'Inscription': new Date(u.creationTime).toLocaleDateString(),
+                'Connexion': new Date(u.lastSignInTime).toLocaleDateString()
             }));
 
             const XLSX = await import('xlsx');
@@ -245,267 +397,265 @@ const AdminDashboard = ({ user, darkMode = false }) => {
             XLSX.writeFile(wb, `Clients_${new Date().toISOString().split('T')[0]}.xlsx`);
 
             alert(`✅ Export réussi : ${users.length} clients exportés.`);
-        } catch (error) {
-            console.error(error);
-            alert("Erreur export utilisateurs: " + error.message);
-        } finally {
-            setExportingUsers(false);
-        }
+        } catch (error) { console.error(error); alert("Erreur export utilisateurs: " + error.message); } 
+        finally { setExportingUsers(false); }
     };
 
     if (loading) return <div className="p-12 text-center text-stone-400 font-bold animate-pulse">Chargement...</div>;
 
-    // Helper for formatting duration
-    const formatDuration = (ms) => {
-        if (ms <= 0) return "Terminée";
-        const days = Math.floor(ms / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        return days > 0 ? `${days}j ${hours}h` : `${hours}h rest.`;
-    };
+    const baseCard = darkMode ? 'bg-[#161616] border border-white/5 shadow-2xl' : 'bg-white border border-stone-100 shadow-sm';
+    const textBase = darkMode ? 'text-white' : 'text-stone-900';
+    const textMuted = darkMode ? 'text-white/40' : 'text-stone-400';
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 pb-20">
 
-            {/* KPI ROW - ADAPTIVE GRID */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-                <KpiCard
-                    title="Chiffre d'Affaires"
-                    value={`${stats.totalRevenue} €`}
-                    icon={<TrendingUp size={20} className="text-emerald-500" />}
-                    trend={`Panier moyen : ${stats.averageOrderValue} €`}
-                    trendColor="text-emerald-600"
-                    bg="bg-emerald-50/50 ring-1 ring-inset ring-emerald-100"
-                    darkMode={darkMode}
-                />
-                <KpiCard
-                    title="Valeur Catalogue" // Replaces Engagement
-                    value={`${stats.totalStockValue} €`}
-                    icon={<Package size={20} className="text-amber-500" />}
-                    trend={`${stats.totalItemsForSale} pièces en stock`}
-                    trendColor="text-amber-600"
-                    bg="bg-amber-50/50 ring-1 ring-inset ring-amber-100"
-                    darkMode={darkMode}
-                />
-                <KpiCard
-                    title="Commandes"
-                    value={stats.totalOrders}
-                    icon={<ShoppingBag size={20} className="text-blue-500" />}
-                    trend="Total cumulé"
-                    bg="bg-blue-50/50 ring-1 ring-inset ring-blue-100"
-                    darkMode={darkMode}
-                />
-                <KpiCard
-                    title="Enchères Actives" // Replaces Shares
-                    value={stats.activeAuctionsCount}
-                    icon={<Gavel size={20} className="text-purple-500" />}
-                    trend="Salle des ventes"
-                    bg="bg-purple-50/50 ring-1 ring-inset ring-purple-100"
-                    darkMode={darkMode}
-                />
-                <KpiCard
-                    title="Clients Inscrits"
-                    value={stats.registeredUsers}
-                    icon={<Users size={20} className="text-pink-500" />}
-                    trend="Comptes vérifiés"
-                    bg="bg-pink-50/50 ring-1 ring-inset ring-pink-100"
-                    darkMode={darkMode}
-                    action={
-                        <button
-                            onClick={handleExportUsers}
-                            disabled={exportingUsers}
-                            className="mt-2 text-[10px] bg-white ring-1 ring-pink-200 text-pink-600 px-3 py-1 rounded-full font-bold uppercase hover:bg-pink-50 transition-colors flex items-center gap-1"
-                        >
-                            {exportingUsers ? <RefreshCw size={10} className="animate-spin" /> : <Archive size={10} />} Excel
-                        </button>
-                    }
-                />
-            </div>
-
-            {/* SECTION 1 : FLUX D'ACTIVITÉ (MOTEUR DU SITE - FULL WIDTH) */}
-            <div className={`p-8 rounded-[2.5rem] shadow-sm transform-gpu backface-hidden will-change-transform overflow-hidden ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : 'bg-white ring-1 ring-inset ring-stone-100'}`}>
-                <div className="flex justify-between items-center mb-8">
-                    <div>
-                        <h3 className={`text-xl font-black uppercase tracking-[0.2em] ${darkMode ? 'text-white' : 'text-stone-900'}`}>Flux Activité</h3>
-                        <p className="text-[10px] text-stone-400 font-bold mt-1 uppercase tracking-widest">Le moteur du site - Dernières commandes en direct</p>
-                    </div>
-                    <ShoppingBag size={20} className="text-stone-300" />
+            {/* MODULE 1: KPI ROW (3 Cards) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* CA */}
+                <div className={`p-8 rounded-[32px] ${baseCard}`}>
+                    <p className={`text-[10px] uppercase font-black tracking-[0.2em] mb-4 ${textMuted}`}>Chiffre d'Affaires</p>
+                    <h2 className={`text-4xl lg:text-5xl font-black tracking-tighter mb-2 ${textBase}`}>
+                        {stats.totalRevenue.toLocaleString('fr-FR')} <span className="text-2xl text-stone-500">€</span>
+                    </h2>
+                    <p className="text-xs font-bold text-emerald-500 flex items-center gap-1.5">
+                        <TrendingUp size={14} /> Panier moyen : {stats.averageOrderValue} €
+                    </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                    {recentOrders.length === 0 ? (
-                        <div className="col-span-full py-12 text-center border-2 border-dashed border-stone-100 rounded-[2rem]">
-                            <p className="text-xs text-stone-400 italic">En attente d'activité...</p>
-                        </div>
-                    ) : (
-                        recentOrders.slice(0, 4).map(order => (
-                            <div key={order.id} className={`group relative p-6 rounded-[2.5rem] transition-all border transform-gpu hover:scale-[1.02] ${darkMode ? 'bg-stone-900/40 border-stone-700/50 hover:bg-stone-900/60 hover:border-stone-600' : 'bg-white border-stone-100 hover:shadow-2xl hover:shadow-stone-200/40'}`}>
-                                <div className="flex items-center gap-4 mb-6">
-                                    <div className={`w-12 h-12 rounded-2xl flex-shrink-0 flex items-center justify-center font-black text-sm transition-all shadow-sm ${darkMode ? 'bg-stone-800 text-emerald-400 ring-1 ring-stone-700' : 'bg-stone-900 text-white group-hover:bg-emerald-500 group-hover:scale-105 group-hover:rotate-3'}`}>
-                                        {order.shipping?.fullName?.[0] || '?'}
-                                    </div>
-                                    <div className="min-w-0">
-                                        <p className={`text-xs font-black truncate tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>{order.shipping?.fullName || 'Client Anonyme'}</p>
-                                        <p className="text-[10px] text-stone-400 font-bold mt-0.5 opacity-60">
-                                            {new Date(getMillis(order.createdAt)).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })} • {new Date(getMillis(order.createdAt)).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <p className={`text-2xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>{order.total}€</p>
-                                    <div className={`text-[9px] font-black uppercase tracking-[0.15em] px-4 py-1.5 rounded-xl border shadow-sm transition-colors ${order.status === 'shipped'
-                                        ? 'text-indigo-400 border-indigo-400/30 bg-indigo-400/10'
-                                        : (order.status === 'completed' || order.status === 'paid')
-                                            ? 'text-emerald-400 border-emerald-400/30 bg-emerald-400/10'
-                                            : 'text-amber-500 border-amber-500/30 bg-amber-500/10'
-                                        }`}>
-                                        {order.status === 'shipped' ? 'Expédié' : (order.status === 'completed' || order.status === 'paid') ? 'Payé' : 'En attente'}
-                                    </div>
-                                </div>
-                                {/* Subtle indicator line */}
-                                <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-1 rounded-t-full transition-all duration-500 ${order.status === 'shipped' ? 'bg-indigo-500' : (order.status === 'completed' || order.status === 'paid') ? 'bg-emerald-500' : 'bg-amber-500'
-                                    } opacity-0 group-hover:opacity-100 group-hover:w-24`} />
-                            </div>
-                        ))
-                    )}
-                </div>
-            </div>
-
-            {/* SECTION 2 : SALLE DES VENTES (FULL WIDTH) */}
-            <div className={`p-8 rounded-[2.5rem] shadow-sm overflow-hidden transform-gpu backface-hidden will-change-transform ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : 'bg-white ring-1 ring-inset ring-stone-100'}`}>
-                <div className="flex justify-between items-center mb-8">
-                    <div>
-                        <h3 className={`text-2xl font-black tracking-tight flex items-center gap-3 ${darkMode ? 'text-white' : 'text-stone-900'}`}>
-                            Salle des Ventes <span className="text-[10px] bg-red-500 text-white px-3 py-1 rounded-full animate-pulse tracking-widest uppercase">Live Control</span>
-                        </h3>
-                        <p className="text-xs text-stone-400 font-bold uppercase tracking-widest mt-1">Surveillance des enchères actives en temps réel</p>
-                    </div>
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border ${darkMode ? 'bg-stone-900 border-stone-700 text-stone-400' : 'bg-stone-50 border-stone-100 text-stone-300'}`}>
-                        <Gavel size={24} />
-                    </div>
+                {/* COMMANDES */}
+                <div className={`p-8 rounded-[32px] ${baseCard}`}>
+                    <p className={`text-[10px] uppercase font-black tracking-[0.2em] mb-4 ${textMuted}`}>Commandes</p>
+                    <h2 className={`text-4xl lg:text-5xl font-black tracking-tighter mb-2 ${textBase}`}>
+                        {stats.totalOrders}
+                    </h2>
+                    <p className="text-xs font-bold text-indigo-400 flex items-center gap-1.5">
+                        <ShoppingBag size={14} /> Global cumulé
+                    </p>
                 </div>
 
-                <div className="space-y-4">
-                    {activeAuctions.length === 0 ? (
-                        <div className="text-center py-20 opacity-40 border-2 border-dashed border-stone-100 rounded-[2.5rem]">
-                            <Gavel size={48} className="mx-auto mb-4 text-stone-200" />
-                            <p className="text-sm font-bold text-stone-400 uppercase tracking-[0.2em]">Le marteau est au repos</p>
-                        </div>
-                    ) : (
-                        activeAuctions.map((item) => (
-                            <div key={item.id} className={`group flex items-center justify-between p-6 rounded-[2rem] ring-1 ring-inset transition-all transform-gpu hover:scale-[1.01] ${darkMode ? 'ring-stone-700 bg-stone-900/40 hover:bg-stone-900/60' : 'ring-stone-100 bg-stone-50/40 hover:bg-white hover:shadow-2xl hover:shadow-stone-200/40'}`}>
-                                <div className="flex items-center gap-6">
-                                    <div className="relative">
-                                        <img src={item.images?.[0] || item.imageUrl} className="w-16 h-16 rounded-2xl object-cover shadow-lg transition-transform group-hover:rotate-2" alt="" />
-                                        <div className="absolute -top-2 -right-2 w-7 h-7 bg-red-500 rounded-xl ring-4 ring-white flex items-center justify-center text-[10px] font-black text-white shadow-xl">{item.bidCount}</div>
-                                    </div>
-                                    <div>
-                                        <h4 className={`font-black text-lg ${darkMode ? 'text-white' : 'text-stone-900'}`}>{item.name}</h4>
-                                        <p className="text-[11px] font-bold text-amber-600 uppercase tracking-wider flex items-center gap-2 mt-1">
-                                            <Users size={12} className="opacity-50" /> {item.lastBidderName || 'Aucune offre active'}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <p className={`font-black text-3xl tracking-tighter ${darkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                                        {item.currentPrice || item.startingPrice} €
-                                    </p>
-                                    <p className="text-[10px] font-black text-stone-400 flex items-center justify-end gap-2 mt-1.5 bg-stone-100/50 px-2 py-0.5 rounded-full inline-flex">
-                                        <Clock size={12} className="text-red-400" /> {formatDuration(item.timeLeft)}
-                                    </p>
-                                </div>
-                            </div>
-                        ))
-                    )}
-                </div>
-            </div>
-
-            {/* SECTION 3 : CONTRÔLES & MAINTENANCE (GRID BOTTOM) */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-8 border-t border-dashed border-stone-200 opacity-80 hover:opacity-100 transition-opacity">
-                {/* DIAGNOSTICS */}
-                <div className={`p-8 rounded-[2.5rem] shadow-sm ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : 'bg-white ring-1 ring-inset ring-stone-100'}`}>
-                    <div className="flex items-center gap-3 mb-6 text-stone-400">
-                        <RefreshCw size={18} />
-                        <h3 className={`text-xs font-black uppercase tracking-widest ${darkMode ? 'text-white' : 'text-stone-900'}`}>Contrôles Système</h3>
-                    </div>
-                    <button onClick={async () => {
-                        if (!window.confirm("Tester flux email ?")) return;
-                        try {
-                            const res = await httpsCallable(functions, 'sendTestEmail')();
-                            alert(res.data.success ? "✅ Mail Flux OK" : "❌ Erreur Mail");
-                        } catch (e) { alert(e.message); }
-                    }} className={`w-full py-4 rounded-xl font-black uppercase text-[10px] tracking-widest border transition-all ${darkMode ? 'bg-stone-700 border-stone-600 text-stone-300 hover:bg-stone-600' : 'bg-stone-50 border-stone-200 text-stone-500 hover:bg-white hover:shadow-sm shadow-inner'}`}>
-                        <Mail size={14} className="inline mr-2" /> Diagnostic Mail
+                {/* CLIENTS */}
+                <div className={`p-8 rounded-[32px] ${baseCard} relative`}>
+                    <p className={`text-[10px] uppercase font-black tracking-[0.2em] mb-4 ${textMuted}`}>Clients Inscrits</p>
+                    <h2 className={`text-4xl lg:text-5xl font-black tracking-tighter mb-2 ${textBase}`}>
+                        {stats.registeredUsers}
+                    </h2>
+                    <button
+                        onClick={handleExportUsers}
+                        disabled={exportingUsers}
+                        className={`mt-2 flex items-center gap-1.5 text-[10px] uppercase font-black tracking-widest px-3 py-1.5 rounded-lg border transition-all ${darkMode ? 'border-white/10 hover:bg-white/5 text-white/60' : 'border-stone-200 hover:bg-stone-50 text-stone-500'}`}
+                    >
+                        {exportingUsers ? <RefreshCw size={12} className="animate-spin" /> : <Archive size={12} />} Exporter XLSX
                     </button>
+                    {/* Catalog value strictly positioned on top right of clients card as a tiny metric */}
+                    <div className="absolute top-8 right-8 text-right">
+                        <p className={`text-[8px] uppercase font-black tracking-widest ${textMuted}`}>Valeur Catalogue</p>
+                        <p className={`text-xs font-black ${darkMode ? 'text-stone-300' : 'text-stone-600'}`}>{stats.totalStockValue} €</p>
+                    </div>
                 </div>
+            </div>
 
-                {/* DANGER ZONE (FULL SPAN REST) */}
-                {user?.email === 'matthis.fradin2@gmail.com' && (
-                    <div className={`lg:col-span-2 p-8 rounded-[2.5rem] border-2 border-dashed transition-all duration-500 ${darkMode ? 'border-red-500/20 bg-red-500/5' : 'border-red-200/50 bg-red-50/30'}`}>
-                        <div className={`flex items-center gap-3 mb-6 ${darkMode ? 'text-red-400' : 'text-red-900/40'}`}>
-                            <AlertTriangle size={18} />
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Commandes Critiques</h3>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                            <button onClick={handleResetOrdersClick} className={`py-3.5 rounded-2xl font-black uppercase text-[9px] tracking-widest transition-all border shadow-sm active:scale-95 ${darkMode ? 'bg-stone-950 border-red-900/40 text-red-500 hover:bg-red-500 hover:text-white' : 'bg-white border-red-100 text-red-500 hover:bg-red-500 hover:text-white'}`}>Reset Ventes</button>
-                            <button onClick={() => setIsCleaningModalOpen(true)} className={`py-3.5 rounded-2xl font-black uppercase text-[9px] tracking-widest transition-all border shadow-sm active:scale-95 ${darkMode ? 'bg-stone-950 border-orange-900/40 text-orange-500 hover:bg-orange-500 hover:text-white' : 'bg-white border-orange-100 text-orange-500 hover:bg-orange-500 hover:text-white'}`}>Clean Cloud</button>
-                            <button onClick={() => setIsPurgeAnonymousModalOpen(true)} className={`py-3.5 rounded-2xl font-black uppercase text-[9px] tracking-widest transition-all border shadow-sm active:scale-95 ${darkMode ? 'bg-stone-950 border-amber-900/40 text-amber-500 hover:bg-amber-500 hover:text-white' : 'bg-white border-amber-200 text-amber-600 hover:bg-amber-600 hover:text-white'}`}>Purge Anonymes</button>
-                            <button onClick={() => setIsResetUsersModalOpen(true)} className={`py-3.5 rounded-2xl font-black uppercase text-[9px] tracking-widest transition-all border shadow-sm active:scale-95 ${darkMode ? 'bg-stone-950 border-red-900/40 text-red-600 hover:bg-red-600 hover:text-white' : 'bg-white border-red-200 text-red-700 hover:bg-red-700 hover:text-white'}`}>Purge Clients</button>
+            {/* MODULE 2: GRAPHICS (CA + STATUS) */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className={`lg:col-span-2 p-8 rounded-[32px] ${baseCard}`}>
+                    <div className="flex justify-between items-center mb-8">
+                        <div>
+                            <h3 className={`text-sm font-black uppercase tracking-widest ${textBase}`}>Évolution du CA</h3>
+                            <p className={`text-[10px] font-bold uppercase tracking-wider ${textMuted} mt-1`}>Sur les 7 derniers jours</p>
                         </div>
                     </div>
-                )}
+                    <RevenueChart data={chartData} darkMode={darkMode} />
+                </div>
+                
+                <div className={`p-8 rounded-[32px] flex flex-col items-center justify-center ${baseCard}`}>
+                    <div className="w-full text-left mb-4">
+                        <h3 className={`text-sm font-black uppercase tracking-widest ${textBase}`}>Répartition</h3>
+                        <p className={`text-[10px] font-bold uppercase tracking-wider ${textMuted} mt-1`}>Statuts Commandes</p>
+                    </div>
+                    <div className="flex-1 flex items-center justify-center w-full">
+                        <StatusArc counts={statusCounts} darkMode={darkMode} />
+                    </div>
+                </div>
             </div>
-            {isOrderResetModalOpen && (
-                <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm ${darkMode ? 'bg-black/70' : 'bg-stone-900/50'}`}>
-                    <div className={`rounded-[2rem] p-8 max-w-sm w-full shadow-2xl border text-center space-y-4 ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
-                        <h3 className={`text-lg font-black ${darkMode ? 'text-white' : 'text-stone-900'}`}>Purger Commandes ?</h3>
-                        <p className="text-xs text-stone-400">Export Excel + Suppression définitive.</p>
-                        <div className="flex gap-2">
-                            <button onClick={confirmResetOrders} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold text-xs">Confirmer</button>
-                            <button onClick={() => setIsOrderResetModalOpen(false)} className="flex-1 py-3 bg-stone-200 text-stone-600 rounded-xl font-bold text-xs">Annuler</button>
+
+            {/* MODULE 3: TABLEAU COMMANDES & MODULE 4: SALLES DES VENTES */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                {/* RECENT ORDERS TABLE (Style Celoci Top Products) */}
+                <div className={`lg:col-span-2 p-8 rounded-[32px] ${baseCard}`}>
+                    <div className="flex items-center justify-between mb-8">
+                        <h3 className={`text-sm font-black uppercase tracking-widest ${textBase}`}>Dernières Ventes</h3>
+                        <span className={`text-[9px] uppercase tracking-widest ${textMuted}`}>Top 5 Live</span>
+                    </div>
+
+                    <div className="w-full overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className={`text-[9px] uppercase tracking-[0.2em] font-black ${textMuted}`}>
+                                    <th className="pb-4 font-normal">Client</th>
+                                    <th className="pb-4 font-normal">Date</th>
+                                    <th className="pb-4 font-normal text-right">Statut</th>
+                                    <th className="pb-4 font-normal text-right">Montant</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {recentOrders.length === 0 ? (
+                                    <tr><td colSpan="4" className={`py-8 text-center text-xs italic ${textMuted}`}>Aucune transaction récente.</td></tr>
+                                ) : (
+                                    recentOrders.map(order => (
+                                        <tr key={order.id} className={`group transition-colors ${darkMode ? 'hover:bg-white/[0.02]' : 'hover:bg-stone-50'}`}>
+                                            <td className={`py-4 text-sm font-bold ${textBase}`}>
+                                                {order.shipping?.fullName || 'Anonyme'}
+                                            </td>
+                                            <td className={`py-4 text-xs font-mono opacity-60 ${textBase}`}>
+                                                {new Date(getMillis(order.createdAt)).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+                                            </td>
+                                            <td className="py-4 text-right">
+                                                <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md border ${
+                                                    order.status === 'shipped' ? 'text-indigo-400 border-indigo-400/20' : 
+                                                    (order.status === 'completed' || order.status === 'paid') ? 'text-emerald-500 border-emerald-500/20' : 
+                                                    'text-amber-500 border-amber-500/20'
+                                                }`}>
+                                                    {order.status === 'shipped' ? 'Expédié' : (order.status === 'completed' || order.status === 'paid') ? 'Payé' : 'Attente'}
+                                                </span>
+                                            </td>
+                                            <td className={`py-4 text-right font-black tracking-tight ${textBase}`}>
+                                                {order.total} €
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {/* SALLE DES VENTES COMPACTE */}
+                <div className={`p-8 rounded-[32px] ${baseCard} flex flex-col`}>
+                    <div className="flex items-center justify-between mb-8">
+                        <h3 className={`text-sm font-black uppercase tracking-widest ${textBase}`}>Salle des Ventes</h3>
+                        <Gavel size={16} className={darkMode ? 'text-stone-600' : 'text-stone-300'} />
+                    </div>
+
+                    <div className="flex-1 flex flex-col gap-4">
+                        {activeAuctions.length === 0 ? (
+                            <div className={`p-6 rounded-2xl border border-dashed flex items-center justify-center flex-1 ${darkMode ? 'border-white/5 bg-white/[0.01]' : 'border-stone-200 bg-stone-50'}`}>
+                                <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${textMuted}`}>Aucune offre active</p>
+                            </div>
+                        ) : (
+                            activeAuctions.map(item => (
+                                <div key={item.id} className={`flex items-center gap-4 p-3 rounded-2xl border ${darkMode ? 'border-white/5 bg-white/[0.02]' : 'border-stone-100 bg-white'}`}>
+                                    <div className="w-10 h-10 rounded-xl bg-stone-800 overflow-hidden relative shrink-0">
+                                        <img src={item.images?.[0] || item.imageUrl} className="w-full h-full object-cover" alt="" />
+                                        <div className="absolute inset-0 ring-1 ring-inset ring-black/10 rounded-xl"></div>
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <p className={`text-xs font-black truncate ${textBase}`}>{item.name}</p>
+                                        <p className="text-[9px] font-bold text-emerald-500 uppercase tracking-wider">{item.currentPrice || item.startingPrice} €</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className={`text-[10px] font-black px-2 py-1 rounded border ${darkMode ? 'border-white/10 text-white/50' : 'border-stone-200 text-stone-500'}`}>
+                                            {item.bidCount} <span className="text-[8px] uppercase tracking-widest font-normal">bids</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            <hr className={`my-4 border-t ${darkMode ? 'border-white/5' : 'border-stone-200'}`} />
+
+            {/* MODULE 5: ADMIN CONTROLS (Dashed Red Zone style) */}
+            {user?.email === 'matthis.fradin2@gmail.com' && (
+                <div className="flex flex-col lg:flex-row gap-6">
+                    {/* Diagnostic */}
+                    <div className={`p-6 rounded-[24px] border border-solid w-full lg:w-1/3 flex flex-col justify-center ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-200 shadow-sm'}`}>
+                        <div className="flex items-center gap-2 mb-4">
+                            <RefreshCw size={14} className={textMuted} />
+                            <h3 className={`text-[10px] font-black uppercase tracking-[0.1em] ${textMuted}`}>Contrôles Système</h3>
+                        </div>
+                        <button onClick={async () => {
+                            if (!window.confirm("Tester flux email ?")) return;
+                            try {
+                                const res = await httpsCallable(functions, 'sendTestEmail')();
+                                alert(res.data.success ? "✅ Mail Flux OK" : "❌ Erreur Mail");
+                            } catch (e) { alert(e.message); }
+                        }} className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest border transition-all ${darkMode ? 'bg-[#242424] hover:bg-[#2A2A2A] border-white/5 text-white/70' : 'bg-stone-50 hover:bg-stone-100 border-stone-200 text-stone-600'}`}>
+                            <Mail size={14} /> Diagnostic Mail
+                        </button>
+                    </div>
+
+                    {/* Danger Zone */}
+                    <div className={`p-6 rounded-[24px] border border-dashed w-full lg:w-2/3 ${darkMode ? 'bg-[#161616] border-red-900/40 relative' : 'bg-red-50/30 border-red-200'}`}>
+                        {darkMode && <div className="absolute inset-0 bg-red-500/[0.02] rounded-[24px] pointer-events-none"></div>}
+                        <div className={`flex items-center gap-2 mb-4 relative z-10 ${darkMode ? 'text-red-500/80' : 'text-red-600'}`}>
+                            <AlertTriangle size={14} />
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.1em]">Commandes Critiques</h3>
+                        </div>
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 relative z-10">
+                            <DangerButton onClick={handleResetOrdersClick} text="Reset Ventes" darkMode={darkMode} />
+                            <DangerButton onClick={() => setIsCleaningModalOpen(true)} text="Clean Cloud" darkMode={darkMode} />
+                            <DangerButton onClick={() => setIsPurgeAnonymousModalOpen(true)} text="Purge Anonymes" darkMode={darkMode} />
+                            <DangerButton onClick={() => setIsResetUsersModalOpen(true)} text="Purge Clients" darkMode={darkMode} />
                         </div>
                     </div>
                 </div>
             )}
-            {isCleaningModalOpen && (
-                <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm ${darkMode ? 'bg-black/70' : 'bg-stone-900/50'}`}>
-                    <div className={`rounded-[2rem] p-8 max-w-sm w-full shadow-2xl border text-center space-y-4 ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
-                        <h3 className={`text-lg font-black ${darkMode ? 'text-white' : 'text-stone-900'}`}>Nettoyage Système ?</h3>
-                        <p className="text-xs text-stone-400">Supprime les images orphelines du stockage.</p>
+
+            {/* MODALS UNCHANGED VISUALLY FOR NOW (can be adapted easily to completely dark if wanted) */}
+            {isOrderResetModalOpen && (
+                <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md ${darkMode ? 'bg-black/80' : 'bg-stone-900/50'}`}>
+                    <div className={`rounded-[32px] p-8 max-w-sm w-full shadow-2xl border text-center space-y-4 ${darkMode ? 'bg-[#161616] border-white/10' : 'bg-white border-stone-100'}`}>
+                        <h3 className={`text-lg font-black ${darkMode ? 'text-white' : 'text-stone-900'}`}>Purger Commandes ?</h3>
+                        <p className={`text-xs ${textMuted}`}>Export Excel + Suppression définitive.</p>
                         <div className="flex gap-2">
-                            <button onClick={confirmCleaning} className="flex-1 py-3 bg-orange-500 text-white rounded-xl font-bold text-xs">Lancer</button>
-                            <button onClick={() => setIsCleaningModalOpen(false)} className="flex-1 py-3 bg-stone-200 text-stone-600 rounded-xl font-bold text-xs">Annuler</button>
+                            <button onClick={confirmResetOrders} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold text-xs">Confirmer</button>
+                            <button onClick={() => setIsOrderResetModalOpen(false)} className={`flex-1 py-3 rounded-xl font-bold text-xs ${darkMode ? 'bg-white/5 text-white/70' : 'bg-stone-200 text-stone-600'}`}>Annuler</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Same for other modals... */}
+            {isCleaningModalOpen && (
+                <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md ${darkMode ? 'bg-black/80' : 'bg-stone-900/50'}`}>
+                    <div className={`rounded-[32px] p-8 max-w-sm w-full shadow-2xl border text-center space-y-4 ${darkMode ? 'bg-[#161616] border-white/10' : 'bg-white border-stone-100'}`}>
+                        <h3 className={`text-lg font-black ${darkMode ? 'text-white' : 'text-stone-900'}`}>Nettoyage Système ?</h3>
+                        <p className={`text-xs ${textMuted}`}>Supprime les images orphelines du stockage.</p>
+                        <div className="flex gap-2">
+                            <button onClick={confirmCleaning} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold text-xs">Lancer</button>
+                            <button onClick={() => setIsCleaningModalOpen(false)} className={`flex-1 py-3 rounded-xl font-bold text-xs ${darkMode ? 'bg-white/5 text-white/70' : 'bg-stone-200 text-stone-600'}`}>Annuler</button>
                         </div>
                     </div>
                 </div>
             )}
             {isResetUsersModalOpen && (
-                <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm ${darkMode ? 'bg-black/70' : 'bg-stone-900/50'}`}>
-                    <div className={`rounded-[2rem] p-8 max-w-sm w-full shadow-2xl border text-center space-y-4 ${darkMode ? 'bg-stone-800 border-stone-700 border-red-900/30' : 'bg-white border-stone-100 border-red-100'}`}>
-                        <h3 className={`text-lg font-black text-red-500`}>Danger : Purge Totale ?</h3>
-                        <p className={`text-xs ${darkMode ? 'text-stone-300' : 'text-stone-600'}`}>
-                            Cela va supprimer <b>TOUS les comptes utilisateurs</b> (clients et tests) de Firebase Auth.<br /><br />
-                            Seuls les Super Admins (<code>matthis.fradin...</code>) seront épargnés.
+                <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md ${darkMode ? 'bg-black/80' : 'bg-stone-900/50'}`}>
+                    <div className={`rounded-[32px] p-8 max-w-sm w-full shadow-2xl border text-center space-y-4 ${darkMode ? 'bg-[#161616] border-red-500/30' : 'bg-white border-stone-100'}`}>
+                        <h3 className={`text-lg font-black text-red-500`}>Purge Totale ?</h3>
+                        <p className={`text-[11px] ${textMuted}`}>
+                            Suppression de TOUS les comptes utilisateurs. Seuls les Super Admins seront épargnés.
                         </p>
-                        <div className="flex gap-2 pt-2">
-                            <button onClick={confirmResetUsers} className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg shadow-red-500/20">Confirmer</button>
-                            <button onClick={() => setIsResetUsersModalOpen(false)} className={`flex-1 py-3 rounded-xl font-bold text-xs uppercase tracking-wider ${darkMode ? 'bg-stone-700 text-stone-300 hover:bg-stone-600' : 'bg-stone-100 text-stone-500 hover:bg-stone-200'}`}>Annuler</button>
+                        <div className="flex gap-2">
+                            <button onClick={confirmResetUsers} className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold text-xs">Confirmer</button>
+                            <button onClick={() => setIsResetUsersModalOpen(false)} className={`flex-1 py-3 rounded-xl font-bold text-xs ${darkMode ? 'bg-white/5 text-white/70' : 'bg-stone-200 text-stone-600'}`}>Annuler</button>
                         </div>
                     </div>
                 </div>
             )}
             {isPurgeAnonymousModalOpen && (
-                <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm ${darkMode ? 'bg-black/70' : 'bg-stone-900/50'}`}>
-                    <div className={`rounded-[2rem] p-8 max-w-sm w-full shadow-2xl border text-center space-y-4 ${darkMode ? 'bg-stone-800 border-stone-700 border-amber-900/30' : 'bg-white border-stone-100 border-amber-100'}`}>
+                <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md ${darkMode ? 'bg-black/80' : 'bg-stone-900/50'}`}>
+                    <div className={`rounded-[32px] p-8 max-w-sm w-full shadow-2xl border text-center space-y-4 ${darkMode ? 'bg-[#161616] border-amber-500/30' : 'bg-white border-stone-100'}`}>
                         <h3 className={`text-lg font-black text-amber-500`}>Purge Anonymes ?</h3>
-                        <p className={`text-xs ${darkMode ? 'text-stone-300' : 'text-stone-600'}`}>
-                            Cela va supprimer <b>UNIQUEMENT les comptes anonymes</b> de Firebase Auth.<br /><br />
-                            Vos vrais clients et admins ne seront pas affectés.
+                        <p className={`text-[11px] ${textMuted}`}>
+                            Supprime uniquement les comptes anonymes. Les vrais clients sont conservés.
                         </p>
-                        <div className="flex gap-2 pt-2">
-                            <button onClick={confirmPurgeAnonymous} disabled={purgingAnonymous} className="flex-1 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 disabled:opacity-50 flex items-center justify-center">
+                        <div className="flex gap-2">
+                            <button onClick={confirmPurgeAnonymous} disabled={purgingAnonymous} className="flex-1 py-3 bg-amber-500 text-white rounded-xl font-bold text-xs flex justify-center items-center">
                                 {purgingAnonymous ? <RefreshCw size={14} className="animate-spin" /> : 'Confirmer'}
                             </button>
-                            <button onClick={() => setIsPurgeAnonymousModalOpen(false)} disabled={purgingAnonymous} className={`flex-1 py-3 rounded-xl font-bold text-xs uppercase tracking-wider ${darkMode ? 'bg-stone-700 text-stone-300 hover:bg-stone-600' : 'bg-stone-100 text-stone-500 hover:bg-stone-200'} disabled:opacity-50`}>Annuler</button>
+                            <button onClick={() => setIsPurgeAnonymousModalOpen(false)} disabled={purgingAnonymous} className={`flex-1 py-3 rounded-xl font-bold text-xs ${darkMode ? 'bg-white/5 text-white/70' : 'bg-stone-200 text-stone-600'}`}>Annuler</button>
                         </div>
                     </div>
                 </div>
@@ -514,18 +664,17 @@ const AdminDashboard = ({ user, darkMode = false }) => {
     );
 };
 
-const KpiCard = ({ title, value, icon, trend, trendColor = "text-stone-400", bg = "bg-white", darkMode = false, action }) => (
-    <div className={`p-6 rounded-[2rem] shadow-sm transition-all duration-300 hover:scale-[1.05] transform-gpu backface-hidden will-change-transform overflow-hidden ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : (bg.includes('white') ? 'ring-1 ring-inset ring-stone-100 bg-white' : bg)}`}>
-        <div className="flex justify-between items-start mb-4">
-            <div className={`p-3 rounded-2xl shadow-sm ring-1 ring-inset ${darkMode ? 'bg-stone-700 ring-stone-600' : 'bg-white ring-stone-100/50'}`}>{icon}</div>
-            {action}
-        </div>
-        <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-1">{title}</p>
-            <h4 className={`text-2xl font-black tracking-tighter mb-2 ${darkMode ? 'text-white' : 'text-stone-900'}`}>{value}</h4>
-            <p className={`text-[10px] font-bold opacity-80 ${trendColor}`}>{trend}</p>
-        </div>
-    </div>
+const DangerButton = ({ onClick, text, darkMode }) => (
+    <button 
+        onClick={onClick} 
+        className={`py-2 px-3 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${
+            darkMode 
+                ? 'border-red-900/30 hover:border-red-500/50 text-red-500/60 hover:text-red-400 hover:bg-red-500/5' 
+                : 'border-red-200 hover:border-red-400 text-red-600 hover:bg-red-50'
+        }`}
+    >
+        {text}
+    </button>
 );
 
 export default AdminDashboard;

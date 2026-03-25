@@ -1,5 +1,45 @@
 # CLAUDE.md — Journal de bord technique
 
+## 25 mars 2026 (Suite) — Refonte Premium Admin Analytics (Bento Grid & Sessions Groupées)
+
+**Fichier** : `src/features/admin/AdminAnalytics.jsx`
+
+**Objectif** : Transformer la liste infinie de sessions en une interface structurée, temporelle et visuellement premium (Bento Grid).
+
+**Solution : Organisation Temporelle & UX Live**
+1. **Groupement par Jour** : Les sessions ne sont plus listées en vrac mais regroupées par date (Aujourd'hui, Hier, etc.) via `useMemo`.
+2. **Système d'Accordéons** : Chaque jour est une section repliable, avec le jour le plus récent ouvert par défaut, optimisant l'espace vertical.
+3. **Module "Live Sessions"** : Bandeau dédié en haut de page pour les sessions actives (en temps réel), séparé de l'historique pour une visibilité immédiate des pics de trafic.
+4. **Pagination (Performance UX)** : Limitation de la vue à 10 jours par page avec un système de navigation numérique, évitant le scroll infini et améliorant la réactivité sur mobile.
+5. **Design "Celoci Inc"** : Alignement total sur le design système premium (`#161616`, `white/5`).
+6. **Indicateurs de Statut** : Badges "En ligne" pulsants (émeraude) et "Terminé" discrets (stone) pour une lecture rapide de l'état des sessions.
+
+**Résultat** : Un outil d'analyse puissant, organisé et esthétique, permettant de suivre le trafic en temps réel sans perdre de vue l'historique structuré.
+
+---
+
+## 25 mars 2026 (Suite) — Refonte Premium du Dashboard Admin (Style Celoci/Bento)
+
+**Fichier** : `src/features/admin/AdminDashboard.jsx`
+
+**Objectif** : Transformer un dashboard administratif classique en une interface "SaaS Premium" ultra-dense, visuelle et performante (Style Celoci Inc. / Bento Grid).
+
+**Solution : Réarchitecture Graphique & Data-Visualization Custom**
+1. **Architecture Bento Grid** : Grille asymétrique utilisant des cartes sombres (`#161616`), des bordures subtiles (`white/5`) et une typographie massive pour les KPIs (Hero Section).
+2. **Visualisation de Données (Zéro Dépendance)** : Remplacement de Recharts par des composants SVG 100% natifs :
+   - **`RevenueChart`** : Area chart avec gradient néon, hachures de fond et système de *scrubbing* (le tooltip suit le doigt/souris sur tout le graphe avec une précision chirurgicale).
+   - **`StatusArc`** : Gauge circulaire SVG pour le ratio Commandes Payées / En attente, avec halo lumineux vert.
+3. **Optimisation UX Administrative** :
+   - Fusion des KPIs éparpillés en 3 blocs majeurs (CA, Commandes, Clients).
+   - Remplacement du flux d'activité par un tableau "Top Products" ultra-compact et lisible.
+4. **Maintenance & Danger Zone (High-Fidelity)** : 
+   - Intégration d'un panneau de contrôle compact respectant le design "Danger" (bordures pointillées rouges `border-red-900/40` et lueur subtile).
+   - Actions critiques protégées visuellement et isolées pour éviter les clics accidentels.
+
+**Résultat** : Un dashboard qui allie esthétique "Apple-like" et exploitation de données fiable, sans aucune latence de rendu (SVG pré-calculé).
+
+---
+
 ## 25 mars 2026 — Fix bug double session analytics (première visite)
 
 **Fichier** : `src/components/shared/AnalyticsProvider.jsx`

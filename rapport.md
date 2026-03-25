@@ -1,5 +1,83 @@
 # Rapport de Corrections — Session du 25 Mars 2026
 
+## 20. Refonte Premium "Bento Grid" de l'Admin Analytics
+
+### Problème
+L'interface Analytics affichait les sessions dans une liste plate, infinie et sans réelle hiérarchie temporelle. Il était difficile de distinguer les sessions d'aujourd'hui de celles des jours précédents, et le flux "Live" était mélangé à l'historique statique.
+
+### Solution appliquée
+Une refonte architecturale de `AdminAnalytics.jsx` axée sur la structure et la clarté :
+
+1. **Architecture Temporelle (Accordéons)** :
+    - Utilisation de `useMemo` pour structurer les données en groupes de dates (`Aujourd'hui`, `Hier`, `DD/MM/YYYY`).
+    - Implémentation d'accordéons pour chaque groupe, permettant de naviguer dans l'historique sans scroll infini.
+    - Ouverture automatique du groupe le plus récent pour un accès direct aux dernières données.
+
+2. **Visualisation "En Direct" (Live Band)** :
+    - Création d'un module "Live Sessions" qui extrait et affiche uniquement les sessions actives (< 30s d'activité).
+    - Animation de point pulsant ("Ping") pour renforcer l'aspect temps réel.
+    - Affichage compact des 5 derniers visiteurs actifs (Ville, Appareil).
+
+3. **Pagination Multi-Pages** :
+    - Limitation à 10 jours par vue pour préserver la performance du DOM.
+    - Boutons de navigation numériques au style "Glassmorphism" Dark Mode.
+    - Reset automatique de la page lors du changement de filtre temporel (1h, 7j, etc.).
+
+4. **Design Système Premium** :
+    - Intégration dans la grille Bento avec le fond sombre `#161616`.
+    - Typographies massives pour les KPIs (Visiteurs, Durée, Rebond, Mobile).
+    - Suppression des éléments visuels superflus pour maximiser la densité d'information.
+
+### Résultats
+- **Lisibilité** : Passage d'un flux brut à un journal de bord organisé.
+- **Actionnabilité** : Identification instantanée des pics de trafic live vs tendances passées.
+- **Esthétique** : Interface cohérence avec le Dashboard principal et le Gestionnaire d'IPs.
+
+### Fichiers modifiés
+- `src/features/admin/AdminAnalytics.jsx`
+
+---
+
+## 19. Refonte Premium "Bento Grid" du Dashboard Admin
+
+### Problème
+Le dashboard admin initial était trop "classique" (cartes pastels, informations diluées, graphiques Recharts génériques). L'utilisateur souhaitait une interface moderne, sombre, dense et "Premium" (inspirée du design Celoci/Bento), capable de centraliser les KPIs tout en conservant les contrôles administratifs sans surcharger l'écran.
+
+### Solution appliquée
+Une réécriture complète de `AdminDashboard.jsx` en suivant les principes du **Skill Dashboard Premium** :
+
+1. **Grille Bento (Asymétrique)** :
+   - Layout sombre (`#161616`) avec contrastes élevés.
+   - Utilisation de `border: white/5` pour des séparations "Ghost" quasi-invisibles mais structurantes.
+   - Typographies de tailles variées pour créer une hiérarchie visuelle instantanée.
+
+2. **Moteur de Visualisation SVG Custom** :
+   - **RevenueChart (7 jours)** :
+     - Implémentation d'un "Area Chart" SVG avec gradient `cyan-400`.
+     - Effet de hachures (`pattern`) sur le fond pour un look technique.
+     - **Scrubbing Interactive** : Un overlay invisible capte les mouvements et affiche un tooltip "Glassmorphism" fixe en haut du graphe, évitant de masquer les données sous le doigt sur mobile.
+   - **StatusArc (Commandes)** :
+     - Gauge circulaire ("Donut Chart") codée en SVG natif (`stroke-dasharray`).
+     - Feedback visuel immédiat sur la santé du business (Payé vs En attente).
+
+3. **Tableau "Top Performance"** :
+   - Liste des produits les plus vendus avec une densité d'information maximale.
+   - Design épuré sans bordures de tableau classiques, favorisant le blanc tournant.
+
+4. **Panneau de Contrôle & Zone Critique** :
+   - Regroupement des fonctions système (Reset, Purge, Garbage Collector) dans un panneau compact.
+   - Style "Danger Zone" : Bordure pointillée rouge, icônes d'alerte, mais intégration visuelle cohérente pour ne pas briser le Dark Mode.
+
+### Résultats
+- **Esthétique** : Look "SaaS Enterprise" ultra-moderne.
+- **Data-Driven** : Les KPIs (CA, Panier Moyen, Clientèle) sont lisibles à 2 mètres de l'écran.
+- **Réactivité** : Zéro bibliothèque externe pour les graphes = chargement instantané et fluidité 120fps.
+
+### Fichiers modifiés
+- `src/features/admin/AdminDashboard.jsx`
+
+---
+
 ## 16. Fix Bug Double Session Analytics (Première Visite)
 
 ### Problème

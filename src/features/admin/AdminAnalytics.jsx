@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
-    Users, Clock, Activity, Smartphone, Monitor, Globe, Trash2, AlertCircle
+    Users, Clock, Activity, Smartphone, Monitor, Globe, Trash2, AlertCircle, ChevronDown, ChevronRight
 } from 'lucide-react';
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { db, functions } from '../../firebase/config';
@@ -310,6 +310,8 @@ const AdminAnalytics = ({ darkMode = false }) => {
     const [timeFilter, setTimeFilter] = useState('1h'); // Default to 1h for real-time vibe // '1h', '1j', '7j', '1mois', '1ans'
     const [expandedSessionId, setExpandedSessionId] = useState(null);
     const [now, setNow] = useState(Date.now());
+    const [currentPage, setCurrentPage] = useState(1);
+    const DAYS_PER_PAGE = 10;
 
     // Refresh "now" every 30s to update "Online" vs "Finished" markers
     useEffect(() => {
@@ -326,6 +328,70 @@ const AdminAnalytics = ({ darkMode = false }) => {
     });
 
     const [chartData, setChartData] = useState([]);
+
+    // ─── Groupement des sessions par jour ───
+    const groupedByDay = useMemo(() => {
+        const groups = {};
+        const today = new Date().toLocaleDateString('fr-FR');
+        const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('fr-FR');
+
+        sessions.forEach(s => {
+            const dateObj = new Date(getMillis(s.startedAt));
+            const dateKey = dateObj.toLocaleDateString('fr-FR');
+            
+            let label = dateKey;
+            if (dateKey === today) label = "Aujourd'hui";
+            else if (dateKey === yesterday) label = "Hier";
+
+            if (!groups[dateKey]) {
+                groups[dateKey] = {
+                    key: dateKey,
+                    label,
+                    timestamp: dateObj.getTime(),
+                    items: []
+                };
+            }
+            groups[dateKey].items.push(s);
+        });
+
+        return Object.values(groups).sort((a, b) => b.timestamp - a.timestamp);
+    }, [sessions]);
+
+    const totalPages = Math.ceil(groupedByDay.length / DAYS_PER_PAGE);
+    const paginatedGroups = useMemo(() => {
+        const start = (currentPage - 1) * DAYS_PER_PAGE;
+        return groupedByDay.slice(start, start + DAYS_PER_PAGE);
+    }, [groupedByDay, currentPage]);
+
+    // Reset pagination when data changes significantly
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [timeFilter]);
+
+    // ─── Sessions en ligne (Live) ───
+    const liveSessions = useMemo(() => {
+        return sessions.filter(s => {
+            const lastActiveMs = getMillis(s.lastActivityAt);
+            const isInactive = (now - lastActiveMs) > 30000;
+            return s.sessionActive !== false && !isInactive;
+        });
+    }, [sessions, now]);
+
+    const [openDays, setOpenDays] = useState({});
+    
+    // Ouvrir par défaut le premier jour (Aujourd'hui)
+    useEffect(() => {
+        if (groupedByDay.length > 0) {
+            const firstKey = groupedByDay[0].key;
+            setOpenDays(prev => {
+                // Si on n'a encore rien d'ouvert, on ouvre le premier jour
+                if (Object.keys(prev).length === 0) {
+                    return { [firstKey]: true };
+                }
+                return prev;
+            });
+        }
+    }, [groupedByDay.length]);
 
     useEffect(() => {
         // We only fetch recent 500 sessions to not overload
@@ -476,28 +542,28 @@ const AdminAnalytics = ({ darkMode = false }) => {
     if (loading) return <div className="p-12 text-center text-stone-400 font-bold animate-pulse">Chargement Data...</div>;
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
 
             {/* HEADER FILTERS */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                 <div>
-                    <h3 className={`text-2xl font-black tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>Trafic & Croissance</h3>
-                    <p className="text-xs text-stone-400 font-bold uppercase tracking-widest mt-1">Analyse des flux réels</p>
+                    <h3 className={`text-2xl font-black tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>Analytics</h3>
+                    <p className="text-[10px] text-stone-500 font-bold uppercase tracking-widest mt-1">Flux & Comportements</p>
                 </div>
 
-                <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                     <button
                         onClick={handleClearAll}
-                        className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white active:scale-95`}
+                        className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border border-red-500/20 text-red-500/60 hover:bg-red-500 hover:text-white active:scale-95`}
                     >
-                        Vider tout
+                        Purger Data
                     </button>
-                    <div className={`flex p-1 rounded-2xl shadow-sm border overflow-x-auto no-scrollbar ${darkMode ? 'bg-stone-900 border-stone-800' : 'bg-stone-100 border-stone-200'}`}>
+                    <div className={`flex p-1 rounded-xl border ${darkMode ? 'bg-stone-900 border-white/5' : 'bg-stone-100 border-stone-200'}`}>
                         {['1h', '1j', '7j', '1mois', '1ans'].map(tf => (
                             <button
                                 key={tf}
                                 onClick={() => { setTimeFilter(tf); processData(sessions, tf); }}
-                                className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all whitespace-nowrap ${timeFilter === tf ? (darkMode ? 'bg-white text-stone-900 shadow-lg' : 'bg-white text-stone-900 shadow-sm') : 'text-stone-500 hover:text-stone-700'}`}
+                                className={`px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${timeFilter === tf ? (darkMode ? 'bg-white/10 text-white shadow-sm border border-white/10' : 'bg-white text-stone-900 shadow-sm border border-stone-200') : 'text-stone-500 hover:text-stone-300'}`}
                             >
                                 {tf}
                             </button>
@@ -506,352 +572,250 @@ const AdminAnalytics = ({ darkMode = false }) => {
                 </div>
             </div>
 
-            {/* KPI ROW */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className={`p-6 rounded-[2rem] shadow-sm transform-gpu transition-all ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : 'bg-white ring-1 ring-inset ring-stone-100'}`}>
-                    <div className="flex justify-between items-start mb-4">
-                        <div className={`p-3 rounded-2xl shadow-sm ${darkMode ? 'bg-stone-700' : 'bg-stone-50'}`}><Users size={20} className="text-indigo-500" /></div>
+            {/* KPI BENTO GRID */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 lg:gap-6">
+                {[
+                    { label: 'Visiteurs Uniques', value: kpis.uniqueVisitors, color: 'text-blue-500' },
+                    { label: 'Durée Moyenne', value: formatDuration(kpis.avgDuration), color: 'text-emerald-500' },
+                    { label: 'Taux de Rebond', value: `${kpis.bounceRate}%`, color: 'text-amber-500' },
+                    { label: 'Trafic Mobile', value: `${kpis.mobilePercentage}%`, color: 'text-indigo-500' }
+                ].map((kpi, i) => (
+                    <div key={i} className={`p-4 sm:p-5 rounded-2xl border transition-all ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100 shadow-sm'}`}>
+                        <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] text-stone-500 mb-1.5 sm:mb-2 truncate">{kpi.label}</p>
+                        <h4 className={`text-xl sm:text-2xl md:text-3xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>{kpi.value}</h4>
                     </div>
-                    <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-1">Visites Uniques</p>
-                        <h4 className={`text-2xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>{kpis.uniqueVisitors}</h4>
-                    </div>
-                </div>
-
-                <div className={`p-6 rounded-[2rem] shadow-sm transform-gpu transition-all ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : 'bg-white ring-1 ring-inset ring-stone-100'}`}>
-                    <div className="flex justify-between items-start mb-4">
-                        <div className={`p-3 rounded-2xl shadow-sm ${darkMode ? 'bg-stone-700' : 'bg-emerald-50'}`}><Clock size={20} className="text-emerald-500" /></div>
-                    </div>
-                    <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-1">Durée Moyenne</p>
-                        <h4 className={`text-2xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>{formatDuration(kpis.avgDuration)}</h4>
-                    </div>
-                </div>
-
-                <div className={`p-6 rounded-[2rem] shadow-sm transform-gpu transition-all ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : 'bg-white ring-1 ring-inset ring-stone-100'}`}>
-                    <div className="flex justify-between items-start mb-4">
-                        <div className={`p-3 rounded-2xl shadow-sm ${darkMode ? 'bg-stone-700' : 'bg-amber-50'}`}><Activity size={20} className="text-amber-500" /></div>
-                    </div>
-                    <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-1">Taux de Rebond</p>
-                        <h4 className={`text-2xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>{kpis.bounceRate}%</h4>
-                    </div>
-                </div>
-
-                <div className={`p-6 rounded-[2rem] shadow-sm transform-gpu transition-all ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : 'bg-white ring-1 ring-inset ring-stone-100'}`}>
-                    <div className="flex justify-between items-start mb-4">
-                        <div className={`p-3 rounded-2xl shadow-sm ${darkMode ? 'bg-stone-700' : 'bg-blue-50'}`}><Smartphone size={20} className="text-blue-500" /></div>
-                    </div>
-                    <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-1">Trafic Mobile</p>
-                        <h4 className={`text-2xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>{kpis.mobilePercentage}%</h4>
-                    </div>
-                </div>
+                ))}
             </div>
 
-            {/* CUSTOM SVG CHART */}
-            <div className={`p-4 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-sm transform-gpu transition-all ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : 'bg-white shadow-[0_0_50px_-12px_rgba(0,0,0,0.05)]'}`}>
-                <h3 className={`text-sm md:text-lg font-black uppercase tracking-widest mb-4 md:mb-8 ${darkMode ? 'text-white' : 'text-stone-900'}`}>Évolution du Trafic</h3>
+            {/* CUSTOM SVG CHART BENTO */}
+            <div className={`p-6 md:p-8 rounded-[2rem] border transition-all ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100 shadow-sm'}`}>
+                <div className="flex items-center justify-between mb-8">
+                    <h3 className={`text-[10px] font-black uppercase tracking-[0.3em] ${darkMode ? 'text-white/40' : 'text-stone-400'}`}>Évolution du Trafic</h3>
+                </div>
                 <div className="h-[240px] md:h-[320px] w-full">
                     {chartData.length > 0 ? (
                         <TrafficChart data={chartData} darkMode={darkMode} />
                     ) : (
-                        <div className="flex items-center justify-center h-full text-stone-400 font-bold italic text-sm">Pas assez de données pour la période sélectionnée.</div>
+                        <div className="flex items-center justify-center h-full text-stone-500 font-bold italic text-xs">Pas assez de données.</div>
                     )}
                 </div>
             </div>
 
-            {/* LIVE SESSIONS TABLE */}
-            <div className={`p-6 md:p-8 rounded-[2.5rem] shadow-sm overflow-hidden ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : 'bg-white ring-1 ring-inset ring-stone-100'}`}>
-                <div className="flex justify-between items-center mb-8">
-                    <div>
-                        <h3 className={`text-lg font-black uppercase tracking-widest ${darkMode ? 'text-white' : 'text-stone-900'}`}>Sessions en direct</h3>
-                        <p className="text-xs text-stone-400 font-bold mt-1">Surveillance des sessions récentes</p>
-                    </div>
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 text-red-500 rounded-full text-[10px] font-black uppercase tracking-widest animate-pulse">
-                        <span className="w-2 h-2 rounded-full bg-red-500"></span> Live Trace
+            {/* LIVE SESSIONS BAR (MODULE 3) */}
+            {liveSessions.length > 0 && (
+                <div className={`p-4 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 animate-pulse-slow`}>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                        <div className="flex items-center gap-2 text-emerald-500 shrink-0">
+                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></div>
+                            <span className="text-[10px] font-black uppercase tracking-widest leading-none translate-y-[1px]">{liveSessions.length} Actif{liveSessions.length > 1 ? 's' : ''}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2 text-[9px] font-bold text-emerald-500/60 transition-all">
+                            {liveSessions.slice(0, 5).map(ls => (
+                                <span key={ls.id} className="px-2 py-1 rounded-lg border border-emerald-500/10 bg-emerald-500/5 whitespace-nowrap">
+                                    {ls.city || 'Inconnu'} • {ls.device || 'PC'}
+                                </span>
+                            ))}
+                            {liveSessions.length > 5 && <span className="px-2 py-1 rounded-lg border border-emerald-500/5 bg-emerald-500/5 items-center inline-flex">+{liveSessions.length - 5}</span>}
+                        </div>
                     </div>
                 </div>
+            )}
 
-                <div className="max-h-[700px] overflow-y-auto custom-scrollbar pr-1 -mr-1">
-                    {/* DESKTOP TABLE */}
-                    <table className="w-full text-left border-collapse hidden lg:table">
-                        <thead className="sticky top-0 z-10">
-                            <tr className={`border-b ${darkMode ? 'bg-stone-800 border-stone-700 text-stone-400' : 'bg-white border-stone-200 text-stone-500'} text-[10px] font-black uppercase tracking-widest`}>
-                                <th className="pb-4 pt-2 pl-4">Localisation & IP</th>
-                                <th className="pb-4 pt-2">Appareil</th>
-                                <th className="pb-4 pt-2">Début</th>
-                                <th className="pb-4 pt-2">Durée</th>
-                                <th className="pb-4 pt-2 text-right pr-4">Parcours</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {sessions.map((session) => {
-                                const isExpanded = expandedSessionId === session.id;
-                                const isClient = session.type === 'client';
-                                const isAdminType = session.type === 'admin';
-                                const startedTime = session.startedAt ? new Date(getMillis(session.startedAt)).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+            {/* GROUPED SESSIONS LOG (MODULE 4) */}
+            <div className="space-y-2">
+                {groupedByDay.length === 0 ? (
+                    <div className={`p-12 text-center rounded-2xl border ${darkMode ? 'bg-[#161616] border-white/5 text-stone-500' : 'bg-stone-50 border-stone-100 text-stone-400'} font-bold text-sm italic`}>
+                        Aucune session enregistrée.
+                    </div>
+                ) : (
+                    paginatedGroups.map((group) => {
+                        const isOpen = openDays[group.key];
+                        return (
+                            <div key={group.key} className={`rounded-2xl border overflow-hidden transition-all duration-300 ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100'}`}>
+                                <button
+                                    onClick={() => setOpenDays(prev => ({ ...prev, [group.key]: !prev[group.key] }))}
+                                    className={`w-full p-3 sm:p-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className={`p-1.5 rounded-lg ${darkMode ? 'bg-stone-800' : 'bg-stone-50'}`}>
+                                            {isOpen ? <ChevronDown size={14} className="text-stone-400" /> : <ChevronRight size={14} className="text-stone-400" />}
+                                        </div>
+                                        <div>
+                                            <span className={`text-[11px] font-black uppercase tracking-widest ${darkMode ? 'text-white/70' : 'text-stone-900'}`}>{group.label}</span>
+                                            <span className="ml-3 text-[10px] font-bold text-stone-500">{group.items.length} session{group.items.length > 1 ? 's' : ''}</span>
+                                        </div>
+                                    </div>
+                                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-stone-500/10 to-transparent mx-6"></div>
+                                </button>
 
-                                const lastActiveMs = getMillis(session.lastActivityAt);
-                                const isInactive = (now - lastActiveMs) > 30000;
-                                const isFinished = session.sessionActive === false || isInactive;
+                                {isOpen && (
+                                    <div className="px-2 sm:px-4 pb-3 sm:pb-4 animate-in slide-in-from-top-1 duration-200">
+                                        <div className="space-y-1 sm:space-y-1.5">
+                                            {group.items.map(session => {
+                                                const isExpanded = expandedSessionId === session.id;
+                                                const lastActiveMs = getMillis(session.lastActivityAt);
+                                                const isInactive = (now - lastActiveMs) > 30000;
+                                                const isFinished = session.sessionActive === false || isInactive;
+                                                const startedTime = session.startedAt ? new Date(getMillis(session.startedAt)).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
 
-                                return (
-                                    <React.Fragment key={session.id}>
-                                        <tr className={`border-b transition-all group ${darkMode ? 'border-stone-700 hover:bg-stone-700/50' : 'border-stone-100 hover:bg-stone-50'} ${isExpanded ? (darkMode ? 'bg-stone-700/30' : 'bg-stone-50') : ''}`}>
-                                            <td className="py-4 pl-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black transition-transform group-hover:scale-110 ${isAdminType ? 'bg-red-100 text-red-600' : (isClient ? 'bg-indigo-100 text-indigo-600 shadow-sm' : 'bg-stone-200 text-stone-600')}`}>
-                                                        {isAdminType ? 'AD' : (isClient ? 'CO' : 'AN')}
-                                                    </div>
-                                                    <div>
-                                                        <p className={`font-bold text-sm flex items-center gap-1.5 ${darkMode ? 'text-white' : 'text-stone-900'}`}>
-                                                            <Globe size={12} className={darkMode ? 'text-stone-500' : 'text-stone-400'} />
-                                                            {session.geo?.city !== 'Unknown' ? `${session.geo.city}, ${session.geo.country}` : 'Ville Inconnue'}
-                                                        </p>
-                                                        <p className="text-[10px] font-mono text-stone-400 mt-0.5 flex items-center gap-2">
-                                                            {session.ip}
-                                                            {session.email && <span className="text-indigo-500 font-bold truncate max-w-[150px]" title={session.email}>{session.email}</span>}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="py-4">
-                                                <div className="flex items-center gap-2">
-                                                    {session.device === 'Mobile' ? <Smartphone size={16} className="text-stone-400" /> : <Monitor size={16} className="text-stone-400" />}
-                                                    <div>
-                                                        <p className={`text-xs font-bold ${darkMode ? 'text-white' : 'text-stone-900'}`}>{session.device}</p>
-                                                        <p className="text-[10px] text-stone-400">{session.os} • {session.browser}</p>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="py-4">
-                                                <div className="flex flex-col gap-1">
-                                                    <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg border w-fit ${darkMode ? 'bg-stone-900 text-stone-300 border-stone-700' : 'bg-white text-stone-600 border-stone-200 shadow-sm'}`}>{startedTime}</span>
-                                                    {isFinished ? (
-                                                        <span className="text-[9px] font-bold text-stone-400 uppercase tracking-tighter flex items-center gap-1 ml-1">
-                                                            <div className="w-1 h-1 rounded-full bg-stone-300"></div> Session Terminée
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-tighter flex items-center gap-1 ml-1 animate-pulse">
-                                                            <div className="w-1 h-1 rounded-full bg-emerald-500"></div> En Ligne
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="py-4 font-bold text-xs text-stone-500 dark:text-stone-400">
-                                                {formatDuration(session.duration)}
-                                            </td>
-                                            <td className="py-4 text-right pr-4">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <button
-                                                        onClick={() => handleDeleteSession(session.id)}
-                                                        className={`p-2 rounded-xl transition-all border border-transparent hover:border-red-500/30 text-stone-400 hover:text-red-500 active:scale-90`}
-                                                        title="Supprimer la session"
-                                                    >
-                                                        <Trash2 size={14} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => setExpandedSessionId(isExpanded ? null : session.id)}
-                                                        className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border ${isExpanded ? 'bg-amber-500 text-white border-amber-500 shadow-lg shadow-amber-500/20' : (darkMode ? 'bg-stone-800 text-stone-300 border-stone-700 hover:border-stone-500' : 'bg-white text-stone-600 border-stone-200 hover:border-stone-300 shadow-sm')}`}
-                                                    >
-                                                        {isExpanded ? 'Fermer' : `Tracer (${session.journey?.length || 0})`}
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        {/* EXPANDED ROW (JOURNEY) - DESKTOP */}
-                                        {isExpanded && (
-                                            <tr className={darkMode ? 'bg-stone-900/50' : 'bg-stone-50/50'}>
-                                                <td colSpan="5" className="p-0 border-b border-indigo-100 dark:border-indigo-900/30">
-                                                    <div className="p-8 animate-in slide-in-from-top-4 fade-in duration-300">
-                                                        <div className="flex items-center gap-3 mb-6">
-                                                            <div className="w-1 h-4 bg-amber-500 rounded-full"></div>
-                                                            <h4 className={`text-[10px] font-black uppercase tracking-widest ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>Détail du parcours utilisateur</h4>
-                                                        </div>
+                                                return (
+                                                    <div key={session.id} className={`group rounded-xl border transition-all ${darkMode ? 'bg-stone-900 border-white/5 hover:border-white/10' : 'bg-stone-50 border-stone-100 shadow-sm'}`}>
+                                                        <div className="p-3 flex items-center justify-between gap-4">
+                                                            <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
+                                                                <div className="flex flex-col min-w-[40px] shrink-0">
+                                                                    <span className="text-[10px] font-black text-white/40">{startedTime}</span>
+                                                                    {isFinished ? (
+                                                                        <span className="text-[8px] font-black uppercase text-stone-600">Terminé</span>
+                                                                    ) : (
+                                                                        <span className="text-[8px] font-black uppercase text-emerald-500 animate-pulse">En ligne</span>
+                                                                    )}
+                                                                </div>
 
-                                                        <div className="relative border-l-2 border-dashed border-stone-200 dark:border-stone-700 ml-4 space-y-8">
-                                                            {(!session.journey || session.journey.length === 0) ? (
-                                                                <p className="pl-6 text-sm italic text-stone-400">Aucune action enregistrée pour le moment.</p>
-                                                            ) : (
-                                                                session.journey.map((step, idx) => (
-                                                                    <div key={idx} className="relative pl-8">
-                                                                        <div className="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full bg-amber-500 ring-4 ring-white dark:ring-stone-900 shadow-sm"></div>
-                                                                        <div className="flex flex-wrap items-center gap-3">
-                                                                            <span className="text-[10px] font-black text-amber-500 bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-100 dark:border-amber-500/20">{step.time}</span>
-                                                                            <p className={`font-bold text-sm ${darkMode ? 'text-white' : 'text-stone-900'}`}>
-                                                                                Vue : <span className="uppercase text-amber-600 dark:text-amber-400">{step.page}</span>
-                                                                            </p>
-                                                                            {step.itemId && (
-                                                                                <span className="text-[10px] font-bold bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/20 px-3 py-1 rounded-full inline-flex items-center gap-2">
-                                                                                    {step.itemId.includes('|') ? (
-                                                                                        <>
-                                                                                            <span className="opacity-40 text-[8px]">REF:</span> {step.itemId.split('|')[0].trim()}
-                                                                                            <span className="h-2 w-px bg-indigo-200 dark:bg-indigo-800 mx-1"></span>
-                                                                                            <span className="font-black">{step.itemId.split('|')[1].trim()}</span>
-                                                                                        </>
-                                                                                    ) : (
-                                                                                        <>ID: {step.itemId}</>
-                                                                                    )}
-                                                                                </span>
-                                                                            )}
-                                                                            <span className="text-[10px] font-black text-stone-400 uppercase tracking-wider ml-auto">
-                                                                                {formatDuration(step.duration)}
-                                                                            </span>
-                                                                        </div>
+                                                                <div className="min-w-0">
+                                                                    <div className="flex items-center gap-2 mb-0.5 overflow-hidden">
+                                                                        <Globe size={11} className="text-stone-500 shrink-0" />
+                                                                        <span className={`text-[10px] font-bold truncate ${darkMode ? 'text-white/80' : 'text-stone-900'}`}>{session.city || 'Inconnu'}</span>
+                                                                        <span className="hidden md:inline text-[8px] text-stone-500 opacity-50 truncate">• {session.ip}</span>
                                                                     </div>
-                                                                ))
-                                                            )}
-                                                            <div className="relative pl-8 opacity-50">
-                                                                <div className="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full bg-stone-300 dark:bg-stone-600 ring-4 ring-white dark:ring-stone-900"></div>
-                                                                <p className="text-[10px] font-black uppercase tracking-widest text-stone-500">{!isFinished ? "Navigation en cours..." : "Fin de session"}</p>
+                                                                    <div className="flex items-center gap-1.5 overflow-hidden">
+                                                                        {session.device === 'Mobile' ? <Smartphone size={10} className="text-stone-500 shrink-0" /> : <Monitor size={10} className="text-stone-500 shrink-0" />}
+                                                                        <span className="text-[9px] font-bold text-stone-500 truncate uppercase">
+                                                                            {session.os || 'Inconnu'} • {session.browser || 'Inconnu'}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="flex items-center gap-2 sm:gap-3 md:gap-6 shrink-0">
+                                                                <div className="hidden min-[450px]:block text-right">
+                                                                    <p className="text-[9px] font-black uppercase tracking-widest text-stone-500 mb-0.5 leading-none">Durée</p>
+                                                                    <p className={`text-[11px] sm:text-xs font-black ${darkMode ? 'text-white' : 'text-stone-900'}`}>{formatDuration(session.duration)}</p>
+                                                                </div>
+
+                                                                <div className="flex items-center gap-2">
+                                                                    <button
+                                                                        onClick={() => setExpandedSessionId(isExpanded ? null : session.id)}
+                                                                        className={`px-3 py-1.5 h-8 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${isExpanded ? 'bg-blue-500 text-white' : (darkMode ? 'bg-white/5 text-white/50 hover:bg-white/10' : 'bg-white border border-stone-200 text-stone-600')}`}
+                                                                    >
+                                                                        {isExpanded ? 'Masquer' : 'Tracer'}
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => handleDeleteSession(session.id)}
+                                                                        className="p-1.5 text-stone-500 hover:text-red-500 transition-colors"
+                                                                    >
+                                                                        <Trash2 size={12} />
+                                                                    </button>
+                                                                </div>
                                                             </div>
                                                         </div>
+
+                                                        {isExpanded && (
+                                                            <div className={`p-4 border-t ${darkMode ? 'border-white/5 bg-black/20' : 'border-stone-100 bg-white'} animate-in slide-in-from-top-2 duration-300`}>
+                                                                <div className="space-y-5">
+                                                                    <div className="flex items-center justify-between px-1">
+                                                                        <h4 className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-500">Parcours Utilisateur</h4>
+                                                                        <span className="text-[8px] font-bold text-stone-600 opacity-60 uppercase tracking-tighter">{session.journey?.length || 0} Étapes</span>
+                                                                    </div>
+                                                                    
+                                                                    <div className="relative pl-6 space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-px before:bg-stone-800">
+                                                                        {!session.journey || session.journey.length === 0 ? (
+                                                                            <p className="text-[10px] italic text-stone-500">Aucune activité enregistrée</p>
+                                                                        ) : (
+                                                                            session.journey.map((step, idx) => (
+                                                                                <div key={idx} className="relative group/step">
+                                                                                    {/* DOT centered on the 11px line */}
+                                                                                    <div className={`absolute -left-[18.5px] top-1.5 w-[7px] h-[7px] rounded-full ring-4 ${darkMode ? 'ring-stone-900/50 bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.3)]' : 'ring-white bg-blue-500'} transition-all group-hover/step:scale-125`}></div>
+                                                                                    
+                                                                                    <div className="flex flex-col gap-1 -translate-y-0.5">
+                                                                                        <span className="text-[8px] font-black text-blue-500/60 uppercase tracking-widest leading-none">{step.time} • {formatDuration(step.duration)}</span>
+                                                                                        <p className={`font-black text-[11px] leading-tight ${darkMode ? 'text-stone-300' : 'text-stone-900'}`}>
+                                                                                            Vue : <span className="uppercase text-amber-500">{step.page}</span>
+                                                                                        </p>
+                                                                                        {step.itemId && (
+                                                                                            <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                                                                                                <span className="text-[8px] font-bold bg-indigo-500/10 text-indigo-400/80 border border-indigo-500/10 px-2 py-0.5 rounded-md truncate max-w-full italic">
+                                                                                                    ID: {step.itemId}
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        )}
+                                                                                    </div>
+                                                                                </div>
+                                                                            ))
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </React.Fragment>
-                                );
-                            })}
-                        </tbody>
-                    </table>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })
+                )}
 
-                    {/* MOBILE CARDS */}
-                    <div className="lg:hidden space-y-4">
-                        {sessions.map((session) => {
-                            const isExpanded = expandedSessionId === session.id;
-                            const isClient = session.type === 'client';
-                            const isAdminType = session.type === 'admin';
-                            const startedTime = session.startedAt ? new Date(getMillis(session.startedAt)).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                {/* PAGINATION NUMBERS */}
+                {totalPages > 1 && (
+                    <div className="flex items-center justify-center gap-1.5 pt-4">
+                        <button
+                            disabled={currentPage === 1}
+                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                            className={`p-2 rounded-xl transition-all ${darkMode ? (currentPage === 1 ? 'text-stone-700 opacity-50' : 'text-stone-400 hover:bg-white/5 active:scale-95') : (currentPage === 1 ? 'text-stone-300' : 'text-stone-500 hover:bg-stone-100 active:scale-95')}`}
+                        >
+                            <ChevronRight className="rotate-180" size={14} />
+                        </button>
 
-                            const lastActiveMs = getMillis(session.lastActivityAt);
-                            const isInactive = (now - lastActiveMs) > 30000;
-                            const isFinished = session.sessionActive === false || isInactive;
+                        {[...Array(totalPages)].map((_, i) => {
+                            const page = i + 1;
+                            // Stratégie d'affichage des numéros (simple pour l'instant, peut être complexifiée si bcp de pages)
+                            if (totalPages > 7) {
+                                if (page > 1 && page < totalPages && Math.abs(page - currentPage) > 1) {
+                                    if (page === 2 || page === totalPages - 1) return <span key={page} className="text-stone-600 px-1">.</span>;
+                                    return null;
+                                }
+                            }
 
                             return (
-                                <div
-                                    key={session.id}
-                                    className={`p-5 rounded-[2rem] border transition-all relative ${isExpanded ? (darkMode ? 'bg-stone-800 border-amber-500/50 ring-1 ring-amber-500/20' : 'bg-white border-amber-200 shadow-xl') : (darkMode ? 'bg-stone-800/50 border-stone-700' : 'bg-stone-50 border-transparent hover:bg-white hover:border-stone-100')}`}
+                                <button
+                                    key={page}
+                                    onClick={() => setCurrentPage(page)}
+                                    className={`w-8 h-8 rounded-xl text-[10px] font-black transition-all ${currentPage === page
+                                        ? (darkMode ? 'bg-white/10 text-white border border-white/10 shadow-lg' : 'bg-stone-900 text-white shadow-md')
+                                        : (darkMode ? 'text-stone-500 hover:text-stone-300 hover:bg-white/5' : 'text-stone-500 hover:bg-stone-100')
+                                        }`}
                                 >
-                                    <div className="absolute top-6 right-6 flex flex-col items-end gap-1">
-                                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded border ${darkMode ? 'bg-stone-900 text-stone-400 border-stone-700' : 'bg-white text-stone-500 border-stone-200 shadow-sm'}`}>
-                                            {startedTime}
-                                        </span>
-                                        {!isFinished ? (
-                                            <span className="text-[8px] font-bold text-emerald-500 uppercase tracking-tighter animate-pulse">En Ligne</span>
-                                        ) : (
-                                            <span className="text-[8px] font-bold text-stone-400 uppercase tracking-tighter">Terminé</span>
-                                        )}
-                                    </div>
-
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="flex items-center gap-3 overflow-hidden pr-16">
-                                            <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black ${isAdminType ? 'bg-red-100 text-red-600' : (isClient ? 'bg-indigo-100 text-indigo-600 shadow-sm' : 'bg-stone-200 text-stone-600')}`}>
-                                                {isAdminType ? 'AD' : (isClient ? 'CO' : 'AN')}
-                                            </div>
-                                            <div className="overflow-hidden">
-                                                <p className={`font-bold text-sm tracking-tight truncate ${darkMode ? 'text-white' : 'text-stone-900'}`}>
-                                                    {session.geo?.city !== 'Unknown' ? `${session.geo.city}, ${session.geo.country}` : 'Ville Inconnue'}
-                                                </p>
-                                                <p className="text-[10px] font-mono text-stone-400 mt-1 truncate">{session.ip}</p>
-                                                {session.email && <p className="text-[10px] font-bold text-indigo-500 truncate mt-0.5">{session.email}</p>}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center justify-between mb-5 px-1 text-stone-500 dark:text-stone-400">
-                                        <div className="flex items-center gap-2">
-                                            {session.device === 'Mobile' ? <Smartphone size={14} className="text-stone-400" /> : <Monitor size={14} className="text-stone-400" />}
-                                            <span className="text-[10px] font-bold">{session.os} • {session.browser}</span>
-                                        </div>
-                                        <div className="flex items-center gap-1.5 font-bold text-[10px] bg-stone-100 dark:bg-stone-900 px-2 py-0.5 rounded-md">
-                                            <Clock size={10} />
-                                            {formatDuration(session.duration)}
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            onClick={() => setExpandedSessionId(isExpanded ? null : session.id)}
-                                            className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border ${isExpanded ? 'bg-amber-500 text-white border-amber-500 shadow-lg shadow-amber-500/20' : (darkMode ? 'bg-stone-800 text-stone-300 border-stone-700' : 'bg-white text-stone-600 border-stone-200 shadow-sm active:bg-stone-50')}`}
-                                        >
-                                            {isExpanded ? 'Masquer Parcours' : `Tracer Parcours (${session.journey?.length || 0})`}
-                                        </button>
-                                        <button
-                                            onClick={() => handleDeleteSession(session.id)}
-                                            className={`p-3 rounded-xl transition-all border ${darkMode ? 'border-stone-700 bg-stone-800 text-stone-400' : 'border-stone-200 bg-white text-stone-400 active:bg-stone-50'}`}
-                                            title="Supprimer"
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
-                                    </div>
-
-                                    {/* EXPANDED CONTENT - MOBILE */}
-                                    {isExpanded && (
-                                        <div className="mt-6 pt-6 border-t border-stone-100 dark:border-stone-700 animate-in slide-in-from-top-2 fade-in">
-                                            <div className="relative border-l-2 border-dashed border-stone-200 dark:border-stone-700 ml-2 space-y-6">
-                                                {(!session.journey || session.journey.length === 0) ? (
-                                                    <p className="pl-6 text-xs italic text-stone-400">Aucune action enregistrée.</p>
-                                                ) : (
-                                                    session.journey.map((step, idx) => (
-                                                        <div key={idx} className="relative pl-6">
-                                                            <div className="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-white dark:ring-stone-800"></div>
-                                                            <div className="flex flex-col gap-1.5">
-                                                                <div className="flex items-center justify-between">
-                                                                    <span className="text-[9px] font-black text-amber-600 bg-amber-50 dark:bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-100 dark:border-amber-500/20">{step.time}</span>
-                                                                    <span className="text-[9px] font-bold text-stone-400 uppercase tracking-wider">{formatDuration(step.duration)}</span>
-                                                                </div>
-                                                                <p className={`font-bold text-xs ${darkMode ? 'text-white' : 'text-stone-900'}`}>
-                                                                    Vue : <span className="uppercase text-amber-500">{step.page}</span>
-                                                                </p>
-                                                                {step.itemId && (
-                                                                    <span className="text-[9px] font-bold bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/20 px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 w-fit flex-wrap">
-                                                                        {step.itemId.includes('|') ? (
-                                                                            <>
-                                                                                <span className="opacity-40 text-[7px]">REF:</span> <span className="truncate max-w-[100px]">{step.itemId.split('|')[0].trim()}</span>
-                                                                                <span className="h-2 w-px bg-indigo-200 dark:bg-indigo-800"></span>
-                                                                                <span className="font-black">{step.itemId.split('|')[1].trim()}</span>
-                                                                            </>
-                                                                        ) : (
-                                                                            <>ID: {step.itemId}</>
-                                                                        )}
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    ))
-                                                )}
-                                                <div className="relative pl-6 opacity-50">
-                                                    <div className="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-stone-300 dark:bg-stone-600 ring-2 ring-white dark:ring-stone-800"></div>
-                                                    <p className="text-[10px] font-black uppercase tracking-widest text-stone-500 text-left">{!isFinished ? "Navigation en cours..." : "Fin de session"}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
+                                    {page}
+                                </button>
                             );
                         })}
+
+                        <button
+                            disabled={currentPage === totalPages}
+                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                            className={`p-2 rounded-xl transition-all ${darkMode ? (currentPage === totalPages ? 'text-stone-700 opacity-50' : 'text-stone-400 hover:bg-white/5 active:scale-95') : (currentPage === totalPages ? 'text-stone-300' : 'text-stone-500 hover:bg-stone-100 active:scale-95')}`}
+                        >
+                            <ChevronRight size={14} />
+                        </button>
                     </div>
-                </div>
+                )}
             </div>
 
-            {/* INFO SECTION */}
-            <div className={`p-6 rounded-2xl ${darkMode ? 'bg-stone-800 border border-stone-700' : 'bg-stone-50 border border-stone-200'}`}>
-                <div className="flex items-start gap-3">
-                    <AlertCircle size={20} className="text-stone-400 mt-0.5" />
-                    <div className="text-sm text-stone-400">
-                        <p className="mb-2">
-                            <strong>Suppression automatique des sessions admin :</strong> Lorsqu'un administrateur se connecte, toutes ses sessions actives (anonymes ou non) sont automatiquement supprimées pour ne pas polluer les statistiques.
-                        </p>
-                        <p className="mb-2">
-                            <strong>Conversion des sessions clients :</strong> Lorsqu'un client se connecte, ses sessions anonymes sont converties et associées à son compte pour un meilleur suivi.
-                        </p>
-                        <p>
-                            <strong>Exclusion par IP :</strong> Les adresses IP des administrateurs sont blacklistées automatiquement pour exclure toute future session de ces IPs.
-                        </p>
+            {/* FOOTER INFO MODULE 5 */}
+            <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 py-4 border-t border-white/5">
+                {[
+                    "Sessions admin auto-exclues",
+                    "IPs blacklistées au login",
+                    "Rétention data: 30 jours",
+                    "Temps réel activé"
+                ].map((info, i) => (
+                    <div key={i} className="flex items-center gap-1.5">
+                        <div className="w-1 h-1 rounded-full bg-stone-700"></div>
+                        <span className="text-[8px] font-black uppercase tracking-widest text-stone-600">{info}</span>
                     </div>
-                </div>
+                ))}
             </div>
         </div>
     );

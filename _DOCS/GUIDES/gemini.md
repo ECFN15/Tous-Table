@@ -1,4 +1,41 @@
-# Intervention — UX/UI Menu Global (21 Mars 2026)
+# Intervention — Dashboard Admin : Bento Grid & Custom SVG (25 Mars 2026)
+* Migration complète vers un design "SaaS Dark Mode" ultra-premium (`#161616`).
+* Suppression de Recharts au profit de **SVG natifs** (`RevenueChart`, `StatusArc`) pour un contrôle total des styles (hachures, gradients néon, glow).
+* Implémentation d'un système de **Scrubbing Universel** : le graphe ne réagit pas au clic/hover sur des points précis mais tracke le mouvement sur toute sa largeur, offrant une expérience fluide type "Apple Stocks".
+* Centralisation des fonctions admin critiques dans une "Danger Zone" à bordure pointillée rouge, isolée du flux de données.
+
+---
+
+# Intervention — Admin Analytics : Groupement Temporel & Live (25 Mars 2026)
+* Remplacement du flux de sessions vrac par un système de **groupement par jour** (Logic: `useMemo` + `toLocaleDateString`).
+* **Pagination & Performance** : Limitation à 10 jours par page pour éviter de surcharger le navigateur et faciliter la lecture séquentielle.
+* Séparation physique du trafic **Live** (bandeau pulsant supérieur) de l'historique.
+* Interaction par accordéons pour une gestion propre des gros volumes de données quotidiennes.
+* Alignement sur le design "Celoci Inc" (Bento cards, bordures subtiles).
+
+---
+
+# Leçon clé (Gemini) — UX Analytics & Hiérarchie (25 Mars 2026)
+> Pour des analytics exploitables :
+> - **Don't list, group** : Une liste infinie est anxiogène. Regrouper par jour avec des accordéons transforme une pile de données en un journal structuré.
+> - **Separate Live from History** : Le trafic en temps réel demande une attention immédiate (bandeau haut, animations), tandis que l'historique demande de l'analyse (accordéons, KPIs). Mixer les deux dilue la valeur de l'info.
+> - **State Memory** : Enregistrer l'état ouvert/fermé des accordéons (ou en ouvrir un par défaut) permet à l'admin de ne pas perdre ses repères visuels à chaque refresh de données.
+
+---
+* Migration complète vers un design "SaaS Dark Mode" ultra-premium (`#161616`).
+* Suppression de Recharts au profit de **SVG natifs** (`RevenueChart`, `StatusArc`) pour un contrôle total des styles (hachures, gradients néon, glow).
+* Implémentation d'un système de **Scrubbing Universel** : le graphe ne réagit pas au clic/hover sur des points précis mais tracke le mouvement sur toute sa largeur, offrant une expérience fluide type "Apple Stocks".
+* Centralisation des fonctions admin critiques dans une "Danger Zone" à bordure pointillée rouge, isolée du flux de données.
+
+---
+
+# Leçon clé (Gemini) — Dashboard Data-Viz Premium (25 Mars 2026)
+> Pour un dashboard "Enterprise Grade" (style Celoci/Linear) :
+> - **SVG over Libs** : Les bibliothèques (Recharts/Chart.js) ont des curseurs/tooltips limités. Le SVG pur permet des hachures de fond, des tooltips fixes en haut d'écran et des gradients impossibles à briser.
+> - **Bento Hierarchy** : La taille de la carte doit être proportionnelle à l'importance de la donnée. Un KPI monstre (CA) au-dessus d'un graphe dense, flanqué de contrôles compacts.
+> - **Visual Feedback** : Utiliser des bordures pointillées (`border-dashed`) ou des couleurs "Danger" (`red-900/40`) de manière très localisée pour signaler les zones de maintenance sans polluer l'esthétique Dark Mode globale.
+
+---
 * Menu modal repositionné en superposition absolue (`z-[2001]`) par-dessus les headers pour effacer les collisions avec les autres boutons de navigation.
 * Remplacement des backgrounds hover des boutons du menu par des `group-hover:text-amber` fluides et premium.
 * Restitution de l'animation CSS Hamburger-to-Cross non plus au sein du header mais intégrée au sein du `GlobalMenu` pendant son apparition latérale. L'effet de morphing est identique mais indépendant des autres z-index.
