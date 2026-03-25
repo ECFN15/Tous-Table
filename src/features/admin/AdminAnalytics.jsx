@@ -307,7 +307,7 @@ const TrafficChart = ({ data, darkMode }) => {
 const AdminAnalytics = ({ darkMode = false }) => {
     const [sessions, setSessions] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [timeFilter, setTimeFilter] = useState('1h'); // Default to 1h for real-time vibe // '1h', '1j', '7j', '1mois', '1ans'
+    const [timeFilter, setTimeFilter] = useState('1j'); // Default to 24h // '1h', '1j', '7j', '1mois', '1ans'
     const [expandedSessionId, setExpandedSessionId] = useState(null);
     const [now, setNow] = useState(Date.now());
     const [currentPage, setCurrentPage] = useState(1);
