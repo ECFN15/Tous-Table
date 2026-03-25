@@ -86,57 +86,67 @@ const AdminUsers = ({ darkMode }) => {
     return (
         <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 pb-20">
             {/* Header */}
-            <div className={`p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 ${darkMode ? 'bg-stone-900 text-white' : 'bg-stone-900 text-white'}`}>
+            <div className={`p-8 rounded-[2.5rem] shadow-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 border-b ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-200/60'}`}>
                 <div>
-                    <h2 className="text-2xl md:text-3xl font-black tracking-tight mb-1 md:mb-2">Maîtres des Lieux</h2>
-                    <p className="text-stone-400 font-medium text-xs md:text-sm">Gérez l'accès au portail d'administration.</p>
+                    <h2 className="text-3xl font-black tracking-tighter mb-2">Maîtres des Lieux</h2>
+                    <p className={`font-medium text-xs tracking-wide ${darkMode ? 'text-white/40' : 'text-stone-400'}`}>Gérez l'accès au portail d'administration de l'atelier.</p>
                 </div>
                 <button
                     onClick={() => setIsAddModalOpen(true)}
-                    className="w-full sm:w-auto px-6 py-4 bg-white text-stone-900 rounded-xl font-black uppercase text-[10px] md:text-xs tracking-widest hover:bg-stone-200 transition-colors flex items-center justify-center gap-3 shadow-lg"
+                    className={`group w-full sm:w-auto px-8 py-4 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] transition-all duration-300 flex items-center justify-center gap-3 shadow-xl ${
+                        darkMode 
+                            ? 'bg-white text-stone-900 hover:bg-stone-200' 
+                            : 'bg-stone-900 text-white hover:bg-stone-800'
+                    }`}
                 >
-                    <UserPlus size={16} /> Ajouter un Admin
+                    <UserPlus size={16} className="group-hover:rotate-12 transition-transform" /> 
+                    Ajouter un Admin
                 </button>
             </div>
 
             {/* Users Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {users.map(user => (
-                    <div key={user.uid} className={`p-6 rounded-[2rem] ring-1 relative group will-change-transform ${darkMode ? 'bg-stone-800 ring-stone-700/50' : 'bg-white ring-stone-100 shadow-sm'}`}>
+                    <div key={user.uid} className={`p-8 rounded-[2.5rem] relative group transition-all duration-500 border overflow-hidden ${darkMode ? 'bg-[#161616] border-white/5 hover:border-white/20' : 'bg-white border-stone-100 shadow-sm hover:shadow-xl hover:shadow-stone-200/40'}`}>
+                        {/* Status Pulse */}
+                        <div className="absolute top-8 right-8">
+                            <div className={`flex items-center gap-2 px-2 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${user.uid.startsWith('pending_') ? 'bg-amber-500/10 text-amber-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
+                                <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${user.uid.startsWith('pending_') ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'}`}></span>
+                                {user.uid.startsWith('pending_') ? 'En attente' : 'Actif'}
+                            </div>
+                        </div>
+
                         <div className="flex items-start justify-between mb-6">
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${darkMode ? 'bg-stone-700 text-stone-300' : 'bg-stone-100 text-stone-500'}`}>
-                                <Shield size={24} />
+                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border transition-colors duration-300 ${darkMode ? 'bg-white/5 border-white/5 text-stone-400 group-hover:text-white' : 'bg-stone-50 border-stone-100 text-stone-400'}`}>
+                                <Shield size={28} strokeWidth={1.5} />
                             </div>
 
-                            {/* Bouton Supprimer : Visible uniquement si ce n'est PAS moi et PAS le compte intouchable */}
+                            {/* Bouton Supprimer */}
                             {user.email !== 'matthis.fradin2@gmail.com' && (
                                 <button
                                     onClick={() => handleRemoveUser(user.uid, user.email)}
-                                    className={`p-2 rounded-lg transition-colors opacity-100 md:opacity-0 group-hover:opacity-100 ${darkMode ? 'bg-red-900/10 hover:bg-red-900/30 text-red-500' : 'bg-red-50 hover:bg-red-100 text-red-500'}`}
+                                    className={`p-3 rounded-xl transition-all duration-300 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 ${darkMode ? 'bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white' : 'bg-red-50 hover:bg-red-500 text-red-500 hover:text-white'}`}
                                     title="Révoquer les droits"
                                 >
-                                    <Trash2 size={16} />
+                                    <Trash2 size={18} />
                                 </button>
                             )}
                         </div>
 
-                        <div>
-                            <h3 className={`text-lg font-black tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>{user.name}</h3>
-                            <p className="text-sm text-stone-400 font-mono mt-1 mb-4 flex flex-col gap-1">
-                                <span>{user.email}</span>
-                                {user.uid.startsWith('pending_') && (
-                                    <span className="text-[10px] bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded-full w-fit font-bold">En attente d'inscription</span>
-                                )}
-                            </p>
-
-                            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest ${user.email === 'matthis.fradin2@gmail.com' ? (darkMode ? 'bg-amber-500/10 text-amber-500 ring-1 ring-amber-500/20' : 'bg-amber-50 text-amber-600 ring-1 ring-amber-200') : (darkMode ? 'bg-stone-900 text-stone-400' : 'bg-stone-50 text-stone-500')}`}>
-                                <Users size={12} />
-                                {user.email === 'matthis.fradin2@gmail.com' ? 'Super Admin' : (user.role || 'Admin')}
+                        <div className="space-y-4">
+                            <div>
+                                <h3 className={`text-xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>{user.name}</h3>
+                                <p className={`text-xs font-medium opacity-50 mt-1`}>{user.email}</p>
                             </div>
-                        </div>
 
-                        <div className="absolute top-6 right-6">
-                            <div className={`w-2 h-2 rounded-full shadow-[0_0_10px_currentColor] ${user.uid.startsWith('pending_') ? 'bg-amber-500 text-amber-500' : 'bg-emerald-500 text-emerald-500'}`}></div>
+                            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] border-2 transition-colors ${
+                                user.email === 'matthis.fradin2@gmail.com' 
+                                    ? (darkMode ? 'bg-amber-500/5 border-amber-500/20 text-amber-500' : 'bg-amber-50 border-amber-200 text-amber-600') 
+                                    : (darkMode ? 'bg-white/5 border-white/5 text-white/40' : 'bg-stone-50 border-stone-100 text-stone-400')
+                            }`}>
+                                <Users size={12} />
+                                {user.email === 'matthis.fradin2@gmail.com' ? 'Propriétaire' : (user.role || 'Administrateur')}
+                            </div>
                         </div>
                     </div>
                 ))}
@@ -152,42 +162,52 @@ const AdminUsers = ({ darkMode }) => {
             {isAddModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsAddModalOpen(false)}></div>
-                    <div className={`relative w-full max-w-md rounded-3xl p-8 shadow-2xl animate-in zoom-in-95 ${darkMode ? 'bg-stone-800' : 'bg-white'}`}>
-                        <h3 className={`text-2xl font-black mb-1 ${darkMode ? 'text-white' : 'text-stone-900'}`}>Inviter un Admin</h3>
-                        <p className="text-stone-400 text-xs mb-6">L'accès se fera via leur compte Google.</p>
+                    <div className={`relative w-full max-w-md rounded-[2.5rem] p-10 shadow-[0_0_100px_rgba(0,0,0,0.5)] animate-in zoom-in-95 border ${darkMode ? 'bg-[#111111] border-white/5' : 'bg-white border-stone-100'}`}>
+                        <div className="mb-8">
+                            <h3 className={`text-3xl font-black tracking-tighter mb-2 ${darkMode ? 'text-white' : 'text-stone-900'}`}>Inviter un Admin</h3>
+                            <p className={`text-xs font-medium tracking-wide ${darkMode ? 'text-white/30' : 'text-stone-400'}`}>L'accès sera validé lors de leur inscription.</p>
+                        </div>
 
-                        <form onSubmit={handleAddUser} className="space-y-4">
-                            <div>
-                                <label className="block text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2">Prénom / Nom</label>
+                        <form onSubmit={handleAddUser} className="space-y-6">
+                            <div className="space-y-2">
+                                <label className={`block text-[10px] font-black uppercase tracking-[0.2em] mb-3 ml-1 ${darkMode ? 'text-white/30' : 'text-stone-400'}`}>Identité</label>
                                 <input
                                     type="text"
                                     value={newName} onChange={e => setNewName(e.target.value)}
                                     placeholder="Ex: Jean Dupont"
-                                    className={`w-full p-4 rounded-xl font-bold outline-none border-2 focus:border-stone-500 transition-all ${darkMode ? 'bg-stone-900 border-stone-700 text-white' : 'bg-stone-50 border-stone-100 text-stone-900'}`}
+                                    className={`w-full p-5 rounded-2xl font-bold border-2 transition-all duration-300 outline-none ${
+                                        darkMode 
+                                            ? 'bg-white/5 border-white/5 text-white focus:border-white/20' 
+                                            : 'bg-stone-50 border-stone-100 text-stone-900 focus:border-stone-200 shadow-inner shadow-stone-900/5'
+                                    }`}
                                     required
                                 />
                             </div>
-                            <div>
-                                <label className="block text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2">Email Google</label>
+                            <div className="space-y-2">
+                                <label className={`block text-[10px] font-black uppercase tracking-[0.2em] mb-3 ml-1 ${darkMode ? 'text-white/30' : 'text-stone-400'}`}>Email Professionnel</label>
                                 <input
                                     type="email"
                                     value={newEmail} onChange={e => setNewEmail(e.target.value)}
                                     placeholder="email@gmail.com"
-                                    className={`w-full p-4 rounded-xl font-bold outline-none border-2 focus:border-stone-500 transition-all ${darkMode ? 'bg-stone-900 border-stone-700 text-white' : 'bg-stone-50 border-stone-100 text-stone-900'}`}
+                                    className={`w-full p-5 rounded-2xl font-bold border-2 transition-all duration-300 outline-none ${
+                                        darkMode 
+                                            ? 'bg-white/5 border-white/5 text-white focus:border-white/20' 
+                                            : 'bg-stone-50 border-stone-100 text-stone-900 focus:border-stone-200 shadow-inner shadow-stone-900/5'
+                                    }`}
                                     required
                                 />
                             </div>
 
                             {errorMsg && (
-                                <div className="p-3 rounded-xl bg-red-500/10 text-red-500 text-xs font-bold flex items-center gap-2">
+                                <div className="p-4 rounded-2xl bg-red-500/10 text-red-500 text-[11px] font-black flex items-center gap-3 border border-red-500/20 animate-in shake-1">
                                     <AlertCircle size={14} /> {errorMsg}
                                 </div>
                             )}
 
-                            <div className="pt-4 flex gap-3">
-                                <button type="button" onClick={() => setIsAddModalOpen(false)} className={`flex-1 py-4 rounded-xl font-bold uppercase text-xs tracking-widest ${darkMode ? 'bg-stone-700 text-stone-400 hover:text-white' : 'bg-stone-100 text-stone-500 hover:text-stone-900'}`}>Annuler</button>
-                                <button type="submit" disabled={submitting} className="flex-1 py-4 bg-stone-900 text-white rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-black transition-colors flex items-center justify-center gap-2">
-                                    {submitting ? <Loader size={14} className="animate-spin" /> : 'Inviter'}
+                            <div className="pt-4 flex flex-col md:flex-row gap-4">
+                                <button type="button" onClick={() => setIsAddModalOpen(false)} className={`flex-1 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all ${darkMode ? 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white' : 'bg-stone-100 text-stone-500 hover:text-stone-900 hover:bg-stone-200'}`}>Annuler</button>
+                                <button type="submit" disabled={submitting} className={`flex-1 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all flex items-center justify-center gap-3 shadow-xl ${darkMode ? 'bg-white text-stone-900 hover:bg-stone-200' : 'bg-stone-900 text-white hover:bg-stone-800'}`}>
+                                    {submitting ? <Loader size={16} className="animate-spin" /> : <><UserPlus size={16} /> Envoyer</>}
                                 </button>
                             </div>
                         </form>

@@ -132,9 +132,14 @@ const AdminOrders = ({ darkMode = false }) => {
                     <h2 className={`text-2xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>Commandes ({orders.length})</h2>
                     <button
                         onClick={exportToExcel}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors ${darkMode ? 'bg-stone-800 text-stone-200 hover:bg-stone-700' : 'bg-white text-stone-600 hover:bg-stone-100 border'}`}
+                        className={`group flex items-center gap-2.5 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 border-2 shadow-xl ${
+                            darkMode 
+                                ? 'bg-white/5 border-white/5 text-white/70 hover:bg-white hover:text-stone-900 shadow-black/20' 
+                                : 'bg-stone-50 border-stone-100 text-stone-500 hover:bg-stone-900 hover:text-white shadow-stone-200/40'
+                        }`}
                     >
-                        <Download size={14} /> Export Excel
+                        <Download size={15} className="group-hover:-translate-y-0.5 transition-transform" /> 
+                        Export Excel
                     </button>
                 </div>
                 <div className="flex gap-2 text-xs font-bold uppercase tracking-widest text-stone-400">
@@ -206,55 +211,78 @@ const AdminOrders = ({ darkMode = false }) => {
                                                 <p><strong className={darkMode ? 'text-stone-200' : 'text-stone-900'}>Adresse:</strong> {order.shipping?.address}, {order.shipping?.zip} {order.shipping?.city}</p>
                                                 <p><strong className={darkMode ? 'text-stone-200' : 'text-stone-900'}>Paiement:</strong> {order.paymentMethod === 'deferred' ? 'Différé (Virement/Chèque)' : 'Stripe'}</p>
                                                 <p className="text-[10px] opacity-50 mt-2 font-mono">UID: {order.userId}</p>
-                                            </div>
-
-                                            <div className="flex flex-col gap-2 pt-4">
-                                                <div className="flex flex-col xl:flex-row gap-2">
+                                            <div className="flex flex-col gap-3 pt-6">
+                                                <div className="flex flex-col xl:flex-row gap-3">
                                                     {/* Status Actions */}
                                                     {(order.status === 'pending_payment' || order.status === 'paid' || !order.status) ? (
                                                         <>
                                                             <button
                                                                 onClick={(e) => { e.stopPropagation(); updateOrderStatus(order, 'shipped'); }}
-                                                                className={`flex-1 py-4 xl:py-3 rounded-xl font-bold text-[10px] sm:text-xs transition-colors shadow-sm ${darkMode ? 'bg-white text-stone-900 hover:bg-stone-200' : 'bg-stone-900 text-white hover:bg-stone-800'}`}
+                                                                className={`group flex-1 py-4 xl:py-3.5 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all duration-300 shadow-xl flex items-center justify-center gap-2 ${
+                                                                    darkMode 
+                                                                        ? 'bg-white text-stone-900 hover:bg-stone-200' 
+                                                                        : 'bg-stone-900 text-white hover:bg-black'
+                                                                }`}
                                                             >
-                                                                Marqué comme expédié
+                                                                <Truck size={16} className="group-hover:translate-x-1 transition-transform" />
+                                                                Expédiée
                                                             </button>
                                                             <button
                                                                 onClick={(e) => { e.stopPropagation(); updateOrderStatus(order, 'completed'); }}
-                                                                className={`flex-1 py-4 xl:py-3 rounded-xl font-bold text-[10px] sm:text-xs transition-colors shadow-sm ${darkMode ? 'bg-emerald-500 text-white hover:bg-emerald-400' : 'bg-emerald-600 text-white hover:bg-emerald-700'}`}
+                                                                className={`group flex-1 py-4 xl:py-3.5 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all duration-300 shadow-xl flex items-center justify-center gap-2 ${
+                                                                    darkMode 
+                                                                        ? 'bg-emerald-500/10 text-emerald-500 border-2 border-emerald-500/20 hover:bg-emerald-500 hover:text-white' 
+                                                                        : 'bg-emerald-50 text-emerald-600 border-2 border-emerald-100 hover:bg-emerald-600 hover:text-white'
+                                                                }`}
                                                             >
-                                                                Marquer comme Livrée
+                                                                <CheckCircle size={16} className="group-hover:scale-110 transition-transform" />
+                                                                Livrée
                                                             </button>
                                                         </>
                                                     ) : order.status === 'shipped' ? (
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); updateOrderStatus(order, 'completed'); }}
-                                                            className={`flex-1 py-4 xl:py-3 rounded-xl font-bold text-[10px] sm:text-xs transition-colors shadow-sm ${darkMode ? 'bg-white text-stone-900 hover:bg-stone-200' : 'bg-stone-900 text-white hover:bg-stone-800'}`}
+                                                            className={`group flex-1 py-4 xl:py-3.5 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all duration-300 shadow-xl flex items-center justify-center gap-2 ${
+                                                                darkMode 
+                                                                    ? 'bg-white text-stone-900 hover:bg-stone-200' 
+                                                                    : 'bg-stone-900 text-white hover:bg-black'
+                                                            }`}
                                                         >
-                                                            Marquer comme Livrée
+                                                            <CheckCircle size={16} className="group-hover:scale-110 transition-transform" />
+                                                            Livrée
                                                         </button>
                                                     ) : order.status === 'completed' ? (
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); updateOrderStatus(order, 'pending_payment'); }}
-                                                            className={`flex-1 py-4 xl:py-3 rounded-xl font-bold text-[10px] sm:text-xs transition-colors shadow-sm ${darkMode ? 'bg-stone-700 text-white hover:bg-stone-600' : 'bg-stone-200 text-stone-900 hover:bg-stone-300'}`}
+                                                            className={`group flex-1 py-4 xl:py-3.5 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all duration-300 border-2 flex items-center justify-center gap-2 ${
+                                                                darkMode 
+                                                                    ? 'bg-white/5 border-white/5 text-white/40 hover:bg-white/10 hover:text-white' 
+                                                                    : 'bg-stone-100 border-stone-200 text-stone-500 hover:bg-stone-200 hover:text-stone-900'
+                                                            }`}
                                                         >
-                                                            Rouvrir la commande
+                                                            <Clock size={16} />
+                                                            Réouvrir
                                                         </button>
                                                     ) : null}
                                                 </div>
 
-                                                {/* Smart Cancel Button (Restores Stock + Deletes Order) */}
+                                                {/* Smart Cancel Button */}
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         handleCancelAndRestore(order);
                                                     }}
-                                                    className={`w-full px-4 py-4 xl:py-3 rounded-xl transition-colors font-bold uppercase text-[10px] tracking-widest border shadow-sm ${darkMode ? 'bg-red-950/30 text-red-500 border-red-900/50 hover:bg-red-900/50' : 'bg-red-50 text-red-600 border-red-100 hover:bg-red-100'}`}
+                                                    className={`group w-full py-4 xl:py-3.5 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] transition-all duration-300 border-2 flex items-center justify-center gap-2 ${
+                                                        darkMode 
+                                                            ? 'bg-red-500/5 border-red-500/10 text-red-500 hover:bg-red-500 hover:text-white' 
+                                                            : 'bg-red-50 border-red-100 text-red-600 hover:bg-red-600 hover:text-white'
+                                                    }`}
                                                     title="Annuler : Remet le stock et supprime la commande"
                                                 >
-                                                    Annuler & Restaurer Stock
+                                                    <XCircle size={16} className="group-hover:rotate-90 transition-transform" />
+                                                    Annuler & Restaurer
                                                 </button>
-                                            </div>
+                                            </div>                                     </div>
                                         </div>
 
                                     </div>
@@ -275,9 +303,20 @@ const AdminOrders = ({ darkMode = false }) => {
                 {orders.length >= orderLimit && (
                     <button
                         onClick={() => setOrderLimit(prev => prev + 50)}
-                        className={`w-full py-4 rounded-xl border border-dashed text-xs font-black uppercase tracking-widest transition-all ${darkMode ? 'border-stone-700 text-stone-400 hover:bg-stone-800 hover:text-white' : 'border-stone-200 text-stone-400 hover:bg-stone-50 hover:text-stone-900'}`}
+                        className={`group w-full py-6 rounded-3xl border-2 border-dashed transition-all duration-300 flex items-center justify-center gap-3 ${
+                            darkMode 
+                                ? 'border-white/5 text-white/30 hover:border-white/20 hover:text-white hover:bg-white/5 shadow-2xl shadow-black/20' 
+                                : 'border-stone-100 text-stone-400 hover:border-stone-300 hover:text-stone-900 hover:bg-stone-50'
+                        }`}
                     >
-                        {isLoading ? <Loader2 className="animate-spin mx-auto" size={16} /> : 'Charger les commandes plus anciennes'}
+                        {isLoading ? (
+                            <Loader2 className="animate-spin" size={20} />
+                        ) : (
+                            <>
+                                <ChevronDown size={18} className="group-hover:translate-y-1 transition-transform" />
+                                <span className="text-[10px] font-black uppercase tracking-[0.3em]">Charger les commandes antérieures</span>
+                            </>
+                        )}
                     </button>
                 )}
             </div>

@@ -763,41 +763,50 @@ const AdminAnalytics = ({ darkMode = false }) => {
                         <button
                             disabled={currentPage === 1}
                             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                            className={`p-2 rounded-xl transition-all ${darkMode ? (currentPage === 1 ? 'text-stone-700 opacity-50' : 'text-stone-400 hover:bg-white/5 active:scale-95') : (currentPage === 1 ? 'text-stone-300' : 'text-stone-500 hover:bg-stone-100 active:scale-95')}`}
+                            className={`p-2.5 rounded-xl transition-all duration-300 border-2 ${
+                                darkMode 
+                                    ? (currentPage === 1 ? 'border-white/5 text-stone-700' : 'border-white/5 text-stone-400 hover:bg-white/5 hover:text-white') 
+                                    : (currentPage === 1 ? 'border-stone-50 text-stone-200' : 'border-stone-100 text-stone-500 hover:bg-stone-50 hover:text-stone-900')
+                            } active:scale-90`}
                         >
-                            <ChevronRight className="rotate-180" size={14} />
+                            <ChevronRight className="rotate-180" size={16} />
                         </button>
 
-                        {[...Array(totalPages)].map((_, i) => {
-                            const page = i + 1;
-                            // Stratégie d'affichage des numéros (simple pour l'instant, peut être complexifiée si bcp de pages)
-                            if (totalPages > 7) {
-                                if (page > 1 && page < totalPages && Math.abs(page - currentPage) > 1) {
-                                    if (page === 2 || page === totalPages - 1) return <span key={page} className="text-stone-600 px-1">.</span>;
-                                    return null;
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-[1.25rem] border-2 border-white/5 bg-white/[0.02]">
+                            {[...Array(totalPages)].map((_, i) => {
+                                const page = i + 1;
+                                if (totalPages > 7) {
+                                    if (page > 1 && page < totalPages && Math.abs(page - currentPage) > 1) {
+                                        if (page === 2 || page === totalPages - 1) return <span key={page} className="text-stone-700 px-1 select-none">···</span>;
+                                        return null;
+                                    }
                                 }
-                            }
 
-                            return (
-                                <button
-                                    key={page}
-                                    onClick={() => setCurrentPage(page)}
-                                    className={`w-8 h-8 rounded-xl text-[10px] font-black transition-all ${currentPage === page
-                                        ? (darkMode ? 'bg-white/10 text-white border border-white/10 shadow-lg' : 'bg-stone-900 text-white shadow-md')
-                                        : (darkMode ? 'text-stone-500 hover:text-stone-300 hover:bg-white/5' : 'text-stone-500 hover:bg-stone-100')
-                                        }`}
-                                >
-                                    {page}
-                                </button>
-                            );
-                        })}
+                                return (
+                                    <button
+                                        key={page}
+                                        onClick={() => setCurrentPage(page)}
+                                        className={`w-9 h-9 rounded-xl text-[10px] font-black transition-all duration-500 ${currentPage === page
+                                            ? (darkMode ? 'bg-white text-stone-900 shadow-[0_0_20px_rgba(255,255,255,0.3)]' : 'bg-stone-900 text-white shadow-lg shadow-stone-900/20')
+                                            : (darkMode ? 'text-stone-500 hover:text-white hover:bg-white/5' : 'text-stone-400 hover:text-stone-900 hover:bg-stone-100')
+                                            }`}
+                                    >
+                                        {page}
+                                    </button>
+                                );
+                            })}
+                        </div>
 
                         <button
                             disabled={currentPage === totalPages}
                             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                            className={`p-2 rounded-xl transition-all ${darkMode ? (currentPage === totalPages ? 'text-stone-700 opacity-50' : 'text-stone-400 hover:bg-white/5 active:scale-95') : (currentPage === totalPages ? 'text-stone-300' : 'text-stone-500 hover:bg-stone-100 active:scale-95')}`}
+                            className={`p-2.5 rounded-xl transition-all duration-300 border-2 ${
+                                darkMode 
+                                    ? (currentPage === totalPages ? 'border-white/5 text-stone-700' : 'border-white/5 text-stone-400 hover:bg-white/5 hover:text-white') 
+                                    : (currentPage === totalPages ? 'border-stone-50 text-stone-200' : 'border-stone-100 text-stone-500 hover:bg-stone-50 hover:text-stone-900')
+                            } active:scale-90`}
                         >
-                            <ChevronRight size={14} />
+                            <ChevronRight size={16} />
                         </button>
                     </div>
                 )}

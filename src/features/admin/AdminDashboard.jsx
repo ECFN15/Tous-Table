@@ -443,9 +443,14 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                     <button
                         onClick={handleExportUsers}
                         disabled={exportingUsers}
-                        className={`mt-2 flex items-center gap-1.5 text-[10px] uppercase font-black tracking-widest px-3 py-1.5 rounded-lg border transition-all ${darkMode ? 'border-white/10 hover:bg-white/5 text-white/60' : 'border-stone-200 hover:bg-stone-50 text-stone-500'}`}
+                        className={`mt-4 w-full md:w-auto flex items-center justify-center gap-2.5 text-[10px] uppercase font-black tracking-widest px-5 py-3 rounded-xl border-2 transition-all duration-300 ${
+                            darkMode 
+                                ? 'border-white/5 bg-white/5 hover:bg-white hover:text-stone-900 text-white/70' 
+                                : 'border-stone-100 bg-stone-50 hover:bg-stone-900 hover:text-white text-stone-500'
+                        }`}
                     >
-                        {exportingUsers ? <RefreshCw size={12} className="animate-spin" /> : <Archive size={12} />} Exporter XLSX
+                        {exportingUsers ? <RefreshCw size={14} className="animate-spin" /> : <Archive size={14} />} 
+                        <span>Exporter XLSX</span>
                     </button>
                     {/* Catalog value strictly positioned on top right of clients card as a tiny metric */}
                     <div className="absolute top-8 right-8 text-right">
@@ -582,8 +587,13 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                                 const res = await httpsCallable(functions, 'sendTestEmail')();
                                 alert(res.data.success ? "✅ Mail Flux OK" : "❌ Erreur Mail");
                             } catch (e) { alert(e.message); }
-                        }} className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest border transition-all ${darkMode ? 'bg-[#242424] hover:bg-[#2A2A2A] border-white/5 text-white/70' : 'bg-stone-50 hover:bg-stone-100 border-stone-200 text-stone-600'}`}>
-                            <Mail size={14} /> Diagnostic Mail
+                        }} className={`group flex items-center justify-center gap-2.5 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest border-2 transition-all duration-300 ${
+                            darkMode 
+                                ? 'bg-white/5 hover:bg-white border-white/5 hover:text-stone-900 text-white/70' 
+                                : 'bg-stone-50 hover:bg-stone-900 border-stone-100 hover:text-white text-stone-600'
+                        }`}>
+                            <Mail size={16} className="group-hover:scale-110 transition-transform" /> 
+                            Diagnostic Mail
                         </button>
                     </div>
 
@@ -667,13 +677,16 @@ const AdminDashboard = ({ user, darkMode = false }) => {
 const DangerButton = ({ onClick, text, darkMode }) => (
     <button 
         onClick={onClick} 
-        className={`py-2 px-3 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${
+        className={`group relative py-3.5 px-4 rounded-2xl text-[9px] font-black uppercase tracking-widest border-2 transition-all duration-300 shadow-lg shadow-transparent hover:shadow-red-500/10 ${
             darkMode 
-                ? 'border-red-900/30 hover:border-red-500/50 text-red-500/60 hover:text-red-400 hover:bg-red-500/5' 
-                : 'border-red-200 hover:border-red-400 text-red-600 hover:bg-red-50'
+                ? 'border-red-900/20 hover:border-red-500/40 text-red-500/60 hover:text-red-400 bg-red-500/[0.03] hover:bg-red-500/10' 
+                : 'border-red-100 hover:border-red-500/30 text-red-600 bg-red-50/50 hover:bg-red-500 hover:text-white'
         }`}
     >
-        {text}
+        <span className="relative z-10 flex items-center justify-center gap-2">
+            <AlertTriangle size={12} className="group-hover:scale-110 transition-transform" />
+            {text}
+        </span>
     </button>
 );
 

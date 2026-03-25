@@ -10,7 +10,8 @@ const ProductDetail = React.lazy(() => import('./pages/ProductDetail'));
 const CheckoutView = React.lazy(() => import('./pages/CheckoutView'));
 const LoginView = React.lazy(() => import('./pages/LoginView'));
 import { Palette,
-    CreditCard, Gavel, Mail, Users, Share2, Globe
+    CreditCard, Gavel, Mail, Users, Share2, Globe,
+    Activity, Home, Package, Layout, LayoutPanelTop, BarChart3, ChevronLeft
 } from 'lucide-react';
 
 const AdminDashboard = React.lazy(() => import('./features/admin/AdminDashboard'));
@@ -225,98 +226,59 @@ const AppRouter = ({
                     <Suspense fallback={null}>
                         <AdminIPTracker />
                     </Suspense>
-                    <div className={`flex justify-between items-center border-b pb-8 ${darkMode ? 'border-stone-700' : 'border-stone-200/60'}`}>
-                        <h2 className="text-3xl md:text-4xl font-black tracking-tighter">Gestion Atelier</h2>
-                        <button onClick={() => setView('gallery')} className={`text-[10px] font-black border-2 px-4 md:px-6 py-2 rounded-xl transition-all ${darkMode ? 'border-white hover:bg-white hover:text-stone-900' : 'border-stone-900 hover:bg-stone-900 hover:text-white'}`}>Retour</button>
+                    {/* GESTION ATELIER HEADER */}
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                        <div className="space-y-2">
+                            <p className={`text-[10px] uppercase font-black tracking-[0.3em] ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>Système de Contrôle</p>
+                            <h2 className="text-4xl md:text-5xl font-black tracking-tighter">Gestion Atelier</h2>
+                        </div>
+                        <button 
+                            onClick={() => setView('gallery')} 
+                            className={`group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest border-2 px-6 py-2.5 rounded-2xl transition-all ${darkMode ? 'border-white/10 hover:border-white hover:bg-white hover:text-stone-900' : 'border-stone-900 hover:bg-stone-900 hover:text-white'}`}
+                        >
+                            <ChevronLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+                            Retour au site
+                        </button>
                     </div>
 
-                    {/* ADMIN NAVIGATION - FULLY RESPONSIVE WRAPPING */}
-                    <div className="w-full">
-                        <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3 p-1 pb-4 md:pb-0">
-                            <button
-                                onClick={() => { setAdminCollection('studio'); setEditingItem(null); }}
-                                className={`px-3 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center justify-center gap-2 ${adminCollection === 'studio' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
-                            >
-                                <Palette size={14} className="shrink-0" /> Studio
-                            </button>
-                            <button
-                                onClick={() => { setAdminCollection('dashboard'); setEditingItem(null); }}
-                                className={`px-4 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'dashboard' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
-                            >
-                                Dashboard
-                            </button>
-                            <button
-                                onClick={() => { setAdminCollection('homepage'); setEditingItem(null); }}
-                                className={`px-4 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'homepage' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
-                            >
-                                Homepage
-                            </button>
-                            <button
-                                onClick={() => { setAdminCollection('orders'); setEditingItem(null); }}
-                                className={`px-4 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'orders' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
-                            >
-                                Commandes
-                            </button>
-                            <button
-                                onClick={() => { setAdminCollection('auctions'); setEditingItem(null); }}
-                                className={`px-3 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center justify-center gap-2 ${adminCollection === 'auctions' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
-                            >
-                                <Gavel size={14} className="shrink-0" /> Enchères
-                            </button>
-                            <button
-                                onClick={() => { setAdminCollection('furniture'); setEditingItem(null); }}
-                                className={`px-4 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'furniture' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
-                            >
-                                Mobilier
-                            </button>
-                            <button
-                                onClick={() => { setAdminCollection('cutting_boards'); setEditingItem(null); }}
-                                className={`px-4 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none ${adminCollection === 'cutting_boards' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
-                            >
-                                Planches
-                            </button>
-
-                            <button
-                                onClick={() => { setAdminCollection('users'); setEditingItem(null); }}
-                                className={`px-3 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center justify-center gap-2 ${adminCollection === 'users' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
-                            >
-                                <Users size={14} className="shrink-0" /> Utilisateurs
-                            </button>
-
-                            <button
-                                onClick={() => { setAdminCollection('ip_manager'); setEditingItem(null); }}
-                                className={`px-3 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center justify-center gap-2 ${adminCollection === 'ip_manager' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
-                            >
-                                <Globe size={14} className="shrink-0" /> IPs Admin
-                            </button>
-
-                            <button
-                                onClick={() => { setAdminCollection('seo'); setEditingItem(null); }}
-                                className={`px-3 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center justify-center gap-2 ${adminCollection === 'seo' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
-                            >
-                                <Share2 size={14} className="shrink-0" /> SEO
-                            </button>
-
-                            <button
-                                onClick={() => { setAdminCollection('newsletter'); setEditingItem(null); }}
-                                className={`px-3 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center gap-2 ${adminCollection === 'newsletter' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
-                            >
-                                <Mail size={14} className="shrink-0" /> Newsletter
-                            </button>
-
-                            <button
-                                onClick={() => { setAdminCollection('analytics'); setEditingItem(null); }}
-                                className={`px-3 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center gap-2 ${adminCollection === 'analytics' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
-                            >
-                                Data Users
-                            </button>
-
-                            <button
-                                onClick={() => { setAdminCollection('payment_settings'); setEditingItem(null); }}
-                                className={`px-3 md:px-5 lg:px-6 py-3 rounded-xl md:rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border md:border-none flex items-center gap-2 ${adminCollection === 'payment_settings' ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900') : (darkMode ? 'bg-stone-900 text-stone-400 border-stone-700 hover:text-stone-300' : 'bg-white text-stone-400 border-stone-200 hover:text-stone-600')}`}
-                            >
-                                <CreditCard size={14} className="shrink-0" /> Paiement
-                            </button>
+                    {/* PREMIUM ADMIN NAVIGATION - BENTO PILL DESIGN */}
+                    <div className={`w-full p-2 rounded-[2.5rem] border ${darkMode ? 'bg-[#111111]/80 border-white/5 backdrop-blur-xl' : 'bg-white/80 border-stone-200/60 backdrop-blur-xl shadow-lg shadow-stone-200/20'}`}>
+                        <div className="flex flex-wrap items-center justify-center gap-1.5 md:gap-2">
+                            {[
+                                { id: 'studio', label: 'Studio', icon: Palette },
+                                { id: 'dashboard', label: 'Stats', icon: Activity },
+                                { id: 'homepage', label: 'Accueil', icon: Home },
+                                { id: 'orders', label: 'Ventes', icon: Package },
+                                { id: 'auctions', label: 'Enchères', icon: Gavel },
+                                { id: 'furniture', label: 'Mobilier', icon: Layout },
+                                { id: 'cutting_boards', label: 'Planches', icon: LayoutPanelTop },
+                                { id: 'users', label: 'Clients', icon: Users },
+                                { id: 'ip_manager', label: 'Sécurité', icon: Globe },
+                                { id: 'seo', label: 'SEO', icon: Share2 },
+                                { id: 'newsletter', label: 'Infos', icon: Mail },
+                                { id: 'analytics', label: 'Data', icon: BarChart3 },
+                                { id: 'payment_settings', label: 'Paiement', icon: CreditCard },
+                            ].map((tab) => {
+                                const Icon = tab.icon;
+                                const isActive = adminCollection === tab.id;
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => { setAdminCollection(tab.id); setEditingItem(null); }}
+                                        className={`group relative flex items-center gap-2 px-4 md:px-5 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
+                                            isActive 
+                                                ? (darkMode ? 'bg-white text-stone-900 shadow-[0_0_20px_rgba(255,255,255,0.15)]' : 'bg-stone-900 text-white shadow-xl')
+                                                : (darkMode ? 'text-stone-500 hover:text-white hover:bg-white/5' : 'text-stone-500 hover:text-stone-900 hover:bg-stone-50')
+                                        }`}
+                                    >
+                                        <Icon size={14} className={`transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110 group-hover:rotate-6'}`} />
+                                        <span className={isActive ? 'opacity-100' : 'opacity-80'}>{tab.label}</span>
+                                        {isActive && (
+                                            <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-current opacity-40"></span>
+                                        )}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 
