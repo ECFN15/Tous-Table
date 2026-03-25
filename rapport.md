@@ -1,3 +1,35 @@
+# Rapport de Corrections — Session du 25 Mars 2026
+
+## 16. Fix Bug Double Session Analytics (Première Visite)
+
+### Problème
+À la première connexion de la journée, le dashboard admin affichait systématiquement **2 sessions** pour un même utilisateur : une session fantôme à **0s de durée** et une session réelle qui trackait correctement le parcours. Les visites suivantes ne créaient qu'une seule session.
+
+### Cause
+Race condition dans `AnalyticsProvider.jsx`. Le `useEffect` d'initialisation dépendait de `[user, isAdmin]`. Au chargement :
+1. `user = null` déclenchait un premier timer de 2 secondes
+2. Firebase Auth résolvait `user = anonymousUser`, déclenchant un second timer
+3. Les deux appels `initLiveSession()` partaient en parallèle car `sessionIdRef.current` n'était pas encore assigné (appel async en cours)
+
+La session #1 (fantôme) restait à 0s car `sessionIdRef` était écrasé par la session #2, et le heartbeat ne mettait à jour que la session #2.
+
+### Solution
+- Ajout d'un `initCalledRef` (verrou synchrone via `useRef`) posé **avant** l'appel async → empêche physiquement un 2ème appel
+- Guard `if (!user) return` → aucune session créée tant que l'auth n'est pas résolue
+- Timeout augmenté à 2.5s pour laisser Firebase Auth se stabiliser
+- Réouverture du verrou en cas d'échec réseau
+
+### Vérification Comptage Unique par IP
+Confirmé fonctionnel : `new Set(realTraffic.map(s => s.ip))` dans `AdminAnalytics.jsx` déduplique correctement. Même IP visitant N fois dans la période = 1 visiteur unique.
+
+### Fichier modifié
+- `src/components/shared/AnalyticsProvider.jsx`
+
+### Audit complet
+- `audit/audit_sessions.md`
+
+---
+
 # Rapport de Corrections — Session du 21 Mars 2026
 
 ## 1. Refonte du Menu Principal (GlobalMenu) & Header

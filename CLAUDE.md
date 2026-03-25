@@ -1,5 +1,32 @@
 # CLAUDE.md — Journal de bord technique
 
+## 25 mars 2026 — Fix bug double session analytics (première visite)
+
+**Fichier** : `src/components/shared/AnalyticsProvider.jsx`
+**Audit complet** : `audit/audit_sessions.md`
+
+**Problème** : Lorsqu'un utilisateur se connectait pour la première fois dans la journée, deux sessions étaient créées dans `analytics_sessions` : une session fantôme à **0s** et une session réelle qui trackait le parcours. Les visites suivantes ne créaient qu'une seule session.
+
+**Cause racine** : Race condition dans le `useEffect` d'initialisation. Le `useEffect` dépendait de `[user, isAdmin]`. Au premier chargement :
+1. `user = null` → Timer #1 démarrait (2s)
+2. Firebase Auth résolvait → `user = anonymousUser` → Timer #2 démarrait
+3. Si la Cloud Function n'avait pas encore répondu au Timer #1 quand le Timer #2 partait, `sessionIdRef.current` était encore `null` → les deux appels `initLiveSession()` partaient en parallèle → **2 sessions créées**
+
+La session #1 restait à 0s car `sessionIdRef` était écrasé par la session #2, et le heartbeat ne mettait à jour que la session courante.
+
+**Solution** :
+1. `initCalledRef` : flag synchrone `useRef(false)` qui verrouille l'appel **immédiatement** (avant l'appel async), empêchant physiquement un 2ème appel concurrent
+2. `if (!user) return` : ne crée jamais de session quand l'auth n'est pas encore résolue (élimine la session fantôme)
+3. Timeout augmenté de 2s à 2.5s pour laisser Firebase Auth se stabiliser
+4. Réouverture du flag en cas d'échec réseau ou de réponse négative
+
+**Vérification comptage unique par IP** : Confirmé fonctionnel — `new Set(realTraffic.map(s => s.ip))` dans `AdminAnalytics.jsx` déduplique correctement. Même IP visitant N fois = 1 visiteur unique.
+
+**Avant** : 2 sessions à la première visite (1 fantôme à 0s + 1 réelle), KPIs faussés (bounce rate, durée moyenne).
+**Après** : 1 seule session par visite, KPIs corrects.
+
+---
+
 ## 21 mars 2026 — Refonte de l'UX/UI du Menu Global et Header
 
 **Fichiers** : `src/App.jsx`, `src/designs/architectural/components/ArchitecturalHeader.jsx`, `src/components/layout/GlobalMenu.jsx`

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
     Users, Clock, Activity, Smartphone, Monitor, Globe, Trash2, AlertCircle
 } from 'lucide-react';
@@ -6,26 +6,197 @@ import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestor
 import { db, functions } from '../../firebase/config';
 import { httpsCallable } from 'firebase/functions';
 import { getMillis } from '../../utils/time';
-import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Bar, BarChart
-} from 'recharts';
 
-const CustomActiveBar = (props) => {
-    const { x, y, width, height } = props;
-    if (x == null || y == null || width == null || height == null) return null;
-    const growX = Math.min(6, width * 0.4);
-    const growY = 8;
+// ─── Custom SVG Bar Chart (remplace Recharts) ───────────────────────
+const TrafficChart = ({ data, darkMode }) => {
+    const containerRef = useRef(null);
+    const [dims, setDims] = useState({ w: 600, h: 320 });
+    const [activeIdx, setActiveIdx] = useState(null);
+    const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+
+    // Marges internes du SVG
+    const margin = { top: 16, right: 16, bottom: 32, left: 40 };
+    const chartW = dims.w - margin.left - margin.right;
+    const chartH = dims.h - margin.top - margin.bottom;
+
+    // Observer la taille du conteneur
+    useEffect(() => {
+        const el = containerRef.current;
+        if (!el) return;
+        const ro = new ResizeObserver(([entry]) => {
+            const { width, height } = entry.contentRect;
+            if (width > 0 && height > 0) setDims({ w: width, h: height });
+        });
+        ro.observe(el);
+        return () => ro.disconnect();
+    }, []);
+
+    // Calculs du graphique
+    const maxVal = useMemo(() => Math.max(1, ...data.map(d => d.visites)), [data]);
+    const yTicks = useMemo(() => {
+        const ticks = [];
+        const step = Math.max(1, Math.ceil(maxVal / 4));
+        for (let i = 0; i <= maxVal; i += step) ticks.push(i);
+        if (ticks[ticks.length - 1] < maxVal) ticks.push(maxVal);
+        return ticks;
+    }, [maxVal]);
+
+    const barCount = data.length;
+    const gap = Math.max(1, chartW * 0.01);
+    const barW = barCount > 0 ? Math.max(2, (chartW - gap * (barCount - 1)) / barCount) : 0;
+
+    // Labels X espacés
+    const xLabelInterval = Math.max(1, Math.ceil(barCount / 10));
+
+    const handleInteraction = useCallback((idx, e) => {
+        if (idx === activeIdx) { setActiveIdx(null); return; }
+        setActiveIdx(idx);
+        // Position tooltip relative au conteneur
+        const rect = containerRef.current?.getBoundingClientRect();
+        if (rect) {
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            setTooltipPos({ x: clientX - rect.left, y: clientY - rect.top });
+        }
+    }, [activeIdx]);
+
+    const handleMouseMove = useCallback((idx, e) => {
+        if (activeIdx !== idx) setActiveIdx(idx);
+        const rect = containerRef.current?.getBoundingClientRect();
+        if (rect) {
+            setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+        }
+    }, [activeIdx]);
+
     return (
-        <rect
-            x={x - growX / 2}
-            y={Math.max(0, y - growY)}
-            width={width + growX}
-            height={Math.max(0, height + growY)}
-            fill="url(#barGradient)"
-            rx={2}
-            ry={2}
-            className="transition-all duration-300"
-            style={{ outline: 'none', filter: 'drop-shadow(0 0 6px rgba(16, 185, 129, 0.6))' }}
-        />
+        <div ref={containerRef} className="w-full h-full relative" style={{ WebkitTapHighlightColor: 'transparent' }}
+            onMouseLeave={() => setActiveIdx(null)}
+        >
+            <svg width={dims.w} height={dims.h} style={{ display: 'block', overflow: 'visible' }}>
+                <defs>
+                    <linearGradient id="svgBarGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#10b981" stopOpacity={1} />
+                        <stop offset="100%" stopColor="#059669" stopOpacity={0.7} />
+                    </linearGradient>
+                    <linearGradient id="svgBarGradActive" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#34d399" stopOpacity={1} />
+                        <stop offset="100%" stopColor="#10b981" stopOpacity={0.9} />
+                    </linearGradient>
+                    <filter id="glowFilter">
+                        <feGaussianBlur stdDeviation="4" result="blur" />
+                        <feMerge>
+                            <feMergeNode in="blur" />
+                            <feMergeNode in="SourceGraphic" />
+                        </feMerge>
+                    </filter>
+                </defs>
+
+                <g transform={`translate(${margin.left},${margin.top})`}>
+                    {/* Grille horizontale */}
+                    {yTicks.map(tick => {
+                        const y = chartH - (tick / maxVal) * chartH;
+                        return (
+                            <line key={`grid-${tick}`} x1={0} y1={y} x2={chartW} y2={y}
+                                stroke={darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}
+                                strokeDasharray="3 3"
+                            />
+                        );
+                    })}
+
+                    {/* Labels Y */}
+                    {yTicks.map(tick => {
+                        const y = chartH - (tick / maxVal) * chartH;
+                        return (
+                            <text key={`y-${tick}`} x={-12} y={y + 3.5}
+                                textAnchor="end" fontSize={10}
+                                fill={darkMode ? '#57534e' : '#a8a29e'}
+                            >{tick}</text>
+                        );
+                    })}
+
+                    {/* Barres */}
+                    {data.map((d, i) => {
+                        const x = i * (barW + gap);
+                        const h = d.visites > 0 ? Math.max(2, (d.visites / maxVal) * chartH) : 0;
+                        const y = chartH - h;
+                        const isActive = activeIdx === i;
+
+                        return (
+                            <g key={i}
+                                onMouseEnter={(e) => handleMouseMove(i, e)}
+                                onMouseMove={(e) => handleMouseMove(i, e)}
+                                onTouchStart={(e) => { e.preventDefault(); handleInteraction(i, e); }}
+                                style={{ cursor: d.visites > 0 ? 'pointer' : 'default' }}
+                            >
+                                {/* Zone tactile invisible (plus large que la barre) */}
+                                <rect
+                                    x={x - gap / 2} y={0}
+                                    width={barW + gap} height={chartH}
+                                    fill="transparent"
+                                />
+                                {/* Barre active (glow + zoom) */}
+                                {isActive && d.visites > 0 && (
+                                    <rect
+                                        x={x - 2} y={Math.max(0, y - 4)}
+                                        width={barW + 4} height={h + 4}
+                                        rx={3} ry={3}
+                                        fill="url(#svgBarGradActive)"
+                                        filter="url(#glowFilter)"
+                                        style={{ transition: 'all 0.15s ease-out' }}
+                                    />
+                                )}
+                                {/* Barre normale */}
+                                {!isActive && d.visites > 0 && (
+                                    <rect
+                                        x={x} y={y}
+                                        width={barW} height={h}
+                                        rx={2} ry={2}
+                                        fill="rgba(5, 150, 105, 0.55)"
+                                        style={{ transition: 'all 0.2s ease-out' }}
+                                    />
+                                )}
+                            </g>
+                        );
+                    })}
+
+                    {/* Labels X */}
+                    {data.map((d, i) => {
+                        if (i % xLabelInterval !== 0) return null;
+                        const x = i * (barW + gap) + barW / 2;
+                        return (
+                            <text key={`x-${i}`} x={x} y={chartH + 20}
+                                textAnchor="middle" fontSize={10}
+                                fill={darkMode ? '#57534e' : '#a8a29e'}
+                            >{d.name}</text>
+                        );
+                    })}
+                </g>
+            </svg>
+
+            {/* Tooltip flottant */}
+            {activeIdx !== null && data[activeIdx] && data[activeIdx].visites > 0 && (
+                <div style={{
+                    position: 'absolute',
+                    left: Math.min(tooltipPos.x + 12, dims.w - 120),
+                    top: Math.max(8, tooltipPos.y - 60),
+                    background: darkMode ? '#1c1917' : '#ffffff',
+                    borderRadius: '14px',
+                    padding: '8px 14px',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                    pointerEvents: 'none',
+                    zIndex: 50,
+                    whiteSpace: 'nowrap',
+                    transition: 'left 0.1s ease-out, top 0.1s ease-out',
+                }}>
+                    <div style={{ fontSize: '10px', color: '#78716c', fontWeight: 700, marginBottom: '2px' }}>
+                        {data[activeIdx].name}
+                    </div>
+                    <div style={{ fontSize: '13px', fontWeight: 900, color: '#10b981', textTransform: 'uppercase' }}>
+                        Visites : {data[activeIdx].visites}
+                    </div>
+                </div>
+            )}
+        </div>
     );
 };
 
@@ -274,74 +445,12 @@ const AdminAnalytics = ({ darkMode = false }) => {
                 </div>
             </div>
 
-            {/* RECHARTS - CHART */}
+            {/* CUSTOM SVG CHART */}
             <div className={`p-6 md:p-8 rounded-[2.5rem] shadow-sm transform-gpu transition-all ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : 'bg-white shadow-[0_0_50px_-12px_rgba(0,0,0,0.05)]'}`}>
                 <h3 className={`text-lg font-black uppercase tracking-widest mb-8 ${darkMode ? 'text-white' : 'text-stone-900'}`}>Évolution du Trafic</h3>
-                <div className="h-[320px] w-full" style={{ WebkitTapHighlightColor: 'transparent' }}>
-                    <style>{`
-                        .recharts-wrapper, .recharts-surface, .recharts-layer, .recharts-bar-rect, .recharts-active-bar, .recharts-tooltip-cursor {
-                            outline: none !important;
-                            -webkit-tap-highlight-color: transparent !important;
-                        }
-                        .recharts-rectangle { outline: none !important; }
-                    `}</style>
+                <div className="h-[320px] w-full">
                     {chartData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height="100%" style={{ outline: 'none', WebkitTapHighlightColor: 'transparent' }}>
-                            <BarChart
-                                data={chartData}
-                                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                                barCategoryGap="15%"
-                                style={{ outline: 'none', WebkitTapHighlightColor: 'transparent' }}
-                            >
-                                <defs>
-                                    <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="#10b981" stopOpacity={1} />
-                                        <stop offset="100%" stopColor="#059669" stopOpacity={0.8} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={darkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'} />
-                                <XAxis
-                                    dataKey="name"
-                                    stroke={darkMode ? '#57534e' : '#a8a29e'}
-                                    fontSize={10}
-                                    tickLine={false}
-                                    axisLine={false}
-                                    dy={10}
-                                    interval={Math.ceil(chartData.length / 10)}
-                                />
-                                <YAxis
-                                    stroke={darkMode ? '#57534e' : '#a8a29e'}
-                                    fontSize={10}
-                                    tickLine={false}
-                                    axisLine={false}
-                                    dx={-10}
-                                    allowDecimals={false}
-                                />
-                                <Tooltip
-                                    isAnimationActive={false}
-                                    cursor={false}
-                                    contentStyle={{
-                                        borderRadius: '20px',
-                                        border: 'none',
-                                        boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)',
-                                        backgroundColor: darkMode ? '#1c1917' : '#ffffff',
-                                        padding: '12px 16px',
-                                        pointerEvents: 'none',
-                                        zIndex: 50
-                                    }}
-                                    itemStyle={{ fontSize: '12px', fontWeight: '900', color: '#10b981', textTransform: 'uppercase' }}
-                                    labelStyle={{ fontSize: '10px', color: '#78716c', marginBottom: '4px', fontWeight: 'bold' }}
-                                />
-                                <Bar
-                                    dataKey="visites"
-                                    fill="rgba(5, 150, 105, 0.55)"
-                                    radius={[2, 2, 0, 0]}
-                                    animationDuration={1500}
-                                    isAnimationActive={true}
-                                    activeBar={<CustomActiveBar />}
-                                />
-                            </BarChart>
-                        </ResponsiveContainer>
+                        <TrafficChart data={chartData} darkMode={darkMode} />
                     ) : (
                         <div className="flex items-center justify-center h-full text-stone-400 font-bold italic">Pas assez de données pour la période sélectionnée.</div>
                     )}
