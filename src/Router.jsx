@@ -261,10 +261,10 @@ const AppRouter = ({
                     </div>
 
                     {/* PREMIUM ADMIN NAVIGATION - BENTO PILL DESIGN */}
-                    <div className="relative">
+                    <div className="relative flex flex-col items-center">
                         <div className={`w-full p-2 rounded-[2.5rem] border ${darkMode ? 'bg-[#111111]/80 border-white/5 backdrop-blur-xl' : 'bg-white/80 border-stone-200/60 backdrop-blur-xl shadow-lg shadow-stone-200/20'}`}>
                             <div className="flex flex-wrap items-center justify-center gap-1.5 md:gap-2">
-                                {/* Desktop: All tabs | Mobile: First 4 + More */}
+                                {/* Desktop: All tabs | Mobile: First 4 */}
                                 {adminTabs.map((tab, idx) => {
                                     const Icon = tab.icon;
                                     const isActive = adminCollection === tab.id;
@@ -283,28 +283,29 @@ const AppRouter = ({
                                             }`}
                                         >
                                             <Icon size={14} className={`transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110 group-hover:rotate-6'}`} />
-                                            <span className={`${isActive ? 'opacity-100' : 'opacity-80'} ${!isMain ? '' : ''}`}>{tab.label}</span>
+                                            <span className={`${isActive ? 'opacity-100' : 'opacity-80'}`}>{tab.label}</span>
                                             {isActive && (
                                                 <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-current opacity-40"></span>
                                             )}
                                         </button>
                                     );
                                 })}
-                                
-                                {/* "More" Button for Mobile */}
-                                <button
-                                    onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
-                                    className={`md:hidden flex items-center gap-1.5 px-4 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
-                                        isMoreMenuOpen || adminTabs.slice(4).some(t => t.id === adminCollection)
-                                            ? (darkMode ? 'bg-white/10 text-white border-white/10' : 'bg-stone-100 text-stone-900 border-stone-200')
-                                            : (darkMode ? 'text-stone-500 hover:text-white hover:bg-white/5' : 'text-stone-500 hover:text-stone-900 hover:bg-stone-50')
-                                    }`}
-                                >
-                                    <MoreHorizontal size={14} />
-                                    <span>Plus</span>
-                                </button>
                             </div>
                         </div>
+                        
+                        {/* "More" Button for Mobile - Now OUTSIDE the main pill */}
+                        <button
+                            onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
+                            className={`md:hidden mt-4 flex items-center gap-2 px-6 py-2 rounded-full text-[9px] font-black uppercase tracking-[0.2em] transition-all duration-500 hover:scale-105 active:scale-95 ${
+                                isMoreMenuOpen || adminTabs.slice(4).some(t => t.id === adminCollection)
+                                    ? (darkMode ? 'text-white bg-white/10' : 'text-stone-900 bg-stone-100')
+                                    : (darkMode ? 'text-stone-600 hover:text-stone-400' : 'text-stone-400 hover:text-stone-600')
+                            }`}
+                        >
+                            <span className="opacity-50 tracking-tighter">•••</span>
+                            <span>{isMoreMenuOpen ? 'Fermer' : 'Plus d\'options'}</span>
+                            <ChevronDown size={12} className={`transition-transform duration-500 ${isMoreMenuOpen ? 'rotate-180' : 'opacity-40'}`} />
+                        </button>
 
                         {/* Mobile "More" Dropdown - Premium Bento Style */}
                         <AnimatePresence>
@@ -321,10 +322,10 @@ const AppRouter = ({
                                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                         animate={{ opacity: 1, y: 0, scale: 1 }}
                                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                        className={`absolute right-0 left-0 mt-4 z-50 md:hidden p-3 rounded-[2rem] border grid grid-cols-2 gap-2 ${
+                                        className={`absolute top-full left-0 right-0 mt-2 z-50 md:hidden p-3 rounded-[2.5rem] border grid grid-cols-2 gap-2 ${
                                             darkMode 
-                                                ? 'bg-[#161616] border-white/10 shadow-2xl shadow-black' 
-                                                : 'bg-white border-stone-200 shadow-2xl shadow-stone-200/40'
+                                                ? 'bg-[#161616] border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]' 
+                                                : 'bg-white border-stone-200 shadow-[0_20px_50px_rgba(0,0,0,0.1)]'
                                         }`}
                                     >
                                         {adminTabs.slice(4).map((tab) => {
