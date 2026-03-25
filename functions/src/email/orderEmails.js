@@ -47,8 +47,8 @@ async function sendNewOrderEmails(orderId, order) {
     // Email Admin
     const adminMailOptions = {
         from: `Commerce Bot <${adminEmail}>`,
-        to: adminEmail,
-        subject: `� Nouvelle Commande : ${order.total}€ (${order.shipping?.fullName || 'inconnu'})`,
+        to: `${adminEmail}, tousatablemadeinnormandie@gmail.com`,
+        subject: `🆕 Nouvelle Commande : ${order.total}€ (${order.shipping?.fullName || 'inconnu'})`,
         html: `
             <h2>Nouvelle commande reçue !</h2>
             <p><b>Client :</b> ${order.shipping?.fullName || 'inconnu'} (${clientEmail})</p>
