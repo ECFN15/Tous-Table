@@ -192,20 +192,102 @@ const AdminDashboard = ({ user, darkMode = false }) => {
         registeredUsers: 0
     });
 
-    const [chartData, setChartData] = useState([]);
+    const [timeFilter, setTimeFilter] = useState('1month');
+    const [allOrders, setAllOrders] = useState([]);
+    const [recentOrders, setRecentOrders] = useState([]);
     const [statusCounts, setStatusCounts] = useState({ paid: 0, pending: 0, shipped: 0 });
     const [activeAuctions, setActiveAuctions] = useState([]); 
-    const [recentOrders, setRecentOrders] = useState([]);
     const [loading, setLoading] = useState(true);
 
     // Modals
     const [isOrderResetModalOpen, setIsOrderResetModalOpen] = useState(false);
-    const [allOrders, setAllOrders] = useState([]);
     const [isCleaningModalOpen, setIsCleaningModalOpen] = useState(false);
     const [isResetUsersModalOpen, setIsResetUsersModalOpen] = useState(false);
     const [exportingUsers, setExportingUsers] = useState(false);
     const [isPurgeAnonymousModalOpen, setIsPurgeAnonymousModalOpen] = useState(false);
     const [purgingAnonymous, setPurgingAnonymous] = useState(false);
+
+    const chartData = useMemo(() => {
+        if (!allOrders.length) return [];
+
+        const activeOrders = allOrders.filter(o => o.status !== 'cancelled' && o.status !== 'cancelled_by_client');
+        
+        if (timeFilter === '7days' || timeFilter === '1month') {
+            const count = timeFilter === '7days' ? 7 : 30;
+            const dates = Array.from({length: count}, (_, i) => {
+                const d = new Date();
+                d.setDate(d.getDate() - (count - 1 - i));
+                return { 
+                    raw: d.toISOString().split('T')[0], 
+                    label: timeFilter === '7days' 
+                        ? d.toLocaleDateString('fr-FR', { weekday: 'short' }) 
+                        : d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'narrow' }) 
+                };
+            });
+
+            const revMap = {};
+            dates.forEach(d => revMap[d.raw] = 0);
+
+            activeOrders.forEach(data => {
+                const ts = getMillis(data.createdAt);
+                if (ts) {
+                    const dateStr = new Date(ts).toISOString().split('T')[0];
+                    if (revMap[dateStr] !== undefined) {
+                        revMap[dateStr] += (data.total || 0);
+                    }
+                }
+            });
+
+            return dates.map(d => ({ label: d.label, value: revMap[d.raw] }));
+        } else {
+            // 1 Year or All Time: Group by Month
+            const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'];
+            let monthsArray = [];
+            
+            if (timeFilter === '1year') {
+                monthsArray = Array.from({length: 12}, (_, i) => {
+                    const d = new Date();
+                    d.setMonth(d.getMonth() - (11 - i));
+                    return { 
+                        raw: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`, 
+                        label: monthNames[d.getMonth()] 
+                    };
+                });
+            } else {
+                // All Time: find oldest order
+                const oldestTs = Math.min(...activeOrders.map(o => getMillis(o.createdAt) || Date.now()));
+                const start = new Date(oldestTs);
+                const end = new Date();
+                let current = new Date(start.getFullYear(), start.getMonth(), 1);
+                
+                while (current <= end) {
+                    monthsArray.push({
+                        raw: `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`,
+                        label: `${monthNames[current.getMonth()]} ${String(current.getFullYear()).slice(-2)}`
+                    });
+                    current.setMonth(current.setMonth() + 1);
+                }
+                // Cap to reasonable amount for display if too long
+                if (monthsArray.length > 24) monthsArray = monthsArray.slice(-24);
+            }
+
+            const revMap = {};
+            monthsArray.forEach(m => revMap[m.raw] = 0);
+
+            activeOrders.forEach(data => {
+                const ts = getMillis(data.createdAt);
+                if (ts) {
+                    const d = new Date(ts);
+                    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                    if (revMap[key] !== undefined) {
+                        revMap[key] += (data.total || 0);
+                    }
+                }
+            });
+
+            return monthsArray.map(m => ({ label: m.label, value: revMap[m.raw] }));
+        }
+    }, [allOrders, timeFilter]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -217,15 +299,6 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                 const orders = [];
                 let p = 0, w = 0, s = 0;
 
-                // Dates for chart (last 7 days minus today to ensure full days? Let's just do last 7 days including today)
-                const dates = Array.from({length: 7}, (_, i) => {
-                    const d = new Date();
-                    d.setDate(d.getDate() - (6 - i));
-                    return { raw: d.toISOString().split('T')[0], label: d.toLocaleDateString('fr-FR', { weekday: 'short' }) };
-                });
-                const revMap = {};
-                dates.forEach(d => revMap[d.raw] = 0);
-
                 ordersSnapshot.forEach(doc => {
                     const data = doc.data();
                     const isCancelled = data.status === 'cancelled' || data.status === 'cancelled_by_client';
@@ -233,31 +306,19 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                     if (!isCancelled) {
                         revenue += (data.total || 0);
                         orderCount++;
-                        
-                        // Status
                         if (data.status === 'completed' || data.status === 'paid') p++;
                         else if (data.status === 'shipped') s++;
                         else w++; // pending
-
-                        // Chart logic
-                        const ts = getMillis(data.createdAt);
-                        if (ts) {
-                            const dateStr = new Date(ts).toISOString().split('T')[0];
-                            if (revMap[dateStr] !== undefined) {
-                                revMap[dateStr] += (data.total || 0);
-                            }
-                        }
                     }
                     orders.push({ id: doc.id, ...data });
                 });
 
                 setStatusCounts({ paid: p, pending: w, shipped: s });
-                setChartData(dates.map(d => ({ label: d.label, value: revMap[d.raw] })));
+                setAllOrders(orders); 
 
                 const activeOrders = orders.filter(o => o.status !== 'cancelled' && o.status !== 'cancelled_by_client');
                 const sortedOrders = activeOrders.sort((a, b) => getMillis(b.createdAt) - getMillis(a.createdAt)).slice(0, 5);
                 setRecentOrders(sortedOrders);
-                setAllOrders(orders); 
 
                 // 2. Fetch Items
                 const furnitureSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'furniture'));
@@ -407,6 +468,13 @@ const AdminDashboard = ({ user, darkMode = false }) => {
     const textBase = darkMode ? 'text-white' : 'text-stone-900';
     const textMuted = darkMode ? 'text-white/40' : 'text-stone-400';
 
+    const getFilterLabel = () => {
+        if (timeFilter === '7days') return "les 7 derniers jours";
+        if (timeFilter === '1month') return "les 30 derniers jours";
+        if (timeFilter === '1year') return "les 12 derniers mois";
+        return "tout l'historique";
+    };
+
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 pb-20">
 
@@ -463,10 +531,31 @@ const AdminDashboard = ({ user, darkMode = false }) => {
             {/* MODULE 2: GRAPHICS (CA + STATUS) */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className={`lg:col-span-2 p-8 rounded-[32px] ${baseCard}`}>
-                    <div className="flex justify-between items-center mb-8">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                         <div>
                             <h3 className={`text-sm font-black uppercase tracking-widest ${textBase}`}>Évolution du CA</h3>
-                            <p className={`text-[10px] font-bold uppercase tracking-wider ${textMuted} mt-1`}>Sur les 7 derniers jours</p>
+                            <p className={`text-[10px] font-bold uppercase tracking-wider ${textMuted} mt-1`}>Sur {getFilterLabel()}</p>
+                        </div>
+                        
+                        <div className={`flex gap-1 p-1 rounded-xl shrink-0 ${darkMode ? 'bg-white/5' : 'bg-stone-100'}`}>
+                            {[
+                                { id: '7days', label: '7j' },
+                                { id: '1month', label: '1m' },
+                                { id: '1year', label: '1a' },
+                                { id: 'alltime', label: 'Max' }
+                            ].map(f => (
+                                <button
+                                    key={f.id}
+                                    onClick={() => setTimeFilter(f.id)}
+                                    className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all duration-300 ${
+                                        timeFilter === f.id
+                                            ? (darkMode ? 'bg-white text-stone-900 shadow-xl' : 'bg-white text-stone-900 shadow-md')
+                                            : (darkMode ? 'text-white/40 hover:text-white' : 'text-stone-400 hover:text-stone-600')
+                                    }`}
+                                >
+                                    {f.label}
+                                </button>
+                            ))}
                         </div>
                     </div>
                     <RevenueChart data={chartData} darkMode={darkMode} />
