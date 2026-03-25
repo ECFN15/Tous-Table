@@ -7,19 +7,25 @@ import { db, functions } from '../../firebase/config';
 import { httpsCallable } from 'firebase/functions';
 import { getMillis } from '../../utils/time';
 
-// ─── Custom SVG Bar Chart (remplace Recharts) ───────────────────────
+// ─── Custom SVG Bar Chart — Premium responsive (remplace Recharts) ──
 const TrafficChart = ({ data, darkMode }) => {
     const containerRef = useRef(null);
-    const [dims, setDims] = useState({ w: 600, h: 320 });
+    const [dims, setDims] = useState({ w: 600, h: 280 });
     const [activeIdx, setActiveIdx] = useState(null);
-    const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+    const isMobile = dims.w < 500;
 
-    // Marges internes du SVG
-    const margin = { top: 16, right: 16, bottom: 32, left: 40 };
+    // Marges adaptatives (plus serrées sur mobile)
+    const margin = useMemo(() => ({
+        top: 20,
+        right: isMobile ? 8 : 16,
+        bottom: isMobile ? 28 : 36,
+        left: isMobile ? 28 : 40
+    }), [isMobile]);
+
     const chartW = dims.w - margin.left - margin.right;
     const chartH = dims.h - margin.top - margin.bottom;
 
-    // Observer la taille du conteneur
+    // ── ResizeObserver ──
     useEffect(() => {
         const el = containerRef.current;
         if (!el) return;
@@ -31,59 +37,111 @@ const TrafficChart = ({ data, darkMode }) => {
         return () => ro.disconnect();
     }, []);
 
-    // Calculs du graphique
+    // ── Calculs du graphique ──
     const maxVal = useMemo(() => Math.max(1, ...data.map(d => d.visites)), [data]);
+
+    // Y ticks intelligents (moins de ticks sur mobile)
     const yTicks = useMemo(() => {
+        const count = isMobile ? 3 : 5;
         const ticks = [];
-        const step = Math.max(1, Math.ceil(maxVal / 4));
+        const step = Math.max(1, Math.ceil(maxVal / count));
         for (let i = 0; i <= maxVal; i += step) ticks.push(i);
         if (ticks[ticks.length - 1] < maxVal) ticks.push(maxVal);
         return ticks;
-    }, [maxVal]);
+    }, [maxVal, isMobile]);
 
-    const barCount = data.length;
-    const gap = Math.max(1, chartW * 0.01);
-    const barW = barCount > 0 ? Math.max(2, (chartW - gap * (barCount - 1)) / barCount) : 0;
+    // Dimensions des barres — minimum garanti pour tactile
+    const barMetrics = useMemo(() => {
+        const n = data.length;
+        if (n === 0) return { barW: 0, gap: 0, total: 0 };
 
-    // Labels X espacés
-    const xLabelInterval = Math.max(1, Math.ceil(barCount / 10));
+        // Desktop : gap proportionnel, Mobile : gap minimal pour maximiser barW
+        const gapRatio = isMobile ? 0.15 : 0.25;
+        const totalGaps = n > 1 ? (n - 1) : 0;
+        
+        // Calcul avec un minimum de 4px par barre (visible) et 1px de gap
+        let gap = Math.max(1, Math.round((chartW * gapRatio) / Math.max(1, totalGaps)));
+        let barW = n > 0 ? (chartW - gap * totalGaps) / n : 0;
+        
+        // Si les barres sont trop fines, on réduit le gap
+        if (barW < 4 && n > 1) {
+            gap = 1;
+            barW = (chartW - gap * totalGaps) / n;
+        }
 
-    const handleInteraction = useCallback((idx, e) => {
-        if (idx === activeIdx) { setActiveIdx(null); return; }
+        // Minimum absolu de largeur de barre
+        barW = Math.max(isMobile ? 3 : 4, barW);
+
+        // Cap la largeur max pour éviter des barres géantes avec peu de données
+        barW = Math.min(barW, isMobile ? 40 : 60);
+
+        return { barW, gap, total: n };
+    }, [data.length, chartW, isMobile]);
+
+    // Labels X — espacement intelligent selon la taille
+    const xLabelInterval = useMemo(() => {
+        const maxLabels = isMobile ? 5 : 10;
+        return Math.max(1, Math.ceil(data.length / maxLabels));
+    }, [data.length, isMobile]);
+
+    // ── Handlers d'interaction (Scrubbing global) ──
+    const handlePointerAction = useCallback((e) => {
+        // Support pour Event de Souris et Touch natif dans React
+        const clientX = e.touches && e.touches.length > 0 ? e.touches[0].clientX : e.clientX;
+        if (clientX === undefined) return;
+        
+        const rect = e.currentTarget.getBoundingClientRect();
+        const localX = clientX - rect.left;
+        
+        const slotW = barMetrics.barW + barMetrics.gap;
+        let idx = Math.floor(localX / slotW);
+        // Empêcher le débordement des index
+        idx = Math.max(0, Math.min(barMetrics.total - 1, idx));
+        
         setActiveIdx(idx);
-        // Position tooltip relative au conteneur
-        const rect = containerRef.current?.getBoundingClientRect();
-        if (rect) {
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            setTooltipPos({ x: clientX - rect.left, y: clientY - rect.top });
-        }
-    }, [activeIdx]);
+    }, [barMetrics]);
 
-    const handleMouseMove = useCallback((idx, e) => {
-        if (activeIdx !== idx) setActiveIdx(idx);
-        const rect = containerRef.current?.getBoundingClientRect();
-        if (rect) {
-            setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-        }
-    }, [activeIdx]);
+    const handlePointerLeave = useCallback(() => {
+        setActiveIdx(null);
+    }, []);
+
+    // ── Calcul position tooltip (ancré au-dessus de la barre) ──
+    const tooltipInfo = useMemo(() => {
+        if (activeIdx === null || !data[activeIdx]) return null;
+        const d = data[activeIdx];
+        const barX = margin.left + activeIdx * (barMetrics.barW + barMetrics.gap) + barMetrics.barW / 2;
+        const barH = d.visites > 0 ? Math.max(2, (d.visites / maxVal) * chartH) : 0;
+        const barTopY = margin.top + chartH - barH;
+
+        // Tooltip au-dessus de la barre, centré horizontalement
+        let tooltipX = barX;
+        let tooltipY = barTopY - 12;
+
+        // Clamper pour ne pas déborder
+        const tooltipW = 100;
+        tooltipX = Math.max(tooltipW / 2 + 4, Math.min(dims.w - tooltipW / 2 - 4, tooltipX));
+        tooltipY = Math.max(4, tooltipY);
+
+        return { x: tooltipX, y: tooltipY, d };
+    }, [activeIdx, data, barMetrics, maxVal, chartH, margin, dims.w]);
 
     return (
-        <div ref={containerRef} className="w-full h-full relative" style={{ WebkitTapHighlightColor: 'transparent' }}
+        <div ref={containerRef} className="w-full h-full relative select-none"
+            style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'pan-y' }}
             onMouseLeave={() => setActiveIdx(null)}
         >
-            <svg width={dims.w} height={dims.h} style={{ display: 'block', overflow: 'visible' }}>
+            <svg width={dims.w} height={dims.h} style={{ display: 'block' }}>
                 <defs>
                     <linearGradient id="svgBarGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#10b981" stopOpacity={1} />
-                        <stop offset="100%" stopColor="#059669" stopOpacity={0.7} />
+                        <stop offset="0%" stopColor="#10b981" stopOpacity={0.9} />
+                        <stop offset="100%" stopColor="#059669" stopOpacity={0.5} />
                     </linearGradient>
                     <linearGradient id="svgBarGradActive" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="#34d399" stopOpacity={1} />
-                        <stop offset="100%" stopColor="#10b981" stopOpacity={0.9} />
+                        <stop offset="100%" stopColor="#10b981" stopOpacity={0.85} />
                     </linearGradient>
-                    <filter id="glowFilter">
-                        <feGaussianBlur stdDeviation="4" result="blur" />
+                    <filter id="glowFilter" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="3.5" result="blur" />
                         <feMerge>
                             <feMergeNode in="blur" />
                             <feMergeNode in="SourceGraphic" />
@@ -97,8 +155,8 @@ const TrafficChart = ({ data, darkMode }) => {
                         const y = chartH - (tick / maxVal) * chartH;
                         return (
                             <line key={`grid-${tick}`} x1={0} y1={y} x2={chartW} y2={y}
-                                stroke={darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}
-                                strokeDasharray="3 3"
+                                stroke={darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'}
+                                strokeDasharray="4 4"
                             />
                         );
                     })}
@@ -107,52 +165,60 @@ const TrafficChart = ({ data, darkMode }) => {
                     {yTicks.map(tick => {
                         const y = chartH - (tick / maxVal) * chartH;
                         return (
-                            <text key={`y-${tick}`} x={-12} y={y + 3.5}
-                                textAnchor="end" fontSize={10}
+                            <text key={`y-${tick}`} x={-8} y={y + 3.5}
+                                textAnchor="end" fontSize={isMobile ? 9 : 10}
                                 fill={darkMode ? '#57534e' : '#a8a29e'}
+                                fontWeight={500}
                             >{tick}</text>
                         );
                     })}
 
+                    {/* Ligne de base */}
+                    <line x1={0} y1={chartH} x2={chartW} y2={chartH}
+                        stroke={darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}
+                        strokeWidth={1}
+                    />
+
                     {/* Barres */}
                     {data.map((d, i) => {
-                        const x = i * (barW + gap);
-                        const h = d.visites > 0 ? Math.max(2, (d.visites / maxVal) * chartH) : 0;
+                        const x = i * (barMetrics.barW + barMetrics.gap);
+                        const h = d.visites > 0 ? Math.max(3, (d.visites / maxVal) * chartH) : 0;
                         const y = chartH - h;
                         const isActive = activeIdx === i;
+                        const bw = barMetrics.barW;
+                        const radius = Math.min(3, bw / 2);
 
                         return (
-                            <g key={i}
-                                onMouseEnter={(e) => handleMouseMove(i, e)}
-                                onMouseMove={(e) => handleMouseMove(i, e)}
-                                onTouchStart={(e) => { e.preventDefault(); handleInteraction(i, e); }}
-                                style={{ cursor: d.visites > 0 ? 'pointer' : 'default' }}
-                            >
-                                {/* Zone tactile invisible (plus large que la barre) */}
-                                <rect
-                                    x={x - gap / 2} y={0}
-                                    width={barW + gap} height={chartH}
-                                    fill="transparent"
-                                />
-                                {/* Barre active (glow + zoom) */}
+                            <g key={i}>
+                                {/* Barre active : glow + agrandissement */}
                                 {isActive && d.visites > 0 && (
                                     <rect
-                                        x={x - 2} y={Math.max(0, y - 4)}
-                                        width={barW + 4} height={h + 4}
-                                        rx={3} ry={3}
+                                        x={x - Math.min(3, bw * 0.3)}
+                                        y={Math.max(0, y - 5)}
+                                        width={bw + Math.min(6, bw * 0.6)}
+                                        height={h + 5}
+                                        rx={radius + 1} ry={radius + 1}
                                         fill="url(#svgBarGradActive)"
                                         filter="url(#glowFilter)"
-                                        style={{ transition: 'all 0.15s ease-out' }}
                                     />
                                 )}
-                                {/* Barre normale */}
+                                
+                                {/* Barre au repos */}
                                 {!isActive && d.visites > 0 && (
                                     <rect
                                         x={x} y={y}
-                                        width={barW} height={h}
-                                        rx={2} ry={2}
-                                        fill="rgba(5, 150, 105, 0.55)"
-                                        style={{ transition: 'all 0.2s ease-out' }}
+                                        width={bw} height={h}
+                                        rx={radius} ry={radius}
+                                        fill="url(#svgBarGrad)"
+                                    />
+                                )}
+
+                                {/* Indicateur slot vide (dot subtil) */}
+                                {d.visites === 0 && !isActive && (
+                                    <circle
+                                        cx={x + bw / 2} cy={chartH - 1}
+                                        r={isMobile ? 1 : 1.5}
+                                        fill={darkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}
                                     />
                                 )}
                             </g>
@@ -162,37 +228,75 @@ const TrafficChart = ({ data, darkMode }) => {
                     {/* Labels X */}
                     {data.map((d, i) => {
                         if (i % xLabelInterval !== 0) return null;
-                        const x = i * (barW + gap) + barW / 2;
+                        const x = i * (barMetrics.barW + barMetrics.gap) + barMetrics.barW / 2;
                         return (
-                            <text key={`x-${i}`} x={x} y={chartH + 20}
-                                textAnchor="middle" fontSize={10}
+                            <text key={`x-${i}`} x={x} y={chartH + (isMobile ? 16 : 22)}
+                                textAnchor="middle" fontSize={isMobile ? 8 : 10}
                                 fill={darkMode ? '#57534e' : '#a8a29e'}
+                                fontWeight={500}
                             >{d.name}</text>
                         );
                     })}
+
+                    {/* OVERLAY GLOBAL POUR LE SCRUBBING (TACTILE ET SOURIS) */}
+                    <rect
+                        x={0} y={0} width={chartW} height={chartH}
+                        fill="rgba(0,0,0,0)"
+                        onPointerDown={handlePointerAction}
+                        onPointerMove={handlePointerAction}
+                        onPointerLeave={handlePointerLeave}
+                        onTouchStart={handlePointerAction}
+                        onTouchMove={handlePointerAction}
+                        onTouchEnd={handlePointerLeave}
+                        style={{ cursor: 'crosshair', pointerEvents: 'all', touchAction: 'pan-y' }}
+                    />
                 </g>
             </svg>
 
-            {/* Tooltip flottant */}
-            {activeIdx !== null && data[activeIdx] && data[activeIdx].visites > 0 && (
+            {/* ── Tooltip flottant (ancré au-dessus de la barre) ── */}
+            {tooltipInfo && tooltipInfo.d.visites > 0 && (
                 <div style={{
                     position: 'absolute',
-                    left: Math.min(tooltipPos.x + 12, dims.w - 120),
-                    top: Math.max(8, tooltipPos.y - 60),
-                    background: darkMode ? '#1c1917' : '#ffffff',
-                    borderRadius: '14px',
-                    padding: '8px 14px',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                    left: tooltipInfo.x,
+                    top: tooltipInfo.y,
+                    transform: 'translate(-50%, -100%)',
+                    background: darkMode ? 'rgba(28, 25, 23, 0.95)' : 'rgba(255, 255, 255, 0.97)',
+                    backdropFilter: 'blur(8px)',
+                    borderRadius: isMobile ? '10px' : '14px',
+                    padding: isMobile ? '6px 10px' : '8px 14px',
+                    boxShadow: darkMode 
+                        ? '0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)' 
+                        : '0 8px 32px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.04)',
                     pointerEvents: 'none',
                     zIndex: 50,
                     whiteSpace: 'nowrap',
-                    transition: 'left 0.1s ease-out, top 0.1s ease-out',
+                    transition: 'left 0.12s cubic-bezier(0.4,0,0.2,1), top 0.12s cubic-bezier(0.4,0,0.2,1), opacity 0.15s',
+                    opacity: 1,
                 }}>
-                    <div style={{ fontSize: '10px', color: '#78716c', fontWeight: 700, marginBottom: '2px' }}>
-                        {data[activeIdx].name}
+                    {/* Petite flèche vers le bas */}
+                    <div style={{
+                        position: 'absolute',
+                        bottom: -5,
+                        left: '50%',
+                        transform: 'translateX(-50%) rotate(45deg)',
+                        width: 10, height: 10,
+                        background: darkMode ? 'rgba(28, 25, 23, 0.95)' : 'rgba(255, 255, 255, 0.97)',
+                        boxShadow: darkMode ? '2px 2px 4px rgba(0,0,0,0.3)' : '2px 2px 4px rgba(0,0,0,0.08)',
+                    }} />
+                    <div style={{
+                        position: 'relative', zIndex: 1,
+                        fontSize: isMobile ? '9px' : '10px',
+                        color: '#78716c', fontWeight: 700, marginBottom: '1px'
+                    }}>
+                        {tooltipInfo.d.name}
                     </div>
-                    <div style={{ fontSize: '13px', fontWeight: 900, color: '#10b981', textTransform: 'uppercase' }}>
-                        Visites : {data[activeIdx].visites}
+                    <div style={{
+                        position: 'relative', zIndex: 1,
+                        fontSize: isMobile ? '12px' : '14px',
+                        fontWeight: 900, color: '#10b981', textTransform: 'uppercase',
+                        letterSpacing: '0.02em'
+                    }}>
+                        {tooltipInfo.d.visites} visite{tooltipInfo.d.visites > 1 ? 's' : ''}
                     </div>
                 </div>
             )}
@@ -446,13 +550,13 @@ const AdminAnalytics = ({ darkMode = false }) => {
             </div>
 
             {/* CUSTOM SVG CHART */}
-            <div className={`p-6 md:p-8 rounded-[2.5rem] shadow-sm transform-gpu transition-all ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : 'bg-white shadow-[0_0_50px_-12px_rgba(0,0,0,0.05)]'}`}>
-                <h3 className={`text-lg font-black uppercase tracking-widest mb-8 ${darkMode ? 'text-white' : 'text-stone-900'}`}>Évolution du Trafic</h3>
-                <div className="h-[320px] w-full">
+            <div className={`p-4 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-sm transform-gpu transition-all ${darkMode ? 'bg-stone-800 ring-1 ring-inset ring-stone-700' : 'bg-white shadow-[0_0_50px_-12px_rgba(0,0,0,0.05)]'}`}>
+                <h3 className={`text-sm md:text-lg font-black uppercase tracking-widest mb-4 md:mb-8 ${darkMode ? 'text-white' : 'text-stone-900'}`}>Évolution du Trafic</h3>
+                <div className="h-[240px] md:h-[320px] w-full">
                     {chartData.length > 0 ? (
                         <TrafficChart data={chartData} darkMode={darkMode} />
                     ) : (
-                        <div className="flex items-center justify-center h-full text-stone-400 font-bold italic">Pas assez de données pour la période sélectionnée.</div>
+                        <div className="flex items-center justify-center h-full text-stone-400 font-bold italic text-sm">Pas assez de données pour la période sélectionnée.</div>
                     )}
                 </div>
             </div>

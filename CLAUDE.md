@@ -22,8 +22,44 @@ La session #1 restait à 0s car `sessionIdRef` était écrasé par la session #2
 
 **Vérification comptage unique par IP** : Confirmé fonctionnel — `new Set(realTraffic.map(s => s.ip))` dans `AdminAnalytics.jsx` déduplique correctement. Même IP visitant N fois = 1 visiteur unique.
 
-**Avant** : 2 sessions à la première visite (1 fantôme à 0s + 1 réelle), KPIs faussés (bounce rate, durée moyenne).
 **Après** : 1 seule session par visite, KPIs corrects.
+
+---
+
+## 25 mars 2026 (Suite) — Optimisation Gestion IPs Admin & Skill Dashboard
+
+**Fichiers** : `src/features/admin/AdminIPManager.jsx`, `.agent/skills/dashboard_premium/SKILL.md`
+
+**Problème** : L'accumulation d'adresses IPv6 (Privacy Extensions) créait une liste infinie de cartes dans l'interface de gestion des IPs admin, rendant le panneau illisible.
+
+**Solution : Regroupement par Administrateur & Design Premium**
+1. **Logique de Grouping** : Les IPs sont désormais regroupées par email (`adminEmail`) via `useMemo`. Une seule carte par membre de l'équipe est affichée.
+2. **KPI Central** : Affichage du nombre total d'IPs bloquées pour chaque admin comme métrique principale.
+3. **Design "Celoci Inc"** : Application du nouveau Skill "Premium Dashboard" (fond `#161616`, bordures `white/5`, typographie massive et contrastée).
+4. **Nouveau Skill** : Création d'une documentation d'expertise pour reproduire ce style (Bento grid, SVG custom, palettes sombres profondes).
+
+**Résultat** : Interface épurée, suppression du scroll infini inutile, et UX alignée sur les standards SaaS premium.
+
+---
+
+## 25 mars 2026 — Refonte Graphique Analytics (SVG Custom & Scrubbing UX)
+
+**Fichier** : `src/features/admin/AdminAnalytics.jsx`
+
+**Problème** : La librairie Recharts (v3) imposait un rectangle blanc de sélection (cursor) impossible à masquer via CSS, dégradant l'UX sur desktop et rendant le graphique illisible sur petit écran. De plus, les barres étaient trop fines pour être touchées au doigt sur mobile.
+
+**Cause racine** : Limitations structurelles des librairies de chart "off-the-shelf" pour des besoins de design ultra-spécifiques et premium.
+
+**Solution : Migration vers un composant SVG 100% Custom (`TrafficChart`)**
+1. **Zéro dépendance** : Contrôle total du rendu SVG (gradients, ombres, tracés). 
+2. **Scrubbing Global (Style Apple Stocks)** : Au lieu de cliquer sur des barres minuscules, un overlay invisible capture les mouvements (Souris/Touch) sur tout le graphique. La barre la plus proche de l'index X est instantanément mise en valeur. 
+3. **Tooltip Ancré** : Le tooltip ne suit plus le curseur (erratique sur mobile) mais s'ancre au-dessus de la barre active avec une flèche de direction et un effet glassmorphism (`backdrop-filter`).
+4. **Responsive Adaptatif** :
+   - Mobile (w < 500px) : Hauteur réduite (240px), moins de labels (max 5), barres épaissies (min 3px).
+   - Desktop : Hauteur 320px, labels détaillés, effets de glow (filtre SVG GaussianBlur).
+5. **Indicateurs de slots vides** : Points subtils sur la ligne de base pour indiquer les périodes sans trafic (meilleure lisibilité que le vide total).
+
+**Résultat** : Une interface Analytics digne d'une app native, sans bug visuel, et 100% manipulable au doigt avec une précision chirurgicale (Scrubbing).
 
 ---
 

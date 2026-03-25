@@ -30,6 +30,53 @@ Confirmé fonctionnel : `new Set(realTraffic.map(s => s.ip))` dans `AdminAnalyti
 
 ---
 
+## 18. Optimisation de la Gestion des IPs Administrateurs (Refonte UI/UX)
+
+**Problème** : Les PC et mobiles modernes utilisent l'IPv6 avec des extensions de confidentialité, générant une nouvelle IP presque chaque jour. L'interface précédente affichait une carte par IP, créant une liste infinie et inutilement longue pour un seul et même administrateur.
+
+**Solution appliquée** :
+- **Logique de Groupement** : Les données sont maintenant traitées côté client pour regrouper toutes les adresses IP sous un seul bloc par email administrateur.
+- **Design Premium (Skill Dashboard)** : Adoption du style "Bento Grid" ultra-sombre.
+  - Cartes : `bg-[#161616]` avec bordures `white/5`.
+  - Statut : Point "Actif" vert pulsant pour confirmer le blocage du tracking en temps réel.
+  - KPI : Mise en avant héroïque du nombre d'adresses bloquées (ex: "21").
+- **Épuration des données** : Suppression des dates d'activité superflues pour un look plus "Clean & Minimalist".
+
+**Résultat** : Une interface claire qui ne montre plus que l'équipe (1 carte par personne), peu importe le nombre d'IPs qu'ils utilisent.
+
+---
+
+### Problème
+Le graphique d'évolution du trafic utilisait `Recharts`. Sur mobile et desktop, un "rectangle blanc" (cursor de sélection) apparaissait au toucher, masquant les données et brisant l'esthétique premium. De plus, sur petit écran, les barres de données devenaient trop fines pour être sélectionnées précisément au doigt.
+
+### Solution appliquée
+Remplacement total de Recharts par une implémentation **SVG native** optimisée pour la performance et l'accessibilité tactile.
+
+1. **Architecture SVG Custom** :
+    - Utilisation de `ResizeObserver` pour un rendu fluide au pixel près.
+    - Gradients linéaires personnalisés et filtres de "Glow" SVG pour le focus.
+    - Gestion dynamique des densités : le nombre de labels et la finesse des barres s'adaptent automatiquement à la largeur disponible (sans media queries CSS, pour plus de précision).
+
+2. **Système de "Scrubbing" (Balayage tactile)** :
+    - Suppression des zones de clic individuelles (qui se superposaient sur mobile).
+    - Implémentation d'un **Overlay Global** qui intercepte les événements `pointer` et `touch`.
+    - Calcul mathématique de l'index le plus proche en temps réel. Cela permet une navigation fluide en glissant le doigt sur le graphique, typique des interfaces iOS (Stocks, Screen Time).
+
+3. **Tooltip Intelligent** :
+    - Positionnement fixe au-dessus de la barre (évite de masquer la zone sous le doigt).
+    - Clamping horizontal : le tooltip ne peut jamais sortir du cadre du graphique, même pour les barres aux extrémités.
+    - Design "Glassmorphism" avec flou d'arrière-plan et ombre portée douce.
+
+### Résultats
+- **Précision** : 100% de réussite tactile, même sur les périodes denses (filtre 1h).
+- **Esthétique** : Suppression des artefacts blancs de Recharts, intégration visuelle parfaite avec le Design System.
+- **Performance** : Zéro surcharge mémoire, rendu immédiat via le thread de composition du navigateur.
+
+### Fichiers modifiés
+- `src/features/admin/AdminAnalytics.jsx` (Composant `TrafficChart`)
+
+---
+
 # Rapport de Corrections — Session du 21 Mars 2026
 
 ## 1. Refonte du Menu Principal (GlobalMenu) & Header

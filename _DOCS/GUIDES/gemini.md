@@ -148,4 +148,7 @@ const isIOSStandalone = () => {
 
 ## Leçon clé (Gemini) — Attention aux détails et Symétrie UI (21 Mars 2026)
 > Lors de la conception de sidebars (Menu/Panier) recouvrant la page, il est crucial d'aligner mathématiquement le bouton de fermeture (`✕`) avec son bouton déclencheur d'origine (`☰`) présent dans le header sous-jacent.
-> Sur ce projet, le composant `ArchitecturalHeader` posait son axe central sur 48px (sur une hauteur `md:h-24` = 96px). L'application d'un banal `md:pt-16` sur le panneau repoussait le bouton de fermeture vers le bas, brisant "l'illusion" continue du menu. Le passage structuré à `md:pt-6` (24px), qui couplé à la hauteur du bouton (`h-12` -> 48px), donne un axe central de 48px, a permis un agencement visuel pixel-perfect tout en préservant intact le layout mobile à encoche.
+## Leçon clé (Gemini) — UX & IPv6 Privacy (25 Mars 2026)
+> Sur les systèmes modernes (iOS/Android/Windows), les adresses IP changent constamment (Privacy Extensions). 
+> - **Erreur UI** : Créer une entrée en base ou une carte UI pour chaque nouvelle IP d'un administrateur. Cela pollue l'interface très vite.
+> - **Solution de Groupement** : Toujours regrouper les données brutes par **Utilisateur** (Email) dans l'interface, peu importe le nombre d'IPs liées. Afficher le nombre d'IPs comme un KPI (`ips.length`) plutôt que de les lister. Cela épure radicalement l'écran tout en conservant la précision technique du blacklistage.
