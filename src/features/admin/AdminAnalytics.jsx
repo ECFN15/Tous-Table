@@ -457,15 +457,18 @@ const AdminAnalytics = ({ darkMode = false }) => {
             return time >= cutoff && s.type !== 'admin';
         });
 
-        // 1. Calcul des KPIs (dédupliqué par IP)
+        // 1. Calcul des KPIs
         const uniqueIPs = new Set(realTraffic.map(s => s.ip).filter(Boolean));
         const uniques = uniqueIPs.size;
+        const totalSessions = realTraffic.length;
         const totalDuration = realTraffic.reduce((acc, s) => acc + (s.duration || 0), 0);
-        const avgDur = uniques > 0 ? Math.round(totalDuration / uniques) : 0;
+        // Durée moyenne par session (pas par IP unique)
+        const avgDur = totalSessions > 0 ? Math.round(totalDuration / totalSessions) : 0;
+        // Taux de rebond = sessions à 1 page OU < 10s / total sessions
         const bounces = realTraffic.filter(s => (s.journey && s.journey.length <= 1) || s.duration < 10).length;
-        const bRate = uniques > 0 ? Math.round((bounces / uniques) * 100) : 0;
+        const bRate = totalSessions > 0 ? Math.round((bounces / totalSessions) * 100) : 0;
         const mobiles = realTraffic.filter(s => s.device === 'Mobile').length;
-        const mRate = uniques > 0 ? Math.round((mobiles / uniques) * 100) : 0;
+        const mRate = totalSessions > 0 ? Math.round((mobiles / totalSessions) * 100) : 0;
 
         setKpis({
             uniqueVisitors: uniques,
@@ -612,7 +615,7 @@ const AdminAnalytics = ({ darkMode = false }) => {
                         <div className="flex flex-wrap gap-2 text-[9px] font-bold text-emerald-500/60 transition-all">
                             {liveSessions.slice(0, 5).map(ls => (
                                 <span key={ls.id} className="px-2 py-1 rounded-lg border border-emerald-500/10 bg-emerald-500/5 whitespace-nowrap">
-                                    {ls.city || 'Inconnu'} • {ls.device || 'PC'}
+                                    {ls.geo?.city && ls.geo.city !== 'Unknown' ? ls.geo.city : 'Inconnu'} • {ls.device || 'PC'}
                                 </span>
                             ))}
                             {liveSessions.length > 5 && <span className="px-2 py-1 rounded-lg border border-emerald-500/5 bg-emerald-500/5 items-center inline-flex">+{liveSessions.length - 5}</span>}
@@ -674,7 +677,7 @@ const AdminAnalytics = ({ darkMode = false }) => {
                                                                 <div className="min-w-0">
                                                                     <div className="flex items-center gap-2 mb-0.5 overflow-hidden">
                                                                         <Globe size={11} className="text-stone-500 shrink-0" />
-                                                                        <span className={`text-[10px] font-bold truncate ${darkMode ? 'text-white/80' : 'text-stone-900'}`}>{session.city || 'Inconnu'}</span>
+                                                                        <span className={`text-[10px] font-bold truncate ${darkMode ? 'text-white/80' : 'text-stone-900'}`}>{session.geo?.city && session.geo.city !== 'Unknown' ? `${session.geo.city}${session.geo.region && session.geo.region !== 'Unknown' ? `, ${session.geo.region}` : ''}` : 'Inconnu'}</span>
                                                                         <span className="hidden md:inline text-[8px] text-stone-500 opacity-50 truncate">• {session.ip}</span>
                                                                     </div>
                                                                     <div className="flex items-center gap-1.5 overflow-hidden">
