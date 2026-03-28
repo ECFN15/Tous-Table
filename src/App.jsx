@@ -38,6 +38,7 @@ const AppContent = () => {
 
   const [items, setItems] = useState([]);
   const [boardItems, setBoardItems] = useState([]); // New: Planches
+  const [affiliateProducts, setAffiliateProducts] = useState([]);
   const [contactInfo, setContactInfo] = useState({});
 
 
@@ -84,9 +85,10 @@ const AppContent = () => {
   const [view, setView] = useState(() => {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash.replace('#', '');
-      if (['gallery', 'login', 'admin', 'my-orders', 'checkout'].includes(hash)) return hash;
+      if (['gallery', 'login', 'admin', 'my-orders', 'checkout', 'shop'].includes(hash)) return hash;
       const params = new URLSearchParams(window.location.search);
       if (params.get('page') === 'gallery') return 'gallery';
+      if (params.get('page') === 'shop') return 'shop';
     }
     return 'home';
   }); // 'home', 'gallery', 'detail', 'login', 'admin'
@@ -266,7 +268,14 @@ const AppContent = () => {
       console.error("Erreur lecture planches:", error);
     });
 
-    return () => { unsubData(); unsubBoards(); };
+    // 3. Produits affiliés (Boutique L'Atelier)
+    const unsubAffiliate = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'affiliate_products'), (snap) => {
+      setAffiliateProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.status === 'published'));
+    }, (error) => {
+      console.error("Erreur lecture produits affiliés:", error);
+    });
+
+    return () => { unsubData(); unsubBoards(); unsubAffiliate(); };
   }, []); // Dépendances vides pour éviter le re-subscribe fréquent
 
   // --- LOGIQUE ROUTING & AUTH (Dépend du User) ---
@@ -845,10 +854,11 @@ const AppContent = () => {
           setHeaderProps={setHeaderProps}
           persistentGalleryState={persistentGalleryState}
           saveGalleryState={saveGalleryState}
+          affiliateProducts={affiliateProducts}
         />
       </main>
       {
-        ['home', 'gallery', 'detail', 'checkout', 'my-orders'].includes(view) && (
+        ['home', 'gallery', 'detail', 'checkout', 'my-orders', 'shop'].includes(view) && (
           <div ref={footerRef}>
             <Footer darkMode={darkMode} />
           </div>

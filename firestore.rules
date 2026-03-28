@@ -23,6 +23,20 @@ service cloud.firestore {
 
     // Validation Helpers
     // ---------------------------------------------------------
+    // Fonction de Validation des Produits Affiliés
+    function isValidAffiliateProduct() {
+      let data = request.resource.data;
+      return
+        data.name is string && data.name.size() > 0 && data.name.size() < 200 &&
+        data.brand is string && data.brand.size() > 0 &&
+        data.category is string && data.category.size() > 0 &&
+        data.tier is string && data.tier in ['essentiel', 'premium', 'expert'] &&
+        (!("price" in data) || (data.price is number && data.price >= 0)) &&
+        data.affiliateUrl is string && data.affiliateUrl.size() > 5 &&
+        data.affiliateProgram is string && data.affiliateProgram.size() > 0 &&
+        data.status is string && data.status in ['published', 'draft'];
+    }
+
     // Fonction de Validation des Produits (Schema Enforcement)
     function isValidProduct() {
       let data = request.resource.data;
@@ -41,6 +55,22 @@ service cloud.firestore {
         
         // 4. Logique Enchère
         (!("auctionActive" in data) || data.auctionActive is bool);
+    }
+
+    // Produits affiliés — validation schema spécifique (écrase la validation générique)
+    match /artifacts/tat-made-in-normandie/public/data/affiliate_products/{productId} {
+      allow read: if true;
+      allow create, update: if isArtisan() && isValidAffiliateProduct();
+      allow delete: if isArtisan();
+    }
+
+    // Tracking clics affiliation — création par utilisateurs auth, lecture admin
+    match /affiliate_clicks/{clickId} {
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['productId', 'productName', 'affiliateProgram', 'category', 'tier', 'timestamp', 'sessionId', 'referrer'])
+        && request.resource.data.productId is string
+        && request.resource.data.productId.size() > 0;
+      allow read: if isArtisan();
     }
 
     // Collections produits (furniture, cutting_boards, etc.)

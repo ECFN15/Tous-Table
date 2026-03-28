@@ -13,9 +13,10 @@ const LoginView = React.lazy(() => import('./pages/LoginView'));
 import { Palette,
     CreditCard, Gavel, Mail, Users, Share2, Globe,
     Activity, Home, Package, Layout, LayoutPanelTop, BarChart3, ChevronLeft,
-    MoreHorizontal, ChevronDown
+    MoreHorizontal, ChevronDown, ShoppingBag
 } from 'lucide-react';
 
+const AdminShop = React.lazy(() => import('./features/admin/AdminShop'));
 const AdminDashboard = React.lazy(() => import('./features/admin/AdminDashboard'));
 const AdminHomepage = React.lazy(() => import('./features/admin/AdminHomepage'));
 const AdminOrders = React.lazy(() => import('./features/admin/AdminOrders'));
@@ -90,6 +91,7 @@ const AppRouter = ({
         { id: 'seo', label: 'SEO', icon: Share2 },
         { id: 'newsletter', label: 'Infos', icon: Mail },
         { id: 'payment_settings', label: 'Paiement', icon: CreditCard },
+        { id: 'shop',             label: 'Boutique',  icon: ShoppingBag },
     ];
 
     const handleToggleStatus = async (item, col) => {
@@ -384,6 +386,8 @@ const AppRouter = ({
                             <AdminAnalytics darkMode={darkMode} />
                         ) : adminCollection === 'payment_settings' ? (
                             <AdminPaymentSettings darkMode={darkMode} />
+                        ) : adminCollection === 'shop' ? (
+                            <AdminShop darkMode={darkMode} />
                         ) : (
                             <>
                                 <AdminForm
