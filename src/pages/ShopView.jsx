@@ -59,7 +59,8 @@ const RITUAL_WORDS = ['NOURRIR', 'PROTEGER', 'RESTAURER'];
 
 const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) => {
     const [activeRitualIndex, setActiveRitualIndex] = useState(0);
-    const [typedRitualWord, setTypedRitualWord] = useState(RITUAL_WORDS[0]);
+    const [typedRitualWord, setTypedRitualWord] = useState('');
+    const [isDeletingRitualWord, setIsDeletingRitualWord] = useState(false);
 
     useEffect(() => {
         if (setHeaderProps) {
@@ -108,36 +109,34 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
     }, [affiliateProducts.length]);
 
     useEffect(() => {
-        let cancelled = false;
-        let timeoutId;
         const currentWord = RITUAL_WORDS[activeRitualIndex];
-        let charIndex = 0;
+        const typeDelay = 115;
+        const eraseDelay = 58;
+        const holdDelay = 1300;
+        let timeoutId;
 
-        setTypedRitualWord('');
+        if (!isDeletingRitualWord && typedRitualWord === currentWord) {
+            timeoutId = setTimeout(() => setIsDeletingRitualWord(true), holdDelay);
+            return () => clearTimeout(timeoutId);
+        }
 
-        const typeNextChar = () => {
-            if (cancelled) return;
-            setTypedRitualWord(currentWord.slice(0, charIndex));
+        if (isDeletingRitualWord && typedRitualWord === '') {
+            setIsDeletingRitualWord(false);
+            setActiveRitualIndex((prev) => (prev + 1) % RITUAL_WORDS.length);
+            return undefined;
+        }
 
-            if (charIndex <= currentWord.length) {
-                charIndex += 1;
-                timeoutId = setTimeout(typeNextChar, 110);
-                return;
-            }
+        timeoutId = setTimeout(() => {
+            setTypedRitualWord((prev) => {
+                if (isDeletingRitualWord) {
+                    return currentWord.slice(0, Math.max(prev.length - 1, 0));
+                }
+                return currentWord.slice(0, prev.length + 1);
+            });
+        }, isDeletingRitualWord ? eraseDelay : typeDelay);
 
-            timeoutId = setTimeout(() => {
-                if (cancelled) return;
-                setActiveRitualIndex(prev => (prev + 1) % RITUAL_WORDS.length);
-            }, 1800);
-        };
-
-        timeoutId = setTimeout(typeNextChar, 180);
-
-        return () => {
-            cancelled = true;
-            if (timeoutId) clearTimeout(timeoutId);
-        };
-    }, [activeRitualIndex]);
+        return () => clearTimeout(timeoutId);
+    }, [activeRitualIndex, typedRitualWord, isDeletingRitualWord]);
 
     const getProductsForFamily = (familyId) => {
         return affiliateProducts.filter(p => {
@@ -183,7 +182,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
 
                         <div className="leading-[0.85]">
                             <div className={`font-serif text-[2.6rem] xl:text-[4rem] tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>
-                                <span className={`${darkMode ? 'text-amber-300' : 'text-amber-800'}`}>
+                                <span className={`inline-block transition-all duration-300 ${isDeletingRitualWord ? 'blur-[1.8px] opacity-80' : 'blur-0 opacity-100'} ${darkMode ? 'text-amber-300' : 'text-amber-800'}`}>
                                     {typedRitualWord}
                                 </span>
                                 <span className={`ml-2 font-black animate-pulse text-[1.7rem] xl:text-[2.4rem] ${darkMode ? 'text-amber-400/90' : 'text-amber-700/90'}`}>
