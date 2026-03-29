@@ -211,17 +211,146 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ---
 
+---
+
+## 🕒 Action de Shopping Autonome — 29 Mars 2026 (17:15)
+*Ajout de 8 références Premium suite à recherche autonome sur Amazon.fr*
+
+## 🔴 7. PEINTURES & FINITIONS
+
+### ✅ Produit 17 — Libéron Peinture meuble à base de caséine (Blanc Albâtre)
+- **Marque** : `Libéron`
+- **Catégorie** : `Peintures & Finitions`
+- **Gamme** : `💎 PREMIUM`
+- **Programme** : `Amazon`
+- **Lien Affilié** : https://www.amazon.fr/dp/B084337HQX
+- **Prix Indicatif** : 21,90€ (500ml)
+- **URL Image** : https://m.media-amazon.com/images/I/61K5R5P5-3L._AC_SL1500_.jpg
+- **Description Courte** : Peinture haut de gamme à base de caséine pour un aspect mat profond et authentique.
+- **Pourquoi on le recommande** : Couvrance exceptionnelle et texture veloutée unique. Sans COV, elle respecte l'aspect naturel du meuble.
+- **Conseil Pro** : Appliquer en deux couches fines. Égrener au grain 240 entre les couches pour un toucher "pêche" ultra-doux.
+
+---
+
+### ✅ Produit 18 — Blanchon - Huile Cire Bois Brut (1L)
+- **Marque** : `Blanchon`
+- **Catégorie** : `Peintures & Finitions`
+- **Gamme** : `👑 EXPERT`
+- **Programme** : `Amazon`
+- **Lien Affilié** : https://www.amazon.fr/dp/B0127I1BRI
+- **Prix Indicatif** : 53,99€
+- **URL Image** : https://m.media-amazon.com/images/I/71X8k8Zp8UL._AC_SL1500_.jpg
+- **Description Courte** : Huile-cire professionnelle protégeant le bois tout en conservant son aspect clair et naturel.
+- **Pourquoi on le recommande** : Haute résistance à l'eau et aux taches. Utilisée par les pros pour les surfaces à fort passage (tables, parquets).
+- **Conseil Pro** : Appliquer en couches fines au rouleau, essuyer le surplus après 10 min pour une protection parfaitement homogène.
+
+---
+
+## 🟣 8. RÉSINES & EFFETS
+
+### ✅ Produit 19 — Resin Pro - Résine Époxy Ultra Transparente (3.2 Kg)
+- **Marque** : `Resin Pro`
+- **Catégorie** : `Résines & Effets`
+- **Gamme** : `👑 EXPERT`
+- **Programme** : `Amazon`
+- **Lien Affilié** : https://www.amazon.fr/dp/B079X1WQPS
+- **Prix Indicatif** : 59,99€
+- **URL Image** : https://m.media-amazon.com/images/I/71M89pW6B1L._AC_SL1500_.jpg
+- **Description Courte** : Résine époxy haute performance pour inclusions, bijoux et plateaux de table "river table".
+- **Pourquoi on le recommande** : Transparence cristalline et excellente résistance aux UV. Ratio 2:1 simple et très bon débullage.
+- **Conseil Pro** : Utiliser un pistolet thermique ou un chalumeau brièvement après la coulée pour supprimer les micro-bulles de surface.
+
+---
+
+### ✅ Produit 20 — Libéron "Le Métal Poudré" (Fonte)
+- **Marque** : `Libéron`
+- **Catégorie** : `Résines & Effets`
+- **Gamme** : `💎 PREMIUM`
+- **Programme** : `Amazon`
+- **Lien Affilié** : https://www.amazon.fr/dp/B0846DY4T3
+- **Prix Indicatif** : 27,20€
+- **URL Image** : https://m.media-amazon.com/images/I/71Y07d0f9sL._AC_SL1500_.jpg
+- **Description Courte** : Peinture décorative à effet métal poudré offrant un rendu métallique mat ultra-réaliste.
+- **Pourquoi on le recommande** : Texture unique type fonte d'acier. Parfait pour les pieds de meubles ou le style industriel.
+- **Conseil Pro** : Appliquer au spalter pour un fini lisse, ou tapoter à l'éponge pour un effet métal ancien / vieilli.
+
+---
+
+## ⚪ 9. PRÉPARATION & DÉCAPAGE
+
+### ✅ Produit 21 — V33 Décapant Bois Gel Express (1L)
+- **Marque** : `V33`
+- **Catégorie** : `Préparation & Décapage`
+- **Gamme** : `⭐ ESSENTIEL` 
+- **Programme** : `Amazon`
+- **Lien Affilié** : https://www.amazon.fr/dp/B00LXEJSTG
+- **Prix Indicatif** : 19,50€
+- **URL Image** : https://m.media-amazon.com/images/I/71p-G5vX1LL._AC_SL1500_.jpg
+- **Description Courte** : Décapant surpuissant en gel pour éliminer peintures, vernis et lasures en quelques minutes.
+- **Pourquoi on le recommande** : Formule gel "ne coule pas", hyper efficace sur les multicouches.
+- **Conseil Pro** : Appliquer en couche épaisse, laisser agir 10 min. Gratter toujours dans le sens des fibres pour ne pas rayer le bois.
+
+---
+
+### ✅ Produit 22 — Libéron RING REMOVER (Popote)
+- **Marque** : `Libéron`
+- **Catégorie** : `Préparation & Décapage`
+- **Gamme** : `💎 PREMIUM`
+- **Programme** : `Amazon`
+- **Lien Affilié** : https://www.amazon.fr/dp/B004Z4V5LA
+- **Prix Indicatif** : 11,20€
+- **URL Image** : https://m.media-amazon.com/images/I/61t-X-Z7pXL._AC_SL1500_.jpg
+- **Description Courte** : Nettoyant spécialisé pour éliminer les taches blanches de chaleur ou d'eau sur les vernis et cires.
+- **Pourquoi on le recommande** : Indispensable pour restaurer un plateau sans tout décaper. Ravive la couleur d'origine.
+- **Conseil Pro** : Appliquer avec une laine d'acier 0000 en mouvements circulaires jusqu'à disparition complète de la tache.
+
+---
+
+## 🛠️ 10. OUTILS & ACCESSOIRES
+
+### ✅ Produit 23 — Libéron Pinceau Plat "Le Spalter" (40mm)
+- **Marque** : `Libéron`
+- **Catégorie** : `Outils & Accessoires`
+- **Gamme** : `👑 EXPERT`
+- **Programme** : `Amazon`
+- **Lien Affilié** : https://www.amazon.fr/dp/B00KYR9KS2
+- **Prix Indicatif** : 13,55€
+- **URL Image** : https://m.media-amazon.com/images/I/71Z-9vX1LL._AC_SL1500_.jpg
+- **Description Courte** : Pinceau plat professionnel conçu pour les finitions fines et l'application sans traces.
+- **Pourquoi on le recommande** : Poils souples et denses qui ne se perdent pas. Finition parfaite pour les peintures à la caséine.
+- **Conseil Pro** : Bien rincer à l'eau savonneuse avant usage pour éliminer les micro-poussières de fabrication. Stocker tête en haut.
+
+---
+
+### ✅ Produit 24 — Savy Mini Rouleau Laqueur Velours (60mm)
+- **Marque** : `Savy`
+- **Catégorie** : `Outils & Accessoires`
+- **Gamme** : `⭐ ESSENTIEL`
+- **Programme** : `Amazon`
+- **Lien Affilié** : https://www.amazon.fr/dp/B00ESY2Z02
+- **Prix Indicatif** : 3,29€
+- **URL Image** : https://m.media-amazon.com/images/I/41-A8m7kLCL._AC_SL1000_.jpg
+- **Description Courte** : Mini rouleau en velours pour une application ultra-lisse de laques et vernis.
+- **Pourquoi on le recommande** : Évite l'effet "peau d'orange". Indispensable pour les grandes surfaces planes (portes de buffet).
+- **Conseil Pro** : Pour un fini "piano", charger peu le rouleau et croiser les passes avant de finir avec un geste léger et continu.
+
+---
+
 ## 📋 Résumé pour Copier-Coller en Admin (JSON structure)
 
 ```json
 {
   "inventory_status": "Ready for Admin Import",
-  "total_products": 16,
+  "total_products": 24,
   "last_audit": "2026-03-29",
+  "new_batch": {
+    "count": 8,
+    "source": "Amazon.fr Autonomous Search",
+    "timestamp": "2026-03-29T17:15:00Z"
+  },
   "actions_needed": [
-    "Confirm remaining ASINs via SiteStripe",
-    "Update price target manually based on Amazon fluctutations",
-    "Replace 'Recherche' links with direct DP links once validated"
+    "Verify affiliate tag integration for new DP links",
+    "Import images to Firebase Storage if direct hotlinking is not preferred"
   ]
 }
 ```

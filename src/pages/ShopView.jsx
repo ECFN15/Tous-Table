@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Info } from 'lucide-react';
 import SEO from '../components/shared/SEO';
 import ShopProductCard from '../components/shop/ShopProductCard';
+import WorkshopHero from '../components/shop/WorkshopHero';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -131,8 +132,10 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                 url="/?page=shop"
             />
 
-            {/* HERO SECTION - Cinematic Editorial Style */}
-            <section className="relative min-h-[60vh] md:min-h-[75vh] flex flex-col justify-end px-6 xl:px-12 pb-16 md:pb-24 pt-32 overflow-hidden">
+            {/* HERO SECTION - Cinematic Editorial Style avec WorkshopHero */}
+            <section className="relative min-h-[60vh] md:min-h-[85vh] flex flex-col justify-end px-6 xl:px-12 pb-16 md:pb-24 pt-32 overflow-hidden">
+                <WorkshopHero darkMode={darkMode} />
+                
                 <div className={`absolute top-0 right-0 w-[50vw] h-[50vw] md:w-[30vw] md:h-[30vw] rounded-full blur-[100px] opacity-20 pointer-events-none ${darkMode ? 'bg-amber-500/20' : 'bg-amber-700/10'}`} />
                 
                 <div className="max-w-[1920px] mx-auto w-full space-y-6 md:space-y-10 relative z-10">
