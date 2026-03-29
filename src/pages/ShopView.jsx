@@ -112,7 +112,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
         const currentWord = RITUAL_WORDS[activeRitualIndex];
         const typeDelay = 145;
         const eraseDelay = 55;
-        const holdDelay = 2200;
+        const holdDelay = 2800;
         let timeoutId;
 
         if (!isDeletingRitualWord && typedRitualWord === currentWord) {
