@@ -589,3 +589,157 @@ Rationalisation des espacements supérieurs avec la classe `md:pt-6` (24px) sur 
 
 ### Résultat
 Une transition fluide et une symétrie visuelle parfaite pour les interfaces Desktop.
+
+---
+
+## 16. Clarification et fiabilisation du tracking de parcours session (29 Mars 2026)
+
+### Contexte
+Dans Admin > Data > Sessions, certaines cartes affichaient:
+- Duree non nulle (ex: 5m, 16m, etc.)
+- Mais zone "Parcours Utilisateur" vide avec "Aucune activite enregistree"
+
+Ce comportement etait ambigu pour la lecture metier: on ne savait pas si l'utilisateur n'avait rien fait, si le tracking etait casse, ou si la session etait hors site.
+
+### Diagnostic (cause racine)
+Le systeme creait bien la session, mais les etapes de navigation (journey) n'etaient poussees que lors des changements de vue captes apres creation de session.
+
+Sequence qui posait probleme:
+1. Session creee via initLiveSession
+2. Aucune transition de vue ensuite (utilisateur passif, ou fermeture rapide)
+3. Heartbeat met a jour duree/sessionActive
+4. journey reste vide
+
+Resultat: une session "reelle" avec duree, mais sans etape affichee.
+
+### Objectif de la correction
+Rendre les sessions lisibles et coherentes:
+- Capturer au minimum la vue initiale des que la session est creee
+- Eviter les faux positifs de "tracking casse"
+- Clarifier le message UI quand aucun parcours n'est present
+
+### Modifications appliquees
+
+#### 1) Capture immediate de la vue initiale
+Fichier modifie:
+- src/components/shared/AnalyticsProvider.jsx
+
+Ajouts principaux:
+- latestContextRef: conserve le contexte courant (view + item)
+- pushJourneyAction: fonction unique pour pousser une etape de journey
+- Appel immediat de pushJourneyAction juste apres succes initLiveSession
+
+Extrait du code ajoute:
+
+```jsx
+const latestContextRef = useRef({
+  view,
+  selectedItemId,
+  selectedItemName,
+  selectedItemPrice
+});
+
+const pushJourneyAction = useCallback((context, actionTime = Date.now()) => {
+  const ctx = context || {};
+  if (!ctx.view) return false;
+  if (ctx.view === 'detail' && ctx.selectedItemId && !ctx.selectedItemName) return false;
+
+  const durationSinceLast = Math.max(0, Math.round((actionTime - lastActionTimeRef.current) / 1000));
+
+  let displayId = null;
+  if (ctx.selectedItemId) {
+    if (ctx.selectedItemName) {
+      displayId = `${ctx.selectedItemId} | ${ctx.selectedItemName} ${ctx.selectedItemPrice ? `(${ctx.selectedItemPrice} EUR)` : ''}`;
+    } else {
+      displayId = ctx.selectedItemId;
+    }
+  }
+
+  journeyToSend.current.push({
+    page: ctx.view,
+    itemId: displayId,
+    time: new Date().toLocaleTimeString('fr-FR'),
+    duration: durationSinceLast
+  });
+  lastActionTimeRef.current = actionTime;
+  return true;
+}, []);
+
+// juste apres init de session
+if (initRes.data.success && isMounted) {
+  sessionIdRef.current = initRes.data.sessionId;
+  pushJourneyAction(latestContextRef.current);
+}
+```
+
+#### 2) Refactor du record action pour reutiliser la meme logique
+Toujours dans src/components/shared/AnalyticsProvider.jsx:
+
+Avant:
+- logique de construction step dupliquee dans useEffect
+
+Apres:
+- useEffect appelle directement pushJourneyAction(...)
+- meilleure coherence de format entre etape initiale et etapes suivantes
+
+Extrait:
+
+```jsx
+useEffect(() => {
+  if (!sessionIdRef.current || isAdmin) return;
+  pushJourneyAction({ view, selectedItemId, selectedItemName, selectedItemPrice });
+}, [view, selectedItemId, selectedItemName, selectedItemPrice, isAdmin, pushJourneyAction]);
+```
+
+#### 3) Clarification explicite du message UI en admin
+Fichier modifie:
+- src/features/admin/AdminAnalytics.jsx
+
+Texte remplace:
+- Avant: "Aucune activite enregistree"
+- Apres: "Aucune navigation detectee (session passive ou fermeture rapide)."
+
+Extrait:
+
+```jsx
+{!session.journey || session.journey.length === 0 ? (
+  <p className="text-[10px] italic text-stone-500">
+  Aucune navigation detectee (session passive ou fermeture rapide).
+  </p>
+) : (
+  ...
+)}
+```
+
+### Pourquoi cette correction est importante
+1. Lisibilite metier: on distingue mieux "pas de navigation" de "tracking casse".
+2. Qualite data: les sessions passives gardent une trace de contexte initial.
+3. Debug plus rapide: moins de faux diagnostics sur le module Analytics.
+
+### Impact fonctionnel attendu
+Avant:
+- Session avec duree > 0 possible sans aucune etape visible.
+
+Apres:
+- Une session correctement initialisee enregistre au moins la vue de depart.
+- Les cas reels sans navigation sont explicitement etiquetes.
+
+### Limites connues
+1. Les anciennes sessions deja stockees ne sont pas retro-migrees.
+2. Si la session ne peut pas etre creee (erreur reseau), aucun step ne peut etre attache.
+3. Le guard DETAIL sans itemName reste volontaire (evite des steps incomplets).
+
+### Validation effectuee
+1. Build logique verifie: aucun conflit de dependances React hooks sur les fichiers modifies.
+2. Controle statique: pas d'erreurs signalees sur les 2 fichiers modifies.
+3. Coherence backend conservee: syncSession et syncSessionBeacon n'ajoutent journey que si chunk non vide (comportement attendu).
+
+### Fichiers modifies
+- src/components/shared/AnalyticsProvider.jsx
+- src/features/admin/AdminAnalytics.jsx
+
+### Resume court pour validation Claude
+Correction appliquee pour supprimer l'ambiguite des sessions "vides":
+- Ajout d'une capture initiale du parcours au moment de la creation de session
+- Unification de la logique de push d'etapes
+- Message admin rendu explicite pour les sessions passives
