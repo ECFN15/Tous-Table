@@ -455,6 +455,79 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ---
 
+## 🕒 Action de Shopping Autonome — 29 Mars 2026 (18:00)
+*Expansion de la gamme Couleurs & Finitions décoratives*
+
+### ✅ Produit 36 — Rust-Oleum Chalky Finish (Peinture à la Craie)
+- **Marque** : `Rust-Oleum`
+- **Catégorie** : `Peintures & Finitions`
+- **Gamme** : `💎 PREMIUM`
+- **Programme** : `Amazon`
+- **Lien Affilié** : https://www.amazon.fr/dp/B00KHPI4QK
+- **Prix Indicatif** : 30,00€ (750ml)
+- **URL Image** : https://m.media-amazon.com/images/I/81PjT-O9oNL._AC_SL1500_.jpg
+- **Description Courte** : Peinture à base de craie pour un aspect mat poudré authentique (Style Shabby Chic / Vintage).
+- **Pourquoi on le recommande** : Pouvoir couvrant exceptionnel. S'applique directement sur la plupart des supports sans sous-couche. Très tendance pour la rénovation de commodes et buffets.
+- **Conseil Pro** : Après séchage, appliquez la "Cire de Finition Rust-Oleum" pour sceller la craie et donner une profondeur satinée à la couleur.
+
+---
+
+### ✅ Produit 37 — Libéron Peinture à la Caséine (Noir Charbon)
+- **Marque** : `Libéron`
+- **Catégorie** : `Peintures & Finitions`
+- **Gamme** : `👑 EXPERT`
+- **Programme** : `Amazon`
+- **Lien Affilié** : https://www.amazon.fr/dp/B084337HQX?th=1
+- **Prix Indicatif** : 21,90€ (500ml)
+- **URL Image** : https://m.media-amazon.com/images/I/61K5R5P5-3L._AC_SL1500_.jpg
+- **Description Courte** : Peinture de prestige à la protéine de lait pour un noir mat profond et velouté.
+- **Pourquoi on le recommande** : Le noir mat Libéron est une référence pour transformer des meubles classiques en pièces de design ultra-modernes. Solidité et opacité imbattables.
+- **Conseil Pro** : Utilisez un pinceau synthétique de qualité pour éviter les traces de reprise, car la caséine sèche rapidement.
+
+---
+
+### ✅ Produit 38 — V33 Rénovation Perfection (Cuisine & Meubles)
+- **Marque** : `V33`
+- **Catégorie** : `Peintures & Finitions`
+- **Gamme** : `⭐ ESSENTIEL`
+- **Programme** : `Amazon`
+- **Lien Affilié** : https://www.amazon.fr/dp/B09JVMNVS7
+- **Prix Indicatif** : 34,90€ (750ml)
+- **URL Image** : https://m.media-amazon.com/images/I/71X8k8Zp8UL._AC_SL1500_.jpg
+- **Description Courte** : Peinture technique ultra-résistante pour les surfaces très sollicitées.
+- **Pourquoi on le recommande** : Résiste aux taches, aux chocs et même à la chaleur. Idéal pour les plans de travail ou les tables de salle à manger.
+- **Conseil Pro** : Nettoyez bien le support avec un nettoyant à base de soude avant application pour garantir l'adhérence parfaite sans poncer.
+
+---
+
+### ✅ Produit 39 — Osmo Huile-Cire Tintée (Effet Brut 3044)
+- **Marque** : `Osmo`
+- **Catégorie** : `Peintures & Finitions`
+- **Gamme** : `👑 EXPERT`
+- **Programme** : `Amazon`
+- **Lien Affilié** : https://www.amazon.fr/dp/B00BEF43QC
+- **Prix Indicatif** : 54,30€ (750ml)
+- **URL Image** : https://m.media-amazon.com/images/I/71Y8A2W+IYL._AC_SL1500_.jpg
+- **Description Courte** : Protection invisible qui garde la couleur naturelle du bois clair sans l'effet "mouillé".
+- **Pourquoi on le recommande** : Contient un peu de pigment blanc pour compenser le jaunissement naturel de l'huile. La finition préférée des ébénistes pour le chêne clair.
+- **Conseil Pro** : Appliquez en deux couches très fines au pinceau plat en essuyant l'excédent immédiatement.
+
+---
+
+### ✅ Produit 40 — Libéron Teinte Antiquaire (Merisier / Chêne)
+- **Marque** : `Libéron`
+- **Catégorie** : `Peintures & Finitions`
+- **Gamme** : `💎 PREMIUM`
+- **Programme** : `Amazon`
+- **Lien Affilié** : https://www.amazon.fr/dp/B00EV7MCQI
+- **Prix Indicatif** : 14,90€ (500ml)
+- **URL Image** : https://m.media-amazon.com/images/I/41-A8m7kLCL._AC_SL1000_.jpg
+- **Description Courte** : Teinture traditionnelle qui pénètre le bois pour en réhausser le veinage.
+- **Pourquoi on le recommande** : Permet de changer la nuance d'un meuble décapé (ex: passer de pin à chêne foncé) tout en laissant le veinage visible.
+- **Conseil Pro** : Toujours appliquer une finition (Cire ou Vernis) après séchage complet, car la teinte seule ne protège pas contre l'eau.
+
+---
+
 ### ✅ Produit 33 — Bahco 625 Grattoir de Poche de Précision
 - **Marque** : `Bahco`
 - **Catégorie** : `Outils & Accessoires`
@@ -502,12 +575,12 @@ Howard Butcher Block Conditioner → Patines & Cires
 ```json
 {
   "inventory_status": "Ready for Admin Import",
-  "total_products": 35,
+  "total_products": 40,
   "last_audit": "2026-03-29",
   "new_batch": {
-    "count": 19,
+    "count": 24,
     "source": "Amazon.fr Autonomous Search",
-    "timestamp": "2026-03-29T17:45:00Z"
+    "timestamp": "2026-03-29T18:00:00Z"
   },
   "actions_needed": [
     "Verify affiliate tag integration for new DP links",

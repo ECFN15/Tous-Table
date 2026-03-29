@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Info } from 'lucide-react';
 import SEO from '../components/shared/SEO';
 import ShopProductCard from '../components/shop/ShopProductCard';
@@ -55,7 +55,11 @@ const FAMILIES = [
     }
 ];
 
+const RITUAL_WORDS = ['NOURRIR', 'PROTEGER', 'RESTAURER'];
+
 const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) => {
+    const [activeRitualIndex, setActiveRitualIndex] = useState(0);
+    const [typedRitualWord, setTypedRitualWord] = useState(RITUAL_WORDS[0]);
 
     useEffect(() => {
         if (setHeaderProps) {
@@ -103,6 +107,38 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
 
     }, [affiliateProducts.length]);
 
+    useEffect(() => {
+        let cancelled = false;
+        let timeoutId;
+        const currentWord = RITUAL_WORDS[activeRitualIndex];
+        let charIndex = 0;
+
+        setTypedRitualWord('');
+
+        const typeNextChar = () => {
+            if (cancelled) return;
+            setTypedRitualWord(currentWord.slice(0, charIndex));
+
+            if (charIndex <= currentWord.length) {
+                charIndex += 1;
+                timeoutId = setTimeout(typeNextChar, 70);
+                return;
+            }
+
+            timeoutId = setTimeout(() => {
+                if (cancelled) return;
+                setActiveRitualIndex(prev => (prev + 1) % RITUAL_WORDS.length);
+            }, 1200);
+        };
+
+        timeoutId = setTimeout(typeNextChar, 120);
+
+        return () => {
+            cancelled = true;
+            if (timeoutId) clearTimeout(timeoutId);
+        };
+    }, [activeRitualIndex]);
+
     const getProductsForFamily = (familyId) => {
         return affiliateProducts.filter(p => {
             const cat = p.category?.toLowerCase() || '';
@@ -135,6 +171,56 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
             {/* HERO SECTION - Cinematic Editorial Style avec WorkshopHero */}
             <section className="relative min-h-[60vh] md:min-h-[85vh] flex flex-col justify-end px-6 xl:px-12 pb-16 md:pb-24 pt-32 overflow-hidden">
                 <WorkshopHero darkMode={darkMode} />
+
+                <div className="hidden lg:block absolute left-6 xl:left-12 top-24 z-10 pointer-events-none">
+                    <div className={`w-[430px] xl:w-[520px] rounded-2xl border p-4 xl:p-5 backdrop-blur-[2px] ${darkMode ? 'border-white/8 bg-black/20' : 'border-stone-300/70 bg-white/45'}`}>
+                        <div className="flex items-center justify-between">
+                            <span className={`text-[10px] uppercase tracking-[0.28em] font-black ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
+                                Signature atelier
+                            </span>
+                            <span className={`text-[9px] uppercase tracking-[0.22em] font-black ${darkMode ? 'text-amber-400/90' : 'text-amber-700'}`}>
+                                Rituel bois
+                            </span>
+                        </div>
+
+                        <div className="mt-4 grid grid-cols-12 gap-3">
+                            <div className="col-span-4 space-y-2.5">
+                                <div className="h-8 flex items-center">
+                                    <span className={`text-[12px] uppercase tracking-[0.2em] font-black ${darkMode ? 'text-amber-300' : 'text-amber-800'}`}>
+                                        {typedRitualWord}
+                                    </span>
+                                    <span className={`ml-1 text-[12px] font-black animate-pulse ${darkMode ? 'text-amber-400/90' : 'text-amber-700/90'}`}>
+                                        |
+                                    </span>
+                                </div>
+
+                                <div className="flex flex-wrap gap-1.5">
+                                    {RITUAL_WORDS.map((word, idx) => (
+                                        <span
+                                            key={word}
+                                            className={`px-2 py-1 rounded-full text-[8px] uppercase tracking-[0.16em] font-black transition-colors duration-300 ${idx === activeRitualIndex
+                                                ? (darkMode ? 'bg-amber-400/20 text-amber-300 border border-amber-300/30' : 'bg-amber-700/15 text-amber-800 border border-amber-700/25')
+                                                : (darkMode ? 'bg-white/5 text-stone-500 border border-white/10' : 'bg-stone-200/40 text-stone-500 border border-stone-300/70')
+                                            }`}
+                                        >
+                                            {word}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="col-span-8 space-y-3">
+                                <p className={`text-[13px] leading-relaxed ${darkMode ? 'text-stone-300/85' : 'text-stone-600'}`}>
+                                    Une finition durable se joue dans la regularite du geste, pas dans la quantite de produit.
+                                </p>
+                                <div className="flex items-center gap-2.5">
+                                    <span className={`h-px flex-1 ${darkMode ? 'bg-white/10' : 'bg-stone-300/80'}`} />
+                                    <span className={`text-[9px] uppercase tracking-[0.22em] font-black ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>Materiaux testes</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
                 <div className={`absolute top-0 right-0 w-[50vw] h-[50vw] md:w-[30vw] md:h-[30vw] rounded-full blur-[100px] opacity-20 pointer-events-none ${darkMode ? 'bg-amber-500/20' : 'bg-amber-700/10'}`} />
                 
