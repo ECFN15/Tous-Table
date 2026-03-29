@@ -110,9 +110,9 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
 
     useEffect(() => {
         const currentWord = RITUAL_WORDS[activeRitualIndex];
-        const typeDelay = 115;
-        const eraseDelay = 58;
-        const holdDelay = 1300;
+        const typeDelay = 145;
+        const eraseDelay = 55;
+        const holdDelay = 2200;
         let timeoutId;
 
         if (!isDeletingRitualWord && typedRitualWord === currentWord) {
@@ -196,7 +196,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                                             style={{
                                                 display: 'inline-block',
                                                 animation: !isDeletingRitualWord && idx === arr.length - 1
-                                                    ? 'ritualLetterIn 420ms cubic-bezier(0.16,0.84,0.25,1)'
+                                                    ? 'ritualLetterIn 500ms cubic-bezier(0.16,0.84,0.25,1)'
                                                     : 'none'
                                             }}
                                         >
