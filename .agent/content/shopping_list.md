@@ -116,8 +116,9 @@
 ### ✅ Produit 14 — Star Brite Teak Oil Premium 473ml
 **ASIN confirmé : B0000AXP1T**
 🔗 https://www.amazon.fr/s?k=Star+Brite+Teak+Oil+Premium+B0000AXP1T
-🔁 Alternative (Amazon.com) : https://www.amazon.com/dp/B0000AXP1T
-👉 Lien influenceur : 
+
+👉 Lien influenceur : https://amzn.to/4rWOO7d
+👉 Lien influenceur : https://amzn.to/4tk44MO
 > Huile de teck référence — protection UV + réhydratation — pour colonnes teck Tous à Table
 
 ---
@@ -162,3 +163,54 @@
 | Star Brite Teak Oil 473ml | **B0000AXP1T** | ✅ Confirmé |
 | Rubio Monocoat Oil Plus 2C Pure | B09BVJSPSY | 🔍 À vérifier |
 | Tous les autres | — | 🔍 À trouver via les liens de recherche ci-dessus |
+
+---
+
+## ✨ Audit express & améliorations (ajoutées sans suppression)
+
+### 🧾 Check qualité rapide
+
+| Contrôle | Statut | Note |
+|---------|--------|------|
+| Structure homogène par produit | ✅ | Très propre et lisible |
+| Champ `Lien influenceur` présent | ✅ | 16/16 produits remplis |
+| ASIN confirmés visibles | ✅ | Produits critiques bien marqués |
+| Liens de recherche pour cas complexes | ✅ | Bonne stratégie pour éviter les 404 |
+| Cas particulier Produit 14 | ⚠️ | 2 liens influenceur présents (garder 1 principal + 1 backup) |
+
+### 🎯 Recommandations premium (pour pré-remplissage Admin plus fiable)
+
+> Objectif: te laisser ton format actuel, mais ajouter une couche "machine-friendly" pour automatiser la saisie plus tard.
+
+1. Ajouter un champ `Lien influenceur backup :` uniquement quand tu as 2 liens possibles.
+2. Ajouter un champ `Variante validée :` (ex: `750ml`, `Mat`, `Incolore`) pour éviter les erreurs de déclinaison en admin.
+3. Ajouter un champ `Prix cible :` (ex: `~29,90 EUR`) pour comparaison rapide lors des mises à jour.
+4. Ajouter un champ `Statut vérification :` avec `OK`, `A vérifier`, `Remplacé`.
+
+### 🧱 Bloc standard prêt à copier (pour les prochains produits)
+
+```markdown
+### 🔍 Produit XX — Nom Produit
+**ASIN confirmé :** 
+🔗 https://www.amazon.fr/
+👉 Lien influenceur : https://amzn.to/
+👉 Lien influenceur backup : 
+🏷️ Variante validée : 
+💶 Prix cible : 
+📌 Statut vérification : OK
+> Notes produit
+```
+
+### 🛠️ Ajustement conseillé pour le Produit 14 (sans supprimer l'existant)
+
+Tu as déjà deux liens influenceur, c'est bien pour la sécurité. Pour clarifier:
+
+- garder le 1er lien comme `Lien influenceur principal`
+- garder le 2e comme `Lien influenceur backup`
+
+Exemple visuel:
+
+```markdown
+👉 Lien influenceur principal : https://amzn.to/4rWOO7d
+👉 Lien influenceur backup : https://amzn.to/4tk44MO
+```
