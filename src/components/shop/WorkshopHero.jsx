@@ -54,132 +54,96 @@ const WorkshopHero = ({ darkMode = false }) => {
                 }}
             />
 
-            {/* Desktop composition sans superposition */}
-            <div className="absolute right-[2%] top-1/2 -translate-y-1/2 w-[56vw] max-w-[900px] hidden lg:block" style={{ zIndex: 2 }}>
-                <div className={`rounded-[30px] border p-4 ${darkMode ? 'border-white/5 bg-black/10' : 'border-stone-300/60 bg-white/25'}`}>
-                    <div className="grid grid-cols-12 grid-rows-6 gap-x-4 gap-y-4 h-[448px]">
+            {/* Unified Responsive Composition (6 images) */}
+            <div className="absolute top-[38%] md:top-1/2 left-1/2 md:left-auto -translate-x-1/2 md:translate-x-0 -translate-y-1/2 right-auto md:right-4 lg:right-[2%] w-[90vw] md:w-[55vw] lg:w-[56vw] max-w-[420px] md:max-w-[700px] lg:max-w-[900px]" style={{ zIndex: 2 }}>
+                <div className={`rounded-[24px] md:rounded-[30px] border p-2.5 md:p-3 lg:p-4 shadow-2xl ${darkMode ? 'border-white/5 bg-black/10' : 'border-stone-300/60 bg-white/25'}`}>
+                    {/* Top Grid: 4 images */}
+                    <div className="grid grid-cols-12 grid-rows-6 gap-x-2 md:gap-x-3 lg:gap-x-4 gap-y-2 md:gap-y-3 lg:gap-y-4 h-[260px] sm:h-[300px] md:h-[340px] lg:h-[448px]">
                         <div
                             ref={el => imagesRef.current[0] = el}
-                            className="col-span-7 row-span-3 rounded-[18px] overflow-hidden"
+                            className="col-span-7 row-span-3 rounded-[12px] md:rounded-[18px] overflow-hidden"
                         >
-                            <div className={`relative h-full w-full rounded-[18px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_16px_44px_rgba(0,0,0,0.28)]`}>
+                            <div className={`relative h-full w-full rounded-[12px] md:rounded-[18px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_16px_44px_rgba(0,0,0,0.28)]`}>
                                 <img
                                     src={WORKSHOP_IMAGES[0]}
                                     alt="Mobilier artisanal"
-                                    className="h-full w-full object-cover"
+                                    className="h-full w-full object-cover scale-100 hover:scale-105 transition-transform duration-700"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent pointer-events-none" />
                             </div>
                         </div>
 
                         <div
                             ref={el => imagesRef.current[1] = el}
-                            className="col-span-5 row-span-6 rounded-[20px] overflow-hidden"
+                            className="col-span-5 row-span-6 rounded-[14px] md:rounded-[20px] overflow-hidden"
                         >
-                            <div className={`relative h-full w-full rounded-[20px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_20px_56px_rgba(0,0,0,0.32)]`}>
+                            <div className={`relative h-full w-full rounded-[14px] md:rounded-[20px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_20px_56px_rgba(0,0,0,0.32)]`}>
                                 <img
                                     src={WORKSHOP_IMAGES[1]}
                                     alt="Atelier interieur"
-                                    className="h-full w-full object-cover"
+                                    className="h-full w-full object-cover scale-100 hover:scale-105 transition-transform duration-700"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-b from-black/12 via-transparent to-black/22" />
+                                <div className="absolute inset-0 bg-gradient-to-b from-black/12 via-transparent to-black/22 pointer-events-none" />
                             </div>
                         </div>
 
                         <div
                             ref={el => imagesRef.current[2] = el}
-                            className="col-span-3 row-span-3 rounded-[18px] overflow-hidden"
+                            className="col-span-3 row-span-3 rounded-[12px] md:rounded-[18px] overflow-hidden"
                         >
-                            <div className={`relative h-full w-full rounded-[18px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_14px_36px_rgba(0,0,0,0.24)]`}>
+                            <div className={`relative h-full w-full rounded-[12px] md:rounded-[18px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_14px_36px_rgba(0,0,0,0.24)]`}>
                                 <img
                                     src={WORKSHOP_IMAGES[2]}
                                     alt="Details bois"
-                                    className="h-full w-full object-cover"
+                                    className="h-full w-full object-cover scale-100 hover:scale-105 transition-transform duration-700"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/10" />
+                                <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/10 pointer-events-none" />
                             </div>
                         </div>
 
                         <div
                             ref={el => imagesRef.current[3] = el}
-                            className="col-span-4 row-span-3 rounded-[17px] overflow-hidden"
+                            className="col-span-4 row-span-3 rounded-[10px] md:rounded-[17px] overflow-hidden"
                         >
-                            <div className={`relative h-full w-full rounded-[17px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_12px_28px_rgba(0,0,0,0.2)]`}>
+                            <div className={`relative h-full w-full rounded-[10px] md:rounded-[17px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_12px_28px_rgba(0,0,0,0.2)]`}>
                                 <img
                                     src={WORKSHOP_IMAGES[3]}
                                     alt="Bois et texture"
-                                    className="h-full w-full object-cover"
+                                    className="h-full w-full object-cover scale-100 hover:scale-105 transition-transform duration-700"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/16 via-transparent to-transparent" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/16 via-transparent to-transparent pointer-events-none" />
                             </div>
                         </div>
                     </div>
 
-                    <div className="mt-4 grid grid-cols-12 gap-4">
+                    {/* Bottom Grid: 2 images */}
+                    <div className="mt-2 md:mt-3 lg:mt-4 grid grid-cols-12 gap-2 md:gap-3 lg:gap-4">
                         <div
                             ref={el => imagesRef.current[4] = el}
-                            className="col-span-5 h-[152px] rounded-[16px] overflow-hidden"
+                            className="col-span-5 h-[90px] sm:h-[100px] md:h-[110px] lg:h-[152px] rounded-[10px] md:rounded-[16px] overflow-hidden"
                         >
-                            <div className={`relative h-full w-full rounded-[16px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_12px_28px_rgba(0,0,0,0.2)]`}>
+                            <div className={`relative h-full w-full rounded-[10px] md:rounded-[16px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_12px_28px_rgba(0,0,0,0.2)]`}>
                                 <img
                                     src={WORKSHOP_IMAGES[4]}
                                     alt="Salon atelier"
-                                    className="h-full w-full object-cover"
+                                    className="h-full w-full object-cover scale-100 hover:scale-105 transition-transform duration-700"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/16 via-transparent to-transparent" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/16 via-transparent to-transparent pointer-events-none" />
                             </div>
                         </div>
 
                         <div
                             ref={el => imagesRef.current[5] = el}
-                            className="col-span-7 h-[152px] rounded-[16px] overflow-hidden"
+                            className="col-span-7 h-[90px] sm:h-[100px] md:h-[110px] lg:h-[152px] rounded-[10px] md:rounded-[16px] overflow-hidden"
                         >
-                            <div className={`relative h-full w-full rounded-[16px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_12px_28px_rgba(0,0,0,0.2)]`}>
+                            <div className={`relative h-full w-full rounded-[10px] md:rounded-[16px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_12px_28px_rgba(0,0,0,0.2)]`}>
                                 <img
                                     src={WORKSHOP_IMAGES[5]}
                                     alt="Chambre meublee"
-                                    className="h-full w-full object-cover"
+                                    className="h-full w-full object-cover scale-100 hover:scale-105 transition-transform duration-700"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/16 via-transparent to-transparent" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/16 via-transparent to-transparent pointer-events-none" />
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Mobile composition sans superposition */}
-            <div className="absolute right-4 top-[54%] -translate-y-1/2 w-[46vw] max-w-[240px] lg:hidden" style={{ zIndex: 2 }}>
-                <div className={`rounded-2xl border p-2.5 ${darkMode ? 'border-white/8 bg-black/20' : 'border-stone-300/70 bg-white/30'}`}>
-                    <div className="grid grid-cols-2 gap-2.5">
-                        <div
-                            ref={el => imagesRef.current[6] = el}
-                            className="col-span-2 aspect-[16/10] rounded-xl overflow-hidden"
-                        >
-                            <img
-                                src={WORKSHOP_IMAGES[1]}
-                                alt="Atelier interieur"
-                                className={`w-full h-full object-cover border ${darkMode ? 'border-stone-800' : 'border-stone-200'}`}
-                            />
-                        </div>
-                        <div
-                            ref={el => imagesRef.current[7] = el}
-                            className="aspect-[4/3] rounded-xl overflow-hidden"
-                        >
-                            <img
-                                src={WORKSHOP_IMAGES[0]}
-                                alt="Mobilier artisanal"
-                                className={`w-full h-full object-cover border ${darkMode ? 'border-stone-800' : 'border-stone-200'}`}
-                            />
-                        </div>
-                        <div
-                            ref={el => imagesRef.current[8] = el}
-                            className="aspect-[4/3] rounded-xl overflow-hidden"
-                        >
-                            <img
-                                src={WORKSHOP_IMAGES[3]}
-                                alt="Bois et texture"
-                                className={`w-full h-full object-cover border ${darkMode ? 'border-stone-800' : 'border-stone-200'}`}
-                            />
                         </div>
                     </div>
                 </div>

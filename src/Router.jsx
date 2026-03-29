@@ -85,12 +85,12 @@ const AppRouter = ({
         { id: 'cutting_boards', label: 'Planches', icon: LayoutPanelTop },
         { id: 'studio', label: 'Studio', icon: Palette },
         { id: 'homepage', label: 'Accueil', icon: Home },
-        { id: 'orders', label: 'Ventes', icon: Package },
+        { id: 'orders', label: 'Commandes', icon: Package },
         { id: 'shop', label: 'Boutique', icon: ShoppingBag },
-        { id: 'users', label: 'Clients', icon: Users },
-        { id: 'ip_manager', label: 'Sécurité', icon: Globe },
+        { id: 'users', label: 'Admin', icon: Users },
+        { id: 'ip_manager', label: 'Session Exclu', icon: Globe },
         { id: 'seo', label: 'SEO', icon: Share2 },
-        { id: 'newsletter', label: 'Infos', icon: Mail },
+        { id: 'newsletter', label: 'Newsletter', icon: Mail },
         { id: 'payment_settings', label: 'Paiement', icon: CreditCard },
     ];
 

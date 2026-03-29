@@ -168,7 +168,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
             />
 
             {/* HERO SECTION - Cinematic Editorial Style avec WorkshopHero */}
-            <section className="relative min-h-[60vh] md:min-h-[85vh] flex flex-col justify-end px-6 xl:px-12 pb-16 md:pb-24 pt-32 overflow-hidden">
+            <section className="relative min-h-[95vh] sm:min-h-[85vh] flex flex-col justify-end px-6 xl:px-12 pb-12 sm:pb-16 md:pb-24 pt-48 sm:pt-40 md:pt-32 overflow-hidden">
                 <WorkshopHero darkMode={darkMode} />
 
                 <div className="hidden lg:block absolute left-6 xl:left-12 top-10 z-10 pointer-events-none">
@@ -228,12 +228,12 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                 
                 <div className={`absolute top-0 right-0 w-[50vw] h-[50vw] md:w-[30vw] md:h-[30vw] rounded-full blur-[100px] opacity-20 pointer-events-none ${darkMode ? 'bg-amber-500/20' : 'bg-amber-700/10'}`} />
                 
-                <div className="max-w-[1920px] mx-auto w-full space-y-6 md:space-y-10 relative z-10">
-                    <h1 className={`hero-reveal font-serif text-6xl md:text-8xl xl:text-[11.5rem] leading-[0.85] tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                <div className="max-w-[1920px] mx-auto w-full space-y-5 md:space-y-10 relative z-10 sm:mt-0">
+                    <h1 className={`hero-reveal font-serif text-[3.8rem] sm:text-6xl md:text-8xl xl:text-[11.5rem] leading-[0.85] tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>
                         Le Soin<br />du Bois.
                     </h1>
-                    <div className="hero-reveal max-w-2xl">
-                        <p className={`text-base md:text-lg xl:text-xl leading-relaxed ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
+                    <div className="hero-reveal max-w-full md:max-w-2xl">
+                        <p className={`text-base md:text-lg xl:text-xl leading-relaxed ${darkMode ? 'text-stone-400' : 'text-stone-500'} w-[90%] md:w-full`}>
                             Le bois massif est vivant. Protégez, nourrissez et restaurez vos créations avec notre sélection pointue des meilleurs produits d'entretien. Exclusivement testés et validés par l'atelier.
                         </p>
                     </div>
