@@ -66,12 +66,12 @@ const WorkshopHero = ({ darkMode = false }) => {
             />
 
             {/* Desktop composition sans superposition */}
-            <div className="absolute right-[3%] top-1/2 -translate-y-1/2 w-[51vw] max-w-[760px] hidden lg:block" style={{ zIndex: 2 }}>
-                <div className={`rounded-[30px] border p-4 ${darkMode ? 'border-white/5 bg-black/10' : 'border-stone-300/60 bg-white/25'}`}>
-                    <div className="grid grid-cols-12 grid-rows-6 gap-4 h-[420px]">
+            <div className="absolute right-[2%] top-1/2 -translate-y-1/2 w-[56vw] max-w-[900px] hidden lg:block" style={{ zIndex: 2 }}>
+                <div className={`rounded-[30px] border p-5 ${darkMode ? 'border-white/5 bg-black/10' : 'border-stone-300/60 bg-white/25'}`}>
+                    <div className="grid grid-cols-12 grid-rows-6 gap-5 h-[470px]">
                         <div
                             ref={el => imagesRef.current[0] = el}
-                            className="col-span-6 row-span-3 rounded-[18px] overflow-hidden"
+                            className="col-span-7 row-span-3 rounded-[18px] overflow-hidden"
                         >
                             <div className={`relative h-full w-full rounded-[18px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_16px_44px_rgba(0,0,0,0.28)]`}>
                                 <img
@@ -85,7 +85,7 @@ const WorkshopHero = ({ darkMode = false }) => {
 
                         <div
                             ref={el => imagesRef.current[1] = el}
-                            className="col-span-6 row-span-6 rounded-[20px] overflow-hidden"
+                            className="col-span-5 row-span-6 rounded-[20px] overflow-hidden"
                         >
                             <div className={`relative h-full w-full rounded-[20px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_20px_56px_rgba(0,0,0,0.32)]`}>
                                 <img
@@ -113,9 +113,9 @@ const WorkshopHero = ({ darkMode = false }) => {
 
                         <div
                             ref={el => imagesRef.current[3] = el}
-                            className="col-span-3 row-span-3 rounded-[18px] overflow-hidden"
+                            className="col-span-4 row-span-3 rounded-[16px] overflow-hidden"
                         >
-                            <div className={`relative h-full w-full rounded-[18px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_14px_34px_rgba(0,0,0,0.22)]`}>
+                            <div className={`relative h-full w-full rounded-[16px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_12px_28px_rgba(0,0,0,0.2)]`}>
                                 <img
                                     src={WORKSHOP_IMAGES[3]}
                                     alt="Bois et texture"
