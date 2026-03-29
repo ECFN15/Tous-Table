@@ -151,7 +151,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
             </section>
 
             {/* TOC NAV - Hairline Architecture */}
-            <section className={`sticky top-[4.5rem] md:top-[88px] z-40 border-y backdrop-blur-2xl ${darkMode ? 'bg-[#0a0a0a]/80 border-white/5' : 'bg-[#FAFAF9]/90 border-stone-200/60'}`}>
+            <section className={`border-b ${darkMode ? 'bg-[#0a0a0a] border-white/5' : 'bg-[#FAFAF9] border-stone-200/60'}`}>
                 <div className="max-w-[1920px] mx-auto px-6 xl:px-12 py-3 md:py-4">
                     <div className="flex gap-4 md:gap-8 overflow-x-auto scrollbar-none pb-1 items-center">
                         <span className={`text-[9px] font-black uppercase tracking-widest shrink-0 ${darkMode ? 'text-stone-600' : 'text-stone-400'}`}>Aller à :</span>
@@ -164,7 +164,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                                     onClick={() => {
                                         const el = document.getElementById(`fam-${family.id}`);
                                         if (el) {
-                                            const y = el.getBoundingClientRect().top + window.scrollY - 150;
+                                            const y = el.getBoundingClientRect().top + window.scrollY - 100;
                                             window.scrollTo({ top: y, behavior: 'smooth' });
                                         }
                                     }}
@@ -189,7 +189,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                             <div className="max-w-[1920px] mx-auto flex flex-col lg:flex-row">
                                 
                                 {/* LEFT : Sticky Info (Editorial) */}
-                                <div className={`lg:w-[35%] xl:w-[30%] lg:border-r ${darkMode ? 'border-white/5' : 'border-stone-200/60'} p-6 md:p-12 lg:sticky lg:top-[140px] lg:h-[calc(100vh-140px)] lg:overflow-y-auto scrollbar-none flex flex-col justify-between`}>
+                                <div className={`lg:w-[35%] xl:w-[30%] lg:border-r ${darkMode ? 'border-white/5' : 'border-stone-200/60'} p-6 md:p-12 lg:sticky lg:top-[88px] lg:h-[calc(100vh-88px)] lg:overflow-y-auto scrollbar-none flex flex-col justify-between`}>
                                     <div className="space-y-6 md:space-y-10 lg:pb-12">
                                         <div className="flex items-center gap-4">
                                             <span className={`text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>

@@ -27,11 +27,11 @@ service cloud.firestore {
     function isValidAffiliateProduct() {
       let data = request.resource.data;
       return
-        data.name is string && data.name.size() > 0 && data.name.size() < 200 &&
+        data.name is string && data.name.size() > 0 && data.name.size() < 255 &&
         data.brand is string && data.brand.size() > 0 &&
         data.category is string && data.category.size() > 0 &&
         data.tier is string && data.tier in ['essentiel', 'premium', 'expert'] &&
-        (!("price" in data) || (data.price is number && data.price >= 0)) &&
+        (data.price == null || (data.price is number && data.price >= 0)) &&
         data.affiliateUrl is string && data.affiliateUrl.size() > 5 &&
         data.affiliateProgram is string && data.affiliateProgram.size() > 0 &&
         data.status is string && data.status in ['published', 'draft'];

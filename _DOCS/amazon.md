@@ -16,6 +16,9 @@
 7. [Obligations légales](#7-obligations-légales)
 8. [Journal des interventions](#8-journal-des-interventions)
 9. [Todo & Prochaines étapes](#9-todo--prochaines-étapes)
+10. [Plan de design ShopView.jsx](#10-plan-de-design-shopviewjsx--brief-pour-gemini)
+11. [Implémentation réelle (Shop en production)](#11-29-mars-2026--implementation-reelle-shop-en-production-ui)
+12. [Raffinements UI & Sécurité](#12-29-mars-2026--rafinements-ui--sécurité-admin--client)
 
 ---
 
@@ -845,4 +848,41 @@ Implante :
 
 - La logique interne `filter: 'auction' | 'fixed'` existe encore dans `GalleryView` pour ne pas casser le comportement data historique, mais l'UI Encheres n'est plus exposee a l'utilisateur.
 - Si objectif futur = suppression totale du mode enchere, il faudra faire une phase dediee de decommission (UI + routing + logique metier + composants detail/timer + admin).
+
+---
+
+## 12. 29 mars 2026 — Rafinements UI & Sécurité (Admin & Client)
+
+Objectif exécuté : Fiabiliser l'administration de la boutique et fluidifier l'expérience utilisateur sur la page client "L'Atelier".
+
+### 12.1 Sécurité & Permissions (Firestore)
+
+**Fichier :** `firestore.rules`
+
+Mises à jour critiques de la fonction `isValidAffiliateProduct()` pour éviter les erreurs "Missing or insufficient permissions" lors de la saisie :
+- **Champ `price` :** Autorise désormais la valeur `null` (champ optionnel dans le formulaire admin).
+- **Champ `name` :** Augmentation de la limite de caractères à 255 (pour supporter les titres Amazon longs).
+- **Validation `tier` :** Validation stricte sur `essentiel`, `premium` ou `expert`.
+
+### 12.2 Administration de la Boutique
+
+**Fichier :** `src/features/admin/AdminShop.jsx`
+
+- **Synchronisation du Référentiel :** Mise à jour de la constante `CATEGORIES` pour correspondre exactement au fichier `shopping_list.md` (ex: "Huiles & Nourrissants").
+- **Correctif Dark Mode :** Application de la classe `[&>option]:bg-stone-900` sur les éléments `<select>` pour corriger le problème de fond blanc illisible sur les listes déroulantes en mode sombre.
+- **Gestion des États :** Clarification visuelle des toggles "Publié" (visibilité client) et "Mis en avant" (priorité d'affichage).
+
+### 12.3 Expérience Client (UI/UX)
+
+**Fichier :** `src/pages/ShopView.jsx`
+
+- **Correction de la Navigation Interne :** Suppression du comportement `sticky` sur la barre "Aller à" (TOC). Elle suivait mal le scroll et masquait les titres de section. Elle défile désormais naturellement avec le contenu.
+- **Ajustement des Marges :** Modification de l'offset `top` des barres d'informations latérales (Editorial Info) à `88px` (au lieu de `140px`) pour un alignement parfait avec le header principal lors du scroll.
+- **Tri par Défaut :** Les produits sont triés par `tier` (Expert > Premium > Essentiel) puis par le statut "Mis en avant".
+
+### 12.4 État du Projet
+
+- **Admin :** Fonctionnel et sécurisé pour la saisie massive de données.
+- **Client :** Navigation fluide et design premium préservé sans bugs d'overlap.
+- **Prochaine Étape :** Poursuivre la saisie des produits depuis `shopping_list.md`.
 

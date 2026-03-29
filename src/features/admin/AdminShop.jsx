@@ -13,9 +13,9 @@ import {
 // ─── CONSTANTES ───────────────────────────────────────────────────────────────
 
 const CATEGORIES = [
+    { id: 'huiles',         label: 'Huiles & Nourrissants' },
     { id: 'patines_cires',  label: 'Patines & Cires' },
     { id: 'peintures',      label: 'Peintures & Finitions' },
-    { id: 'huiles',         label: 'Huiles & Protection' },
     { id: 'resines',        label: 'Résines & Effets' },
     { id: 'preparation',    label: 'Préparation & Décapage' },
     { id: 'outils',         label: 'Outils & Accessoires' },
