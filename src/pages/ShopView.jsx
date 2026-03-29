@@ -153,7 +153,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
             />
 
             {/* HERO SECTION - Cinematic Editorial Style avec WorkshopHero */}
-            <section className="relative min-h-[100dvh] sm:min-h-[85vh] flex flex-col justify-between md:justify-end px-6 xl:px-12 pb-12 sm:pb-16 md:pb-24 pt-[75px] md:pt-[250px] overflow-hidden">
+            <section className="relative min-h-[100dvh] sm:min-h-[85vh] flex flex-col justify-between md:justify-end px-6 xl:px-12 pb-12 sm:pb-16 md:pb-24 pt-3 sm:pt-6 md:pt-[250px] overflow-hidden">
                 <WorkshopHero darkMode={darkMode} />
 
                 {/* Top Section - Rituel Bois */}
@@ -219,7 +219,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                         Le Soin<br />du Bois.
                     </h1>
                     <div className="hero-reveal w-[90%] sm:w-[85%] md:w-[45%] lg:w-[40%] xl:w-full xl:max-w-2xl">
-                        <p className={`text-base md:text-md lg:text-lg xl:text-xl leading-relaxed ${darkMode ? 'text-stone-400' : 'text-stone-500'} w-full`}>
+                        <p className={`text-sm md:text-base lg:text-lg xl:text-xl leading-relaxed ${darkMode ? 'text-stone-400' : 'text-stone-500'} w-full`}>
                             Le bois massif est vivant. Protégez, nourrissez et restaurez vos créations avec notre sélection pointue des meilleurs produits d'entretien. Exclusivement testés et validés par l'atelier.
                         </p>
                     </div>
