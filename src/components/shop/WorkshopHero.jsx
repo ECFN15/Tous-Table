@@ -55,7 +55,7 @@ const WorkshopHero = ({ darkMode = false }) => {
             />
 
             {/* Desktop composition sans superposition */}
-            <div className="absolute right-[2%] top-[46%] -translate-y-1/2 w-[56vw] max-w-[900px] hidden lg:block" style={{ zIndex: 2 }}>
+            <div className="absolute right-[2%] top-1/2 -translate-y-1/2 w-[56vw] max-w-[900px] hidden lg:block" style={{ zIndex: 2 }}>
                 <div className={`rounded-[30px] border p-4 ${darkMode ? 'border-white/5 bg-black/10' : 'border-stone-300/60 bg-white/25'}`}>
                     <div className="grid grid-cols-12 grid-rows-6 gap-x-4 gap-y-4 h-[448px]">
                         <div
@@ -118,7 +118,7 @@ const WorkshopHero = ({ darkMode = false }) => {
                     <div className="mt-4 grid grid-cols-12 gap-4">
                         <div
                             ref={el => imagesRef.current[4] = el}
-                            className="col-span-5 h-[132px] rounded-[16px] overflow-hidden"
+                            className="col-span-5 h-[152px] rounded-[16px] overflow-hidden"
                         >
                             <div className={`relative h-full w-full rounded-[16px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_12px_28px_rgba(0,0,0,0.2)]`}>
                                 <img
@@ -132,7 +132,7 @@ const WorkshopHero = ({ darkMode = false }) => {
 
                         <div
                             ref={el => imagesRef.current[5] = el}
-                            className="col-span-7 h-[132px] rounded-[16px] overflow-hidden"
+                            className="col-span-7 h-[152px] rounded-[16px] overflow-hidden"
                         >
                             <div className={`relative h-full w-full rounded-[16px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_12px_28px_rgba(0,0,0,0.2)]`}>
                                 <img

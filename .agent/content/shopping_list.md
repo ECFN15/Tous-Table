@@ -483,17 +483,17 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ---
 
-### ✅ Produit 35 — Jeu de 3 Racloirs Kirschen Premium
+### ✅ Produit 35 — Kit Premium Kirschen (Affiloir + 3 Racloirs + Étui)
 - **Marque** : `Kirschen`
 - **Catégorie** : `Outils & Accessoires`
 - **Gamme** : `👑 EXPERT`
 - **Programme** : `Amazon`
-- **Lien Affilié** : https://www.amazon.fr/dp/B00DPI5NE6
-- **Prix Indicatif** : 17,11€
-- **URL Image** : https://m.media-amazon.com/images/I/71Xm06f6p2L._AC_SL1500_.jpg
-- **Description Courte** : Set complet de 3 formes (rectangulaire, col de cygne, ovale) en acier d'ébéniste.
-- **Pourquoi on le recommande** : Couvre 100% des besoins : du grand plateau de table aux petites sculptures concaves/convexes. Qualité "Two Cherries" exceptionnelle.
-- **Conseil Pro** : Rangez-les toujours dans leur étui ; si les arêtes s'entrechoquent, le morfil délicat sera instantanément détruit.
+- **Lien Affilié** : https://www.amazon.fr/dp/B0FBM71TCC
+- **Prix Indicatif** : 55,16€
+- **URL Image** : https://m.media-amazon.com/images/I/71pE7f0V6HL._AC_SL1500_.jpg
+- **Description Courte** : Coffret d'ébéniste de luxe comprenant 3 racloirs d'acier, un affiloir poli et un étui en cuir véritable.
+- **Pourquoi on le recommande** : Kit "tout-en-un" qui contient l'affiloir (indispensable pour créer le morfil). Idéal pour ceux qui n'ont pas encore l'équipement pour entretenir leurs lames.
+- **Conseil Pro** : Utilisez l'affiloir fourni avec une goutte d'huile pour écraser délicatement le métal sur le chant, créant ainsi le crochet de coupe qui produira des copeaux parfaits.
 
 ---
 
