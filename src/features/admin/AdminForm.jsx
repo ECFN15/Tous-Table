@@ -461,7 +461,7 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
               <div className="relative space-y-2">
                 <div className="relative">
                   <select
-                    className={`w-full p-4 rounded-xl border-none font-bold outline-none text-sm focus:ring-4 transition-all shadow-inner appearance-none cursor-pointer ${darkMode ? 'bg-stone-900 text-white ring-stone-700' : 'bg-stone-50 text-stone-900 ring-stone-100'}`}
+                    className={`w-full p-4 rounded-xl border-none font-bold outline-none text-sm focus:ring-4 transition-all shadow-inner appearance-none cursor-pointer ${darkMode ? 'bg-stone-900 text-white ring-stone-700 [&>option]:bg-stone-900' : 'bg-stone-50 text-stone-900 ring-stone-100'}`}
                     value={isCustomMaterial ? "Autre" : formData.material}
                     onChange={e => {
                       const val = e.target.value;

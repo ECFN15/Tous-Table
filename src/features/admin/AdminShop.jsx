@@ -134,7 +134,7 @@ const ProductForm = ({ editData, onSave, onCancel, darkMode }) => {
 
     const inputCls = `w-full px-4 py-3 rounded-xl text-sm border transition-colors outline-none focus:ring-2 ${
         darkMode
-            ? 'bg-white/5 border-white/10 text-white placeholder-stone-600 focus:ring-white/20 focus:border-white/20'
+            ? 'bg-white/5 border-white/10 text-white placeholder-stone-600 focus:ring-white/20 focus:border-white/20 [&>option]:bg-stone-900'
             : 'bg-stone-50 border-stone-200 text-stone-900 placeholder-stone-400 focus:ring-stone-900/10 focus:border-stone-400'
     }`;
     const labelCls = `block text-[10px] font-black uppercase tracking-widest mb-1.5 ${darkMode ? 'text-stone-500' : 'text-stone-400'}`;
