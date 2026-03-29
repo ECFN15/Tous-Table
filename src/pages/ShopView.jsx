@@ -174,9 +174,9 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                 <div className="hidden lg:block absolute left-6 xl:left-12 top-10 z-10 pointer-events-none">
                     <style>{`
                         @keyframes ritualLetterIn {
-                            0% { opacity: 0; filter: blur(7px); transform: translateY(8px); }
-                            65% { opacity: 1; filter: blur(1px); transform: translateY(0); }
-                            100% { opacity: 1; filter: blur(0); transform: translateY(0); }
+                            0% { opacity: 0; filter: blur(5px); transform: translateY(7px) scale(0.985); }
+                            55% { opacity: 1; filter: blur(1px); transform: translateY(0) scale(1); }
+                            100% { opacity: 1; filter: blur(0); transform: translateY(0) scale(1); }
                         }
                     `}</style>
                     <div className="space-y-7">
@@ -196,7 +196,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                                             style={{
                                                 display: 'inline-block',
                                                 animation: !isDeletingRitualWord && idx === arr.length - 1
-                                                    ? 'ritualLetterIn 280ms cubic-bezier(0.22,1,0.36,1)'
+                                                    ? 'ritualLetterIn 420ms cubic-bezier(0.16,0.84,0.25,1)'
                                                     : 'none'
                                             }}
                                         >
