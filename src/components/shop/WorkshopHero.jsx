@@ -2,68 +2,48 @@ import React, { useRef } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 
-// Images de l'atelier
+// Selection d'images plus coherentes avec l'univers atelier
 const WORKSHOP_IMAGES = [
-    'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1567016432779-094069958ea5?auto=format&fit=crop&w=1400&q=80',
+    'https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?auto=format&fit=crop&w=1800&q=80',
+    'https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?auto=format&fit=crop&w=1400&q=80',
+    'https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?auto=format&fit=crop&w=1400&q=80',
 ];
 
 const WorkshopHero = ({ darkMode = false }) => {
     const containerRef = useRef(null);
     const imagesRef = useRef([]);
-    const particlesRef = useRef(null);
-
-    const generateParticles = () => {
-        const particles = [];
-        for (let i = 0; i < 25; i++) {
-            particles.push({
-                id: i,
-                x: Math.random() * 100,
-                y: Math.random() * 100,
-                size: Math.random() * 2 + 1,
-                duration: Math.random() * 3 + 2,
-                delay: Math.random() * 2,
-            });
-        }
-        return particles;
-    };
-
-    const particles = generateParticles();
 
     useGSAP(() => {
         const ctx = gsap.context(() => {
-            // Animation d'entrée simple sans rotation
-            imagesRef.current.forEach((img, index) => {
-                if (!img) return;
-                
-                gsap.fromTo(img, 
-                    { opacity: 0, y: 30 },
-                    { 
-                        opacity: 1, 
-                        y: 0,
-                        duration: 0.8,
-                        delay: 0.2 + (index * 0.1),
-                        ease: "power2.out"
-                    }
-                );
-            });
+            const cards = imagesRef.current.filter(Boolean);
 
-            // Animation des particules
-            const particleElements = particlesRef.current?.children;
-            if (particleElements) {
-                Array.from(particleElements).forEach((particle, i) => {
-                    gsap.to(particle, {
-                        y: "-=80",
-                        opacity: 0,
-                        duration: particles[i]?.duration || 3,
-                        delay: particles[i]?.delay || 0,
-                        ease: "power1.out",
-                        repeat: -1,
-                        repeatDelay: Math.random() * 2
-                    });
-                });
-            }
+            gsap.fromTo(
+                cards,
+                { opacity: 0, y: 42, scale: 1.04 },
+                {
+                    opacity: 1,
+                    y: 0,
+                    scale: 1,
+                    duration: 1.25,
+                    stagger: 0.12,
+                    delay: 0.1,
+                    ease: 'power4.out'
+                }
+            );
+
+            gsap.fromTo(
+                '.atelier-hud',
+                { opacity: 0, y: 18 },
+                {
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.85,
+                    delay: 0.45,
+                    stagger: 0.08,
+                    ease: 'power3.out'
+                }
+            );
         }, containerRef);
 
         return () => ctx.revert();
@@ -75,67 +55,120 @@ const WorkshopHero = ({ darkMode = false }) => {
             ref={containerRef}
             className="absolute inset-0 overflow-hidden pointer-events-none"
         >
-            {/* Zone de particules */}
-            <div 
-                ref={particlesRef}
-                className="absolute inset-0"
-                style={{ zIndex: 1 }}
-            >
-                {particles.map((p) => (
-                    <div
-                        key={p.id}
-                        className={`absolute rounded-full ${darkMode ? 'bg-amber-500/20' : 'bg-amber-700/15'}`}
-                        style={{
-                            left: `${p.x}%`,
-                            top: `${p.y}%`,
-                            width: `${p.size}px`,
-                            height: `${p.size}px`,
-                        }}
-                    />
-                ))}
+            <div className={`absolute inset-0 ${darkMode ? 'bg-[radial-gradient(circle_at_77%_44%,rgba(245,158,11,0.16),transparent_52%)]' : 'bg-[radial-gradient(circle_at_77%_44%,rgba(180,83,9,0.16),transparent_52%)]'}`} />
+
+            {/* Grain subtil pour eviter la platitude */}
+            <div
+                className="absolute inset-0 opacity-[0.07]"
+                style={{
+                    backgroundImage: 'repeating-linear-gradient(0deg, rgba(255,255,255,0.2) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(255,255,255,0.12) 0 1px, transparent 1px 4px)'
+                }}
+            />
+
+            {/* Desktop composition sans superposition */}
+            <div className="absolute right-[3%] top-1/2 -translate-y-1/2 w-[51vw] max-w-[760px] hidden lg:block" style={{ zIndex: 2 }}>
+                <div className={`rounded-[30px] border p-4 ${darkMode ? 'border-white/5 bg-black/10' : 'border-stone-300/60 bg-white/25'}`}>
+                    <div className="grid grid-cols-12 grid-rows-6 gap-4 h-[420px]">
+                        <div
+                            ref={el => imagesRef.current[0] = el}
+                            className="col-span-6 row-span-3 rounded-[18px] overflow-hidden"
+                        >
+                            <div className={`relative h-full w-full rounded-[18px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_16px_44px_rgba(0,0,0,0.28)]`}>
+                                <img
+                                    src={WORKSHOP_IMAGES[0]}
+                                    alt="Mobilier artisanal"
+                                    className="h-full w-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
+                            </div>
+                        </div>
+
+                        <div
+                            ref={el => imagesRef.current[1] = el}
+                            className="col-span-6 row-span-6 rounded-[20px] overflow-hidden"
+                        >
+                            <div className={`relative h-full w-full rounded-[20px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_20px_56px_rgba(0,0,0,0.32)]`}>
+                                <img
+                                    src={WORKSHOP_IMAGES[1]}
+                                    alt="Atelier interieur"
+                                    className="h-full w-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-b from-black/12 via-transparent to-black/22" />
+                            </div>
+                        </div>
+
+                        <div
+                            ref={el => imagesRef.current[2] = el}
+                            className="col-span-3 row-span-3 rounded-[18px] overflow-hidden"
+                        >
+                            <div className={`relative h-full w-full rounded-[18px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_14px_36px_rgba(0,0,0,0.24)]`}>
+                                <img
+                                    src={WORKSHOP_IMAGES[2]}
+                                    alt="Details bois"
+                                    className="h-full w-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/10" />
+                            </div>
+                        </div>
+
+                        <div
+                            ref={el => imagesRef.current[3] = el}
+                            className="col-span-3 row-span-3 rounded-[18px] overflow-hidden"
+                        >
+                            <div className={`relative h-full w-full rounded-[18px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_14px_34px_rgba(0,0,0,0.22)]`}>
+                                <img
+                                    src={WORKSHOP_IMAGES[3]}
+                                    alt="Bois et texture"
+                                    className="h-full w-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/16 via-transparent to-transparent" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-3 flex items-center justify-between">
+                        <span className={`atelier-hud text-[9px] uppercase tracking-[0.28em] font-black ${darkMode ? 'text-stone-300/85' : 'text-stone-600'}`}>
+                            Bois vivant
+                        </span>
+                        <span className={`atelier-hud rounded-full px-4 py-2 text-[9px] uppercase tracking-[0.24em] font-black ${darkMode ? 'bg-black/55 border border-white/10 text-amber-300' : 'bg-white/85 border border-stone-300 text-amber-800'}`}>
+                            Atelier selection
+                        </span>
+                    </div>
+                </div>
             </div>
 
-            {/* Grille structurée style Midjourney - PAS DE ROTATION */}
-            <div className="absolute right-[2%] top-1/2 -translate-y-1/2 w-[50vw] max-w-[700px]" style={{ zIndex: 2 }}>
-                <div className="grid grid-cols-2 grid-rows-2 gap-3 md:gap-4 aspect-square">
-                    {/* Image 1 - Top Left */}
-                    <div
-                        ref={el => imagesRef.current[0] = el}
-                        className="relative overflow-hidden rounded-lg"
-                    >
-                        <div className={`relative w-full h-full overflow-hidden rounded-lg border ${darkMode ? 'border-stone-800' : 'border-stone-200'}`}>
-                            <img 
-                                src={WORKSHOP_IMAGES[0]} 
-                                alt="Outils d'atelier"
-                                className="w-full h-full object-cover"
+            {/* Mobile composition sans superposition */}
+            <div className="absolute right-4 top-[54%] -translate-y-1/2 w-[46vw] max-w-[240px] lg:hidden" style={{ zIndex: 2 }}>
+                <div className={`rounded-2xl border p-2.5 ${darkMode ? 'border-white/8 bg-black/20' : 'border-stone-300/70 bg-white/30'}`}>
+                    <div className="grid grid-cols-2 gap-2.5">
+                        <div
+                            ref={el => imagesRef.current[4] = el}
+                            className="col-span-2 aspect-[16/10] rounded-xl overflow-hidden"
+                        >
+                            <img
+                                src={WORKSHOP_IMAGES[1]}
+                                alt="Atelier interieur"
+                                className={`w-full h-full object-cover border ${darkMode ? 'border-stone-800' : 'border-stone-200'}`}
                             />
                         </div>
-                    </div>
-
-                    {/* Image 2 - Top Right + Bottom Right (span 2 rows) */}
-                    <div
-                        ref={el => imagesRef.current[1] = el}
-                        className="relative row-span-2 overflow-hidden rounded-lg"
-                    >
-                        <div className={`relative w-full h-full overflow-hidden rounded-lg border ${darkMode ? 'border-stone-800' : 'border-stone-200'}`}>
-                            <img 
-                                src={WORKSHOP_IMAGES[1]} 
-                                alt="Bois massif"
-                                className="w-full h-full object-cover"
+                        <div
+                            ref={el => imagesRef.current[5] = el}
+                            className="aspect-[4/3] rounded-xl overflow-hidden"
+                        >
+                            <img
+                                src={WORKSHOP_IMAGES[0]}
+                                alt="Mobilier artisanal"
+                                className={`w-full h-full object-cover border ${darkMode ? 'border-stone-800' : 'border-stone-200'}`}
                             />
                         </div>
-                    </div>
-
-                    {/* Image 3 - Bottom Left */}
-                    <div
-                        ref={el => imagesRef.current[2] = el}
-                        className="relative overflow-hidden rounded-lg"
-                    >
-                        <div className={`relative w-full h-full overflow-hidden rounded-lg border ${darkMode ? 'border-stone-800' : 'border-stone-200'}`}>
-                            <img 
-                                src={WORKSHOP_IMAGES[2]} 
-                                alt="Atelier menuiserie"
-                                className="w-full h-full object-cover"
+                        <div
+                            ref={el => imagesRef.current[6] = el}
+                            className="aspect-[4/3] rounded-xl overflow-hidden"
+                        >
+                            <img
+                                src={WORKSHOP_IMAGES[3]}
+                                alt="Bois et texture"
+                                className={`w-full h-full object-cover border ${darkMode ? 'border-stone-800' : 'border-stone-200'}`}
                             />
                         </div>
                     </div>

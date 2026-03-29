@@ -336,17 +336,136 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ---
 
+---
+
+## 🕒 Action de Shopping Autonome — 29 Mars 2026 (17:25)
+*Ajout de 5 outils experts pour l'Ébénisterie et la Restauration de précision.*
+
+## 📐 11. ÉBÉNISTERIE & RESTAURATION (Outils Spécialisés)
+
+### ✅ Produit 25 — Bahco 474 Cabinet Scraper (150mm)
+- **Marque** : `Bahco`
+- **Catégorie** : `Outils & Accessoires`
+- **Gamme** : `💎 PREMIUM`
+- **Programme** : `Amazon`
+- **Lien Affilié** : https://www.amazon.fr/dp/B0001P0PIG
+- **Prix Indicatif** : 12,95€
+- **URL Image** : https://m.media-amazon.com/images/I/71Q3Q6yHcgL._AC_SL1500_.jpg
+- **Description Courte** : L'outil ultime pour le lissage des surfaces et l'élimination des finitions sans ponçage excessif.
+- **Pourquoi on le recommande** : Standard de l'ébénisterie. Permet un fini "miroir" et élimine les traces de colle ou de vernis avec précision.
+- **Conseil Pro** : Penchez le racloir vers vous et poussez avec les pouces au centre pour créer un arc. Doit produire des copeaux fins, pas de poussière.
+
+---
+
+### ✅ Produit 26 — Kirschen "Two Cherries" - Jeu de 6 Ciseaux
+- **Marque** : `Kirschen`
+- **Catégorie** : `Outils & Accessoires`
+- **Gamme** : `👑 EXPERT`
+- **Programme** : `Amazon`
+- **Lien Affilié** : https://www.amazon.fr/dp/B00029LIFA
+- **Prix Indicatif** : 131,18€
+- **URL Image** : https://m.media-amazon.com/images/I/91UAz5oWT2L._AC_SL1500_.jpg
+- **Description Courte** : Set de 6 ciseaux (6-26mm) forgés main en Allemagne, livrés dans un coffret bois.
+- **Pourquoi on le recommande** : La référence mondiale absolue. Acier haute teneur en carbone pour une tenue de coupe exceptionnelle.
+- **Conseil Pro** : Affûtez à 25-30° sur pierre à eau. Utilisez uniquement un maillet bois pour préserver les manches.
+
+---
+
+### ✅ Produit 27 — Titebond III Ultimate Wood Glue (946ml)
+- **Marque** : `Titebond`
+- **Catégorie** : `Outils & Accessoires`
+- **Gamme** : `👑 EXPERT`
+- **Programme** : `Amazon`
+- **Lien Affilié** : https://www.amazon.fr/dp/B0002YQ3KU
+- **Prix Indicatif** : 24,85€
+- **URL Image** : https://m.media-amazon.com/images/I/71-i+WvHnWL._AC_SL1500_.jpg
+- **Description Courte** : Colle à bois haute performance offrant un temps de travail long et une résistance extreme.
+- **Pourquoi on le recommande** : Choix n°1 des restaurateurs. Résistante à l'eau et permet d'ajuster les assemblages complexes.
+- **Conseil Pro** : Appliquez sur les deux faces. Essuyez l'excès immédiatement à l'éponge humide avant que la colle ne cristallise.
+
+---
+
+### ✅ Produit 28 — Bessey GZ60K Presse à Vis Tout Acier
+- **Marque** : `Bessey`
+- **Catégorie** : `Outils & Accessoires`
+- **Gamme** : `👑 EXPERT`
+- **Programme** : `Amazon`
+- **Lien Affilié** : https://www.amazon.fr/dp/B009GD20I2
+- **Prix Indicatif** : 54,33€
+- **URL Image** : https://m.media-amazon.com/images/I/51p8Zf9V+dL._AC_SL1500_.jpg
+- **Description Courte** : Serre-joint professionnel de 600mm pour une puissance de serrage maximale et constante.
+- **Pourquoi on le recommande** : Robustesse allemande légendaire. Le rail ne se tord pas, garantissant des collages parfaitement plans.
+- **Conseil Pro** : Utilisez toujours des "cales martyres" en bois tendre pour protéger les surfaces de votre meuble lors du serrage.
+
+---
+
+### ✅ Produit 29 — Festool HSK-A 80x130 (Cale aspirante)
+- **Marque** : `Festool`
+- **Catégorie** : `Outils & Accessoires`
+- **Gamme** : `👑 EXPERT`
+- **Programme** : `Amazon`
+- **Lien Affilié** : https://www.amazon.fr/dp/B0058HW8C8
+- **Prix Indicatif** : 68,28€
+- **URL Image** : https://m.media-amazon.com/images/I/715J2Y8eK9L._AC_SL1500_.jpg
+- **Description Courte** : Cale à poncer manuelle ergonomique avec raccord pour aspirateur.
+- **Pourquoi on le recommande** : Permet un ponçage de précision sans aucune poussière. Idéal pour les coins et les zones délicates.
+- **Conseil Pro** : Utilisez les abrasifs Granat de Festool pour une longévité maximale et un rendu de surface pro.
+
+---
+
+### ✅ Produit 30 — Hazet 821-2 Grattoir Triangulaire
+- **Marque** : `Hazet`
+- **Catégorie** : `Outils & Accessoires`
+- **Gamme** : `💎 PREMIUM`
+- **Programme** : `Amazon`
+- **Lien Affilié** : https://www.amazon.fr/dp/B001C9VIHC
+- **Prix Indicatif** : 15,00€
+- **URL Image** : https://m.media-amazon.com/images/I/41-N8m87LCL._AC_SL1000_.jpg
+- **Description Courte** : Grattoir triangulaire robuste et précis pour le nettoyage des angles.
+- **Pourquoi on le recommande** : Qualité Hazet (Allemagne). Sa forme permet d'aller exactement dans les coins où le ponçage est impossible.
+- **Conseil Pro** : Affûtez les pointes et les arrêtes à la pierre pour un décapage chirurgical dans les moulures.
+
+---
+
+### ✅ Produit 31 — Bahco 665 ERGO Grattoir à Lame Carbure
+- **Marque** : `Bahco`
+- **Catégorie** : `Outils & Accessoires`
+- **Gamme** : `👑 EXPERT`
+- **Programme** : `Amazon`
+- **Lien Affilié** : https://www.amazon.fr/dp/B000288LP6
+- **Prix Indicatif** : 23,72€
+- **URL Image** : https://m.media-amazon.com/images/I/71X8k8Zp8UL._AC_SL1500_.jpg
+- **Description Courte** : Grattoir universel à pommeau avec lame carbure réversible.
+- **Pourquoi on le recommande** : Puissance de décapage phénoménale sur vernis et peintures épaisses. La lame carbure dure 50 fois plus longtemps qu'une lame acier.
+- **Conseil Pro** : Tenez l'outil à deux mains par son pommeau et travaillez exclusivement dans le sens des fibres du bois.
+
+---
+
+### ✅ Produit 32 — Kirschen 3802000 Grattoir "Col de Cygne"
+- **Marque** : `Kirschen`
+- **Catégorie** : `Outils & Accessoires`
+- **Gamme** : `💎 PREMIUM`
+- **Programme** : `Amazon`
+- **Lien Affilié** : https://www.amazon.fr/dp/B0012XP6QC
+- **Prix Indicatif** : 6,99€
+- **URL Image** : https://m.media-amazon.com/images/I/41-A8m7kLCL._AC_SL1000_.jpg
+- **Description Courte** : Racloir courbe polyvalent pour les surfaces galbées et moulures.
+- **Pourquoi on le recommande** : Outil d'ébéniste traditionnel ("Two Cherries"). Indispensable pour lisser les courbes sans créer de méplats au papier de verre.
+- **Conseil Pro** : Travaillez avec un brunissoir pour former un "morfil" qui permet d'extraire de très fins copeaux.
+
+---
+
 ## 📋 Résumé pour Copier-Coller en Admin (JSON structure)
 
 ```json
 {
   "inventory_status": "Ready for Admin Import",
-  "total_products": 24,
+  "total_products": 32,
   "last_audit": "2026-03-29",
   "new_batch": {
-    "count": 8,
+    "count": 16,
     "source": "Amazon.fr Autonomous Search",
-    "timestamp": "2026-03-29T17:15:00Z"
+    "timestamp": "2026-03-29T17:30:00Z"
   },
   "actions_needed": [
     "Verify affiliate tag integration for new DP links",
