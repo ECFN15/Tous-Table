@@ -1,29 +1,60 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Info } from 'lucide-react';
 import SEO from '../components/shared/SEO';
 import ShopProductCard from '../components/shop/ShopProductCard';
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import SplitType from 'split-type';
 
-const CATEGORIES = [
-    { id: 'all', label: 'Tout' },
-    { id: 'patines_cires', label: 'Patines & Cires' },
-    { id: 'peintures', label: 'Peintures' },
-    { id: 'huiles', label: 'Huiles' },
-    { id: 'resines', label: 'Resines' },
-    { id: 'preparation', label: 'Preparation' },
-    { id: 'outils', label: 'Outils' }
-];
+gsap.registerPlugin(ScrollTrigger);
 
-const TIERS = [
-    { id: 'all', label: 'Tous' },
-    { id: 'essentiel', label: 'Essentiel' },
-    { id: 'premium', label: 'Premium' },
-    { id: 'expert', label: 'Expert' }
+const FAMILIES = [
+    {
+        id: 'huiles',
+        title: "Protection Profonde",
+        subtitle: "Huiles & Nourrissants",
+        description: "Le premier geste pour chérir un meuble en bois massif. Des huiles professionnelles qui pénètrent au cœur des fibres pour une protection de l'intérieur, respectant le grain et le toucher naturel."
+    },
+    {
+        id: 'cires',
+        title: "Patine Authentique",
+        subtitle: "Cires & Finitions",
+        description: "Idéales pour sublimer les commodes, buffets et pièces vintage. Maintenez l'âme et la chaleur de l'ancien sans abraser, avec des cires naturelles d'abeille et de carnauba."
+    },
+    {
+        id: 'alimentaire',
+        title: "Contact Alimentaire",
+        subtitle: "Soins Planches à Découper",
+        description: "Le rituel indispensable pour garantir l'hygiène et la durabilité de vos planches artisanales. Huiles minérales et crèmes à la cire d'abeille certifiées 100% « food grade »."
+    },
+    {
+        id: 'savons',
+        title: "Le Geste Quotidien",
+        subtitle: "Savons Noirs & Nettoyants",
+        description: "Évitez les produits chimiques qui agressent vos meubles. Entretenez la beauté de votre table jour après jour avec des nettoyants très doux conçus pour les surfaces huilées."
+    },
+    {
+        id: 'renovation',
+        title: "Seconde Jeunesse",
+        subtitle: "Soins de Rénovation",
+        description: "Votre bois est devenu terne ou présente des micro-rayures ? Effacez les accidents du quotidien ou ravivez la teinte sans poncer, grâce à ces solutions de restauration ciblées."
+    },
+    {
+        id: 'teck',
+        title: "Bois Exotiques",
+        subtitle: "Spécial Teck & Bois denses",
+        description: "L'entretien très particulier des bois exotiques. Des huiles fluides dédiées à la protection et au maintien de la couleur chaude et ambrée de vos colonnes en teck."
+    },
+    {
+        id: 'outils',
+        title: "La Boîte à Outils",
+        subtitle: "Brosses & Chiffons",
+        description: "Les compagnons fidèles de l'artisan. Le bon outil pour faire pénétrer l'huile, lustrer vigoureusement la cire ou préparer la surface avant le traitement."
+    }
 ];
 
 const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) => {
-    const [activeCategory, setActiveCategory] = useState('all');
-    const [activeTier, setActiveTier] = useState('all');
-    const [sortBy, setSortBy] = useState('featured');
 
     useEffect(() => {
         if (setHeaderProps) {
@@ -38,146 +69,181 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
         };
     }, [setHeaderProps]);
 
-    const filteredProducts = useMemo(() => {
-        const products = [...affiliateProducts];
+    useGSAP(() => {
+        const split = new SplitType(".hero-reveal", { types: "lines" });
+        split.lines.forEach(l => {
+            const w = document.createElement("div");
+            w.style.overflow = "hidden";
+            l.parentNode.insertBefore(w, l);
+            w.appendChild(l);
+        });
+        gsap.from(split.lines, {
+            yPercent: 100,
+            opacity: 0,
+            stagger: 0.1,
+            duration: 1.4,
+            ease: "power4.out",
+            delay: 0.1
+        });
 
-        let result = products;
+        // Effect for the grid
+        gsap.utils.toArray('.product-grid').forEach(grid => {
+            gsap.from(grid, {
+                y: 80,
+                opacity: 0,
+                duration: 1.2,
+                ease: "power4.out",
+                scrollTrigger: {
+                    trigger: grid,
+                    start: "top 85%",
+                }
+            });
+        });
 
-        if (activeCategory !== 'all') {
-            result = result.filter((p) => p.category === activeCategory);
-        }
+    }, [affiliateProducts.length]);
 
-        if (activeTier !== 'all') {
-            result = result.filter((p) => p.tier === activeTier);
-        }
-
-        if (sortBy === 'price_asc') result.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
-        if (sortBy === 'price_desc') result.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
-        if (sortBy === 'popular') result.sort((a, b) => (Number(b.clickCount) || 0) - (Number(a.clickCount) || 0));
-        if (sortBy === 'featured') result.sort((a, b) => (Number(Boolean(b.featured)) - Number(Boolean(a.featured))));
-
-        return result;
-    }, [affiliateProducts, activeCategory, activeTier, sortBy]);
+    const getProductsForFamily = (familyId) => {
+        return affiliateProducts.filter(p => {
+            const cat = p.category?.toLowerCase() || '';
+            // Matching directly logic including fallbacks for legacy
+            if (familyId === 'huiles') return cat === 'huiles' || cat === 'huile';
+            if (familyId === 'cires') return cat === 'cires' || cat === 'patines_cires';
+            if (familyId === 'alimentaire') return cat === 'alimentaire';
+            if (familyId === 'savons') return cat === 'savons' || cat === 'nettoyants' || cat === 'preparation';
+            if (familyId === 'renovation') return cat === 'renovation' || cat === 'peintures' || cat === 'resines';
+            if (familyId === 'outils') return cat === 'outils';
+            if (familyId === 'teck') return cat === 'teck';
+            return false;
+        }).sort((a, b) => {
+            const tierOrder = { expert: 3, premium: 2, essentiel: 1 };
+            const aTier = tierOrder[a.tier] || 0;
+            const bTier = tierOrder[b.tier] || 0;
+            if (bTier !== aTier) return bTier - aTier;
+            return (Number(Boolean(b.featured)) - Number(Boolean(a.featured)));
+        });
+    };
 
     return (
-        <div className="min-h-screen animate-in fade-in duration-500">
+        <div className={`min-h-screen animate-in fade-in duration-500 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-[#FAFAF9]'}`}>
             <SEO
-                title="L'Atelier - Produits d'entretien et renovation"
-                description="Nos produits selectionnes pour entretenir et restaurer vos meubles : cires, patines, peintures, huiles et outils."
+                title="L'Atelier - Soin et Entretien du Bois"
+                description="Notre sélection de produits professionnels pour protéger, nourrir et restaurer vos meubles en bois massif. Huiles, cires et savons testés à l'atelier."
                 url="/?page=shop"
             />
 
-            <section className="max-w-[1920px] mx-auto px-6 md:px-12 py-24 md:py-32">
-                <p className={`text-[10px] font-black uppercase tracking-[0.4em] ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>
-                    Boutique - Affiliation
-                </p>
-                <div className="mt-6 space-y-6">
-                    <h1 className={`font-serif text-6xl md:text-8xl xl:text-[10rem] leading-[0.88] tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>
-                        L'Atelier
+            {/* HERO SECTION - Cinematic Editorial Style */}
+            <section className="relative min-h-[60vh] md:min-h-[75vh] flex flex-col justify-end px-6 xl:px-12 pb-16 md:pb-24 pt-32 overflow-hidden">
+                <div className={`absolute top-0 right-0 w-[50vw] h-[50vw] md:w-[30vw] md:h-[30vw] rounded-full blur-[100px] opacity-20 pointer-events-none ${darkMode ? 'bg-amber-500/20' : 'bg-amber-700/10'}`} />
+                
+                <div className="max-w-[1920px] mx-auto w-full space-y-6 md:space-y-10 relative z-10">
+                    <p className={`hero-reveal text-[10px] md:text-[11px] font-black uppercase tracking-[0.4em] ${darkMode ? 'text-amber-500' : 'text-amber-700'}`}>
+                        Boutique d'Affiliation • {affiliateProducts.length} Références
+                    </p>
+                    <h1 className={`hero-reveal font-serif text-6xl md:text-8xl xl:text-[11.5rem] leading-[0.85] tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                        Le Soin<br />du Bois.
                     </h1>
-                    <p className={`max-w-xl text-base md:text-lg ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
-                        Produits selectionnes pour entretenir, restaurer et sublimer vos meubles.
-                    </p>
-                    <p className={`text-[11px] font-black uppercase tracking-widest ${darkMode ? 'text-stone-600' : 'text-stone-400'}`}>
-                        {filteredProducts.length} produit{filteredProducts.length > 1 ? 's' : ''}
-                    </p>
+                    <div className="hero-reveal max-w-2xl">
+                        <p className={`text-base md:text-lg xl:text-xl leading-relaxed ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
+                            Le bois massif est vivant. Protégez, nourrissez et restaurez vos créations avec notre sélection pointue des meilleurs produits d'entretien. Exclusivement testés et validés par l'atelier.
+                        </p>
+                    </div>
                 </div>
             </section>
 
-            <section className={`sticky top-20 md:top-24 z-30 border-y backdrop-blur-xl ${darkMode ? 'bg-[#0a0a0a]/80 border-white/5' : 'bg-white/80 border-stone-200/60'}`}>
-                <div className="max-w-[1920px] mx-auto px-6 md:px-12 py-4 space-y-4">
-                    <div className="flex gap-2 overflow-x-auto scrollbar-none pb-1">
-                        {CATEGORIES.map((category) => {
-                            const isActive = activeCategory === category.id;
+            {/* TOC NAV - Hairline Architecture */}
+            <section className={`sticky top-[4.5rem] md:top-[88px] z-40 border-y backdrop-blur-2xl ${darkMode ? 'bg-[#0a0a0a]/80 border-white/5' : 'bg-[#FAFAF9]/90 border-stone-200/60'}`}>
+                <div className="max-w-[1920px] mx-auto px-6 xl:px-12 py-3 md:py-4">
+                    <div className="flex gap-4 md:gap-8 overflow-x-auto scrollbar-none pb-1 items-center">
+                        <span className={`text-[9px] font-black uppercase tracking-widest shrink-0 ${darkMode ? 'text-stone-600' : 'text-stone-400'}`}>Aller à :</span>
+                        {FAMILIES.map((family) => {
+                            const hasProducts = getProductsForFamily(family.id).length > 0;
+                            if (!hasProducts) return null;
                             return (
                                 <button
-                                    key={category.id}
-                                    onClick={() => setActiveCategory(category.id)}
-                                    className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-colors ${isActive
-                                        ? (darkMode ? 'bg-white text-stone-900' : 'bg-stone-900 text-white')
-                                        : (darkMode ? 'text-stone-500 hover:text-white border border-white/10' : 'text-stone-500 hover:text-stone-900 border border-stone-200')
-                                        }`}
+                                    key={`nav-${family.id}`}
+                                    onClick={() => {
+                                        const el = document.getElementById(`fam-${family.id}`);
+                                        if (el) {
+                                            const y = el.getBoundingClientRect().top + window.scrollY - 150;
+                                            window.scrollTo({ top: y, behavior: 'smooth' });
+                                        }
+                                    }}
+                                    className={`shrink-0 text-[10px] md:text-[11px] font-bold uppercase tracking-widest transition-colors ${darkMode ? 'text-white hover:text-amber-500' : 'text-stone-900 hover:text-amber-700'}`}
                                 >
-                                    {category.label}
+                                    {family.subtitle}
                                 </button>
                             );
                         })}
                     </div>
-
-                    <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
-                        <div className="flex flex-wrap gap-2">
-                            {TIERS.map((tier) => {
-                                const isActive = activeTier === tier.id;
-                                const activeClass = tier.id === 'premium'
-                                    ? 'bg-amber-100 text-amber-800 border-amber-200'
-                                    : tier.id === 'expert'
-                                        ? (darkMode ? 'bg-white text-stone-900 border-white' : 'bg-stone-900 text-white border-stone-900')
-                                        : 'bg-stone-200 text-stone-800 border-stone-200';
-
-                                return (
-                                    <button
-                                        key={tier.id}
-                                        onClick={() => setActiveTier(tier.id)}
-                                        className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-opacity ${isActive ? activeClass : (darkMode ? 'text-stone-400 border-white/20 opacity-60 hover:opacity-100' : 'text-stone-500 border-stone-300 opacity-60 hover:opacity-100')}`}
-                                    >
-                                        {tier.label}
-                                    </button>
-                                );
-                            })}
-                        </div>
-
-                        <div className="md:ml-auto">
-                            <select
-                                value={sortBy}
-                                onChange={(e) => setSortBy(e.target.value)}
-                                className={`w-full md:w-auto bg-transparent border rounded-xl px-3 py-2 text-[11px] font-black uppercase tracking-wider ${darkMode ? 'border-white/10 text-stone-300' : 'border-stone-200 text-stone-700'}`}
-                            >
-                                <option value="featured">Mis en avant</option>
-                                <option value="price_asc">Prix croissant</option>
-                                <option value="price_desc">Prix decroissant</option>
-                                <option value="popular">Populaires</option>
-                            </select>
-                        </div>
-                    </div>
                 </div>
             </section>
 
-            <section className="max-w-[1920px] mx-auto px-6 md:px-12 py-10 md:py-14">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
-                    {filteredProducts.length === 0 ? (
-                        <div className="col-span-full py-24 text-center space-y-3">
-                            <p className={darkMode ? 'text-stone-400 text-sm' : 'text-stone-500 text-sm'}>
-                                Aucun produit dans cette selection.
-                            </p>
-                            <button
-                                onClick={() => {
-                                    setActiveCategory('all');
-                                    setActiveTier('all');
-                                    setSortBy('featured');
-                                }}
-                                className={`text-[11px] font-black uppercase tracking-widest ${darkMode ? 'text-stone-200' : 'text-stone-700'}`}
-                            >
-                                Reinitialiser les filtres
-                            </button>
-                        </div>
-                    ) : (
-                        filteredProducts.map((product) => (
-                            <ShopProductCard
-                                key={product.id}
-                                product={product}
-                                darkMode={darkMode}
-                            />
-                        ))
-                    )}
-                </div>
-            </section>
+            {/* EDITORIAL SECTIONS - StickyStoryTellingLayouts */}
+            <div className="flex flex-col">
+                {FAMILIES.map((family, index) => {
+                    const products = getProductsForFamily(family.id);
+                    if (products.length === 0) return null;
 
-            <section className={`border-t py-6 px-6 md:px-12 ${darkMode ? 'border-white/5' : 'border-stone-200/60'}`}>
-                <div className={`max-w-[1920px] mx-auto flex items-center justify-center gap-2 text-[10px] text-center ${darkMode ? 'text-stone-600' : 'text-stone-400'}`}>
-                    <Info size={12} />
-                    <p>
-                        Cette page contient des liens d'affiliation. En achetant via ces liens, vous soutenez notre atelier sans surcout pour vous. {' '}
-                        <a href="/mentions-legales#affiliation" className="underline underline-offset-4">En savoir plus</a>
+                    return (
+                        <section key={family.id} id={`fam-${family.id}`} className={`border-b ${darkMode ? 'border-white/5' : 'border-stone-200/60'} relative w-full`}>
+                            <div className="max-w-[1920px] mx-auto flex flex-col lg:flex-row">
+                                
+                                {/* LEFT : Sticky Info (Editorial) */}
+                                <div className={`lg:w-[35%] xl:w-[30%] lg:border-r ${darkMode ? 'border-white/5' : 'border-stone-200/60'} p-6 md:p-12 lg:sticky lg:top-[140px] lg:h-[calc(100vh-140px)] lg:overflow-y-auto scrollbar-none flex flex-col justify-between`}>
+                                    <div className="space-y-6 md:space-y-10 lg:pb-12">
+                                        <div className="flex items-center gap-4">
+                                            <span className={`text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>
+                                                {String(index + 1).padStart(2, '0')}
+                                            </span>
+                                            <span className={`w-8 h-px ${darkMode ? 'bg-white/20' : 'bg-stone-300'}`}></span>
+                                            <span className={`text-[10px] md:text-[11px] font-black uppercase tracking-widest ${darkMode ? 'text-amber-500' : 'text-amber-700'}`}>
+                                                {family.subtitle}
+                                            </span>
+                                        </div>
+                                        
+                                        <h2 className={`font-serif text-4xl md:text-5xl xl:text-6xl leading-[0.9] tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                                            {family.title}
+                                        </h2>
+
+                                        <p className={`text-sm md:text-base leading-relaxed max-w-sm ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
+                                            {family.description}
+                                        </p>
+                                    </div>
+
+                                    <div className="hidden lg:flex items-center gap-3">
+                                        <span className={`w-12 h-12 rounded-full border flex items-center justify-center text-[10px] font-black ${darkMode ? 'border-white/10 text-stone-400' : 'border-stone-200 text-stone-500'}`}>
+                                            {products.length}
+                                        </span>
+                                        <span className={`text-[9px] uppercase tracking-widest font-bold ${darkMode ? 'text-stone-600' : 'text-stone-400'}`}>Réf.</span>
+                                    </div>
+                                </div>
+
+                                {/* RIGHT : Scrollable Products Grid */}
+                                <div className={`lg:w-[65%] xl:w-[70%] p-6 md:p-12 lg:py-20 ${darkMode ? 'bg-[#050505]/40' : 'bg-stone-50/50'}`}>
+                                    <div className="product-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8 xl:gap-10">
+                                        {products.map((product) => (
+                                            <ShopProductCard
+                                                key={product.id}
+                                                product={product}
+                                                darkMode={darkMode}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+
+                            </div>
+                        </section>
+                    );
+                })}
+            </div>
+
+            {/* INFO AFFILIATE FOOTER */}
+            <section className={`py-12 px-6 md:px-12 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-[#FAFAF9]'}`}>
+                <div className={`max-w-[1920px] mx-auto flex flex-col md:flex-row items-center justify-center gap-3 text-[10px] text-center md:text-left ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>
+                    <Info size={14} className={darkMode ? 'text-amber-500' : 'text-amber-600'} />
+                    <p className="max-w-2xl leading-relaxed">
+                        Cette vitrine contient des liens du Programme Partenaires. En achetant vos produits d'entretien via ces liens, vous soutenez le travail de l'atelier sans aucun surcoût pour vous. <br className="hidden md:block"/>
+                        <a href="/mentions-legales#affiliation" className="underline underline-offset-4 hover:text-stone-900 dark:hover:text-white transition-colors">Notre politique de transparence</a>
                     </p>
                 </div>
             </section>
