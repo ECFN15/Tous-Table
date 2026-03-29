@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
     collection, onSnapshot, addDoc, updateDoc, deleteDoc,
-    doc, serverTimestamp, query, orderBy, getDocs
+    doc, serverTimestamp, query, orderBy, getDocs, writeBatch
 } from 'firebase/firestore';
 import { db, appId } from '../../firebase/config';
 import {
@@ -436,6 +436,7 @@ const AdminShop = ({ darkMode }) => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [editData, setEditData] = useState(null);
+    const [isResetting, setIsResetting] = useState(false);
 
     const colRef = useMemo(() => collection(db, 'artifacts', appId, 'public', 'data', 'affiliate_products'), []);
 
@@ -456,6 +457,29 @@ const AdminShop = ({ darkMode }) => {
         totalClicks: products.reduce((acc, p) => acc + (p.clickCount || 0), 0),
         topProduct: products.reduce((top, p) => (!top || (p.clickCount || 0) > (top.clickCount || 0)) ? p : top, null),
     }), [products]);
+
+    const handleResetAllClicks = async () => {
+        if (!confirm("Êtes-vous sûr de remettre à zéro les compteurs de clics pour TOUS les produits ?")) return;
+        setIsResetting(true);
+        try {
+            const batch = writeBatch(db);
+            let hasChanges = false;
+            products.forEach(p => {
+                if (p.clickCount > 0) {
+                    batch.update(doc(colRef, p.id), { clickCount: 0 });
+                    hasChanges = true;
+                }
+            });
+            if (hasChanges) {
+                await batch.commit();
+            }
+        } catch (error) {
+            console.error("Erreur reset clics :", error);
+            alert("Erreur lors de la réinitialisation.");
+        } finally {
+            setIsResetting(false);
+        }
+    };
 
     const handleDelete = async (product) => {
         if (!confirm(`Supprimer "${product.name}" ?`)) return;
@@ -489,7 +513,21 @@ const AdminShop = ({ darkMode }) => {
             {/* Header */}
             <div>
                 <p className={`text-[10px] uppercase font-black tracking-[0.3em] mb-1 ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>Affiliation</p>
-                <h2 className={`text-3xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>L'Atelier — Boutique</h2>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0">
+                    <h2 className={`text-3xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>L'Atelier — Boutique</h2>
+                    <button
+                        onClick={handleResetAllClicks}
+                        disabled={isResetting || kpis.totalClicks === 0}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                            isResetting || kpis.totalClicks === 0
+                                ? 'opacity-50 cursor-not-allowed'
+                                : ''
+                        } ${darkMode ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20' : 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'}`}
+                    >
+                        <Trash2 size={12} />
+                        {isResetting ? 'Reset en cours...' : 'Reset Stats Clics'}
+                    </button>
+                </div>
             </div>
 
             {/* KPIs */}

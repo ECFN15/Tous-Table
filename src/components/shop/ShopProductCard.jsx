@@ -2,6 +2,7 @@ import React from 'react';
 import { ExternalLink } from 'lucide-react';
 import { addDoc, collection, updateDoc, doc, increment, serverTimestamp } from 'firebase/firestore';
 import { db, appId } from '../../firebase/config';
+import { useAuth } from '../../contexts/AuthContext';
 
 const PROGRAM_LABELS = {
     amazon: 'Amazon',
@@ -25,12 +26,20 @@ const getTierBadgeClass = (tier) => {
 };
 
 const ShopProductCard = ({ product, darkMode = false }) => {
+    const { isAdmin } = useAuth();
+    
     const handleAffiliateClick = async (event) => {
         event.preventDefault();
         if (!product?.affiliateUrl) return;
 
         // Keep popup call synchronous to avoid popup blockers.
         window.open(product.affiliateUrl, '_blank', 'noopener,noreferrer');
+
+        // Exclude admin users from analytics stats
+        if (isAdmin) {
+            console.log(`[Shop Stats] Admin click on "${product.name}" excluded from tracking.`);
+            return;
+        }
 
         try {
             await addDoc(collection(db, 'affiliate_clicks'), {
