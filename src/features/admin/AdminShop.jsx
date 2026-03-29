@@ -15,6 +15,7 @@ import {
 const CATEGORIES = [
     { id: 'huiles',         label: 'Huiles & Nourrissants' },
     { id: 'patines_cires',  label: 'Patines & Cires' },
+    { id: 'renovation',     label: 'Rénovateurs & Retouches' },
     { id: 'peintures',      label: 'Peintures & Finitions' },
     { id: 'resines',        label: 'Résines & Effets' },
     { id: 'preparation',    label: 'Préparation & Décapage' },

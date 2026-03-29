@@ -81,6 +81,10 @@
 
 ## 🟢 3. SOINS PLANCHES À DÉCOUPER *(Usage alimentaire)*
 
+John Boos Mystery Oil → Huiles & Nourrissants
+John Boos Board Cream → Patines & Cires
+Howard Butcher Block Conditioner → Patines & Cires
+
 ### 🔍 Produit 7 — John Boos Mystery Oil (473ml)
 - **Gamme** : `👑 EXPERT` — Standard pro alimentaire (USA)
 - **ASIN** : 🔍 À trouver
