@@ -399,17 +399,17 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ---
 
-### ✅ Produit 29 — Festool HSK-A 80x130 (Cale aspirante)
-- **Marque** : `Festool`
+### ✅ Produit 29 — 3M 9292 Bloc de Ponçage Caoutchouc
+- **Marque** : `3M`
 - **Catégorie** : `Outils & Accessoires`
-- **Gamme** : `👑 EXPERT`
+- **Gamme** : `💎 PREMIUM`
 - **Programme** : `Amazon`
-- **Lien Affilié** : https://www.amazon.fr/dp/B0058HW8C8
-- **Prix Indicatif** : 68,28€
-- **URL Image** : https://m.media-amazon.com/images/I/715J2Y8eK9L._AC_SL1500_.jpg
-- **Description Courte** : Cale à poncer manuelle ergonomique avec raccord pour aspirateur.
-- **Pourquoi on le recommande** : Permet un ponçage de précision sans aucune poussière. Idéal pour les coins et les zones délicates.
-- **Conseil Pro** : Utilisez les abrasifs Granat de Festool pour une longévité maximale et un rendu de surface pro.
+- **Lien Affilié** : https://www.amazon.fr/dp/B00004Z4CY
+- **Prix Indicatif** : 12,62€
+- **URL Image** : https://m.media-amazon.com/images/I/71Y8A2W+IYL._AC_SL1500_.jpg
+- **Description Courte** : Bloc de ponçage en caoutchouc massif, lourd et ergonomique pour un fini parfaitement plan.
+- **Pourquoi on le recommande** : Le standard des ateliers. Son poids permet de poncer sans forcer, et sa texture caoutchouc absorbe les vibrations pour un meilleur contrôle que le plastique.
+- **Conseil Pro** : Coupez vos feuilles d'abrasif en 4 sections égales ; elles s'adapteront parfaitement aux pinces métalliques du bloc sans gaspillage.
 
 ---
 
@@ -455,17 +455,59 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ---
 
+### ✅ Produit 33 — Bahco 625 Grattoir de Poche de Précision
+- **Marque** : `Bahco`
+- **Catégorie** : `Outils & Accessoires`
+- **Gamme** : `👑 EXPERT`
+- **Programme** : `Amazon`
+- **Lien Affilié** : https://www.amazon.fr/dp/B000288LOW
+- **Prix Indicatif** : 17,66€
+- **URL Image** : https://m.media-amazon.com/images/I/61k1q-w9x2L._AC_SL1500_.jpg
+- **Description Courte** : Grattoir de précision compact avec lame carbure de tungstène pour les détails.
+- **Pourquoi on le recommande** : Indispensable pour nettoyer les coulures de colle dans les angles ou décaper de petites moulures. Sa taille permet une précision chirurgicale.
+- **Conseil Pro** : Bien que livré avec une lame triangulaire, il existe des lames rondes ou en "poire" pour s'adapter à tous les profils de moulures.
+
+---
+
+### ✅ Produit 34 — Bahco 474 Racloir d'Ébéniste Rectangulaire
+- **Marque** : `Bahco`
+- **Catégorie** : `Outils & Accessoires`
+- **Gamme** : `💎 PREMIUM`
+- **Programme** : `Amazon`
+- **Lien Affilié** : https://www.amazon.fr/dp/B0001P0PIG
+- **Prix Indicatif** : 12,95€
+- **URL Image** : https://m.media-amazon.com/images/I/71N-S7I9XPL._AC_SL1500_.jpg
+- **Description Courte** : Le standard industriel du racloir en acier trempé 150x62mm.
+- **Pourquoi on le recommande** : Entre les mains d'un pro, cet outil remplace le ponçage final pour un fini "miroir". Le 474 est célèbre pour la tenue de sa coupe.
+- **Conseil Pro** : L'outil arrive "brut". Il faut impérativement affûter les chants et créer un "morfil" avec un affiloir avant la première utilisation.
+
+---
+
+### ✅ Produit 35 — Jeu de 3 Racloirs Kirschen Premium
+- **Marque** : `Kirschen`
+- **Catégorie** : `Outils & Accessoires`
+- **Gamme** : `👑 EXPERT`
+- **Programme** : `Amazon`
+- **Lien Affilié** : https://www.amazon.fr/dp/B00DPI5NE6
+- **Prix Indicatif** : 17,11€
+- **URL Image** : https://m.media-amazon.com/images/I/71Xm06f6p2L._AC_SL1500_.jpg
+- **Description Courte** : Set complet de 3 formes (rectangulaire, col de cygne, ovale) en acier d'ébéniste.
+- **Pourquoi on le recommande** : Couvre 100% des besoins : du grand plateau de table aux petites sculptures concaves/convexes. Qualité "Two Cherries" exceptionnelle.
+- **Conseil Pro** : Rangez-les toujours dans leur étui ; si les arêtes s'entrechoquent, le morfil délicat sera instantanément détruit.
+
+---
+
 ## 📋 Résumé pour Copier-Coller en Admin (JSON structure)
 
 ```json
 {
   "inventory_status": "Ready for Admin Import",
-  "total_products": 32,
+  "total_products": 35,
   "last_audit": "2026-03-29",
   "new_batch": {
-    "count": 16,
+    "count": 19,
     "source": "Amazon.fr Autonomous Search",
-    "timestamp": "2026-03-29T17:30:00Z"
+    "timestamp": "2026-03-29T17:45:00Z"
   },
   "actions_needed": [
     "Verify affiliate tag integration for new DP links",

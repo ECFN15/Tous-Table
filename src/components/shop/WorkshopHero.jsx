@@ -31,19 +31,6 @@ const WorkshopHero = ({ darkMode = false }) => {
                     ease: 'power4.out'
                 }
             );
-
-            gsap.fromTo(
-                '.atelier-hud',
-                { opacity: 0, y: 18 },
-                {
-                    opacity: 1,
-                    y: 0,
-                    duration: 0.85,
-                    delay: 0.45,
-                    stagger: 0.08,
-                    ease: 'power3.out'
-                }
-            );
         }, containerRef);
 
         return () => ctx.revert();
@@ -67,8 +54,8 @@ const WorkshopHero = ({ darkMode = false }) => {
 
             {/* Desktop composition sans superposition */}
             <div className="absolute right-[2%] top-1/2 -translate-y-1/2 w-[56vw] max-w-[900px] hidden lg:block" style={{ zIndex: 2 }}>
-                <div className={`rounded-[30px] border p-5 ${darkMode ? 'border-white/5 bg-black/10' : 'border-stone-300/60 bg-white/25'}`}>
-                    <div className="grid grid-cols-12 grid-rows-6 gap-5 h-[470px]">
+                <div className={`rounded-[30px] border p-4 ${darkMode ? 'border-white/5 bg-black/10' : 'border-stone-300/60 bg-white/25'}`}>
+                    <div className="grid grid-cols-12 grid-rows-6 gap-x-4 gap-y-4 h-[448px]">
                         <div
                             ref={el => imagesRef.current[0] = el}
                             className="col-span-7 row-span-3 rounded-[18px] overflow-hidden"
@@ -113,9 +100,9 @@ const WorkshopHero = ({ darkMode = false }) => {
 
                         <div
                             ref={el => imagesRef.current[3] = el}
-                            className="col-span-4 row-span-3 rounded-[16px] overflow-hidden"
+                            className="col-span-4 row-span-3 rounded-[17px] overflow-hidden"
                         >
-                            <div className={`relative h-full w-full rounded-[16px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_12px_28px_rgba(0,0,0,0.2)]`}>
+                            <div className={`relative h-full w-full rounded-[17px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_12px_28px_rgba(0,0,0,0.2)]`}>
                                 <img
                                     src={WORKSHOP_IMAGES[3]}
                                     alt="Bois et texture"
@@ -124,15 +111,6 @@ const WorkshopHero = ({ darkMode = false }) => {
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/16 via-transparent to-transparent" />
                             </div>
                         </div>
-                    </div>
-
-                    <div className="mt-3 flex items-center justify-between">
-                        <span className={`atelier-hud text-[9px] uppercase tracking-[0.28em] font-black ${darkMode ? 'text-stone-300/85' : 'text-stone-600'}`}>
-                            Bois vivant
-                        </span>
-                        <span className={`atelier-hud rounded-full px-4 py-2 text-[9px] uppercase tracking-[0.24em] font-black ${darkMode ? 'bg-black/55 border border-white/10 text-amber-300' : 'bg-white/85 border border-stone-300 text-amber-800'}`}>
-                            Atelier selection
-                        </span>
                     </div>
                 </div>
             </div>
