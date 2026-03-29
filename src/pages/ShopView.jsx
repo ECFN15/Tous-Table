@@ -121,17 +121,17 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
 
             if (charIndex <= currentWord.length) {
                 charIndex += 1;
-                timeoutId = setTimeout(typeNextChar, 70);
+                timeoutId = setTimeout(typeNextChar, 110);
                 return;
             }
 
             timeoutId = setTimeout(() => {
                 if (cancelled) return;
                 setActiveRitualIndex(prev => (prev + 1) % RITUAL_WORDS.length);
-            }, 1200);
+            }, 1800);
         };
 
-        timeoutId = setTimeout(typeNextChar, 120);
+        timeoutId = setTimeout(typeNextChar, 180);
 
         return () => {
             cancelled = true;
@@ -182,11 +182,11 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                         </div>
 
                         <div className="leading-[0.85]">
-                            <div className={`font-serif text-[2.2rem] xl:text-[3.4rem] tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                            <div className={`font-serif text-[2.6rem] xl:text-[4rem] tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>
                                 <span className={`${darkMode ? 'text-amber-300' : 'text-amber-800'}`}>
                                     {typedRitualWord}
                                 </span>
-                                <span className={`ml-2 font-black animate-pulse text-[1.5rem] xl:text-[2rem] ${darkMode ? 'text-amber-400/90' : 'text-amber-700/90'}`}>
+                                <span className={`ml-2 font-black animate-pulse text-[1.7rem] xl:text-[2.4rem] ${darkMode ? 'text-amber-400/90' : 'text-amber-700/90'}`}>
                                     |
                                 </span>
                             </div>
