@@ -172,52 +172,38 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
             <section className="relative min-h-[60vh] md:min-h-[85vh] flex flex-col justify-end px-6 xl:px-12 pb-16 md:pb-24 pt-32 overflow-hidden">
                 <WorkshopHero darkMode={darkMode} />
 
-                <div className="hidden lg:block absolute left-6 xl:left-12 top-24 z-10 pointer-events-none">
-                    <div className={`w-[430px] xl:w-[520px] rounded-2xl border p-4 xl:p-5 backdrop-blur-[2px] ${darkMode ? 'border-white/8 bg-black/20' : 'border-stone-300/70 bg-white/45'}`}>
-                        <div className="flex items-center justify-between">
-                            <span className={`text-[10px] uppercase tracking-[0.28em] font-black ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
-                                Signature atelier
-                            </span>
-                            <span className={`text-[9px] uppercase tracking-[0.22em] font-black ${darkMode ? 'text-amber-400/90' : 'text-amber-700'}`}>
-                                Rituel bois
+                <div className="hidden lg:block absolute left-6 xl:left-12 top-20 z-10 pointer-events-none">
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                            <span className={`h-px w-12 ${darkMode ? 'bg-white/15' : 'bg-stone-300/90'}`} />
+                            <span className={`text-[10px] uppercase tracking-[0.28em] font-black ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>
+                                Rituel Bois
                             </span>
                         </div>
 
-                        <div className="mt-4 grid grid-cols-12 gap-3">
-                            <div className="col-span-4 space-y-2.5">
-                                <div className="h-8 flex items-center">
-                                    <span className={`text-[12px] uppercase tracking-[0.2em] font-black ${darkMode ? 'text-amber-300' : 'text-amber-800'}`}>
-                                        {typedRitualWord}
-                                    </span>
-                                    <span className={`ml-1 text-[12px] font-black animate-pulse ${darkMode ? 'text-amber-400/90' : 'text-amber-700/90'}`}>
-                                        |
-                                    </span>
-                                </div>
-
-                                <div className="flex flex-wrap gap-1.5">
-                                    {RITUAL_WORDS.map((word, idx) => (
-                                        <span
-                                            key={word}
-                                            className={`px-2 py-1 rounded-full text-[8px] uppercase tracking-[0.16em] font-black transition-colors duration-300 ${idx === activeRitualIndex
-                                                ? (darkMode ? 'bg-amber-400/20 text-amber-300 border border-amber-300/30' : 'bg-amber-700/15 text-amber-800 border border-amber-700/25')
-                                                : (darkMode ? 'bg-white/5 text-stone-500 border border-white/10' : 'bg-stone-200/40 text-stone-500 border border-stone-300/70')
-                                            }`}
-                                        >
-                                            {word}
-                                        </span>
-                                    ))}
-                                </div>
+                        <div className="leading-[0.85]">
+                            <div className={`font-serif text-[2.2rem] xl:text-[3.4rem] tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                                <span className={`${darkMode ? 'text-amber-300' : 'text-amber-800'}`}>
+                                    {typedRitualWord}
+                                </span>
+                                <span className={`ml-2 font-black animate-pulse text-[1.5rem] xl:text-[2rem] ${darkMode ? 'text-amber-400/90' : 'text-amber-700/90'}`}>
+                                    |
+                                </span>
                             </div>
+                        </div>
 
-                            <div className="col-span-8 space-y-3">
-                                <p className={`text-[13px] leading-relaxed ${darkMode ? 'text-stone-300/85' : 'text-stone-600'}`}>
-                                    Une finition durable se joue dans la regularite du geste, pas dans la quantite de produit.
-                                </p>
-                                <div className="flex items-center gap-2.5">
-                                    <span className={`h-px flex-1 ${darkMode ? 'bg-white/10' : 'bg-stone-300/80'}`} />
-                                    <span className={`text-[9px] uppercase tracking-[0.22em] font-black ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>Materiaux testes</span>
-                                </div>
-                            </div>
+                        <div className="flex items-center gap-2.5">
+                            {RITUAL_WORDS.map((word, idx) => (
+                                <span
+                                    key={word}
+                                    className={`px-2.5 py-1 rounded-full text-[9px] uppercase tracking-[0.18em] font-black transition-colors duration-300 ${idx === activeRitualIndex
+                                        ? (darkMode ? 'bg-amber-400/20 text-amber-300 border border-amber-300/35' : 'bg-amber-700/15 text-amber-800 border border-amber-700/30')
+                                        : (darkMode ? 'bg-white/5 text-stone-500 border border-white/10' : 'bg-stone-200/40 text-stone-500 border border-stone-300/70')
+                                    }`}
+                                >
+                                    {word}
+                                </span>
+                            ))}
                         </div>
                     </div>
                 </div>
