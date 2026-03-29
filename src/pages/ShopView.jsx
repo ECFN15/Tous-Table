@@ -172,8 +172,8 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
             <section className="relative min-h-[60vh] md:min-h-[85vh] flex flex-col justify-end px-6 xl:px-12 pb-16 md:pb-24 pt-32 overflow-hidden">
                 <WorkshopHero darkMode={darkMode} />
 
-                <div className="hidden lg:block absolute left-6 xl:left-12 top-20 z-10 pointer-events-none">
-                    <div className="space-y-3">
+                <div className="hidden lg:block absolute left-6 xl:left-12 top-10 z-10 pointer-events-none">
+                    <div className="space-y-7">
                         <div className="flex items-center gap-3">
                             <span className={`h-px w-12 ${darkMode ? 'bg-white/15' : 'bg-stone-300/90'}`} />
                             <span className={`text-[10px] uppercase tracking-[0.28em] font-black ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>

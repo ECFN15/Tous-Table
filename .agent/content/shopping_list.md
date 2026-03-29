@@ -486,17 +486,17 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ---
 
-### ✅ Produit 38 — V33 Rénovation Perfection (Cuisine & Meubles)
-- **Marque** : `V33`
+### ✅ Produit 38 — Rubio Monocoat Oil Plus 2C (Pur)
+- **Marque** : `Rubio Monocoat`
 - **Catégorie** : `Peintures & Finitions`
-- **Gamme** : `⭐ ESSENTIEL`
+- **Gamme** : `👑 EXPERT`
 - **Programme** : `Amazon`
-- **Lien Affilié** : https://www.amazon.fr/dp/B09JVMNVS7
-- **Prix Indicatif** : 34,90€ (750ml)
-- **URL Image** : https://m.media-amazon.com/images/I/71X8k8Zp8UL._AC_SL1500_.jpg
-- **Description Courte** : Peinture technique ultra-résistante pour les surfaces très sollicitées.
-- **Pourquoi on le recommande** : Résiste aux taches, aux chocs et même à la chaleur. Idéal pour les plans de travail ou les tables de salle à manger.
-- **Conseil Pro** : Nettoyez bien le support avec un nettoyant à base de soude avant application pour garantir l'adhérence parfaite sans poncer.
+- **Lien Affilié** : https://www.amazon.fr/dp/B00OA5V19K
+- **Prix Indicatif** : 88,84€ (350ml)
+- **URL Image** : https://m.media-amazon.com/images/I/71YyM2uM-jL._AC_SL1500_.jpg
+- **Description Courte** : Huile de protection monocouche écologique à base de lin, sans eau ni solvants.
+- **Pourquoi on le recommande** : Le standard absolu des ébénistes modernes pour le chêne massif. Protège et sublime le veinage en une seule couche sans effet plastique. Résistance extrême à l'usure.
+- **Conseil Pro** : Une goutte suffit (très haut rendement). Appliquez, attendez 5 minutes, puis essuyez tout le surplus avec un chiffon jusqu'à ce que le bois semble sec.
 
 ---
 
@@ -525,6 +525,48 @@ Howard Butcher Block Conditioner → Patines & Cires
 - **Description Courte** : Teinture traditionnelle qui pénètre le bois pour en réhausser le veinage.
 - **Pourquoi on le recommande** : Permet de changer la nuance d'un meuble décapé (ex: passer de pin à chêne foncé) tout en laissant le veinage visible.
 - **Conseil Pro** : Toujours appliquer une finition (Cire ou Vernis) après séchage complet, car la teinte seule ne protège pas contre l'eau.
+
+---
+
+### ✅ Produit 41 — Mattine Gomme Laque (Vernis au Tampon)
+- **Marque** : `Les Frères Nordin`
+- **Catégorie** : `Peintures & Finitions`
+- **Gamme** : `👑 EXPERT`
+- **Programme** : `Amazon`
+- **Lien Affilié** : https://www.amazon.fr/dp/B01HIEBXAG
+- **Prix Indicatif** : 29,02€
+- **URL Image** : https://m.media-amazon.com/images/I/71u9iU2G8OL._AC_SL1500_.jpg
+- **Description Courte** : Vernis traditionnel à base de gomme laque pour des finitions de prestige.
+- **Pourquoi on le recommande** : Incontournable pour la restauration de meubles anciens (Empire, Art Déco). Offre une transparence et une profondeur de brillant inimitables.
+- **Conseil Pro** : S'applique à la mèche coton en formant des "huit". Procédez par couches ultra-fines successives pour monter le brillant.
+
+---
+
+### ✅ Produit 42 — Bitume de Judée (Patine à l'Ancienne)
+- **Marque** : `Les Frères Nordin`
+- **Catégorie** : `Peintures & Finitions`
+- **Gamme** : `👑 EXPERT`
+- **Programme** : `Amazon`
+- **Lien Affilié** : https://www.amazon.fr/dp/B01HIE9RWC
+- **Prix Indicatif** : 19,45€
+- **URL Image** : https://m.media-amazon.com/images/I/719h-o6OaQL._AC_SL1500_.jpg
+- **Description Courte** : Préparation brune pour vieillir le bois et souligner les sculptures.
+- **Pourquoi on le recommande** : Le secret des antiquaires pour donner du relief. Il marque les creux, les pores et les moulures pour un aspect authentique de bois centenaire.
+- **Conseil Pro** : Appliquez au pinceau, puis essuyez immédiatement les reliefs. Le produit doit rester uniquement dans les accidents du bois.
+
+---
+
+### ✅ Produit 43 — Real Milk Paint (Peinture au Lait Authentique)
+- **Marque** : `Real Milk Paint Co.`
+- **Catégorie** : `Peintures & Finitions`
+- **Gamme** : `👑 EXPERT`
+- **Programme** : `Amazon`
+- **Lien Affilié** : https://www.amazon.fr/dp/B00YHQUGQQ
+- **Prix Indicatif** : 25,99€
+- **URL Image** : https://m.media-amazon.com/images/I/71R1vL1vjBL._AC_SL1500_.jpg
+- **Description Courte** : Peinture minérale en poudre ultra-mate et écologique.
+- **Pourquoi on le recommande** : Contrairement aux peintures industrielles, elle est vivante et réagit au bois massif. Crée ce fini velouté typique des meubles de campagne anciens.
+- **Conseil Pro** : Mélangez la poudre avec de l'eau tiède (ratio 1:1). Laissez reposer 30 min avant application pour une texture parfaite.
 
 ---
 
@@ -575,12 +617,12 @@ Howard Butcher Block Conditioner → Patines & Cires
 ```json
 {
   "inventory_status": "Ready for Admin Import",
-  "total_products": 40,
+  "total_products": 43,
   "last_audit": "2026-03-29",
   "new_batch": {
-    "count": 24,
+    "count": 27,
     "source": "Amazon.fr Autonomous Search",
-    "timestamp": "2026-03-29T18:00:00Z"
+    "timestamp": "2026-03-29T18:10:00Z"
   },
   "actions_needed": [
     "Verify affiliate tag integration for new DP links",
