@@ -14,12 +14,16 @@ import {
 
 const CATEGORIES = [
     { id: 'huiles',         label: 'Huiles & Nourrissants' },
-    { id: 'patines_cires',  label: 'Patines & Cires' },
+    { id: 'cires',          label: 'Patines & Cires' },
+    { id: 'alimentaire',    label: 'Contact Alimentaire' },
+    { id: 'savons',         label: 'Savons & Nettoyants' },
     { id: 'renovation',     label: 'Rénovateurs & Retouches' },
     { id: 'peintures',      label: 'Peintures & Finitions' },
     { id: 'resines',        label: 'Résines & Effets' },
     { id: 'preparation',    label: 'Préparation & Décapage' },
     { id: 'outils',         label: 'Outils & Accessoires' },
+    { id: 'teck',           label: 'Bois Exotiques' },
+    { id: 'ebenisterie',    label: 'Ébénisterie & Restauration' },
 ];
 
 const TIERS = [

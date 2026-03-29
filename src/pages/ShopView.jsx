@@ -145,9 +145,9 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
             if (familyId === 'huiles') return cat === 'huiles' || cat === 'huile';
             if (familyId === 'cires') return cat === 'cires' || cat === 'patines_cires';
             if (familyId === 'alimentaire') return cat === 'alimentaire';
-            if (familyId === 'savons') return cat === 'savons' || cat === 'nettoyants' || cat === 'preparation';
-            if (familyId === 'renovation') return cat === 'renovation' || cat === 'peintures' || cat === 'resines';
-            if (familyId === 'outils') return cat === 'outils';
+            if (familyId === 'savons') return cat === 'savons' || cat === 'nettoyants';
+            if (familyId === 'renovation') return ['renovation', 'peintures', 'resines', 'preparation', 'restauration'].includes(cat);
+            if (familyId === 'outils') return cat === 'outils' || cat === 'ebenisterie';
             if (familyId === 'teck') return cat === 'teck';
             return false;
         }).sort((a, b) => {
@@ -172,6 +172,13 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                 <WorkshopHero darkMode={darkMode} />
 
                 <div className="hidden lg:block absolute left-6 xl:left-12 top-10 z-10 pointer-events-none">
+                    <style>{`
+                        @keyframes ritualLetterIn {
+                            0% { opacity: 0; filter: blur(7px); transform: translateY(8px); }
+                            65% { opacity: 1; filter: blur(1px); transform: translateY(0); }
+                            100% { opacity: 1; filter: blur(0); transform: translateY(0); }
+                        }
+                    `}</style>
                     <div className="space-y-7">
                         <div className="flex items-center gap-3">
                             <span className={`h-px w-12 ${darkMode ? 'bg-white/15' : 'bg-stone-300/90'}`} />
@@ -183,7 +190,19 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                         <div className="leading-[0.85]">
                             <div className={`font-serif text-[2.6rem] xl:text-[4rem] tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>
                                 <span className={`inline-block transition-all duration-300 ${isDeletingRitualWord ? 'blur-[1.8px] opacity-80' : 'blur-0 opacity-100'} ${darkMode ? 'text-amber-300' : 'text-amber-800'}`}>
-                                    {typedRitualWord}
+                                    {typedRitualWord.split('').map((char, idx, arr) => (
+                                        <span
+                                            key={`${activeRitualIndex}-${idx}-${arr.length}`}
+                                            style={{
+                                                display: 'inline-block',
+                                                animation: !isDeletingRitualWord && idx === arr.length - 1
+                                                    ? 'ritualLetterIn 280ms cubic-bezier(0.22,1,0.36,1)'
+                                                    : 'none'
+                                            }}
+                                        >
+                                            {char}
+                                        </span>
+                                    ))}
                                 </span>
                                 <span className={`ml-2 font-black animate-pulse text-[1.7rem] xl:text-[2.4rem] ${darkMode ? 'text-amber-400/90' : 'text-amber-700/90'}`}>
                                     |
