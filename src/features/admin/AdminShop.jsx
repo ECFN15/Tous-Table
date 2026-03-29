@@ -13,17 +13,12 @@ import {
 // ─── CONSTANTES ───────────────────────────────────────────────────────────────
 
 const CATEGORIES = [
-    { id: 'huiles',         label: 'Huiles & Nourrissants' },
-    { id: 'cires',          label: 'Patines & Cires' },
-    { id: 'alimentaire',    label: 'Contact Alimentaire' },
-    { id: 'savons',         label: 'Savons & Nettoyants' },
-    { id: 'renovation',     label: 'Rénovateurs & Retouches' },
-    { id: 'peintures',      label: 'Peintures & Finitions' },
-    { id: 'resines',        label: 'Résines & Effets' },
-    { id: 'preparation',    label: 'Préparation & Décapage' },
-    { id: 'outils',         label: 'Outils & Accessoires' },
-    { id: 'teck',           label: 'Bois Exotiques' },
-    { id: 'ebenisterie',    label: 'Ébénisterie & Restauration' },
+    { id: 'huiles',       label: 'Huiles & Nourrissants' },
+    { id: 'cires',        label: 'Cires, Peintures & Effets' },
+    { id: 'savons',       label: 'Savons & Nettoyants' },
+    { id: 'accessoires',  label: 'Accessoires Essentiels' },
+    { id: 'renovation',   label: 'Décapage & Retouches' },
+    { id: 'outils',       label: 'Outils & Matériel Pro' },
 ];
 
 const TIERS = [
@@ -45,7 +40,7 @@ const EMPTY_FORM = {
     name: '',
     brand: '',
     description: '',
-    category: 'patines_cires',
+    category: 'huiles',
     tier: 'premium',
     price: '',
     affiliateUrl: '',

@@ -134,16 +134,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
 
     const getProductsForFamily = (familyId) => {
         return affiliateProducts.filter(p => {
-            const cat = p.category?.toLowerCase() || '';
-            // Matching directly logic including fallbacks for legacy
-            if (familyId === 'huiles') return cat === 'huiles' || cat === 'huile';
-            if (familyId === 'cires') return cat === 'cires' || cat === 'patines_cires';
-            if (familyId === 'alimentaire') return cat === 'alimentaire';
-            if (familyId === 'savons') return cat === 'savons' || cat === 'nettoyants';
-            if (familyId === 'renovation') return ['renovation', 'peintures', 'resines', 'preparation', 'restauration'].includes(cat);
-            if (familyId === 'outils') return cat === 'outils' || cat === 'ebenisterie';
-            if (familyId === 'teck') return cat === 'teck';
-            return false;
+            return p.category === familyId;
         }).sort((a, b) => {
             const tierOrder = { expert: 3, premium: 2, essentiel: 1 };
             const aTier = tierOrder[a.tier] || 0;
