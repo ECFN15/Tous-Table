@@ -15,43 +15,37 @@ const FAMILIES = [
         id: 'huiles',
         title: "Protection Profonde",
         subtitle: "Huiles & Nourrissants",
-        description: "Le premier geste pour chérir un meuble en bois massif. Des huiles professionnelles qui pénètrent au cœur des fibres pour une protection de l'intérieur, respectant le grain et le toucher naturel."
+        description: "Le premier geste pour chérir un meuble en bois massif. Des huiles professionnelles qui pénètrent au cœur des fibres pour une protection de l'intérieur, respectant le grain et le toucher naturel. Inclut aussi les huiles alimentaires pour vos planches de découpe artisanales."
     },
     {
         id: 'cires',
-        title: "Patine Authentique",
-        subtitle: "Cires & Finitions",
-        description: "Idéales pour sublimer les commodes, buffets et pièces vintage. Maintenez l'âme et la chaleur de l'ancien sans abraser, avec des cires naturelles d'abeille et de carnauba."
-    },
-    {
-        id: 'alimentaire',
-        title: "Contact Alimentaire",
-        subtitle: "Soins Planches à Découper",
-        description: "Le rituel indispensable pour garantir l'hygiène et la durabilité de vos planches artisanales. Huiles minérales et crèmes à la cire d'abeille certifiées 100% « food grade »."
+        title: "Patine & Finition",
+        subtitle: "Cires, Peintures & Effets",
+        description: "Sublimez vos meubles avec des cires authentiques, peintures naturelles ou effets décorés. Maintenez l'âme de l'ancien ou créez de nouveaux styles sans compromettre la qualité du bois."
     },
     {
         id: 'savons',
         title: "Le Geste Quotidien",
-        subtitle: "Savons Noirs & Nettoyants",
+        subtitle: "Savons & Nettoyants",
         description: "Évitez les produits chimiques qui agressent vos meubles. Entretenez la beauté de votre table jour après jour avec des nettoyants très doux conçus pour les surfaces huilées."
+    },
+    {
+        id: 'accessoires',
+        title: "L'Essentiel du Quotidien",
+        subtitle: "Accessoires Essentiels",
+        description: "Les petits indispensables qui font la différence. Le matériel de consommation régulière pour un entretien optimal sans friction."
     },
     {
         id: 'renovation',
         title: "Seconde Jeunesse",
-        subtitle: "Soins de Rénovation",
-        description: "Votre bois est devenu terne ou présente des micro-rayures ? Effacez les accidents du quotidien ou ravivez la teinte sans poncer, grâce à ces solutions de restauration ciblées."
-    },
-    {
-        id: 'teck',
-        title: "Bois Exotiques",
-        subtitle: "Spécial Teck & Bois denses",
-        description: "L'entretien très particulier des bois exotiques. Des huiles fluides dédiées à la protection et au maintien de la couleur chaude et ambrée de vos colonnes en teck."
+        subtitle: "Décapage & Retouches",
+        description: "Transformez vos meubles fatigués. Décapez efficacement, éliminez les taches sans poncer, ou retouchez précisément les accidents du quotidien."
     },
     {
         id: 'outils',
         title: "La Boîte à Outils",
-        subtitle: "Brosses & Chiffons",
-        description: "Les compagnons fidèles de l'artisan. Le bon outil pour faire pénétrer l'huile, lustrer vigoureusement la cire ou préparer la surface avant le traitement."
+        subtitle: "Outils & Matériel Pro",
+        description: "Les compagnons fidèles de l'artisan. Pinceaux, rouleaux, ciseaux, presses, racloirs — tout le matériel pour travailler comme un pro avec précision et finesse."
     }
 ];
 
@@ -168,19 +162,18 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
             />
 
             {/* HERO SECTION - Cinematic Editorial Style avec WorkshopHero */}
-            <section className="relative min-h-[95vh] sm:min-h-[85vh] flex flex-col justify-end px-6 xl:px-12 pb-12 sm:pb-16 md:pb-24 pt-48 sm:pt-40 md:pt-32 overflow-hidden">
+            <section className="relative min-h-[100vh] sm:min-h-[85vh] flex flex-col justify-end px-6 xl:px-12 pb-12 sm:pb-16 md:pb-24 pt-[500px] sm:pt-[550px] md:pt-[250px] overflow-hidden">
                 <WorkshopHero darkMode={darkMode} />
 
-                <div className="hidden lg:block absolute left-6 xl:left-12 top-10 z-10 pointer-events-none">
+                <div className="absolute left-5 sm:left-6 xl:left-12 top-[75px] sm:top-24 md:top-32 lg:top-10 z-10 pointer-events-none">
                     <style>{`
                         @keyframes ritualLetterIn {
                             0% { opacity: 0; filter: blur(5px); transform: translateY(7px) scale(0.985); }
-                            55% { opacity: 1; filter: blur(1px); transform: translateY(0) scale(1); }
-                            100% { opacity: 1; filter: blur(0); transform: translateY(0) scale(1); }
+                            100% { opacity: 1; filter: blur(0px); transform: translateY(0) scale(1); }
                         }
                     `}</style>
-                    <div className="space-y-7">
-                        <div className="flex items-center gap-3">
+                    <div className="space-y-4 sm:space-y-5 md:space-y-7">
+                        <div className="flex items-center gap-3 hero-reveal">
                             <span className={`h-px w-12 ${darkMode ? 'bg-white/15' : 'bg-stone-300/90'}`} />
                             <span className={`text-[10px] uppercase tracking-[0.28em] font-black ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>
                                 Rituel Bois
@@ -188,7 +181,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                         </div>
 
                         <div className="leading-[0.85]">
-                            <div className={`font-serif text-[2.6rem] xl:text-[4rem] tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                            <div className={`font-serif text-[2rem] sm:text-[2.6rem] xl:text-[4rem] tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>
                                 <span className={`inline-block transition-all duration-300 ${isDeletingRitualWord ? 'blur-[1.8px] opacity-80' : 'blur-0 opacity-100'} ${darkMode ? 'text-amber-300' : 'text-amber-800'}`}>
                                     {typedRitualWord.split('').map((char, idx, arr) => (
                                         <span
@@ -228,12 +221,12 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                 
                 <div className={`absolute top-0 right-0 w-[50vw] h-[50vw] md:w-[30vw] md:h-[30vw] rounded-full blur-[100px] opacity-20 pointer-events-none ${darkMode ? 'bg-amber-500/20' : 'bg-amber-700/10'}`} />
                 
-                <div className="max-w-[1920px] mx-auto w-full space-y-5 md:space-y-10 relative z-10 sm:mt-0">
-                    <h1 className={`hero-reveal font-serif text-[3.8rem] sm:text-6xl md:text-8xl xl:text-[11.5rem] leading-[0.85] tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                <div className="max-w-[1920px] mx-auto w-full space-y-4 md:space-y-6 lg:space-y-8 relative z-10 sm:mt-0">
+                    <h1 className={`hero-reveal font-serif text-[3.6rem] min-[400px]:text-[3.8rem] sm:text-6xl md:text-[3.5rem] lg:text-7xl xl:text-[11.5rem] leading-[0.85] tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'} w-full md:w-[48%] lg:w-[45%] xl:w-auto`}>
                         Le Soin<br />du Bois.
                     </h1>
-                    <div className="hero-reveal max-w-full md:max-w-2xl">
-                        <p className={`text-base md:text-lg xl:text-xl leading-relaxed ${darkMode ? 'text-stone-400' : 'text-stone-500'} w-[90%] md:w-full`}>
+                    <div className="hero-reveal w-[90%] sm:w-[85%] md:w-[45%] lg:w-[40%] xl:w-full xl:max-w-2xl">
+                        <p className={`text-base md:text-md lg:text-lg xl:text-xl leading-relaxed ${darkMode ? 'text-stone-400' : 'text-stone-500'} w-full`}>
                             Le bois massif est vivant. Protégez, nourrissez et restaurez vos créations avec notre sélection pointue des meilleurs produits d'entretien. Exclusivement testés et validés par l'atelier.
                         </p>
                     </div>

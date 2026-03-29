@@ -53,7 +53,7 @@
 
 ---
 
-## 🟡 2. CIRES & FINITIONS
+## 🟡 2. CIRES, PEINTURES & EFFETS
 
 ### ✅ Produit 5 — Libéron Black Bison Incolore 500ml
 - **Gamme** : `💎 PREMIUM` — La référence absolue pour meubles anciens cirés
@@ -79,11 +79,7 @@
 
 ---
 
-## 🟢 3. SOINS PLANCHES À DÉCOUPER *(Usage alimentaire)*
-
-John Boos Mystery Oil → Huiles & Nourrissants
-John Boos Board Cream → Patines & Cires
-Howard Butcher Block Conditioner → Patines & Cires
+## 🟢 3. HUILES & NOURRISSANTS *(Huiles Alimentaires)*
 
 ### 🔍 Produit 7 — John Boos Mystery Oil (473ml)
 - **Gamme** : `👑 EXPERT` — Standard pro alimentaire (USA)
@@ -147,7 +143,7 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ---
 
-## 🟠 5. RÉNOVATEURS & RETOUCHES
+## 🟠 5. DÉCAPAGE & RETOUCHES
 
 ### 🔍 Produit 12 — Libéron Rénovateur pour Meubles
 - **Gamme** : `💎 PREMIUM` — Efface micro-rayures et redonne de l'éclat
@@ -173,7 +169,7 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ---
 
-## ⚫ 6. ENTRETIEN & ACCESSOIRES
+## ⚫ 6. HUILES & NOURRISSANTS *(Suite - Huiles Spécialisées)*
 
 ### ✅ Produit 14 — Star Brite Teak Oil Premium 473ml
 - **Gamme** : `💎 PREMIUM` — Protection UV & Réhydratation (Colonnes Teck)
@@ -186,6 +182,8 @@ Howard Butcher Block Conditioner → Patines & Cires
 - **Note** : Spécifiquement testé pour le mobilier de jardin en teck. ⚠️ L'ancien lien backup était erroné et a été supprimé.
 
 ---
+
+## 🟣 7. ACCESSOIRES ESSENTIELS
 
 ### 🔍 Produit 15 — Libéron Laine d'Acier Grade 0000
 - **Gamme** : `⭐ ESSENTIEL` — Outil de lustrage incontournable
@@ -216,11 +214,11 @@ Howard Butcher Block Conditioner → Patines & Cires
 ## 🕒 Action de Shopping Autonome — 29 Mars 2026 (17:15)
 *Ajout de 8 références Premium suite à recherche autonome sur Amazon.fr*
 
-## 🔴 7. PEINTURES & FINITIONS
+## � 8. CIRES, PEINTURES & EFFETS *(Suite - Peintures & Effets)*
 
 ### ✅ Produit 17 — Libéron Peinture meuble à base de caséine (Blanc Albâtre)
 - **Marque** : `Libéron`
-- **Catégorie** : `Peintures & Finitions`
+- **Catégorie** : `Cires, Peintures & Effets`
 - **Gamme** : `💎 PREMIUM`
 - **Programme** : `Amazon`
 - **Lien Affilié** : https://www.amazon.fr/dp/B084337HQX
@@ -234,7 +232,7 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ### ✅ Produit 18 — Blanchon - Huile Cire Bois Brut (1L)
 - **Marque** : `Blanchon`
-- **Catégorie** : `Peintures & Finitions`
+- **Catégorie** : `Cires, Peintures & Effets`
 - **Gamme** : `👑 EXPERT`
 - **Programme** : `Amazon`
 - **Lien Affilié** : https://www.amazon.fr/dp/B0127I1BRI
@@ -246,11 +244,11 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ---
 
-## 🟣 8. RÉSINES & EFFETS
+## � 9. CIRES, PEINTURES & EFFETS *(Suite - Résines & Effets)*
 
 ### ✅ Produit 19 — Resin Pro - Résine Époxy Ultra Transparente (3.2 Kg)
 - **Marque** : `Resin Pro`
-- **Catégorie** : `Résines & Effets`
+- **Catégorie** : `Cires, Peintures & Effets`
 - **Gamme** : `👑 EXPERT`
 - **Programme** : `Amazon`
 - **Lien Affilié** : https://www.amazon.fr/dp/B079X1WQPS
@@ -264,7 +262,7 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ### ✅ Produit 20 — Libéron "Le Métal Poudré" (Fonte)
 - **Marque** : `Libéron`
-- **Catégorie** : `Résines & Effets`
+- **Catégorie** : `Cires, Peintures & Effets`
 - **Gamme** : `💎 PREMIUM`
 - **Programme** : `Amazon`
 - **Lien Affilié** : https://www.amazon.fr/dp/B0846DY4T3
@@ -276,11 +274,11 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ---
 
-## ⚪ 9. PRÉPARATION & DÉCAPAGE
+## 🔵 10. DÉCAPAGE & RETOUCHES *(Suite - Décapage &  Nettoyage fin)*
 
 ### ✅ Produit 21 — V33 Décapant Bois Gel Express (1L)
 - **Marque** : `V33`
-- **Catégorie** : `Préparation & Décapage`
+- **Catégorie** : `Décapage & Retouches`
 - **Gamme** : `⭐ ESSENTIEL` 
 - **Programme** : `Amazon`
 - **Lien Affilié** : https://www.amazon.fr/dp/B00LXEJSTG
@@ -294,7 +292,7 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ### ✅ Produit 22 — Libéron RING REMOVER (Popote)
 - **Marque** : `Libéron`
-- **Catégorie** : `Préparation & Décapage`
+- **Catégorie** : `Décapage & Retouches`
 - **Gamme** : `💎 PREMIUM`
 - **Programme** : `Amazon`
 - **Lien Affilié** : https://www.amazon.fr/dp/B004Z4V5LA
@@ -306,11 +304,11 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ---
 
-## 🛠️ 10. OUTILS & ACCESSOIRES
+## 🛠️ 11. OUTILS & MATÉRIEL PRO
 
 ### ✅ Produit 23 — Libéron Pinceau Plat "Le Spalter" (40mm)
 - **Marque** : `Libéron`
-- **Catégorie** : `Outils & Accessoires`
+- **Catégorie** : `Outils & Matériel Pro`
 - **Gamme** : `👑 EXPERT`
 - **Programme** : `Amazon`
 - **Lien Affilié** : https://www.amazon.fr/dp/B00KYR9KS2
@@ -324,7 +322,7 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ### ✅ Produit 24 — Savy Mini Rouleau Laqueur Velours (60mm)
 - **Marque** : `Savy`
-- **Catégorie** : `Outils & Accessoires`
+- **Catégorie** : `Outils & Matériel Pro`
 - **Gamme** : `⭐ ESSENTIEL`
 - **Programme** : `Amazon`
 - **Lien Affilié** : https://www.amazon.fr/dp/B00ESY2Z02
@@ -341,11 +339,11 @@ Howard Butcher Block Conditioner → Patines & Cires
 ## 🕒 Action de Shopping Autonome — 29 Mars 2026 (17:25)
 *Ajout de 5 outils experts pour l'Ébénisterie et la Restauration de précision.*
 
-## 📐 11. ÉBÉNISTERIE & RESTAURATION (Outils Spécialisés)
+## � 12. OUTILS & MATÉRIEL PRO *(Suite - Outils Spécialisés)*
 
 ### ✅ Produit 25 — Bahco 474 Cabinet Scraper (150mm)
 - **Marque** : `Bahco`
-- **Catégorie** : `Outils & Accessoires`
+- **Catégorie** : `Outils & Matériel Pro`
 - **Gamme** : `💎 PREMIUM`
 - **Programme** : `Amazon`
 - **Lien Affilié** : https://www.amazon.fr/dp/B0001P0PIG
@@ -359,7 +357,7 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ### ✅ Produit 26 — Kirschen "Two Cherries" - Jeu de 6 Ciseaux
 - **Marque** : `Kirschen`
-- **Catégorie** : `Outils & Accessoires`
+- **Catégorie** : `Outils & Matériel Pro`
 - **Gamme** : `👑 EXPERT`
 - **Programme** : `Amazon`
 - **Lien Affilié** : https://www.amazon.fr/dp/B00029LIFA
@@ -373,7 +371,7 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ### ✅ Produit 27 — Titebond III Ultimate Wood Glue (946ml)
 - **Marque** : `Titebond`
-- **Catégorie** : `Outils & Accessoires`
+- **Catégorie** : `Outils & Matériel Pro`
 - **Gamme** : `👑 EXPERT`
 - **Programme** : `Amazon`
 - **Lien Affilié** : https://www.amazon.fr/dp/B0002YQ3KU
@@ -387,7 +385,7 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ### ✅ Produit 28 — Bessey GZ60K Presse à Vis Tout Acier
 - **Marque** : `Bessey`
-- **Catégorie** : `Outils & Accessoires`
+- **Catégorie** : `Outils & Matériel Pro`
 - **Gamme** : `👑 EXPERT`
 - **Programme** : `Amazon`
 - **Lien Affilié** : https://www.amazon.fr/dp/B009GD20I2
@@ -401,7 +399,7 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ### ✅ Produit 29 — 3M 9292 Bloc de Ponçage Caoutchouc
 - **Marque** : `3M`
-- **Catégorie** : `Outils & Accessoires`
+- **Catégorie** : `Outils & Matériel Pro`
 - **Gamme** : `💎 PREMIUM`
 - **Programme** : `Amazon`
 - **Lien Affilié** : https://www.amazon.fr/dp/B00004Z4CY
@@ -415,7 +413,7 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ### ✅ Produit 30 — Hazet 821-2 Grattoir Triangulaire
 - **Marque** : `Hazet`
-- **Catégorie** : `Outils & Accessoires`
+- **Catégorie** : `Outils & Matériel Pro`
 - **Gamme** : `💎 PREMIUM`
 - **Programme** : `Amazon`
 - **Lien Affilié** : https://www.amazon.fr/dp/B001C9VIHC
@@ -429,7 +427,7 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ### ✅ Produit 31 — Bahco 665 ERGO Grattoir à Lame Carbure
 - **Marque** : `Bahco`
-- **Catégorie** : `Outils & Accessoires`
+- **Catégorie** : `Outils & Matériel Pro`
 - **Gamme** : `👑 EXPERT`
 - **Programme** : `Amazon`
 - **Lien Affilié** : https://www.amazon.fr/dp/B000288LP6
@@ -443,7 +441,7 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ### ✅ Produit 32 — Kirschen 3802000 Grattoir "Col de Cygne"
 - **Marque** : `Kirschen`
-- **Catégorie** : `Outils & Accessoires`
+- **Catégorie** : `Outils & Matériel Pro`
 - **Gamme** : `💎 PREMIUM`
 - **Programme** : `Amazon`
 - **Lien Affilié** : https://www.amazon.fr/dp/B0012XP6QC
@@ -460,7 +458,7 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ### ✅ Produit 36 — Rust-Oleum Chalky Finish (Peinture à la Craie)
 - **Marque** : `Rust-Oleum`
-- **Catégorie** : `Peintures & Finitions`
+- **Catégorie** : `Cires, Peintures & Effets`
 - **Gamme** : `💎 PREMIUM`
 - **Programme** : `Amazon`
 - **Lien Affilié** : https://www.amazon.fr/dp/B00KHPI4QK
@@ -474,7 +472,7 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ### ✅ Produit 37 — Libéron Peinture à la Caséine (Noir Charbon)
 - **Marque** : `Libéron`
-- **Catégorie** : `Peintures & Finitions`
+- **Catégorie** : `Cires, Peintures & Effets`
 - **Gamme** : `👑 EXPERT`
 - **Programme** : `Amazon`
 - **Lien Affilié** : https://www.amazon.fr/dp/B084337HQX?th=1
@@ -488,7 +486,7 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ### ✅ Produit 38 — Rubio Monocoat Oil Plus 2C (Pur)
 - **Marque** : `Rubio Monocoat`
-- **Catégorie** : `Peintures & Finitions`
+- **Catégorie** : `Cires, Peintures & Effets`
 - **Gamme** : `👑 EXPERT`
 - **Programme** : `Amazon`
 - **Lien Affilié** : https://www.amazon.fr/dp/B00OA5V19K
@@ -502,7 +500,7 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ### ✅ Produit 39 — Osmo Huile-Cire Tintée (Effet Brut 3044)
 - **Marque** : `Osmo`
-- **Catégorie** : `Peintures & Finitions`
+- **Catégorie** : `Cires, Peintures & Effets`
 - **Gamme** : `👑 EXPERT`
 - **Programme** : `Amazon`
 - **Lien Affilié** : https://www.amazon.fr/dp/B00BEF43QC
@@ -516,7 +514,7 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ### ✅ Produit 40 — Libéron Teinte Antiquaire (Merisier / Chêne)
 - **Marque** : `Libéron`
-- **Catégorie** : `Peintures & Finitions`
+- **Catégorie** : `Cires, Peintures & Effets`
 - **Gamme** : `💎 PREMIUM`
 - **Programme** : `Amazon`
 - **Lien Affilié** : https://www.amazon.fr/dp/B00EV7MCQI
@@ -530,7 +528,7 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ### ✅ Produit 41 — Mattine Gomme Laque (Vernis au Tampon)
 - **Marque** : `Les Frères Nordin`
-- **Catégorie** : `Peintures & Finitions`
+- **Catégorie** : `Cires, Peintures & Effets`
 - **Gamme** : `👑 EXPERT`
 - **Programme** : `Amazon`
 - **Lien Affilié** : https://www.amazon.fr/dp/B01HIEBXAG
@@ -544,7 +542,7 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ### ✅ Produit 42 — Bitume de Judée (Patine à l'Ancienne)
 - **Marque** : `Les Frères Nordin`
-- **Catégorie** : `Peintures & Finitions`
+- **Catégorie** : `Cires, Peintures & Effets`
 - **Gamme** : `👑 EXPERT`
 - **Programme** : `Amazon`
 - **Lien Affilié** : https://www.amazon.fr/dp/B01HIE9RWC
@@ -558,7 +556,7 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ### ✅ Produit 43 — Real Milk Paint (Peinture au Lait Authentique)
 - **Marque** : `Real Milk Paint Co.`
-- **Catégorie** : `Peintures & Finitions`
+- **Catégorie** : `Cires, Peintures & Effets`
 - **Gamme** : `👑 EXPERT`
 - **Programme** : `Amazon`
 - **Lien Affilié** : https://www.amazon.fr/dp/B00YHQUGQQ
@@ -572,7 +570,7 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ### ✅ Produit 33 — Bahco 625 Grattoir de Poche de Précision
 - **Marque** : `Bahco`
-- **Catégorie** : `Outils & Accessoires`
+- **Catégorie** : `Outils & Matériel Pro`
 - **Gamme** : `👑 EXPERT`
 - **Programme** : `Amazon`
 - **Lien Affilié** : https://www.amazon.fr/dp/B000288LOW
@@ -586,7 +584,7 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ### ✅ Produit 34 — Bahco 474 Racloir d'Ébéniste Rectangulaire
 - **Marque** : `Bahco`
-- **Catégorie** : `Outils & Accessoires`
+- **Catégorie** : `Outils & Matériel Pro`
 - **Gamme** : `💎 PREMIUM`
 - **Programme** : `Amazon`
 - **Lien Affilié** : https://www.amazon.fr/dp/B0001P0PIG
@@ -600,7 +598,7 @@ Howard Butcher Block Conditioner → Patines & Cires
 
 ### ✅ Produit 35 — Kit Premium Kirschen (Affiloir + 3 Racloirs + Étui)
 - **Marque** : `Kirschen`
-- **Catégorie** : `Outils & Accessoires`
+- **Catégorie** : `Outils & Matériel Pro`
 - **Gamme** : `👑 EXPERT`
 - **Programme** : `Amazon`
 - **Lien Affilié** : https://www.amazon.fr/dp/B0FBM71TCC

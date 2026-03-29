@@ -55,10 +55,10 @@ const WorkshopHero = ({ darkMode = false }) => {
             />
 
             {/* Unified Responsive Composition (6 images) */}
-            <div className="absolute top-[38%] md:top-1/2 left-1/2 md:left-auto -translate-x-1/2 md:translate-x-0 -translate-y-1/2 right-auto md:right-4 lg:right-[2%] w-[90vw] md:w-[55vw] lg:w-[56vw] max-w-[420px] md:max-w-[700px] lg:max-w-[900px]" style={{ zIndex: 2 }}>
+            <div className="absolute top-[50%] sm:top-[48%] md:top-1/2 left-1/2 md:left-auto -translate-x-1/2 md:translate-x-0 -translate-y-1/2 right-auto md:right-4 lg:right-[2%] w-[88vw] sm:w-[85vw] md:w-[50vw] lg:w-[48vw] xl:w-[42vw] max-w-[420px] sm:max-w-[500px] md:max-w-[550px] lg:max-w-[750px] xl:max-w-[1200px]" style={{ zIndex: 2 }}>
                 <div className={`rounded-[24px] md:rounded-[30px] border p-2.5 md:p-3 lg:p-4 shadow-2xl ${darkMode ? 'border-white/5 bg-black/10' : 'border-stone-300/60 bg-white/25'}`}>
                     {/* Top Grid: 4 images */}
-                    <div className="grid grid-cols-12 grid-rows-6 gap-x-2 md:gap-x-3 lg:gap-x-4 gap-y-2 md:gap-y-3 lg:gap-y-4 h-[260px] sm:h-[300px] md:h-[340px] lg:h-[448px]">
+                    <div className="grid grid-cols-12 grid-rows-6 gap-x-2 md:gap-x-3 lg:gap-x-4 gap-y-2 md:gap-y-3 lg:gap-y-4 h-[190px] min-[400px]:h-[220px] sm:h-[280px] md:h-[300px] lg:h-[400px]">
                         <div
                             ref={el => imagesRef.current[0] = el}
                             className="col-span-7 row-span-3 rounded-[12px] md:rounded-[18px] overflow-hidden"
@@ -120,7 +120,7 @@ const WorkshopHero = ({ darkMode = false }) => {
                     <div className="mt-2 md:mt-3 lg:mt-4 grid grid-cols-12 gap-2 md:gap-3 lg:gap-4">
                         <div
                             ref={el => imagesRef.current[4] = el}
-                            className="col-span-5 h-[90px] sm:h-[100px] md:h-[110px] lg:h-[152px] rounded-[10px] md:rounded-[16px] overflow-hidden"
+                            className="col-span-5 h-[65px] min-[400px]:h-[75px] sm:h-[90px] md:h-[100px] lg:h-[140px] rounded-[10px] md:rounded-[16px] overflow-hidden"
                         >
                             <div className={`relative h-full w-full rounded-[10px] md:rounded-[16px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_12px_28px_rgba(0,0,0,0.2)]`}>
                                 <img
@@ -134,7 +134,7 @@ const WorkshopHero = ({ darkMode = false }) => {
 
                         <div
                             ref={el => imagesRef.current[5] = el}
-                            className="col-span-7 h-[90px] sm:h-[100px] md:h-[110px] lg:h-[152px] rounded-[10px] md:rounded-[16px] overflow-hidden"
+                            className="col-span-7 h-[65px] min-[400px]:h-[75px] sm:h-[90px] md:h-[100px] lg:h-[140px] rounded-[10px] md:rounded-[16px] overflow-hidden"
                         >
                             <div className={`relative h-full w-full rounded-[10px] md:rounded-[16px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_12px_28px_rgba(0,0,0,0.2)]`}>
                                 <img
