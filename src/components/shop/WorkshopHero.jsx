@@ -8,6 +8,8 @@ const WORKSHOP_IMAGES = [
     'https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?auto=format&fit=crop&w=1800&q=80',
     'https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?auto=format&fit=crop&w=1400&q=80',
     'https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?auto=format&fit=crop&w=1400&q=80',
+    'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=1400&q=80',
+    'https://images.unsplash.com/photo-1505693314120-0d443867891c?auto=format&fit=crop&w=1400&q=80',
 ];
 
 const WorkshopHero = ({ darkMode = false }) => {
@@ -53,7 +55,7 @@ const WorkshopHero = ({ darkMode = false }) => {
             />
 
             {/* Desktop composition sans superposition */}
-            <div className="absolute right-[2%] top-1/2 -translate-y-1/2 w-[56vw] max-w-[900px] hidden lg:block" style={{ zIndex: 2 }}>
+            <div className="absolute right-[2%] top-[46%] -translate-y-1/2 w-[56vw] max-w-[900px] hidden lg:block" style={{ zIndex: 2 }}>
                 <div className={`rounded-[30px] border p-4 ${darkMode ? 'border-white/5 bg-black/10' : 'border-stone-300/60 bg-white/25'}`}>
                     <div className="grid grid-cols-12 grid-rows-6 gap-x-4 gap-y-4 h-[448px]">
                         <div
@@ -112,6 +114,36 @@ const WorkshopHero = ({ darkMode = false }) => {
                             </div>
                         </div>
                     </div>
+
+                    <div className="mt-4 grid grid-cols-12 gap-4">
+                        <div
+                            ref={el => imagesRef.current[4] = el}
+                            className="col-span-5 h-[132px] rounded-[16px] overflow-hidden"
+                        >
+                            <div className={`relative h-full w-full rounded-[16px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_12px_28px_rgba(0,0,0,0.2)]`}>
+                                <img
+                                    src={WORKSHOP_IMAGES[4]}
+                                    alt="Salon atelier"
+                                    className="h-full w-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/16 via-transparent to-transparent" />
+                            </div>
+                        </div>
+
+                        <div
+                            ref={el => imagesRef.current[5] = el}
+                            className="col-span-7 h-[132px] rounded-[16px] overflow-hidden"
+                        >
+                            <div className={`relative h-full w-full rounded-[16px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_12px_28px_rgba(0,0,0,0.2)]`}>
+                                <img
+                                    src={WORKSHOP_IMAGES[5]}
+                                    alt="Chambre meublee"
+                                    className="h-full w-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/16 via-transparent to-transparent" />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -120,7 +152,7 @@ const WorkshopHero = ({ darkMode = false }) => {
                 <div className={`rounded-2xl border p-2.5 ${darkMode ? 'border-white/8 bg-black/20' : 'border-stone-300/70 bg-white/30'}`}>
                     <div className="grid grid-cols-2 gap-2.5">
                         <div
-                            ref={el => imagesRef.current[4] = el}
+                            ref={el => imagesRef.current[6] = el}
                             className="col-span-2 aspect-[16/10] rounded-xl overflow-hidden"
                         >
                             <img
@@ -130,7 +162,7 @@ const WorkshopHero = ({ darkMode = false }) => {
                             />
                         </div>
                         <div
-                            ref={el => imagesRef.current[5] = el}
+                            ref={el => imagesRef.current[7] = el}
                             className="aspect-[4/3] rounded-xl overflow-hidden"
                         >
                             <img
@@ -140,7 +172,7 @@ const WorkshopHero = ({ darkMode = false }) => {
                             />
                         </div>
                         <div
-                            ref={el => imagesRef.current[6] = el}
+                            ref={el => imagesRef.current[8] = el}
                             className="aspect-[4/3] rounded-xl overflow-hidden"
                         >
                             <img
