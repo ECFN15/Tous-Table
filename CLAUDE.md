@@ -117,15 +117,6 @@ La session #1 restait à 0s car `sessionIdRef` était écrasé par la session #2
 ### Optimisation Couleurs et Dégradé "Golden Hour" (StackedCards)
 **Fichiers** : `src/pages/HomeView.jsx`, `src/components/home/StackedCards.jsx`
 **Action** : Refonte de la colorimétrie de la section "StackedCards". Les fonds des cartes passent d'un camaïeu fade à un dégradé très chaleureux et solaire (Crème Vanille, Miel Doré, Caramel, Terre Cuite). Ajout de l'héritage automatique de couleur au bouton "Découvrir la galerie" (`textColor`). Le grand dégradé d'arrière-plan a été revu (`#FFFFFF` -> `#D9956C`) pour créer une aura lumineuse enveloppante qui met particulièrement en valeur les images des meubles.
----
-
-> Ce fichier documente chaque intervention de Claude sur le projet **Tous à Table Made in Normandie**.
-> Chaque entrée est datée, détaille le problème d'origine, la solution appliquée, et les fichiers modifiés.
-
----
-
-## 19 mars 2026 — Implémentation des améliorations de l'audit v35.8
-
 **Référence** : `_DOCS/AUDITS/audit_final_v35.md` (Section 7 — Pistes d'amélioration)
 **Objectif** : Combler les lacunes identifiées dans l'audit sans casser les fonctionnalités existantes (anti-survente, iOS, auth Google, Stripe).
 **Exclusion** : La partie emails (Gmail → service transactionnel) a été volontairement mise de côté.
@@ -768,3 +759,23 @@ Sur desktop, le header principal (`ArchitecturalHeader`) a une hauteur de `96px`
 - Le réglage mobile complexe (`pt-[max(...)]`) a été scrupuleusement préservé intact pour ne pas briser les espacements liés à l'encoche iOS (Dynamic Island).
 
 **Résultat** : Une symétrie absolue de l'interface sur Desktop lors de l'ouverture du Menu ou du Panier.
+
+---
+
+## 29 mars 2026 — Optimisation Responsive "Atelier" (S24 Ultra & Desktop)
+
+**Fichiers** : `src/pages/ShopView.jsx`, `src/components/shop/WorkshopHero.jsx`
+
+**Objectif** : Résoudre les problèmes de chevauchement et d'espacement excessif sur mobile (Galaxy S24 Ultra) tout en préservant le design asymétrique desktop.
+
+**Solution : Flux Naturel vs Positionnement Absolu**
+1. **Refonte du Flux (Mobile-First)** : Abandon du `absolute` sur mobile pour la grille d'images. Passage à un `flex-col` ordonné (`order-1` : Rituel, `order-2` : Images, `order-3` : Soin du Bois) pour un empilement logique sans collision.
+2. **Fix "Galaxy S24 Ultra" (Tall Screen)** : Remplacement de `justify-between` par `justify-start` dans le conteneur `min-h-[100dvh]`. Évite l'étirement élastique qui créait d'énormes vides au-dessus/en-dessous de la grille sur les écrans très longs.
+3. **Micro-ajustement Header** : Calage de la marge supérieure à `pt-3` (12px) sur mobile pour une respiration premium sous le header sans décrochage visuel.
+4. **Typographie Hybride (Soin du Bois)** : 
+   - Mobile : Texte sur une seule ligne (`Le Soin du Bois.`) pour un look éditorial épuré.
+   - Desktop : Retour au design original sur deux lignes.
+   - Technique : Utilisation de `<br className="hidden md:block" />` pour éviter les doublons de nœuds DOM que les animations GSAP (`hero-reveal`) affichaient par erreur en double.
+
+**Résultat** : Un Hero "Atelier" robuste, stable sur tous les ratios d'écran, et une lisibilité accrue de la description (réduite en `text-sm` sur mobile).
+

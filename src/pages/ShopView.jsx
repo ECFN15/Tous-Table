@@ -153,7 +153,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
             />
 
             {/* HERO SECTION - Cinematic Editorial Style avec WorkshopHero */}
-            <section className="relative min-h-[100dvh] sm:min-h-[85vh] flex flex-col justify-between md:justify-end px-6 xl:px-12 pb-12 sm:pb-16 md:pb-24 pt-3 sm:pt-6 md:pt-[250px] overflow-hidden">
+            <section className="relative min-h-[100dvh] sm:min-h-[85vh] flex flex-col justify-start md:justify-end px-6 xl:px-12 pb-12 sm:pb-16 md:pb-24 pt-3 sm:pt-6 md:pt-[250px] overflow-hidden">
                 <WorkshopHero darkMode={darkMode} />
 
                 {/* Top Section - Rituel Bois */}
@@ -216,7 +216,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                 {/* Bottom Section - Le Soin du Bois */}
                 <div className="order-3 md:-order-none max-w-[1920px] mx-auto w-full space-y-4 md:space-y-6 lg:space-y-8 relative z-10 sm:mt-0">
                     <h1 className={`hero-reveal font-serif text-[3.6rem] min-[400px]:text-[3.8rem] sm:text-6xl md:text-[3.5rem] lg:text-7xl xl:text-[11.5rem] leading-[0.85] tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'} w-full md:w-[48%] lg:w-[45%] xl:w-auto`}>
-                        Le Soin<br />du Bois.
+                        Le Soin <br className="hidden md:block" />du Bois.
                     </h1>
                     <div className="hero-reveal w-[90%] sm:w-[85%] md:w-[45%] lg:w-[40%] xl:w-full xl:max-w-2xl">
                         <p className={`text-sm md:text-base lg:text-lg xl:text-xl leading-relaxed ${darkMode ? 'text-stone-400' : 'text-stone-500'} w-full`}>

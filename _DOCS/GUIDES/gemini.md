@@ -189,3 +189,15 @@ const isIOSStandalone = () => {
 > Sur les systèmes modernes (iOS/Android/Windows), les adresses IP changent constamment (Privacy Extensions). 
 > - **Erreur UI** : Créer une entrée en base ou une carte UI pour chaque nouvelle IP d'un administrateur. Cela pollue l'interface très vite.
 > - **Solution de Groupement** : Toujours regrouper les données brutes par **Utilisateur** (Email) dans l'interface, peu importe le nombre d'IPs liées. Afficher le nombre d'IPs comme un KPI (`ips.length`) plutôt que de les lister. Cela épure radicalement l'écran tout en conservant la précision technique du blacklistage.
+
+---
+
+# Intervention — Optimisation Responsive Atelier (29 Mars 2026)
+* **Flex over Absolute** : Abandon des positionnements `absolute` forcés sur mobile pour laisser le flux flex naturel gérer l'empilement (Rituel > Images > Soin).
+* **Fix S24 Ultra** : Remplacement de `justify-between` par `justify-start` pour éviter l'étirement excessif sur les écrans extra-longs.
+* **Typo Hybride** : Utilisation de `<br className="hidden md:block" />` pour alterner entre affichage sur une ligne (mobile) et deux lignes (desktop) sans dupliquer les nœuds DOM (problème critique avec les librairies d'animation style GSAP/Framer).
+
+# Leçon clé (Gemini) — Flexbox & Ratios d'Écran Extrêmes
+> - **Avoid Elastic Layouts on Tall Screens** : `justify-between` sur un conteneur `100dvh` peut créer des vides béants si le contenu ne remplit pas l'écran (ex: Galaxy S24 Ultra). Préférer un alignement `start` avec des marges fixes pour garantir une densité visuelle constante.
+> - **Conditional Breakpoints inside Text** : Pour changer la structure d'un titre sans casser les animations d'entrée, ne pas dupliquer le bloc de texte avec des classes `hidden`/`block`. Utiliser plutôt des balises `<br />` ou `<span />` conditionnelles à l'intérieur d'un nœud de texte unique.
+
