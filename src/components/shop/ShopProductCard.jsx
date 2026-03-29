@@ -59,7 +59,7 @@ const ShopProductCard = ({ product, darkMode = false }) => {
                 <img
                     src={product.imageUrl || 'https://images.unsplash.com/photo-1616627456224-a80e6f7dd0bb?auto=format&fit=crop&w=900&q=80'}
                     alt={product.name || 'Produit'}
-                    className="w-full aspect-[4/5] md:aspect-[3/4] object-cover transition-transform duration-[800ms] ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-110"
+                    className="w-full aspect-[1/1] md:aspect-[4/5] object-cover transition-transform duration-[800ms] ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-110"
                     loading="lazy"
                 />
 
@@ -72,12 +72,12 @@ const ShopProductCard = ({ product, darkMode = false }) => {
                 </span>
             </div>
 
-            <div className="pt-4 space-y-3">
+            <div className="pt-3 space-y-2.5">
                 <div className="space-y-1.5">
                     <p className={`text-[10px] uppercase tracking-[0.2em] font-black ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>
                         {product.brand || 'Atelier'}
                     </p>
-                    <h3 className={`font-serif text-[15px] md:text-[17px] leading-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                    <h3 className={`font-serif text-[15px] md:text-[16px] leading-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>
                         {product.name || 'Produit de rénovation'}
                     </h3>
                     <p className={`text-[12px] font-black ${darkMode ? 'text-stone-300' : 'text-stone-600'}`}>
@@ -88,13 +88,13 @@ const ShopProductCard = ({ product, darkMode = false }) => {
                     </p>
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                     <a
                         href={product.affiliateUrl || '#'}
                         target="_blank"
                         rel="noopener noreferrer sponsored"
                         onClick={handleAffiliateClick}
-                        className={`w-full flex items-center justify-center gap-2 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-colors duration-300 ${darkMode ? 'bg-white text-stone-900 hover:bg-stone-100' : 'bg-stone-900 text-white hover:bg-stone-700'}`}
+                        className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-colors duration-300 ${darkMode ? 'bg-white text-stone-900 hover:bg-stone-100' : 'bg-stone-900 text-white hover:bg-stone-700'}`}
                     >
                         Voir l'offre
                         <ExternalLink size={12} />

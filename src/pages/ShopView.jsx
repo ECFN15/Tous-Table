@@ -136,9 +136,6 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                 <div className={`absolute top-0 right-0 w-[50vw] h-[50vw] md:w-[30vw] md:h-[30vw] rounded-full blur-[100px] opacity-20 pointer-events-none ${darkMode ? 'bg-amber-500/20' : 'bg-amber-700/10'}`} />
                 
                 <div className="max-w-[1920px] mx-auto w-full space-y-6 md:space-y-10 relative z-10">
-                    <p className={`hero-reveal text-[10px] md:text-[11px] font-black uppercase tracking-[0.4em] ${darkMode ? 'text-amber-500' : 'text-amber-700'}`}>
-                        Boutique d'Affiliation • {affiliateProducts.length} Références
-                    </p>
                     <h1 className={`hero-reveal font-serif text-6xl md:text-8xl xl:text-[11.5rem] leading-[0.85] tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>
                         Le Soin<br />du Bois.
                     </h1>
@@ -189,7 +186,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                             <div className="max-w-[1920px] mx-auto flex flex-col lg:flex-row">
                                 
                                 {/* LEFT : Sticky Info (Editorial) */}
-                                <div className={`lg:w-[35%] xl:w-[30%] lg:border-r ${darkMode ? 'border-white/5' : 'border-stone-200/60'} p-6 md:p-12 lg:sticky lg:top-[88px] lg:h-[calc(100vh-88px)] lg:overflow-y-auto scrollbar-none flex flex-col justify-between`}>
+                                <div className={`lg:w-[30%] xl:w-[26%] lg:border-r ${darkMode ? 'border-white/5' : 'border-stone-200/60'} p-6 md:p-10 lg:sticky lg:top-[88px] lg:h-[calc(100vh-88px)] lg:overflow-y-auto scrollbar-none flex flex-col justify-between`}>
                                     <div className="space-y-6 md:space-y-10 lg:pb-12">
                                         <div className="flex items-center gap-4">
                                             <span className={`text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>
@@ -219,8 +216,8 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                                 </div>
 
                                 {/* RIGHT : Scrollable Products Grid */}
-                                <div className={`lg:w-[65%] xl:w-[70%] p-6 md:p-12 lg:py-20 ${darkMode ? 'bg-[#050505]/40' : 'bg-stone-50/50'}`}>
-                                    <div className="product-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8 xl:gap-10">
+                                <div className={`lg:w-[70%] xl:w-[74%] p-6 md:p-10 lg:py-16 ${darkMode ? 'bg-[#050505]/40' : 'bg-stone-50/50'}`}>
+                                    <div className="product-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-5 md:gap-6 xl:gap-7">
                                         {products.map((product) => (
                                             <ShopProductCard
                                                 key={product.id}
