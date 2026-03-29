@@ -9,7 +9,6 @@
 - **Gamme** : `👑 EXPERT` — Huile-cire professionnelle, référence atelier bois huilé
 - **ASIN** : `B002APA8RF`
 - **Variante Validée** : 750ml / Incolore Satiné (3032)
-- **Lien Amazon** : https://www.amazon.fr/dp/B002APA8RF
 - **Lien Influenceur** : https://amzn.to/4lWI6gj
 - **Prix Cible** : ~29,90€ (750ml) / ~95€ (2,5L)
 - **Statut** : ✅ OK
