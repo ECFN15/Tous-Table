@@ -175,6 +175,15 @@ const GlobalMenu = ({
             },
             href: '/?page=gallery'
         },
+        {
+            label: "L'Atelier",
+            onClick: (e) => {
+                if (!e.ctrlKey && !e.metaKey) {
+                    e.preventDefault(); setView('shop'); setIsMenuOpen(false); window.scrollTo(0, 0);
+                }
+            },
+            href: '/?page=shop'
+        },
         ...(user && !user.isAnonymous ? [{
             label: activeDesignId === 'architectural' ? 'Commandes' : 'Commandes.',
             onClick: () => { setView('my-orders'); setIsMenuOpen(false); window.scrollTo(0, 0); }

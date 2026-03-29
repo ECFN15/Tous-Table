@@ -10,7 +10,7 @@ import SEO from '../components/shared/SEO';
 const GalleryView = ({ 
     items, boardItems = [], user, onSelectItem, onShowLogin, darkMode = false,
     onOpenMenu, onOpenCart, toggleTheme, setHeaderProps,
-    persistentGalleryState, saveGalleryState 
+    persistentGalleryState, saveGalleryState, onOpenShop
 }) => {
     const [filter, setFilter] = useState(persistentGalleryState?.filter || 'fixed');
     const [activeCollection, setActiveCollection] = useState(persistentGalleryState?.activeCollection || 'furniture'); // 'furniture' | 'cutting_boards'
@@ -54,7 +54,7 @@ const GalleryView = ({
         <div className="min-h-screen">
             <SEO
                 title="La Galerie — Meubles Anciens & Tables de Ferme"
-                description="Découvrez nos pièces uniques de mobilier restauré : tables de ferme en chêne, armoires parisiennes, buffets normands. Enchères et vente directe. Livraison France entière."
+                description="Découvrez nos pièces uniques de mobilier restauré : tables de ferme en chêne, armoires parisiennes, buffets normands. Vente directe, livraison France entière."
                 url="/?page=gallery"
             />
 
@@ -81,9 +81,10 @@ const GalleryView = ({
                         setFilter(val);
                         if (saveGalleryState) saveGalleryState({ filter: val });
                     },
+                    onOpenShop,
                     setViewMode,
                     viewMode
-                }), [activeCollection, filter, viewMode, saveGalleryState])}
+                }), [activeCollection, filter, viewMode, saveGalleryState, onOpenShop])}
             />
         </div>
     );

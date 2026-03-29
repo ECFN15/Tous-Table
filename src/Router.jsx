@@ -7,11 +7,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 // --- CODE SPLITTING: Chargement différé des pages secondaires ---
 // Optimisation critique pour mobile : on ne télécharge pas tout d'un coup.
 const GalleryView = React.lazy(() => import('./pages/GalleryView'));
+const ShopView = React.lazy(() => import('./pages/ShopView'));
 const ProductDetail = React.lazy(() => import('./pages/ProductDetail'));
 const CheckoutView = React.lazy(() => import('./pages/CheckoutView'));
 const LoginView = React.lazy(() => import('./pages/LoginView'));
 import { Palette,
-    CreditCard, Gavel, Mail, Users, Share2, Globe,
+    CreditCard, Mail, Users, Share2, Globe,
     Activity, Home, Package, Layout, LayoutPanelTop, BarChart3, ChevronLeft,
     MoreHorizontal, ChevronDown, ShoppingBag
 } from 'lucide-react';
@@ -22,7 +23,6 @@ const AdminHomepage = React.lazy(() => import('./features/admin/AdminHomepage'))
 const AdminOrders = React.lazy(() => import('./features/admin/AdminOrders'));
 
 const AdminStudio = React.lazy(() => import('./features/admin/AdminStudio'));
-const AdminAuctions = React.lazy(() => import('./features/admin/AdminAuctions'));
 const AdminForm = React.lazy(() => import('./features/admin/AdminForm'));
 const AdminItemList = React.lazy(() => import('./features/admin/AdminItemList'));
 const AdminUsers = React.lazy(() => import('./features/admin/AdminUsers'));
@@ -72,7 +72,8 @@ const AppRouter = ({
     onOpenDiscovery,
     setHeaderProps,
     persistentGalleryState,
-    saveGalleryState
+    saveGalleryState,
+    affiliateProducts
 }) => {
     const { user, isAdmin, logout } = useAuth();
     const [isMoreMenuOpen, setIsMoreMenuOpen] = React.useState(false);
@@ -85,13 +86,12 @@ const AppRouter = ({
         { id: 'studio', label: 'Studio', icon: Palette },
         { id: 'homepage', label: 'Accueil', icon: Home },
         { id: 'orders', label: 'Ventes', icon: Package },
-        { id: 'auctions', label: 'Enchères', icon: Gavel },
+        { id: 'shop', label: 'Boutique', icon: ShoppingBag },
         { id: 'users', label: 'Clients', icon: Users },
         { id: 'ip_manager', label: 'Sécurité', icon: Globe },
         { id: 'seo', label: 'SEO', icon: Share2 },
         { id: 'newsletter', label: 'Infos', icon: Mail },
         { id: 'payment_settings', label: 'Paiement', icon: CreditCard },
-        { id: 'shop',             label: 'Boutique',  icon: ShoppingBag },
     ];
 
     const handleToggleStatus = async (item, col) => {
@@ -160,6 +160,7 @@ const AppRouter = ({
                             isAdmin={isAdmin} isSecretGateOpen={isSecretGateOpen} user={user}
                             onShowLogin={() => setShowFullLogin(true)}
                             onSelectItem={(id) => { setSelectedItemId(id); setView('detail'); window.scrollTo(0, 0); }}
+                            onOpenShop={() => { setView('shop'); window.location.hash = 'shop'; window.scrollTo(0, 0); }}
                             darkMode={darkMode}
                             onOpenMenu={onOpenMenu}
                             onOpenCart={onOpenCart}
@@ -170,6 +171,19 @@ const AppRouter = ({
                         />
                     </Suspense>
                 </div>
+            )}
+
+            {view === 'shop' && (
+                <Suspense fallback={<div className="min-h-screen bg-transparent"></div>}>
+                    <ShopView
+                        affiliateProducts={affiliateProducts}
+                        darkMode={darkMode}
+                        onOpenMenu={onOpenMenu}
+                        onOpenCart={onOpenCart}
+                        toggleTheme={toggleTheme}
+                        setHeaderProps={setHeaderProps}
+                    />
+                </Suspense>
             )}
 
             {view === 'detail' && selectedItemId && (
@@ -370,8 +384,6 @@ const AppRouter = ({
                         ) : adminCollection === 'orders' ? (
                             <AdminOrders darkMode={darkMode} />
 
-                        ) : adminCollection === 'auctions' ? (
-                            <AdminAuctions darkMode={darkMode} />
                         ) : adminCollection === 'studio' ? (
                             <AdminStudio darkMode={darkMode} />
                         ) : adminCollection === 'users' ? (

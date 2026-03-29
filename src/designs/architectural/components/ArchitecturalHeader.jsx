@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLiveTheme } from '../../../hooks/useLiveTheme';
 import { useAuth } from '../../../contexts/AuthContext';
-import { Menu, X, ShoppingBag, ShieldCheck, LogOut, LogIn, Armchair, Gavel } from 'lucide-react';
+import { Menu, X, ShoppingBag, ShieldCheck, LogOut, LogIn, Armchair } from 'lucide-react';
 import AnimatedThemeToggler from '../../../components/ui/AnimatedThemeToggler';
 
 const CuttingBoard = ({ size = 14, strokeWidth = 2, ...props }) => (
@@ -139,27 +139,17 @@ const ArchitecturalHeader = ({
                                     <span className="relative z-10">Planches</span>
                                 </button>
 
-                                {/* ENCHÈRES BUTTON */}
-                                <button
-                                    onClick={() => {
-                                        setActiveCollection('furniture');
-                                        if (headerProps?.setFilter) headerProps.setFilter('auction');
-                                    }}
-                                    className={`relative group flex items-center gap-3 py-2 text-[10.5px] font-bold uppercase tracking-[0.2em] transition-all duration-500 overflow-hidden bg-transparent
-                                        ${activeCollection === 'furniture' && headerProps?.filter === 'auction'
-                                            ? (darkMode ? 'text-amber-400' : 'text-amber-700')
-                                            : (darkMode ? 'text-stone-400 hover:text-amber-400' : 'text-stone-500 hover:text-amber-600')
-                                        }
-                                    `}
-                                >
-                                    {/* Bottom Line expanding */}
-                                    <span className={`absolute bottom-0 left-0 h-[1.5px] bg-current transition-all duration-500 ease-out z-10 
-                                        ${activeCollection === 'furniture' && headerProps?.filter === 'auction' ? 'w-full' : 'w-0 group-hover:w-full'}
-                                    `}></span>
-
-                                    <Gavel size={15} strokeWidth={1.5} className="relative z-10 transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:scale-110" />
-                                    <span className="relative z-10">Enchères</span>
-                                </button>
+                                {/* L'ATELIER BUTTON */}
+                                {headerProps?.onOpenShop && (
+                                    <button
+                                        onClick={headerProps.onOpenShop}
+                                        className={`relative group flex items-center gap-3 py-2 text-[10.5px] font-bold uppercase tracking-[0.2em] transition-all duration-500 overflow-hidden bg-transparent ${darkMode ? 'text-stone-400 hover:text-amber-400' : 'text-stone-500 hover:text-amber-700'}`}
+                                    >
+                                        <span className="absolute bottom-0 left-0 h-[1.5px] bg-current transition-all duration-500 ease-out z-10 w-0 group-hover:w-full"></span>
+                                        <ShoppingBag size={15} strokeWidth={1.5} className="relative z-10 transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:scale-110" />
+                                        <span className="relative z-10">L'Atelier</span>
+                                    </button>
+                                )}
                             </nav>
                         </div>
                 )}

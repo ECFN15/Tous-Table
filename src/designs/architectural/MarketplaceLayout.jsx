@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import ProductCard from './components/ProductCard';
 import TextType from '../../components/ui/TextType';
-import { Armchair, Gavel } from 'lucide-react';
+import { Armchair, ShoppingBag } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 /**
@@ -36,7 +36,7 @@ const MarketplaceLayout = ({
     setHeaderProps // Global Header Sync
 }) => {
     // Déstructuration des props de header
-    const { activeCollection, setActiveCollection, filter, setFilter } = headerProps || {};
+    const { activeCollection, setActiveCollection, filter, setFilter, onOpenShop } = headerProps || {};
 
     const toggleWishlist = () => {
         // keep for placeholder
@@ -126,17 +126,16 @@ const MarketplaceLayout = ({
                             </button>
                         </div>
 
-                        {/* ENCHÈRES BUTTON (No Neon) */}
-                        <button
-                            onClick={() => {
-                                setActiveCollection('furniture');
-                                if (setFilter) setFilter('auction');
-                            }}
-                            className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-300 ${activeCollection === 'furniture' && filter === 'auction' ? (darkMode ? 'bg-stone-100 text-black scale-105 shadow-xl shadow-black/50' : 'bg-stone-900 text-white scale-105 shadow-xl shadow-stone-400/20') : (darkMode ? 'bg-stone-900/40 text-stone-500 border border-stone-800' : 'bg-stone-100 text-stone-400 border border-stone-200')}`}
-                        >
-                            <Gavel size={14} strokeWidth={2.5} />
-                            Enchères
-                        </button>
+                        {onOpenShop && (
+                            <button
+                                onClick={onOpenShop}
+                                className={`relative z-10 flex items-center gap-2 px-6 py-2.25 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-300 ${darkMode ? 'bg-stone-900/90 text-stone-300 border border-stone-700 hover:text-amber-400' : 'bg-stone-100/90 text-stone-500 border border-stone-200 hover:text-amber-700'}`}
+                            >
+                                <ShoppingBag size={14} strokeWidth={2.5} />
+                                L'Atelier
+                            </button>
+                        )}
+
                     </div>
                 </div>
 

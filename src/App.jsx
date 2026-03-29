@@ -334,6 +334,7 @@ const AppContent = () => {
       setPendingDeepLink(productId);
     } else {
       if (params.get('page') === 'gallery' || hash === 'gallery') setView('gallery');
+      if (params.get('page') === 'shop' || hash === 'shop') setView('shop');
     }
     setLoading(false);
 
@@ -374,7 +375,7 @@ const AppContent = () => {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '');
-      if (['home', 'gallery', 'admin', 'login', 'my-orders'].includes(hash)) {
+      if (['home', 'gallery', 'shop', 'admin', 'login', 'my-orders'].includes(hash)) {
         setView(hash);
       }
     };
