@@ -153,10 +153,11 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
             />
 
             {/* HERO SECTION - Cinematic Editorial Style avec WorkshopHero */}
-            <section className="relative min-h-[100vh] sm:min-h-[85vh] flex flex-col justify-end px-6 xl:px-12 pb-12 sm:pb-16 md:pb-24 pt-[500px] sm:pt-[550px] md:pt-[250px] overflow-hidden">
+            <section className="relative min-h-[100dvh] sm:min-h-[85vh] flex flex-col justify-between md:justify-end px-6 xl:px-12 pb-12 sm:pb-16 md:pb-24 pt-[75px] md:pt-[250px] overflow-hidden">
                 <WorkshopHero darkMode={darkMode} />
 
-                <div className="absolute left-5 sm:left-6 xl:left-12 top-[75px] sm:top-24 md:top-32 lg:top-10 z-10 pointer-events-none">
+                {/* Top Section - Rituel Bois */}
+                <div className="relative md:absolute order-1 md:-order-none left-0 md:left-5 sm:left-6 xl:left-12 md:top-[75px] sm:top-24 md:top-32 lg:top-10 z-10 pointer-events-none">
                     <style>{`
                         @keyframes ritualLetterIn {
                             0% { opacity: 0; filter: blur(5px); transform: translateY(7px) scale(0.985); }
@@ -198,7 +199,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                             {RITUAL_WORDS.map((word, idx) => (
                                 <span
                                     key={word}
-                                    className={`px-2.5 py-1 rounded-full text-[9px] uppercase tracking-[0.18em] font-black transition-colors duration-300 ${idx === activeRitualIndex
+                                    className={`px-2.5 py-1 rounded-full text-[9px] uppercase tracking-[0.18em] font-black transition-colors duration-300 flex-shrink-0 ${idx === activeRitualIndex
                                         ? (darkMode ? 'bg-amber-400/20 text-amber-300 border border-amber-300/35' : 'bg-amber-700/15 text-amber-800 border border-amber-700/30')
                                         : (darkMode ? 'bg-white/5 text-stone-500 border border-white/10' : 'bg-stone-200/40 text-stone-500 border border-stone-300/70')
                                     }`}
@@ -210,9 +211,10 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                     </div>
                 </div>
                 
-                <div className={`absolute top-0 right-0 w-[50vw] h-[50vw] md:w-[30vw] md:h-[30vw] rounded-full blur-[100px] opacity-20 pointer-events-none ${darkMode ? 'bg-amber-500/20' : 'bg-amber-700/10'}`} />
+                <div className={`absolute top-0 right-0 w-[50vw] h-[50vw] md:w-[30vw] md:h-[30vw] rounded-full blur-[100px] opacity-20 pointer-events-none z-0 ${darkMode ? 'bg-amber-500/20' : 'bg-amber-700/10'}`} />
                 
-                <div className="max-w-[1920px] mx-auto w-full space-y-4 md:space-y-6 lg:space-y-8 relative z-10 sm:mt-0">
+                {/* Bottom Section - Le Soin du Bois */}
+                <div className="order-3 md:-order-none max-w-[1920px] mx-auto w-full space-y-4 md:space-y-6 lg:space-y-8 relative z-10 sm:mt-0">
                     <h1 className={`hero-reveal font-serif text-[3.6rem] min-[400px]:text-[3.8rem] sm:text-6xl md:text-[3.5rem] lg:text-7xl xl:text-[11.5rem] leading-[0.85] tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'} w-full md:w-[48%] lg:w-[45%] xl:w-auto`}>
                         Le Soin<br />du Bois.
                     </h1>

@@ -42,20 +42,20 @@ const WorkshopHero = ({ darkMode = false }) => {
     return (
         <div 
             ref={containerRef}
-            className="absolute inset-0 overflow-hidden pointer-events-none"
+            className="contents"
         >
-            <div className={`absolute inset-0 ${darkMode ? 'bg-[radial-gradient(circle_at_77%_44%,rgba(245,158,11,0.16),transparent_52%)]' : 'bg-[radial-gradient(circle_at_77%_44%,rgba(180,83,9,0.16),transparent_52%)]'}`} />
+            <div className={`absolute inset-0 pointer-events-none z-0 ${darkMode ? 'bg-[radial-gradient(circle_at_77%_44%,rgba(245,158,11,0.16),transparent_52%)]' : 'bg-[radial-gradient(circle_at_77%_44%,rgba(180,83,9,0.16),transparent_52%)]'}`} />
 
             {/* Grain subtil pour eviter la platitude */}
             <div
-                className="absolute inset-0 opacity-[0.07]"
+                className="absolute inset-0 opacity-[0.07] pointer-events-none z-0"
                 style={{
                     backgroundImage: 'repeating-linear-gradient(0deg, rgba(255,255,255,0.2) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(255,255,255,0.12) 0 1px, transparent 1px 4px)'
                 }}
             />
 
             {/* Unified Responsive Composition (6 images) */}
-            <div className="absolute top-[50%] sm:top-[48%] md:top-1/2 left-1/2 md:left-auto -translate-x-1/2 md:translate-x-0 -translate-y-1/2 right-auto md:right-4 lg:right-[2%] w-[88vw] sm:w-[85vw] md:w-[50vw] lg:w-[48vw] xl:w-[42vw] max-w-[420px] sm:max-w-[500px] md:max-w-[550px] lg:max-w-[750px] xl:max-w-[1200px]" style={{ zIndex: 2 }}>
+            <div className="relative md:absolute order-2 md:order-none mx-auto md:mx-0 md:top-1/2 md:-translate-y-1/2 md:right-4 lg:right-[2%] w-[88vw] sm:w-[85vw] md:w-[50vw] lg:w-[48vw] xl:w-[42vw] max-w-[420px] sm:max-w-[500px] md:max-w-[550px] lg:max-w-[750px] xl:max-w-[1200px] my-6 md:my-0 flex-shrink-0" style={{ zIndex: 2 }}>
                 <div className={`rounded-[24px] md:rounded-[30px] border p-2.5 md:p-3 lg:p-4 shadow-2xl ${darkMode ? 'border-white/5 bg-black/10' : 'border-stone-300/60 bg-white/25'}`}>
                     {/* Top Grid: 4 images */}
                     <div className="grid grid-cols-12 grid-rows-6 gap-x-2 md:gap-x-3 lg:gap-x-4 gap-y-2 md:gap-y-3 lg:gap-y-4 h-[190px] min-[400px]:h-[220px] sm:h-[280px] md:h-[300px] lg:h-[400px]">
