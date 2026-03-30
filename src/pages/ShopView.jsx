@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Info, SlidersHorizontal } from 'lucide-react';
+import { Info, SlidersHorizontal, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SEO from '../components/shared/SEO';
 import ShopProductCard from '../components/shop/ShopProductCard';
@@ -18,48 +18,63 @@ const FAMILIES = [
         title: "Protection Profonde",
         subtitle: "Huiles & Nourrissants",
         description: "Le premier geste pour chérir un meuble en bois massif. Des huiles professionnelles qui pénètrent au cœur des fibres pour une protection de l'intérieur, respectant le grain et le toucher naturel. Inclut aussi les huiles alimentaires pour vos planches de découpe artisanales.",
-        tutorialVideoId: "ictKhF92-pY",
-        tutorialVideoLabel: "Application Rubio Monocoat Oil Plus 2C sur meuble"
+        tutorials: [
+            { videoId: "ictKhF92-pY", label: "Application Rubio Monocoat Oil Plus 2C sur meuble", productName: "Rubio Monocoat Oil Plus 2C (Pure/Incolore)" },
+            { videoId: "EZ2w0DBLkTI", label: "Comment appliquer Osmo PolyX Oil sur un meuble", productName: "Osmo Polyx-Oil 3032 MAT" },
+            { videoId: "KfHoHFA7Av8", label: "John Boos Mystery Oil & Board Cream — entretien planche", productName: "John Boos Mystery Oil (473ml)" }
+        ]
     },
     {
         id: 'cires',
         title: "Patine & Finition",
         subtitle: "Cires, Peintures & Effets",
         description: "Sublimez vos meubles avec des cires authentiques, peintures naturelles ou effets décorés. Maintenez l'âme de l'ancien ou créez de nouveaux styles sans compromettre la qualité du bois.",
-        tutorialVideoId: "zhV4UVEC_Gg",
-        tutorialVideoLabel: "Technique de patine & effet vieilli sur bois — Libéron"
+        tutorials: [
+            { videoId: "zhV4UVEC_Gg", label: "Effet patiné avec la patine Libéron", productName: "Libéron Teinte Antiquaire (Merisier / Chêne)" },
+            { videoId: "sIXtHjSiIRY", label: "Cire Black Bison Libéron — application sur meuble", productName: "Libéron Black Bison Incolore 500ml" },
+            { videoId: "lRTlQNcmyig", label: "Peinture Rust-Oleum Chalky Finish sur meuble", productName: "Rust-Oleum Chalky Finish (Peinture à la Craie)" },
+            { videoId: "wh7EQGOqnfI", label: "Créer une table rivière en résine époxy", productName: "Resin Pro — Résine Époxy Ultra Transparente (3.2 Kg)" }
+        ]
     },
     {
         id: 'savons',
         title: "Le Geste Quotidien",
         subtitle: "Savons & Nettoyants",
         description: "Évitez les produits chimiques qui agressent vos meubles. Entretenez la beauté de votre table jour après jour avec des nettoyants très doux conçus pour les surfaces huilées.",
-        tutorialVideoId: "2PjMXVGfA_k",
-        tutorialVideoLabel: "Nettoyage du bois massif avec Rubio Monocoat Cleaner"
+        tutorials: [
+            { videoId: "2PjMXVGfA_k", label: "Nettoyage bois avec Rubio Monocoat Wood Cleaner", productName: "Rubio Monocoat Wood Cleaner" },
+            { videoId: "ulx9fAGC7BM", label: "Entretien quotidien surfaces bois huilées", productName: "Osmo Wash & Care 8016 (1L)" }
+        ]
     },
     {
         id: 'accessoires',
         title: "L'Essentiel du Quotidien",
         subtitle: "Accessoires Essentiels",
         description: "Les petits indispensables qui font la différence. Le matériel de consommation régulière pour un entretien optimal sans friction.",
-        tutorialVideoId: "sVXN8ASgzi4",
-        tutorialVideoLabel: "Choisir le bon pinceau pour vos finitions bois"
+        tutorials: [
+            { videoId: "sVXN8ASgzi4", label: "Choisir le bon pinceau pour vos finitions bois", productName: "Libéron Pinceau Plat \"Le Spalter\"" }
+        ]
     },
     {
         id: 'renovation',
         title: "Seconde Jeunesse",
         subtitle: "Décapage & Retouches",
         description: "Transformez vos meubles fatigués. Décapez efficacement, éliminez les taches sans poncer, ou retouchez précisément les accidents du quotidien.",
-        tutorialVideoId: "GIB3HJeQgp8",
-        tutorialVideoLabel: "Décaper efficacement un meuble en bois"
+        tutorials: [
+            { videoId: "0lAtz_V4Xl4", label: "Décapant bois V33 — mode d'emploi", productName: "V33 Décapant Bois Gel Express (1L)" },
+            { videoId: "GIB3HJeQgp8", label: "Décaper efficacement un meuble en bois", productName: "Libéron Rénovateur pour Meubles" }
+        ]
     },
     {
         id: 'outils',
         title: "La Boîte à Outils",
         subtitle: "Outils & Matériel Pro",
         description: "Les compagnons fidèles de l'artisan. Pinceaux, rouleaux, ciseaux, presses, racloirs — tout le matériel pour travailler comme un pro avec précision et finesse.",
-        tutorialVideoId: "yAn3HTURb6U",
-        tutorialVideoLabel: "Sélectionner les bons outils pour finir vos meubles"
+        tutorials: [
+            { videoId: "yAn3HTURb6U", label: "Sélectionner les bons outils de finition bois", productName: "Libéron Pinceau Plat \"Le Spalter\" (40mm)" },
+            { videoId: "IVAvfGG2lmU", label: "Affûtage d'un racloir d'ébéniste", productName: "Bahco 474 Racloir d'Ébéniste / Kit Kirschen" },
+            { videoId: "ECMVRc5N3K0", label: "Les racloirs : affûter, préparer, utiliser", productName: "Kit Premium Kirschen (Affiloir + 3 Racloirs)" }
+        ]
     }
 ];
 
@@ -71,6 +86,10 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
     const [isDeletingRitualWord, setIsDeletingRitualWord] = useState(false);
     const [activeCategory, setActiveCategory] = useState(null);
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+    const [tutorialIndexes, setTutorialIndexes] = useState({});
+
+    const getTutorialIndex = (categoryId) => tutorialIndexes[categoryId] || 0;
+    const setTutorialIndex = (categoryId, idx) => setTutorialIndexes(prev => ({ ...prev, [categoryId]: idx }));
 
     useEffect(() => {
         if (setHeaderProps) {
@@ -382,40 +401,150 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                                                     transition={{ delay: 0.3, duration: 0.8 }}
                                                     className="col-span-2 sm:col-span-3 lg:col-span-4 p-8 lg:p-12 rounded-[28px] backdrop-blur-xl bg-gradient-to-br from-amber-500/5 to-stone-800/20 border border-white/5"
                                                 >
-                                                    <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
-                                                        {/* Texte */}
-                                                        <div className="flex-1 min-w-0">
-                                                            <p className={`text-[10px] uppercase tracking-[0.28em] font-black mb-3 ${darkMode ? 'text-amber-500' : 'text-amber-700'}`}>
-                                                                {family.subtitle} · Tuto Atelier
-                                                            </p>
-                                                            <h3 className={`text-3xl lg:text-4xl font-serif leading-tight mb-4 ${darkMode ? 'text-stone-50' : 'text-stone-900'}`}>
-                                                                {family.title}
-                                                            </h3>
-                                                            <p className={`text-base leading-relaxed opacity-80 ${darkMode ? 'text-stone-300' : 'text-stone-600'}`}>
-                                                                {family.description}
-                                                            </p>
-                                                        </div>
-                                                        {/* Player YouTube */}
-                                                        {family.tutorialVideoId && (
-                                                            <div className="w-full lg:w-[48%] flex-shrink-0">
-                                                                <div className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl">
-                                                                    <iframe
-                                                                        src={`https://www.youtube.com/embed/${family.tutorialVideoId}?rel=0&modestbranding=1&color=white`}
-                                                                        title={`Tutoriel ${family.title}`}
-                                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                                                        allowFullScreen
-                                                                        loading="lazy"
-                                                                        className="absolute inset-0 w-full h-full"
-                                                                    />
-                                                                </div>
-                                                                {family.tutorialVideoLabel && (
-                                                                    <p className={`mt-2.5 text-[10px] text-center tracking-wide opacity-50 ${darkMode ? 'text-stone-400' : 'text-stone-600'}`}>
-                                                                        ▶ {family.tutorialVideoLabel}
+                                                    {(() => {
+                                                        const tutorials = family.tutorials || [];
+                                                        const currentIdx = getTutorialIndex(family.id);
+                                                        const currentTutorial = tutorials[currentIdx];
+                                                        return (
+                                                            <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
+                                                                {/* Texte */}
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className={`text-[10px] uppercase tracking-[0.28em] font-black mb-3 ${darkMode ? 'text-amber-500' : 'text-amber-700'}`}>
+                                                                        {family.subtitle} · Tuto Atelier
                                                                     </p>
+                                                                    <h3 className={`text-3xl lg:text-4xl font-serif leading-tight mb-4 ${darkMode ? 'text-stone-50' : 'text-stone-900'}`}>
+                                                                        {family.title}
+                                                                    </h3>
+                                                                    <p className={`text-base leading-relaxed opacity-80 ${darkMode ? 'text-stone-300' : 'text-stone-600'}`}>
+                                                                        {family.description}
+                                                                    </p>
+                                                                    {/* Mini carte produit lié à la vidéo */}
+                                                                    {(() => {
+                                                                        if (!currentTutorial?.productName) return null;
+                                                                        const linked = affiliateProducts.find(p =>
+                                                                            p.name?.toLowerCase().includes(currentTutorial.productName.toLowerCase().slice(0, 20)) ||
+                                                                            currentTutorial.productName.toLowerCase().includes((p.name || '').toLowerCase().slice(0, 20))
+                                                                        );
+                                                                        if (linked) {
+                                                                            return (
+                                                                                <AnimatePresence mode="wait">
+                                                                                    <motion.div
+                                                                                        key={linked.id}
+                                                                                        initial={{ opacity: 0, y: 8 }}
+                                                                                        animate={{ opacity: 1, y: 0 }}
+                                                                                        exit={{ opacity: 0, y: -8 }}
+                                                                                        transition={{ duration: 0.3 }}
+                                                                                        className={`mt-6 flex items-center gap-4 p-3 rounded-2xl border max-w-xs ${darkMode ? 'bg-white/5 border-white/8' : 'bg-white/70 border-stone-200/80'}`}
+                                                                                    >
+                                                                                        {linked.imageUrl && (
+                                                                                            <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0">
+                                                                                                <img
+                                                                                                    src={linked.imageUrl}
+                                                                                                    alt={linked.name}
+                                                                                                    className="w-full h-full object-cover"
+                                                                                                    loading="lazy"
+                                                                                                />
+                                                                                            </div>
+                                                                                        )}
+                                                                                        <div className="flex-1 min-w-0">
+                                                                                            <p className={`text-[9px] font-black uppercase tracking-widest mb-0.5 ${darkMode ? 'text-amber-500/80' : 'text-amber-700/80'}`}>
+                                                                                                {linked.brand}
+                                                                                            </p>
+                                                                                            <p className={`text-[11px] font-semibold leading-tight line-clamp-2 mb-1.5 ${darkMode ? 'text-stone-100' : 'text-stone-900'}`}>
+                                                                                                {linked.name}
+                                                                                            </p>
+                                                                                            <a
+                                                                                                href={linked.affiliateUrl}
+                                                                                                target="_blank"
+                                                                                                rel="noopener noreferrer sponsored"
+                                                                                                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-medium transition-all duration-200 ${darkMode ? 'bg-amber-500/15 border border-amber-500/30 text-amber-400 hover:bg-amber-500/25' : 'bg-amber-600/10 border border-amber-600/25 text-amber-700 hover:bg-amber-600/20'}`}
+                                                                                            >
+                                                                                                Découvrir <span>→</span>
+                                                                                            </a>
+                                                                                        </div>
+                                                                                    </motion.div>
+                                                                                </AnimatePresence>
+                                                                            );
+                                                                        }
+                                                                        return (
+                                                                            <div className={`mt-5 flex items-center gap-2 text-[10px] opacity-50 ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
+                                                                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
+                                                                                <span className="font-medium">{currentTutorial.productName}</span>
+                                                                                <span className={`ml-1 px-2 py-0.5 rounded-full border text-[9px] ${darkMode ? 'border-white/10 text-stone-500' : 'border-stone-200 text-stone-400'}`}>
+                                                                                    À ajouter dans l'admin
+                                                                                </span>
+                                                                            </div>
+                                                                        );
+                                                                    })()}
+                                                                </div>
+                                                                {/* Carrousel Vidéo */}
+                                                                {tutorials.length > 0 && (
+                                                                    <div className="w-full lg:w-[52%] flex-shrink-0">
+                                                                        <div className="relative">
+                                                                            {/* Player */}
+                                                                            <AnimatePresence mode="wait">
+                                                                                <motion.div
+                                                                                    key={currentTutorial?.videoId}
+                                                                                    initial={{ opacity: 0, x: 20 }}
+                                                                                    animate={{ opacity: 1, x: 0 }}
+                                                                                    exit={{ opacity: 0, x: -20 }}
+                                                                                    transition={{ duration: 0.35 }}
+                                                                                    className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl"
+                                                                                >
+                                                                                    <iframe
+                                                                                        src={`https://www.youtube.com/embed/${currentTutorial?.videoId}?rel=0&modestbranding=1&color=white`}
+                                                                                        title={currentTutorial?.label}
+                                                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                                                        allowFullScreen
+                                                                                        loading="lazy"
+                                                                                        className="absolute inset-0 w-full h-full"
+                                                                                    />
+                                                                                </motion.div>
+                                                                            </AnimatePresence>
+                                                                            {/* Flèches navigation (si plusieurs vidéos) */}
+                                                                            {tutorials.length > 1 && (
+                                                                                <>
+                                                                                    <button
+                                                                                        onClick={() => setTutorialIndex(family.id, (currentIdx - 1 + tutorials.length) % tutorials.length)}
+                                                                                        className={`absolute -left-4 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 ${darkMode ? 'bg-[#1a1a1a] border border-white/10 text-stone-300 hover:bg-amber-500/20 hover:border-amber-500/30' : 'bg-white border border-stone-200 text-stone-600 hover:bg-amber-50 hover:border-amber-300'}`}
+                                                                                    >
+                                                                                        <ChevronLeft size={14} />
+                                                                                    </button>
+                                                                                    <button
+                                                                                        onClick={() => setTutorialIndex(family.id, (currentIdx + 1) % tutorials.length)}
+                                                                                        className={`absolute -right-4 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 ${darkMode ? 'bg-[#1a1a1a] border border-white/10 text-stone-300 hover:bg-amber-500/20 hover:border-amber-500/30' : 'bg-white border border-stone-200 text-stone-600 hover:bg-amber-50 hover:border-amber-300'}`}
+                                                                                    >
+                                                                                        <ChevronRight size={14} />
+                                                                                    </button>
+                                                                                </>
+                                                                            )}
+                                                                        </div>
+                                                                        {/* Label + Dots */}
+                                                                        <div className="mt-3 flex items-center justify-between gap-3">
+                                                                            <p className={`text-[10px] tracking-wide opacity-50 truncate ${darkMode ? 'text-stone-400' : 'text-stone-600'}`}>
+                                                                                ▶ {currentTutorial?.label}
+                                                                            </p>
+                                                                            {tutorials.length > 1 && (
+                                                                                <div className="flex items-center gap-1.5 flex-shrink-0">
+                                                                                    {tutorials.map((_, i) => (
+                                                                                        <button
+                                                                                            key={i}
+                                                                                            onClick={() => setTutorialIndex(family.id, i)}
+                                                                                            className={`rounded-full transition-all duration-300 ${
+                                                                                                i === currentIdx
+                                                                                                    ? `w-4 h-1.5 ${darkMode ? 'bg-amber-500' : 'bg-amber-600'}`
+                                                                                                    : `w-1.5 h-1.5 ${darkMode ? 'bg-white/20 hover:bg-white/40' : 'bg-stone-300 hover:bg-stone-400'}`
+                                                                                            }`}
+                                                                                        />
+                                                                                    ))}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
                                                                 )}
                                                             </div>
-                                                        )}
-                                                    </div>
+                                                        );
+                                                    })()}
                                                 </motion.div>
                                             );
                                         })()}
