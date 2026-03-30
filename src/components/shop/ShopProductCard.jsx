@@ -84,12 +84,10 @@ const ShopProductCard = ({ product, darkMode = false }) => {
         >
             {/* BLOC IMAGE */}
             <div 
-                className="relative aspect-[3/4] rounded-[28px] overflow-hidden mb-4 bg-white cursor-default group/img transform-gpu will-change-transform outline outline-1 outline-transparent"
+                className="relative aspect-[3/4] rounded-[28px] overflow-hidden mb-4 bg-white cursor-default group/img [clip-path:inset(0_round_28px)]"
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
             >
-                <div className="absolute inset-0 bg-white" />
-                
                 <motion.img
                     src={product.imageUrl || 'https://images.unsplash.com/photo-1616627456224-a80e6f7dd0bb?auto=format&fit=crop&w=900&q=80'}
                     alt={product.name || 'Produit'}
