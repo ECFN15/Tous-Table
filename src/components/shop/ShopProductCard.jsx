@@ -80,7 +80,7 @@ const ShopProductCard = ({ product, darkMode = false }) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="group relative"
+            className="group relative flex flex-col h-full"
         >
             {/* BLOC IMAGE */}
             <div 
@@ -98,48 +98,47 @@ const ShopProductCard = ({ product, darkMode = false }) => {
                     loading="lazy"
                 />
                 
-                {/* Hover Overlay - Type Vibe_FX (Darken + Translate) */}
+                {/* Hover Overlay - Type Premium (Citation + Détails) */}
                 <div className="absolute inset-0 z-20 flex flex-col justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out pointer-events-none">
                     {/* Background Sombre */}
-                    <div className={`absolute inset-0 ${darkMode ? 'bg-[#0f0e0d]/85' : 'bg-black/80'}`}></div>
+                    <div className={`absolute inset-0 ${darkMode ? 'bg-[#0f0e0d]/90' : 'bg-black/85'} backdrop-blur-[2px]`}></div>
                     
-                    {/* Contenu Défilant de l'Overlay */}
-                    <div className="relative z-30 p-5 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 ease-out flex flex-col h-full justify-end">
+                    {/* Contenu de l'Overlay */}
+                    <div className="relative z-30 p-6 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 ease-out flex flex-col h-full pointer-events-auto">
                         
-                        <div className="max-h-[85%] overflow-y-auto w-full no-scrollbar flex flex-col justify-end pointer-events-auto">
-                            
-                            <h4 className="text-white font-serif text-[17px] leading-[1.2] mb-3 drop-shadow-sm">
-                                {product.name}
-                            </h4>
+                        <div className="flex-1 overflow-y-auto no-scrollbar pt-2">
+                            {/* Icône de Citation & Projection Emotionnelle */}
+                            <div className="mb-6">
+                                <svg className="w-8 h-8 text-amber-500/80 mb-3" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M14.017 21L14.017 18C14.017 16.8954 14.9124 16 16.017 16H19.017C19.5693 16 20.017 15.5523 20.017 15V9C20.017 8.44772 19.5693 8 19.017 8H15.017C14.4647 8 14.017 8.44772 14.017 9V12C14.017 12.5523 13.5693 13 13.017 13H11.017V21H14.017ZM5.017 21V18C5.017 16.8954 5.91243 16 7.017 16H10.017C10.5693 16 11.017 15.5523 11.017 15V9C11.017 8.44772 10.5693 8 10.017 8H6.017C5.46472 8 5.017 8.44772 5.017 9V12C5.017 12.5523 4.56929 13 4.017 13H2.017V21H5.017Z" />
+                                </svg>
+                                <p className="text-stone-100 font-serif italic text-[15px] md:text-[17px] leading-relaxed drop-shadow-sm">
+                                    {product.experientialDetail || "Imaginez la transformation de votre intérieur avec ce produit d'exception."}
+                                </p>
+                            </div>
 
-                            <div className="w-6 h-[2px] bg-amber-500 rounded-full mb-3 shadow-[0_0_10px_rgba(245,158,11,0.5)]"></div>
+                            <div className="w-8 h-[2px] bg-amber-500/50 rounded-full mb-6"></div>
 
-                            {/* Description Complete */}
-                            <p className="text-white/95 text-[11px] leading-[1.6] mb-4">
-                                {product.description || product.whyWeRecommend || 'Produit de qualité professionnelle sélectionné par nos soins.'}
-                            </p>
-
-                            {product.proTips && (
-                                <div className="bg-white/10 rounded-[16px] p-3.5 border border-white/10 mb-2">
-                                    <h5 className="text-[9px] uppercase font-black text-amber-500 tracking-[0.15em] mb-1.5 flex items-center gap-1.5 drop-shadow-sm">
-                                        ✦ Tip de L'Atelier
-                                    </h5>
-                                    <p className="text-white text-[11px] leading-relaxed italic font-light opacity-90 drop-shadow-sm">
-                                        "{product.proTips}"
+                            {/* Section Technique / Description */}
+                            <div className="space-y-4">
+                                <div>
+                                    <h4 className="text-amber-500/90 text-[10px] font-black uppercase tracking-[0.2em] mb-2">Détails</h4>
+                                    <p className="text-stone-300 text-[12px] leading-relaxed">
+                                        {product.description || product.whyWeRecommend}
                                     </p>
                                 </div>
-                            )}
 
-                            {product.benefits && (
-                                <div className="mt-3 flex flex-wrap gap-1.5">
-                                    {(Array.isArray(product.benefits) ? product.benefits : product.benefits.split('-')).filter(b => b.trim()).map((benefit, i) => (
-                                        <span key={i} className="text-[9px] px-2 py-1 bg-white/10 text-white rounded-md border border-white/20 shadow-sm">
-                                            {benefit.replace(/^- /, '').trim()}
-                                        </span>
-                                    ))}
-                                </div>
-                            )}
-
+                                {(product.proTips || product.proTip) && (
+                                    <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                                        <h5 className="text-[10px] uppercase font-black text-amber-500/90 tracking-[0.1em] mb-2 flex items-center gap-2">
+                                            <span>✦</span> Conseil de l'Atelier
+                                        </h5>
+                                        <p className="text-stone-300 text-[11px] leading-relaxed italic opacity-90">
+                                            "{product.proTips || product.proTip}"
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -159,56 +158,56 @@ const ShopProductCard = ({ product, darkMode = false }) => {
                 </div>
             </div>
 
-            {/* BLOC TEXTE */}
-            <div className="space-y-1.5 sm:space-y-2 mt-4 px-1">
+            {/* BLOC TEXTE ET CTA */}
+            <div className="flex flex-col flex-1 mt-4 px-1 pb-2">
                 {/* Marque */}
-                <p className={`text-[9px] font-black uppercase tracking-[0.3em] ${darkMode ? 'text-amber-500/80' : 'text-amber-600/80'}`}>
+                <p className={`text-[9px] font-black uppercase tracking-[0.3em] mb-1.5 ${darkMode ? 'text-amber-500/80' : 'text-amber-600/80'}`}>
                     {product.brand || 'ATELIER'}
                 </p>
                 
-                {/* Nom du Produit */}
-                <h3 className={`text-[19px] md:text-[23px] font-serif leading-tight line-clamp-2 ${darkMode ? 'text-stone-50' : 'text-stone-900'}`}>
+                {/* Nom du Produit - Taille Ajustée */}
+                <h3 className={`text-[18px] md:text-[21px] font-serif leading-tight line-clamp-2 mb-1.5 ${darkMode ? 'text-stone-50' : 'text-stone-900'}`}>
                     {product.name || 'Produit de rénovation'}
                 </h3>
                 
-                {/* Prix */}
-                <p className={`text-[12px] font-medium tracking-wide ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
-                    {(Number(product.price) || 0).toFixed(2).replace('.', ',')} EUR
-                </p>
-                
-                {/* Description Courte */}
-                <p className={`text-[12px] leading-relaxed line-clamp-2 opacity-60 mt-1 ${darkMode ? 'text-stone-300' : 'text-stone-600'}`}>
-                    {product.whyWeRecommend || product.description || 'Sélection atelier pour entretenir et protéger vos meubles.'}
-                </p>
-            </div>
+                {/* PRIX + BOUTON (Groupe toujours poussé en bas de carte) */}
+                <div className="mt-auto pt-4 flex flex-col">
+                    {/* Prix */}
+                    <p className={`text-[12px] font-medium tracking-wide mb-3.5 ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
+                        Prix : {(Number(product.price) || 0).toFixed(2).replace('.', ',')} EUR
+                    </p>
 
-            {/* CTA - Capsule Glass avec Backdrop Subtil */}
-            <motion.a
-                href={product.affiliateUrl || '#'}
-                target="_blank"
-                rel="noopener noreferrer sponsored"
-                onClick={handleAffiliateClick}
-                className={`
-                    mt-3 sm:mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full
-                    backdrop-blur-sm border
-                    text-[11px] font-medium
-                    transition-all duration-300
-                    ${darkMode 
-                        ? 'bg-white/5 border-white/10 text-stone-300 hover:bg-amber-500/10 hover:border-amber-500/30 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)]' 
-                        : 'bg-stone-900/5 border-stone-200/50 text-stone-700 hover:bg-amber-500/10 hover:border-amber-500/30 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)]'
-                    }
-                `}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-            >
-                <span>Découvrir</span>
-                <motion.span
-                    animate={{ x: [0, 4, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                >
-                    →
-                </motion.span>
-            </motion.a>
+                    {/* CTA */}
+                    <div className="flex items-start">
+                        <motion.a
+                            href={product.affiliateUrl || '#'}
+                            target="_blank"
+                            rel="noopener noreferrer sponsored"
+                            onClick={handleAffiliateClick}
+                            className={`
+                                inline-flex items-center gap-2 px-4 py-2 rounded-full
+                                backdrop-blur-sm border
+                                text-[11px] font-medium
+                                transition-all duration-300
+                                ${darkMode 
+                                    ? 'bg-white/5 border-white/10 text-stone-300 hover:bg-amber-500/10 hover:border-amber-500/30 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)]' 
+                                    : 'bg-stone-900/5 border-stone-200/50 text-stone-700 hover:bg-amber-500/10 hover:border-amber-500/30 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)]'
+                                }
+                            `}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                        >
+                            <span>Découvrir</span>
+                            <motion.span
+                                animate={{ x: [0, 4, 0] }}
+                                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                            >
+                                →
+                            </motion.span>
+                        </motion.a>
+                    </div>
+                </div>
+            </div>
         </motion.article>
     );
 };
