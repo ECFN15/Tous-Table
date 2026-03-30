@@ -1,5 +1,5 @@
 # 🛒 Liste Produits Atelier — Liens Directs Amazon.fr (Refined)
-*Referentiel complet et strict des 43 produits configurés pour l'administration Tous à Table*
+*Referentiel complet et strict des 55 produits configurés pour l'administration Tous à Table*
 
 ---
 
@@ -325,6 +325,58 @@
 - **Pourquoi on le recommande** : Le couteau suisse du nettoyage atelier.
 - **Conseil Pro** : Le couteau suisse du nettoyage atelier.
 
+### ✅ Produit 44 — Libéron Décireur pour meubles et objets (500ml)
+- **Nom du produit** : Libéron Décireur pour meubles et objets (500ml)
+- **Marque** : Libéron
+- **Catégorie** : Savons & Nettoyants
+- **Gamme** : `💎 PREMIUM`
+- **Programme** : Amazon
+- **Lien Affilié** : https://www.amazon.fr/dp/B00EV7MCO0
+- **Prix Indicatif (€)** : 19,90€
+- **URL Image Produit** : 🔍 À rechercher
+- **Description Courte** : Nettoyant solvanté indispensable pour éliminer les anciennes couches de cires et les saletés incrustées sans altérer la patine.
+- **Pourquoi on le recommande** : Élimine les résidus sans soulever les fibres du bois. Préparation parfaite avant une nouvelle finition.
+- **Conseil Pro** : Utilisez-le avec de la laine d'acier n°0 pour désincruster les moulures sans rayer le bois.
+
+### ✅ Produit 45 — Blanchon Décapant Dégraissant Parquet (1L)
+- **Nom du produit** : Blanchon Décapant Dégraissant Parquet (1L)
+- **Marque** : Blanchon
+- **Catégorie** : Savons & Nettoyants
+- **Gamme** : `👑 EXPERT`
+- **Programme** : Amazon
+- **Lien Affilié** : https://www.amazon.fr/dp/B0056FYJ42
+- **Prix Indicatif (€)** : 21,42€
+- **URL Image Produit** : 🔍 À rechercher
+- **Description Courte** : Formule concentrée suractivée pour un nettoyage intensif des bois encrassés ou gras.
+- **Pourquoi on le recommande** : Élimine les taches rebelles et les résidus de produits d'entretien accumulés. Haute efficacité.
+- **Conseil Pro** : Idéal pour remettre à blanc une surface avant une rénovation légère ou un nouveau vernis.
+
+### ✅ Produit 46 — Starwax Fabulous Savon de Marseille en Copeaux (750g)
+- **Nom du produit** : Starwax Fabulous Savon de Marseille en Copeaux (750g)
+- **Marque** : Starwax
+- **Catégorie** : Savons & Nettoyants
+- **Gamme** : `⭐ ESSENTIEL`
+- **Programme** : Amazon
+- **Lien Affilié** : https://www.amazon.fr/dp/B0954FVW74
+- **Prix Indicatif (€)** : 9,90€
+- **URL Image Produit** : 🔍 À rechercher
+- **Description Courte** : Pur savon de Marseille sans glycérine, parfait pour un nettoyage ultra-doux.
+- **Pourquoi on le recommande** : N'agresse pas les finitions fragiles comme le vernis au tampon. Produit naturel.
+- **Conseil Pro** : Dissoudre une poignée dans de l'eau tiède pour l'entretien régulier des bois huilés.
+
+### ✅ Produit 47 — Starwax Nettoyant Rénovateur Pinceaux & Outils (1L)
+- **Nom du produit** : Starwax Nettoyant Rénovateur Pinceaux & Outils (1L)
+- **Marque** : Starwax
+- **Catégorie** : Savons & Nettoyants
+- **Gamme** : `💎 PREMIUM`
+- **Programme** : Amazon
+- **Lien Affilié** : https://www.amazon.fr/dp/B0CNQ4M7V9
+- **Prix Indicatif (€)** : 15,50€
+- **URL Image Produit** : 🔍 À rechercher
+- **Description Courte** : Dissout les peintures et vernis même secs sur les fibres des pinceaux.
+- **Pourquoi on le recommande** : Redonne souplesse et longévité à vos brosses professionnelles. Évite le gaspillage.
+- **Conseil Pro** : Pour les pinceaux très secs, laissez tremper 24h puis rincez à l'eau savonneuse.
+
 ---
 
 ## 🟣 4. ACCESSOIRES ESSENTIELS
@@ -354,6 +406,58 @@
 - **Description Courte** : Consommable de base indispensable
 - **Pourquoi on le recommande** : Préférer le coton pur pour ne pas chauffer la cire artificiellement.
 - **Conseil Pro** : Préférer le coton pur pour ne pas chauffer la cire artificiellement.
+
+### ✅ Produit 48 — Masques 3M Aura 9332+ FFP3 avec Soupape (Lot de 5)
+- **Nom du produit** : Masques 3M Aura 9332+ FFP3 avec Soupape (Lot de 5)
+- **Marque** : 3M
+- **Catégorie** : Accessoires Essentiels
+- **Gamme** : `👑 EXPERT`
+- **Programme** : Amazon
+- **Lien Affilié** : https://www.amazon.fr/dp/B07GTFCS8R
+- **Prix Indicatif (€)** : 39,90€
+- **URL Image Produit** : 🔍 À rechercher
+- **Description Courte** : Protection respiratoire maximale FFP3 pour travaux intensifs.
+- **Pourquoi on le recommande** : Crucial pour le ponçage des bois durs (chêne) et des anciennes peintures au plomb. Très confortable.
+- **Conseil Pro** : La soupape réduit la buée sur les lunettes de protection lors des longues séances.
+
+### ✅ Produit 49 — Gants Ansell AlphaTec 58-535 Haute Résistance Solvants
+- **Nom du produit** : Gants Ansell AlphaTec 58-535 Haute Résistance Solvants
+- **Marque** : Ansell
+- **Catégorie** : Accessoires Essentiels
+- **Gamme** : `👑 EXPERT`
+- **Programme** : Amazon
+- **Lien Affilié** : https://www.amazon.fr/dp/B004SQJHQK
+- **Prix Indicatif (€)** : 17,50€
+- **URL Image Produit** : 🔍 À rechercher
+- **Description Courte** : Gants techniques offrant une barrière totale contre les solvants agressifs.
+- **Pourquoi on le recommande** : Garde une excellente dextérité pour les travaux fins tout en protégeant la peau.
+- **Conseil Pro** : Indispensables lors du décirage ou de l'application de teintures solvantées.
+
+### ✅ Produit 50 — Tesa Precision Mask Sensitive - Ruban de Masquage Délicat (50m)
+- **Nom du produit** : Tesa Precision Mask Sensitive - Ruban de Masquage Délicat (50m)
+- **Marque** : Tesa
+- **Catégorie** : Accessoires Essentiels
+- **Gamme** : `💎 PREMIUM`
+- **Programme** : Amazon
+- **Lien Affilié** : https://www.amazon.fr/dp/B005DRE49S
+- **Prix Indicatif (€)** : 11,54€
+- **URL Image Produit** : 🔍 À rechercher
+- **Description Courte** : Ruban conçu pour les surfaces extrêmement fragiles. Anti-arrachage.
+- **Pourquoi on le recommande** : Assure des bords de peinture parfaits sans abîmer le support au retrait.
+- **Conseil Pro** : Retirez le ruban dès que la finition est hors poussière pour une ligne nette.
+
+### ✅ Produit 51 — Libéron Coton à mécher professionnel (200g)
+- **Nom du produit** : Libéron Coton à mécher professionnel (200g)
+- **Marque** : Libéron
+- **Catégorie** : Accessoires Essentiels
+- **Gamme** : `👑 EXPERT`
+- **Programme** : Amazon
+- **Lien Affilié** : https://www.amazon.fr/dp/B00EV7MKHY
+- **Prix Indicatif (€)** : 10,50€
+- **URL Image Produit** : 🔍 À rechercher
+- **Description Courte** : Mèche de coton pur non pelucheuse pour application de finitions.
+- **Pourquoi on le recommande** : Idéal pour les vernis au tampon, les popotes ou l'application des cires.
+- **Conseil Pro** : Constituez une 'poupée' en enveloppant la mèche dans un chiffon de lin propre.
 
 ---
 
@@ -410,6 +514,58 @@
 - **Description Courte** : Nettoyant spécialisé pour éliminer les taches blanches de chaleur ou d'eau sur les vernis et cires.
 - **Pourquoi on le recommande** : Indispensable pour restaurer un plateau sans tout décaper. Ravive la couleur d'origine.
 - **Conseil Pro** : Appliquer avec une laine d'acier 0000 en mouvements circulaires jusqu'à disparition complète de la tache.
+
+### ✅ Produit 52 — Libéron Pâte à bois grain fin (Teinte Chêne, 50ml)
+- **Nom du produit** : Libéron Pâte à bois grain fin (Teinte Chêne, 50ml)
+- **Marque** : Libéron
+- **Catégorie** : Décapage & Retouches
+- **Gamme** : `💎 PREMIUM`
+- **Programme** : Amazon
+- **Lien Affilié** : https://www.amazon.fr/dp/B00KYR8AY2
+- **Prix Indicatif (€)** : 11,80€
+- **URL Image Produit** : 🔍 À rechercher
+- **Description Courte** : Réparateur haute densité séchant sans retrait. Travail possible après séchage.
+- **Pourquoi on le recommande** : Se travaille comme le bois (ponçage, teinte, vernis). Fini très discret.
+- **Conseil Pro** : Prenez une teinte un peu plus claire si vous comptez teinter le meuble ensuite.
+
+### ✅ Produit 53 — Libéron Bâtons de Cire à reboucher (Teinte Chêne Moyen)
+- **Nom du produit** : Libéron Bâtons de Cire à reboucher (Teinte Chêne Moyen)
+- **Marque** : Libéron
+- **Catégorie** : Décapage & Retouches
+- **Gamme** : `💎 PREMIUM`
+- **Programme** : Amazon
+- **Lien Affilié** : https://www.amazon.fr/dp/B000TVS8X6
+- **Prix Indicatif (€)** : 10,90€
+- **URL Image Produit** : 🔍 À rechercher
+- **Description Courte** : Mélange de cires et pigments pour combler fentes et trous de vers.
+- **Pourquoi on le recommande** : Permet de réparer un meuble terminé sans refaire la finition complète.
+- **Conseil Pro** : Malaxez un morceau entre vos doigts pour le ramollir avant application.
+
+### ✅ Produit 54 — Starwax Fabulous Acide Oxalique / Sel d'Oseille (400g)
+- **Nom du produit** : Starwax Fabulous Acide Oxalique / Sel d'Oseille (400g)
+- **Marque** : Starwax
+- **Catégorie** : Décapage & Retouches
+- **Gamme** : `👑 EXPERT`
+- **Programme** : Amazon
+- **Lien Affilié** : https://www.amazon.fr/dp/B082VV4T9Y
+- **Prix Indicatif (€)** : 8,50€
+- **URL Image Produit** : 🔍 À rechercher
+- **Description Courte** : Poudre minérale pour éclaircir les bois noircis ou tachés.
+- **Pourquoi on le recommande** : Supprime les taches d'eau sur le chêne. Éclaircit le veinage taché.
+- **Conseil Pro** : Dissoudre à 10% dans l'eau tiède. Rincez toujours à l'alcool après séchage.
+
+### ✅ Produit 55 — Libéron Crayon de retouche bois à double pointe
+- **Nom du produit** : Libéron Crayon de retouche bois à double pointe
+- **Marque** : Libéron
+- **Catégorie** : Décapage & Retouches
+- **Gamme** : `💎 PREMIUM`
+- **Programme** : Amazon
+- **Lien Affilié** : https://www.amazon.fr/dp/B00EY7NPMK
+- **Prix Indicatif (€)** : 12,90€
+- **URL Image Produit** : 🔍 À rechercher
+- **Description Courte** : Feutre spécialisé résistant à l'eau pour masquer les éraflures.
+- **Pourquoi on le recommande** : La double pointe permet de simuler le veinage pour une retouche invisible.
+- **Conseil Pro** : Travaillez par petits traits successifs dans le sens des fibres du bois.
 
 ---
 
@@ -591,13 +747,13 @@
 ```json
 {
   "inventory_status": "Ready for Admin Import",
-  "total_products": 43,
+  "total_products": 55,
   "categories_breakdown": {
     "Huiles & Nourrissants": 8,
     "Cires, Peintures & Effets": 14,
-    "Savons & Nettoyants": 2,
-    "Accessoires Essentiels": 2,
-    "D\u00e9capage & Retouches": 4,
+    "Savons & Nettoyants": 6,
+    "Accessoires Essentiels": 6,
+    "D\u00e9capage & Retouches": 8,
     "Outils & Mat\u00e9riel Pro": 13
   },
   "last_audit": "2026-03-29",
