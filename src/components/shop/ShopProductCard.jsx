@@ -84,18 +84,18 @@ const ShopProductCard = ({ product, darkMode = false }) => {
         >
             {/* BLOC IMAGE */}
             <div 
-                className="relative aspect-[3/4] rounded-[28px] overflow-hidden mb-4"
+                className="relative aspect-[3/4] rounded-[28px] overflow-hidden mb-4 bg-white"
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
             >
                 <motion.img
                     src={product.imageUrl || 'https://images.unsplash.com/photo-1616627456224-a80e6f7dd0bb?auto=format&fit=crop&w=900&q=80'}
                     alt={product.name || 'Produit'}
-                    className="w-full h-full object-cover transition-transform duration-[800ms] ease-out"
+                    className="w-full h-full object-contain p-5 transition-transform duration-[800ms] ease-out"
                     style={{
-                        transform: `scale(1.05) translate(${parallax.x}px, ${parallax.y}px)`
+                        transform: `translate(${parallax.x * 0.4}px, ${parallax.y * 0.4}px)`
                     }}
-                    whileHover={{ scale: 1.15 }}
+                    whileHover={{ scale: 1.06 }}
                     transition={{ duration: 0.8 }}
                     loading="lazy"
                 />
