@@ -84,7 +84,7 @@ const ShopProductCard = ({ product, darkMode = false }) => {
         >
             {/* BLOC IMAGE */}
             <div 
-                className="relative aspect-[3/4] rounded-[28px] overflow-hidden mb-4 bg-white cursor-default group/img [clip-path:inset(0_round_28px)]"
+                className="relative aspect-[3/4] rounded-[28px] overflow-hidden mb-4 bg-white cursor-default group/img [clip-path:inset(1.5px_round_28px)] transform-gpu"
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
             >
