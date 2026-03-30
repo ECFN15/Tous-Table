@@ -406,9 +406,9 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                                                         const currentIdx = getTutorialIndex(family.id);
                                                         const currentTutorial = tutorials[currentIdx];
                                                         return (
-                                                            <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
+                                                            <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 lg:items-stretch">
                                                                 {/* Texte */}
-                                                                <div className="flex-1 min-w-0">
+                                                                <div className="flex-1 min-w-0 flex flex-col">
                                                                     <p className={`text-[10px] uppercase tracking-[0.28em] font-black mb-3 ${darkMode ? 'text-amber-500' : 'text-amber-700'}`}>
                                                                         {family.subtitle} · Tuto Atelier
                                                                     </p>
@@ -418,7 +418,8 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                                                                     <p className={`text-base leading-relaxed opacity-80 ${darkMode ? 'text-stone-300' : 'text-stone-600'}`}>
                                                                         {family.description}
                                                                     </p>
-                                                                    {/* Mini carte produit lié à la vidéo */}
+                                                                    {/* Mini carte produit lié à la vidéo — centrée verticalement dans l'espace restant */}
+                                                                    <div className="flex-1 flex items-center">
                                                                     {(() => {
                                                                         if (!currentTutorial?.productName) return null;
                                                                         const linked = affiliateProducts.find(p =>
@@ -434,10 +435,10 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                                                                                         animate={{ opacity: 1, y: 0 }}
                                                                                         exit={{ opacity: 0, y: -8 }}
                                                                                         transition={{ duration: 0.3 }}
-                                                                                        className={`mt-6 flex items-center gap-4 p-3 rounded-2xl border max-w-xs ${darkMode ? 'bg-white/5 border-white/8' : 'bg-white/70 border-stone-200/80'}`}
+                                                                                        className={`mt-0 flex items-stretch gap-7 p-6 rounded-2xl border w-full ${darkMode ? 'bg-white/5 border-white/8' : 'bg-white/70 border-stone-200/80'}`}
                                                                                     >
                                                                                         {linked.imageUrl && (
-                                                                                            <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0">
+                                                                                            <div className="w-32 h-32 rounded-xl overflow-hidden flex-shrink-0 self-center">
                                                                                                 <img
                                                                                                     src={linked.imageUrl}
                                                                                                     alt={linked.name}
@@ -446,28 +447,37 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                                                                                                 />
                                                                                             </div>
                                                                                         )}
-                                                                                        <div className="flex-1 min-w-0">
-                                                                                            <p className={`text-[9px] font-black uppercase tracking-widest mb-0.5 ${darkMode ? 'text-amber-500/80' : 'text-amber-700/80'}`}>
-                                                                                                {linked.brand}
-                                                                                            </p>
-                                                                                            <p className={`text-[11px] font-semibold leading-tight line-clamp-2 mb-1.5 ${darkMode ? 'text-stone-100' : 'text-stone-900'}`}>
-                                                                                                {linked.name}
-                                                                                            </p>
-                                                                                            <a
-                                                                                                href={linked.affiliateUrl}
-                                                                                                target="_blank"
-                                                                                                rel="noopener noreferrer sponsored"
-                                                                                                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-medium transition-all duration-200 ${darkMode ? 'bg-amber-500/15 border border-amber-500/30 text-amber-400 hover:bg-amber-500/25' : 'bg-amber-600/10 border border-amber-600/25 text-amber-700 hover:bg-amber-600/20'}`}
-                                                                                            >
-                                                                                                Découvrir <span>→</span>
-                                                                                            </a>
+                                                                                        <div className="flex-1 min-w-0 flex flex-col">
+                                                                                            <div className="space-y-2">
+                                                                                                <p className={`text-[10px] font-black uppercase tracking-widest ${darkMode ? 'text-amber-500/80' : 'text-amber-700/80'}`}>
+                                                                                                    {linked.brand}
+                                                                                                </p>
+                                                                                                <p className={`text-lg font-semibold leading-snug line-clamp-2 ${darkMode ? 'text-stone-100' : 'text-stone-900'}`}>
+                                                                                                    {linked.name}
+                                                                                                </p>
+                                                                                                {linked.price && (
+                                                                                                    <p className={`text-sm ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
+                                                                                                        {Number(linked.price).toFixed(2).replace('.', ',')} EUR
+                                                                                                    </p>
+                                                                                                )}
+                                                                                            </div>
+                                                                                            <div className="mt-auto pt-4 flex justify-end">
+                                                                                                <a
+                                                                                                    href={linked.affiliateUrl}
+                                                                                                    target="_blank"
+                                                                                                    rel="noopener noreferrer sponsored"
+                                                                                                    className={`inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-[11px] font-semibold transition-all duration-200 ${darkMode ? 'bg-amber-500/15 border border-amber-500/30 text-amber-400 hover:bg-amber-500/25' : 'bg-amber-600/10 border border-amber-600/25 text-amber-700 hover:bg-amber-600/20'}`}
+                                                                                                >
+                                                                                                    Découvrir <span>→</span>
+                                                                                                </a>
+                                                                                            </div>
                                                                                         </div>
                                                                                     </motion.div>
                                                                                 </AnimatePresence>
                                                                             );
                                                                         }
                                                                         return (
-                                                                            <div className={`mt-5 flex items-center gap-2 text-[10px] opacity-50 ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
+                                                                            <div className={`flex items-center gap-2 text-[10px] opacity-50 ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
                                                                                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
                                                                                 <span className="font-medium">{currentTutorial.productName}</span>
                                                                                 <span className={`ml-1 px-2 py-0.5 rounded-full border text-[9px] ${darkMode ? 'border-white/10 text-stone-500' : 'border-stone-200 text-stone-400'}`}>
@@ -476,6 +486,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                                                                             </div>
                                                                         );
                                                                     })()}
+                                                                    </div>
                                                                 </div>
                                                                 {/* Carrousel Vidéo */}
                                                                 {tutorials.length > 0 && (
