@@ -17,37 +17,49 @@ const FAMILIES = [
         id: 'huiles',
         title: "Protection Profonde",
         subtitle: "Huiles & Nourrissants",
-        description: "Le premier geste pour chérir un meuble en bois massif. Des huiles professionnelles qui pénètrent au cœur des fibres pour une protection de l'intérieur, respectant le grain et le toucher naturel. Inclut aussi les huiles alimentaires pour vos planches de découpe artisanales."
+        description: "Le premier geste pour chérir un meuble en bois massif. Des huiles professionnelles qui pénètrent au cœur des fibres pour une protection de l'intérieur, respectant le grain et le toucher naturel. Inclut aussi les huiles alimentaires pour vos planches de découpe artisanales.",
+        tutorialVideoId: "ictKhF92-pY",
+        tutorialVideoLabel: "Application Rubio Monocoat Oil Plus 2C sur meuble"
     },
     {
         id: 'cires',
         title: "Patine & Finition",
         subtitle: "Cires, Peintures & Effets",
-        description: "Sublimez vos meubles avec des cires authentiques, peintures naturelles ou effets décorés. Maintenez l'âme de l'ancien ou créez de nouveaux styles sans compromettre la qualité du bois."
+        description: "Sublimez vos meubles avec des cires authentiques, peintures naturelles ou effets décorés. Maintenez l'âme de l'ancien ou créez de nouveaux styles sans compromettre la qualité du bois.",
+        tutorialVideoId: "zhV4UVEC_Gg",
+        tutorialVideoLabel: "Technique de patine & effet vieilli sur bois — Libéron"
     },
     {
         id: 'savons',
         title: "Le Geste Quotidien",
         subtitle: "Savons & Nettoyants",
-        description: "Évitez les produits chimiques qui agressent vos meubles. Entretenez la beauté de votre table jour après jour avec des nettoyants très doux conçus pour les surfaces huilées."
+        description: "Évitez les produits chimiques qui agressent vos meubles. Entretenez la beauté de votre table jour après jour avec des nettoyants très doux conçus pour les surfaces huilées.",
+        tutorialVideoId: "2PjMXVGfA_k",
+        tutorialVideoLabel: "Nettoyage du bois massif avec Rubio Monocoat Cleaner"
     },
     {
         id: 'accessoires',
         title: "L'Essentiel du Quotidien",
         subtitle: "Accessoires Essentiels",
-        description: "Les petits indispensables qui font la différence. Le matériel de consommation régulière pour un entretien optimal sans friction."
+        description: "Les petits indispensables qui font la différence. Le matériel de consommation régulière pour un entretien optimal sans friction.",
+        tutorialVideoId: "sVXN8ASgzi4",
+        tutorialVideoLabel: "Choisir le bon pinceau pour vos finitions bois"
     },
     {
         id: 'renovation',
         title: "Seconde Jeunesse",
         subtitle: "Décapage & Retouches",
-        description: "Transformez vos meubles fatigués. Décapez efficacement, éliminez les taches sans poncer, ou retouchez précisément les accidents du quotidien."
+        description: "Transformez vos meubles fatigués. Décapez efficacement, éliminez les taches sans poncer, ou retouchez précisément les accidents du quotidien.",
+        tutorialVideoId: "GIB3HJeQgp8",
+        tutorialVideoLabel: "Décaper efficacement un meuble en bois"
     },
     {
         id: 'outils',
         title: "La Boîte à Outils",
         subtitle: "Outils & Matériel Pro",
-        description: "Les compagnons fidèles de l'artisan. Pinceaux, rouleaux, ciseaux, presses, racloirs — tout le matériel pour travailler comme un pro avec précision et finesse."
+        description: "Les compagnons fidèles de l'artisan. Pinceaux, rouleaux, ciseaux, presses, racloirs — tout le matériel pour travailler comme un pro avec précision et finesse.",
+        tutorialVideoId: "yAn3HTURb6U",
+        tutorialVideoLabel: "Sélectionner les bons outils pour finir vos meubles"
     }
 ];
 
@@ -322,7 +334,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
 
                             {/* Grille de Produits */}
                             <motion.div
-                                className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-6 lg:gap-8"
+                                className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6 lg:gap-8"
                                 initial="hidden"
                                 animate="show"
                                 variants={{
@@ -364,22 +376,50 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                                             if (!family) return null;
                                             return (
                                                 <motion.div
+                                                    key="editorial-block"
                                                     initial={{ opacity: 0, y: 20 }}
                                                     animate={{ opacity: 1, y: 0 }}
                                                     transition={{ delay: 0.3, duration: 0.8 }}
-                                                    className="col-span-2 lg:col-span-2 p-8 lg:p-12 rounded-[28px] backdrop-blur-xl bg-gradient-to-br from-amber-500/5 to-stone-800/20 border border-white/5"
+                                                    className="col-span-2 sm:col-span-3 lg:col-span-4 p-8 lg:p-12 rounded-[28px] backdrop-blur-xl bg-gradient-to-br from-amber-500/5 to-stone-800/20 border border-white/5"
                                                 >
-                                                    <div className="max-w-xl">
-                                                        <h3 className={`text-3xl lg:text-4xl font-serif leading-tight mb-4 ${darkMode ? 'text-stone-50' : 'text-stone-900'}`}>
-                                                            {family.title}
-                                                        </h3>
-                                                        <p className={`text-base leading-relaxed opacity-80 ${darkMode ? 'text-stone-300' : 'text-stone-600'}`}>
-                                                            {family.description}
-                                                        </p>
+                                                    <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
+                                                        {/* Texte */}
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className={`text-[10px] uppercase tracking-[0.28em] font-black mb-3 ${darkMode ? 'text-amber-500' : 'text-amber-700'}`}>
+                                                                {family.subtitle} · Tuto Atelier
+                                                            </p>
+                                                            <h3 className={`text-3xl lg:text-4xl font-serif leading-tight mb-4 ${darkMode ? 'text-stone-50' : 'text-stone-900'}`}>
+                                                                {family.title}
+                                                            </h3>
+                                                            <p className={`text-base leading-relaxed opacity-80 ${darkMode ? 'text-stone-300' : 'text-stone-600'}`}>
+                                                                {family.description}
+                                                            </p>
+                                                        </div>
+                                                        {/* Player YouTube */}
+                                                        {family.tutorialVideoId && (
+                                                            <div className="w-full lg:w-[48%] flex-shrink-0">
+                                                                <div className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl">
+                                                                    <iframe
+                                                                        src={`https://www.youtube.com/embed/${family.tutorialVideoId}?rel=0&modestbranding=1&color=white`}
+                                                                        title={`Tutoriel ${family.title}`}
+                                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                                        allowFullScreen
+                                                                        loading="lazy"
+                                                                        className="absolute inset-0 w-full h-full"
+                                                                    />
+                                                                </div>
+                                                                {family.tutorialVideoLabel && (
+                                                                    <p className={`mt-2.5 text-[10px] text-center tracking-wide opacity-50 ${darkMode ? 'text-stone-400' : 'text-stone-600'}`}>
+                                                                        ▶ {family.tutorialVideoLabel}
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </motion.div>
                                             );
                                         })()}
+
                                     </React.Fragment>
                                 ))}
                             </motion.div>
