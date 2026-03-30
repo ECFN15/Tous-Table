@@ -5,15 +5,17 @@ import { X } from 'lucide-react';
 const ShopSidebar = ({ categories, activeCategory, onCategoryChange, darkMode = false, isMobileOpen = false, onMobileClose }) => {
     return (
         <>
-            {/* DESKTOP SIDEBAR - Fixed Left */}
+            {/* DESKTOP SIDEBAR - Sticky Left */}
             <aside className={`
                 hidden lg:block
-                fixed left-0 top-[88px] bottom-0
+                sticky top-0
                 w-[280px] xl:w-[320px]
+                h-screen
                 border-r
                 ${darkMode ? 'bg-[#0a0a0a] border-white/5' : 'bg-[#FAFAF9] border-stone-200/60'}
                 overflow-y-auto scrollbar-thin
                 z-30
+                float-left
             `}>
                 <div className="p-8 xl:p-10 space-y-8">
                     {/* Header */}
@@ -65,13 +67,6 @@ const ShopSidebar = ({ categories, activeCategory, onCategoryChange, darkMode = 
 
                     {/* Séparateur */}
                     <div className={`w-full h-px ${darkMode ? 'bg-white/5' : 'bg-stone-200'}`}></div>
-
-                    {/* Filtres Label */}
-                    <div className="space-y-3">
-                        <span className={`text-[9px] uppercase tracking-[0.3em] font-black ${darkMode ? 'text-stone-600' : 'text-stone-400'}`}>
-                            Filtres
-                        </span>
-                    </div>
 
                     {/* Liste des Catégories */}
                     <nav className="space-y-2">

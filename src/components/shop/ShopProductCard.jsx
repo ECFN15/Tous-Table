@@ -109,14 +109,14 @@ const ShopProductCard = ({ product, darkMode = false }) => {
                 />
                 
                 {/* Badge Amazon (Haut-Droit) */}
-                <div className={`absolute top-3 right-3 px-2 py-1 rounded-md backdrop-blur-md border ${darkMode ? 'bg-white/10 border-white/20' : 'bg-white/20 border-white/30'}`}>
+                <div className={`absolute top-3 right-3 px-2 py-1 rounded-md backdrop-blur-md border flex items-center justify-center ${darkMode ? 'bg-white/10 border-white/20' : 'bg-white/20 border-white/30'}`}>
                     <span className={`text-[8px] uppercase tracking-wider font-black ${darkMode ? 'text-white' : 'text-stone-900'}`}>
                         {PROGRAM_LABELS[product.affiliateProgram] || 'Direct'}
                     </span>
                 </div>
                 
                 {/* Badge Gamme (Bas-Gauche) */}
-                <div className={`absolute bottom-3 left-3 px-3 py-1.5 rounded-full backdrop-blur-md border ${getTierBadgeClass(product.tier, darkMode)}`}>
+                <div className={`absolute bottom-3 left-3 px-3 py-1.5 rounded-full backdrop-blur-md border flex items-center justify-center ${getTierBadgeClass(product.tier, darkMode)}`}>
                     <span className="text-[9px] uppercase tracking-wide font-bold">
                         {TIER_LABELS[product.tier] || 'Essentiel'}
                     </span>
@@ -124,7 +124,7 @@ const ShopProductCard = ({ product, darkMode = false }) => {
             </div>
 
             {/* BLOC TEXTE */}
-            <div className="space-y-2">
+            <div className="space-y-1.5 sm:space-y-2">
                 {/* Marque */}
                 <p className={`text-[8px] font-black uppercase tracking-[0.3em] ${darkMode ? 'text-amber-500/80' : 'text-amber-600/80'}`}>
                     {product.brand || 'ATELIER'}
@@ -153,7 +153,7 @@ const ShopProductCard = ({ product, darkMode = false }) => {
                 rel="noopener noreferrer sponsored"
                 onClick={handleAffiliateClick}
                 className={`
-                    mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full
+                    mt-3 sm:mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full
                     backdrop-blur-sm border
                     text-[11px] font-medium
                     transition-all duration-300

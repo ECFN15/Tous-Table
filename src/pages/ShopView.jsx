@@ -174,7 +174,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
             />
 
             {/* HERO SECTION - Cinematic Editorial Style avec WorkshopHero */}
-            <section className="relative min-h-[100dvh] sm:min-h-[85vh] flex flex-col justify-start md:justify-end px-6 xl:px-12 pb-12 sm:pb-16 md:pb-24 pt-3 sm:pt-6 md:pt-[250px] overflow-hidden">
+            <section className="relative min-h-[100dvh] sm:min-h-[85vh] flex flex-col justify-start md:justify-end px-6 xl:px-12 pb-8 sm:pb-16 md:pb-24 pt-3 sm:pt-6 md:pt-[250px] overflow-hidden">
                 <WorkshopHero darkMode={darkMode} />
 
                 {/* Top Section - Rituel Bois */}
@@ -235,7 +235,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                 <div className={`absolute top-0 right-0 w-[50vw] h-[50vw] md:w-[30vw] md:h-[30vw] rounded-full blur-[100px] opacity-20 pointer-events-none z-0 ${darkMode ? 'bg-amber-500/20' : 'bg-amber-700/10'}`} />
                 
                 {/* Bottom Section - Le Soin du Bois */}
-                <div className="order-3 md:-order-none max-w-[1920px] mx-auto w-full space-y-4 md:space-y-6 lg:space-y-8 relative z-10 sm:mt-0">
+                <div className="order-3 md:-order-none max-w-[1920px] mx-auto w-full space-y-2 sm:space-y-4 md:space-y-6 lg:space-y-8 relative z-10 sm:mt-0">
                     <h1 className={`hero-reveal font-serif text-[3.6rem] min-[400px]:text-[3.8rem] sm:text-6xl md:text-[3.5rem] lg:text-7xl xl:text-[11.5rem] leading-[0.85] tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'} w-full md:w-[48%] lg:w-[45%] xl:w-auto`}>
                         Le Soin <br className="hidden md:block" />du Bois.
                     </h1>
@@ -247,41 +247,43 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                 </div>
             </section>
 
-            {/* SIDEBAR - Desktop Fixed Left + Mobile Drawer */}
-            <ShopSidebar
-                categories={FAMILIES.filter(f => getProductsForFamily(f.id).length > 0)}
-                activeCategory={activeCategory}
-                onCategoryChange={setActiveCategory}
-                darkMode={darkMode}
-                isMobileOpen={isMobileSidebarOpen}
-                onMobileClose={() => setIsMobileSidebarOpen(false)}
-            />
+            {/* PRODUCTS SECTION - Avec Sidebar Latérale */}
+            <div className="relative">
+                {/* SIDEBAR - Desktop Fixed Left + Mobile Drawer */}
+                <ShopSidebar
+                    categories={FAMILIES.filter(f => getProductsForFamily(f.id).length > 0)}
+                    activeCategory={activeCategory}
+                    onCategoryChange={setActiveCategory}
+                    darkMode={darkMode}
+                    isMobileOpen={isMobileSidebarOpen}
+                    onMobileClose={() => setIsMobileSidebarOpen(false)}
+                />
 
-            {/* MOBILE FLOATING BUTTON - Ouvre le drawer */}
-            <motion.button
-                onClick={() => setIsMobileSidebarOpen(true)}
-                className={`
-                    lg:hidden fixed bottom-6 right-6 z-40
-                    w-14 h-14 rounded-full
-                    flex items-center justify-center
-                    shadow-2xl backdrop-blur-xl
-                    transition-all duration-300
-                    ${darkMode 
-                        ? 'bg-amber-500/90 hover:bg-amber-500 text-white' 
-                        : 'bg-amber-600/90 hover:bg-amber-600 text-white'
-                    }
-                `}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.5 }}
-            >
-                <SlidersHorizontal size={20} />
-            </motion.button>
+                {/* MOBILE FLOATING BUTTON - Ouvre le drawer */}
+                <motion.button
+                    onClick={() => setIsMobileSidebarOpen(true)}
+                    className={`
+                        lg:hidden fixed bottom-6 right-6 z-40
+                        w-14 h-14 rounded-full
+                        flex items-center justify-center
+                        shadow-2xl backdrop-blur-xl
+                        transition-all duration-300
+                        ${darkMode 
+                            ? 'bg-amber-500/90 hover:bg-amber-500 text-white' 
+                            : 'bg-amber-600/90 hover:bg-amber-600 text-white'
+                        }
+                    `}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                >
+                    <SlidersHorizontal size={20} />
+                </motion.button>
 
-            {/* PRODUCTS GRID - Filtrage avec Animations */}
-            <section className={`min-h-screen py-12 px-6 xl:px-12 lg:pl-[320px] xl:pl-[360px] ${darkMode ? 'bg-[#0a0a0a]' : 'bg-[#FAFAF9]'}`}>
+                {/* PRODUCTS GRID - Filtrage avec Animations */}
+                <section className={`min-h-screen pt-6 lg:pt-12 pb-12 px-6 xl:px-12 lg:pl-[320px] xl:pl-[360px] ${darkMode ? 'bg-[#0a0a0a]' : 'bg-[#FAFAF9]'}`}>
                 <div className="max-w-[1920px] mx-auto">
                     <AnimatePresence mode="wait">
                         <motion.div
@@ -385,6 +387,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                     </AnimatePresence>
                 </div>
             </section>
+            </div>
 
             {/* INFO AFFILIATE FOOTER */}
             <section className={`py-12 px-6 md:px-12 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-[#FAFAF9]'}`}>
