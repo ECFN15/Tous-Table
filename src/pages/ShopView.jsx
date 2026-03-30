@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Info } from 'lucide-react';
+import { Info, SlidersHorizontal } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import SEO from '../components/shared/SEO';
 import ShopProductCard from '../components/shop/ShopProductCard';
+import ShopSidebar from '../components/shop/ShopSidebar';
 import WorkshopHero from '../components/shop/WorkshopHero';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
@@ -55,6 +57,8 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
     const [activeRitualIndex, setActiveRitualIndex] = useState(0);
     const [typedRitualWord, setTypedRitualWord] = useState('');
     const [isDeletingRitualWord, setIsDeletingRitualWord] = useState(false);
+    const [activeCategory, setActiveCategory] = useState(null);
+    const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
     useEffect(() => {
         if (setHeaderProps) {
@@ -144,6 +148,23 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
         });
     };
 
+    const getAllProducts = () => {
+        return affiliateProducts.sort((a, b) => {
+            const tierOrder = { expert: 3, premium: 2, essentiel: 1 };
+            const aTier = tierOrder[a.tier] || 0;
+            const bTier = tierOrder[b.tier] || 0;
+            if (bTier !== aTier) return bTier - aTier;
+            return (Number(Boolean(b.featured)) - Number(Boolean(a.featured)));
+        });
+    };
+
+    const getFilteredProducts = () => {
+        if (!activeCategory) return getAllProducts();
+        return getProductsForFamily(activeCategory);
+    };
+
+    const filteredProducts = getFilteredProducts();
+
     return (
         <div className={`min-h-screen animate-in fade-in duration-500 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-[#FAFAF9]'}`}>
             <SEO
@@ -226,92 +247,144 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                 </div>
             </section>
 
-            {/* TOC NAV - Hairline Architecture */}
-            <section className={`border-b ${darkMode ? 'bg-[#0a0a0a] border-white/5' : 'bg-[#FAFAF9] border-stone-200/60'}`}>
-                <div className="max-w-[1920px] mx-auto px-6 xl:px-12 py-3 md:py-4">
-                    <div className="flex gap-4 md:gap-8 overflow-x-auto scrollbar-none pb-1 items-center">
-                        <span className={`text-[9px] font-black uppercase tracking-widest shrink-0 ${darkMode ? 'text-stone-600' : 'text-stone-400'}`}>Aller à :</span>
-                        {FAMILIES.map((family) => {
-                            const hasProducts = getProductsForFamily(family.id).length > 0;
-                            if (!hasProducts) return null;
-                            return (
-                                <button
-                                    key={`nav-${family.id}`}
-                                    onClick={() => {
-                                        const el = document.getElementById(`fam-${family.id}`);
-                                        if (el) {
-                                            const y = el.getBoundingClientRect().top + window.scrollY - 100;
-                                            window.scrollTo({ top: y, behavior: 'smooth' });
-                                        }
-                                    }}
-                                    className={`shrink-0 text-[10px] md:text-[11px] font-bold uppercase tracking-widest transition-colors ${darkMode ? 'text-white hover:text-amber-500' : 'text-stone-900 hover:text-amber-700'}`}
-                                >
-                                    {family.subtitle}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-            </section>
+            {/* SIDEBAR - Desktop Fixed Left + Mobile Drawer */}
+            <ShopSidebar
+                categories={FAMILIES.filter(f => getProductsForFamily(f.id).length > 0)}
+                activeCategory={activeCategory}
+                onCategoryChange={setActiveCategory}
+                darkMode={darkMode}
+                isMobileOpen={isMobileSidebarOpen}
+                onMobileClose={() => setIsMobileSidebarOpen(false)}
+            />
 
-            {/* EDITORIAL SECTIONS - StickyStoryTellingLayouts */}
-            <div className="flex flex-col">
-                {FAMILIES.map((family, index) => {
-                    const products = getProductsForFamily(family.id);
-                    if (products.length === 0) return null;
+            {/* MOBILE FLOATING BUTTON - Ouvre le drawer */}
+            <motion.button
+                onClick={() => setIsMobileSidebarOpen(true)}
+                className={`
+                    lg:hidden fixed bottom-6 right-6 z-40
+                    w-14 h-14 rounded-full
+                    flex items-center justify-center
+                    shadow-2xl backdrop-blur-xl
+                    transition-all duration-300
+                    ${darkMode 
+                        ? 'bg-amber-500/90 hover:bg-amber-500 text-white' 
+                        : 'bg-amber-600/90 hover:bg-amber-600 text-white'
+                    }
+                `}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.5 }}
+            >
+                <SlidersHorizontal size={20} />
+            </motion.button>
 
-                    return (
-                        <section key={family.id} id={`fam-${family.id}`} className={`border-b ${darkMode ? 'border-white/5' : 'border-stone-200/60'} relative w-full`}>
-                            <div className="max-w-[1920px] mx-auto flex flex-col lg:flex-row">
-                                
-                                {/* LEFT : Sticky Info (Editorial) */}
-                                <div className={`lg:w-[30%] xl:w-[26%] lg:border-r ${darkMode ? 'border-white/5' : 'border-stone-200/60'} p-6 md:p-10 lg:sticky lg:top-[88px] lg:h-[calc(100vh-88px)] lg:overflow-y-auto scrollbar-none flex flex-col justify-between`}>
-                                    <div className="space-y-6 md:space-y-10 lg:pb-12">
-                                        <div className="flex items-center gap-4">
-                                            <span className={`text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>
-                                                {String(index + 1).padStart(2, '0')}
-                                            </span>
+            {/* PRODUCTS GRID - Filtrage avec Animations */}
+            <section className={`min-h-screen py-12 px-6 xl:px-12 lg:pl-[320px] xl:pl-[360px] ${darkMode ? 'bg-[#0a0a0a]' : 'bg-[#FAFAF9]'}`}>
+                <div className="max-w-[1920px] mx-auto">
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={activeCategory || 'all'}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.4 }}
+                        >
+                            {/* Editorial Header si catégorie active */}
+                            {activeCategory && (() => {
+                                const family = FAMILIES.find(f => f.id === activeCategory);
+                                if (!family) return null;
+                                return (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.2, duration: 0.6 }}
+                                        className="mb-12 max-w-2xl"
+                                    >
+                                        <div className="flex items-center gap-4 mb-6">
                                             <span className={`w-8 h-px ${darkMode ? 'bg-white/20' : 'bg-stone-300'}`}></span>
                                             <span className={`text-[10px] md:text-[11px] font-black uppercase tracking-widest ${darkMode ? 'text-amber-500' : 'text-amber-700'}`}>
                                                 {family.subtitle}
                                             </span>
                                         </div>
-                                        
-                                        <h2 className={`font-serif text-4xl md:text-5xl xl:text-6xl leading-[0.9] tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                                        <h2 className={`font-serif text-4xl md:text-5xl xl:text-6xl leading-[0.9] tracking-tighter mb-6 ${darkMode ? 'text-white' : 'text-stone-900'}`}>
                                             {family.title}
                                         </h2>
-
-                                        <p className={`text-sm md:text-base leading-relaxed max-w-sm ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
+                                        <p className={`text-sm md:text-base leading-relaxed ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
                                             {family.description}
                                         </p>
-                                    </div>
+                                    </motion.div>
+                                );
+                            })()}
 
-                                    <div className="hidden lg:flex items-center gap-3">
-                                        <span className={`w-12 h-12 rounded-full border flex items-center justify-center text-[10px] font-black ${darkMode ? 'border-white/10 text-stone-400' : 'border-stone-200 text-stone-500'}`}>
-                                            {products.length}
-                                        </span>
-                                        <span className={`text-[9px] uppercase tracking-widest font-bold ${darkMode ? 'text-stone-600' : 'text-stone-400'}`}>Réf.</span>
-                                    </div>
-                                </div>
-
-                                {/* RIGHT : Scrollable Products Grid */}
-                                <div className={`lg:w-[70%] xl:w-[74%] p-6 md:p-10 lg:py-16 ${darkMode ? 'bg-[#050505]/40' : 'bg-stone-50/50'}`}>
-                                    <div className="product-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-5 md:gap-6 xl:gap-7">
-                                        {products.map((product) => (
+                            {/* Grille de Produits */}
+                            <motion.div
+                                className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-6 lg:gap-8"
+                                initial="hidden"
+                                animate="show"
+                                variants={{
+                                    hidden: { opacity: 0 },
+                                    show: {
+                                        opacity: 1,
+                                        transition: {
+                                            staggerChildren: 0.05,
+                                            delayChildren: 0.2
+                                        }
+                                    }
+                                }}
+                            >
+                                {filteredProducts.map((product, index) => (
+                                    <React.Fragment key={product.id}>
+                                        <motion.div
+                                            layoutId={`product-${product.id}`}
+                                            variants={{
+                                                hidden: { opacity: 0, y: 20 },
+                                                show: {
+                                                    opacity: 1,
+                                                    y: 0,
+                                                    transition: {
+                                                        duration: 0.8,
+                                                        ease: [0.22, 1, 0.36, 1]
+                                                    }
+                                                }
+                                            }}
+                                        >
                                             <ShopProductCard
-                                                key={product.id}
                                                 product={product}
                                                 darkMode={darkMode}
                                             />
-                                        ))}
-                                    </div>
-                                </div>
+                                        </motion.div>
 
-                            </div>
-                        </section>
-                    );
-                })}
-            </div>
+                                        {/* Bloc Éditorial Inline après le 4ème produit */}
+                                        {activeCategory && index === 3 && (() => {
+                                            const family = FAMILIES.find(f => f.id === activeCategory);
+                                            if (!family) return null;
+                                            return (
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: 20 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ delay: 0.3, duration: 0.8 }}
+                                                    className="col-span-2 lg:col-span-2 p-8 lg:p-12 rounded-[28px] backdrop-blur-xl bg-gradient-to-br from-amber-500/5 to-stone-800/20 border border-white/5"
+                                                >
+                                                    <div className="max-w-xl">
+                                                        <h3 className={`text-3xl lg:text-4xl font-serif leading-tight mb-4 ${darkMode ? 'text-stone-50' : 'text-stone-900'}`}>
+                                                            {family.title}
+                                                        </h3>
+                                                        <p className={`text-base leading-relaxed opacity-80 ${darkMode ? 'text-stone-300' : 'text-stone-600'}`}>
+                                                            {family.description}
+                                                        </p>
+                                                    </div>
+                                                </motion.div>
+                                            );
+                                        })()}
+                                    </React.Fragment>
+                                ))}
+                            </motion.div>
+                        </motion.div>
+                    </AnimatePresence>
+                </div>
+            </section>
 
             {/* INFO AFFILIATE FOOTER */}
             <section className={`py-12 px-6 md:px-12 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-[#FAFAF9]'}`}>

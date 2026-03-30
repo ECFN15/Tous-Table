@@ -437,6 +437,7 @@ const AdminShop = ({ darkMode }) => {
     const [loading, setLoading] = useState(true);
     const [editData, setEditData] = useState(null);
     const [isResetting, setIsResetting] = useState(false);
+    const [isMigrating, setIsMigrating] = useState(false);
 
     const colRef = useMemo(() => collection(db, 'artifacts', appId, 'public', 'data', 'affiliate_products'), []);
 
@@ -502,6 +503,8 @@ const AdminShop = ({ darkMode }) => {
 
     const handleSave = () => setEditData(null);
 
+
+
     if (loading) return (
         <div className="flex items-center justify-center py-20">
             <div className="w-8 h-8 border-2 border-stone-200 border-t-stone-800 rounded-full animate-spin" />
@@ -515,18 +518,20 @@ const AdminShop = ({ darkMode }) => {
                 <p className={`text-[10px] uppercase font-black tracking-[0.3em] mb-1 ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>Affiliation</p>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0">
                     <h2 className={`text-3xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>L'Atelier — Boutique</h2>
-                    <button
-                        onClick={handleResetAllClicks}
-                        disabled={isResetting || kpis.totalClicks === 0}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                            isResetting || kpis.totalClicks === 0
-                                ? 'opacity-50 cursor-not-allowed'
-                                : ''
-                        } ${darkMode ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20' : 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'}`}
-                    >
-                        <Trash2 size={12} />
-                        {isResetting ? 'Reset en cours...' : 'Reset Stats Clics'}
-                    </button>
+                    <div className="flex flex-wrap items-center gap-3">
+                        <button
+                            onClick={handleResetAllClicks}
+                            disabled={isResetting || kpis.totalClicks === 0}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                                isResetting || kpis.totalClicks === 0
+                                    ? 'opacity-50 cursor-not-allowed'
+                                    : ''
+                            } ${darkMode ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20' : 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'}`}
+                        >
+                            <Trash2 size={12} />
+                            {isResetting ? 'Reset en cours...' : 'Reset Stats Clics'}
+                        </button>
+                    </div>
                 </div>
             </div>
 

@@ -779,3 +779,18 @@ Sur desktop, le header principal (`ArchitecturalHeader`) a une hauteur de `96px`
 
 **Résultat** : Un Hero "Atelier" robuste, stable sur tous les ratios d'écran, et une lisibilité accrue de la description (réduite en `text-sm` sur mobile).
 
+---
+
+## 30 mars 2026 — Architecture Firestore Multi-Environnement dynamique (`{appId}`)
+
+**Fichier** : `firestore.rules`
+
+**Objectif** : Remplacer le chemin de base de données écrit "en dur" (`tat-made-in-normandie`) par une variable dynamique (`{appId}`) pour supporter nativement le fonctionnement Multi-Environnement sans duplication de règles.
+
+**Solution : Règle "Write Once, Deploy Anywhere"**
+1. **Passage au Paramètre `{appId}`** : Le chemin d'accès `match /artifacts/tat-made-in-normandie/...` est devenu `match /artifacts/{appId}/...`. Firestore ne bloque plus sur le nom précis du projet parent.
+2. **Isolation des Environnements** : La Sandbox (`https://tatmadeinnormandie.web.app/`) et la Production (`https://tousatable-madeinnormandie.fr/`) peuvent désormais utiliser des bases de données complètement cloisonnées tout en partageant 100% de la même couverture de sécurité fonctionnelle.
+3. **Prévention des Bugs de Déploiement** : Fin du risque de déployer des règles qui verrouilleraient la base de prod parce que le nom de la sandbox y était écrit en dur. L'infrastructure est maintenant *"Future-Proof"*.
+
+**Documentation Associée** : Un fichier complet a été créé (`architecture_firestore_rules.md`) pour archiver précisément le "Avant/Après" technique et les avantages du principe *Don't Repeat Yourself* (DRY) appliqué à Firestore.
+
