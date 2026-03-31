@@ -63,7 +63,7 @@ const TierBadge = ({ tier }) => {
     );
 };
 
-const KpiCard = ({ label, value, icon: Icon, darkMode, accent }) => (
+const KpiCard = ({ label, value, icon: Icon, darkMode, accent, subtitle }) => (
     <div className={`p-4 rounded-2xl border ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-200'}`}>
         <div className="flex items-center justify-between mb-3">
             <span className={`text-[10px] font-black uppercase tracking-widest ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>{label}</span>
@@ -72,6 +72,7 @@ const KpiCard = ({ label, value, icon: Icon, darkMode, accent }) => (
             </div>
         </div>
         <p className={`text-3xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>{value}</p>
+        {subtitle && <p className={`mt-1.5 text-[10px] truncate ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>{subtitle}</p>}
     </div>
 );
 
@@ -479,12 +480,17 @@ const AdminShop = ({ darkMode }) => {
     }, [products, clickCountsByProduct]);
 
     // KPIs
-    const kpis = useMemo(() => ({
-        total: products.length,
-        published: products.filter(p => p.status === 'published').length,
-        totalClicks: totalTrackedClicks,
-        topProduct: productsWithClicks.reduce((top, p) => (!top || (p.clickCount || 0) > (top.clickCount || 0)) ? p : top, null),
-    }), [products, productsWithClicks, totalTrackedClicks]);
+    const kpis = useMemo(() => {
+        const topProducts = productsWithClicks
+            .filter(p => (p.clickCount || 0) > 0)
+            .sort((a, b) => (b.clickCount || 0) - (a.clickCount || 0));
+        return {
+            total: products.length,
+            published: products.filter(p => p.status === 'published').length,
+            totalClicks: totalTrackedClicks,
+            topProducts,
+        };
+    }, [products, productsWithClicks, totalTrackedClicks]);
 
     const handleResetAllClicks = async () => {
         if (!confirm("Êtes-vous sûr de remettre à zéro les compteurs de clics pour TOUS les produits ?")) return;
@@ -574,23 +580,49 @@ const AdminShop = ({ darkMode }) => {
             </div>
 
             {/* KPIs */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 <KpiCard label="Produits" value={kpis.total} icon={Package} darkMode={darkMode} />
                 <KpiCard label="Publiés" value={kpis.published} icon={Eye} darkMode={darkMode} accent="bg-emerald-500/10" />
                 <KpiCard label="Clics totaux" value={kpis.totalClicks} icon={MousePointerClick} darkMode={darkMode} accent="bg-amber-500/10" />
-                <KpiCard
-                    label="Top produit"
-                    value={kpis.topProduct ? `${kpis.topProduct.clickCount || 0} clics` : '—'}
-                    icon={TrendingUp}
-                    darkMode={darkMode}
-                    accent="bg-blue-500/10"
-                />
             </div>
-            {kpis.topProduct && (
-                <p className={`-mt-5 text-[11px] ${darkMode ? 'text-stone-600' : 'text-stone-400'}`}>
-                    → {kpis.topProduct.name}
-                </p>
-            )}
+
+            {/* Classement Top Produits */}
+            {kpis.topProducts.length > 0 && (() => {
+                const top3 = kpis.topProducts.slice(0, 3);
+                const max = top3[0].clickCount || 1;
+                const rankColors = ['text-amber-400', 'text-stone-400', 'text-stone-600'];
+                return (
+                    <div className={`rounded-2xl border p-4 ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-200'}`}>
+                        <div className="flex items-center justify-between mb-4">
+                            <span className={`text-[10px] font-black uppercase tracking-widest ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>
+                                Classement clics
+                            </span>
+                            <TrendingUp size={14} className={darkMode ? 'text-stone-500' : 'text-stone-400'} />
+                        </div>
+                        <div className="space-y-3">
+                            {top3.map((p, i) => (
+                                <div key={p.id} className="flex items-center gap-3">
+                                    <span className={`text-[11px] font-black w-5 text-center shrink-0 ${rankColors[i]}`}>#{i + 1}</span>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center justify-between mb-1.5">
+                                            <span className={`text-[11px] font-bold truncate ${darkMode ? 'text-stone-200' : 'text-stone-800'}`}>{p.name}</span>
+                                            <span className={`text-[11px] font-black ml-2 shrink-0 tabular-nums ${darkMode ? 'text-white' : 'text-stone-900'}`}>{p.clickCount}</span>
+                                        </div>
+                                        <div className={`h-1 rounded-full overflow-hidden ${darkMode ? 'bg-white/5' : 'bg-stone-100'}`}>
+                                            <div className="h-full rounded-full bg-amber-500 transition-all duration-500" style={{ width: `${Math.round((p.clickCount / max) * 100)}%` }} />
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        {kpis.topProducts.length > 3 && (
+                            <p className={`mt-3 text-[10px] ${darkMode ? 'text-stone-600' : 'text-stone-400'}`}>
+                                + {kpis.topProducts.length - 3} autre{kpis.topProducts.length - 3 > 1 ? 's' : ''} produit{kpis.topProducts.length - 3 > 1 ? 's' : ''} avec des clics — voir dans la liste ci-dessous
+                            </p>
+                        )}
+                    </div>
+                );
+            })()}
 
             {/* Bannière légale */}
             <div className={`rounded-2xl border px-5 py-3 flex items-start gap-3 ${darkMode ? 'bg-amber-500/5 border-amber-500/20' : 'bg-amber-50 border-amber-200'}`}>
