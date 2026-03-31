@@ -147,7 +147,7 @@ const ArchitecturalHeader = ({
                                     >
                                         <span className="absolute bottom-0 left-0 h-[1.5px] bg-current transition-all duration-500 ease-out z-10 w-0 group-hover:w-full"></span>
                                         <ShoppingBag size={15} strokeWidth={1.5} className="relative z-10 transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:scale-110" />
-                                        <span className="relative z-10">L'Atelier</span>
+                                        <span className="relative z-10">Le Comptoir</span>
                                     </button>
                                 )}
                             </nav>

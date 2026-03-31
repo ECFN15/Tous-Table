@@ -132,7 +132,7 @@ const MarketplaceLayout = ({
                                 className={`relative z-10 flex items-center gap-2 px-6 py-2.25 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-300 ${darkMode ? 'bg-stone-900/90 text-stone-300 border border-stone-700 hover:text-amber-400' : 'bg-stone-100/90 text-stone-500 border border-stone-200 hover:text-amber-700'}`}
                             >
                                 <ShoppingBag size={14} strokeWidth={2.5} />
-                                L'Atelier
+                                Le Comptoir
                             </button>
                         )}
 

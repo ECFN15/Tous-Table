@@ -176,7 +176,7 @@ const GlobalMenu = ({
             href: '/?page=gallery'
         },
         {
-            label: "L'Atelier",
+            label: "Le Comptoir",
             onClick: (e) => {
                 if (!e.ctrlKey && !e.metaKey) {
                     e.preventDefault(); setView('shop'); setIsMenuOpen(false); window.scrollTo(0, 0);

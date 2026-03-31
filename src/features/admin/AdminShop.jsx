@@ -517,7 +517,7 @@ const AdminShop = ({ darkMode }) => {
             <div>
                 <p className={`text-[10px] uppercase font-black tracking-[0.3em] mb-1 ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>Affiliation</p>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0">
-                    <h2 className={`text-3xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>L'Atelier — Boutique</h2>
+                    <h2 className={`text-3xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>Le Comptoir — Boutique</h2>
                     <div className="flex flex-wrap items-center gap-3">
                         <button
                             onClick={handleResetAllClicks}

@@ -94,7 +94,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
     useEffect(() => {
         if (setHeaderProps) {
             setHeaderProps({
-                title: "L'Atelier",
+                title: "Le Comptoir",
                 hideCollectionFilter: true,
                 hideAuctionFilter: true
             });
@@ -199,7 +199,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
     return (
         <div className={`min-h-screen animate-in fade-in duration-500 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-[#FAFAF9]'}`}>
             <SEO
-                title="L'Atelier - Soin et Entretien du Bois"
+                title="Le Comptoir - Soin et Entretien du Bois"
                 description="Notre sélection de produits professionnels pour protéger, nourrir et restaurer vos meubles en bois massif. Huiles, cires et savons testés à l'atelier."
                 url="/?page=shop"
             />

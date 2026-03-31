@@ -967,7 +967,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
             if (manifesto) manifesto.scrollIntoView({ behavior: 'smooth' });
           }}>
             <span className="text-[9px] uppercase tracking-[0.2em] md:tracking-[0.3em] font-bold opacity-40 group-hover:opacity-100 transition-opacity text-center">
-              Explorer <br className="md:hidden" /> l'Atelier
+              Explorer <br className="md:hidden" /> le Comptoir
             </span>
             <div className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-black/10 flex items-center justify-center group-hover:border-black/40 transition-colors bg-white/50 backdrop-blur-sm">
               <ArrowDown size={14} className="opacity-60 group-hover:translate-y-1 transition-transform duration-500" />
