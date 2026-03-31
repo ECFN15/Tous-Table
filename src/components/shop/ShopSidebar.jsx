@@ -1,8 +1,19 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { X } from 'lucide-react';
 
 const ShopSidebar = ({ categories, activeCategory, onCategoryChange, darkMode = false, isMobileOpen = false, onMobileClose }) => {
+    useEffect(() => {
+        if (isMobileOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [isMobileOpen]);
+
     return (
         <>
             {/* DESKTOP SIDEBAR - Sticky Left */}

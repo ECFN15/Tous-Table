@@ -284,7 +284,17 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                 <ShopSidebar
                     categories={FAMILIES.filter(f => getProductsForFamily(f.id).length > 0)}
                     activeCategory={activeCategory}
-                    onCategoryChange={setActiveCategory}
+                    onCategoryChange={(cat) => {
+                        setActiveCategory(cat);
+                        // Prevent "jump to bottom" by scrolling to the top of the grid before AnimatePresence collapses height
+                        setTimeout(() => {
+                            const elem = document.getElementById('products-grid-section');
+                            if (elem) {
+                                const y = elem.getBoundingClientRect().top + window.scrollY - 80;
+                                window.scrollTo({ top: y, behavior: 'smooth' });
+                            }
+                        }, 10);
+                    }}
                     darkMode={darkMode}
                     isMobileOpen={isMobileSidebarOpen}
                     onMobileClose={() => setIsMobileSidebarOpen(false)}
@@ -314,7 +324,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                 </motion.button>
 
                 {/* PRODUCTS GRID - Filtrage avec Animations */}
-                <section className={`min-h-screen pt-6 lg:pt-12 pb-12 px-6 xl:px-12 lg:pl-[320px] xl:pl-[360px] ${darkMode ? 'bg-[#0a0a0a]' : 'bg-[#FAFAF9]'}`}>
+                <section id="products-grid-section" className={`min-h-screen pt-6 lg:pt-12 pb-12 px-6 xl:px-12 lg:pl-[320px] xl:pl-[360px] ${darkMode ? 'bg-[#0a0a0a]' : 'bg-[#FAFAF9]'}`}>
                 <div className="max-w-[1920px] mx-auto">
                     <AnimatePresence mode="wait">
                         <motion.div
@@ -504,8 +514,26 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                                                                                         animate={{ opacity: 1, y: 0 }}
                                                                                         exit={{ opacity: 0, y: -8 }}
                                                                                         transition={{ duration: 0.3 }}
-                                                                                        className={`mt-0 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-6 p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl border w-full ${darkMode ? 'bg-white/5 border-white/8' : 'bg-white/70 border-stone-200/80'}`}
+                                                                                        className={`relative mt-0 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-6 p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl border w-full ${darkMode ? 'bg-white/5 border-white/8' : 'bg-white/70 border-stone-200/80'}`}
                                                                                     >
+                                                                                        {/* Flèches navigation Produit (Mobile uniquement) pour expliciter le carrousel */}
+                                                                                        {tutorials.length > 1 && (
+                                                                                            <>
+                                                                                                <button
+                                                                                                    onClick={() => setTutorialIndex(family.id, (currentIdx - 1 + tutorials.length) % tutorials.length)}
+                                                                                                    className={`md:hidden absolute -left-3 top-1/2 -translate-y-1/2 z-10 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shadow-xl transition-all duration-200 ${darkMode ? 'bg-[#1a1a1a] border border-white/10 text-stone-300' : 'bg-white border border-stone-200 text-stone-600'}`}
+                                                                                                >
+                                                                                                    <ChevronLeft size={14} />
+                                                                                                </button>
+                                                                                                <button
+                                                                                                    onClick={() => setTutorialIndex(family.id, (currentIdx + 1) % tutorials.length)}
+                                                                                                    className={`md:hidden absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shadow-xl transition-all duration-200 ${darkMode ? 'bg-[#1a1a1a] border border-white/10 text-stone-300' : 'bg-white border border-stone-200 text-stone-600'}`}
+                                                                                                >
+                                                                                                    <ChevronRight size={14} />
+                                                                                                </button>
+                                                                                            </>
+                                                                                        )}
+
                                                                                         {linked.imageUrl && (
                                                                                             <div className="w-full sm:w-24 lg:w-32 h-36 sm:h-24 lg:h-32 rounded-lg sm:rounded-xl bg-white overflow-hidden flex-shrink-0 flex items-center justify-center p-2 mb-2 sm:mb-0">
                                                                                                 <img
