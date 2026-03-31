@@ -535,7 +535,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                                                                                         )}
 
                                                                                         {linked.imageUrl && (
-                                                                                            <div className="w-full sm:w-24 lg:w-32 h-36 sm:h-24 lg:h-32 rounded-lg sm:rounded-xl bg-white overflow-hidden flex-shrink-0 flex items-center justify-center p-2 mb-2 sm:mb-0">
+                                                                                            <div className="w-full sm:w-24 lg:w-32 h-36 sm:h-24 lg:h-32 rounded-lg sm:rounded-xl bg-[#e8d9c6] overflow-hidden flex-shrink-0 flex items-center justify-center p-2 mb-2 sm:mb-0">
                                                                                                 <img
                                                                                                     src={linked.imageUrl}
                                                                                                     alt={linked.name}
