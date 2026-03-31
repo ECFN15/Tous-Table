@@ -158,14 +158,14 @@ const ArchitecturalHeader = ({
                                             <div
                                                 className="pointer-events-none absolute hidden md:block -inset-x-6 -inset-y-4 -z-10"
                                                 style={{
-                                                    background: 'radial-gradient(ellipse at center, rgba(252,211,77,0.54) 0%, rgba(251,191,36,0.34) 34%, rgba(245,158,11,0.16) 62%, rgba(245,158,11,0) 100%)',
-                                                    filter: 'blur(12px)',
+                                                    background: 'radial-gradient(ellipse at center, rgba(252,211,77,0.46) 0%, rgba(251,191,36,0.24) 30%, rgba(245,158,11,0.1) 54%, rgba(245,158,11,0.035) 76%, rgba(245,158,11,0) 100%)',
+                                                    filter: 'blur(13px)',
                                                     mixBlendMode: 'screen',
                                                 }}
                                             />
                                             <div
                                                 className={`relative inline-flex items-center justify-center min-w-[34px] md:min-w-[36px] h-[18px] md:h-[19px] text-[9px] md:text-[11px] leading-none font-medium uppercase tracking-[0.07em] px-2 rounded-full shadow-[0_2px_6px_rgba(0,0,0,0.26)] border
-                                                    ${darkMode ? 'bg-amber-300 text-stone-950 border-amber-200/80' : 'bg-amber-600 text-amber-50 border-amber-400/70'}`}
+                                                    ${darkMode ? 'bg-amber-300 text-stone-950 border-amber-200/45' : 'bg-amber-600 text-amber-50 border-amber-400/40'}`}
                                                 style={{
                                                     WebkitFontSmoothing: 'antialiased',
                                                     MozOsxFontSmoothing: 'grayscale',
