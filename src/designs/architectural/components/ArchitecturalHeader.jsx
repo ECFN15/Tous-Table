@@ -150,6 +150,13 @@ const ArchitecturalHeader = ({
                                             <ShoppingBag size={15} strokeWidth={1.5} className="relative z-10 transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:scale-110" />
                                             <span className="relative z-10">Le Comptoir</span>
                                         </button>
+                                        <div
+                                            className="pointer-events-none absolute hidden md:block -top-7 -right-8 z-10 h-14 w-20"
+                                            style={{
+                                                background: 'radial-gradient(62% 62% at 50% 50%, rgba(252,211,77,0.48) 0%, rgba(251,191,36,0.26) 42%, rgba(245,158,11,0.08) 66%, rgba(245,158,11,0) 100%)',
+                                                filter: 'blur(8px)',
+                                            }}
+                                        />
                                         {/* Badge "New" flottant */}
                                         <div
                                             className="absolute -top-2.5 md:-top-3.5 -right-4.5 z-20 animate-bounce transform-gpu rotate-[6deg]"
