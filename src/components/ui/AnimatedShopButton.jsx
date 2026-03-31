@@ -46,14 +46,6 @@ const AnimatedShopButton = ({ onOpenShop, darkMode }) => {
                 </motion.button>
             </div>
 
-            <div
-                className="pointer-events-none absolute hidden md:block -top-7 -right-6 z-10 h-14 w-20"
-                style={{
-                    background: 'radial-gradient(62% 62% at 50% 50%, rgba(252,211,77,0.48) 0%, rgba(251,191,36,0.26) 42%, rgba(245,158,11,0.08) 66%, rgba(245,158,11,0) 100%)',
-                    filter: 'blur(8px)',
-                }}
-            />
-
             {/* Badge "New" flottant - à l'EXTÉRIEUR du overflow-hidden pour ne pas être coupé */}
             <motion.div
                 className="absolute -top-2.5 md:-top-3.5 -right-2.5 z-20 transform-gpu rotate-[6deg]"
@@ -61,6 +53,14 @@ const AnimatedShopButton = ({ onOpenShop, darkMode }) => {
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                 style={{ willChange: 'transform' }}
             >
+                <div
+                    className="pointer-events-none absolute hidden md:block -inset-x-6 -inset-y-4 -z-10"
+                    style={{
+                        background: 'radial-gradient(ellipse at center, rgba(252,211,77,0.54) 0%, rgba(251,191,36,0.34) 34%, rgba(245,158,11,0.16) 62%, rgba(245,158,11,0) 100%)',
+                        filter: 'blur(12px)',
+                        mixBlendMode: 'screen',
+                    }}
+                />
                 <div
                     className={`inline-flex items-center justify-center min-w-[34px] md:min-w-[36px] h-[18px] md:h-[19px] text-[9px] md:text-[11px] leading-none font-medium uppercase tracking-[0.07em] px-2 rounded-full shadow-[0_2px_6px_rgba(0,0,0,0.26)] border ${darkMode ? 'bg-amber-300 text-stone-950 border-amber-200/80' : 'bg-amber-600 text-amber-50 border-amber-400/70'}`}
                     style={{
