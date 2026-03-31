@@ -141,14 +141,34 @@ const ArchitecturalHeader = ({
 
                                 {/* L'ATELIER BUTTON */}
                                 {headerProps?.onOpenShop && (
-                                    <button
-                                        onClick={headerProps.onOpenShop}
-                                        className={`relative group flex items-center gap-3 py-2 text-[10.5px] font-bold uppercase tracking-[0.2em] transition-all duration-500 overflow-hidden bg-transparent ${darkMode ? 'text-stone-400 hover:text-amber-400' : 'text-stone-500 hover:text-amber-700'}`}
-                                    >
-                                        <span className="absolute bottom-0 left-0 h-[1.5px] bg-current transition-all duration-500 ease-out z-10 w-0 group-hover:w-full"></span>
-                                        <ShoppingBag size={15} strokeWidth={1.5} className="relative z-10 transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:scale-110" />
-                                        <span className="relative z-10">Le Comptoir</span>
-                                    </button>
+                                    <div className="relative">
+                                        <button
+                                            onClick={headerProps.onOpenShop}
+                                            className={`relative group flex items-center gap-3 py-2 text-[10.5px] font-bold uppercase tracking-[0.2em] transition-all duration-500 overflow-hidden bg-transparent ${darkMode ? 'text-stone-400 hover:text-amber-400' : 'text-stone-500 hover:text-amber-700'}`}
+                                        >
+                                            <span className="absolute bottom-0 left-0 h-[1.5px] bg-current transition-all duration-500 ease-out z-10 w-0 group-hover:w-full"></span>
+                                            <ShoppingBag size={15} strokeWidth={1.5} className="relative z-10 transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:scale-110" />
+                                            <span className="relative z-10">Le Comptoir</span>
+                                        </button>
+                                        {/* Badge "New" flottant */}
+                                        <div
+                                            className="absolute -top-1.5 -right-4.5 z-20 animate-bounce transform-gpu rotate-[6deg]"
+                                            style={{ animationDuration: '2s', willChange: 'transform' }}
+                                        >
+                                            <div
+                                                className={`relative text-[9px] leading-none font-bold uppercase tracking-[0.02em] px-1.5 py-[3px] rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.35)] border
+                                                    ${darkMode ? 'bg-amber-400 text-black border-amber-300/70' : 'bg-amber-700 text-white border-amber-500/70'}`}
+                                                style={{
+                                                    WebkitFontSmoothing: 'antialiased',
+                                                    MozOsxFontSmoothing: 'grayscale',
+                                                    textRendering: 'optimizeLegibility',
+                                                    letterSpacing: '0.02em',
+                                                }}
+                                            >
+                                                <span className="inline-block">NEW</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 )}
                             </nav>
                         </div>

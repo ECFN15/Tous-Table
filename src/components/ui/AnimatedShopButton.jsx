@@ -48,12 +48,21 @@ const AnimatedShopButton = ({ onOpenShop, darkMode }) => {
 
             {/* Badge "New" flottant - à l'EXTÉRIEUR du overflow-hidden pour ne pas être coupé */}
             <motion.div
-                className="absolute -top-1.5 -right-2 z-20"
+                className="absolute -top-1.5 -right-2.5 z-20 transform-gpu rotate-[6deg]"
                 animate={{ y: [0, -2, 0] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                style={{ willChange: 'transform' }}
             >
-                <div className={`text-[7px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full shadow-md ${darkMode ? 'bg-amber-500 text-black' : 'bg-amber-700 text-white'}`}>
-                    New
+                <div
+                    className={`text-[9px] leading-none font-bold uppercase tracking-[0.02em] px-1.5 py-[3px] rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.35)] border ${darkMode ? 'bg-amber-400 text-black border-amber-300/70' : 'bg-amber-700 text-white border-amber-500/70'}`}
+                    style={{
+                        WebkitFontSmoothing: 'antialiased',
+                        MozOsxFontSmoothing: 'grayscale',
+                        textRendering: 'optimizeLegibility',
+                        letterSpacing: '0.02em',
+                    }}
+                >
+                    <span className="inline-block">NEW</span>
                 </div>
             </motion.div>
         </div>
