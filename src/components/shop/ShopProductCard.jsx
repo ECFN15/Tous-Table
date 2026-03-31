@@ -84,7 +84,7 @@ const ShopProductCard = ({ product, darkMode = false }) => {
         >
             {/* BLOC IMAGE */}
             <div 
-                className="relative aspect-[3/4] rounded-[16px] lg:rounded-[28px] overflow-hidden mb-4 bg-white cursor-default group/img [clip-path:inset(1.5px_round_16px)] lg:[clip-path:inset(1.5px_round_28px)] transform-gpu"
+                className="relative aspect-[3/4] rounded-[16px] lg:rounded-[28px] overflow-hidden mb-4 bg-[#f5f0eb] cursor-default group/img [clip-path:inset(1.5px_round_16px)] lg:[clip-path:inset(1.5px_round_28px)] transform-gpu"
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
             >
@@ -93,7 +93,8 @@ const ShopProductCard = ({ product, darkMode = false }) => {
                     alt={product.name || 'Produit'}
                     className="relative z-10 w-full h-full object-contain p-5 transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.08]"
                     style={{
-                        transform: `translate(${parallax.x * 0.4}px, ${parallax.y * 0.4}px)`
+                        transform: `translate(${parallax.x * 0.4}px, ${parallax.y * 0.4}px)`,
+                        mixBlendMode: 'multiply',
                     }}
                     loading="lazy"
                 />
