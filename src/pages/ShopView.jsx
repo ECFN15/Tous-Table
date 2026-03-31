@@ -406,20 +406,89 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                                                         const currentIdx = getTutorialIndex(family.id);
                                                         const currentTutorial = tutorials[currentIdx];
                                                         return (
-                                                            <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 lg:items-stretch">
-                                                                {/* Texte */}
-                                                                <div className="flex-1 min-w-0 flex flex-col">
-                                                                    <p className={`text-[10px] uppercase tracking-[0.28em] font-black mb-3 ${darkMode ? 'text-amber-500' : 'text-amber-700'}`}>
-                                                                        {family.subtitle} · Tuto Atelier
-                                                                    </p>
-                                                                    <h3 className={`text-3xl lg:text-4xl font-serif leading-tight mb-4 ${darkMode ? 'text-stone-50' : 'text-stone-900'}`}>
-                                                                        {family.title}
-                                                                    </h3>
-                                                                    <p className={`text-base leading-relaxed opacity-80 ${darkMode ? 'text-stone-300' : 'text-stone-600'}`}>
-                                                                        {family.description}
-                                                                    </p>
-                                                                    {/* Mini carte produit lié à la vidéo — centrée verticalement dans l'espace restant */}
-                                                                    <div className="flex-1 flex items-center">
+                                                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-6 sm:gap-y-8 lg:gap-x-12 lg:items-stretch">
+                                                                    
+                                                                    {/* 1. Texte (Top Left on Desktop, Top on Mobile) */}
+                                                                    <div className="lg:col-span-5 flex flex-col justify-center order-1 lg:order-none">
+                                                                        <p className={`text-[9px] sm:text-[10px] uppercase tracking-[0.28em] font-black mb-2 sm:mb-3 ${darkMode ? 'text-amber-500' : 'text-amber-700'}`}>
+                                                                            {family.subtitle} · Tuto Atelier
+                                                                        </p>
+                                                                        <h3 className={`text-2xl sm:text-3xl lg:text-4xl font-serif leading-tight mb-2 sm:mb-4 ${darkMode ? 'text-stone-50' : 'text-stone-900'}`}>
+                                                                            {family.title}
+                                                                        </h3>
+                                                                        <p className={`text-[12px] sm:text-sm lg:text-base leading-relaxed opacity-80 ${darkMode ? 'text-stone-300' : 'text-stone-600'}`}>
+                                                                            {family.description}
+                                                                        </p>
+                                                                    </div>
+
+                                                                    {/* 2. Vidéo Carrousel (Right on Desktop spanning 2 rows, Middle on Mobile) */}
+                                                                    {tutorials.length > 0 && (
+                                                                        <div className="lg:col-span-7 lg:col-start-6 lg:row-start-1 lg:row-span-2 w-full flex-shrink-0 flex flex-col justify-center order-2 lg:order-none">
+                                                                            <div className="relative">
+                                                                                {/* Player */}
+                                                                                <AnimatePresence mode="wait">
+                                                                                    <motion.div
+                                                                                        key={currentTutorial?.videoId}
+                                                                                        initial={{ opacity: 0, x: 20 }}
+                                                                                        animate={{ opacity: 1, x: 0 }}
+                                                                                        exit={{ opacity: 0, x: -20 }}
+                                                                                        transition={{ duration: 0.35 }}
+                                                                                        className="relative aspect-video rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl"
+                                                                                    >
+                                                                                        <iframe
+                                                                                            src={`https://www.youtube.com/embed/${currentTutorial?.videoId}?rel=0&modestbranding=1&color=white`}
+                                                                                            title={currentTutorial?.label}
+                                                                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                                                            allowFullScreen
+                                                                                            loading="lazy"
+                                                                                            className="absolute inset-0 w-full h-full"
+                                                                                        />
+                                                                                    </motion.div>
+                                                                                </AnimatePresence>
+                                                                                {/* Flèches navigation (si plusieurs vidéos) */}
+                                                                                {tutorials.length > 1 && (
+                                                                                    <>
+                                                                                        <button
+                                                                                            onClick={() => setTutorialIndex(family.id, (currentIdx - 1 + tutorials.length) % tutorials.length)}
+                                                                                            className={`absolute left-2 lg:-left-4 top-1/2 -translate-y-1/2 z-10 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 ${darkMode ? 'bg-[#1a1a1a]/80 lg:bg-[#1a1a1a] backdrop-blur-md border border-white/10 text-stone-300 hover:bg-amber-500/20 hover:border-amber-500/30' : 'bg-white/80 lg:bg-white backdrop-blur-md border border-stone-200 text-stone-600 hover:bg-amber-50 hover:border-amber-300'}`}
+                                                                                        >
+                                                                                            <ChevronLeft size={14} />
+                                                                                        </button>
+                                                                                        <button
+                                                                                            onClick={() => setTutorialIndex(family.id, (currentIdx + 1) % tutorials.length)}
+                                                                                            className={`absolute right-2 lg:-right-4 top-1/2 -translate-y-1/2 z-10 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 ${darkMode ? 'bg-[#1a1a1a]/80 lg:bg-[#1a1a1a] backdrop-blur-md border border-white/10 text-stone-300 hover:bg-amber-500/20 hover:border-amber-500/30' : 'bg-white/80 lg:bg-white backdrop-blur-md border border-stone-200 text-stone-600 hover:bg-amber-50 hover:border-amber-300'}`}
+                                                                                        >
+                                                                                            <ChevronRight size={14} />
+                                                                                        </button>
+                                                                                    </>
+                                                                                )}
+                                                                            </div>
+                                                                            {/* Label + Dots */}
+                                                                            <div className="mt-2.5 sm:mt-3 flex items-center justify-between gap-3">
+                                                                                <p className={`text-[9px] sm:text-[10px] tracking-wide opacity-50 truncate ${darkMode ? 'text-stone-400' : 'text-stone-600'}`}>
+                                                                                    ▶ {currentTutorial?.label}
+                                                                                </p>
+                                                                                {tutorials.length > 1 && (
+                                                                                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                                                                                        {tutorials.map((_, i) => (
+                                                                                            <button
+                                                                                                key={i}
+                                                                                                onClick={() => setTutorialIndex(family.id, i)}
+                                                                                                className={`rounded-full transition-all duration-300 ${
+                                                                                                    i === currentIdx
+                                                                                                        ? `w-3 sm:w-4 h-1 sm:h-1.5 ${darkMode ? 'bg-amber-500' : 'bg-amber-600'}`
+                                                                                                        : `w-1 sm:w-1.5 h-1 sm:h-1.5 ${darkMode ? 'bg-white/20 hover:bg-white/40' : 'bg-stone-300 hover:bg-stone-400'}`
+                                                                                                }`}
+                                                                                            />
+                                                                                        ))}
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+
+                                                                    {/* 3. Carte Produit Lié (Bottom Left on Desktop, Bottom on Mobile) */}
+                                                                    <div className="lg:col-span-5 lg:col-start-1 lg:row-start-2 flex flex-col justify-end order-3 lg:order-none">
                                                                     {(() => {
                                                                         if (!currentTutorial?.productName) return null;
                                                                         const linked = affiliateProducts.find(p =>
@@ -435,38 +504,38 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                                                                                         animate={{ opacity: 1, y: 0 }}
                                                                                         exit={{ opacity: 0, y: -8 }}
                                                                                         transition={{ duration: 0.3 }}
-                                                                                        className={`mt-0 flex items-stretch gap-7 p-6 rounded-2xl border w-full ${darkMode ? 'bg-white/5 border-white/8' : 'bg-white/70 border-stone-200/80'}`}
+                                                                                        className={`mt-0 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-6 p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl border w-full ${darkMode ? 'bg-white/5 border-white/8' : 'bg-white/70 border-stone-200/80'}`}
                                                                                     >
                                                                                         {linked.imageUrl && (
-                                                                                            <div className="w-32 h-32 rounded-xl overflow-hidden flex-shrink-0 self-center">
+                                                                                            <div className="w-full sm:w-24 lg:w-32 h-36 sm:h-24 lg:h-32 rounded-lg sm:rounded-xl bg-white overflow-hidden flex-shrink-0 flex items-center justify-center p-2 mb-2 sm:mb-0">
                                                                                                 <img
                                                                                                     src={linked.imageUrl}
                                                                                                     alt={linked.name}
-                                                                                                    className="w-full h-full object-cover"
+                                                                                                    className="w-full h-full object-contain mix-blend-multiply"
                                                                                                     loading="lazy"
                                                                                                 />
                                                                                             </div>
                                                                                         )}
-                                                                                        <div className="flex-1 min-w-0 flex flex-col">
-                                                                                            <div className="space-y-2">
-                                                                                                <p className={`text-[10px] font-black uppercase tracking-widest ${darkMode ? 'text-amber-500/80' : 'text-amber-700/80'}`}>
+                                                                                        <div className="flex-1 min-w-0 flex flex-col justify-between">
+                                                                                            <div className="space-y-1.5 sm:space-y-2">
+                                                                                                <p className={`text-[8.5px] sm:text-[9px] lg:text-[10px] font-black uppercase tracking-widest ${darkMode ? 'text-amber-500/80' : 'text-amber-700/80'}`}>
                                                                                                     {linked.brand}
                                                                                                 </p>
-                                                                                                <p className={`text-lg font-semibold leading-snug line-clamp-2 ${darkMode ? 'text-stone-100' : 'text-stone-900'}`}>
+                                                                                                <p className={`text-sm sm:text-[15px] lg:text-lg font-semibold leading-snug line-clamp-2 ${darkMode ? 'text-stone-100' : 'text-stone-900'}`}>
                                                                                                     {linked.name}
                                                                                                 </p>
                                                                                                 {linked.price && (
-                                                                                                    <p className={`text-sm ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
+                                                                                                    <p className={`text-[11px] sm:text-xs lg:text-sm ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
                                                                                                         {Number(linked.price).toFixed(2).replace('.', ',')} EUR
                                                                                                     </p>
                                                                                                 )}
                                                                                             </div>
-                                                                                            <div className="mt-auto pt-4 flex justify-end">
+                                                                                            <div className="mt-4 pt-3 sm:pt-4 sm:mt-auto flex justify-start sm:justify-end border-t sm:border-0 border-stone-200/10 dark:border-white/5">
                                                                                                 <a
                                                                                                     href={linked.affiliateUrl}
                                                                                                     target="_blank"
                                                                                                     rel="noopener noreferrer sponsored"
-                                                                                                    className={`inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-[11px] font-semibold transition-all duration-200 ${darkMode ? 'bg-amber-500/15 border border-amber-500/30 text-amber-400 hover:bg-amber-500/25' : 'bg-amber-600/10 border border-amber-600/25 text-amber-700 hover:bg-amber-600/20'}`}
+                                                                                                    className={`inline-flex items-center justify-center w-full sm:w-auto gap-2 px-6 py-2.5 rounded-full text-[10.5px] lg:text-[11px] font-semibold transition-all duration-200 ${darkMode ? 'bg-amber-500/15 border border-amber-500/30 text-amber-400 hover:bg-amber-500/25' : 'bg-amber-600/10 border border-amber-600/25 text-amber-700 hover:bg-amber-600/20'}`}
                                                                                                 >
                                                                                                     Découvrir <span>→</span>
                                                                                                 </a>
@@ -488,72 +557,6 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                                                                     })()}
                                                                     </div>
                                                                 </div>
-                                                                {/* Carrousel Vidéo */}
-                                                                {tutorials.length > 0 && (
-                                                                    <div className="w-full lg:w-[52%] flex-shrink-0">
-                                                                        <div className="relative">
-                                                                            {/* Player */}
-                                                                            <AnimatePresence mode="wait">
-                                                                                <motion.div
-                                                                                    key={currentTutorial?.videoId}
-                                                                                    initial={{ opacity: 0, x: 20 }}
-                                                                                    animate={{ opacity: 1, x: 0 }}
-                                                                                    exit={{ opacity: 0, x: -20 }}
-                                                                                    transition={{ duration: 0.35 }}
-                                                                                    className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl"
-                                                                                >
-                                                                                    <iframe
-                                                                                        src={`https://www.youtube.com/embed/${currentTutorial?.videoId}?rel=0&modestbranding=1&color=white`}
-                                                                                        title={currentTutorial?.label}
-                                                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                                                                        allowFullScreen
-                                                                                        loading="lazy"
-                                                                                        className="absolute inset-0 w-full h-full"
-                                                                                    />
-                                                                                </motion.div>
-                                                                            </AnimatePresence>
-                                                                            {/* Flèches navigation (si plusieurs vidéos) */}
-                                                                            {tutorials.length > 1 && (
-                                                                                <>
-                                                                                    <button
-                                                                                        onClick={() => setTutorialIndex(family.id, (currentIdx - 1 + tutorials.length) % tutorials.length)}
-                                                                                        className={`absolute -left-4 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 ${darkMode ? 'bg-[#1a1a1a] border border-white/10 text-stone-300 hover:bg-amber-500/20 hover:border-amber-500/30' : 'bg-white border border-stone-200 text-stone-600 hover:bg-amber-50 hover:border-amber-300'}`}
-                                                                                    >
-                                                                                        <ChevronLeft size={14} />
-                                                                                    </button>
-                                                                                    <button
-                                                                                        onClick={() => setTutorialIndex(family.id, (currentIdx + 1) % tutorials.length)}
-                                                                                        className={`absolute -right-4 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 ${darkMode ? 'bg-[#1a1a1a] border border-white/10 text-stone-300 hover:bg-amber-500/20 hover:border-amber-500/30' : 'bg-white border border-stone-200 text-stone-600 hover:bg-amber-50 hover:border-amber-300'}`}
-                                                                                    >
-                                                                                        <ChevronRight size={14} />
-                                                                                    </button>
-                                                                                </>
-                                                                            )}
-                                                                        </div>
-                                                                        {/* Label + Dots */}
-                                                                        <div className="mt-3 flex items-center justify-between gap-3">
-                                                                            <p className={`text-[10px] tracking-wide opacity-50 truncate ${darkMode ? 'text-stone-400' : 'text-stone-600'}`}>
-                                                                                ▶ {currentTutorial?.label}
-                                                                            </p>
-                                                                            {tutorials.length > 1 && (
-                                                                                <div className="flex items-center gap-1.5 flex-shrink-0">
-                                                                                    {tutorials.map((_, i) => (
-                                                                                        <button
-                                                                                            key={i}
-                                                                                            onClick={() => setTutorialIndex(family.id, i)}
-                                                                                            className={`rounded-full transition-all duration-300 ${
-                                                                                                i === currentIdx
-                                                                                                    ? `w-4 h-1.5 ${darkMode ? 'bg-amber-500' : 'bg-amber-600'}`
-                                                                                                    : `w-1.5 h-1.5 ${darkMode ? 'bg-white/20 hover:bg-white/40' : 'bg-stone-300 hover:bg-stone-400'}`
-                                                                                            }`}
-                                                                                        />
-                                                                                    ))}
-                                                                                </div>
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                            </div>
                                                         );
                                                     })()}
                                                 </motion.div>
