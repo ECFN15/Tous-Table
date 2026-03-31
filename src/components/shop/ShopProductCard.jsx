@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { addDoc, collection, updateDoc, doc, increment, serverTimestamp } from 'firebase/firestore';
-import { db, appId } from '../../firebase/config';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { db } from '../../firebase/config';
 import { useAuth } from '../../contexts/AuthContext';
 
 const PROGRAM_LABELS = {
@@ -53,11 +53,6 @@ const ShopProductCard = ({ product, darkMode = false }) => {
                 sessionId: sessionStorage.getItem('analytics_session_id') || null,
                 referrer: 'shop'
             });
-
-            await updateDoc(
-                doc(db, 'artifacts', appId, 'public', 'data', 'affiliate_products', product.id),
-                { clickCount: increment(1) }
-            );
         } catch (error) {
             console.error('Affiliate tracking failed:', error);
         }

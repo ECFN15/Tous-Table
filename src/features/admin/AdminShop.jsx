@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
     collection, onSnapshot, addDoc, updateDoc, deleteDoc,
-    doc, serverTimestamp, query, orderBy, getDocs, writeBatch
+    doc, serverTimestamp, query, orderBy, getDocs, writeBatch, limit
 } from 'firebase/firestore';
 import { db, appId } from '../../firebase/config';
 import {
@@ -434,6 +434,8 @@ const ProductList = ({ products, onEdit, onDelete, onToggleStatus, onToggleFeatu
 
 const AdminShop = ({ darkMode }) => {
     const [products, setProducts] = useState([]);
+    const [clickCountsByProduct, setClickCountsByProduct] = useState({});
+    const [totalTrackedClicks, setTotalTrackedClicks] = useState(0);
     const [loading, setLoading] = useState(true);
     const [editData, setEditData] = useState(null);
     const [isResetting, setIsResetting] = useState(false);
@@ -451,28 +453,64 @@ const AdminShop = ({ darkMode }) => {
         return () => unsub();
     }, [colRef]);
 
+    // Listener click tracking (source de verite)
+    useEffect(() => {
+        const clicksRef = collection(db, 'affiliate_clicks');
+        const unsub = onSnapshot(clicksRef, (snap) => {
+            const counts = {};
+            snap.docs.forEach((d) => {
+                const click = d.data();
+                const pid = click?.productId;
+                if (!pid) return;
+                counts[pid] = (counts[pid] || 0) + 1;
+            });
+            setClickCountsByProduct(counts);
+            setTotalTrackedClicks(snap.size);
+        });
+
+        return () => unsub();
+    }, []);
+
+    const productsWithClicks = useMemo(() => {
+        return products.map((p) => ({
+            ...p,
+            clickCount: clickCountsByProduct[p.id] || 0,
+        }));
+    }, [products, clickCountsByProduct]);
+
     // KPIs
     const kpis = useMemo(() => ({
         total: products.length,
         published: products.filter(p => p.status === 'published').length,
-        totalClicks: products.reduce((acc, p) => acc + (p.clickCount || 0), 0),
-        topProduct: products.reduce((top, p) => (!top || (p.clickCount || 0) > (top.clickCount || 0)) ? p : top, null),
-    }), [products]);
+        totalClicks: totalTrackedClicks,
+        topProduct: productsWithClicks.reduce((top, p) => (!top || (p.clickCount || 0) > (top.clickCount || 0)) ? p : top, null),
+    }), [products, productsWithClicks, totalTrackedClicks]);
 
     const handleResetAllClicks = async () => {
         if (!confirm("Êtes-vous sûr de remettre à zéro les compteurs de clics pour TOUS les produits ?")) return;
         setIsResetting(true);
         try {
-            const batch = writeBatch(db);
-            let hasChanges = false;
-            products.forEach(p => {
-                if (p.clickCount > 0) {
-                    batch.update(doc(colRef, p.id), { clickCount: 0 });
-                    hasChanges = true;
+            const clicksRef = collection(db, 'affiliate_clicks');
+            let keepDeleting = true;
+
+            while (keepDeleting) {
+                const pageQuery = query(clicksRef, orderBy('timestamp', 'asc'), limit(450));
+                const page = await getDocs(pageQuery);
+
+                if (page.empty) {
+                    keepDeleting = false;
+                    continue;
                 }
-            });
-            if (hasChanges) {
+
+                const batch = writeBatch(db);
+                page.docs.forEach((clickDoc) => {
+                    batch.delete(clickDoc.ref);
+                });
                 await batch.commit();
+
+                if (page.size < 450) {
+                    keepDeleting = false;
+                }
             }
         } catch (error) {
             console.error("Erreur reset clics :", error);
@@ -572,7 +610,7 @@ const AdminShop = ({ darkMode }) => {
 
             {/* Liste */}
             <ProductList
-                products={products}
+                products={productsWithClicks}
                 onEdit={(p) => { setEditData(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                 onDelete={handleDelete}
                 onToggleStatus={handleToggleStatus}

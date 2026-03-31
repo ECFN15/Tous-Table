@@ -64,13 +64,13 @@ service cloud.firestore {
       allow delete: if isArtisan();
     }
 
-    // Tracking clics affiliation — création par utilisateurs auth, lecture admin
+    // Tracking clics affiliation — création par utilisateurs auth, lecture/suppression admin
     match /affiliate_clicks/{clickId} {
       allow create: if request.auth != null
         && request.resource.data.keys().hasOnly(['productId', 'productName', 'affiliateProgram', 'category', 'tier', 'timestamp', 'sessionId', 'referrer'])
         && request.resource.data.productId is string
         && request.resource.data.productId.size() > 0;
-      allow read: if isArtisan();
+      allow read, delete: if isArtisan();
     }
 
     // Collections produits (furniture, cutting_boards, etc.)
