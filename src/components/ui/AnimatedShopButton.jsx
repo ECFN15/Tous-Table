@@ -23,8 +23,9 @@ const AnimatedShopButton = ({ onOpenShop, darkMode }) => {
                 <motion.div
                     animate={{ rotate: -360 }}
                     transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
-                    className="absolute inset-[-150%] z-0"
+                    className="absolute z-0"
                     style={{
+                        inset: "-200%",
                         background: "conic-gradient(from 0deg, transparent 30%, rgba(245, 158, 11, 0) 35%, rgba(245, 158, 11, 1) 50%, rgba(245, 158, 11, 0) 65%, transparent 70%)",
                     }}
                 />
