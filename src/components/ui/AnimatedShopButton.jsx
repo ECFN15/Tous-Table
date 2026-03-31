@@ -48,21 +48,22 @@ const AnimatedShopButton = ({ onOpenShop, darkMode }) => {
 
             {/* Badge "New" flottant - à l'EXTÉRIEUR du overflow-hidden pour ne pas être coupé */}
             <motion.div
-                className="absolute -top-1.5 -right-2.5 z-20 transform-gpu rotate-[6deg]"
+                className="absolute -top-2.5 md:-top-3.5 -right-2.5 z-20 transform-gpu rotate-[6deg]"
                 animate={{ y: [0, -2, 0] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                 style={{ willChange: 'transform' }}
             >
                 <div
-                    className={`text-[9px] leading-none font-bold uppercase tracking-[0.02em] px-1.5 py-[3px] rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.35)] border ${darkMode ? 'bg-amber-400 text-black border-amber-300/70' : 'bg-amber-700 text-white border-amber-500/70'}`}
+                    className={`inline-flex items-center justify-center min-w-[34px] md:min-w-[36px] h-[18px] md:h-[19px] text-[9px] md:text-[11px] leading-none font-semibold uppercase tracking-[0.07em] px-2 rounded-full shadow-[0_2px_6px_rgba(0,0,0,0.26)] border ${darkMode ? 'bg-amber-300 text-stone-950 border-amber-200/80' : 'bg-amber-600 text-amber-50 border-amber-400/70'}`}
                     style={{
                         WebkitFontSmoothing: 'antialiased',
                         MozOsxFontSmoothing: 'grayscale',
                         textRendering: 'optimizeLegibility',
-                        letterSpacing: '0.02em',
+                        letterSpacing: '0.07em',
+                        fontFamily: "'Space Grotesk', 'Plus Jakarta Sans', 'Segoe UI', sans-serif",
                     }}
                 >
-                    <span className="inline-block">NEW</span>
+                    <span className="block leading-none text-center">NEW</span>
                 </div>
             </motion.div>
         </div>
