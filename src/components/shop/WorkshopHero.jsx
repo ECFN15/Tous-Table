@@ -2,14 +2,14 @@ import React, { useRef } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 
-// Selection d'images plus coherentes avec l'univers atelier
+// Sélections d'images de produits réels (marques distribuées)
 const WORKSHOP_IMAGES = [
-    'https://images.unsplash.com/photo-1567016432779-094069958ea5?auto=format&fit=crop&w=1400&q=80',
-    'https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?auto=format&fit=crop&w=1800&q=80',
-    'https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?auto=format&fit=crop&w=1400&q=80',
-    'https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?auto=format&fit=crop&w=1400&q=80',
-    'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=1400&q=80',
-    'https://images.unsplash.com/photo-1505693314120-0d443867891c?auto=format&fit=crop&w=1400&q=80',
+    'https://m.media-amazon.com/images/I/61-4bboUxeL._AC_SL1500_.jpg', // 0: Grattoir (Approprié en horizontal)
+    'https://m.media-amazon.com/images/I/81WeRhbVc+L._AC_SL1500_.jpg', // 1: Rust-Oleum Chalky Finish
+    'https://m.media-amazon.com/images/I/817x8mAGGcL._AC_SL1500_.jpg', // 2: Ciseaux Kirschen
+    'https://m.media-amazon.com/images/I/813O2vl0bBL._AC_SL1500_.jpg', // 3: Libéron Black Bison
+    'https://m.media-amazon.com/images/I/51ZsB-USKuL._AC_SL1080_.jpg', // 4: V33 Décapant Bois
+    'https://m.media-amazon.com/images/I/51VxewNTbaL._AC_SL1286_.jpg', // 5: Outil long (Approprié en horizontal)
 ];
 
 const WorkshopHero = ({ darkMode = false }) => {
@@ -63,13 +63,13 @@ const WorkshopHero = ({ darkMode = false }) => {
                             ref={el => imagesRef.current[0] = el}
                             className="col-span-7 row-span-3 rounded-[12px] md:rounded-[18px] overflow-hidden"
                         >
-                            <div className={`relative h-full w-full rounded-[12px] md:rounded-[18px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_16px_44px_rgba(0,0,0,0.28)]`}>
+                            <div className="group relative h-full w-full rounded-[12px] md:rounded-[18px] bg-white ring-1 ring-inset ring-black/5 shadow-md transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] hover:-translate-y-2 hover:shadow-2xl overflow-hidden cursor-default">
                                 <img
                                     src={WORKSHOP_IMAGES[0]}
-                                    alt="Mobilier artisanal"
-                                    className="h-full w-full object-cover scale-100 hover:scale-105 transition-transform duration-700"
+                                    alt="Grattoir"
+                                    className="h-full w-full object-contain p-4 lg:p-8 transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-110 origin-center"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent pointer-events-none" />
+                                <div className="absolute inset-0 bg-black/0 transition-colors duration-500 group-hover:bg-black/[0.02] pointer-events-none" />
                             </div>
                         </div>
 
@@ -77,13 +77,13 @@ const WorkshopHero = ({ darkMode = false }) => {
                             ref={el => imagesRef.current[1] = el}
                             className="col-span-5 row-span-6 rounded-[14px] md:rounded-[20px] overflow-hidden"
                         >
-                            <div className={`relative h-full w-full rounded-[14px] md:rounded-[20px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_20px_56px_rgba(0,0,0,0.32)]`}>
+                            <div className="group relative h-full w-full rounded-[14px] md:rounded-[20px] bg-white ring-1 ring-inset ring-black/5 shadow-lg transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] hover:-translate-y-2 hover:shadow-2xl overflow-hidden cursor-default">
                                 <img
                                     src={WORKSHOP_IMAGES[1]}
-                                    alt="Atelier interieur"
-                                    className="h-full w-full object-cover scale-100 hover:scale-105 transition-transform duration-700"
+                                    alt="Rust-Oleum Chalky Finish"
+                                    className="h-full w-full object-contain p-4 lg:p-10 transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-110 origin-center"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-b from-black/12 via-transparent to-black/22 pointer-events-none" />
+                                <div className="absolute inset-0 bg-black/0 transition-colors duration-500 group-hover:bg-black/[0.02] pointer-events-none" />
                             </div>
                         </div>
 
@@ -91,13 +91,13 @@ const WorkshopHero = ({ darkMode = false }) => {
                             ref={el => imagesRef.current[2] = el}
                             className="col-span-3 row-span-3 rounded-[12px] md:rounded-[18px] overflow-hidden"
                         >
-                            <div className={`relative h-full w-full rounded-[12px] md:rounded-[18px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_14px_36px_rgba(0,0,0,0.24)]`}>
+                            <div className="group relative h-full w-full rounded-[12px] md:rounded-[18px] bg-white ring-1 ring-inset ring-black/5 shadow-md transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] hover:-translate-y-2 hover:shadow-2xl overflow-hidden cursor-default">
                                 <img
                                     src={WORKSHOP_IMAGES[2]}
-                                    alt="Details bois"
-                                    className="h-full w-full object-cover scale-100 hover:scale-105 transition-transform duration-700"
+                                    alt="Ciseaux Kirschen"
+                                    className="h-full w-full object-contain p-3 lg:p-6 transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-110 origin-center"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/10 pointer-events-none" />
+                                <div className="absolute inset-0 bg-black/0 transition-colors duration-500 group-hover:bg-black/[0.02] pointer-events-none" />
                             </div>
                         </div>
 
@@ -105,13 +105,13 @@ const WorkshopHero = ({ darkMode = false }) => {
                             ref={el => imagesRef.current[3] = el}
                             className="col-span-4 row-span-3 rounded-[10px] md:rounded-[17px] overflow-hidden"
                         >
-                            <div className={`relative h-full w-full rounded-[10px] md:rounded-[17px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_12px_28px_rgba(0,0,0,0.2)]`}>
+                            <div className="group relative h-full w-full rounded-[10px] md:rounded-[17px] bg-white ring-1 ring-inset ring-black/5 shadow-md transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] hover:-translate-y-2 hover:shadow-2xl overflow-hidden cursor-default">
                                 <img
                                     src={WORKSHOP_IMAGES[3]}
-                                    alt="Bois et texture"
-                                    className="h-full w-full object-cover scale-100 hover:scale-105 transition-transform duration-700"
+                                    alt="Pinceau Spalter"
+                                    className="h-full w-full object-contain p-4 lg:p-8 transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-110 origin-center"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/16 via-transparent to-transparent pointer-events-none" />
+                                <div className="absolute inset-0 bg-black/0 transition-colors duration-500 group-hover:bg-black/[0.02] pointer-events-none" />
                             </div>
                         </div>
                     </div>
@@ -122,13 +122,13 @@ const WorkshopHero = ({ darkMode = false }) => {
                             ref={el => imagesRef.current[4] = el}
                             className="col-span-5 h-[65px] min-[400px]:h-[75px] sm:h-[90px] md:h-[100px] lg:h-[140px] rounded-[10px] md:rounded-[16px] overflow-hidden"
                         >
-                            <div className={`relative h-full w-full rounded-[10px] md:rounded-[16px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_12px_28px_rgba(0,0,0,0.2)]`}>
+                            <div className="group relative h-full w-full rounded-[10px] md:rounded-[16px] bg-white ring-1 ring-inset ring-black/5 shadow-sm transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] hover:-translate-y-2 hover:shadow-xl overflow-hidden cursor-default">
                                 <img
                                     src={WORKSHOP_IMAGES[4]}
-                                    alt="Salon atelier"
-                                    className="h-full w-full object-cover scale-100 hover:scale-105 transition-transform duration-700"
+                                    alt="V33 Décapant"
+                                    className="h-full w-full object-contain p-2 lg:p-6 transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-110 origin-center"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/16 via-transparent to-transparent pointer-events-none" />
+                                <div className="absolute inset-0 bg-black/0 transition-colors duration-500 group-hover:bg-black/[0.02] pointer-events-none" />
                             </div>
                         </div>
 
@@ -136,13 +136,13 @@ const WorkshopHero = ({ darkMode = false }) => {
                             ref={el => imagesRef.current[5] = el}
                             className="col-span-7 h-[65px] min-[400px]:h-[75px] sm:h-[90px] md:h-[100px] lg:h-[140px] rounded-[10px] md:rounded-[16px] overflow-hidden"
                         >
-                            <div className={`relative h-full w-full rounded-[10px] md:rounded-[16px] overflow-hidden border ${darkMode ? 'border-stone-800' : 'border-stone-200'} shadow-[0_12px_28px_rgba(0,0,0,0.2)]`}>
+                            <div className="group relative h-full w-full rounded-[10px] md:rounded-[16px] bg-white ring-1 ring-inset ring-black/5 shadow-sm transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] hover:-translate-y-2 hover:shadow-xl overflow-hidden cursor-default">
                                 <img
                                     src={WORKSHOP_IMAGES[5]}
-                                    alt="Chambre meublee"
-                                    className="h-full w-full object-cover scale-100 hover:scale-105 transition-transform duration-700"
+                                    alt="Outil horizontal"
+                                    className="h-full w-full object-contain p-2 lg:p-6 transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-110 origin-center"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/16 via-transparent to-transparent pointer-events-none" />
+                                <div className="absolute inset-0 bg-black/0 transition-colors duration-500 group-hover:bg-black/[0.02] pointer-events-none" />
                             </div>
                         </div>
                     </div>

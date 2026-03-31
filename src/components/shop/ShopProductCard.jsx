@@ -20,9 +20,9 @@ const TIER_LABELS = {
 };
 
 const getTierBadgeClass = (tier, darkMode) => {
-    if (tier === 'premium') return darkMode ? 'bg-amber-500/30 text-amber-300 border-amber-400/30' : 'bg-amber-500/30 text-amber-700 border-amber-600/30';
-    if (tier === 'expert') return darkMode ? 'bg-stone-800/60 text-white border-white/20' : 'bg-stone-900/60 text-white border-white/30';
-    return darkMode ? 'bg-white/10 text-stone-300 border-white/20' : 'bg-white/20 text-stone-700 border-stone-300/30';
+    if (tier === 'premium') return 'bg-amber-500/20 text-amber-700 border-amber-500/30 font-black'; // Contrasted amber
+    if (tier === 'expert') return 'bg-stone-600/80 text-white border-white/20 font-bold'; // Solid gray
+    return 'bg-stone-200/80 text-stone-700 border-stone-300 font-bold'; // Light gray
 };
 
 const ShopProductCard = ({ product, darkMode = false }) => {
@@ -84,7 +84,7 @@ const ShopProductCard = ({ product, darkMode = false }) => {
         >
             {/* BLOC IMAGE */}
             <div 
-                className="relative aspect-[3/4] rounded-[28px] overflow-hidden mb-4 bg-white cursor-default group/img [clip-path:inset(1.5px_round_28px)] transform-gpu"
+                className="relative aspect-[3/4] rounded-[16px] lg:rounded-[28px] overflow-hidden mb-4 bg-white cursor-default group/img [clip-path:inset(1.5px_round_16px)] lg:[clip-path:inset(1.5px_round_28px)] transform-gpu"
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
             >
@@ -127,7 +127,7 @@ const ShopProductCard = ({ product, darkMode = false }) => {
                                 </div>
 
                                 {(product.proTips || product.proTip) && (
-                                    <div className="hidden lg:block bg-white/5 rounded-lg lg:rounded-xl p-3 lg:p-4 border border-white/10 mt-2 lg:mt-0">
+                                    <div className="hidden lg:block bg-white/5 rounded-lg lg:rounded-xl p-3 lg:p-4 border border-white/10 mt-4 lg:mt-6">
                                         <h5 className="text-[10px] uppercase font-black text-amber-500/90 tracking-[0.1em] mb-1.5 lg:mb-2 flex items-center gap-1.5 lg:gap-2">
                                             <span>✦</span> Conseil de l'Atelier
                                         </h5>
@@ -142,15 +142,15 @@ const ShopProductCard = ({ product, darkMode = false }) => {
                 </div>
                 
                 {/* Badge Amazon (Haut-Droit) */}
-                <div className={`absolute top-4 right-4 z-30 px-2.5 py-1 rounded-md backdrop-blur-md border flex items-center justify-center transition-opacity duration-300 ${darkMode ? 'bg-white/10 border-white/20 group-hover:bg-transparent group-hover:border-transparent group-hover:backdrop-blur-none group-hover:opacity-0' : 'bg-white/20 border-white/30 text-stone-900 shadow-sm group-hover:opacity-0'}`}>
-                    <span className={`text-[8.5px] uppercase tracking-wider font-black ${darkMode ? 'text-white' : 'text-stone-900 group-hover:text-white'}`}>
+                <div className={`absolute top-2 right-2 sm:top-4 sm:right-4 z-30 px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-md backdrop-blur-md border flex items-center justify-center transition-opacity duration-300 ${darkMode ? 'bg-stone-900/40 border-stone-800/30 group-hover:opacity-0' : 'bg-stone-900/60 border-stone-800/30 shadow-sm group-hover:opacity-0'}`}>
+                    <span className="text-[7.5px] sm:text-[10px] uppercase tracking-wider font-black text-white/90">
                         {PROGRAM_LABELS[product.affiliateProgram] || 'Direct'}
                     </span>
                 </div>
                 
                 {/* Badge Gamme (Bas-Gauche) */}
-                <div className={`absolute z-30 bottom-4 left-4 px-3 py-1.5 rounded-full backdrop-blur-md shadow-sm border flex items-center justify-center transition-opacity duration-300 ${getTierBadgeClass(product.tier, darkMode)} group-hover:opacity-0`}>
-                    <span className="text-[9px] uppercase tracking-wide font-bold">
+                <div className={`absolute z-30 bottom-2 left-2 sm:bottom-4 sm:left-4 px-2 py-0.5 sm:px-3 sm:py-1.5 rounded-full backdrop-blur-md shadow-sm border flex items-center justify-center transition-opacity duration-300 ${getTierBadgeClass(product.tier, darkMode)} group-hover:opacity-0`}>
+                    <span className="text-[7.5px] sm:text-[9px] uppercase tracking-wide font-bold">
                         {TIER_LABELS[product.tier] || 'Essentiel'}
                     </span>
                 </div>
