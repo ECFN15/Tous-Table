@@ -54,13 +54,13 @@ const AnimatedShopButton = ({ onOpenShop, darkMode }) => {
                 style={{ willChange: 'transform' }}
             >
                 <div
-                    className={`inline-flex items-center justify-center min-w-[34px] md:min-w-[36px] h-[18px] md:h-[19px] text-[9px] md:text-[11px] leading-none font-semibold uppercase tracking-[0.07em] px-2 rounded-full shadow-[0_2px_6px_rgba(0,0,0,0.26)] border ${darkMode ? 'bg-amber-300 text-stone-950 border-amber-200/80' : 'bg-amber-600 text-amber-50 border-amber-400/70'}`}
+                    className={`inline-flex items-center justify-center min-w-[34px] md:min-w-[36px] h-[18px] md:h-[19px] text-[9px] md:text-[11px] leading-none font-medium uppercase tracking-[0.07em] px-2 rounded-full shadow-[0_2px_6px_rgba(0,0,0,0.26)] border ${darkMode ? 'bg-amber-300 text-stone-950 border-amber-200/80' : 'bg-amber-600 text-amber-50 border-amber-400/70'}`}
                     style={{
                         WebkitFontSmoothing: 'antialiased',
                         MozOsxFontSmoothing: 'grayscale',
                         textRendering: 'optimizeLegibility',
                         letterSpacing: '0.07em',
-                        fontFamily: "'Space Grotesk', 'Plus Jakarta Sans', 'Segoe UI', sans-serif",
+                        fontFamily: "'Outfit', 'Plus Jakarta Sans', 'Segoe UI', sans-serif",
                     }}
                 >
                     <span className="block leading-none text-center">NEW</span>
