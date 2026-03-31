@@ -23,7 +23,7 @@ const AnimatedShopButton = ({ onOpenShop, darkMode }) => {
                 {/* Néon rotatif - plus grand pour éviter les coupures sur les côtés */}
                 <motion.div
                     animate={{ rotate: -360 }}
-                    transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
+                    transition={{ repeat: Infinity, duration: 6, ease: "linear" }}
                     className="absolute inset-[-200%]"
                     style={{
                         background: "conic-gradient(from 0deg, transparent 30%, rgba(245, 158, 11, 0) 35%, rgba(245, 158, 11, 1) 50%, rgba(245, 158, 11, 0) 65%, transparent 70%)",
