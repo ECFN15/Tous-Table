@@ -63,11 +63,12 @@ const WorkshopHero = ({ darkMode = false }) => {
                             ref={el => imagesRef.current[0] = el}
                             className="col-span-7 row-span-3 rounded-[12px] md:rounded-[18px] overflow-hidden"
                         >
-                            <div className="group relative h-full w-full rounded-[12px] md:rounded-[18px] bg-white ring-1 ring-inset ring-black/5 shadow-md transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] hover:-translate-y-2 hover:shadow-2xl opacity-90 saturate-[0.8] hover:opacity-100 hover:saturate-100 overflow-hidden cursor-default">
+                            <div className="group relative h-full w-full rounded-[12px] md:rounded-[18px] bg-[#ead9c0] ring-1 ring-inset ring-black/5 shadow-md transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] hover:-translate-y-2 hover:shadow-2xl overflow-hidden cursor-default">
                                 <img
                                     src={WORKSHOP_IMAGES[0]}
                                     alt="Grattoir"
                                     className="h-full w-full object-contain p-4 lg:p-8 transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-110 origin-center"
+                                    style={{ mixBlendMode: 'multiply' }}
                                 />
                                 <div className="absolute inset-0 bg-black/0 transition-colors duration-500 group-hover:bg-black/[0.02] pointer-events-none" />
                             </div>
@@ -77,11 +78,12 @@ const WorkshopHero = ({ darkMode = false }) => {
                             ref={el => imagesRef.current[1] = el}
                             className="col-span-5 row-span-6 rounded-[14px] md:rounded-[20px] overflow-hidden"
                         >
-                            <div className="group relative h-full w-full rounded-[14px] md:rounded-[20px] bg-white ring-1 ring-inset ring-black/5 shadow-lg transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] hover:-translate-y-2 hover:shadow-2xl opacity-90 saturate-[0.8] hover:opacity-100 hover:saturate-100 overflow-hidden cursor-default">
+                            <div className="group relative h-full w-full rounded-[14px] md:rounded-[20px] bg-[#ead9c0] ring-1 ring-inset ring-black/5 shadow-lg transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] hover:-translate-y-2 hover:shadow-2xl overflow-hidden cursor-default">
                                 <img
                                     src={WORKSHOP_IMAGES[1]}
                                     alt="Rust-Oleum Chalky Finish"
                                     className="h-full w-full object-contain p-4 lg:p-10 transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-110 origin-center"
+                                    style={{ mixBlendMode: 'multiply' }}
                                 />
                                 <div className="absolute inset-0 bg-black/0 transition-colors duration-500 group-hover:bg-black/[0.02] pointer-events-none" />
                             </div>
@@ -91,11 +93,12 @@ const WorkshopHero = ({ darkMode = false }) => {
                             ref={el => imagesRef.current[2] = el}
                             className="col-span-3 row-span-3 rounded-[12px] md:rounded-[18px] overflow-hidden"
                         >
-                            <div className="group relative h-full w-full rounded-[12px] md:rounded-[18px] bg-white ring-1 ring-inset ring-black/5 shadow-md transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] hover:-translate-y-2 hover:shadow-2xl opacity-90 saturate-[0.8] hover:opacity-100 hover:saturate-100 overflow-hidden cursor-default">
+                            <div className="group relative h-full w-full rounded-[12px] md:rounded-[18px] bg-[#ead9c0] ring-1 ring-inset ring-black/5 shadow-md transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] hover:-translate-y-2 hover:shadow-2xl overflow-hidden cursor-default">
                                 <img
                                     src={WORKSHOP_IMAGES[2]}
                                     alt="Ciseaux Kirschen"
                                     className="h-full w-full object-contain p-3 lg:p-6 transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-110 origin-center"
+                                    style={{ mixBlendMode: 'multiply' }}
                                 />
                                 <div className="absolute inset-0 bg-black/0 transition-colors duration-500 group-hover:bg-black/[0.02] pointer-events-none" />
                             </div>
@@ -105,11 +108,12 @@ const WorkshopHero = ({ darkMode = false }) => {
                             ref={el => imagesRef.current[3] = el}
                             className="col-span-4 row-span-3 rounded-[10px] md:rounded-[17px] overflow-hidden"
                         >
-                            <div className="group relative h-full w-full rounded-[10px] md:rounded-[17px] bg-white ring-1 ring-inset ring-black/5 shadow-md transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] hover:-translate-y-2 hover:shadow-2xl opacity-90 saturate-[0.8] hover:opacity-100 hover:saturate-100 overflow-hidden cursor-default">
+                            <div className="group relative h-full w-full rounded-[10px] md:rounded-[17px] bg-[#ead9c0] ring-1 ring-inset ring-black/5 shadow-md transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] hover:-translate-y-2 hover:shadow-2xl overflow-hidden cursor-default">
                                 <img
                                     src={WORKSHOP_IMAGES[3]}
                                     alt="Pinceau Spalter"
                                     className="h-full w-full object-contain p-4 lg:p-8 transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-110 origin-center"
+                                    style={{ mixBlendMode: 'multiply' }}
                                 />
                                 <div className="absolute inset-0 bg-black/0 transition-colors duration-500 group-hover:bg-black/[0.02] pointer-events-none" />
                             </div>
@@ -122,11 +126,12 @@ const WorkshopHero = ({ darkMode = false }) => {
                             ref={el => imagesRef.current[4] = el}
                             className="col-span-5 h-[65px] min-[400px]:h-[75px] sm:h-[90px] md:h-[100px] lg:h-[140px] rounded-[10px] md:rounded-[16px] overflow-hidden"
                         >
-                            <div className="group relative h-full w-full rounded-[10px] md:rounded-[16px] bg-white ring-1 ring-inset ring-black/5 shadow-sm transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] hover:-translate-y-2 hover:shadow-xl opacity-90 saturate-[0.8] hover:opacity-100 hover:saturate-100 overflow-hidden cursor-default">
+                            <div className="group relative h-full w-full rounded-[10px] md:rounded-[16px] bg-[#ead9c0] ring-1 ring-inset ring-black/5 shadow-sm transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] hover:-translate-y-2 hover:shadow-xl overflow-hidden cursor-default">
                                 <img
                                     src={WORKSHOP_IMAGES[4]}
                                     alt="V33 Décapant"
                                     className="h-full w-full object-contain p-2 lg:p-6 transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-110 origin-center"
+                                    style={{ mixBlendMode: 'multiply' }}
                                 />
                                 <div className="absolute inset-0 bg-black/0 transition-colors duration-500 group-hover:bg-black/[0.02] pointer-events-none" />
                             </div>
@@ -136,11 +141,12 @@ const WorkshopHero = ({ darkMode = false }) => {
                             ref={el => imagesRef.current[5] = el}
                             className="col-span-7 h-[65px] min-[400px]:h-[75px] sm:h-[90px] md:h-[100px] lg:h-[140px] rounded-[10px] md:rounded-[16px] overflow-hidden"
                         >
-                            <div className="group relative h-full w-full rounded-[10px] md:rounded-[16px] bg-white ring-1 ring-inset ring-black/5 shadow-sm transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] hover:-translate-y-2 hover:shadow-xl opacity-90 saturate-[0.8] hover:opacity-100 hover:saturate-100 overflow-hidden cursor-default">
+                            <div className="group relative h-full w-full rounded-[10px] md:rounded-[16px] bg-[#ead9c0] ring-1 ring-inset ring-black/5 shadow-sm transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] hover:-translate-y-2 hover:shadow-xl overflow-hidden cursor-default">
                                 <img
                                     src={WORKSHOP_IMAGES[5]}
                                     alt="Outil horizontal"
                                     className="h-full w-full object-contain p-2 lg:p-6 transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-110 origin-center"
+                                    style={{ mixBlendMode: 'multiply' }}
                                 />
                                 <div className="absolute inset-0 bg-black/0 transition-colors duration-500 group-hover:bg-black/[0.02] pointer-events-none" />
                             </div>
