@@ -42,6 +42,15 @@ const ShopProductCard = ({ product, darkMode = false }) => {
             return;
         }
 
+        // Dispatch for session journey tracking
+        window.dispatchEvent(new CustomEvent('comptoir_product_click', {
+            detail: {
+                productId: product.id || '',
+                productName: product.name || '',
+                productPrice: product.price || null,
+            }
+        }));
+
         try {
             await addDoc(collection(db, 'affiliate_clicks'), {
                 productId: product.id,

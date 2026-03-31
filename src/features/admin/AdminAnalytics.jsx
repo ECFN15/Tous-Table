@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
-    Users, Clock, Activity, Smartphone, Monitor, Globe, Trash2, AlertCircle, ChevronDown, ChevronRight
+    Users, Clock, Activity, Smartphone, Monitor, Globe, Trash2, AlertCircle, ChevronDown, ChevronRight,
+    TrendingUp, MousePointerClick, ShoppingBag
 } from 'lucide-react';
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
-import { db, functions } from '../../firebase/config';
+import { db, functions, appId } from '../../firebase/config';
 import { httpsCallable } from 'firebase/functions';
 import { getMillis } from '../../utils/time';
 
 // ─── Custom SVG Bar Chart — Premium responsive (remplace Recharts) ──
-const TrafficChart = ({ data, darkMode }) => {
+const TrafficChart = ({ data, darkMode, valueLabel = 'visite' }) => {
     const containerRef = useRef(null);
     const [dims, setDims] = useState({ w: 600, h: 280 });
     const [activeIdx, setActiveIdx] = useState(null);
@@ -72,8 +73,8 @@ const TrafficChart = ({ data, darkMode }) => {
         // Minimum absolu de largeur de barre
         barW = Math.max(isMobile ? 3 : 4, barW);
 
-        // Cap la largeur max pour éviter des barres géantes avec peu de données
-        barW = Math.min(barW, isMobile ? 40 : 60);
+        // Cap la largeur max — plafond serré pour une cohérence visuelle quel que soit le nb de barres
+        barW = Math.min(barW, isMobile ? 18 : 28);
 
         return { barW, gap, total: n };
     }, [data.length, chartW, isMobile]);
@@ -296,7 +297,7 @@ const TrafficChart = ({ data, darkMode }) => {
                         fontWeight: 900, color: '#10b981', textTransform: 'uppercase',
                         letterSpacing: '0.02em'
                     }}>
-                        {tooltipInfo.d.visites} visite{tooltipInfo.d.visites > 1 ? 's' : ''}
+                        {tooltipInfo.d.visites} {valueLabel}{tooltipInfo.d.visites > 1 ? 's' : ''}
                     </div>
                 </div>
             )}
@@ -304,6 +305,240 @@ const TrafficChart = ({ data, darkMode }) => {
     );
 };
 
+// ─── Boutique Affiliation Analytics ───────────────────────────────────────────
+const PROG_LABELS_B = { amazon: 'Amazon', manomano: 'ManoMano', leroymerlin: 'Leroy Merlin', rakuten: 'Rakuten', castorama: 'Castorama', direct: 'Direct' };
+const PROG_COLORS_B = { amazon: '#FF9900', manomano: '#2ECC71', leroymerlin: '#006600', rakuten: '#BF0000', castorama: '#FF6600', direct: '#6B7280' };
+const TIER_LABELS_B = { essentiel: 'Essentiel', premium: 'Premium', expert: 'Expert' };
+const TIER_COLORS_B = { essentiel: '#78716c', premium: '#f59e0b', expert: '#e2e8f0' };
+
+const BoutiqueAnalytics = ({ darkMode }) => {
+    const [clicks, setClicks] = useState([]);
+    const [loadingClicks, setLoadingClicks] = useState(true);
+    const [timeFilter, setTimeFilter] = useState('7j');
+
+    useEffect(() => {
+        const q = query(collection(db, 'affiliate_clicks'), orderBy('timestamp', 'desc'), limit(3000));
+        const unsub = onSnapshot(q, snap => {
+            setClicks(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+            setLoadingClicks(false);
+        }, () => setLoadingClicks(false));
+        return () => unsub();
+    }, []);
+
+    const filteredClicks = useMemo(() => {
+        const now = Date.now();
+        let cutoff = 0;
+        if (timeFilter === '1j') cutoff = now - 24 * 3600 * 1000;
+        else if (timeFilter === '7j') cutoff = now - 7 * 24 * 3600 * 1000;
+        else if (timeFilter === '30j') cutoff = now - 30 * 24 * 3600 * 1000;
+        return clicks.filter(c => getMillis(c.timestamp) >= cutoff);
+    }, [clicks, timeFilter]);
+
+    const chartData = useMemo(() => {
+        const now = Date.now();
+        let cutoff, step, fmt;
+        if (timeFilter === '1j') {
+            cutoff = now - 24 * 3600 * 1000; step = 3600 * 1000;
+            fmt = t => new Date(t).getHours() + 'h';
+        } else if (timeFilter === '7j') {
+            cutoff = now - 7 * 24 * 3600 * 1000; step = 24 * 3600 * 1000;
+            fmt = t => new Date(t).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+        } else if (timeFilter === '30j') {
+            cutoff = now - 30 * 24 * 3600 * 1000; step = 24 * 3600 * 1000;
+            fmt = t => new Date(t).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+        } else {
+            const ts = clicks.map(c => getMillis(c.timestamp)).filter(Boolean);
+            cutoff = ts.length > 0 ? Math.min(...ts) : now - 30 * 24 * 3600 * 1000;
+            const range = now - cutoff;
+            step = range > 60 * 24 * 3600 * 1000 ? 7 * 24 * 3600 * 1000 : 24 * 3600 * 1000;
+            fmt = t => new Date(t).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+        }
+        const timeline = [];
+        for (let t = cutoff; t <= now; t += step) timeline.push({ timestamp: t, name: fmt(t), visites: 0 });
+        filteredClicks.forEach(c => {
+            const t = getMillis(c.timestamp);
+            if (!t) return;
+            const idx = Math.floor((t - cutoff) / step);
+            if (idx >= 0 && idx < timeline.length) timeline[idx].visites += 1;
+        });
+        return timeline;
+    }, [clicks, filteredClicks, timeFilter]);
+
+    const topProducts = useMemo(() => {
+        const counts = {};
+        filteredClicks.forEach(c => {
+            if (!c.productId) return;
+            if (!counts[c.productId]) counts[c.productId] = { id: c.productId, name: c.productName || '—', count: 0, program: c.affiliateProgram, tier: c.tier };
+            counts[c.productId].count += 1;
+        });
+        return Object.values(counts).sort((a, b) => b.count - a.count);
+    }, [filteredClicks]);
+
+    const byProgram = useMemo(() => {
+        const counts = {};
+        filteredClicks.forEach(c => { const p = c.affiliateProgram || 'direct'; counts[p] = (counts[p] || 0) + 1; });
+        return Object.entries(counts).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
+    }, [filteredClicks]);
+
+    const byTier = useMemo(() => {
+        const counts = {};
+        filteredClicks.forEach(c => { const t = c.tier || 'essentiel'; counts[t] = (counts[t] || 0) + 1; });
+        return Object.entries(counts).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
+    }, [filteredClicks]);
+
+    const kpis = useMemo(() => {
+        const peak = chartData.length > 0 ? chartData.reduce((best, d) => d.visites > best.visites ? d : best, chartData[0]) : null;
+        return { total: filteredClicks.length, uniqueProducts: topProducts.length, topProg: byProgram[0] || null, peak };
+    }, [filteredClicks, topProducts, byProgram, chartData]);
+
+    if (loadingClicks) return <div className="p-12 text-center text-stone-400 font-bold animate-pulse">Chargement Boutique Data...</div>;
+
+    const maxTop = topProducts[0]?.count || 1;
+    const maxProg = byProgram[0]?.count || 1;
+    const maxTier = byTier[0]?.count || 1;
+
+    return (
+        <div className="space-y-6">
+            {/* HEADER */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h3 className={`text-2xl font-black tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>Le Comptoir</h3>
+                    <p className="text-[10px] text-stone-500 font-bold uppercase tracking-widest mt-1">Analytics Affiliation</p>
+                </div>
+                <div className={`flex p-1 rounded-xl border ${darkMode ? 'bg-stone-900 border-white/5' : 'bg-stone-100 border-stone-200'}`}>
+                    {[{ id: '1j', label: '24h' }, { id: '7j', label: '7j' }, { id: '30j', label: '30j' }, { id: 'tout', label: 'Tout' }].map(tf => (
+                        <button key={tf.id} onClick={() => setTimeFilter(tf.id)}
+                            className={`px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${timeFilter === tf.id ? (darkMode ? 'bg-white/10 text-white shadow-sm border border-white/10' : 'bg-white text-stone-900 shadow-sm border border-stone-200') : 'text-stone-500 hover:text-stone-300'}`}>
+                            {tf.label}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* KPI GRID */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {[
+                    { label: 'Clics Totaux', value: kpis.total, sub: 'sur la période', accent: 'text-amber-400', icon: MousePointerClick },
+                    { label: 'Produits Cliqués', value: kpis.uniqueProducts, sub: 'produits distincts', accent: 'text-blue-400', icon: ShoppingBag },
+                    { label: 'Top Programme', value: kpis.topProg ? (PROG_LABELS_B[kpis.topProg.name] || kpis.topProg.name) : '—', sub: kpis.topProg ? `${kpis.topProg.count} clics` : 'aucun', accent: 'text-orange-400', icon: TrendingUp },
+                    { label: 'Pic de Clics', value: kpis.peak?.visites || 0, sub: kpis.peak?.visites > 0 ? kpis.peak.name : '—', accent: 'text-emerald-400', icon: Activity },
+                ].map((kpi, i) => (
+                    <div key={i} className={`p-4 sm:p-5 rounded-2xl border ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100 shadow-sm'}`}>
+                        <div className="flex items-center justify-between mb-3">
+                            <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] text-stone-500 truncate">{kpi.label}</p>
+                            <div className={`w-7 h-7 rounded-xl flex items-center justify-center ${darkMode ? 'bg-white/5' : 'bg-stone-50'}`}>
+                                <kpi.icon size={13} className={kpi.accent} />
+                            </div>
+                        </div>
+                        <h4 className={`text-xl sm:text-2xl md:text-3xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>{kpi.value}</h4>
+                        <p className={`text-[9px] mt-1 font-bold ${kpi.accent}`}>{kpi.sub}</p>
+                    </div>
+                ))}
+            </div>
+
+            {/* CHART */}
+            <div className={`p-6 md:p-8 rounded-[2rem] border ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100 shadow-sm'}`}>
+                <div className="flex items-center justify-between mb-8">
+                    <h3 className={`text-[10px] font-black uppercase tracking-[0.3em] ${darkMode ? 'text-white/40' : 'text-stone-400'}`}>Évolution des Clics</h3>
+                </div>
+                <div className="h-[200px] md:h-[260px] w-full">
+                    {chartData.some(d => d.visites > 0) ? (
+                        <TrafficChart data={chartData} darkMode={darkMode} valueLabel="clic" />
+                    ) : (
+                        <div className="flex items-center justify-center h-full text-stone-500 font-bold italic text-xs">Aucun clic sur cette période.</div>
+                    )}
+                </div>
+            </div>
+
+            {/* BOTTOM GRID */}
+            {filteredClicks.length > 0 ? (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    {/* Classement Produits */}
+                    <div className={`lg:col-span-2 p-5 rounded-2xl border ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100 shadow-sm'}`}>
+                        <p className={`text-[9px] font-black uppercase tracking-widest mb-4 ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>Classement Produits</p>
+                        <div className="space-y-3">
+                            {topProducts.slice(0, 8).map((p, i) => {
+                                const rankStyle = i === 0 ? 'text-amber-400' : i === 1 ? 'text-stone-300' : 'text-stone-600';
+                                const pct = Math.round((p.count / maxTop) * 100);
+                                return (
+                                    <div key={p.id} className="flex items-center gap-3">
+                                        <span className={`text-[10px] font-black w-5 text-center shrink-0 ${rankStyle}`}>#{i + 1}</span>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className={`text-[11px] font-bold truncate ${darkMode ? 'text-stone-200' : 'text-stone-800'}`}>{p.name}</span>
+                                                <span className={`text-[11px] font-black ml-2 shrink-0 tabular-nums ${darkMode ? 'text-white' : 'text-stone-900'}`}>{p.count}</span>
+                                            </div>
+                                            <div className={`h-1 rounded-full overflow-hidden ${darkMode ? 'bg-white/5' : 'bg-stone-100'}`}>
+                                                <div className="h-full rounded-full bg-amber-500 transition-all duration-500" style={{ width: `${pct}%` }} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                            {topProducts.length > 8 && <p className={`text-[9px] pt-1 ${darkMode ? 'text-stone-600' : 'text-stone-400'}`}>+ {topProducts.length - 8} autres produits avec des clics</p>}
+                        </div>
+                    </div>
+
+                    {/* Stats secondaires */}
+                    <div className="space-y-4">
+                        {/* Par Programme */}
+                        <div className={`p-5 rounded-2xl border ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100 shadow-sm'}`}>
+                            <p className={`text-[9px] font-black uppercase tracking-widest mb-4 ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>Par Programme</p>
+                            <div className="space-y-2.5">
+                                {byProgram.map(({ name, count }) => {
+                                    const pct = Math.round((count / maxProg) * 100);
+                                    const color = PROG_COLORS_B[name] || '#6B7280';
+                                    return (
+                                        <div key={name}>
+                                            <div className="flex items-center justify-between mb-1">
+                                                <div className="flex items-center gap-1.5">
+                                                    <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                                                    <span className={`text-[10px] font-bold ${darkMode ? 'text-stone-300' : 'text-stone-700'}`}>{PROG_LABELS_B[name] || name}</span>
+                                                </div>
+                                                <span className={`text-[10px] font-black tabular-nums ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>{count}</span>
+                                            </div>
+                                            <div className={`h-1 rounded-full overflow-hidden ${darkMode ? 'bg-white/5' : 'bg-stone-100'}`}>
+                                                <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: color }} />
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Par Gamme */}
+                        <div className={`p-5 rounded-2xl border ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100 shadow-sm'}`}>
+                            <p className={`text-[9px] font-black uppercase tracking-widest mb-4 ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>Par Gamme</p>
+                            <div className="space-y-2.5">
+                                {byTier.map(({ name, count }) => {
+                                    const pct = Math.round((count / maxTier) * 100);
+                                    const color = TIER_COLORS_B[name] || '#6B7280';
+                                    return (
+                                        <div key={name}>
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className={`text-[10px] font-bold ${darkMode ? 'text-stone-300' : 'text-stone-700'}`}>{TIER_LABELS_B[name] || name}</span>
+                                                <span className={`text-[10px] font-black tabular-nums ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>{count}</span>
+                                            </div>
+                                            <div className={`h-1 rounded-full overflow-hidden ${darkMode ? 'bg-white/5' : 'bg-stone-100'}`}>
+                                                <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: color }} />
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                <div className={`p-12 text-center rounded-2xl border ${darkMode ? 'bg-[#161616] border-white/5 text-stone-500' : 'bg-stone-50 border-stone-100 text-stone-400'} font-bold text-sm italic`}>
+                    Aucun clic enregistré sur cette période.
+                </div>
+            )}
+        </div>
+    );
+};
+
+// ─── Analytics Principal ───────────────────────────────────────────────────────
 const AdminAnalytics = ({ darkMode = false }) => {
     const [sessions, setSessions] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -312,6 +547,7 @@ const AdminAnalytics = ({ darkMode = false }) => {
     const [now, setNow] = useState(Date.now());
     const [currentPage, setCurrentPage] = useState(1);
     const DAYS_PER_PAGE = 10;
+    const [view, setView] = useState('traffic');
 
     // Refresh "now" every 30s to update "Online" vs "Finished" markers
     useEffect(() => {
@@ -542,10 +778,32 @@ const AdminAnalytics = ({ darkMode = false }) => {
         }
     };
 
-    if (loading) return <div className="p-12 text-center text-stone-400 font-bold animate-pulse">Chargement Data...</div>;
-
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+
+            {/* VIEW SWITCHER */}
+            <div className={`flex items-center gap-2 p-1 rounded-2xl border w-fit ${darkMode ? 'bg-stone-900 border-white/5' : 'bg-stone-100 border-stone-200'}`}>
+                <button
+                    onClick={() => setView('traffic')}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${view === 'traffic' ? (darkMode ? 'bg-white text-stone-900' : 'bg-stone-900 text-white') : 'text-stone-500 hover:text-stone-300'}`}
+                >
+                    <Activity size={11} />
+                    Traffic & Sessions
+                </button>
+                <button
+                    onClick={() => setView('boutique')}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${view === 'boutique' ? 'bg-amber-500 text-stone-900' : 'text-stone-500 hover:text-stone-300'}`}
+                >
+                    <ShoppingBag size={11} />
+                    Boutique Affiliation
+                </button>
+            </div>
+
+            {view === 'boutique' ? (
+                <BoutiqueAnalytics darkMode={darkMode} />
+            ) : loading ? (
+                <div className="p-12 text-center text-stone-400 font-bold animate-pulse">Chargement Data...</div>
+            ) : (<>
 
             {/* HEADER FILTERS */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
@@ -727,17 +985,33 @@ const AdminAnalytics = ({ darkMode = false }) => {
                                                                             session.journey.map((step, idx) => (
                                                                                 <div key={idx} className="relative group/step">
                                                                                     {/* DOT centered on the 11px line */}
-                                                                                    <div className={`absolute -left-[18.5px] top-1.5 w-[7px] h-[7px] rounded-full ring-4 ${darkMode ? 'ring-stone-900/50 bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.3)]' : 'ring-white bg-blue-500'} transition-all group-hover/step:scale-125`}></div>
-                                                                                    
+                                                                                    <div className={`absolute -left-[18.5px] top-1.5 w-[7px] h-[7px] rounded-full ring-4 ${darkMode ? 'ring-stone-900/50' : 'ring-white'} ${
+                                                                                        step.page === 'comptoir'
+                                                                                            ? 'bg-teal-400 shadow-[0_0_10px_rgba(45,212,191,0.4)]'
+                                                                                            : step.page === 'shop'
+                                                                                                ? 'bg-violet-500 shadow-[0_0_10px_rgba(139,92,246,0.3)]'
+                                                                                                : 'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.3)]'
+                                                                                    } transition-all group-hover/step:scale-125`}></div>
+
                                                                                     <div className="flex flex-col gap-1 -translate-y-0.5">
-                                                                                        <span className="text-[8px] font-black text-blue-500/60 uppercase tracking-widest leading-none">{step.time} • {formatDuration(step.duration)}</span>
+                                                                                        <span className={`text-[8px] font-black uppercase tracking-widest leading-none ${
+                                                                                            step.page === 'comptoir' ? 'text-teal-400/60' : step.page === 'shop' ? 'text-violet-400/60' : 'text-blue-500/60'
+                                                                                        }`}>{step.time} • {formatDuration(step.duration)}</span>
                                                                                         <p className={`font-black text-[11px] leading-tight ${darkMode ? 'text-stone-300' : 'text-stone-900'}`}>
-                                                                                            Vue : <span className="uppercase text-amber-500">{step.page}</span>
+                                                                                            {step.page === 'comptoir' ? (
+                                                                                                <>Clic : <span className="uppercase text-teal-400">Comptoir</span></>
+                                                                                            ) : (
+                                                                                                <>Vue : <span className={`uppercase ${step.page === 'shop' ? 'text-violet-400' : 'text-amber-500'}`}>{step.page}</span></>
+                                                                                            )}
                                                                                         </p>
                                                                                         {step.itemId && (
                                                                                             <div className="flex flex-wrap items-center gap-2 mt-0.5">
-                                                                                                <span className="text-[8px] font-bold bg-indigo-500/10 text-indigo-400/80 border border-indigo-500/10 px-2 py-0.5 rounded-md truncate max-w-full italic">
-                                                                                                    ID: {step.itemId}
+                                                                                                <span className={`text-[8px] font-bold px-2 py-0.5 rounded-md truncate max-w-full italic border ${
+                                                                                                    step.page === 'comptoir'
+                                                                                                        ? 'bg-teal-500/10 text-teal-400/80 border-teal-500/10'
+                                                                                                        : 'bg-indigo-500/10 text-indigo-400/80 border-indigo-500/10'
+                                                                                                }`}>
+                                                                                                    {step.page !== 'comptoir' && 'ID: '}{step.itemId}
                                                                                                 </span>
                                                                                             </div>
                                                                                         )}
@@ -829,6 +1103,7 @@ const AdminAnalytics = ({ darkMode = false }) => {
                     </div>
                 ))}
             </div>
+            </>)}
         </div>
     );
 };

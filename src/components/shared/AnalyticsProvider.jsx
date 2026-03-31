@@ -131,6 +131,33 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
         return () => clearInterval(interval);
     }, []);
 
+    // Record Comptoir Product Clicks (from ShopProductCard custom event)
+    useEffect(() => {
+        const handleComptoir = (e) => {
+            if (!sessionIdRef.current || isAdmin) return;
+
+            const { productId, productName, productPrice } = e.detail;
+            const actionTime = Date.now();
+            const durationSinceLast = Math.round((actionTime - lastActionTimeRef.current) / 1000);
+
+            let displayId = productId || null;
+            if (productId && productName) {
+                displayId = `${productId} | ${productName}${productPrice ? ` (${productPrice}€)` : ''}`;
+            }
+
+            journeyToSend.current.push({
+                page: 'comptoir',
+                itemId: displayId,
+                time: new Date().toLocaleTimeString('fr-FR'),
+                duration: durationSinceLast
+            });
+            lastActionTimeRef.current = actionTime;
+        };
+
+        window.addEventListener('comptoir_product_click', handleComptoir);
+        return () => window.removeEventListener('comptoir_product_click', handleComptoir);
+    }, [isAdmin]);
+
     // Session Closure Detection (Reliable Approach for Mobile & Desktop)
     useEffect(() => {
         const sendSessionUpdate = (isActive = true) => {

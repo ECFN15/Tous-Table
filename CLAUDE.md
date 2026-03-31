@@ -794,3 +794,41 @@ Sur desktop, le header principal (`ArchitecturalHeader`) a une hauteur de `96px`
 
 **Documentation Associée** : Un fichier complet a été créé (`architecture_firestore_rules.md`) pour archiver précisément le "Avant/Après" technique et les avantages du principe *Don't Repeat Yourself* (DRY) appliqué à Firestore.
 
+---
+
+## 31 mars 2026 — Tracking Analytics "Le Comptoir" dans le Parcours Utilisateur
+
+**Fichiers** : `src/components/shop/ShopProductCard.jsx`, `src/components/shared/AnalyticsProvider.jsx`, `src/features/admin/AdminAnalytics.jsx`
+
+**Objectif** : Intégrer les clics produits de la page "Le Comptoir" (ShopView) dans le parcours utilisateur des sessions analytics, avec une identité visuelle distincte de la galerie.
+
+**Problème** : La visite de "Le Comptoir" apparaissait déjà en tant qu'étape générique `shop` dans le parcours (même couleur ambre que toutes les autres pages). Les clics sur les produits affiliés n'étaient enregistrés **que** dans la collection `affiliate_clicks`, jamais dans le parcours de session. Il était donc impossible de savoir si un visiteur avait consulté un produit spécifique sans croiser deux sources de données séparées.
+
+**Architecture de la Solution : Custom DOM Event**
+
+Choix technique : un `CustomEvent` DOM (`comptoir_product_click`) dispatché sur `window`. Cette approche évite tout prop drilling depuis `App.jsx` → `ShopView` → `ShopProductCard` et maintient le découplage entre la couche commerce (affiliate tracking) et la couche analytics (session journey).
+
+**Flux d'exécution :**
+1. L'utilisateur clique "Découvrir" sur un produit → `handleAffiliateClick` s'exécute
+2. Le lien affilié s'ouvre en onglet (synchrone, anti-popup-blocker — inchangé)
+3. Guard admin : si admin, retour immédiat (inchangé)
+4. **Nouveau** : `window.dispatchEvent('comptoir_product_click', { productId, productName, productPrice })`
+5. **Nouveau** : `AnalyticsProvider` capte l'événement et pousse `{ page: 'comptoir', itemId: 'id | Nom (prix€)', time, duration }` dans `journeyToSend`
+6. L'écriture `affiliate_clicks` Firestore se poursuit normalement (inchangé)
+
+**Modifications par fichier :**
+
+1. **`ShopProductCard.jsx`** : Ajout du `window.dispatchEvent` après le guard admin, avant l'écriture Firestore. Aucune rupture du flux existant.
+
+2. **`AnalyticsProvider.jsx`** : Nouveau `useEffect` avec `addEventListener('comptoir_product_click')` → construit le `displayId` au format `"productId | Nom (prix€)"` et pousse l'étape dans `journeyToSend.current`. Deps : `[isAdmin]`. Le `lastActionTimeRef` est mis à jour pour maintenir la cohérence des durées inter-étapes.
+
+3. **`AdminAnalytics.jsx`** : Refonte du système de couleurs du parcours utilisateur pour 3 types d'étapes distincts :
+
+| Type d'étape | Dot | Horodatage | Label | Badge produit |
+|---|---|---|---|---|
+| `home / gallery / detail / ...` | Bleu `#3B82F6` | `text-blue-500/60` | `Vue : AMBER` | Indigo `ID: ...` |
+| `shop` (visite page Le Comptoir) | Violet `#8B5CF6` | `text-violet-400/60` | `Vue : SHOP` violet | Indigo |
+| `comptoir` (clic produit) | Teal `#2DD4BF` avec glow | `text-teal-400/60` | `Clic : Comptoir` teal | Teal (sans préfixe "ID:") |
+
+**Résultat** : Chaque clic "Découvrir" sur Le Comptoir génère une étape dans le parcours de session, visuellement distincte (teal) de la navigation galerie (ambre) et de la simple visite de la page shop (violet). L'admin voit instantanément si un visiteur a consulté un produit d'entretien précis, avec son nom et son prix, dans la chronologie de sa session.
+
