@@ -20,8 +20,8 @@ body,
   padding: 0;
   width: 100%;
   max-width: 100vw;
-  overflow-x: clip;
-  /* FIX: 'clip' hides overflow WITHOUT breaking position: sticky (unlike 'hidden') */
+  overflow-x: hidden; /* Fallback Safari < 16 */
+  overflow-x: clip; /* Préféré : ne casse pas position: sticky (contrairement à hidden) */
   position: relative;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;

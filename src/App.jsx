@@ -600,7 +600,7 @@ const AppContent = () => {
           className="fixed inset-0 z-[200] bg-stone-900/60 backdrop-blur-md flex items-center justify-center p-4 md:p-6"
           onClick={(e) => { if (e.target === e.currentTarget) setShowFullLogin(false); }}
         >
-          <div className="bg-white p-6 md:p-10 rounded-3xl md:rounded-[2.5rem] shadow-2xl max-w-sm w-full text-center space-y-4 md:space-y-6 animate-in zoom-in-95 relative overflow-hidden max-h-[85dvh] overflow-y-auto ios-modal-scroll">
+          <div className="bg-white p-6 md:p-10 rounded-3xl md:rounded-[2.5rem] shadow-2xl max-w-sm w-full text-center space-y-4 md:space-y-6 animate-in zoom-in-95 relative overflow-hidden max-h-[85vh] overflow-y-auto ios-modal-scroll" style={{ maxHeight: 'min(85dvh, 85vh)' }}>
 
             {showAuthSuccess ? (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">

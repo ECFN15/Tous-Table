@@ -898,7 +898,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       {/* NAVIGATION - FIXED SAFE AREA */
         /* Increased to max(3rem) for tablets with thick status bars */
       }
-      <header className="fixed top-0 left-0 w-full p-5 md:p-12 pt-[max(2rem,env(safe-area-inset-top))] pr-[max(1.5rem,env(safe-area-inset-right))] pl-[max(1.5rem,env(safe-area-inset-left))] flex justify-between items-center z-[210] mix-blend-difference text-white">
+      <header className="fixed top-0 left-0 w-full p-5 md:p-12 pt-[max(2rem,env(safe-area-inset-top))] pr-[max(1.5rem,env(safe-area-inset-right))] pl-[max(1.5rem,env(safe-area-inset-left))] flex justify-between items-center z-[210] mix-blend-difference text-white" style={{ isolation: 'isolate' }}>
         <div className="flex items-center gap-3 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
           <Hammer size={18} className="group-hover:rotate-45 transition-transform duration-500" />
           <span className="font-serif text-xl tracking-widest uppercase font-light italic text-white">Tous à Table</span>
@@ -943,7 +943,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       {/* Increased pb to 32 (8rem) on tablet to LIFT elements higher as requested */}
       {/* [SECTION 07: HERO] */}
       {/* FIX: Use svh (Small Viewport Height) instead of dvh to prevent jump when address bar hides */}
-      <section className="hero-section relative h-[100svh] flex flex-col justify-center px-6 md:px-12 lg:px-[10vw] z-10 pb-12 md:pb-32">
+      <section className="hero-section relative h-screen flex flex-col justify-center px-6 md:px-12 lg:px-[10vw] z-10 pb-12 md:pb-32" style={{ height: '100svh' }}>
         {/* Title resized to 10.5vw (was 12.5) to free up vertical space for bottom text */}
         <h1 className="font-serif text-[18vw] md:text-[10.5vw] leading-[0.8] uppercase flex flex-col font-light text-[#1a1a1a] mix-blend-multiply">
           <span className="sr-only">Restauration de mobilier normand et meubles anciens à Caen</span>

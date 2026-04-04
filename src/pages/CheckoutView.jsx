@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowLeft, CreditCard, Truck, AlertCircle, Landmark, Wallet } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -189,6 +189,24 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
     const [createdOrderId, setCreatedOrderId] = useState(null);
     const [unavailableItems, setUnavailableItems] = useState([]);
     const [isCleaningUp, setIsCleaningUp] = useState(false);
+    const scrollYRef = useRef(0);
+
+    // iOS Safari scroll lock — empêche le body de scroller derrière la modale Stripe
+    useEffect(() => {
+        if (checkoutState === 'ready_to_pay') {
+            scrollYRef.current = window.scrollY;
+            document.body.classList.add('modal-open');
+            document.body.style.top = `-${scrollYRef.current}px`;
+        } else {
+            document.body.classList.remove('modal-open');
+            document.body.style.top = '';
+            window.scrollTo(0, scrollYRef.current);
+        }
+        return () => {
+            document.body.classList.remove('modal-open');
+            document.body.style.top = '';
+        };
+    }, [checkoutState]);
 
     // Annule la commande pending_payment et restaure le stock quand l'utilisateur
     // ferme le modal Stripe sans payer — évite les commandes orphelines et le stock bloqué
@@ -823,7 +841,7 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                 style={{ background: 'rgba(0,0,0,0.82)' }}
                 onClick={(e) => { if (e.target === e.currentTarget) handleClosePaymentModal(); }}
             >
-                <div className={`w-full max-w-lg relative p-6 md:p-8 rounded-[2rem] shadow-2xl animate-in zoom-in-95 duration-300 max-h-[85dvh] overflow-y-auto ios-modal-scroll custom-scrollbar ${darkMode ? 'bg-[#0a0a0a] ring-1 ring-white/5' : 'bg-white ring-1 ring-stone-200'}`}>
+                <div className={`w-full max-w-lg relative p-6 md:p-8 rounded-[2rem] shadow-2xl animate-in zoom-in-95 duration-300 max-h-[85vh] overflow-y-auto ios-modal-scroll custom-scrollbar ${darkMode ? 'bg-[#0a0a0a] ring-1 ring-white/5' : 'bg-white ring-1 ring-stone-200'}`} style={{ maxHeight: 'min(85dvh, 85vh)' }}>
 
                     {/* BOUTON FERMER (Hitbox élargie pour plus de précision) */}
                     <button
