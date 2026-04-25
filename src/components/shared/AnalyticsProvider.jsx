@@ -59,6 +59,7 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
                 const initRes = await httpsCallable(functions, 'initLiveSession')(userInfo);
                 if (initRes.data.success && isMounted) {
                     sessionIdRef.current = initRes.data.sessionId;
+                    sessionStorage.setItem('analytics_session_id', initRes.data.sessionId);
                 } else {
                     initCalledRef.current = false; // Réouvrir si échec
                 }
@@ -131,12 +132,12 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
         return () => clearInterval(interval);
     }, []);
 
-    // Record Comptoir Product Clicks (from ShopProductCard custom event)
+    // Record Affiliate Product Clicks (from central tracking utility)
     useEffect(() => {
-        const handleComptoir = (e) => {
+        const handleAffiliateClick = (e) => {
             if (!sessionIdRef.current || isAdmin) return;
 
-            const { productId, productName, productPrice } = e.detail;
+            const { productId, productName, productPrice, source, parentFurnitureName } = e.detail;
             const actionTime = Date.now();
             const durationSinceLast = Math.round((actionTime - lastActionTimeRef.current) / 1000);
 
@@ -144,9 +145,12 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
             if (productId && productName) {
                 displayId = `${productId} | ${productName}${productPrice ? ` (${productPrice}€)` : ''}`;
             }
+            if (parentFurnitureName) {
+                displayId += ` [depuis: ${parentFurnitureName}]`;
+            }
 
             journeyToSend.current.push({
-                page: 'comptoir',
+                page: `affiliate_${source}`,
                 itemId: displayId,
                 time: new Date().toLocaleTimeString('fr-FR'),
                 duration: durationSinceLast
@@ -154,8 +158,8 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
             lastActionTimeRef.current = actionTime;
         };
 
-        window.addEventListener('comptoir_product_click', handleComptoir);
-        return () => window.removeEventListener('comptoir_product_click', handleComptoir);
+        window.addEventListener('affiliate_product_click', handleAffiliateClick);
+        return () => window.removeEventListener('affiliate_product_click', handleAffiliateClick);
     }, [isAdmin]);
 
     // Session Closure Detection (Reliable Approach for Mobile & Desktop)

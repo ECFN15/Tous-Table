@@ -12,6 +12,7 @@ import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import SplitType from 'split-type';
+import { trackAffiliateClick } from '../utils/tracking';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -86,37 +87,11 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
     
     const handleTutorialClick = async (event, linkedProduct) => {
         event.preventDefault();
-        if (!linkedProduct?.affiliateUrl) return;
-
-        window.open(linkedProduct.affiliateUrl, '_blank', 'noopener,noreferrer');
-
-        if (isAdmin) {
-            console.log(`[Shop Stats] Admin click on tutorial product "${linkedProduct.name}" excluded from tracking.`);
-            return;
-        }
-
-        window.dispatchEvent(new CustomEvent('comptoir_product_click', {
-            detail: {
-                productId: linkedProduct.id || '',
-                productName: linkedProduct.name || '',
-                productPrice: linkedProduct.price || null,
-            }
-        }));
-
-        try {
-            await addDoc(collection(db, 'affiliate_clicks'), {
-                productId: linkedProduct.id,
-                productName: linkedProduct.name || '',
-                affiliateProgram: linkedProduct.affiliateProgram || 'direct',
-                category: linkedProduct.category || 'unknown',
-                tier: linkedProduct.tier || 'essentiel',
-                timestamp: serverTimestamp(),
-                sessionId: sessionStorage.getItem('analytics_session_id') || null,
-                referrer: 'tutorial'
-            });
-        } catch (error) {
-            console.error('Affiliate tracking failed:', error);
-        }
+        trackAffiliateClick({
+            product: linkedProduct,
+            source: 'shop_tutorial',
+            isAdmin
+        });
     };
 
     const [activeRitualIndex, setActiveRitualIndex] = useState(0);

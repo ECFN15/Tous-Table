@@ -1,161 +1,173 @@
-import React, { useState, useEffect } from 'react';
-import { Instagram, Facebook, MapPin } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { ArrowRight, ChevronDown, Facebook, Instagram, Mail, MapPin, Phone } from 'lucide-react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 
-// SÉCURITÉ: Sanitize HTML — Autorise uniquement <br> et <br /> (Anti-XSS)
-const sanitizeHtml = (html) => {
-    if (!html || typeof html !== 'string') return '';
-    const escaped = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    return escaped.replace(/&lt;br\s*\/?&gt;/gi, '<br />');
-};
+const FooterColumn = ({ title, children }) => (
+    <div>
+        <h3 className="mb-4 text-[#dba45f] text-[11px] font-black uppercase tracking-[0.24em]">{title}</h3>
+        <div className="space-y-2 font-serif text-[1.05rem] leading-snug text-stone-300">
+            {children}
+        </div>
+    </div>
+);
 
-const Footer = ({ darkMode }) => {
+const MobileDisclosure = ({ title, children }) => (
+    <details className="group border-b border-[#8a5b2a]/22 py-5">
+        <summary className="flex cursor-pointer list-none items-center justify-between text-stone-300 text-[13px] font-black uppercase tracking-[0.24em]">
+            {title}
+            <ChevronDown size={18} className="text-[#dba45f] transition-transform group-open:rotate-180" />
+        </summary>
+        <div className="pt-4 font-serif text-xl leading-snug text-stone-300">
+            {children}
+        </div>
+    </details>
+);
+
+const Footer = () => {
     const [contactInfo, setContactInfo] = useState({
-        email: 'atelier@tousatable.fr',
+        email: 'tousatablemadeinnormandie@gmail.com',
         phone: '07 77 32 41 78',
         instagram: '',
         facebook: '',
-        footerTitle: 'Éveiller\nl\'Immobile.',
-        footerSubtitle: 'Inquiry',
-        legacyText: 'Tous à Table — Atelier de restauration de meubles anciens à Ifs (Calvados). Vente de tables de ferme en chêne, armoires parisiennes, buffets normands. Livraison sur Caen, Bayeux, Deauville, Cabourg, toute la Normandie, la France et l\'Europe.'
+        address: '346 Chem. de Fleury, Ifs, Normandie, France',
+        legacyText: 'Tous a Table made in Normandie livre sur toute la France et pays frontaliers.'
     });
 
     useEffect(() => {
         const unsub = onSnapshot(doc(db, 'sys_metadata', 'contact_info'), (docSnap) => {
             if (docSnap.exists()) {
-                setContactInfo(prev => ({ ...prev, ...docSnap.data() }));
+                setContactInfo((prev) => ({ ...prev, ...docSnap.data() }));
             }
         });
         return () => unsub();
     }, []);
 
+    const email = contactInfo.email || 'tousatablemadeinnormandie@gmail.com';
+    const phone = contactInfo.phone || '07 77 32 41 78';
+    const address = contactInfo.address || '346 Chem. de Fleury, Ifs, Normandie, France';
+
     return (
-        <footer className={`${darkMode ? 'bg-[#0A0A0A]' : 'bg-[#111]'} text-white pt-20 md:pt-32 pb-12 px-6 md:px-12 relative z-10 transition-colors duration-500 border-t ${darkMode ? 'border-white/5' : 'border-none'}`}>
-            <div className="max-w-[1920px] mx-auto">
-                {/* Container: Vertical stack on mobile/tablet/small-laptop. Side-by-side ONLY on XL screens (1280px+) */}
-                <div className="flex flex-col xl:flex-row justify-between items-start gap-12 xl:gap-20 mb-20 md:mb-32 relative z-10">
-
-                    <div className="max-w-4xl">
-                        <span className="text-[10px] uppercase tracking-[0.6em] text-[#9C8268] mb-6 md:mb-8 block italic font-extrabold antialiased">
-                            {contactInfo.footerSubtitle || "Inquiry"}
-                        </span>
-                        <h2
-                            className="font-serif text-5xl md:text-7xl lg:text-7xl xl:text-8xl 2xl:text-9xl leading-[0.95] md:leading-[0.9] font-light italic hover:translate-x-4 transition-transform duration-700 cursor-default text-white break-words"
-                            dangerouslySetInnerHTML={{ __html: sanitizeHtml((contactInfo.footerTitle || "Éveiller\nl'Immobile.").replace(/\n/g, '<br />')) }}
+        <footer className="relative z-10 border-t border-[#8a5b2a]/25 bg-[#050605] text-white">
+            <div className="max-w-[1920px] mx-auto px-5 md:px-16 py-12 md:py-16">
+                <div className="md:hidden">
+                    <MobileDisclosure title="A propos">
+                        <a href="/" className="block hover:text-[#dba45f]">Notre histoire</a>
+                        <a href="/?page=gallery" className="block hover:text-[#dba45f]">La galerie</a>
+                        <a href="/?page=shop" className="block hover:text-[#dba45f]">Le comptoir</a>
+                    </MobileDisclosure>
+                    <MobileDisclosure title="Aide">
+                        <a href={`tel:${phone.replace(/\s/g, '')}`} className="block hover:text-[#dba45f]">{phone}</a>
+                        <a href={`mailto:${email}`} className="block break-all hover:text-[#dba45f]">{email}</a>
+                        <a
+                            href="https://www.google.com/maps/dir/?api=1&destination=Tous+a+Table+Atelier+Normand+346+Chem.+de+Fleury+14123+Ifs"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block hover:text-[#dba45f]"
                         >
-                        </h2>
-                    </div>
+                            Itineraire atelier
+                        </a>
+                    </MobileDisclosure>
+                    <MobileDisclosure title="Infos legales">
+                        <span className="block">CGV</span>
+                        <span className="block">Mentions legales</span>
+                        <span className="block">Politique de confidentialite</span>
+                    </MobileDisclosure>
+                </div>
 
-                    {/* Google Map - Desktop Only */}
-                    <div className="hidden xl:block flex-1 h-[300px] w-full max-w-lg rounded-xl overflow-hidden border border-white/5 opacity-50 hover:opacity-100 transition-all duration-700 self-center mx-8">
-                        <iframe
-                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2616.596001234567!2d-0.34809!3d49.153101!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x480a43f5959c8cd9%3A0xb674489cc18a42ea!2sTous%20%C3%A0%20Table%20-%20Atelier%20Normand!5e0!3m2!1sfr!2sfr!4v1700000000000!5m2!1sfr!2sfr"
-                            width="100%"
-                            height="100%"
-                            style={{ border: 0 }}
-                            allowFullScreen=""
-                            loading="lazy"
-                            referrerPolicy="no-referrer-when-downgrade"
-                            title="Google Map Atelier"
-                            className="grayscale contrast-[0.9] hover:grayscale-0 hover:contrast-100 transition-all duration-700"
-                        ></iframe>
-                    </div>
-
-                    <div className="flex flex-col gap-10 md:gap-16 xl:gap-20 self-start xl:self-end mt-4 xl:mt-0">
-                        <div className="space-y-6 md:space-y-8 w-full max-w-full">
-                            {/* Email - Optimized for long addresses & perfectly responsive */}
-                            <a
-                                href={`mailto:${contactInfo.email}`}
-                                className="block text-sm sm:text-lg md:text-xl lg:text-xl xl:text-2xl font-light italic hover:text-[#9C8268] transition-colors border-b border-white/10 pb-3 break-all sm:break-normal w-full"
-                            >
-                                {contactInfo.email}
-                            </a>
-
-                            <div className="space-y-4">
-                                {/* Phone */}
-                                <a href={`tel:${contactInfo.phone?.replace(/\s/g, '')}`} className="block text-base md:text-xl lg:text-2xl font-light italic opacity-60 hover:opacity-100 hover:text-[#9C8268] transition-all tracking-wide">
-                                    {contactInfo.phone}
-                                </a>
-
-                                {/* Address */}
-                                {contactInfo.address && (
-                                    <div className="border-l-2 border-[#9C8268] pl-4 flex flex-col gap-4">
-                                        <address className="not-italic text-[9px] md:text-xs uppercase tracking-[0.25em] opacity-40 leading-relaxed max-w-[280px]">
-                                            {contactInfo.address}
-                                        </address>
-
-                                        {/* Mobile Itinerary Link - Hidden on Desktop */}
-                                        <a
-                                            href="https://www.google.com/maps/dir/?api=1&destination=Tous+à+Table+-+Atelier+Normand+346+Chem.+de+Fleury+14123+Ifs"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="xl:hidden inline-flex items-center gap-2 text-[9px] md:text-xs uppercase tracking-[0.2em] font-bold text-[#9C8268] hover:text-white transition-colors group w-fit"
-                                        >
-                                            <MapPin size={14} className="group-hover:scale-110 transition-transform" />
-                                            <span>Itinéraire</span>
-                                        </a>
-                                    </div>
-                                )}
-                            </div>
+                <div className="grid gap-10 md:grid-cols-[1.2fr_0.75fr_0.75fr_0.9fr_1.25fr] md:items-start">
+                    <div className="space-y-5">
+                        <div>
+                            <p className="font-serif text-2xl leading-none text-white">Tous à Table</p>
+                            <p className="mt-1 font-serif text-lg italic text-[#dba45f]">Atelier Normand</p>
                         </div>
-
-                        {/* Social Links - Responsive Layout & Premium Hover Animations */}
-                        <div className="flex flex-col md:flex-row gap-8 md:gap-12 lg:gap-16 pt-4 md:pt-0">
-                            {/* Instagram */}
+                        <p className="max-w-xs font-serif text-lg leading-snug text-stone-300">
+                            {contactInfo.legacyText || 'Tous a Table made in Normandie livre sur toute la France et pays frontaliers.'}
+                        </p>
+                        <div className="flex gap-3">
                             {contactInfo.instagram && (
-                                <a
-                                    href={contactInfo.instagram}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex gap-4 items-center opacity-40 hover:opacity-100 transition-all duration-500 group"
-                                >
-                                    <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center group-hover:border-[#E1306C] group-hover:bg-[#E1306C]/10 group-hover:scale-110 transition-all duration-500">
-                                        <Instagram size={20} className="text-white group-hover:text-[#E1306C] transition-colors duration-500" />
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] uppercase tracking-[0.4em] italic font-bold group-hover:text-[#E1306C] transition-colors duration-500">Instagram</span>
-                                        <span className="text-[8px] uppercase tracking-[0.2em] opacity-40 mt-0.5">Journal de l'Artisan</span>
-                                    </div>
+                                <a href={contactInfo.instagram} target="_blank" rel="noopener noreferrer" className="flex h-10 w-10 items-center justify-center rounded-full border border-[#8a5b2a]/55 text-stone-200 transition-colors hover:border-[#dba45f] hover:text-[#dba45f]" title="Instagram">
+                                    <Instagram size={18} />
                                 </a>
                             )}
-
-                            {/* Facebook */}
                             {contactInfo.facebook && (
-                                <a href={contactInfo.facebook} target="_blank" rel="noopener noreferrer" className="flex gap-4 items-center opacity-40 hover:opacity-100 transition-all duration-500 group">
-                                    <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center group-hover:border-[#1877F2] group-hover:bg-[#1877F2]/10 group-hover:scale-110 transition-all duration-500">
-                                        <Facebook size={20} className="text-white group-hover:text-[#1877F2] transition-colors duration-500" />
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] uppercase tracking-[0.4em] italic font-bold group-hover:text-[#1877F2] transition-colors duration-500">Facebook</span>
-                                        <span className="text-[8px] uppercase tracking-[0.2em] opacity-40 mt-0.5">Suivez-nous</span>
-                                    </div>
+                                <a href={contactInfo.facebook} target="_blank" rel="noopener noreferrer" className="flex h-10 w-10 items-center justify-center rounded-full border border-[#8a5b2a]/55 text-stone-200 transition-colors hover:border-[#dba45f] hover:text-[#dba45f]" title="Facebook">
+                                    <Facebook size={18} />
                                 </a>
                             )}
+                            <a href={`mailto:${email}`} className="flex h-10 w-10 items-center justify-center rounded-full border border-[#8a5b2a]/55 text-stone-200 transition-colors hover:border-[#dba45f] hover:text-[#dba45f]" title="Email">
+                                <Mail size={18} />
+                            </a>
+                        </div>
+                    </div>
+
+                    <div className="hidden md:block">
+                        <FooterColumn title="A propos">
+                            <a href="/" className="block hover:text-[#dba45f]">Notre histoire</a>
+                            <a href="/?page=gallery" className="block hover:text-[#dba45f]">La galerie</a>
+                            <a href="/?page=shop" className="block hover:text-[#dba45f]">Le comptoir</a>
+                        </FooterColumn>
+                    </div>
+
+                    <div className="hidden md:block">
+                        <FooterColumn title="Aide">
+                            <a href={`tel:${phone.replace(/\s/g, '')}`} className="block hover:text-[#dba45f]">Livraison & retours</a>
+                            <a href={`mailto:${email}`} className="block hover:text-[#dba45f]">Contact</a>
+                            <span className="block">FAQ</span>
+                        </FooterColumn>
+                    </div>
+
+                    <div className="hidden md:block">
+                        <FooterColumn title="Infos legales">
+                            <span className="block">CGV</span>
+                            <span className="block">Mentions legales</span>
+                            <span className="block">Politique de confidentialite</span>
+                        </FooterColumn>
+                    </div>
+
+                    <div className="space-y-5">
+                        <h3 className="text-[#dba45f] text-[11px] font-black uppercase tracking-[0.24em]">Recevoir nos nouveautes</h3>
+                        <p className="font-serif text-lg leading-snug text-stone-300">
+                            Nouveaux arrivages, pieces uniques et inspirations directement dans votre boite mail.
+                        </p>
+                        <form onSubmit={(event) => event.preventDefault()} className="flex h-14 overflow-hidden border border-[#8a5b2a]/65">
+                            <input
+                                type="email"
+                                placeholder="Votre adresse email"
+                                className="min-w-0 flex-1 bg-transparent px-4 font-serif text-lg text-white outline-none placeholder:text-stone-500"
+                                aria-label="Votre adresse email"
+                            />
+                            <button type="submit" className="flex w-14 items-center justify-center text-[#dba45f] transition-colors hover:bg-[#dba45f] hover:text-black" aria-label="S'inscrire a la newsletter">
+                                <ArrowRight size={23} strokeWidth={1.5} />
+                            </button>
+                        </form>
+                        <div className="space-y-3 border-l border-[#8a5b2a]/50 pl-4 text-stone-300">
+                            <a href={`mailto:${email}`} className="flex items-start gap-3 break-all font-serif text-lg italic text-white hover:text-[#dba45f]">
+                                <Mail size={17} className="mt-1 shrink-0 text-[#dba45f]" />
+                                {email}
+                            </a>
+                            <a href={`tel:${phone.replace(/\s/g, '')}`} className="flex items-center gap-3 font-serif text-lg italic hover:text-[#dba45f]">
+                                <Phone size={17} className="text-[#dba45f]" />
+                                {phone}
+                            </a>
+                            <address className="flex items-start gap-3 not-italic text-[10px] font-black uppercase tracking-[0.22em] leading-relaxed text-stone-500">
+                                <MapPin size={17} className="mt-0.5 shrink-0 text-[#dba45f]" />
+                                {address}
+                            </address>
                         </div>
                     </div>
                 </div>
 
-                {/* Bottom Bar */}
-                <div className="pt-12 border-t border-white/5 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-8 text-[9px] uppercase tracking-[0.3em] font-light relative z-10 text-white/40">
-                    <span className="leading-relaxed max-w-lg">
-                        {contactInfo.legacyText || "Livraison sur Caen, Deauville, Bayeux, Cabourg & toute la Normandie. Tous à Table made in Normandie livre sur toute la France et pays frontaliers."}
-                    </span>
-
-                    {/* Developer Credit - Centered on Desktop (Ordered 2nd) */}
-                    <div className="flex flex-col items-start xl:items-center gap-1 text-white/60 whitespace-nowrap">
-                        <span className="flex items-center gap-2 text-[10px] tracking-[0.2em] font-medium">
-                            Made with <span className="text-red-500 text-sm animate-pulse drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]">❤</span> by <span className="font-bold border-b border-white/30 pb-0.5">Matthis Fradin</span>
-                        </span>
-                        <a href="tel:0782013155" className="text-[9px] tracking-[0.15em] font-medium text-white/60 hover:text-[#9C8268] transition-all duration-300">
-                            Contact : 07.82.01.31.55
-                        </a>
+                <div className="mt-12 border-t border-[#8a5b2a]/25 pt-8 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                    <p className="font-serif text-lg text-stone-400">© 2026 Tous à Table - Atelier Normand</p>
+                    <div className="flex flex-wrap gap-x-8 gap-y-3 text-[10px] font-black uppercase tracking-[0.22em] text-stone-500">
+                        <span>Made with ♥ by Matthis Fradin</span>
+                        <a href="tel:0782013155" className="hover:text-[#dba45f]">Contact : 07.82.01.31.55</a>
                     </div>
-
-                    <div className="flex gap-8 md:gap-12 lowercase underline underline-offset-4 font-bold tracking-widest self-start xl:self-auto">
-                        <a href="/?page=gallery" className="cursor-pointer hover:text-white transition-colors">La Galerie</a>
-                        <span className="cursor-pointer hover:text-white transition-colors">privacy policy</span>
-                        <span className="cursor-pointer hover:text-white transition-colors">legal mentions</span>
+                    <div className="flex gap-5 text-[10px] font-black uppercase tracking-[0.18em] text-stone-500">
+                        <a href="/?page=gallery" className="hover:text-[#dba45f]">La galerie</a>
+                        <span>Privacy policy</span>
+                        <span>Legal mentions</span>
                     </div>
                 </div>
             </div>

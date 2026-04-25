@@ -81,7 +81,7 @@ service cloud.firestore {
     // Tracking clics affiliation — création par utilisateurs auth, lecture/suppression admin
     match /affiliate_clicks/{clickId} {
       allow create: if request.auth != null
-        && request.resource.data.keys().hasOnly(['productId', 'productName', 'affiliateProgram', 'category', 'tier', 'timestamp', 'sessionId', 'referrer'])
+        && request.resource.data.keys().hasOnly(['productId', 'productName', 'affiliateProgram', 'category', 'tier', 'timestamp', 'sessionId', 'referrer', 'source', 'parentFurnitureId', 'parentFurnitureName'])
         && request.resource.data.productId is string
         && request.resource.data.productId.size() > 0;
       allow read, delete: if isArtisan();

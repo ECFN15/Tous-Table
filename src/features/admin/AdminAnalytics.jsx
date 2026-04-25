@@ -310,11 +310,14 @@ const PROG_LABELS_B = { amazon: 'Amazon', manomano: 'ManoMano', leroymerlin: 'Le
 const PROG_COLORS_B = { amazon: '#FF9900', manomano: '#2ECC71', leroymerlin: '#006600', rakuten: '#BF0000', castorama: '#FF6600', direct: '#6B7280' };
 const TIER_LABELS_B = { essentiel: 'Essentiel', premium: 'Premium', expert: 'Expert' };
 const TIER_COLORS_B = { essentiel: '#78716c', premium: '#f59e0b', expert: '#e2e8f0' };
+const SOURCE_LABELS_B = { shop_grid: 'Comptoir (Grille)', shop_tutorial: 'Comptoir (Tuto)', gallery_detail: 'Galerie (Meuble)', inconnu: 'Inconnu' };
+const SOURCE_COLORS_B = { shop_grid: '#3B82F6', shop_tutorial: '#F59E0B', gallery_detail: '#8B5CF6', inconnu: '#6B7280' };
 
 const BoutiqueAnalytics = ({ darkMode }) => {
     const [clicks, setClicks] = useState([]);
     const [loadingClicks, setLoadingClicks] = useState(true);
     const [timeFilter, setTimeFilter] = useState('7j');
+    const [openDays, setOpenDays] = useState({});
 
     useEffect(() => {
         const q = query(collection(db, 'affiliate_clicks'), orderBy('timestamp', 'desc'), limit(3000));
@@ -386,6 +389,72 @@ const BoutiqueAnalytics = ({ darkMode }) => {
         return Object.entries(counts).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
     }, [filteredClicks]);
 
+    const bySource = useMemo(() => {
+        const counts = {};
+        filteredClicks.forEach(c => { const s = c.source || 'inconnu'; counts[s] = (counts[s] || 0) + 1; });
+        return Object.entries(counts).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
+    }, [filteredClicks]);
+
+    const byParent = useMemo(() => {
+        const counts = {};
+        filteredClicks.forEach(c => {
+            if (c.parentFurnitureId) {
+                const n = c.parentFurnitureName || c.parentFurnitureId;
+                counts[n] = (counts[n] || 0) + 1;
+            }
+        });
+        return Object.entries(counts).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
+    }, [filteredClicks]);
+
+    const sessionsByDay = useMemo(() => {
+        const groups = {};
+        const today = new Date().toLocaleDateString('fr-FR');
+        const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('fr-FR');
+
+        filteredClicks.forEach(c => {
+            const t = getMillis(c.timestamp);
+            if (!t) return;
+            const dateObj = new Date(t);
+            const dateKey = dateObj.toLocaleDateString('fr-FR');
+            
+            let label = dateKey;
+            if (dateKey === today) label = "Aujourd'hui";
+            else if (dateKey === yesterday) label = "Hier";
+
+            if (!groups[dateKey]) {
+                groups[dateKey] = {
+                    key: dateKey,
+                    label,
+                    timestamp: dateObj.getTime(),
+                    sessions: {}
+                };
+            }
+            const sid = c.sessionId || 'anonyme';
+            if (!groups[dateKey].sessions[sid]) {
+                groups[dateKey].sessions[sid] = [];
+            }
+            groups[dateKey].sessions[sid].push(c);
+        });
+
+        return Object.values(groups).map(g => ({
+            ...g,
+            sessionsList: Object.entries(g.sessions).map(([sid, clicksList]) => ({
+                sessionId: sid,
+                clicks: clicksList.sort((a, b) => getMillis(b.timestamp) - getMillis(a.timestamp))
+            })).sort((a, b) => getMillis(b.clicks[0].timestamp) - getMillis(a.clicks[0].timestamp))
+        })).sort((a, b) => b.timestamp - a.timestamp);
+    }, [filteredClicks]);
+
+    useEffect(() => {
+        if (sessionsByDay.length > 0) {
+            const firstKey = sessionsByDay[0].key;
+            setOpenDays(prev => {
+                if (Object.keys(prev).length === 0) return { [firstKey]: true };
+                return prev;
+            });
+        }
+    }, [sessionsByDay.length]);
+
     const kpis = useMemo(() => {
         const peak = chartData.length > 0 ? chartData.reduce((best, d) => d.visites > best.visites ? d : best, chartData[0]) : null;
         return { total: filteredClicks.length, uniqueProducts: topProducts.length, topProg: byProgram[0] || null, peak };
@@ -396,6 +465,8 @@ const BoutiqueAnalytics = ({ darkMode }) => {
     const maxTop = topProducts[0]?.count || 1;
     const maxProg = byProgram[0]?.count || 1;
     const maxTier = byTier[0]?.count || 1;
+    const maxSource = bySource[0]?.count || 1;
+    const maxParent = byParent[0]?.count || 1;
 
     return (
         <div className="space-y-6">
@@ -527,7 +598,125 @@ const BoutiqueAnalytics = ({ darkMode }) => {
                                 })}
                             </div>
                         </div>
+
+                        {/* Par Source */}
+                        <div className={`p-5 rounded-2xl border ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100 shadow-sm'}`}>
+                            <p className={`text-[9px] font-black uppercase tracking-widest mb-4 ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>Source d'Acquisition</p>
+                            <div className="space-y-2.5">
+                                {bySource.map(({ name, count }) => {
+                                    const pct = Math.round((count / maxSource) * 100);
+                                    const color = SOURCE_COLORS_B[name] || '#6B7280';
+                                    return (
+                                        <div key={name}>
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className={`text-[10px] font-bold ${darkMode ? 'text-stone-300' : 'text-stone-700'}`}>{SOURCE_LABELS_B[name] || name}</span>
+                                                <span className={`text-[10px] font-black tabular-nums ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>{count}</span>
+                                            </div>
+                                            <div className={`h-1 rounded-full overflow-hidden ${darkMode ? 'bg-white/5' : 'bg-stone-100'}`}>
+                                                <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: color }} />
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Meubles Générateurs */}
+                        {byParent.length > 0 && (
+                            <div className={`p-5 rounded-2xl border ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100 shadow-sm'}`}>
+                                <p className={`text-[9px] font-black uppercase tracking-widest mb-4 ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>Meubles Générateurs</p>
+                                <div className="space-y-3">
+                                    {byParent.slice(0, 5).map(({ name, count }, i) => {
+                                        const pct = Math.round((count / maxParent) * 100);
+                                        return (
+                                            <div key={name}>
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <span className={`text-[10px] font-bold truncate pr-2 ${darkMode ? 'text-stone-300' : 'text-stone-700'}`}>{name}</span>
+                                                    <span className={`text-[10px] font-black tabular-nums ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>{count}</span>
+                                                </div>
+                                                <div className={`h-1 rounded-full overflow-hidden ${darkMode ? 'bg-white/5' : 'bg-stone-100'}`}>
+                                                    <div className="h-full rounded-full bg-indigo-500 transition-all duration-500" style={{ width: `${pct}%` }} />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
                     </div>
+                </div>
+            ) : null}
+
+            {/* FLUX DE CLICS CHRONOLOGIQUE */}
+            {sessionsByDay.length > 0 ? (
+                <div className="space-y-2 mt-8">
+                    <h3 className={`text-[10px] font-black uppercase tracking-[0.3em] mb-4 ${darkMode ? 'text-white/40' : 'text-stone-400'}`}>Flux des Clics Affiliation</h3>
+                    {sessionsByDay.map((group) => {
+                        const isOpen = openDays[group.key];
+                        return (
+                            <div key={group.key} className={`rounded-2xl border overflow-hidden transition-all duration-300 ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100'}`}>
+                                <button
+                                    onClick={() => setOpenDays(prev => ({ ...prev, [group.key]: !prev[group.key] }))}
+                                    className={`w-full p-3 sm:p-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className={`p-1.5 rounded-lg ${darkMode ? 'bg-stone-800' : 'bg-stone-50'}`}>
+                                            {isOpen ? <ChevronDown size={14} className="text-stone-400" /> : <ChevronRight size={14} className="text-stone-400" />}
+                                        </div>
+                                        <div>
+                                            <span className={`text-[11px] font-black uppercase tracking-widest ${darkMode ? 'text-white/70' : 'text-stone-900'}`}>{group.label}</span>
+                                            <span className="ml-3 text-[10px] font-bold text-stone-500">{group.sessionsList.length} session{group.sessionsList.length > 1 ? 's' : ''}</span>
+                                        </div>
+                                    </div>
+                                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-stone-500/10 to-transparent mx-6"></div>
+                                </button>
+
+                                {isOpen && (
+                                    <div className="px-2 sm:px-4 pb-3 sm:pb-4 animate-in slide-in-from-top-1 duration-200">
+                                        <div className="space-y-4">
+                                            {group.sessionsList.map(sessionGroup => (
+                                                <div key={sessionGroup.sessionId} className={`p-4 rounded-xl border ${darkMode ? 'bg-stone-900 border-white/5' : 'bg-stone-50 border-stone-100 shadow-sm'}`}>
+                                                    <div className="flex items-center justify-between mb-4 px-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <Users size={12} className="text-stone-500" />
+                                                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-500">Session • {sessionGroup.sessionId.substring(0, 8)}</span>
+                                                        </div>
+                                                        <span className="text-[8px] font-bold text-stone-600 opacity-60 uppercase tracking-tighter">{sessionGroup.clicks.length} Clic{sessionGroup.clicks.length > 1 ? 's' : ''}</span>
+                                                    </div>
+                                                    
+                                                    <div className="relative pl-6 space-y-4 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-px before:bg-stone-800">
+                                                        {sessionGroup.clicks.map((click, idx) => (
+                                                            <div key={idx} className="relative group/step">
+                                                                <div className={`absolute -left-[18.5px] top-1.5 w-[7px] h-[7px] rounded-full ring-4 ${darkMode ? 'ring-stone-900/50' : 'ring-white'} bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.4)] transition-all group-hover/step:scale-125`}></div>
+                                                                <div className="flex flex-col gap-1 -translate-y-0.5">
+                                                                    <span className="text-[8px] font-black uppercase tracking-widest leading-none text-amber-500/60">
+                                                                        {new Date(getMillis(click.timestamp)).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                                                                    </span>
+                                                                    <p className={`font-black text-[11px] leading-tight ${darkMode ? 'text-stone-300' : 'text-stone-900'}`}>
+                                                                        Clic : <span className="uppercase text-amber-500">{click.productName}</span>
+                                                                    </p>
+                                                                    <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                                                                        <span className={`text-[8px] font-bold px-2 py-0.5 rounded-md truncate max-w-full italic border ${darkMode ? 'bg-white/5 border-white/5 text-stone-400' : 'bg-stone-200/50 border-stone-200 text-stone-600'}`}>
+                                                                            Source : {SOURCE_LABELS_B[click.source] || click.source || 'Inconnue'}
+                                                                        </span>
+                                                                        {click.parentFurnitureName && (
+                                                                            <span className={`text-[8px] font-bold px-2 py-0.5 rounded-md truncate max-w-full italic border ${darkMode ? 'bg-indigo-500/10 border-indigo-500/10 text-indigo-400/80' : 'bg-indigo-50 border-indigo-100 text-indigo-600'}`}>
+                                                                                Meuble : {click.parentFurnitureName}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
                 </div>
             ) : (
                 <div className={`p-12 text-center rounded-2xl border ${darkMode ? 'bg-[#161616] border-white/5 text-stone-500' : 'bg-stone-50 border-stone-100 text-stone-400'} font-bold text-sm italic`}>

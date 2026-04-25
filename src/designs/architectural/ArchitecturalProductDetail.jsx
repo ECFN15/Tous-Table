@@ -568,7 +568,15 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                                 </p>
                                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                                     {recommendedProducts.map(product => (
-                                        <ShopProductCard key={product.id} product={product} darkMode={darkMode} compact />
+                                        <ShopProductCard 
+                                            key={product.id} 
+                                            product={product} 
+                                            darkMode={darkMode} 
+                                            compact 
+                                            source="gallery_detail"
+                                            parentFurnitureId={item.id}
+                                            parentFurnitureName={item.name}
+                                        />
                                     ))}
                                 </div>
                             </div>

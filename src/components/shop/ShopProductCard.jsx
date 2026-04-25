@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { db } from '../../firebase/config';
 import { useAuth } from '../../contexts/AuthContext';
+import { trackAffiliateClick } from '../../utils/tracking';
 
 const PROGRAM_LABELS = {
     amazon: 'Amazon',
@@ -25,46 +24,19 @@ const getTierBadgeClass = (tier, darkMode) => {
     return 'bg-stone-200/80 text-stone-700 border-stone-300 font-bold'; // Light gray
 };
 
-const ShopProductCard = ({ product, darkMode = false, compact = false }) => {
+const ShopProductCard = ({ product, darkMode = false, compact = false, source = 'shop_grid', parentFurnitureId = null, parentFurnitureName = null }) => {
     const { isAdmin } = useAuth();
     const [parallax, setParallax] = useState({ x: 0, y: 0 });
     
     const handleAffiliateClick = async (event) => {
         event.preventDefault();
-        if (!product?.affiliateUrl) return;
-
-        // Keep popup call synchronous to avoid popup blockers.
-        window.open(product.affiliateUrl, '_blank', 'noopener,noreferrer');
-
-        // Exclude admin users from analytics stats
-        if (isAdmin) {
-            console.log(`[Shop Stats] Admin click on "${product.name}" excluded from tracking.`);
-            return;
-        }
-
-        // Dispatch for session journey tracking
-        window.dispatchEvent(new CustomEvent('comptoir_product_click', {
-            detail: {
-                productId: product.id || '',
-                productName: product.name || '',
-                productPrice: product.price || null,
-            }
-        }));
-
-        try {
-            await addDoc(collection(db, 'affiliate_clicks'), {
-                productId: product.id,
-                productName: product.name || '',
-                affiliateProgram: product.affiliateProgram || 'direct',
-                category: product.category || 'unknown',
-                tier: product.tier || 'essentiel',
-                timestamp: serverTimestamp(),
-                sessionId: sessionStorage.getItem('analytics_session_id') || null,
-                referrer: 'shop'
-            });
-        } catch (error) {
-            console.error('Affiliate tracking failed:', error);
-        }
+        trackAffiliateClick({
+            product,
+            source,
+            isAdmin,
+            parentFurnitureId,
+            parentFurnitureName
+        });
     };
 
     const handleMouseMove = (e) => {
