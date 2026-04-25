@@ -44,12 +44,19 @@ const validateAffiliateUrl = (url, program) => {
     if (!url || !url.trim()) return null;
     // Vérification uniquement pour Amazon
     if (program !== 'amazon') return null;
-    const hasTag = url.includes(`tag=${AFFILIATE_TAG}`);
-    if (!hasTag) {
-        // Chercher s'il y a un autre tag
-        const otherTagMatch = url.match(/tag=([^&]+)/);
-        if (otherTagMatch) {
-            return { type: 'wrong_tag', foundTag: otherTagMatch[1], message: `⚠️ Tag incorrect : "${otherTagMatch[1]}" au lieu de "${AFFILIATE_TAG}"` };
+    
+    let tagValue = null;
+    try {
+        const urlObj = new URL(url);
+        tagValue = urlObj.searchParams.get('tag');
+    } catch (e) {
+        const match = url.match(/[?&]tag=([^&]+)/);
+        if (match) tagValue = match[1];
+    }
+    
+    if (tagValue !== AFFILIATE_TAG) {
+        if (tagValue) {
+            return { type: 'wrong_tag', foundTag: tagValue, message: `⚠️ Tag incorrect : "${tagValue}" au lieu de "${AFFILIATE_TAG}"` };
         }
         return { type: 'missing_tag', message: `⚠️ Tag affilié "${AFFILIATE_TAG}" absent du lien !` };
     }

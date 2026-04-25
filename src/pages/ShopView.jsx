@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, appId } from '../firebase/config';
+import { useAuth } from '../contexts/AuthContext';
 import { Info, SlidersHorizontal, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SEO from '../components/shared/SEO';
@@ -81,6 +82,43 @@ const FAMILIES = [
 const RITUAL_WORDS = ['NOURRIR', 'PROTEGER', 'RESTAURER'];
 
 const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) => {
+    const { isAdmin } = useAuth();
+    
+    const handleTutorialClick = async (event, linkedProduct) => {
+        event.preventDefault();
+        if (!linkedProduct?.affiliateUrl) return;
+
+        window.open(linkedProduct.affiliateUrl, '_blank', 'noopener,noreferrer');
+
+        if (isAdmin) {
+            console.log(`[Shop Stats] Admin click on tutorial product "${linkedProduct.name}" excluded from tracking.`);
+            return;
+        }
+
+        window.dispatchEvent(new CustomEvent('comptoir_product_click', {
+            detail: {
+                productId: linkedProduct.id || '',
+                productName: linkedProduct.name || '',
+                productPrice: linkedProduct.price || null,
+            }
+        }));
+
+        try {
+            await addDoc(collection(db, 'affiliate_clicks'), {
+                productId: linkedProduct.id,
+                productName: linkedProduct.name || '',
+                affiliateProgram: linkedProduct.affiliateProgram || 'direct',
+                category: linkedProduct.category || 'unknown',
+                tier: linkedProduct.tier || 'essentiel',
+                timestamp: serverTimestamp(),
+                sessionId: sessionStorage.getItem('analytics_session_id') || null,
+                referrer: 'tutorial'
+            });
+        } catch (error) {
+            console.error('Affiliate tracking failed:', error);
+        }
+    };
+
     const [activeRitualIndex, setActiveRitualIndex] = useState(0);
     const [typedRitualWord, setTypedRitualWord] = useState('');
     const [isDeletingRitualWord, setIsDeletingRitualWord] = useState(false);
@@ -107,12 +145,21 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
     const getFamilyTutorials = useMemo(() => {
         const tutorialsByCategory = {};
         FAMILIES.forEach(f => { tutorialsByCategory[f.id] = f.tutorials || []; });
-        // Si on a des tutoriels Firestore, ils prennent la priorité
+        // Les catégories ayant des tutoriels Firestore écrasent les tutoriels statiques correspondants
         if (firestoreTutorials.length > 0) {
-            FAMILIES.forEach(f => { tutorialsByCategory[f.id] = []; });
+            const firestoreCategories = new Set(firestoreTutorials.map(t => t.category));
+            firestoreCategories.forEach(cat => {
+                tutorialsByCategory[cat] = [];
+            });
             firestoreTutorials.forEach(t => {
                 if (tutorialsByCategory[t.category] !== undefined) {
                     tutorialsByCategory[t.category].push(t);
+                }
+            });
+            // Trier les tutoriels Firestore par ordre
+            firestoreCategories.forEach(cat => {
+                if (tutorialsByCategory[cat]) {
+                    tutorialsByCategory[cat].sort((a,b) => (a.order || 0) - (b.order || 0));
                 }
             });
         }
@@ -404,8 +451,8 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                                                     darkMode={darkMode}
                                                 />
 
-                                                {/* Editorial / Video block inline after 4th product */}
-                                                {index === 3 && tutorials.length > 0 && (
+                                                {/* Editorial / Video block inline after 4th product ou après le dernier si < 4 */}
+                                                {(index === 3 || (products.length <= 3 && index === products.length - 1)) && tutorials.length > 0 && (
                                                 <div className={`col-span-2 sm:col-span-3 lg:col-span-4 p-8 lg:p-12 rounded-[28px] backdrop-blur-xl bg-gradient-to-br from-amber-500/5 to-stone-800/20 border ${darkMode ? 'border-white/5' : 'border-stone-200/50'}`}>
                                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-6 sm:gap-y-8 lg:gap-x-12 lg:items-stretch">
 
@@ -553,6 +600,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                                                                                     href={linked.affiliateUrl}
                                                                                     target="_blank"
                                                                                     rel="noopener noreferrer sponsored"
+                                                                                    onClick={(e) => handleTutorialClick(e, linked)}
                                                                                     className={`inline-flex items-center justify-center w-full sm:w-auto gap-2 px-6 py-2.5 sm:py-2.5 rounded-full text-[10.5px] lg:text-[11px] font-semibold transition-all duration-200 ${darkMode ? 'bg-amber-500/15 border border-amber-500/30 text-amber-400 hover:bg-amber-500/25' : 'bg-amber-600/10 border border-amber-600/25 text-amber-700 hover:bg-amber-600/20'}`}
                                                                                 >
                                                                                     Découvrir <span>→</span>

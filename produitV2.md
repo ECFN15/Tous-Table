@@ -1,6 +1,6 @@
 # 🛒 Produits V2 — Nouveaux Produits à Ajouter
 
-**Date** : 25 avril 2026  
+**Date** : 25 avril 2026
 **Objectif** : Combler les "trous" du marketplace — chaque vidéo tutoriel doit correspondre à un produit Amazon disponible à l'achat.
 
 ---

@@ -1,9 +1,9 @@
 # 🔍 Rapport d'Audit — Le Comptoir (Marketplace)
 
-**Date** : 25 avril 2026  
-**Environnement** : Production (`tousatable-madeinnormandie.fr/#shop`)  
-**Projet Firebase** : `tousatable-client`  
-**Fichier source** : `src/pages/ShopView.jsx`  
+**Date** : 25 avril 2026
+**Environnement** : Production (`tousatable-madeinnormandie.fr/#shop`)
+**Projet Firebase** : `tousatable-client`
+**Fichier source** : `src/pages/ShopView.jsx`
 **Données** : `artifacts/tat-made-in-normandie/public/data/affiliate_products` (44 documents)
 
 ---
@@ -178,7 +178,7 @@ La catégorie **"Protection Profonde"** est la seule à avoir 100% de vidéos co
 ```javascript
 // AVANT (fragile)
 { productName: "Rubio Monocoat Oil Plus 2C (Pure/Incolore)" }
-// APRÈS (robuste)  
+// APRÈS (robuste)
 { productId: "Myj3UKhijTH4lMcOx5Uv" }
 ```
 7. **Recatégoriser** le Décireur et le Décapant Blanchon de `savons` vers `renovation`

@@ -433,7 +433,7 @@ const AdminTutorials = ({ darkMode, products = [] }) => {
                     <p className={`text-[9px] font-black uppercase tracking-widest ${darkMode ? 'text-stone-600' : 'text-stone-400'}`}>Tutoriels</p>
                 </div>
                 <div className={`p-3 rounded-xl border text-center ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-200'}`}>
-                    <p className={`text-2xl font-black tabular-nums ${darkMode ? 'text-white' : 'text-stone-900'}`}>{tutorials.filter(t => t.productId).length}</p>
+                    <p className={`text-2xl font-black tabular-nums ${darkMode ? 'text-white' : 'text-stone-900'}`}>{tutorials.filter(t => t.productId && products.some(p => p.id === t.productId)).length}</p>
                     <p className={`text-[9px] font-black uppercase tracking-widest ${darkMode ? 'text-stone-600' : 'text-stone-400'}`}>Liés à un produit</p>
                 </div>
                 <div className={`p-3 rounded-xl border text-center ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-200'}`}>
