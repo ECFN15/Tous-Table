@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ProductCard from './components/ProductCard';
 import { ArrowDown, ArrowRight, ChevronDown, Hammer, ShieldCheck, Tag, Truck } from 'lucide-react';
 
@@ -61,7 +61,60 @@ const MarketplaceLayout = ({
     const { activeCollection, filter, setFilter } = headerProps || {};
     const [activeCategory, setActiveCategory] = useState('all');
     const [sortMode, setSortMode] = useState('recent');
-    const [visibleCount, setVisibleCount] = useState(12);
+    const [visibleCount, setVisibleCount] = useState(24);
+    const [numCols, setNumCols] = useState(4);
+
+    // Masonry state
+    const [positions, setPositions] = useState({});
+    const [containerHeight, setContainerHeight] = useState(0);
+    const containerRef = useRef(null);
+    const measuredHeights = useRef({});  // id → px height
+    const visibleItemsRef = useRef([]);
+    const numColsRef = useRef(numCols);
+    const GAP = 12;
+
+    const recomputeAll = useCallback((items, cols, containerWidth) => {
+        if (!containerWidth || !items.length) return;
+        const colWidth = (containerWidth - GAP * (cols - 1)) / cols;
+        const colHeights = Array(cols).fill(0);
+        const newPositions = {};
+        items.forEach((item) => {
+            const h = measuredHeights.current[item.id] || 280;
+            const col = colHeights.indexOf(Math.min(...colHeights));
+            newPositions[item.id] = {
+                top: colHeights[col],
+                left: col * (colWidth + GAP),
+                width: colWidth,
+            };
+            colHeights[col] += h + GAP;
+        });
+        setPositions(newPositions);
+        setContainerHeight(Math.max(...colHeights));
+    }, []);
+
+    // Keep a stable ref to recomputeAll so the ResizeObserver callback never goes stale
+    const recomputeAllRef = useRef(recomputeAll);
+    useEffect(() => { recomputeAllRef.current = recomputeAll; }, [recomputeAll]);
+
+    // Single stable ResizeObserver (created once)
+    const roRef = useRef(null);
+    if (!roRef.current) {
+        roRef.current = new ResizeObserver((entries) => {
+            let changed = false;
+            entries.forEach((entry) => {
+                const id = entry.target.dataset.itemid;
+                if (!id) return;
+                const h = entry.contentRect.height;
+                if (h > 0 && measuredHeights.current[id] !== h) {
+                    measuredHeights.current[id] = h;
+                    changed = true;
+                }
+            });
+            if (changed && containerRef.current) {
+                recomputeAllRef.current(visibleItemsRef.current, numColsRef.current, containerRef.current.offsetWidth);
+            }
+        });
+    }
 
     useEffect(() => {
         if (setHeaderProps && headerProps) setHeaderProps(headerProps);
@@ -69,6 +122,63 @@ const MarketplaceLayout = ({
             if (setHeaderProps) setHeaderProps(null);
         };
     }, [activeCollection, filter, setHeaderProps]);
+
+    // Nombre de colonnes du masonry selon la taille d'écran
+    useEffect(() => {
+        const updateCols = () => {
+            const w = window.innerWidth;
+            if (w < 640) setNumCols(2);
+            else if (w < 1024) setNumCols(3);
+            else setNumCols(4);
+        };
+        updateCols();
+        window.addEventListener('resize', updateCols);
+        return () => window.removeEventListener('resize', updateCols);
+    }, []);
+
+    // Keep numColsRef in sync and recompute on column count change
+    useEffect(() => {
+        numColsRef.current = numCols;
+        if (containerRef.current && visibleItemsRef.current.length) {
+            recomputeAll(visibleItemsRef.current, numCols, containerRef.current.offsetWidth);
+        }
+    }, [numCols, recomputeAll]);
+
+    // Keep visibleItemsRef in sync
+    useEffect(() => {
+        visibleItemsRef.current = visibleItems;
+    });
+
+    // Reset masonry when sort/filter/category changes (full recompute)
+    const prevSortKey = useRef('');
+    useEffect(() => {
+        const key = `${activeCategory}-${sortMode}`;
+        if (key === prevSortKey.current) return;
+        prevSortKey.current = key;
+        measuredHeights.current = {};
+        setPositions({});
+        setContainerHeight(0);
+    }, [activeCategory, sortMode]);
+
+    // Container ResizeObserver for responsive reflow
+    useEffect(() => {
+        if (!containerRef.current) return;
+        const ro = new ResizeObserver(() => {
+            if (containerRef.current && visibleItemsRef.current.length) {
+                recomputeAll(visibleItemsRef.current, numColsRef.current, containerRef.current.offsetWidth);
+            }
+        });
+        ro.observe(containerRef.current);
+        return () => ro.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [recomputeAll]);
+
+    // Ref callback: observe/unobserve individual item elements
+    const setItemRef = useCallback((el, id) => {
+        if (el) {
+            roRef.current.observe(el);
+        }
+    }, []);
 
     const currentCategory = CATEGORIES.find((category) => category.id === activeCategory) || CATEGORIES[0];
 
@@ -159,7 +269,7 @@ const MarketplaceLayout = ({
                                             key={category.id}
                                             onClick={() => {
                                                 setActiveCategory(category.id);
-                                                setVisibleCount(12);
+                                                setVisibleCount(24);
                                             }}
                                             className={`shrink-0 rounded-full border px-4 md:px-5 py-2 md:py-2.5 text-[10px] font-black uppercase tracking-[0.22em] transition-all ${
                                                 active
@@ -184,7 +294,7 @@ const MarketplaceLayout = ({
                                             onClick={() => {
                                                 if (dd.id === 'category') {
                                                     setActiveCategory('all');
-                                                    setVisibleCount(12);
+                                                    setVisibleCount(24);
                                                 }
                                                 if (dd.id === 'availability') {
                                                     setFilter?.(filter === 'auction' ? 'fixed' : 'auction');
@@ -217,28 +327,54 @@ const MarketplaceLayout = ({
                         </div>
                     </div>
 
-                    {/* === MASONRY (Pinterest / Midjourney) : chaque carte conserve son ratio natif === */}
+                    {/* === MASONRY absolue ===
+                          Les cartes sont positionnées en absolu après mesure de leur hauteur réelle.
+                          Chaque carte occupe son ratio naturel. "Voir plus" n'affecte pas les positions existantes. */}
                     {visibleItems.length === 0 ? (
                         <div className="min-h-80 border border-[#8a5b2a]/40 flex items-center justify-center text-center">
                             <p className="font-serif text-2xl text-stone-400">Aucune pièce disponible.</p>
                         </div>
                     ) : (
-                        <div className="mt-2 md:mt-4 columns-2 md:columns-3 lg:columns-4 gap-3 md:gap-4 [column-fill:_balance]">
-                            {visibleItems.map((item) => (
-                                <div key={item.id} className="mb-3 md:mb-4 break-inside-avoid">
-                                    <ProductCard
-                                        item={item}
-                                        onClick={() => onSelectItem(item.id)}
-                                    />
-                                </div>
-                            ))}
+                        <div
+                            ref={containerRef}
+                            className="mt-2 md:mt-4 relative w-full"
+                            style={{ height: containerHeight > 0 ? containerHeight : 'auto', minHeight: 400 }}
+                        >
+                            {visibleItems.map((item) => {
+                                const pos = positions[item.id];
+                                return (
+                                    <div
+                                        key={item.id}
+                                        data-itemid={item.id}
+                                        ref={(el) => setItemRef(el, item.id)}
+                                        style={pos ? {
+                                            position: 'absolute',
+                                            top: pos.top,
+                                            left: pos.left,
+                                            width: pos.width,
+                                        } : {
+                                            position: 'absolute',
+                                            top: 0,
+                                            left: 0,
+                                            width: '100%',
+                                            visibility: 'hidden',
+                                        }}
+                                    >
+                                        <ProductCard
+                                            item={item}
+                                            onClick={() => onSelectItem(item.id)}
+                                        />
+                                    </div>
+                                );
+                            })}
                         </div>
                     )}
 
                     {visibleCount < sortedItems.length && (
                         <div className="flex justify-center pt-10">
                             <button
-                                onClick={() => setVisibleCount((count) => count + 9)}
+                                type="button"
+                                onClick={() => setVisibleCount((count) => count + 12)}
                                 className="inline-flex h-14 min-w-[280px] items-center justify-center gap-6 border border-[#dba45f] px-8 text-[#f0b969] text-[11px] font-black uppercase tracking-[0.26em] transition-all hover:bg-[#dba45f] hover:text-black"
                             >
                                 Voir plus de produits

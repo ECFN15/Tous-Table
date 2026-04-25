@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useState } from 'react';
 import { Plus } from 'lucide-react';
 import AuctionTimer from '../../../components/ui/AuctionTimer';
 
@@ -31,6 +31,64 @@ const ProductCard = ({
     const stock = item.sold ? 0 : (item.stock !== undefined ? item.stock : 1);
     const topLabel = getTopLabel(item);
 
+    // Carte = ratio image naturel (mis à jour dès que l'image est chargée)
+    const [aspectRatio, setAspectRatio] = useState(null);
+    const [objectPos, setObjectPos] = useState('center');
+
+    const handleImageLoad = (e) => {
+        const img = e.currentTarget;
+        const w = img.naturalWidth;
+        const h = img.naturalHeight;
+        if (!w || !h) return;
+
+        let topPct = 0;
+        let bottomPct = 0;
+
+        // Détection des bandes noires en haut/bas via canvas (CORS requis)
+        try {
+            const canvas = document.createElement('canvas');
+            const SAMPLE = 100;
+            canvas.width = 1;
+            canvas.height = SAMPLE;
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            ctx.drawImage(img, 0, 0, 1, SAMPLE);
+            const data = ctx.getImageData(0, 0, 1, SAMPLE).data;
+
+            const isBlack = (y) => {
+                const i = y * 4;
+                return data[i] + data[i + 1] + data[i + 2] < 30; // seuil très sombre
+            };
+
+            let topRows = 0;
+            while (topRows < SAMPLE && isBlack(topRows)) topRows += 1;
+            let bottomRows = 0;
+            while (bottomRows < SAMPLE && isBlack(SAMPLE - 1 - bottomRows)) bottomRows += 1;
+
+            topPct = topRows / SAMPLE;
+            bottomPct = bottomRows / SAMPLE;
+
+            // Sécurité : si > 60% de noir, ce n'est probablement pas un letterbox mais une vraie photo sombre
+            if (topPct + bottomPct > 0.6) {
+                topPct = 0;
+                bottomPct = 0;
+            }
+        } catch (err) {
+            // CORS ou erreur canvas → on retombe sur le ratio natif
+        }
+
+        if (topPct > 0 || bottomPct > 0) {
+            // Letterbox détecté → ratio de contenu (sans bandes) + crop centré sur le contenu
+            const contentH = h * (1 - topPct - bottomPct);
+            setAspectRatio(`${w} / ${Math.round(contentH)}`);
+            const total = topPct + bottomPct;
+            const posY = total > 0 ? (topPct / total) * 100 : 50;
+            setObjectPos(`center ${posY}%`);
+        } else {
+            setAspectRatio(`${w} / ${h}`);
+            setObjectPos('center');
+        }
+    };
+
     return (
         <a
             href={`/?product=${item.id}`}
@@ -40,18 +98,19 @@ const ProductCard = ({
                     onClick?.();
                 }
             }}
+            style={aspectRatio ? { aspectRatio } : { minHeight: '280px' }}
             className={`group relative block overflow-hidden rounded-[6px] border border-[#3a2a18]/60 bg-[#0a0a09] text-white no-underline shadow-[0_22px_60px_rgba(0,0,0,0.35)] ${className}`}
         >
-            {/* Image dictates the card height — natural aspect ratio, no crop */}
-            {image ? (
+            {/* Image remplit la carte — bandes noires recadrées via aspect-ratio + object-position si CORS le permet */}
+            {image && (
                 <img
                     src={image}
                     alt={item.name}
-                    className="block w-full h-auto transition-transform duration-[900ms] ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.04]"
+                    onLoad={handleImageLoad}
+                    style={{ objectPosition: objectPos }}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.04]"
                     loading="lazy"
                 />
-            ) : (
-                <div className="block w-full aspect-[4/5] bg-[#0a0a09]" />
             )}
 
             {/* Gradient overlay — darker at bottom for text readability */}
