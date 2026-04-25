@@ -64,6 +64,20 @@ service cloud.firestore {
       allow delete: if isArtisan();
     }
 
+    // Tutoriels vidéo — associations produit/vidéo YouTube pour le Comptoir
+    match /artifacts/{appId}/public/data/shop_tutorials/{tutorialId} {
+      allow read: if true;
+      allow create, update: if isArtisan()
+        && request.resource.data.videoId is string
+        && request.resource.data.videoId.size() > 0
+        && request.resource.data.videoId.size() < 50
+        && request.resource.data.label is string
+        && request.resource.data.label.size() > 0
+        && request.resource.data.category is string
+        && request.resource.data.category.size() > 0;
+      allow delete: if isArtisan();
+    }
+
     // Tracking clics affiliation — création par utilisateurs auth, lecture/suppression admin
     match /affiliate_clicks/{clickId} {
       allow create: if request.auth != null

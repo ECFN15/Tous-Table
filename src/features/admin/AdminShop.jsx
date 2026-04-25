@@ -7,8 +7,9 @@ import { db, appId } from '../../firebase/config';
 import {
     Plus, Pencil, Trash2, ExternalLink, Eye, EyeOff,
     Star, StarOff, MousePointerClick, ShoppingBag, TrendingUp,
-    Package, X, Check, ChevronDown
+    Package, X, Check, ChevronDown, AlertTriangle, ShieldCheck
 } from 'lucide-react';
+import AdminTutorials from './AdminTutorials';
 
 // ─── CONSTANTES ───────────────────────────────────────────────────────────────
 
@@ -35,6 +36,25 @@ const PROGRAMS = [
     { id: 'castorama',   label: 'Castorama' },
     { id: 'direct',      label: 'Direct (marque)' },
 ];
+
+// Tag affilié Amazon — vérification de sécurité
+const AFFILIATE_TAG = 'tousatable-21';
+
+const validateAffiliateUrl = (url, program) => {
+    if (!url || !url.trim()) return null;
+    // Vérification uniquement pour Amazon
+    if (program !== 'amazon') return null;
+    const hasTag = url.includes(`tag=${AFFILIATE_TAG}`);
+    if (!hasTag) {
+        // Chercher s'il y a un autre tag
+        const otherTagMatch = url.match(/tag=([^&]+)/);
+        if (otherTagMatch) {
+            return { type: 'wrong_tag', foundTag: otherTagMatch[1], message: `⚠️ Tag incorrect : "${otherTagMatch[1]}" au lieu de "${AFFILIATE_TAG}"` };
+        }
+        return { type: 'missing_tag', message: `⚠️ Tag affilié "${AFFILIATE_TAG}" absent du lien !` };
+    }
+    return null; // Tout est bon
+};
 
 const EMPTY_FORM = {
     name: '',
@@ -94,11 +114,20 @@ const ProductForm = ({ editData, onSave, onCancel, darkMode }) => {
 
     const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
 
+    const affiliateWarning = validateAffiliateUrl(form.affiliateUrl, form.affiliateProgram);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!form.name.trim() || !form.brand.trim() || !form.affiliateUrl.trim()) {
             setError('Nom, marque et URL affiliée sont obligatoires.');
             return;
+        }
+        // Alerte bloquante si tag manquant sur Amazon
+        if (affiliateWarning && form.affiliateProgram === 'amazon') {
+            const forceConfirm = confirm(
+                `🚨 ALERTE SÉCURITÉ AFFILIATION\n\n${affiliateWarning.message}\n\nSans le tag "${AFFILIATE_TAG}", tu ne toucheras AUCUNE commission sur cet achat.\n\nVeux-tu quand même enregistrer ?`
+            );
+            if (!forceConfirm) return;
         }
         setSaving(true);
         setError('');
@@ -191,7 +220,22 @@ const ProductForm = ({ editData, onSave, onCancel, darkMode }) => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="md:col-span-2">
                     <label className={labelCls}>Lien affilié * <span className={`normal-case font-normal ${darkMode ? 'text-stone-600' : 'text-stone-400'}`}>(avec votre tag/ID)</span></label>
-                    <input className={inputCls} value={form.affiliateUrl} onChange={e => set('affiliateUrl', e.target.value)} placeholder="https://www.amazon.fr/dp/...?tag=votretag-21" />
+                    <input className={`${inputCls} ${affiliateWarning ? (darkMode ? 'border-red-500/50 focus:ring-red-500/30' : 'border-red-400 focus:ring-red-400/30') : ''}`} value={form.affiliateUrl} onChange={e => set('affiliateUrl', e.target.value)} placeholder="https://www.amazon.fr/dp/...?tag=votretag-21" />
+                    {/* Validation tag affilié en temps réel */}
+                    {affiliateWarning ? (
+                        <div className={`mt-2 flex items-start gap-2 p-2.5 rounded-xl text-xs font-medium ${darkMode ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-red-50 text-red-600 border border-red-200'}`}>
+                            <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                            <div>
+                                <p>{affiliateWarning.message}</p>
+                                <p className="mt-0.5 opacity-70 text-[10px]">Sans ce tag, aucune commission ne sera comptabilisée.</p>
+                            </div>
+                        </div>
+                    ) : form.affiliateUrl.trim() && form.affiliateProgram === 'amazon' && (
+                        <div className={`mt-2 flex items-center gap-2 p-2 rounded-xl text-[11px] font-medium ${darkMode ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'}`}>
+                            <ShieldCheck size={13} className="shrink-0" />
+                            Tag "{AFFILIATE_TAG}" détecté — commission active ✓
+                        </div>
+                    )}
                 </div>
                 <div>
                     <label className={labelCls}>Prix indicatif (€)</label>
@@ -649,6 +693,12 @@ const AdminShop = ({ darkMode }) => {
                 onToggleFeatured={handleToggleFeatured}
                 darkMode={darkMode}
             />
+
+            {/* Séparateur */}
+            <div className={`border-t ${darkMode ? 'border-white/5' : 'border-stone-200'}`} />
+
+            {/* Module Tutoriels Vidéo */}
+            <AdminTutorials darkMode={darkMode} products={productsWithClicks} />
         </div>
     );
 };

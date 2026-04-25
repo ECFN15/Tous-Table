@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Box, ArrowRight, Trophy, Clock, X, Maximize2, ShoppingBag } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Box, ArrowRight, Trophy, Clock, X, Maximize2, ShoppingBag, TreePine, Sparkles, ShieldCheck, Heart } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { db, appId, functions } from '../../firebase/config';
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
@@ -9,11 +10,25 @@ import SEO from '../../components/shared/SEO';
 
 import { useLiveTheme } from '../../hooks/useLiveTheme';
 import AnimatedPrice from '../../components/ui/AnimatedPrice';
+import ShopProductCard from '../../components/shop/ShopProductCard';
+
+const RECOMMENDED_TUTORIALS = [
+    { videoId: "ictKhF92-pY", label: "Comment appliquer Rubio Monocoat Oil Plus 2C sur un meuble", productMatch: "Rubio Monocoat" },
+    { videoId: "EZ2w0DBLkTI", label: "Comment appliquer Osmo PolyX-Oil sur un meuble", productMatch: "Osmo Polyx" },
+    { videoId: "KfHoHFA7Av8", label: "John Boos Mystery Oil & Board Cream — entretien planche", productMatch: "John Boos" }
+];
+
+const CARE_FEATURES = [
+    { icon: TreePine, title: "Bois Massif Patiné", description: "Chaque pièce est sélectionnée avec soin et travaillée à la main dans notre atelier en Normandie." },
+    { icon: Sparkles, title: "Pièce Unique", description: "Aucune pièce n'est reproduite. Vous investissez dans un meuble qui a une âme." },
+    { icon: ShieldCheck, title: "Finition Naturelle", description: "Nos finitions respectent le bois et votre intérieur. Huiles et cires naturelles écoresponsables." },
+    { icon: Heart, title: "Livraison Soignée", description: "Emballage sécurisé et livraison partout en France et pays frontaliers." }
+];
 
 const placeBidFunction = httpsCallable(functions, 'placeBid');
 const wakeUpFunction = httpsCallable(functions, 'wakeUp');
 
-const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCart, onShowLogin, darkMode, setHeaderProps, cartItems = [] }) => {
+const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCart, onShowLogin, darkMode, setHeaderProps, cartItems = [], affiliateProducts = [] }) => {
     const { palette } = useLiveTheme();
     const [activeImg, setActiveImg] = useState(0);
     const [bidLoading, setBidLoading] = useState(false);
@@ -21,6 +36,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
     const [bidsHistory, setBidsHistory] = useState([]);
     const [activeBidInc, setActiveBidInc] = useState(null);
     const [bidProgress, setBidProgress] = useState(0);
+    const [tutorialIndex, setTutorialIndex] = useState(0);
 
     // LIGHTBOX STATE
     const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -105,6 +121,22 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
     const isWinner = isAuctionOver && user && item?.lastBidderId === user.uid;
 
     const isInCart = cartItems.some(cartItem => cartItem.originalId === item?.id);
+
+    // Recommended care products: 4 best oils (huiles), expert tier first
+    const recommendedProducts = useMemo(() => {
+        if (!affiliateProducts || affiliateProducts.length === 0) return [];
+        const oils = affiliateProducts.filter(p => p.category === 'huiles');
+        const sorted = [...oils].sort((a, b) => {
+            const tierOrder = { expert: 3, premium: 2, essentiel: 1 };
+            const aTier = tierOrder[a.tier] || 0;
+            const bTier = tierOrder[b.tier] || 0;
+            if (bTier !== aTier) return bTier - aTier;
+            return (Number(Boolean(b.featured)) - Number(Boolean(a.featured)));
+        });
+        return sorted.slice(0, 4);
+    }, [affiliateProducts]);
+
+    const currentTutorial = RECOMMENDED_TUTORIALS[tutorialIndex];
 
     const productSchema = useMemo(() => {
         if (!item) return null;
@@ -522,6 +554,132 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                     </div>
                 </div>
             </div>
+
+            {/* === MODULE : VOUS AIMEREZ AUSSI + TUTO ATELIER === */}
+            {recommendedProducts.length > 0 && (
+                <section className="w-full px-6 lg:px-12 pb-8">
+                    <div className={`relative max-w-[1920px] mx-auto p-5 lg:p-8 rounded-[28px] backdrop-blur-xl border ${darkMode ? 'bg-[#141414]/90 border-white/5' : 'bg-white/80 border-stone-200/60'}`}>
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+
+                            {/* LEFT — Recommended products */}
+                            <div className="lg:col-span-7">
+                                <p className={`text-[10px] font-black uppercase tracking-[0.28em] mb-5 ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>
+                                    Vous aimerez aussi
+                                </p>
+                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                                    {recommendedProducts.map(product => (
+                                        <ShopProductCard key={product.id} product={product} darkMode={darkMode} compact />
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* RIGHT — Tuto Atelier */}
+                            <div className="lg:col-span-5 flex flex-col">
+                                <p className={`text-[10px] font-black uppercase tracking-[0.28em] mb-4 ${darkMode ? 'text-amber-500' : 'text-amber-700'}`}>
+                                    Tuto Atelier
+                                </p>
+                                <h3 className={`font-serif text-xl lg:text-2xl leading-tight mb-5 ${darkMode ? 'text-stone-50' : 'text-stone-900'}`}>
+                                    {currentTutorial?.label}
+                                </h3>
+                                <div className="relative">
+                                    <AnimatePresence mode="wait">
+                                        <motion.div
+                                            key={currentTutorial?.videoId}
+                                            initial={{ opacity: 0, x: 20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, x: -20 }}
+                                            transition={{ duration: 0.35 }}
+                                            className="relative aspect-video rounded-xl overflow-hidden shadow-2xl"
+                                        >
+                                            <iframe
+                                                src={`https://www.youtube.com/embed/${currentTutorial?.videoId}?rel=0&modestbranding=1&color=white`}
+                                                title={currentTutorial?.label}
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                allowFullScreen
+                                                loading="lazy"
+                                                className="absolute inset-0 w-full h-full"
+                                            />
+                                        </motion.div>
+                                    </AnimatePresence>
+
+                                    {/* Arrows anchored to video edges */}
+                                    {RECOMMENDED_TUTORIALS.length > 1 && (
+                                        <>
+                                            <button
+                                                onClick={() => setTutorialIndex(prev => (prev - 1 + RECOMMENDED_TUTORIALS.length) % RECOMMENDED_TUTORIALS.length)}
+                                                aria-label="Tutoriel précédent"
+                                                className={`absolute -left-3 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full flex items-center justify-center shadow-lg border transition-all duration-200 ${darkMode ? 'bg-[#1a1a1a] border-white/10 text-stone-300 hover:bg-amber-500/20 hover:border-amber-500/30' : 'bg-white border-stone-200 text-stone-600 hover:bg-amber-50 hover:border-amber-300'}`}
+                                            >
+                                                <ChevronLeft size={14} />
+                                            </button>
+                                            <button
+                                                onClick={() => setTutorialIndex(prev => (prev + 1) % RECOMMENDED_TUTORIALS.length)}
+                                                aria-label="Tutoriel suivant"
+                                                className={`absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full flex items-center justify-center shadow-lg border transition-all duration-200 ${darkMode ? 'bg-[#1a1a1a] border-white/10 text-stone-300 hover:bg-amber-500/20 hover:border-amber-500/30' : 'bg-white border-stone-200 text-stone-600 hover:bg-amber-50 hover:border-amber-300'}`}
+                                            >
+                                                <ChevronRight size={14} />
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+
+                                {/* Mobile arrows + YouTube link + dots */}
+                                <div className="mt-4 flex items-center justify-between gap-3">
+                                    <a
+                                        href={`https://www.youtube.com/watch?v=${currentTutorial?.videoId}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={`inline-flex items-center gap-2 text-[11px] font-medium transition-colors ${darkMode ? 'text-stone-400 hover:text-amber-400' : 'text-stone-500 hover:text-amber-700'}`}
+                                    >
+                                        <span className="w-5 h-5 rounded-full bg-red-600 flex items-center justify-center flex-shrink-0">
+                                            <span className="w-0 h-0 border-l-[5px] border-l-white border-y-[3px] border-y-transparent ml-[1px]" />
+                                        </span>
+                                        Regarder sur YouTube
+                                        <span>→</span>
+                                    </a>
+                                    {RECOMMENDED_TUTORIALS.length > 1 && (
+                                        <div className="flex items-center gap-1.5">
+                                            {RECOMMENDED_TUTORIALS.map((_, i) => (
+                                                <button
+                                                    key={i}
+                                                    onClick={() => setTutorialIndex(i)}
+                                                    aria-label={`Tutoriel ${i + 1}`}
+                                                    className={`rounded-full transition-all duration-300 ${
+                                                        i === tutorialIndex
+                                                            ? `w-4 h-1.5 ${darkMode ? 'bg-amber-500' : 'bg-amber-600'}`
+                                                            : `w-1.5 h-1.5 ${darkMode ? 'bg-white/20 hover:bg-white/40' : 'bg-stone-300 hover:bg-stone-400'}`
+                                                    }`}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            )}
+
+            {/* === MODULE : QUATRE PILIERS DE LA MAISON === */}
+            <section className="w-full px-6 lg:px-12 pb-16">
+                <div className={`max-w-[1920px] mx-auto p-8 lg:p-12 rounded-[28px] backdrop-blur-xl border ${darkMode ? 'bg-[#141414]/90 border-white/5' : 'bg-white/80 border-stone-200/60'}`}>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-6">
+                        {CARE_FEATURES.map(({ icon: Icon, title, description }) => (
+                            <div key={title} className="flex flex-col items-center text-center">
+                                <div className={`w-14 h-14 lg:w-16 lg:h-16 rounded-full flex items-center justify-center mb-4 border ${darkMode ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' : 'bg-amber-600/10 border-amber-600/20 text-amber-700'}`}>
+                                    <Icon size={24} strokeWidth={1.5} />
+                                </div>
+                                <h4 className={`text-[11px] lg:text-xs font-black uppercase tracking-[0.2em] mb-3 ${darkMode ? 'text-stone-100' : 'text-stone-900'}`}>
+                                    {title}
+                                </h4>
+                                <p className={`text-[11px] lg:text-xs leading-relaxed max-w-[220px] ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
+                                    {description}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
         </div>
     );
 };

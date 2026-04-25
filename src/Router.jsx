@@ -212,6 +212,7 @@ const AppRouter = ({
                             onShowLogin={() => setShowFullLogin(true)}
                             toggleTheme={toggleTheme}
                             setHeaderProps={setHeaderProps}
+                            affiliateProducts={affiliateProducts}
                         />
                     </div>
                 </Suspense>

@@ -25,7 +25,7 @@ const getTierBadgeClass = (tier, darkMode) => {
     return 'bg-stone-200/80 text-stone-700 border-stone-300 font-bold'; // Light gray
 };
 
-const ShopProductCard = ({ product, darkMode = false }) => {
+const ShopProductCard = ({ product, darkMode = false, compact = false }) => {
     const { isAdmin } = useAuth();
     const [parallax, setParallax] = useState({ x: 0, y: 0 });
     
@@ -109,29 +109,29 @@ const ShopProductCard = ({ product, darkMode = false }) => {
                     <div className={`absolute inset-0 ${darkMode ? 'bg-[#0f0e0d]/95' : 'bg-black/90'} backdrop-blur-[4px]`}></div>
                     
                     {/* Contenu de l'Overlay */}
-                    <div className="relative z-30 p-3 sm:p-4 lg:p-6 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 ease-out flex flex-col h-full pointer-events-auto">
-                        
-                        <div className="flex-1 overflow-y-auto no-scrollbar pt-2 lg:pt-3">
+                    <div className={`relative z-30 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 ease-out flex flex-col h-full pointer-events-auto ${compact ? 'p-3' : 'p-3 sm:p-4 lg:p-6'}`}>
+
+                        <div className="flex-1 overflow-y-auto no-scrollbar pt-2">
                             {/* Icône de Citation & Projection Emotionnelle */}
-                            <div className="mb-3 lg:mb-6">
-                                <svg className="w-5 h-5 lg:w-8 lg:h-8 text-amber-500/80 mb-1 lg:mb-3 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                            <div className={compact ? 'mb-2' : 'mb-3 lg:mb-6'}>
+                                <svg className={`text-amber-500/80 shrink-0 ${compact ? 'w-4 h-4 mb-1' : 'w-5 h-5 lg:w-8 lg:h-8 mb-1 lg:mb-3'}`} fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M14.017 21L14.017 18C14.017 16.8954 14.9124 16 16.017 16H19.017C19.5693 16 20.017 15.5523 20.017 15V9C20.017 8.44772 19.5693 8 19.017 8H15.017C14.4647 8 14.017 8.44772 14.017 9V12C14.017 12.5523 13.5693 13 13.017 13H11.017V21H14.017ZM5.017 21V18C5.017 16.8954 5.91243 16 7.017 16H10.017C10.5693 16 11.017 15.5523 11.017 15V9C11.017 8.44772 10.5693 8 10.017 8H6.017C5.46472 8 5.017 8.44772 5.017 9V12C5.017 12.5523 4.56929 13 4.017 13H2.017V21H5.017Z" />
                                 </svg>
-                                <p className="hidden lg:block text-stone-100 font-serif italic text-[11px] sm:text-[12.5px] lg:text-[17px] leading-snug lg:leading-relaxed drop-shadow-sm mt-1 lg:mt-0">
+                                <p className={`text-stone-100 font-serif italic leading-snug drop-shadow-sm ${compact ? 'block text-[17.5px]' : 'hidden lg:block text-[11px] sm:text-[12.5px] lg:text-[17px] lg:leading-relaxed mt-1 lg:mt-0'}`}>
                                     {product.experientialDetail || "Imaginez la transformation de votre intérieur avec ce produit d'exception."}
                                 </p>
                             </div>
 
                             {/* Section Technique / Description */}
-                            <div className="space-y-4">
-                                <div className="mb-2 lg:mb-0">
-                                    <h4 className="text-amber-500/90 text-[8.5px] lg:text-[10px] font-black uppercase tracking-[0.2em] mb-1 lg:mb-2">Détails</h4>
-                                    <p className="text-stone-300 text-[9.5px] sm:text-[10.5px] lg:text-[12px] leading-relaxed">
+                            <div className={compact ? 'space-y-1' : 'space-y-4'}>
+                                <div className={compact ? 'pt-3 mt-3 border-t border-white/10' : ''}>
+                                    <h4 className={`text-amber-500/90 font-black uppercase tracking-[0.2em] ${compact ? 'text-[8px] mb-1' : 'text-[8.5px] lg:text-[10px] mb-1 lg:mb-2'}`}>Détails</h4>
+                                    <p className={`text-stone-300 leading-relaxed ${compact ? 'text-[11.5px]' : 'text-[9.5px] sm:text-[10.5px] lg:text-[12px]'}`}>
                                         {product.description || product.whyWeRecommend}
                                     </p>
                                 </div>
 
-                                {(product.proTips || product.proTip) && (
+                                {!compact && (product.proTips || product.proTip) && (
                                     <div className="hidden lg:block bg-white/5 rounded-lg lg:rounded-xl p-3 lg:p-4 border border-white/10 mt-4 lg:mt-6">
                                         <h5 className="text-[10px] uppercase font-black text-amber-500/90 tracking-[0.1em] mb-1.5 lg:mb-2 flex items-center gap-1.5 lg:gap-2">
                                             <span>✦</span> Conseil de l'Atelier
