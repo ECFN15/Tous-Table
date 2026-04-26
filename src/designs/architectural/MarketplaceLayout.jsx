@@ -79,8 +79,8 @@ const AtelierBadge = () => (
                 <stop offset="45%" stopColor="#c99643" />
                 <stop offset="100%" stopColor="#f1c879" />
             </linearGradient>
-            <path id="atelierTopPath" d="M 47 110 A 63 63 0 0 1 173 110" />
-            <path id="atelierBottomPath" d="M 37 110 A 73 73 0 0 0 183 110" />
+            <path id="atelierTopPath" d="M 42 110 A 68 68 0 0 1 178 110" />
+            <path id="atelierBottomPath" d="M 42 110 A 68 68 0 0 0 178 110" />
             <filter id="atelierSoftGlow" x="-40%" y="-40%" width="180%" height="180%">
                 <feGaussianBlur stdDeviation="2.4" result="blur" />
                 <feMerge>
@@ -104,6 +104,7 @@ const AtelierBadge = () => (
             letterSpacing="6.5"
             fontFamily="'Plus Jakarta Sans', sans-serif"
             textAnchor="middle"
+            dominantBaseline="central"
             className="uppercase"
         >
             <textPath href="#atelierTopPath" startOffset="50%">ATELIER NORMAND</textPath>
@@ -115,6 +116,7 @@ const AtelierBadge = () => (
             letterSpacing="6.5"
             fontFamily="'Plus Jakarta Sans', sans-serif"
             textAnchor="middle"
+            dominantBaseline="central"
             className="uppercase"
         >
             <textPath href="#atelierBottomPath" startOffset="50%">PIÈCES UNIQUES</textPath>
