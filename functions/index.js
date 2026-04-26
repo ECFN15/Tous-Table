@@ -39,7 +39,7 @@ exports.onOrderCreated = onOrderCreated;
 exports.onOrderUpdated = onOrderUpdated;
 
 // ── ANALYTICS ────────────────────────────────────────────
-const { initLiveSession, syncSession, syncSessionBeacon, deleteSession, clearAllSessions } = require('./src/analytics/sessions');
+const { initLiveSession, syncSession, syncSessionBeacon, deleteSession, clearAllSessions, clearAllAffiliateClicks } = require('./src/analytics/sessions');
 const { trackAdminIP } = require('./src/analytics/adminIP');
 const { updateUserSessions } = require('./src/analytics/updateUserSessions');
 
@@ -48,6 +48,7 @@ exports.syncSession = syncSession;
 exports.syncSessionBeacon = syncSessionBeacon;
 exports.deleteSession = deleteSession;
 exports.clearAllSessions = clearAllSessions;
+exports.clearAllAffiliateClicks = clearAllAffiliateClicks;
 exports.trackAdminIP = trackAdminIP;
 exports.updateUserSessions = updateUserSessions;
 

@@ -190,3 +190,30 @@ exports.clearAllSessions = functions.https.onCall(async (data, context) => {
         throw new functions.https.HttpsError('internal', 'Clear failed');
     }
 });
+
+exports.clearAllAffiliateClicks = functions.https.onCall(async (data, context) => {
+    if (!context.auth || !context.auth.token.admin && context.auth.token.email !== require('../../helpers/security').SUPER_ADMIN_EMAIL) {
+        throw new functions.https.HttpsError('permission-denied', 'Admin only');
+    }
+    try {
+        const ref = db.collection('affiliate_clicks');
+        let totalDeleted = 0;
+
+        while (true) {
+            const snapshot = await ref.limit(500).get();
+            if (snapshot.empty) break;
+
+            const batch = db.batch();
+            snapshot.docs.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+            totalDeleted += snapshot.size;
+
+            if (snapshot.size < 500) break;
+        }
+
+        return { success: true, count: totalDeleted };
+    } catch (error) {
+        console.error("Clear All Affiliate Clicks Error:", error);
+        throw new functions.https.HttpsError('internal', 'Clear failed');
+    }
+});

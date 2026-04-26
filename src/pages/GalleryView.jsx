@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useLiveTheme } from '../hooks/useLiveTheme';
+import { useLenisScroll } from '../hooks/useLenisScroll';
 
 // DESIGNS (Layouts)
 import ArchitecturalLayout from '../designs/architectural/MarketplaceLayout';
@@ -18,6 +19,9 @@ const GalleryView = ({
 
     // THEME & DESIGN HOOK
     const { palette } = useLiveTheme(darkMode);
+
+    // SMOOTH SCROLL — Lenis hooked at window level, frame-rate independent.
+    useLenisScroll();
 
     // --- LOGIC: FILTER & SORT ---
     // 1. Choose collection source

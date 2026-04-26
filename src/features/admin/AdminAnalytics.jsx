@@ -313,11 +313,26 @@ const TIER_COLORS_B = { essentiel: '#78716c', premium: '#f59e0b', expert: '#e2e8
 const SOURCE_LABELS_B = { shop_grid: 'Comptoir (Grille)', shop_tutorial: 'Comptoir (Tuto)', gallery_detail: 'Galerie (Meuble)', inconnu: 'Inconnu' };
 const SOURCE_COLORS_B = { shop_grid: '#3B82F6', shop_tutorial: '#F59E0B', gallery_detail: '#8B5CF6', inconnu: '#6B7280' };
 
-const BoutiqueAnalytics = ({ darkMode }) => {
+const BoutiqueAnalytics = ({ darkMode, sessions = [] }) => {
     const [clicks, setClicks] = useState([]);
     const [loadingClicks, setLoadingClicks] = useState(true);
     const [timeFilter, setTimeFilter] = useState('7j');
     const [openDays, setOpenDays] = useState({});
+
+    const sessionGeoMap = useMemo(() => {
+        const m = new Map();
+        sessions.forEach(s => { if (s.id && s.geo) m.set(s.id, s.geo); });
+        return m;
+    }, [sessions]);
+
+    const formatSessionLocation = (sessionId) => {
+        const geo = sessionGeoMap.get(sessionId);
+        if (geo?.city && geo.city !== 'Unknown') {
+            const region = geo.region && geo.region !== 'Unknown' ? `, ${geo.region}` : '';
+            return `${geo.city}${region}`;
+        }
+        return null;
+    };
 
     useEffect(() => {
         const q = query(collection(db, 'affiliate_clicks'), orderBy('timestamp', 'desc'), limit(3000));
@@ -460,6 +475,16 @@ const BoutiqueAnalytics = ({ darkMode }) => {
         return { total: filteredClicks.length, uniqueProducts: topProducts.length, topProg: byProgram[0] || null, peak };
     }, [filteredClicks, topProducts, byProgram, chartData]);
 
+    const handleClearAllAffiliate = async () => {
+        if (!window.confirm("☢️ ACTION CRITIQUE : Supprimer TOUS les clics affiliés (boutique) définitivement ?")) return;
+        try {
+            await httpsCallable(functions, 'clearAllAffiliateClicks')({});
+        } catch (e) {
+            console.error("Clear affiliate error:", e);
+            alert("Erreur lors du nettoyage des clics affiliés");
+        }
+    };
+
     if (loadingClicks) return <div className="p-12 text-center text-stone-400 font-bold animate-pulse">Chargement Boutique Data...</div>;
 
     const maxTop = topProducts[0]?.count || 1;
@@ -476,13 +501,21 @@ const BoutiqueAnalytics = ({ darkMode }) => {
                     <h3 className={`text-2xl font-black tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>Le Comptoir</h3>
                     <p className="text-[10px] text-stone-500 font-bold uppercase tracking-widest mt-1">Analytics Affiliation</p>
                 </div>
-                <div className={`flex p-1 rounded-xl border ${darkMode ? 'bg-stone-900 border-white/5' : 'bg-stone-100 border-stone-200'}`}>
-                    {[{ id: '1j', label: '24h' }, { id: '7j', label: '7j' }, { id: '30j', label: '30j' }, { id: 'tout', label: 'Tout' }].map(tf => (
-                        <button key={tf.id} onClick={() => setTimeFilter(tf.id)}
-                            className={`px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${timeFilter === tf.id ? (darkMode ? 'bg-white/10 text-white shadow-sm border border-white/10' : 'bg-white text-stone-900 shadow-sm border border-stone-200') : 'text-stone-500 hover:text-stone-300'}`}>
-                            {tf.label}
-                        </button>
-                    ))}
+                <div className="flex flex-wrap items-center gap-3">
+                    <button
+                        onClick={handleClearAllAffiliate}
+                        className="px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border border-red-500/20 text-red-500/60 hover:bg-red-500 hover:text-white active:scale-95"
+                    >
+                        Purger Data
+                    </button>
+                    <div className={`flex p-1 rounded-xl border ${darkMode ? 'bg-stone-900 border-white/5' : 'bg-stone-100 border-stone-200'}`}>
+                        {[{ id: '1j', label: '24h' }, { id: '7j', label: '7j' }, { id: '30j', label: '30j' }, { id: 'tout', label: 'Tout' }].map(tf => (
+                            <button key={tf.id} onClick={() => setTimeFilter(tf.id)}
+                                className={`px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${timeFilter === tf.id ? (darkMode ? 'bg-white/10 text-white shadow-sm border border-white/10' : 'bg-white text-stone-900 shadow-sm border border-stone-200') : 'text-stone-500 hover:text-stone-300'}`}>
+                                {tf.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
 
@@ -677,11 +710,26 @@ const BoutiqueAnalytics = ({ darkMode }) => {
                                             {group.sessionsList.map(sessionGroup => (
                                                 <div key={sessionGroup.sessionId} className={`p-4 rounded-xl border ${darkMode ? 'bg-stone-900 border-white/5' : 'bg-stone-50 border-stone-100 shadow-sm'}`}>
                                                     <div className="flex items-center justify-between mb-4 px-1">
-                                                        <div className="flex items-center gap-2">
-                                                            <Users size={12} className="text-stone-500" />
-                                                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-500">Session • {sessionGroup.sessionId.substring(0, 8)}</span>
+                                                        <div className="flex items-center gap-2 min-w-0">
+                                                            <Globe size={12} className="text-stone-500 shrink-0" />
+                                                            {(() => {
+                                                                const loc = formatSessionLocation(sessionGroup.sessionId);
+                                                                if (loc) {
+                                                                    return (
+                                                                        <span className="text-[10px] font-black uppercase tracking-[0.2em] truncate">
+                                                                            <span className="text-stone-500">Session • </span>
+                                                                            <span className={darkMode ? 'text-white/80' : 'text-stone-900'}>{loc}</span>
+                                                                        </span>
+                                                                    );
+                                                                }
+                                                                return (
+                                                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-500 truncate">
+                                                                        Session • Localisation inconnue
+                                                                    </span>
+                                                                );
+                                                            })()}
                                                         </div>
-                                                        <span className="text-[8px] font-bold text-stone-600 opacity-60 uppercase tracking-tighter">{sessionGroup.clicks.length} Clic{sessionGroup.clicks.length > 1 ? 's' : ''}</span>
+                                                        <span className="text-[8px] font-bold text-stone-600 opacity-60 uppercase tracking-tighter shrink-0 ml-3">{sessionGroup.clicks.length} Clic{sessionGroup.clicks.length > 1 ? 's' : ''}</span>
                                                     </div>
                                                     
                                                     <div className="relative pl-6 space-y-4 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-px before:bg-stone-800">
@@ -958,7 +1006,7 @@ const AdminAnalytics = ({ darkMode = false }) => {
         if (!window.confirm("☢️ ACTION CRITIQUE : Supprimer TOUTES les données d'analytics définitivement ?")) return;
         setLoading(true);
         try {
-            await httpsCallable(functions, 'clearAllAnalytics')({});
+            await httpsCallable(functions, 'clearAllSessions')({});
             setLoading(false);
         } catch (e) {
             console.error("Clear error:", e);
@@ -989,7 +1037,7 @@ const AdminAnalytics = ({ darkMode = false }) => {
             </div>
 
             {view === 'boutique' ? (
-                <BoutiqueAnalytics darkMode={darkMode} />
+                <BoutiqueAnalytics darkMode={darkMode} sessions={sessions} />
             ) : loading ? (
                 <div className="p-12 text-center text-stone-400 font-bold animate-pulse">Chargement Data...</div>
             ) : (<>
