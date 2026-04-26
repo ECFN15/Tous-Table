@@ -136,11 +136,11 @@ const ArchitecturalHeader = ({
                         <button
                             onClick={onShowLogin}
                             className={`${isGalleryHeader ? 'hidden md:flex border-[#8a5b2a]/60 text-stone-100 hover:border-[#dba45f] hover:text-[#dba45f]' : darkMode ? 'border-stone-800 text-stone-500 hover:bg-stone-800' : 'border-stone-200 text-stone-500 hover:bg-stone-200'} items-center gap-2 px-4 py-2 rounded border transition-all group`}
-                            title="Connexion Admin"
+                            title="Connexion"
                         >
                             <ShieldCheck size={15} className="hidden md:block" />
                             <LogIn size={19} className="md:hidden" />
-                            <span className="hidden md:inline text-[10px] font-black uppercase tracking-widest">Admin</span>
+                            <span className="hidden md:inline text-[10px] font-black uppercase tracking-widest">Connexion</span>
                         </button>
                     ) : (
                         <>

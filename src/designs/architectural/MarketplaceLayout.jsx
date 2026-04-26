@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+teur import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ProductCard from './components/ProductCard';
 import { ArrowDown, ArrowRight, ChevronDown, Hammer, ShieldCheck, Tag, Truck } from 'lucide-react';
 
@@ -99,7 +99,7 @@ const AtelierBadge = () => (
 
         <text
             fill="#f1e6d0"
-            fontSize="9"
+            fontSize="9.5"
             fontWeight="500"
             letterSpacing="6.5"
             fontFamily="'Plus Jakarta Sans', sans-serif"
@@ -111,7 +111,7 @@ const AtelierBadge = () => (
         </text>
         <text
             fill="#f1e6d0"
-            fontSize="9"
+            fontSize="9.5"
             fontWeight="500"
             letterSpacing="6.5"
             fontFamily="'Plus Jakarta Sans', sans-serif"
@@ -287,7 +287,7 @@ const MarketplaceLayout = ({
     return (
         <div className="w-full min-h-screen bg-[#050605] text-stone-100 selection:bg-[#dba45f] selection:text-black">
             <main className="relative overflow-hidden">
-                <section className="relative min-h-[calc(100vh-5rem)] md:min-h-[560px] lg:min-h-[620px] border-b border-[#8a5b2a]/30 overflow-hidden">
+                <section className="relative min-h-[calc(100vh-5rem)] md:min-h-[560px] lg:min-h-[620px] overflow-hidden">
                     {heroImage && (
                         <picture>
                             <source
