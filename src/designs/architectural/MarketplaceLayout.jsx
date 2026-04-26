@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ProductCard from './components/ProductCard';
 import { ArrowDown, ArrowRight, ChevronDown, Hammer, ShieldCheck, Tag, Truck } from 'lucide-react';
+import TextType from '../../components/ui/TextType';
 
 const CATEGORIES = [
     { id: 'all', label: 'Tous les produits', match: () => true },
@@ -62,8 +63,13 @@ const HERO_BY_COLLECTION = {
     cutting_boards: {
         image: '/images/gallery/hero-planches-2026-exact.png',
         srcSet: '/images/gallery/hero-planches-2026-exact.png 1672w',
-        mobileSrcSet: '/images/gallery/hero-planches-2026-exact.png 1672w',
+        mobileSrcSet: [
+            '/images/gallery/hero-planches-2026-mobile-outpaint-640.webp 640w',
+            '/images/gallery/hero-planches-2026-mobile-outpaint-840.webp 840w',
+            '/images/gallery/hero-planches-2026-mobile-outpaint-1122.webp 1122w',
+        ].join(', '),
         alt: 'Planches en bois Tous a Table, made in Normandie',
+        mobileObjectPosition: 'center center',
         objectPosition: '68% center',
     },
 };
@@ -323,8 +329,11 @@ const MarketplaceLayout = ({
                                 srcSet={heroConfig.srcSet}
                                 sizes="100vw"
                                 alt={heroConfig.alt}
-                                className="absolute inset-0 h-full w-full object-cover object-center"
-                                style={{ objectPosition: heroConfig.objectPosition }}
+                                className="absolute inset-0 h-full w-full object-cover object-[var(--hero-mobile-position)] md:object-[var(--hero-desktop-position)]"
+                                style={{
+                                    '--hero-mobile-position': heroConfig.mobileObjectPosition || heroConfig.objectPosition,
+                                    '--hero-desktop-position': heroConfig.objectPosition,
+                                }}
                                 loading="eager"
                                 decoding="async"
                                 fetchPriority="high"
@@ -342,7 +351,23 @@ const MarketplaceLayout = ({
                                     Collection 2026
                                 </p>
                                 <h1 className="font-serif text-[4.6rem] leading-[0.82] md:text-[7.8rem] lg:text-[8.6rem] tracking-tight text-white drop-shadow-[0_10px_35px_rgba(0,0,0,0.65)]">
-                                    Made in<br />Normandie_
+                                        <span className="block h-[1.64em] overflow-hidden">
+                                            <TextType
+                                                as="span"
+                                                text={[
+                                                    'Made in\nNormandie',
+                                                    'Tous à\nTable',
+                                                    'Savoir-\nFaire',
+                                                    'Pièces\nUniques'
+                                                ]}
+                                                typingSpeed={115}
+                                                deletingSpeed={34}
+                                                pauseDuration={1400}
+                                                cursorCharacter="_"
+                                                cursorClassName="ml-0"
+                                                className="inline-block"
+                                            />
+                                        </span>
                                 </h1>
                                 <p className="mt-6 md:mt-8 max-w-xl font-serif text-[1.35rem] md:text-[1.7rem] leading-[1.28] text-[#efc489]">
                                     Mobilier ancien restauré et pièces artisanales en bois massif. Chaque meuble raconte une histoire, chaque pièce est unique.

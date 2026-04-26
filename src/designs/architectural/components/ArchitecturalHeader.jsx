@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useLiveTheme } from '../../../hooks/useLiveTheme';
 import { useAuth } from '../../../contexts/AuthContext';
-import { Armchair, Heart, LogIn, LogOut, Menu, ShoppingBag, Store, User, X } from 'lucide-react';
+import { Heart, LogIn, LogOut, Menu, ShoppingBag, User, X } from 'lucide-react';
 import AnimatedThemeToggler from '../../../components/ui/AnimatedThemeToggler';
 
-const CuttingBoardIcon = ({ size = 18, className = '', strokeWidth = 1.5 }) => (
+const FurnitureHeaderIcon = ({ size = 26, className = '', strokeWidth = 1.65 }) => (
     <svg
         width={size}
         height={size}
@@ -17,8 +17,51 @@ const CuttingBoardIcon = ({ size = 18, className = '', strokeWidth = 1.5 }) => (
         className={className}
         aria-hidden="true"
     >
-        <path d="M8 2h8c1.1 0 2 .9 2 2v3h1c1.1 0 2 .9 2 2v11c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V9c0-1.1.9-2 2-2h1V4c0-1.1.9-2 2-2z" />
-        <circle cx="12" cy="4" r="1" />
+        <path d="M19 9V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3" />
+        <path d="M3 16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v1.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V11a2 2 0 0 0-4 0z" />
+        <path d="M5 18v2" />
+        <path d="M19 18v2" />
+    </svg>
+);
+
+const BreadBoardHeaderIcon = ({ size = 26, className = '', strokeWidth = 1.65 }) => (
+    <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={className}
+        aria-hidden="true"
+    >
+        <path d="M12 2.25a1.7 1.7 0 0 1 .52 3.32v.92c0 .66.38 1.26.98 1.54l2.1.98a3 3 0 0 1 1.75 2.72v7.57a2.45 2.45 0 0 1-2.45 2.45H9.1a2.45 2.45 0 0 1-2.45-2.45v-7.57A3 3 0 0 1 8.4 9.01l2.1-.98c.6-.28.98-.88.98-1.54v-.92A1.7 1.7 0 0 1 12 2.25Z" />
+        <circle cx="12" cy="13.65" r=".72" />
+    </svg>
+);
+
+const CounterHeaderIcon = ({ size = 26, className = '', strokeWidth = 1.65 }) => (
+    <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={className}
+        aria-hidden="true"
+    >
+        <path d="M4.8 4.25h14.4l1.55 4.5H3.25l1.55-4.5Z" />
+        <path d="M3.25 8.75h17.5" />
+        <path d="M5.25 8.75v1.75A2.25 2.25 0 0 0 7.5 12.75a2.25 2.25 0 0 0 2.25-2.25V8.75" />
+        <path d="M9.75 8.75v1.75A2.25 2.25 0 0 0 12 12.75a2.25 2.25 0 0 0 2.25-2.25V8.75" />
+        <path d="M14.25 8.75v1.75a2.25 2.25 0 0 0 4.5 0V8.75" />
+        <path d="M5.25 12.45v7.3h13.5v-7.3" />
+        <path d="M9 19.75v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4" />
     </svg>
 );
 
@@ -41,6 +84,7 @@ const ArchitecturalHeader = ({
 
     const [isVisible, setIsVisible] = useState(true);
     const lastScrollY = React.useRef(0);
+    const navIconClass = 'shrink-0 text-current opacity-90 transition-colors';
 
     useEffect(() => {
         const handleScroll = () => {
@@ -107,7 +151,7 @@ const ArchitecturalHeader = ({
                             }}
                             className={navButtonClass(activeCollection === 'furniture' && !isShopView)}
                         >
-                            <Armchair size={18} strokeWidth={1.5} className="text-stone-200/90" />
+                            <FurnitureHeaderIcon className={navIconClass} />
                             Mobilier
                         </button>
                         <button
@@ -120,12 +164,12 @@ const ArchitecturalHeader = ({
                             }}
                             className={navButtonClass(activeCollection === 'cutting_boards' && !isShopView)}
                         >
-                            <CuttingBoardIcon size={18} strokeWidth={1.5} className="text-stone-200/90" />
+                            <BreadBoardHeaderIcon className={navIconClass} />
                             Planches
                         </button>
                         {(onOpenShop || isShopView) && (
                             <button onClick={onOpenShop || (() => {})} className={`${navButtonClass(isShopView)} relative`}>
-                                <Store size={18} strokeWidth={1.5} className="text-stone-200/90" />
+                                <CounterHeaderIcon className={navIconClass} />
                                 Le Comptoir
                                 <span className="absolute top-2 -right-3 pointer-events-none">
                                     <span className="relative inline-flex items-center justify-center rounded-full bg-[#f0c987] px-2 py-[3px] text-[8px] font-black uppercase tracking-[0.18em] text-stone-900 shadow-[0_2px_8px_rgba(240,201,135,0.25)]">
