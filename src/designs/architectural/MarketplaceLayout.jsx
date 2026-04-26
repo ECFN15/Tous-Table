@@ -43,17 +43,30 @@ const BENEFITS = [
 ];
 
 const getPrice = (item) => Number(item?.currentPrice || item?.startingPrice || item?.price || 0);
-const GALLERY_HERO_IMAGE = '/images/gallery/hero-buffet-parisien-2026-2020.webp';
-const GALLERY_HERO_SRC_SET = [
-    '/images/gallery/hero-buffet-parisien-2026-960.webp 960w',
-    '/images/gallery/hero-buffet-parisien-2026-1440.webp 1440w',
-    '/images/gallery/hero-buffet-parisien-2026-2020.webp 2020w',
-].join(', ');
-const GALLERY_HERO_MOBILE_SRC_SET = [
-    '/images/gallery/hero-buffet-parisien-2026-mobile-640.webp 640w',
-    '/images/gallery/hero-buffet-parisien-2026-mobile-840.webp 840w',
-    '/images/gallery/hero-buffet-parisien-2026-mobile-1122.webp 1122w',
-].join(', ');
+const HERO_BY_COLLECTION = {
+    furniture: {
+        image: '/images/gallery/hero-buffet-parisien-2026-2020.webp',
+        srcSet: [
+            '/images/gallery/hero-buffet-parisien-2026-960.webp 960w',
+            '/images/gallery/hero-buffet-parisien-2026-1440.webp 1440w',
+            '/images/gallery/hero-buffet-parisien-2026-2020.webp 2020w',
+        ].join(', '),
+        mobileSrcSet: [
+            '/images/gallery/hero-buffet-parisien-2026-mobile-640.webp 640w',
+            '/images/gallery/hero-buffet-parisien-2026-mobile-840.webp 840w',
+            '/images/gallery/hero-buffet-parisien-2026-mobile-1122.webp 1122w',
+        ].join(', '),
+        alt: 'Mobilier ancien restaure',
+        objectPosition: 'center center',
+    },
+    cutting_boards: {
+        image: '/images/gallery/hero-planches-2026-exact.png',
+        srcSet: '/images/gallery/hero-planches-2026-exact.png 1672w',
+        mobileSrcSet: '/images/gallery/hero-planches-2026-exact.png 1672w',
+        alt: 'Planches en bois Tous a Table, made in Normandie',
+        objectPosition: '68% center',
+    },
+};
 const getMillis = (value) => {
     if (!value) return 0;
     if (typeof value.toMillis === 'function') return value.toMillis();
@@ -93,34 +106,45 @@ const AtelierBadge = () => (
         {/* Fond transparent (le cercle avec atelierBadgeFill a été retiré) */}
         <circle cx="110" cy="110" r="87" fill="none" stroke="url(#atelierGold)" strokeWidth="1.35" />
         
-        {/* Points décoratifs de séparation */}
-        <circle cx="42" cy="110" r="2.2" fill="#f1e6d0" opacity="0.85" />
-        <circle cx="178" cy="110" r="2.2" fill="#f1e6d0" opacity="0.85" />
+        <g>
+            <animateTransform
+                attributeName="transform"
+                type="rotate"
+                from="0 110 110"
+                to="360 110 110"
+                dur="18s"
+                repeatCount="indefinite"
+            />
 
-        <text
-            fill="#f1e6d0"
-            fontSize="9.5"
-            fontWeight="500"
-            letterSpacing="6.5"
-            fontFamily="'Plus Jakarta Sans', sans-serif"
-            textAnchor="middle"
-            dominantBaseline="central"
-            className="uppercase"
-        >
-            <textPath href="#atelierTopPath" startOffset="51.5%">ATELIER NORMAND</textPath>
-        </text>
-        <text
-            fill="#f1e6d0"
-            fontSize="9.5"
-            fontWeight="500"
-            letterSpacing="6.5"
-            fontFamily="'Plus Jakarta Sans', sans-serif"
-            textAnchor="middle"
-            dominantBaseline="central"
-            className="uppercase"
-        >
-            <textPath href="#atelierBottomPath" startOffset="51.5%">PIÈCES UNIQUES</textPath>
-        </text>
+            {/* Points décoratifs de séparation */}
+            <circle cx="42" cy="110" r="2.2" fill="#f1e6d0" opacity="0.85" />
+            <circle cx="178" cy="110" r="2.2" fill="#f1e6d0" opacity="0.85" />
+
+            <text
+                fill="#f1e6d0"
+                fontSize="9.5"
+                fontWeight="500"
+                letterSpacing="6.5"
+                fontFamily="'Plus Jakarta Sans', sans-serif"
+                textAnchor="middle"
+                dominantBaseline="central"
+                className="uppercase"
+            >
+                <textPath href="#atelierTopPath" startOffset="51.5%">ATELIER NORMAND</textPath>
+            </text>
+            <text
+                fill="#f1e6d0"
+                fontSize="9.5"
+                fontWeight="500"
+                letterSpacing="6.5"
+                fontFamily="'Plus Jakarta Sans', sans-serif"
+                textAnchor="middle"
+                dominantBaseline="central"
+                className="uppercase"
+            >
+                <textPath href="#atelierBottomPath" startOffset="51.5%">PIÈCES UNIQUES</textPath>
+            </text>
+        </g>
 
         <g fill="url(#atelierGold)" fontFamily="'Cormorant Garamond', 'Playfair Display', serif" fontSize="62" fontWeight="300" textAnchor="middle">
             <text x="109" y="119">A</text>
@@ -270,8 +294,7 @@ const MarketplaceLayout = ({
     }, [items, currentCategory, sortMode]);
 
     const visibleItems = sortedItems.slice(0, visibleCount);
-    const heroItem = items.find((item) => /buffet|bahut|commode|armoire|meuble|vestiaire/i.test(`${item.name} ${item.category || ''}`)) || items[0];
-    const heroImage = GALLERY_HERO_IMAGE;
+    const heroConfig = HERO_BY_COLLECTION[activeCollection] || HERO_BY_COLLECTION.furniture;
 
     const scrollToCollection = () => {
         const target = document.getElementById('collection-grid');
@@ -288,19 +311,20 @@ const MarketplaceLayout = ({
         <div className="w-full min-h-screen bg-[#050605] text-stone-100 selection:bg-[#dba45f] selection:text-black">
             <main className="relative overflow-hidden">
                 <section className="relative min-h-[calc(100vh-5rem)] md:min-h-[560px] lg:min-h-[620px] overflow-hidden">
-                    {heroImage && (
+                    {heroConfig.image && (
                         <picture>
                             <source
                                 media="(max-width: 767px)"
-                                srcSet={GALLERY_HERO_MOBILE_SRC_SET}
+                                srcSet={heroConfig.mobileSrcSet}
                                 sizes="100vw"
                             />
                             <img
-                                src={heroImage}
-                                srcSet={GALLERY_HERO_SRC_SET}
+                                src={heroConfig.image}
+                                srcSet={heroConfig.srcSet}
                                 sizes="100vw"
-                                alt={heroItem?.name || 'Mobilier ancien restauré'}
+                                alt={heroConfig.alt}
                                 className="absolute inset-0 h-full w-full object-cover object-center"
+                                style={{ objectPosition: heroConfig.objectPosition }}
                                 loading="eager"
                                 decoding="async"
                                 fetchPriority="high"
