@@ -99,9 +99,10 @@ const AtelierBadge = () => (
 
         <text
             fill="#f1e6d0"
-            fontSize="10.2"
-            fontWeight="700"
-            letterSpacing="5.2"
+            fontSize="9"
+            fontWeight="500"
+            letterSpacing="6.5"
+            fontFamily="'Plus Jakarta Sans', sans-serif"
             textAnchor="middle"
             className="uppercase"
         >
@@ -109,18 +110,19 @@ const AtelierBadge = () => (
         </text>
         <text
             fill="#f1e6d0"
-            fontSize="10.2"
-            fontWeight="700"
-            letterSpacing="5.2"
+            fontSize="9"
+            fontWeight="500"
+            letterSpacing="6.5"
+            fontFamily="'Plus Jakarta Sans', sans-serif"
             textAnchor="middle"
             className="uppercase"
         >
-            <textPath href="#atelierBottomPath" startOffset="50%">PIECES UNIQUES</textPath>
+            <textPath href="#atelierBottomPath" startOffset="50%">PIÈCES UNIQUES</textPath>
         </text>
 
-        <g filter="url(#atelierSoftGlow)" fill="url(#atelierGold)" stroke="url(#atelierGold)" strokeWidth="0.4" fontFamily="'Cormorant Garamond', 'Playfair Display', serif" fontSize="68" fontWeight="400" textAnchor="middle">
-            <text x="101" y="134">A</text>
-            <text x="119" y="134">N</text>
+        <g fill="url(#atelierGold)" fontFamily="'Cormorant Garamond', 'Playfair Display', serif" fontSize="54" fontWeight="300" textAnchor="middle">
+            <text x="109" y="118">A</text>
+            <text x="115" y="138">N</text>
         </g>
     </svg>
 );
