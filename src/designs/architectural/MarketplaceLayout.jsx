@@ -122,9 +122,9 @@ const AtelierBadge = () => (
             <textPath href="#atelierBottomPath" startOffset="50%">PIÈCES UNIQUES</textPath>
         </text>
 
-        <g fill="url(#atelierGold)" fontFamily="'Cormorant Garamond', 'Playfair Display', serif" fontSize="54" fontWeight="300" textAnchor="middle">
-            <text x="109" y="118">A</text>
-            <text x="115" y="138">N</text>
+        <g fill="url(#atelierGold)" fontFamily="'Cormorant Garamond', 'Playfair Display', serif" fontSize="62" fontWeight="300" textAnchor="middle">
+            <text x="109" y="119">A</text>
+            <text x="116" y="142">N</text>
         </g>
     </svg>
 );

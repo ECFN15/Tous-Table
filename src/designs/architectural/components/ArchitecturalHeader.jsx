@@ -48,7 +48,7 @@ const ArchitecturalHeader = ({
         <header
             className={`sticky top-0 z-50 transition-transform duration-300 ease-in-out ${isVisible ? 'translate-y-0' : '-translate-y-full'} ${
                 isGalleryHeader
-                    ? 'bg-black/92 text-white border-b border-[#8a5b2a]/25 backdrop-blur-xl'
+                    ? 'bg-black/92 text-white backdrop-blur-xl'
                     : 'bg-transparent'
             }`}
             style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
