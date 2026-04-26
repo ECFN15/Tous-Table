@@ -1,4 +1,4 @@
-teur import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ProductCard from './components/ProductCard';
 import { ArrowDown, ArrowRight, ChevronDown, Hammer, ShieldCheck, Tag, Truck } from 'lucide-react';
 
@@ -107,7 +107,7 @@ const AtelierBadge = () => (
             dominantBaseline="central"
             className="uppercase"
         >
-            <textPath href="#atelierTopPath" startOffset="50%">ATELIER NORMAND</textPath>
+            <textPath href="#atelierTopPath" startOffset="51.5%">ATELIER NORMAND</textPath>
         </text>
         <text
             fill="#f1e6d0"
@@ -119,7 +119,7 @@ const AtelierBadge = () => (
             dominantBaseline="central"
             className="uppercase"
         >
-            <textPath href="#atelierBottomPath" startOffset="50%">PIÈCES UNIQUES</textPath>
+            <textPath href="#atelierBottomPath" startOffset="51.5%">PIÈCES UNIQUES</textPath>
         </text>
 
         <g fill="url(#atelierGold)" fontFamily="'Cormorant Garamond', 'Playfair Display', serif" fontSize="62" fontWeight="300" textAnchor="middle">

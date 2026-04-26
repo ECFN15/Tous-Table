@@ -120,12 +120,9 @@ const ArchitecturalHeader = ({
                     </div>
                 )}
 
-                <div className={`${isGalleryHeader ? 'ml-auto gap-1 md:gap-4' : 'gap-2 md:gap-4'} flex items-center z-10`}>
+                <div className={`${isGalleryHeader ? 'ml-auto gap-1.5 md:gap-3' : 'gap-2 md:gap-4'} flex items-center z-10`}>
                     {isGalleryHeader && (
                         <>
-                            <button type="button" className="flex h-9 w-9 md:h-10 md:w-10 items-center justify-center text-stone-100 hover:text-[#dba45f] transition-colors" title="Rechercher">
-                                <Search size={22} strokeWidth={1.7} />
-                            </button>
                             <button type="button" className="flex h-9 w-9 md:h-10 md:w-10 items-center justify-center text-stone-100 hover:text-[#dba45f] transition-colors" title="Favoris">
                                 <Heart size={23} strokeWidth={1.7} />
                             </button>
@@ -164,7 +161,7 @@ const ArchitecturalHeader = ({
                         <AnimatedThemeToggler isDark={darkMode} toggleTheme={toggleTheme} />
                     )}
 
-                    <button onClick={onOpenCart} className="relative group w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full transition-colors" title="Panier">
+                    <button onClick={onOpenCart} className="relative group w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full border-0 bg-transparent shadow-none transition-colors" title="Panier">
                         <ShoppingBag size={isGalleryHeader ? 23 : 20} strokeWidth={1.6} className={`transition-colors duration-300 ${isGalleryHeader || darkMode ? 'text-stone-100 group-hover:text-[#dba45f]' : 'text-stone-900 group-hover:text-amber-600'}`} />
                         {cartCount > 0 && (
                             <span className="absolute -top-0.5 -right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#dba45f] px-1 text-[10px] font-black text-black border border-black/50">
@@ -173,7 +170,7 @@ const ArchitecturalHeader = ({
                         )}
                     </button>
 
-                    <button onClick={onOpenMenu} className={`relative ${isGalleryHeader ? 'hidden md:flex' : 'flex'} items-center justify-center group w-10 h-10 rounded-full cursor-pointer transition-colors`} title="Menu">
+                    <button onClick={onOpenMenu} className={`relative ${isGalleryHeader ? 'hidden md:flex' : 'flex'} items-center justify-center group w-10 h-10 rounded-full border-0 bg-transparent shadow-none cursor-pointer transition-colors`} title="Menu">
                         <Menu size={isGalleryHeader ? 30 : 24} strokeWidth={isGalleryHeader ? 1.35 : 1} className={`absolute transition-all duration-500 ease-in-out ${isGalleryHeader || darkMode ? 'text-[#dba45f] group-hover:text-white' : 'text-stone-900 group-hover:text-amber-600'} ${isMenuOpen ? 'opacity-0 rotate-90 scale-50' : 'opacity-100 rotate-0 scale-100'}`} />
                         <X size={isGalleryHeader ? 30 : 24} strokeWidth={isGalleryHeader ? 1.35 : 1} className={`absolute transition-all duration-500 ease-in-out ${isGalleryHeader || darkMode ? 'text-[#dba45f] group-hover:text-white' : 'text-stone-900 group-hover:text-amber-600'} ${isMenuOpen ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-50'}`} />
                     </button>

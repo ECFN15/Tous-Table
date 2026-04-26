@@ -266,8 +266,8 @@ const GlobalMenu = ({
                 pt-[max(1.5rem,calc(env(safe-area-inset-top,0px)+1.5rem))] px-8 md:px-12 pb-12 md:pb-12 md:pt-[28px]
                 flex flex-col justify-between z-[2001]
               ${activeDesignId === 'architectural'
-                    ? (darkMode ? 'bg-[#0A0A0A] border-l border-stone-800 text-stone-200' : 'bg-[#FAFAF9] border-l border-stone-200 text-stone-900')
-                    : (darkMode ? 'bg-stone-900 border-l border-stone-800' : 'bg-white')}
+                  ? (darkMode ? 'bg-[#0A0A0A] text-stone-200' : 'bg-[#FAFAF9] text-stone-900')
+                  : (darkMode ? 'bg-stone-900' : 'bg-white')}
             `}
                 style={{
                     transform: isMenuOpen ? 'translate3d(0,0,0)' : 'translate3d(100%,0,0)',
