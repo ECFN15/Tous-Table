@@ -212,7 +212,7 @@ const ArchitecturalHeader = ({
                             )}
                             <button
                                 onClick={() => logout()}
-                                className={`${isGalleryHeader ? 'hidden md:flex border-[#8a5b2a]/60 text-stone-100 hover:border-red-400 hover:text-red-300' : darkMode ? 'sm:border-stone-800 text-stone-400 hover:text-red-400' : 'sm:border-stone-200 text-stone-500 hover:text-red-600'} items-center justify-center gap-2 w-10 h-10 sm:w-auto sm:px-4 sm:py-2 rounded sm:border transition-all group`}
+                                className={`${isGalleryHeader ? 'hidden md:flex border-[#8a5b2a]/60 text-stone-100 hover:border-red-400 hover:text-red-300' : darkMode ? 'sm:border-stone-600 text-stone-200 hover:border-red-500 hover:text-red-400 hover:bg-red-500/10' : 'sm:border-stone-300 text-stone-600 hover:border-red-400 hover:text-red-600 hover:bg-red-50'} items-center justify-center gap-2 w-10 h-10 sm:w-auto sm:px-4 sm:py-2 rounded sm:border transition-all group`}
                                 title="Se deconnecter"
                             >
                                 <LogOut size={19} />

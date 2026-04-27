@@ -1,24 +1,62 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import ProductCard from './components/ProductCard';
 import { ArrowDown, ArrowRight, ChevronDown, Hammer, ShieldCheck, Tag, Truck } from 'lucide-react';
 import TextType from '../../components/ui/TextType';
 
-const CATEGORIES = [
-    { id: 'all', label: 'Tous les produits', match: () => true },
-    { id: 'buffets', label: 'Buffets & meubles', match: (item) => /buffet|bahut|meuble|commode|armoire/i.test(`${item.name} ${item.category || ''}`) },
-    { id: 'tables', label: 'Tables', match: (item) => /table|bureau|comptoir/i.test(`${item.name} ${item.category || ''}`) },
-    { id: 'chairs', label: 'Chaises', match: (item) => /chaise|fauteuil|banc|tabouret/i.test(`${item.name} ${item.category || ''}`) },
-    { id: 'storage', label: 'Rangements', match: (item) => /rangement|vestiaire|porte[\s-]?manteaux|coffre|armoire/i.test(`${item.name} ${item.category || ''}`) },
-    { id: 'accessories', label: 'Accessoires', match: (item) => /miroir|vase|accessoire|d[eé]coration|d[eé]co/i.test(`${item.name} ${item.category || ''}`) },
+// Taxonomie mobilier — slugs alignés avec AdminForm.FURNITURE_CATEGORIES.
+// L'identifiant `all` est la pill par défaut ; les autres correspondent au champ Firestore `category`.
+const FURNITURE_CATEGORIES = [
+    { id: 'all', label: 'Tous les produits' },
+    { id: 'buffet', label: 'Buffets' },
+    { id: 'table', label: 'Tables' },
+    { id: 'chaise', label: 'Chaises & bancs' },
+    { id: 'armoire', label: 'Armoires' },
+    { id: 'commode', label: 'Commodes & chevets' },
+    { id: 'autre', label: 'Autres' }, // Pill publique uniquement (pas dans le select admin)
 ];
 
-const FILTER_DROPDOWNS = [
-    { id: 'category', label: 'Catégorie' },
-    { id: 'material', label: 'Matière' },
-    { id: 'color', label: 'Couleur' },
-    { id: 'price', label: 'Prix' },
-    { id: 'availability', label: 'Disponibilité' },
+// Tranches de prix fixes — filtre public Galerie.
+const PRICE_RANGES = [
+    { id: 'lt500', label: 'Moins de 500 €', min: 0, max: 500 },
+    { id: '500-1000', label: '500 – 1 000 €', min: 500, max: 1000 },
+    { id: '1000-2000', label: '1 000 – 2 000 €', min: 1000, max: 2000 },
+    { id: 'gt2000', label: '2 000 € et +', min: 2000, max: Infinity },
 ];
+
+// Normalisation NFD pour ignorer les accents lors du fallback regex.
+const normalizeText = (value = '') =>
+    value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+// Retourne UNE seule catégorie par meuble.
+// Priorité absolue au champ Firestore `category` (saisi en admin).
+// Fallback : analyse du NOM uniquement (signal très fiable pour le mobilier ancien).
+// On évite la description car elle contient souvent des mots parasites
+// (ex. "table à langer" dans la fiche d'une commode → faisait matcher 'table' à tort).
+const getFurnitureCategory = (item) => {
+    if (item?.category) return item.category;
+    const name = normalizeText(item?.name || '');
+
+    // 1. Cas spéciaux à traiter en priorité (mots qui pourraient matcher plusieurs catégories).
+    if (/vestiaire|porte[\s-]?manteaux|penderie/.test(name)) return 'armoire';
+    if (/desserte/.test(name)) return 'buffet'; // une desserte est un buffet bas
+    if (/meuble[\s-]?de[\s-]?metier/.test(name)) return 'buffet'; // décision client : rangé dans Buffets
+
+    // 2. Catégories principales fortes — testées AVANT "autre" pour éviter les faux positifs
+    //    (ex. "Bahut coffre" : bahut > coffre, donc reste un buffet).
+    if (/buffet|bahut/.test(name)) return 'buffet';
+    if (/commode|chevet|secretaire|semainier/.test(name)) return 'commode';
+    if (/armoire/.test(name)) return 'armoire';
+    if (/chaise|fauteuil|banc|tabouret/.test(name)) return 'chaise';
+
+    // 3. Mots-clés "Autres" (meubles spéciaux peu fréquents : crédence, vitrine, console, etc.).
+    if (/credence|vitrine|miroir|console|coffre|etagere|horloge|paravent|servante|meuble[\s-]?a[\s-]?colonne/.test(name)) return 'autre';
+
+    // 4. Catégorie générique en dernier (table est très générique car peut apparaître partout).
+    if (/table|bureau|comptoir/.test(name)) return 'table';
+
+    // 5. Fallback : nom non explicite → "Autres" plutôt que d'imposer une catégorie hasardeuse.
+    return 'autre';
+};
 
 const BENEFITS = [
     {
@@ -166,138 +204,57 @@ const MarketplaceLayout = ({
     darkMode,
     setHeaderProps
 }) => {
-    const { activeCollection, filter, setFilter } = headerProps || {};
+    const { activeCollection } = headerProps || {};
     const [activeCategory, setActiveCategory] = useState('all');
+    const [activeMaterial, setActiveMaterial] = useState('');
+    const [activePriceRange, setActivePriceRange] = useState('');
     const [sortMode, setSortMode] = useState('recent');
     const [visibleCount, setVisibleCount] = useState(24);
-    const [numCols, setNumCols] = useState(4);
-
-    // Masonry state
-    const [positions, setPositions] = useState({});
-    const [containerHeight, setContainerHeight] = useState(0);
-    const containerRef = useRef(null);
-    const measuredHeights = useRef({});  // id → px height
-    const visibleItemsRef = useRef([]);
-    const numColsRef = useRef(numCols);
-    const GAP = 12;
-
-    const recomputeAll = useCallback((items, cols, containerWidth) => {
-        if (!containerWidth || !items.length) return;
-        const colWidth = (containerWidth - GAP * (cols - 1)) / cols;
-        const colHeights = Array(cols).fill(0);
-        const newPositions = {};
-        items.forEach((item) => {
-            const h = measuredHeights.current[item.id] || 280;
-            const col = colHeights.indexOf(Math.min(...colHeights));
-            newPositions[item.id] = {
-                top: colHeights[col],
-                left: col * (colWidth + GAP),
-                width: colWidth,
-            };
-            colHeights[col] += h + GAP;
-        });
-        setPositions(newPositions);
-        setContainerHeight(Math.max(...colHeights));
-    }, []);
-
-    // Keep a stable ref to recomputeAll so the ResizeObserver callback never goes stale
-    const recomputeAllRef = useRef(recomputeAll);
-    useEffect(() => { recomputeAllRef.current = recomputeAll; }, [recomputeAll]);
-
-    // Single stable ResizeObserver (created once)
-    const roRef = useRef(null);
-    if (!roRef.current) {
-        roRef.current = new ResizeObserver((entries) => {
-            let changed = false;
-            entries.forEach((entry) => {
-                const id = entry.target.dataset.itemid;
-                if (!id) return;
-                const h = entry.contentRect.height;
-                if (h > 0 && measuredHeights.current[id] !== h) {
-                    measuredHeights.current[id] = h;
-                    changed = true;
-                }
-            });
-            if (changed && containerRef.current) {
-                recomputeAllRef.current(visibleItemsRef.current, numColsRef.current, containerRef.current.offsetWidth);
-            }
-        });
-    }
 
     useEffect(() => {
         if (setHeaderProps && headerProps) setHeaderProps(headerProps);
         return () => {
             if (setHeaderProps) setHeaderProps(null);
         };
-    }, [activeCollection, filter, setHeaderProps]);
+    }, [activeCollection, setHeaderProps]);
 
-    // Nombre de colonnes du masonry selon la taille d'écran
-    useEffect(() => {
-        const updateCols = () => {
-            const w = window.innerWidth;
-            if (w < 640) setNumCols(2);
-            else if (w < 1024) setNumCols(3);
-            else setNumCols(4);
-        };
-        updateCols();
-        window.addEventListener('resize', updateCols);
-        return () => window.removeEventListener('resize', updateCols);
-    }, []);
+    // Options matière déduites dynamiquement des meubles réellement présents.
+    const materialOptions = useMemo(() => {
+        return [...new Set(items.map((item) => item.material).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr'));
+    }, [items]);
 
-    // Keep numColsRef in sync and recompute on column count change
-    useEffect(() => {
-        numColsRef.current = numCols;
-        if (containerRef.current && visibleItemsRef.current.length) {
-            recomputeAll(visibleItemsRef.current, numCols, containerRef.current.offsetWidth);
-        }
-    }, [numCols, recomputeAll]);
-
-    // Keep visibleItemsRef in sync
-    useEffect(() => {
-        visibleItemsRef.current = visibleItems;
-    });
-
-    // Reset masonry when sort/filter/category changes (full recompute)
-    const prevSortKey = useRef('');
-    useEffect(() => {
-        const key = `${activeCategory}-${sortMode}`;
-        if (key === prevSortKey.current) return;
-        prevSortKey.current = key;
-        measuredHeights.current = {};
-        setPositions({});
-        setContainerHeight(0);
-    }, [activeCategory, sortMode]);
-
-    // Container ResizeObserver for responsive reflow
-    useEffect(() => {
-        if (!containerRef.current) return;
-        const ro = new ResizeObserver(() => {
-            if (containerRef.current && visibleItemsRef.current.length) {
-                recomputeAll(visibleItemsRef.current, numColsRef.current, containerRef.current.offsetWidth);
-            }
-        });
-        ro.observe(containerRef.current);
-        return () => ro.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [recomputeAll]);
-
-    // Ref callback: observe/unobserve individual item elements
-    const setItemRef = useCallback((el, id) => {
-        if (el) {
-            roRef.current.observe(el);
-        }
-    }, []);
-
-    const currentCategory = CATEGORIES.find((category) => category.id === activeCategory) || CATEGORIES[0];
+    // Tranche de prix active (objet complet ou null).
+    const priceRange = PRICE_RANGES.find((r) => r.id === activePriceRange) || null;
 
     const sortedItems = useMemo(() => {
-        const categoryFiltered = items.filter((item) => currentCategory.match(item));
-        return [...categoryFiltered].sort((a, b) => {
+        const filtered = items.filter((item) => {
+            // 1. Catégorie (priorité au champ Firestore, fallback regex sur nom/description).
+            if (activeCategory !== 'all' && getFurnitureCategory(item) !== activeCategory) return false;
+            // 2. Matière exacte.
+            if (activeMaterial && item.material !== activeMaterial) return false;
+            // 3. Tranche de prix.
+            if (priceRange) {
+                if (item.priceOnRequest) return false; // "Prix sur demande" exclu des tranches.
+                const price = getPrice(item);
+                if (price < priceRange.min || price >= priceRange.max) return false;
+            }
+            return true;
+        });
+        return [...filtered].sort((a, b) => {
             if (sortMode === 'priceAsc') return getPrice(a) - getPrice(b);
             if (sortMode === 'priceDesc') return getPrice(b) - getPrice(a);
             return getMillis(b.createdAt || b.updatedAt) - getMillis(a.createdAt || a.updatedAt);
         });
-    }, [items, currentCategory, sortMode]);
+    }, [items, activeCategory, activeMaterial, priceRange, sortMode]);
+
+    const hasActiveFilters = activeCategory !== 'all' || activeMaterial !== '' || activePriceRange !== '';
+
+    const resetAllFilters = useCallback(() => {
+        setActiveCategory('all');
+        setActiveMaterial('');
+        setActivePriceRange('');
+        setVisibleCount(24);
+    }, []);
 
     const visibleItems = sortedItems.slice(0, visibleCount);
     const heroConfig = HERO_BY_COLLECTION[activeCollection] || HERO_BY_COLLECTION.furniture;
@@ -401,7 +358,7 @@ const MarketplaceLayout = ({
                         <div className="min-w-0">
                             {/* Categories pills (top) */}
                             <div className="flex items-center gap-2 md:gap-3 overflow-x-auto no-scrollbar pb-4 border-b border-[#8a5b2a]/20">
-                                {CATEGORIES.map((category) => {
+                                {FURNITURE_CATEGORIES.map((category) => {
                                     const active = activeCategory === category.id;
                                     return (
                                         <button
@@ -422,29 +379,67 @@ const MarketplaceLayout = ({
                                 })}
                             </div>
 
-                            {/* Filter bar */}
+                            {/* Filter bar — Matière + Prix + Tri + Reset (si au moins un filtre actif) */}
                             <div className="flex flex-wrap items-center justify-between gap-4 py-5">
                                 <div className="flex items-center gap-2 md:gap-3 flex-wrap">
                                     <span className="text-stone-400 text-[10px] font-black uppercase tracking-[0.26em] mr-1">Filtrer :</span>
-                                    {FILTER_DROPDOWNS.map((dd) => (
-                                        <button
-                                            key={dd.id}
-                                            type="button"
-                                            onClick={() => {
-                                                if (dd.id === 'category') {
-                                                    setActiveCategory('all');
+
+                                    {/* Filtre Matière — masqué si aucune matière renseignée en BDD */}
+                                    {materialOptions.length > 0 && (
+                                        <span className="relative">
+                                            <select
+                                                value={activeMaterial}
+                                                onChange={(event) => {
+                                                    setActiveMaterial(event.target.value);
                                                     setVisibleCount(24);
-                                                }
-                                                if (dd.id === 'availability') {
-                                                    setFilter?.(filter === 'auction' ? 'fixed' : 'auction');
-                                                }
+                                                }}
+                                                className={`h-10 appearance-none rounded-full border bg-transparent pl-4 pr-10 text-[10px] font-black uppercase tracking-[0.22em] outline-none transition-colors cursor-pointer ${
+                                                    activeMaterial
+                                                        ? 'border-[#dba45f] text-[#f0b969]'
+                                                        : 'border-[#8a5b2a]/50 text-stone-200 hover:border-[#dba45f] hover:text-white'
+                                                }`}
+                                            >
+                                                <option value="" className="bg-[#0a0a09] text-white">Toutes les matières</option>
+                                                {materialOptions.map((mat) => (
+                                                    <option key={mat} value={mat} className="bg-[#0a0a09] text-white">{mat}</option>
+                                                ))}
+                                            </select>
+                                            <ChevronDown size={14} strokeWidth={1.8} className={`pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 ${activeMaterial ? 'text-[#dba45f]' : 'text-stone-400'}`} />
+                                        </span>
+                                    )}
+
+                                    {/* Filtre Prix — tranches fixes, exclut les "prix sur demande" */}
+                                    <span className="relative">
+                                        <select
+                                            value={activePriceRange}
+                                            onChange={(event) => {
+                                                setActivePriceRange(event.target.value);
+                                                setVisibleCount(24);
                                             }}
-                                            className="inline-flex h-10 items-center gap-2 rounded-full border border-[#8a5b2a]/50 px-4 text-stone-200 text-[10px] font-black uppercase tracking-[0.22em] transition-colors hover:border-[#dba45f] hover:text-white"
+                                            className={`h-10 appearance-none rounded-full border bg-transparent pl-4 pr-10 text-[10px] font-black uppercase tracking-[0.22em] outline-none transition-colors cursor-pointer ${
+                                                activePriceRange
+                                                    ? 'border-[#dba45f] text-[#f0b969]'
+                                                    : 'border-[#8a5b2a]/50 text-stone-200 hover:border-[#dba45f] hover:text-white'
+                                            }`}
                                         >
-                                            <span>{dd.label}</span>
-                                            <ChevronDown size={14} strokeWidth={1.8} className="text-stone-400" />
+                                            <option value="" className="bg-[#0a0a09] text-white">Tous les prix</option>
+                                            {PRICE_RANGES.map((range) => (
+                                                <option key={range.id} value={range.id} className="bg-[#0a0a09] text-white">{range.label}</option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown size={14} strokeWidth={1.8} className={`pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 ${activePriceRange ? 'text-[#dba45f]' : 'text-stone-400'}`} />
+                                    </span>
+
+                                    {/* Réinitialiser — visible uniquement quand au moins un filtre est actif */}
+                                    {hasActiveFilters && (
+                                        <button
+                                            type="button"
+                                            onClick={resetAllFilters}
+                                            className="inline-flex h-10 items-center gap-2 rounded-full px-4 text-[#f0b969] text-[10px] font-black uppercase tracking-[0.22em] transition-colors hover:text-white"
+                                        >
+                                            Réinitialiser
                                         </button>
-                                    ))}
+                                    )}
                                 </div>
 
                                 <label className="flex items-center gap-3">
@@ -466,46 +461,25 @@ const MarketplaceLayout = ({
                         </div>
                     </div>
 
-                    {/* === MASONRY absolue ===
-                          Les cartes sont positionnées en absolu après mesure de leur hauteur réelle.
-                          Chaque carte occupe son ratio naturel. "Voir plus" n'affecte pas les positions existantes. */}
+                    {/* === MASONRY CSS COLUMNS ===
+                          Layout 100% natif via `column-count` : aucun calcul JS, aucun ResizeObserver,
+                          aucun flicker au switch de filtre. Les cartes prennent leur hauteur naturelle
+                          (aspect-ratio image) et le navigateur gère la composition (GPU compositor).
+                          Ordre column-major standard (style Pinterest). */}
                     {visibleItems.length === 0 ? (
                         <div className="min-h-80 border border-[#8a5b2a]/40 flex items-center justify-center text-center">
                             <p className="font-serif text-2xl text-stone-400">Aucune pièce disponible.</p>
                         </div>
                     ) : (
-                        <div
-                            ref={containerRef}
-                            className="mt-2 md:mt-4 relative w-full"
-                            style={{ height: containerHeight > 0 ? containerHeight : 'auto', minHeight: 400 }}
-                        >
-                            {visibleItems.map((item) => {
-                                const pos = positions[item.id];
-                                return (
-                                    <div
-                                        key={item.id}
-                                        data-itemid={item.id}
-                                        ref={(el) => setItemRef(el, item.id)}
-                                        style={pos ? {
-                                            position: 'absolute',
-                                            top: pos.top,
-                                            left: pos.left,
-                                            width: pos.width,
-                                        } : {
-                                            position: 'absolute',
-                                            top: 0,
-                                            left: 0,
-                                            width: '100%',
-                                            visibility: 'hidden',
-                                        }}
-                                    >
-                                        <ProductCard
-                                            item={item}
-                                            onClick={() => onSelectItem(item.id)}
-                                        />
-                                    </div>
-                                );
-                            })}
+                        <div className="mt-2 md:mt-4 columns-2 md:columns-3 lg:columns-4 gap-3 [column-fill:_balance]">
+                            {visibleItems.map((item) => (
+                                <div key={item.id} className="mb-3 break-inside-avoid">
+                                    <ProductCard
+                                        item={item}
+                                        onClick={() => onSelectItem(item.id)}
+                                    />
+                                </div>
+                            ))}
                         </div>
                     )}
 

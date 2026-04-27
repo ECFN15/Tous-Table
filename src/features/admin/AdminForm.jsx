@@ -15,11 +15,25 @@ const WOOD_TYPES = [
   "Rotin", "Sapin", "Teck", "Wengé", "Autre"
 ];
 
+// Taxonomie mobilier — slugs Firestore stockés dans `furniture.category`.
+// Applicable uniquement pour collectionName === 'furniture'.
+const FURNITURE_CATEGORIES = [
+  { slug: 'buffet', label: 'Buffets' },
+  { slug: 'table', label: 'Tables' },
+  { slug: 'chaise', label: 'Chaises & bancs' },
+  { slug: 'armoire', label: 'Armoires' },
+  { slug: 'commode', label: 'Commodes & chevets' },
+  { slug: 'autre', label: 'Autres' },
+];
+
 const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkMode = false }) => {
+  const isFurniture = collectionName === 'furniture';
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     startingPrice: 0,
+    category: '', // [NEW] Catégorie mobilier (vide pour planches)
     material: '',
     dimensions: '',
     width: '',
@@ -72,6 +86,7 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
         name: editData.name || '',
         description: editData.description || '',
         startingPrice: editData.startingPrice || 0,
+        category: editData.category || '', // [NEW] Load catégorie (vide si ancien meuble)
         stock: editData.stock !== undefined ? editData.stock : '', // [NEW] Load stock
         material: material,
         dimensions: editData.dimensions || '',
@@ -101,6 +116,7 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
       name: '',
       description: '',
       startingPrice: 0,
+      category: '', // [NEW] Reset catégorie
       stock: '', // [NEW] Reset stock
       material: '',
       dimensions: '',
@@ -123,7 +139,7 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
       id: `new-${Date.now()}-${Math.random()}`,
       file: file,
       preview: URL.createObjectURL(file),
-      originalSize: file.size, // Store original size for metrics
+      originalSize: file.size,
       isExisting: false,
       isCompressed: false
     }));
@@ -184,6 +200,11 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
 
   const addMeuble = async () => {
     if (!formData.name) { setMsg("⚠️ Nom requis"); return; }
+    // [NEW] Catégorie obligatoire à la création d'un meuble (non bloquant en édition pour legacy)
+    if (isFurniture && !editData && !formData.category) {
+      setMsg("⚠️ Catégorie requise");
+      return;
+    }
     setUploading(true);
     setMsg("⏳ Préparation des fichiers...");
 
@@ -236,6 +257,13 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
         priceOnRequest: formData.priceOnRequest || false,
         auctionEnd: formData.auctionActive ? Timestamp.fromMillis(Date.now() + (Number(formData.durationMinutes) * 60000)) : null,
       };
+
+      // [NEW] Nettoyage du champ category :
+      // - planches (cutting_boards) : jamais écrit
+      // - meuble avec catégorie vide : ne pas polluer Firestore avec une string vide
+      if (!isFurniture || !data.category) {
+        delete data.category;
+      }
 
       if (editData) {
         await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', collectionName, editData.id), data);
@@ -456,6 +484,31 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-black uppercase text-stone-400 ml-2">
+                Catégorie du meuble {!editData && <span className="text-amber-500">*</span>}
+              </label>
+              <div className="relative">
+                <select
+                  className={`w-full p-4 rounded-xl border-none font-bold outline-none text-sm focus:ring-4 transition-all shadow-inner appearance-none cursor-pointer ${darkMode ? 'bg-stone-900 text-white ring-stone-700 [&>option]:bg-stone-900' : 'bg-stone-50 text-stone-900 ring-stone-100'}`}
+                  value={formData.category}
+                  onChange={e => setFormData({ ...formData, category: e.target.value })}
+                >
+                  <option value="" disabled={!editData}>Sélectionner une catégorie...</option>
+                  {FURNITURE_CATEGORIES.map(cat => (
+                    <option key={cat.slug} value={cat.slug}>{cat.label}</option>
+                  ))}
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-stone-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                </div>
+              </div>
+              {editData && !formData.category && (
+                <p className={`text-[9px] font-medium ml-2 mt-1 ${darkMode ? 'text-amber-400/80' : 'text-amber-600'}`}>
+                  Ancien meuble sans catégorie — vous pouvez en assigner une ou laisser vide.
+                </p>
+              )}
+            </div>
             <div className="space-y-1.5">
               <label className="text-[9px] font-black uppercase text-stone-400 ml-2">Essence de bois</label>
               <div className="relative space-y-2">
