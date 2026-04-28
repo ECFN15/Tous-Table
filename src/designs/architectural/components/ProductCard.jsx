@@ -197,28 +197,32 @@ const ProductCard = ({
                 </div>
             )}
 
-            {/* TOP-RIGHT : + button */}
-            <div className="absolute right-4 top-4 z-30 flex h-10 w-10 md:h-11 md:w-11 items-center justify-center rounded-full border border-[#dba45f]/80 bg-black/30 text-[#f0b969] backdrop-blur-sm transition-all duration-300 group-hover:bg-[#dba45f] group-hover:text-black group-hover:scale-105">
-                <Plus size={20} strokeWidth={1.5} />
+            {/* TOP-RIGHT : + button — taille calibrée par breakpoint pour rester ~15-18% de la carte */}
+            <div className="absolute right-3 top-3 sm:right-3.5 sm:top-3.5 md:right-4 md:top-4 z-30 flex h-8 w-8 sm:h-9 sm:w-9 md:h-[38px] md:w-[38px] lg:h-[42px] lg:w-[42px] items-center justify-center rounded-full border border-[#dba45f]/80 bg-black/30 text-[#f0b969] backdrop-blur-sm transition-all duration-300 group-hover:bg-[#dba45f] group-hover:text-black group-hover:scale-105">
+                <Plus className="w-4 h-4 sm:w-[18px] sm:h-[18px] lg:w-5 lg:h-5" strokeWidth={1.5} />
             </div>
 
             {/* BOTTOM : title + (price <-> material tag) — overlayed on image bottom */}
-            <div className="absolute inset-x-0 bottom-0 z-20 p-4 sm:p-5 md:p-6">
-                <h3 className="max-w-[18rem] font-serif text-[1.25rem] sm:text-[1.45rem] md:text-[1.65rem] leading-[0.98] text-white drop-shadow line-clamp-2">
+            {/* Tailles responsive calibrées sur la largeur réelle de carte par breakpoint :
+                  mobile (~180px, 2 cols), sm (640+, 2 cols larges), md (768+, 3 cols),
+                  lg (1024+, 4 cols). Objectif : bloc texte ≤ 32% de la hauteur de carte
+                  pour ne jamais masquer l'image au-delà du tiers inférieur. */}
+            <div className="absolute inset-x-0 bottom-0 z-20 p-3 sm:p-4 md:p-5 lg:p-6">
+                <h3 className="max-w-[18rem] font-serif text-[0.95rem] sm:text-[1.05rem] md:text-[1.25rem] lg:text-[1.5rem] leading-[1.02] text-white drop-shadow line-clamp-2">
                     {item.name}
                 </h3>
-                <div className="mt-2 flex items-baseline justify-between gap-3">
-                    <p className={`font-serif text-[1.2rem] md:text-[1.4rem] leading-none ${item.sold ? 'text-red-300' : 'text-white'}`}>
+                <div className="mt-1.5 sm:mt-2 flex items-baseline justify-between gap-2 sm:gap-3">
+                    <p className={`font-serif text-[0.95rem] sm:text-[1.05rem] md:text-[1.2rem] lg:text-[1.35rem] leading-none ${item.sold ? 'text-red-300' : 'text-white'}`}>
                         {item.sold ? 'Vendu' : (item.priceOnRequest ? 'Sur demande' : `${price || 0} €`)}
                     </p>
                     {topLabel && (
-                        <span className="shrink-0 text-[#e8a968] text-[9px] md:text-[10px] font-black uppercase tracking-[0.24em] drop-shadow">
+                        <span className="shrink-0 text-[#e8a968] text-[8px] sm:text-[9px] lg:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.24em] drop-shadow">
                             {topLabel}
                         </span>
                     )}
                 </div>
                 {!hideStock && (
-                    <p className="mt-2 text-[9px] md:text-[10px] font-black uppercase tracking-[0.28em] text-[#c89158]">
+                    <p className="mt-1.5 sm:mt-2 text-[8px] sm:text-[9px] lg:text-[10px] font-black uppercase tracking-[0.22em] sm:tracking-[0.28em] text-[#c89158]">
                         {stock <= 1 ? 'Pièce unique' : `${stock} pièces disponibles`}
                     </p>
                 )}

@@ -677,10 +677,12 @@ const MarketplaceLayout = ({
                                 })}
                             </div>
 
-                            {/* Filter bar — Matière + Prix + Tri + Reset (si au moins un filtre actif) */}
-                            <div className="flex flex-wrap items-center justify-between gap-4 py-5">
-                                <div className="flex items-center gap-2 md:gap-3 flex-wrap">
-                                    <span className="text-stone-400 text-[10px] font-black uppercase tracking-[0.26em] mr-1">Filtrer :</span>
+                            {/* Filter bar — Matière + Prix + Tri + Reset (si au moins un filtre actif).
+                                  Tailles & paddings calibrés par breakpoint pour garantir 1 seule ligne
+                                  dès 412 px de viewport (cf. audit FrontSymmetry). */}
+                            <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3 md:gap-4 py-3 sm:py-4 md:py-5">
+                                <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 flex-wrap">
+                                    <span className="hidden md:inline text-stone-400 text-[10px] font-black uppercase tracking-[0.26em] mr-1">Filtrer :</span>
 
                                     {/* Filtre Matière — masqué si aucune matière renseignée en BDD */}
                                     {materialOptions.length > 0 && (
@@ -691,7 +693,7 @@ const MarketplaceLayout = ({
                                                     setActiveMaterial(event.target.value);
                                                     resetView();
                                                 }}
-                                                className={`h-10 appearance-none rounded-full border bg-transparent pl-4 pr-10 text-[10px] font-black uppercase tracking-[0.22em] outline-none transition-colors cursor-pointer ${
+                                                className={`h-8 sm:h-9 md:h-10 appearance-none rounded-full border bg-transparent pl-3 pr-8 sm:pl-3.5 sm:pr-9 md:pl-4 md:pr-10 text-[9px] md:text-[10px] font-black uppercase tracking-[0.18em] sm:tracking-[0.20em] md:tracking-[0.22em] outline-none transition-colors cursor-pointer ${
                                                     activeMaterial
                                                         ? 'border-[#dba45f] text-[#f0b969]'
                                                         : 'border-[#8a5b2a]/50 text-stone-200 hover:border-[#dba45f] hover:text-white'
@@ -702,7 +704,7 @@ const MarketplaceLayout = ({
                                                     <option key={mat} value={mat} className="bg-[#0a0a09] text-white">{mat}</option>
                                                 ))}
                                             </select>
-                                            <ChevronDown size={14} strokeWidth={1.8} className={`pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 ${activeMaterial ? 'text-[#dba45f]' : 'text-stone-400'}`} />
+                                            <ChevronDown size={12} strokeWidth={1.8} className={`pointer-events-none absolute right-2 sm:right-2.5 md:right-3 top-1/2 -translate-y-1/2 md:w-3.5 md:h-3.5 ${activeMaterial ? 'text-[#dba45f]' : 'text-stone-400'}`} />
                                         </span>
                                     )}
 
@@ -714,7 +716,7 @@ const MarketplaceLayout = ({
                                                 setActivePriceRange(event.target.value);
                                                 resetView();
                                             }}
-                                            className={`h-10 appearance-none rounded-full border bg-transparent pl-4 pr-10 text-[10px] font-black uppercase tracking-[0.22em] outline-none transition-colors cursor-pointer ${
+                                            className={`h-8 sm:h-9 md:h-10 appearance-none rounded-full border bg-transparent pl-3 pr-8 sm:pl-3.5 sm:pr-9 md:pl-4 md:pr-10 text-[9px] md:text-[10px] font-black uppercase tracking-[0.18em] sm:tracking-[0.20em] md:tracking-[0.22em] outline-none transition-colors cursor-pointer ${
                                                 activePriceRange
                                                     ? 'border-[#dba45f] text-[#f0b969]'
                                                     : 'border-[#8a5b2a]/50 text-stone-200 hover:border-[#dba45f] hover:text-white'
@@ -725,7 +727,7 @@ const MarketplaceLayout = ({
                                                 <option key={range.id} value={range.id} className="bg-[#0a0a09] text-white">{range.label}</option>
                                             ))}
                                         </select>
-                                        <ChevronDown size={14} strokeWidth={1.8} className={`pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 ${activePriceRange ? 'text-[#dba45f]' : 'text-stone-400'}`} />
+                                        <ChevronDown size={12} strokeWidth={1.8} className={`pointer-events-none absolute right-2 sm:right-2.5 md:right-3 top-1/2 -translate-y-1/2 md:w-3.5 md:h-3.5 ${activePriceRange ? 'text-[#dba45f]' : 'text-stone-400'}`} />
                                     </span>
 
                                     {/* Réinitialiser — visible uniquement quand au moins un filtre est actif */}
@@ -733,15 +735,15 @@ const MarketplaceLayout = ({
                                         <button
                                             type="button"
                                             onClick={resetAllFilters}
-                                            className="inline-flex h-10 items-center gap-2 rounded-full px-4 text-[#f0b969] text-[10px] font-black uppercase tracking-[0.22em] transition-colors hover:text-white"
+                                            className="inline-flex h-8 sm:h-9 md:h-10 items-center gap-2 rounded-full px-3 md:px-4 text-[#f0b969] text-[9px] md:text-[10px] font-black uppercase tracking-[0.18em] sm:tracking-[0.20em] md:tracking-[0.22em] transition-colors hover:text-white"
                                         >
                                             Réinitialiser
                                         </button>
                                     )}
                                 </div>
 
-                                <label className="flex items-center gap-3">
-                                    <span className="hidden sm:inline text-stone-400 text-[10px] font-black uppercase tracking-[0.26em]">Trier par :</span>
+                                <label className="flex items-center gap-2 md:gap-3">
+                                    <span className="hidden md:inline text-stone-400 text-[10px] font-black uppercase tracking-[0.26em]">Trier par :</span>
                                     <span className="relative">
                                         <select
                                             value={sortMode}
@@ -749,13 +751,13 @@ const MarketplaceLayout = ({
                                                 setSortMode(event.target.value);
                                                 resetView();
                                             }}
-                                            className="h-10 appearance-none rounded-full border border-[#8a5b2a]/50 bg-transparent pl-4 pr-10 text-stone-200 text-[10px] font-black uppercase tracking-[0.22em] outline-none transition-colors hover:border-[#dba45f] focus:border-[#dba45f] cursor-pointer"
+                                            className="h-8 sm:h-9 md:h-10 appearance-none rounded-full border border-[#8a5b2a]/50 bg-transparent pl-3 pr-8 sm:pl-3.5 sm:pr-9 md:pl-4 md:pr-10 text-stone-200 text-[9px] md:text-[10px] font-black uppercase tracking-[0.18em] sm:tracking-[0.20em] md:tracking-[0.22em] outline-none transition-colors hover:border-[#dba45f] focus:border-[#dba45f] cursor-pointer"
                                         >
                                             <option value="recent" className="bg-[#0a0a09] text-white">Plus récents</option>
                                             <option value="priceAsc" className="bg-[#0a0a09] text-white">Prix croissant</option>
                                             <option value="priceDesc" className="bg-[#0a0a09] text-white">Prix décroissant</option>
                                         </select>
-                                        <ChevronDown size={14} strokeWidth={1.8} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-stone-400" />
+                                        <ChevronDown size={12} strokeWidth={1.8} className="pointer-events-none absolute right-2 sm:right-2.5 md:right-3 top-1/2 -translate-y-1/2 md:w-3.5 md:h-3.5 text-stone-400" />
                                     </span>
                                 </label>
                             </div>
