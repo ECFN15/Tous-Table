@@ -259,9 +259,194 @@ L'appel direct du hook dans la page est devenu redondant (l'instance vit au nive
 
 ---
 
-## 7. Pistes futures (non implémentées)
+## 7. Pistes futures initiales (statut au 28 avril 2026)
 
 - **Smoother sur les anchors** : remplacer `scrollIntoView({ behavior: 'smooth' })` dans `HomeView:251-252` par `window.__lenis.scrollTo(...)` pour un easing cohérent.
 - **`prevent` callback Lenis 1.1+** : si on upgrade, remplacer `data-lenis-prevent` (string DOM) par une fonction JS qui matche les sélecteurs CSS dynamiquement.
 - **`overscroll-behavior: contain`** sur les modals pour éviter que le scroll-chain ne touche le body Lenis.
 - **Lighthouse score Performance** : mesurer avant/après le LCP de la Galerie (peut être impacté par la disparition du paint des cartes off-screen).
+
+**Statut** : les anchors, le scroll-chain des modales/drawers et les appels natifs dispersés ont été traités dans la passe du 28 avril 2026. Le point Lighthouse reste une piste de mesure complémentaire, mais le diagnostic principal a été fait en browser avec mesure des frames.
+
+---
+
+## 8. 28 avril 2026 — Audit post-correctif fluidité globale
+
+**Objectif** : éliminer les freezes résiduels et rendre le scroll plus stable sur tous les taux de rafraîchissement, avec focus sur Mobilier, Planches, Le Comptoir et les pages produit.
+
+### 8.1 Problèmes constatés après la première refonte Lenis
+
+1. **Scroll natif encore dispersé** : plusieurs `window.scrollTo(...)` et `scrollIntoView(...)` contournaient Lenis, ce qui créait des transitions de scroll incohérentes.
+2. **Header trop bavard pendant le scroll** : la logique du header dépendait d'un `setState` fréquent, donc React retravaillait pendant que Lenis et GSAP animaient déjà.
+3. **Modales non synchronisées avec Lenis** : panier, newsletter, checkout Stripe et lightbox pouvaient bloquer le body sans arrêter proprement l'instance Lenis.
+4. **Cartes boutique trop coûteuses** : les cartes du Comptoir utilisaient Framer Motion et du state React au `mousemove`, donc une interaction pouvait déclencher beaucoup trop de renders.
+5. **Tri/filtrage produits recalculés trop souvent** : `ShopView` regroupait et triait les produits dans le render, amplifiant les petits ticks d'animation.
+6. **Iframes YouTube chargées trop tôt** : Le Comptoir et les pages produit pouvaient charger des embeds lourds pendant le scroll.
+7. **Travail image pendant le scroll** : la détection letterbox des images produit pouvait tomber sur une phase de scroll et créer des micro-freezes.
+8. **Accueil encore très chargé** : cursor, préchargement images, ThreeBackground et GSAP pouvaient se superposer au moment où l'utilisateur scrollait.
+
+### 8.2 Corrections appliquées
+
+#### Helper de scroll unique
+
+**Fichier** : `src/utils/smoothScroll.js`
+
+Ajout d'une API centrale :
+- `scrollToTarget(...)`
+- `scrollToTop(...)`
+- `lockLenis(...)`
+
+Tous les scrolls programmatiques passent maintenant par Lenis quand il est disponible, avec fallback natif seulement si Lenis n'existe pas ou si le mouvement réduit est actif.
+
+#### Cycle de vie Lenis renforcé
+
+**Fichier** : `src/hooks/useLenisScroll.js`
+
+- Cleanup global exposé via `window.__lenisCleanup`
+- Destruction propre en cas de hot reload ou d'ancienne instance résiduelle
+- Support d'un compteur global `window.__lenisLockCount`
+- `autoResize: true`
+- Restauration du `gsap.ticker.lagSmoothing(500, 33)` au cleanup
+
+#### CSS Lenis officiel + containment
+
+**Fichier** : `src/index.css`
+
+Ajout des règles :
+```css
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+```
+
+Ajout aussi de wrappers de performance :
+- `.tat-shop-card-shell`
+- `.tat-heavy-section`
+
+Ils utilisent `content-visibility: auto` et `contain-intrinsic-size` pour éviter de peindre trop de contenu hors viewport.
+
+#### Navigation et modales
+
+**Fichiers** :
+- `src/App.jsx`
+- `src/Router.jsx`
+- `src/components/layout/GlobalMenu.jsx`
+- `src/components/cart/CartSidebar.jsx`
+- `src/components/shop/ShopSidebar.jsx`
+- `src/components/auth/NewsletterModal.jsx`
+- `src/pages/CheckoutView.jsx`
+- `src/designs/architectural/ArchitecturalProductDetail.jsx`
+
+Changements :
+- remplacement des scrolls natifs par `scrollToTop` / `scrollToTarget`
+- arrêt de Lenis quand une modale ou un drawer est ouvert
+- restauration immédiate et stable de la position au close
+- `data-lenis-prevent` sur les zones de scroll interne
+
+#### Header App plus léger
+
+**Fichier** : `src/App.jsx`
+
+La logique de visibilité du header passe maintenant par des refs + `requestAnimationFrame`. Elle ne relance plus un cycle React complet à chaque tick de scroll.
+
+#### Le Comptoir / Boutique
+
+**Fichiers** :
+- `src/pages/ShopView.jsx`
+- `src/components/shop/ShopProductCard.jsx`
+- `src/components/ui/LazyYouTubeEmbed.jsx`
+
+Optimisations :
+- groupement et tri des produits mémoïsés
+- catégories visibles calculées avec `useMemo`
+- navigation catégories via Lenis
+- sections produits marquées `.tat-heavy-section`
+- cartes produit memoïzées
+- suppression de Framer Motion dans chaque carte boutique
+- parallax hover piloté en CSS variables via `requestAnimationFrame`, sans `setState`
+- images en `decoding="async"`
+- YouTube remplacé par un embed click-to-load : l'iframe n'existe pas tant que l'utilisateur ne clique pas
+
+#### Galerie / pages produit
+
+**Fichiers** :
+- `src/designs/architectural/MarketplaceLayout.jsx`
+- `src/designs/architectural/components/ProductCard.jsx`
+- `src/designs/architectural/ArchitecturalProductDetail.jsx`
+
+Optimisations :
+- scroll vers les collections via Lenis
+- `contain-intrinsic-size: auto 480px` sur les wrappers galerie
+- correction `fetchpriority="high"` pour éviter le warning React
+- file d'attente idle pour la détection letterbox, avec report si Lenis est en train de scroller
+- lightbox produit verrouille Lenis
+- sections recommandations/piliers en `.tat-heavy-section`
+- vidéo produit en click-to-load
+
+#### Accueil
+
+**Fichiers** :
+- `src/pages/HomeView.jsx`
+- `src/components/home/StackedCards.jsx`
+- `src/components/home/ThreeBackground.jsx`
+
+Optimisations :
+- anchors internes via Lenis
+- curseur custom via `gsap.quickTo` au lieu de `gsap.to` à chaque mousemove
+- cleanup explicite du listener curseur
+- préchargement d'images limité aux premières images utiles et lancé en idle
+- suppression de `will-change` permanent sur les cartes empilées
+- images secondaires en lazy-loading
+- ThreeBackground ralenti quand il est en pause, au lieu de continuer un RAF plein régime
+
+### 8.3 Vérification
+
+**Build**
+
+```bash
+npm run build
+```
+
+Résultat : build OK. Le seul warning restant est le warning Vite habituel sur les gros chunks (`firebase`, `xlsx`, `three`, etc.).
+
+**Test browser Playwright**
+
+Serveur local : `http://127.0.0.1:5175`
+
+Parcours testé :
+- Home
+- Galerie Mobilier
+- Galerie Planches
+- Le Comptoir
+- Page produit
+
+Mesures synthétiques pendant scroll Lenis programmatique :
+
+| Page | Lenis | Hauteur scroll | Cartes | Frame moyenne | P95 | Max | Long frames |
+|------|-------|----------------|--------|---------------|-----|-----|-------------|
+| Home | oui | 19814 px | - | 33.63 ms | 50 ms | 83.4 ms | 6 |
+| Galerie Mobilier | oui | 5256 px | 24 | 17.07 ms | 16.8 ms | 33.4 ms | 0 |
+| Galerie Planches | oui | 5138 px | 24 | 16.87 ms | 16.8 ms | 33.4 ms | 0 |
+| Le Comptoir | oui | 12849 px | 44 | 20.19 ms | 33.4 ms | 50 ms | 0 |
+| Page produit | oui | 2507 px | 4 | 19.93 ms | 33.4 ms | 50 ms | 0 |
+
+**Conclusion** : Mobilier, Planches, Le Comptoir et les pages produit sont désormais nettement plus stables. L'accueil reste la page la plus lourde du site, mais les causes de freeze les plus évidentes ont été réduites : moins de RAF concurrents, moins de travail image pendant le scroll, moins de préchargement agressif, moins de renders React liés au scroll.
+
+### 8.4 Pistes restantes
+
+- Mesurer l'accueil en conditions réelles sur mobile Android/iOS, car c'est la seule page qui garde quelques longues frames en test de stress.
+- Envisager un découpage plus profond de certains bundles (`firebase`, `xlsx`, admin) pour réduire la charge initiale.
+- Si le hero 3D de l'accueil reste sensible sur appareils modestes, ajouter une qualité adaptative basée sur `deviceMemory`, `hardwareConcurrency` ou le premier score de frame time.

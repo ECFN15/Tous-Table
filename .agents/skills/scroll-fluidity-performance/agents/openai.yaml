@@ -1,0 +1,4 @@
+interface:
+  display_name: "Scroll Fluidity Performance"
+  short_description: "Audit and fix scroll jank with high standards"
+  default_prompt: "Use $scroll-fluidity-performance to audit scroll smoothness, fix jank, and validate performance across key app pages."
