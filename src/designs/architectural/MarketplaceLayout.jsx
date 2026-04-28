@@ -585,7 +585,7 @@ const MarketplaceLayout = ({
 
                         {/* HAUT — Collection 2026 + switcher centré */}
                         <div className="flex flex-col items-center text-center">
-                            <p className="text-[#dba45f] text-[11px] md:text-xs font-black uppercase tracking-[0.42em] mb-10 md:mb-12">
+                            <p className="relative top-4 text-[#dba45f] text-[11px] md:text-xs font-black uppercase tracking-[0.42em] mb-10 md:mb-12">
                                 Collection 2026
                             </p>
                             <div className="mt-8 md:mt-10">
@@ -599,7 +599,7 @@ const MarketplaceLayout = ({
                         </div>
 
                         {/* BAS — Titre + description + CTA */}
-                        <div className="mt-20 md:mt-24 flex items-end justify-between">
+                        <div className="mt-14 md:mt-16 flex items-end justify-between">
                             <div className="max-w-2xl">
                                 <h1 className="font-serif text-[4.6rem] leading-[0.82] md:text-[7.8rem] lg:text-[8.6rem] tracking-tight text-white drop-shadow-[0_10px_35px_rgba(0,0,0,0.65)]">
                                     <span className="block h-[1.64em] overflow-hidden">
@@ -620,7 +620,7 @@ const MarketplaceLayout = ({
                                         />
                                     </span>
                                 </h1>
-                                <p className="mt-6 md:mt-8 max-w-xl font-serif text-[1.35rem] md:text-[1.7rem] leading-[1.28] text-[#efc489]">
+                                <p className="mt-9 md:mt-11 max-w-xl font-serif text-[1.35rem] md:text-[1.7rem] leading-[1.28] text-[#efc489]">
                                     Mobilier ancien restauré et pièces artisanales en bois massif. Chaque meuble raconte une histoire, chaque pièce est unique.
                                 </p>
                                 <button

@@ -120,12 +120,12 @@ const ArchitecturalHeader = ({
                         className="flex flex-col leading-none text-left cursor-pointer group"
                         onClick={() => { window.location.href = '/'; }}
                     >
-                        <span className={`${isGalleryHeader ? 'font-serif normal-case text-[1.05rem] md:text-xl lg:text-2xl tracking-[0.03em]' : 'font-black uppercase text-sm tracking-widest'} transition-colors ${
+                        <span className={`${isGalleryHeader ? 'font-serif normal-case text-[1.3rem] md:text-2xl lg:text-3xl tracking-[0.03em]' : 'font-black uppercase text-sm tracking-widest'} transition-colors ${
                             isGalleryHeader || darkMode ? 'text-stone-100 group-hover:text-[#f0b969]' : 'text-stone-900 group-hover:text-stone-600'
                         }`}>
                             Tous à Table
                         </span>
-                        <span className={`font-serif italic ${isGalleryHeader ? 'text-[11px] md:text-sm lg:text-base text-[#dba45f]' : `text-xs mt-1 ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}`}>
+                        <span className={`font-serif italic ${isGalleryHeader ? 'text-[12px] md:text-sm lg:text-base text-[#dba45f] mt-0.5' : `text-xs mt-1 ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}`}>
                             Atelier Normand
                         </span>
                     </button>
