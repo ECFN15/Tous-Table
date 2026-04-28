@@ -583,8 +583,8 @@ const MarketplaceLayout = ({
 
                     <div className="relative z-10 max-w-[1920px] mx-auto px-6 md:px-16 pt-10 md:pt-14 pb-14 md:pb-20 min-h-[calc(100vh-5rem)] md:min-h-[560px] lg:min-h-[620px] flex flex-col justify-start">
 
-                        {/* HAUT — Collection 2026 + switcher centré */}
-                        <div className="flex flex-col items-center text-center">
+                        {/* HAUT — Collection 2026 + switcher centré (mobile/tablette uniquement, sur desktop la nav est dans le header) */}
+                        <div className="flex flex-col items-center text-center lg:hidden">
                             <p className="relative top-4 text-[#dba45f] text-[11px] md:text-xs font-black uppercase tracking-[0.42em] mb-10 md:mb-12">
                                 Collection 2026
                             </p>
@@ -599,8 +599,11 @@ const MarketplaceLayout = ({
                         </div>
 
                         {/* BAS — Titre + description + CTA */}
-                        <div className="mt-14 md:mt-16 flex items-end justify-between">
+                        <div className="mt-14 md:mt-16 lg:mt-auto flex items-end justify-between">
                             <div className="max-w-2xl">
+                                <p className="hidden lg:block text-[#dba45f] text-[11px] md:text-xs font-black uppercase tracking-[0.42em] mb-5 md:mb-7">
+                                    Collection 2026
+                                </p>
                                 <h1 className="font-serif text-[4.6rem] leading-[0.82] md:text-[7.8rem] lg:text-[8.6rem] tracking-tight text-white drop-shadow-[0_10px_35px_rgba(0,0,0,0.65)]">
                                     <span className="block h-[1.64em] overflow-hidden">
                                         <TextType

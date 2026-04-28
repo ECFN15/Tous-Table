@@ -76,7 +76,7 @@ const ArchitecturalHeader = ({
     toggleTheme,
     darkMode
 }) => {
-    const { setActiveCollection, title } = headerProps || {};
+    const { activeCollection, setActiveCollection, setFilter, onOpenShop, title } = headerProps || {};
     const isShopView = title === "Le Comptoir";
     const isGalleryHeader = Boolean(setActiveCollection) || isShopView;
     useLiveTheme();
@@ -84,6 +84,17 @@ const ArchitecturalHeader = ({
 
     const [isVisible, setIsVisible] = useState(true);
     const lastScrollY = React.useRef(0);
+
+    const navButtonClass = (isActive = false) => `group relative inline-flex h-16 md:h-[78px] items-center gap-2 border-b text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] transition-colors ${
+        isActive
+            ? 'border-[#dba45f] text-white'
+            : 'border-transparent text-stone-300 hover:border-[#dba45f]/70 hover:text-white'
+    }`;
+    const navIconClass = 'shrink-0 text-current opacity-90 transition-colors';
+
+    const goToGallery = () => {
+        if (typeof window !== 'undefined') window.location.hash = 'gallery';
+    };
 
     useEffect(() => {
         const handleScroll = () => {
@@ -131,10 +142,58 @@ const ArchitecturalHeader = ({
                     </button>
                 </div>
 
-                {!isGalleryHeader && setActiveCollection && (
-                    <div className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center justify-center z-0 w-max">
-                        <nav className="flex items-center gap-10" />
-                    </div>
+                {isGalleryHeader && (
+                    <nav className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-8 xl:gap-10 z-0 w-max">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (isShopView) {
+                                    goToGallery();
+                                } else {
+                                    setActiveCollection?.('furniture');
+                                    setFilter?.('fixed');
+                                }
+                            }}
+                            className={navButtonClass(activeCollection === 'furniture' && !isShopView)}
+                        >
+                            <FurnitureHeaderIcon size={18} className={navIconClass} />
+                            Mobilier
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (isShopView) {
+                                    goToGallery();
+                                } else {
+                                    setActiveCollection?.('cutting_boards');
+                                }
+                            }}
+                            className={navButtonClass(activeCollection === 'cutting_boards' && !isShopView)}
+                        >
+                            <BreadBoardHeaderIcon size={18} className={navIconClass} />
+                            Planches
+                        </button>
+                        {(onOpenShop || isShopView) && (
+                            <button
+                                type="button"
+                                onClick={onOpenShop || (() => {})}
+                                className={`${navButtonClass(isShopView)} relative`}
+                            >
+                                <CounterHeaderIcon size={18} className={navIconClass} />
+                                Le Comptoir
+                                <span className="absolute top-2 -right-3 pointer-events-none">
+                                    <span className="relative inline-flex items-center justify-center rounded-full bg-[#f0c987] px-2 py-[3px] text-[8px] font-black uppercase tracking-[0.18em] text-stone-900 shadow-[0_2px_8px_rgba(240,201,135,0.25)]">
+                                        New
+                                        <svg className="absolute -top-2 -right-2" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#f0c987" strokeWidth="1.4" strokeLinecap="round" aria-hidden="true">
+                                            <line x1="8" y1="3" x2="11" y2="0.5" />
+                                            <line x1="11" y1="6" x2="13.5" y2="5" />
+                                            <line x1="11" y1="9" x2="13.5" y2="10.5" />
+                                        </svg>
+                                    </span>
+                                </span>
+                            </button>
+                        )}
+                    </nav>
                 )}
 
                 <div className={`${isGalleryHeader ? 'ml-auto gap-1.5 md:gap-3' : 'gap-2 md:gap-4'} flex items-center z-10`}>
