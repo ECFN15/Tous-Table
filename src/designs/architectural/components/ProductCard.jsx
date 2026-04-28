@@ -1,6 +1,11 @@
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { Plus } from 'lucide-react';
 import AuctionTimer from '../../../components/ui/AuctionTimer';
+
+// Cache module-level : survit aux unmount/remount des cartes (changement de filtre/catégorie).
+// Tue le "flash de carrés" quand on switche de catégorie : si on a déjà calculé le ratio
+// d'une image, on le rejoue immédiatement sans attendre onLoad.
+const RATIO_CACHE = new Map();
 
 const getImage = (item) => item?.images?.[0] || item?.imageUrl || item?.thumbnailUrl || '';
 const getPrice = (item) => item?.currentPrice || item?.startingPrice || item?.price;
@@ -31,20 +36,17 @@ const ProductCard = ({
     const stock = item.sold ? 0 : (item.stock !== undefined ? item.stock : 1);
     const topLabel = getTopLabel(item);
 
-    // Carte = ratio image naturel (mis à jour dès que l'image est chargée)
-    const [aspectRatio, setAspectRatio] = useState(null);
-    const [objectPos, setObjectPos] = useState('center');
+    // Hydratation depuis le cache module → pas de flash de carrés au switch de catégorie.
+    const cached = image ? RATIO_CACHE.get(image) : null;
+    const [aspectRatio, setAspectRatio] = useState(cached?.aspectRatio || null);
+    const [objectPos, setObjectPos] = useState(cached?.objectPos || 'center');
+    const imgRef = useRef(null);
 
-    const handleImageLoad = (e) => {
-        const img = e.currentTarget;
+    // Détection letterbox déférée à l'idle thread : ne bloque plus le rendu initial.
+    // Coûteux (~5–10ms par image en getImageData) → ne fige plus la grille au mount massif.
+    const detectLetterbox = (img, fastRatio) => {
         const w = img.naturalWidth;
         const h = img.naturalHeight;
-        if (!w || !h) return;
-
-        let topPct = 0;
-        let bottomPct = 0;
-
-        // Détection des bandes noires en haut/bas via canvas (CORS requis)
         try {
             const canvas = document.createElement('canvas');
             const SAMPLE = 100;
@@ -56,7 +58,7 @@ const ProductCard = ({
 
             const isBlack = (y) => {
                 const i = y * 4;
-                return data[i] + data[i + 1] + data[i + 2] < 30; // seuil très sombre
+                return data[i] + data[i + 1] + data[i + 2] < 30;
             };
 
             let topRows = 0;
@@ -64,30 +66,52 @@ const ProductCard = ({
             let bottomRows = 0;
             while (bottomRows < SAMPLE && isBlack(SAMPLE - 1 - bottomRows)) bottomRows += 1;
 
-            topPct = topRows / SAMPLE;
-            bottomPct = bottomRows / SAMPLE;
+            let topPct = topRows / SAMPLE;
+            let bottomPct = bottomRows / SAMPLE;
 
-            // Sécurité : si > 60% de noir, ce n'est probablement pas un letterbox mais une vraie photo sombre
-            if (topPct + bottomPct > 0.6) {
-                topPct = 0;
-                bottomPct = 0;
+            // > 60% de noir = vraie photo sombre, pas un letterbox.
+            if (topPct + bottomPct > 0.6) return;
+
+            if (topPct > 0 || bottomPct > 0) {
+                const contentH = h * (1 - topPct - bottomPct);
+                const newRatio = `${w} / ${Math.round(contentH)}`;
+                const total = topPct + bottomPct;
+                const posY = total > 0 ? (topPct / total) * 100 : 50;
+                const newPos = `center ${posY}%`;
+                setAspectRatio(newRatio);
+                setObjectPos(newPos);
+                if (image) RATIO_CACHE.set(image, { aspectRatio: newRatio, objectPos: newPos });
             }
         } catch (err) {
-            // CORS ou erreur canvas → on retombe sur le ratio natif
-        }
-
-        if (topPct > 0 || bottomPct > 0) {
-            // Letterbox détecté → ratio de contenu (sans bandes) + crop centré sur le contenu
-            const contentH = h * (1 - topPct - bottomPct);
-            setAspectRatio(`${w} / ${Math.round(contentH)}`);
-            const total = topPct + bottomPct;
-            const posY = total > 0 ? (topPct / total) * 100 : 50;
-            setObjectPos(`center ${posY}%`);
-        } else {
-            setAspectRatio(`${w} / ${h}`);
-            setObjectPos('center');
+            // CORS bloque le canvas → ratio natif déjà appliqué, on s'arrête là.
         }
     };
+
+    const applyNaturalRatio = (img) => {
+        const w = img.naturalWidth;
+        const h = img.naturalHeight;
+        if (!w || !h) return;
+        const fastRatio = `${w} / ${h}`;
+        // On pose le ratio natif IMMÉDIATEMENT (pas de carré) puis on défère l'analyse letterbox.
+        setAspectRatio((prev) => prev || fastRatio);
+        if (image && !RATIO_CACHE.has(image)) {
+            RATIO_CACHE.set(image, { aspectRatio: fastRatio, objectPos: 'center' });
+        }
+        const idle = window.requestIdleCallback || ((cb) => setTimeout(cb, 1));
+        idle(() => detectLetterbox(img, fastRatio), { timeout: 800 });
+    };
+
+    const handleImageLoad = (e) => applyNaturalRatio(e.currentTarget);
+
+    // Filet de sécurité : si l'image est en cache HTTP, onLoad peut ne pas se déclencher
+    // après mount selon le navigateur. On lit naturalWidth synchroniquement via le ref.
+    useEffect(() => {
+        if (aspectRatio) return;
+        const img = imgRef.current;
+        if (img && img.complete && img.naturalWidth > 0) {
+            applyNaturalRatio(img);
+        }
+    }, [image, aspectRatio]);
 
     return (
         <a
@@ -98,18 +122,20 @@ const ProductCard = ({
                     onClick?.();
                 }
             }}
-            style={aspectRatio ? { aspectRatio } : { minHeight: '280px' }}
+            style={{ aspectRatio: aspectRatio || '4 / 5', contain: 'layout paint' }}
             className={`group relative block overflow-hidden rounded-[6px] border border-[#3a2a18]/60 bg-[#0a0a09] text-white no-underline shadow-[0_22px_60px_rgba(0,0,0,0.35)] ${className}`}
         >
             {/* Image remplit la carte — bandes noires recadrées via aspect-ratio + object-position si CORS le permet */}
             {image && (
                 <img
+                    ref={imgRef}
                     src={image}
                     alt={item.name}
                     onLoad={handleImageLoad}
                     style={{ objectPosition: objectPos }}
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.04]"
                     loading="lazy"
+                    decoding="async"
                 />
             )}
 

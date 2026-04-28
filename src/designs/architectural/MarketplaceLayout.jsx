@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ProductCard from './components/ProductCard';
 import { ArrowDown, ArrowRight, ChevronDown, Hammer, ShieldCheck, Tag, Truck } from 'lucide-react';
 import TextType from '../../components/ui/TextType';
@@ -211,12 +211,22 @@ const MarketplaceLayout = ({
     const [sortMode, setSortMode] = useState('recent');
     const [visibleCount, setVisibleCount] = useState(24);
 
+    // Index à partir duquel les items doivent jouer l'animation d'entrée.
+    // Bumpé uniquement quand l'utilisateur clique "Voir plus" → on n'anime que les NOUVELLES cartes.
+    // Reset à Infinity sur changement de filtre → pas de pop indésirable au filtrage.
+    const freshStartIndexRef = useRef(Infinity);
+
     useEffect(() => {
         if (setHeaderProps && headerProps) setHeaderProps(headerProps);
         return () => {
             if (setHeaderProps) setHeaderProps(null);
         };
     }, [activeCollection, setHeaderProps]);
+
+    // Reset du flag d'animation à chaque changement de filtre.
+    useEffect(() => {
+        freshStartIndexRef.current = Infinity;
+    }, [activeCategory, activeMaterial, activePriceRange, sortMode]);
 
     // Options matière déduites dynamiquement des meubles réellement présents.
     const materialOptions = useMemo(() => {
@@ -258,6 +268,39 @@ const MarketplaceLayout = ({
 
     const visibleItems = sortedItems.slice(0, visibleCount);
     const heroConfig = HERO_BY_COLLECTION[activeCollection] || HERO_BY_COLLECTION.furniture;
+
+    const loadMore = useCallback(() => {
+        // Pose la frontière AVANT de bumper visibleCount → les items au-delà s'animeront.
+        freshStartIndexRef.current = visibleCount;
+        setVisibleCount((count) => count + 12);
+    }, [visibleCount]);
+
+    // Préchauffe le cache HTTP pour la catégorie survolée (desktop) → ratios déjà calculables
+    // au moment où l'utilisateur clique sur la pill. Limité à 8 images pour ne pas saturer.
+    const preloadedRef = useRef(new Set());
+    const preloadCategory = useCallback((categoryId) => {
+        const key = `${categoryId}-${activeMaterial}-${activePriceRange}-${sortMode}`;
+        if (preloadedRef.current.has(key)) return;
+        preloadedRef.current.add(key);
+        const pool = items.filter((item) => {
+            if (categoryId !== 'all' && getFurnitureCategory(item) !== categoryId) return false;
+            if (activeMaterial && item.material !== activeMaterial) return false;
+            if (priceRange) {
+                if (item.priceOnRequest) return false;
+                const p = getPrice(item);
+                if (p < priceRange.min || p >= priceRange.max) return false;
+            }
+            return true;
+        }).slice(0, 8);
+        pool.forEach((item) => {
+            const url = item?.images?.[0] || item?.imageUrl || item?.thumbnailUrl;
+            if (url) {
+                const img = new Image();
+                img.decoding = 'async';
+                img.src = url;
+            }
+        });
+    }, [items, activeMaterial, activePriceRange, priceRange, sortMode]);
 
     const scrollToCollection = () => {
         const target = document.getElementById('collection-grid');
@@ -363,6 +406,8 @@ const MarketplaceLayout = ({
                                     return (
                                         <button
                                             key={category.id}
+                                            onMouseEnter={() => preloadCategory(category.id)}
+                                            onFocus={() => preloadCategory(category.id)}
                                             onClick={() => {
                                                 setActiveCategory(category.id);
                                                 setVisibleCount(24);
@@ -466,20 +511,39 @@ const MarketplaceLayout = ({
                           aucun flicker au switch de filtre. Les cartes prennent leur hauteur naturelle
                           (aspect-ratio image) et le navigateur gère la composition (GPU compositor).
                           Ordre column-major standard (style Pinterest). */}
+                    {/* Keyframes locales — animation jouée uniquement sur les items frais (Voir plus). */}
+                    <style>{`
+                        @keyframes tatCardEnter {
+                            0%   { opacity: 0; transform: translate3d(0, 22px, 0) scale(0.97); }
+                            100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+                        }
+                        .tat-fresh-card {
+                            animation: tatCardEnter 700ms cubic-bezier(0.23, 1, 0.32, 1) both;
+                            will-change: transform, opacity;
+                        }
+                    `}</style>
                     {visibleItems.length === 0 ? (
                         <div className="min-h-80 border border-[#8a5b2a]/40 flex items-center justify-center text-center">
                             <p className="font-serif text-2xl text-stone-400">Aucune pièce disponible.</p>
                         </div>
                     ) : (
                         <div className="mt-2 md:mt-4 columns-2 md:columns-3 lg:columns-4 gap-3 [column-fill:_balance]">
-                            {visibleItems.map((item) => (
-                                <div key={item.id} className="mb-3 break-inside-avoid">
-                                    <ProductCard
-                                        item={item}
-                                        onClick={() => onSelectItem(item.id)}
-                                    />
-                                </div>
-                            ))}
+                            {visibleItems.map((item, index) => {
+                                const isFresh = index >= freshStartIndexRef.current;
+                                const delay = isFresh ? Math.min((index - freshStartIndexRef.current) * 55, 600) : 0;
+                                return (
+                                    <div
+                                        key={item.id}
+                                        className={`mb-3 break-inside-avoid ${isFresh ? 'tat-fresh-card' : ''}`}
+                                        style={isFresh ? { animationDelay: `${delay}ms` } : undefined}
+                                    >
+                                        <ProductCard
+                                            item={item}
+                                            onClick={() => onSelectItem(item.id)}
+                                        />
+                                    </div>
+                                );
+                            })}
                         </div>
                     )}
 
@@ -487,7 +551,7 @@ const MarketplaceLayout = ({
                         <div className="flex justify-center pt-10">
                             <button
                                 type="button"
-                                onClick={() => setVisibleCount((count) => count + 12)}
+                                onClick={loadMore}
                                 className="inline-flex h-14 min-w-[280px] items-center justify-center gap-6 border border-[#dba45f] px-8 text-[#f0b969] text-[11px] font-black uppercase tracking-[0.26em] transition-all hover:bg-[#dba45f] hover:text-black"
                             >
                                 Voir plus de produits
