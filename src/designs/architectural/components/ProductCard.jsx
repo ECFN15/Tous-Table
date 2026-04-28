@@ -5,7 +5,10 @@ import AuctionTimer from '../../../components/ui/AuctionTimer';
 // Cache module-level : survit aux unmount/remount des cartes (changement de filtre/catégorie).
 // Tue le "flash de carrés" quand on switche de catégorie : si on a déjà calculé le ratio
 // d'une image, on le rejoue immédiatement sans attendre onLoad.
-const RATIO_CACHE = new Map();
+// Exporté pour que MarketplaceLayout puisse pré-calculer la hauteur prédite d'une carte
+// avant le placement masonry (on évite ainsi le besoin de mesurer le DOM, qui dépendrait
+// du chargement asynchrone des images).
+export const RATIO_CACHE = new Map();
 
 const getImage = (item) => item?.images?.[0] || item?.imageUrl || item?.thumbnailUrl || '';
 const getPrice = (item) => item?.currentPrice || item?.startingPrice || item?.price;

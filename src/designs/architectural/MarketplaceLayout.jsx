@@ -1,7 +1,49 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import ProductCard from './components/ProductCard';
+import ProductCard, { RATIO_CACHE } from './components/ProductCard';
 import { ArrowDown, ArrowRight, ChevronDown, Hammer, ShieldCheck, Tag, Truck } from 'lucide-react';
 import TextType from '../../components/ui/TextType';
+
+// Nombre de colonnes responsive — aligné sur les breakpoints Tailwind utilisés dans
+// l'ancien `columns-2 md:columns-3 lg:columns-4`.
+const useResponsiveCols = () => {
+    const compute = () => {
+        if (typeof window === 'undefined') return 4;
+        const w = window.innerWidth;
+        if (w < 768) return 2;
+        if (w < 1024) return 3;
+        return 4;
+    };
+    const [cols, setCols] = useState(compute);
+    useEffect(() => {
+        let raf = 0;
+        const onResize = () => {
+            cancelAnimationFrame(raf);
+            raf = requestAnimationFrame(() => setCols(compute()));
+        };
+        window.addEventListener('resize', onResize);
+        return () => {
+            cancelAnimationFrame(raf);
+            window.removeEventListener('resize', onResize);
+        };
+    }, []);
+    return cols;
+};
+
+// Ratio hauteur/largeur prédit pour une carte (en multiples de la largeur de colonne).
+// On lit le `RATIO_CACHE` partagé avec `ProductCard` ; à défaut, fallback portrait 4:5
+// (= 1.25), qui est le ratio par défaut posé sur le `<a>` quand l'image n'est pas chargée.
+const FALLBACK_HEIGHT_RATIO = 5 / 4;
+const getPredictedHeightRatio = (item) => {
+    const img = item?.images?.[0] || item?.imageUrl || item?.thumbnailUrl;
+    if (!img) return FALLBACK_HEIGHT_RATIO;
+    const cached = RATIO_CACHE.get(img);
+    if (!cached?.aspectRatio) return FALLBACK_HEIGHT_RATIO;
+    const parts = String(cached.aspectRatio).split('/');
+    const w = parseFloat(parts[0]);
+    const h = parseFloat(parts[1]);
+    if (!w || !h) return FALLBACK_HEIGHT_RATIO;
+    return h / w;
+};
 
 // Taxonomie mobilier — slugs alignés avec AdminForm.FURNITURE_CATEGORIES.
 // L'identifiant `all` est la pill par défaut ; les autres correspondent au champ Firestore `category`.
@@ -210,16 +252,26 @@ const MarketplaceLayout = ({
     const [activePriceRange, setActivePriceRange] = useState('');
     const [sortMode, setSortMode] = useState('recent');
 
-    // === ARCHITECTURE PAR BATCHES ===
-    // Chaque batch est rendu dans SON PROPRE conteneur `columns`. Ainsi les cartes des batches
-    // précédents NE BOUGENT JAMAIS quand on clique "Voir plus" — le nouveau batch s'empile
-    // proprement dessous sans déranger l'équilibrage des colonnes existantes.
-    // batchBoundaries = bornes de fin (exclusives) de chaque batch. [24] = un seul batch [0, 24).
-    // Après "Voir plus" : [24, 36] = batch 0 [0,24), batch 1 [24,36).
-    const [batchBoundaries, setBatchBoundaries] = useState([24]);
-    // Index du dernier batch ajouté (qui doit jouer l'animation d'entrée).
-    // -1 = état initial, aucun batch frais.
-    const [freshBatchIndex, setFreshBatchIndex] = useState(-1);
+    // === ARCHITECTURE MASONRY JS-DRIVEN ===
+    // On rend N colonnes flex-col indépendantes (cf. NUM_COLS responsive). Chaque carte est
+    // assignée à UNE colonne au moment où elle est traitée par l'algo "shortest-column-first" ;
+    // cette assignation est implicitement stable car :
+    //   - L'ordre des items dans `sortedItems` ne change pas tant que les filtres ne changent pas
+    //   - Les hauteurs prédites par item sont gelées à la première rencontre (`heightsRef`),
+    //     donc une mise à jour ultérieure du `RATIO_CACHE` (letterbox détecté) ne décale pas
+    //     les anciennes cartes
+    //   - Quand on clique "Voir plus", les 24 premiers items sont re-traités à l'identique
+    //     (mêmes hauteurs gelées) → ils retombent dans les mêmes colonnes ; les 12 nouveaux
+    //     items s'insèrent dans la colonne actuellement la plus courte.
+    // Conséquence : zéro reflow des cartes existantes, vrai masonry continu (pas de "trous"
+    // sous les colonnes courtes comme avec l'ancien chunking par batch).
+    const NUM_COLS = useResponsiveCols();
+    const [visibleCount, setVisibleCount] = useState(24);
+    // Map<itemId, indexDansLeBatchFrais> — uniquement pour les nouveaux items à animer.
+    // Vide à l'état initial et après reset des filtres → aucune animation parasite.
+    const [freshOrder, setFreshOrder] = useState(() => new Map());
+    // Map<itemId, ratio h/w> — gelé à la première rencontre pour figer les placements.
+    const heightsRef = useRef(new Map());
 
     useEffect(() => {
         if (setHeaderProps && headerProps) setHeaderProps(headerProps);
@@ -259,11 +311,13 @@ const MarketplaceLayout = ({
 
     const hasActiveFilters = activeCategory !== 'all' || activeMaterial !== '' || activePriceRange !== '';
 
-    // Reset à l'état initial : un seul batch de 24, pas de batch frais.
-    // Appelé sur tout changement de filtre / catégorie / matière / tri.
+    // Reset à l'état initial : 24 items visibles, aucun item frais à animer, hauteurs effacées.
+    // Appelé sur tout changement de filtre / catégorie / matière / tri (l'ordre des items change
+    // → les placements précédents n'ont plus de sens, on repart à zéro).
     const resetView = useCallback(() => {
-        setBatchBoundaries([24]);
-        setFreshBatchIndex(-1);
+        heightsRef.current = new Map();
+        setVisibleCount(24);
+        setFreshOrder(new Map());
     }, []);
 
     const resetAllFilters = useCallback(() => {
@@ -275,28 +329,53 @@ const MarketplaceLayout = ({
 
     const heroConfig = HERO_BY_COLLECTION[activeCollection] || HERO_BY_COLLECTION.furniture;
 
-    // "Voir plus" : append d'un nouveau batch dans son propre conteneur columns.
-    // Aucun item existant ne bouge — le nouveau batch s'empile proprement dessous.
+    // "Voir plus" : on étend simplement la fenêtre visible et on marque les 12 nouveaux items
+    // comme "frais" (avec leur ordre d'apparition dans la salve pour le stagger d'animation).
+    // Le `useMemo` `columnsLayout` ré-exécute l'algo : les 24 premiers retombent à l'identique
+    // grâce aux hauteurs gelées dans `heightsRef`, et les 12 nouveaux s'insèrent dans la
+    // colonne actuellement la plus courte. Aucune carte existante ne bouge.
     const loadMore = useCallback(() => {
-        const newBoundaries = [...batchBoundaries, batchBoundaries[batchBoundaries.length - 1] + 12];
-        setBatchBoundaries(newBoundaries);
-        setFreshBatchIndex(newBoundaries.length - 1);
-    }, [batchBoundaries]);
+        const newCount = Math.min(visibleCount + 12, sortedItems.length);
+        const newSlice = sortedItems.slice(visibleCount, newCount);
+        const order = new Map();
+        newSlice.forEach((item, idx) => order.set(item.id, idx));
+        setFreshOrder(order);
+        setVisibleCount(newCount);
+    }, [visibleCount, sortedItems]);
 
-    // Découpage des items en batches d'après les bornes courantes.
-    // Le batch 0 = items 0..24, batch 1 = 24..36, batch 2 = 36..48, etc.
-    const batches = useMemo(() => {
-        const result = [];
-        let start = 0;
-        for (const end of batchBoundaries) {
-            const chunk = sortedItems.slice(start, end);
-            if (chunk.length > 0) result.push(chunk);
-            start = end;
+    // Quand le nombre de colonnes change (resize fenêtre), les anciens placements ne sont plus
+    // pertinents (l'algo va répartir différemment sur N colonnes vs N±1). On efface les
+    // hauteurs gelées pour permettre un re-placement propre. Pas de reset de visibleCount —
+    // l'utilisateur garde son progrès "Voir plus".
+    useEffect(() => {
+        heightsRef.current = new Map();
+        setFreshOrder(new Map()); // pas d'animation parasite après resize
+    }, [NUM_COLS]);
+
+    // Algo masonry "shortest-column-first" — déterministe pour un même `sortedItems` + heightsRef.
+    // Retourne un tableau de colonnes, chacune contenant la liste des items qui lui sont assignés.
+    const columnsLayout = useMemo(() => {
+        const cols = Array.from({ length: NUM_COLS }, () => ({ items: [], h: 0 }));
+        const visible = sortedItems.slice(0, visibleCount);
+        for (const item of visible) {
+            // Hauteur prédite gelée à la première rencontre (cf. heightsRef).
+            let height = heightsRef.current.get(item.id);
+            if (height === undefined) {
+                height = getPredictedHeightRatio(item);
+                heightsRef.current.set(item.id, height);
+            }
+            // Colonne la plus courte (en cas d'égalité, première colonne gagne → stable).
+            let minIdx = 0;
+            for (let i = 1; i < cols.length; i++) {
+                if (cols[i].h < cols[minIdx].h) minIdx = i;
+            }
+            cols[minIdx].items.push(item);
+            cols[minIdx].h += height;
         }
-        return result;
-    }, [sortedItems, batchBoundaries]);
+        return cols;
+    }, [sortedItems, visibleCount, NUM_COLS]);
 
-    const totalVisible = batches.reduce((sum, b) => sum + b.length, 0);
+    const totalVisible = Math.min(visibleCount, sortedItems.length);
     const hasMore = totalVisible < sortedItems.length;
 
     // Préchauffe le cache HTTP pour la catégorie survolée (desktop) → ratios déjà calculables
@@ -533,11 +612,14 @@ const MarketplaceLayout = ({
                         </div>
                     </div>
 
-                    {/* === MASONRY CSS COLUMNS ===
-                          Layout 100% natif via `column-count` : aucun calcul JS, aucun ResizeObserver,
-                          aucun flicker au switch de filtre. Les cartes prennent leur hauteur naturelle
-                          (aspect-ratio image) et le navigateur gère la composition (GPU compositor).
-                          Ordre column-major standard (style Pinterest). */}
+                    {/* === MASONRY JS-DRIVEN ===
+                          N colonnes flex-col indépendantes (cf. `useResponsiveCols`). Chaque carte est
+                          assignée à une colonne par l'algo "shortest-column-first" et y reste figée
+                          (placements gelés via `heightsRef`). Quand on clique "Voir plus", les nouvelles
+                          cartes s'insèrent dans la colonne la plus courte AU MOMENT du clic — vrai
+                          masonry continu, sans trous sous les colonnes courtes, sans déplacement
+                          d'aucune carte existante (les colonnes étant des conteneurs flex séparés,
+                          le navigateur ne fait JAMAIS de re-balance). */}
                     {/* Keyframes — apparition cinématographique inspirée du skill `high-end-visual-design` :
                         montée prononcée + blur progressif (effet mise au point objectif) + easing Apple.
                         Le blur se résout à 55% de la durée (focus avant la position finale = sensation de
@@ -577,24 +659,25 @@ const MarketplaceLayout = ({
                             <p className="font-serif text-2xl text-stone-400">Aucune pièce disponible.</p>
                         </div>
                     ) : (
-                        // Chaque batch dans SON propre conteneur columns → les cartes des batches
-                        // précédents ne bougent JAMAIS quand on clique "Voir plus". Seul le dernier
-                        // batch (freshBatchIndex) joue l'animation cinématographique d'apparition.
-                        batches.map((batch, batchIndex) => {
-                            const isFreshBatch = batchIndex === freshBatchIndex;
-                            return (
-                                <div
-                                    key={batchIndex}
-                                    className={`columns-2 md:columns-3 lg:columns-4 gap-3 [column-fill:_balance] ${batchIndex === 0 ? 'mt-2 md:mt-4' : ''}`}
-                                >
-                                    {batch.map((item, itemIndex) => {
-                                        // Stagger 90ms cap 1080ms — uniquement sur le batch frais.
-                                        const delay = isFreshBatch ? Math.min(itemIndex * 90, 1080) : 0;
+                        // N colonnes flex indépendantes, chacune avec ses items en stack vertical.
+                        // Aucune carte ne change de colonne au clic "Voir plus" — les nouveaux items
+                        // s'insèrent dans la colonne la plus courte alors que les anciennes restent
+                        // exactement où elles sont (DOM stable, pas de re-balance navigateur).
+                        <div className="flex gap-3 mt-2 md:mt-4 items-start">
+                            {columnsLayout.map((col, colIdx) => (
+                                <div key={colIdx} className="flex-1 min-w-0 flex flex-col gap-3">
+                                    {col.items.map((item) => {
+                                        const orderIdx = freshOrder.get(item.id);
+                                        const isFresh = orderIdx !== undefined;
+                                        // Stagger 80ms cap 960ms — basé sur l'ordre d'apparition
+                                        // dans la salve (pas l'ordre dans la colonne) pour un
+                                        // déferlement visuel cohérent à l'écran.
+                                        const delay = isFresh ? Math.min(orderIdx * 80, 960) : 0;
                                         return (
                                             <div
                                                 key={item.id}
-                                                className={`mb-3 break-inside-avoid ${isFreshBatch ? 'tat-fresh-card' : ''}`}
-                                                style={isFreshBatch ? { animationDelay: `${delay}ms` } : undefined}
+                                                className={isFresh ? 'tat-fresh-card' : ''}
+                                                style={isFresh ? { animationDelay: `${delay}ms` } : undefined}
                                             >
                                                 <ProductCard
                                                     item={item}
@@ -604,8 +687,8 @@ const MarketplaceLayout = ({
                                         );
                                     })}
                                 </div>
-                            );
-                        })
+                            ))}
+                        </div>
                     )}
 
                     {hasMore && (
