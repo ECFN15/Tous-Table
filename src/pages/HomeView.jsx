@@ -4,9 +4,11 @@ import StackedCards from '../components/home/StackedCards'; // New Import
 import ProcessSection from '../components/home/ProcessSection'; // New Component (Hybrid Layout)
 
 // --- NPM IMPORTS (remplace les anciens CDN) ---
+// NOTE : Lenis n'est plus importé ici. L'instance unique vit au niveau App.jsx via
+// useLenisScroll() (cf. _DOCS/AUDITS/scrolllenis.md). ScrollTrigger reste lockstep avec
+// Lenis grâce à gsap.ticker.add(lenis.raf) dans le hook global.
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import Lenis from '@studio-freight/lenis';
 gsap.registerPlugin(ScrollTrigger);
 
 // Lazy Load Three.js to improve initial bundle size
@@ -443,24 +445,11 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
     return () => ctx.revert();
   }, [scriptsLoaded]);
 
-  // --- INITIALISATION LENIS (Same behavior as old CDN v1.0.42) ---
-  useEffect(() => {
-    if (!scriptsLoaded) return;
-    const isMobileDevice = window.innerWidth < 1024;
-    const lenis = new Lenis({
-      duration: isMobileDevice ? 0.5 : 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      smoothWheel: true,
-      smoothTouch: true,
-      touchMultiplier: isMobileDevice ? 0.8 : 2,
-    });
-    function raf(time) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-    requestAnimationFrame(raf);
-    return () => lenis.destroy();
-  }, [scriptsLoaded]);
+  // --- LENIS — instance hoisée au niveau App.jsx ---
+  // Le smooth-scroll de cette page utilise l'instance unique exposée sur window.__lenis
+  // (cf. src/hooks/useLenisScroll.js). Plus de RAF/Lenis local : ScrollTrigger reste en
+  // lockstep avec Lenis grâce à gsap.ticker.add(lenis.raf) dans le hook global.
+  // Cf. _DOCS/AUDITS/scrolllenis.md pour le contexte de cet audit.
 
   // --- GSAP ORCHESTRATION ---
   useLayoutEffect(() => {

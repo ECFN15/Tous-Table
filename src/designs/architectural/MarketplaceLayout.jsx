@@ -272,6 +272,9 @@ const MarketplaceLayout = ({
     const [freshOrder, setFreshOrder] = useState(() => new Map());
     // Map<itemId, ratio h/w> — gelé à la première rencontre pour figer les placements.
     const heightsRef = useRef(new Map());
+    // Timer pour clear `freshOrder` après la fin de l'animation (libère le will-change
+    // GPU des cartes fraîches). Cf. _DOCS/AUDITS/scrolllenis.md §3.4.B.
+    const freshClearTimerRef = useRef(null);
 
     useEffect(() => {
         if (setHeaderProps && headerProps) setHeaderProps(headerProps);
@@ -315,6 +318,10 @@ const MarketplaceLayout = ({
     // Appelé sur tout changement de filtre / catégorie / matière / tri (l'ordre des items change
     // → les placements précédents n'ont plus de sens, on repart à zéro).
     const resetView = useCallback(() => {
+        if (freshClearTimerRef.current) {
+            clearTimeout(freshClearTimerRef.current);
+            freshClearTimerRef.current = null;
+        }
         heightsRef.current = new Map();
         setVisibleCount(24);
         setFreshOrder(new Map());
@@ -341,7 +348,20 @@ const MarketplaceLayout = ({
         newSlice.forEach((item, idx) => order.set(item.id, idx));
         setFreshOrder(order);
         setVisibleCount(newCount);
+        // Clear le freshOrder 150 ms après la fin de l'animation (1150 ms keyframe + buffer)
+        // → la classe `tat-fresh-card` disparaît → will-change retourne à `auto` → le GPU
+        // libère ses layers dédiés. Sinon ils s'accumulaient à chaque clic "Voir plus".
+        if (freshClearTimerRef.current) clearTimeout(freshClearTimerRef.current);
+        freshClearTimerRef.current = setTimeout(() => {
+            setFreshOrder(new Map());
+            freshClearTimerRef.current = null;
+        }, 1300);
     }, [visibleCount, sortedItems]);
+
+    // Cleanup global du timer au unmount du composant.
+    useEffect(() => () => {
+        if (freshClearTimerRef.current) clearTimeout(freshClearTimerRef.current);
+    }, []);
 
     // Quand le nombre de colonnes change (resize fenêtre), les anciens placements ne sont plus
     // pertinents (l'algo va répartir différemment sur N colonnes vs N±1). On efface les
@@ -653,6 +673,15 @@ const MarketplaceLayout = ({
                                 animation: none;
                             }
                         }
+                        /* Skip le paint des cartes hors viewport pendant le scroll.
+                           Le browser maintient un placeholder de hauteur via contain-intrinsic-size,
+                           puis active layout/paint dès que la carte approche du viewport.
+                           Gain mesuré : ~5× sur le frame-time scroll d'une grille de 100 cartes.
+                           Cf. _DOCS/AUDITS/scrolllenis.md §3.4.A. */
+                        .tat-card-shell {
+                            content-visibility: auto;
+                            contain-intrinsic-size: 0 480px;
+                        }
                     `}</style>
                     {totalVisible === 0 ? (
                         <div className="min-h-80 border border-[#8a5b2a]/40 flex items-center justify-center text-center">
@@ -676,7 +705,7 @@ const MarketplaceLayout = ({
                                         return (
                                             <div
                                                 key={item.id}
-                                                className={isFresh ? 'tat-fresh-card' : ''}
+                                                className={`tat-card-shell ${isFresh ? 'tat-fresh-card' : ''}`}
                                                 style={isFresh ? { animationDelay: `${delay}ms` } : undefined}
                                             >
                                                 <ProductCard

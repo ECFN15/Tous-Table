@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { db, appId, functions, googleProvider } from './firebase/config';
 import { getMillis } from './utils/time';
 import { useLiveTheme } from './hooks/useLiveTheme'; // Import hook for forcedMode check
+import { useLenisScroll } from './hooks/useLenisScroll'; // Smooth scroll global (cf. _DOCS/AUDITS/scrolllenis.md)
 
 import AppRouter from './Router';
 import ErrorBoundary from './components/shared/ErrorBoundary';
@@ -24,7 +25,6 @@ import SEO from './components/shared/SEO';
 import AnalyticsProvider from './components/shared/AnalyticsProvider';
 import { ToastProvider, useToast } from './components/ui/Toast';
 
-
 import MarketplaceDiscovery from './components/home/MarketplaceDiscovery';
 import ArchitecturalHeader from './designs/architectural/components/ArchitecturalHeader';
 import NewsletterModal from './components/auth/NewsletterModal';
@@ -32,6 +32,10 @@ import GlobalMenu from './components/layout/GlobalMenu';
 
 const AppContent = () => {
   const toast = useToast();
+
+  // Smooth scroll global — instance Lenis UNIQUE pour toute l'app, drivée par gsap.ticker
+  // pour rester en lockstep avec ScrollTrigger (cf. _DOCS/AUDITS/scrolllenis.md).
+  useLenisScroll();
 
   // Use Auth Context
   const { user, isAdmin, loading: authLoading, loginWithGoogle, loginWithEmail, signupWithEmail, logout, verifyEmail } = useAuth();

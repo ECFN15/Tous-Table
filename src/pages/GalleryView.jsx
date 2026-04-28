@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useLiveTheme } from '../hooks/useLiveTheme';
-import { useLenisScroll } from '../hooks/useLenisScroll';
+// Note : le smooth scroll Lenis est monté globalement dans App.jsx (cf. _DOCS/AUDITS/scrolllenis.md).
 
 // DESIGNS (Layouts)
 import ArchitecturalLayout from '../designs/architectural/MarketplaceLayout';
@@ -19,9 +19,6 @@ const GalleryView = ({
 
     // THEME & DESIGN HOOK
     const { palette } = useLiveTheme(darkMode);
-
-    // SMOOTH SCROLL — Lenis hooked at window level, frame-rate independent.
-    useLenisScroll();
 
     // --- LOGIC: FILTER & SORT ---
     // 1. Choose collection source

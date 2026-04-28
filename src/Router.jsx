@@ -159,8 +159,8 @@ const AppRouter = ({
                             boardItems={boardItems}
                             isAdmin={isAdmin} isSecretGateOpen={isSecretGateOpen} user={user}
                             onShowLogin={() => setShowFullLogin(true)}
-                            onSelectItem={(id) => { setSelectedItemId(id); setView('detail'); window.scrollTo(0, 0); }}
-                            onOpenShop={() => { setView('shop'); window.location.hash = 'shop'; window.scrollTo(0, 0); }}
+                            onSelectItem={(id) => { setSelectedItemId(id); setView('detail'); window.__lenis?.scrollTo(0, { immediate: true }); }}
+                            onOpenShop={() => { setView('shop'); window.location.hash = 'shop'; window.__lenis?.scrollTo(0, { immediate: true }); }}
                             darkMode={darkMode}
                             onOpenMenu={onOpenMenu}
                             onOpenCart={onOpenCart}
