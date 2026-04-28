@@ -7,8 +7,7 @@ description: "Expert skill for achieving perfect visual symmetry, independent el
 
 > **Mission** : Rendre l'agent capable de déplacer n'importe quel élément d'une page **indépendamment** des autres, de créer une **symétrie parfaite** entre les marges, et de calibrer des alignements au **pixel près** — comme un expert Figma travaillant en code.
 
-> [!IMPORTANT]
-> Ce skill est **OBLIGATOIRE** dès qu'un utilisateur demande :
+> **OBLIGATOIRE** — Ce skill s'active dès qu'un utilisateur demande :
 > - "Bouge cet élément **mais juste** cet élément"
 > - "Aligne X avec Y"
 > - "Je veux la même marge / le même espacement entre..."
@@ -71,8 +70,7 @@ Si tu augmentes le `margin-bottom` de A, **B descend**. Si tu augmentes le `padd
 
 ## 🔬 PROTOCOLE D'AUDIT OBLIGATOIRE
 
-> [!CAUTION]
-> **AVANT toute modification de positionnement**, si la page n'a pas encore été auditée, l'agent DOIT exécuter un audit structurel. Sans audit, l'agent n'a AUCUNE certitude sur les effets de bord.
+> **ATTENTION** — **AVANT toute modification de positionnement**, si la page n'a pas encore été auditée, l'agent DOIT exécuter un audit structurel. Sans audit, l'agent n'a AUCUNE certitude sur les effets de bord.
 
 ### Quand déclencher un audit ?
 
