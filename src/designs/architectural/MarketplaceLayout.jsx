@@ -209,12 +209,17 @@ const MarketplaceLayout = ({
     const [activeMaterial, setActiveMaterial] = useState('');
     const [activePriceRange, setActivePriceRange] = useState('');
     const [sortMode, setSortMode] = useState('recent');
-    const [visibleCount, setVisibleCount] = useState(24);
 
-    // Index à partir duquel les items doivent jouer l'animation d'entrée.
-    // Bumpé uniquement quand l'utilisateur clique "Voir plus" → on n'anime que les NOUVELLES cartes.
-    // Reset à Infinity sur changement de filtre → pas de pop indésirable au filtrage.
-    const freshStartIndexRef = useRef(Infinity);
+    // === ARCHITECTURE PAR BATCHES ===
+    // Chaque batch est rendu dans SON PROPRE conteneur `columns`. Ainsi les cartes des batches
+    // précédents NE BOUGENT JAMAIS quand on clique "Voir plus" — le nouveau batch s'empile
+    // proprement dessous sans déranger l'équilibrage des colonnes existantes.
+    // batchBoundaries = bornes de fin (exclusives) de chaque batch. [24] = un seul batch [0, 24).
+    // Après "Voir plus" : [24, 36] = batch 0 [0,24), batch 1 [24,36).
+    const [batchBoundaries, setBatchBoundaries] = useState([24]);
+    // Index du dernier batch ajouté (qui doit jouer l'animation d'entrée).
+    // -1 = état initial, aucun batch frais.
+    const [freshBatchIndex, setFreshBatchIndex] = useState(-1);
 
     useEffect(() => {
         if (setHeaderProps && headerProps) setHeaderProps(headerProps);
@@ -222,11 +227,6 @@ const MarketplaceLayout = ({
             if (setHeaderProps) setHeaderProps(null);
         };
     }, [activeCollection, setHeaderProps]);
-
-    // Reset du flag d'animation à chaque changement de filtre.
-    useEffect(() => {
-        freshStartIndexRef.current = Infinity;
-    }, [activeCategory, activeMaterial, activePriceRange, sortMode]);
 
     // Options matière déduites dynamiquement des meubles réellement présents.
     const materialOptions = useMemo(() => {
@@ -259,21 +259,45 @@ const MarketplaceLayout = ({
 
     const hasActiveFilters = activeCategory !== 'all' || activeMaterial !== '' || activePriceRange !== '';
 
+    // Reset à l'état initial : un seul batch de 24, pas de batch frais.
+    // Appelé sur tout changement de filtre / catégorie / matière / tri.
+    const resetView = useCallback(() => {
+        setBatchBoundaries([24]);
+        setFreshBatchIndex(-1);
+    }, []);
+
     const resetAllFilters = useCallback(() => {
         setActiveCategory('all');
         setActiveMaterial('');
         setActivePriceRange('');
-        setVisibleCount(24);
-    }, []);
+        resetView();
+    }, [resetView]);
 
-    const visibleItems = sortedItems.slice(0, visibleCount);
     const heroConfig = HERO_BY_COLLECTION[activeCollection] || HERO_BY_COLLECTION.furniture;
 
+    // "Voir plus" : append d'un nouveau batch dans son propre conteneur columns.
+    // Aucun item existant ne bouge — le nouveau batch s'empile proprement dessous.
     const loadMore = useCallback(() => {
-        // Pose la frontière AVANT de bumper visibleCount → les items au-delà s'animeront.
-        freshStartIndexRef.current = visibleCount;
-        setVisibleCount((count) => count + 12);
-    }, [visibleCount]);
+        const newBoundaries = [...batchBoundaries, batchBoundaries[batchBoundaries.length - 1] + 12];
+        setBatchBoundaries(newBoundaries);
+        setFreshBatchIndex(newBoundaries.length - 1);
+    }, [batchBoundaries]);
+
+    // Découpage des items en batches d'après les bornes courantes.
+    // Le batch 0 = items 0..24, batch 1 = 24..36, batch 2 = 36..48, etc.
+    const batches = useMemo(() => {
+        const result = [];
+        let start = 0;
+        for (const end of batchBoundaries) {
+            const chunk = sortedItems.slice(start, end);
+            if (chunk.length > 0) result.push(chunk);
+            start = end;
+        }
+        return result;
+    }, [sortedItems, batchBoundaries]);
+
+    const totalVisible = batches.reduce((sum, b) => sum + b.length, 0);
+    const hasMore = totalVisible < sortedItems.length;
 
     // Préchauffe le cache HTTP pour la catégorie survolée (desktop) → ratios déjà calculables
     // au moment où l'utilisateur clique sur la pill. Limité à 8 images pour ne pas saturer.
@@ -410,7 +434,7 @@ const MarketplaceLayout = ({
                                             onFocus={() => preloadCategory(category.id)}
                                             onClick={() => {
                                                 setActiveCategory(category.id);
-                                                setVisibleCount(24);
+                                                resetView();
                                             }}
                                             className={`shrink-0 rounded-full border px-4 md:px-5 py-2 md:py-2.5 text-[10px] font-black uppercase tracking-[0.22em] transition-all ${
                                                 active
@@ -436,7 +460,7 @@ const MarketplaceLayout = ({
                                                 value={activeMaterial}
                                                 onChange={(event) => {
                                                     setActiveMaterial(event.target.value);
-                                                    setVisibleCount(24);
+                                                    resetView();
                                                 }}
                                                 className={`h-10 appearance-none rounded-full border bg-transparent pl-4 pr-10 text-[10px] font-black uppercase tracking-[0.22em] outline-none transition-colors cursor-pointer ${
                                                     activeMaterial
@@ -459,7 +483,7 @@ const MarketplaceLayout = ({
                                             value={activePriceRange}
                                             onChange={(event) => {
                                                 setActivePriceRange(event.target.value);
-                                                setVisibleCount(24);
+                                                resetView();
                                             }}
                                             className={`h-10 appearance-none rounded-full border bg-transparent pl-4 pr-10 text-[10px] font-black uppercase tracking-[0.22em] outline-none transition-colors cursor-pointer ${
                                                 activePriceRange
@@ -492,7 +516,10 @@ const MarketplaceLayout = ({
                                     <span className="relative">
                                         <select
                                             value={sortMode}
-                                            onChange={(event) => setSortMode(event.target.value)}
+                                            onChange={(event) => {
+                                                setSortMode(event.target.value);
+                                                resetView();
+                                            }}
                                             className="h-10 appearance-none rounded-full border border-[#8a5b2a]/50 bg-transparent pl-4 pr-10 text-stone-200 text-[10px] font-black uppercase tracking-[0.22em] outline-none transition-colors hover:border-[#dba45f] focus:border-[#dba45f] cursor-pointer"
                                         >
                                             <option value="recent" className="bg-[#0a0a09] text-white">Plus récents</option>
@@ -511,43 +538,77 @@ const MarketplaceLayout = ({
                           aucun flicker au switch de filtre. Les cartes prennent leur hauteur naturelle
                           (aspect-ratio image) et le navigateur gère la composition (GPU compositor).
                           Ordre column-major standard (style Pinterest). */}
-                    {/* Keyframes locales — animation jouée uniquement sur les items frais (Voir plus). */}
+                    {/* Keyframes — apparition cinématographique inspirée du skill `high-end-visual-design` :
+                        montée prononcée + blur progressif (effet mise au point objectif) + easing Apple.
+                        Le blur se résout à 55% de la durée (focus avant la position finale = sensation de
+                        respiration). Animation jouée uniquement sur les items frais (Voir plus). */}
                     <style>{`
                         @keyframes tatCardEnter {
-                            0%   { opacity: 0; transform: translate3d(0, 22px, 0) scale(0.97); }
-                            100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+                            0% {
+                                opacity: 0;
+                                transform: translate3d(0, 56px, 0);
+                                filter: blur(14px);
+                            }
+                            55% {
+                                filter: blur(0);
+                            }
+                            100% {
+                                opacity: 1;
+                                transform: translate3d(0, 0, 0);
+                                filter: blur(0);
+                            }
                         }
                         .tat-fresh-card {
-                            animation: tatCardEnter 700ms cubic-bezier(0.23, 1, 0.32, 1) both;
-                            will-change: transform, opacity;
+                            animation: tatCardEnter 1150ms cubic-bezier(0.32, 0.72, 0, 1) both;
+                            will-change: transform, opacity, filter;
+                            backface-visibility: hidden;
+                        }
+                        .tat-fresh-card > * {
+                            transform: translateZ(0);
+                        }
+                        @media (prefers-reduced-motion: reduce) {
+                            .tat-fresh-card {
+                                animation: none;
+                            }
                         }
                     `}</style>
-                    {visibleItems.length === 0 ? (
+                    {totalVisible === 0 ? (
                         <div className="min-h-80 border border-[#8a5b2a]/40 flex items-center justify-center text-center">
                             <p className="font-serif text-2xl text-stone-400">Aucune pièce disponible.</p>
                         </div>
                     ) : (
-                        <div className="mt-2 md:mt-4 columns-2 md:columns-3 lg:columns-4 gap-3 [column-fill:_balance]">
-                            {visibleItems.map((item, index) => {
-                                const isFresh = index >= freshStartIndexRef.current;
-                                const delay = isFresh ? Math.min((index - freshStartIndexRef.current) * 55, 600) : 0;
-                                return (
-                                    <div
-                                        key={item.id}
-                                        className={`mb-3 break-inside-avoid ${isFresh ? 'tat-fresh-card' : ''}`}
-                                        style={isFresh ? { animationDelay: `${delay}ms` } : undefined}
-                                    >
-                                        <ProductCard
-                                            item={item}
-                                            onClick={() => onSelectItem(item.id)}
-                                        />
-                                    </div>
-                                );
-                            })}
-                        </div>
+                        // Chaque batch dans SON propre conteneur columns → les cartes des batches
+                        // précédents ne bougent JAMAIS quand on clique "Voir plus". Seul le dernier
+                        // batch (freshBatchIndex) joue l'animation cinématographique d'apparition.
+                        batches.map((batch, batchIndex) => {
+                            const isFreshBatch = batchIndex === freshBatchIndex;
+                            return (
+                                <div
+                                    key={batchIndex}
+                                    className={`columns-2 md:columns-3 lg:columns-4 gap-3 [column-fill:_balance] ${batchIndex === 0 ? 'mt-2 md:mt-4' : ''}`}
+                                >
+                                    {batch.map((item, itemIndex) => {
+                                        // Stagger 90ms cap 1080ms — uniquement sur le batch frais.
+                                        const delay = isFreshBatch ? Math.min(itemIndex * 90, 1080) : 0;
+                                        return (
+                                            <div
+                                                key={item.id}
+                                                className={`mb-3 break-inside-avoid ${isFreshBatch ? 'tat-fresh-card' : ''}`}
+                                                style={isFreshBatch ? { animationDelay: `${delay}ms` } : undefined}
+                                            >
+                                                <ProductCard
+                                                    item={item}
+                                                    onClick={() => onSelectItem(item.id)}
+                                                />
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            );
+                        })
                     )}
 
-                    {visibleCount < sortedItems.length && (
+                    {hasMore && (
                         <div className="flex justify-center pt-10">
                             <button
                                 type="button"
