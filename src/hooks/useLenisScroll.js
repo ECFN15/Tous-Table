@@ -5,6 +5,19 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
+const destroyExistingLenis = () => {
+    if (typeof window === 'undefined') return;
+    if (typeof window.__lenisCleanup === 'function') {
+        window.__lenisCleanup();
+        window.__lenisCleanup = null;
+        return;
+    }
+    if (window.__lenis && typeof window.__lenis.destroy === 'function') {
+        window.__lenis.destroy();
+        delete window.__lenis;
+    }
+};
+
 /**
  * Smooth scroll hook — instance Lenis UNIQUE pour toute l'app (à monter dans `App.jsx`).
  *
@@ -35,9 +48,7 @@ export const useLenisScroll = ({ enabled = true } = {}) => {
 
         // Garde-fou hot-reload (Vite HMR peut ré-exécuter l'effet sans démonter le
         // composant) : on détruit l'éventuelle instance précédente avant d'en créer une.
-        if (window.__lenis && typeof window.__lenis.destroy === 'function') {
-            window.__lenis.destroy();
-        }
+        destroyExistingLenis();
 
         const lenis = new Lenis({
             lerp: 0.1,
@@ -49,10 +60,14 @@ export const useLenisScroll = ({ enabled = true } = {}) => {
             touchMultiplier: 1.4,
             gestureOrientation: 'vertical',
             autoRaf: false, // on drive depuis gsap.ticker (cf. ci-dessous)
+            autoResize: true,
         });
 
         lenisRef.current = lenis;
         window.__lenis = lenis;
+        if (window.__lenisLockCount > 0) {
+            lenis.stop?.();
+        }
 
         // === Lockstep avec GSAP ScrollTrigger ===
         // 1) ScrollTrigger update à chaque tick scroll Lenis (avant repaint).
@@ -68,21 +83,24 @@ export const useLenisScroll = ({ enabled = true } = {}) => {
 
         // 3) Désactive le lag-smoothing (sinon ScrollTrigger compense les frames
         //    droppés en avançant les anims plus vite → micro-jumps sur high-Hz).
-        const previousLagSmoothing = gsap.ticker.lagSmoothing();
         gsap.ticker.lagSmoothing(0);
 
-        return () => {
+        const cleanup = () => {
             // Restaure le lag-smoothing précédent (au cas où une autre partie du
             // code l'aurait configuré à autre chose que les défauts).
-            gsap.ticker.lagSmoothing(
-                Array.isArray(previousLagSmoothing) ? previousLagSmoothing[0] : 500,
-                Array.isArray(previousLagSmoothing) ? previousLagSmoothing[1] : 33
-            );
+            gsap.ticker.lagSmoothing(500, 33);
             gsap.ticker.remove(tickerCallback);
             lenis.off('scroll', onLenisScroll);
             lenis.destroy();
             lenisRef.current = null;
             if (window.__lenis === lenis) delete window.__lenis;
+            if (window.__lenisCleanup === cleanup) window.__lenisCleanup = null;
+        };
+
+        window.__lenisCleanup = cleanup;
+
+        return () => {
+            cleanup();
         };
     }, [enabled]);
 

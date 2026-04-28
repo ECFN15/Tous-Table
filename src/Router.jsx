@@ -3,6 +3,7 @@ import React, { Suspense } from 'react';
 import HomeView from './pages/HomeView';
 import OrderSuccessModal from './components/orders/OrderSuccessModal';
 import { motion, AnimatePresence } from 'framer-motion';
+import { scrollToTop } from './utils/smoothScroll';
 
 // --- CODE SPLITTING: Chargement différé des pages secondaires ---
 // Optimisation critique pour mobile : on ne télécharge pas tout d'un coup.
@@ -159,8 +160,8 @@ const AppRouter = ({
                             boardItems={boardItems}
                             isAdmin={isAdmin} isSecretGateOpen={isSecretGateOpen} user={user}
                             onShowLogin={() => setShowFullLogin(true)}
-                            onSelectItem={(id) => { setSelectedItemId(id); setView('detail'); window.__lenis?.scrollTo(0, { immediate: true }); }}
-                            onOpenShop={() => { setView('shop'); window.location.hash = 'shop'; window.__lenis?.scrollTo(0, { immediate: true }); }}
+                            onSelectItem={(id) => { setSelectedItemId(id); setView('detail'); scrollToTop(); }}
+                            onOpenShop={() => { setView('shop'); window.location.hash = 'shop'; scrollToTop(); }}
                             darkMode={darkMode}
                             onOpenMenu={onOpenMenu}
                             onOpenCart={onOpenCart}
@@ -414,7 +415,7 @@ const AppRouter = ({
                                     <AdminItemList
                                         collectionName={adminCollection}
                                         darkMode={darkMode}
-                                        onEdit={(item) => { setEditingItem(item); window.scrollTo(0, 0); }}
+                                onEdit={(item) => { setEditingItem(item); scrollToTop(); }}
                                         onToggleStatus={(item) => handleToggleStatus(item, adminCollection)}
                                         onDelete={(id) => handleDeleteItem(null, id, adminCollection)}
                                         onMarkAsSold={(item) => handleMarkAsSold(item, adminCollection)}

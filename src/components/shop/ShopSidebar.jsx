@@ -1,15 +1,19 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { X } from 'lucide-react';
+import { lockLenis } from '../../utils/smoothScroll';
 
 const ShopSidebar = ({ categories, activeCategory, onCategoryChange, darkMode = false, isMobileOpen = false, onMobileClose }) => {
     useEffect(() => {
+        let unlock = null;
         if (isMobileOpen) {
+            unlock = lockLenis();
             document.body.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = '';
         }
         return () => {
+            unlock?.();
             document.body.style.overflow = '';
         };
     }, [isMobileOpen]);
@@ -156,9 +160,10 @@ const ShopSidebar = ({ categories, activeCategory, onCategoryChange, darkMode = 
                             lg:hidden fixed bottom-0 left-0 right-0
                             max-h-[80vh] rounded-t-[28px]
                             ${darkMode ? 'bg-[#0a0a0a] border-t border-white/10' : 'bg-white border-t border-stone-200'}
-                            overflow-y-auto
+                            overflow-y-auto ios-modal-scroll
                             z-50
                         `}
+                        data-lenis-prevent
                     >
                         {/* Handle */}
                         <div className="sticky top-0 pt-4 pb-2 px-6 flex items-center justify-between">

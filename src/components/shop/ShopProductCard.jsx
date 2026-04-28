@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useCallback, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { trackAffiliateClick } from '../../utils/tracking';
 
@@ -26,7 +25,8 @@ const getTierBadgeClass = (tier, darkMode) => {
 
 const ShopProductCard = ({ product, darkMode = false, compact = false, source = 'shop_grid', parentFurnitureId = null, parentFurnitureName = null }) => {
     const { isAdmin } = useAuth();
-    const [parallax, setParallax] = useState({ x: 0, y: 0 });
+    const imageRef = useRef(null);
+    const frameRef = useRef(0);
     
     const handleAffiliateClick = async (event) => {
         event.preventDefault();
@@ -39,24 +39,33 @@ const ShopProductCard = ({ product, darkMode = false, compact = false, source = 
         });
     };
 
-    const handleMouseMove = (e) => {
+    const handleMouseMove = useCallback((e) => {
+        if (!window.matchMedia?.('(hover: hover)').matches) return;
+        if (frameRef.current) return;
         const rect = e.currentTarget.getBoundingClientRect();
         const x = (e.clientX - rect.left) / rect.width - 0.5;
         const y = (e.clientY - rect.top) / rect.height - 0.5;
-        setParallax({ x: x * 10, y: y * 10 });
-    };
+        frameRef.current = requestAnimationFrame(() => {
+            frameRef.current = 0;
+            if (!imageRef.current) return;
+            imageRef.current.style.setProperty('--shop-parallax-x', `${x * 4}px`);
+            imageRef.current.style.setProperty('--shop-parallax-y', `${y * 4}px`);
+        });
+    }, []);
 
-    const handleMouseLeave = () => {
-        setParallax({ x: 0, y: 0 });
-    };
+    const handleMouseLeave = useCallback(() => {
+        if (frameRef.current) {
+            cancelAnimationFrame(frameRef.current);
+            frameRef.current = 0;
+        }
+        if (!imageRef.current) return;
+        imageRef.current.style.setProperty('--shop-parallax-x', '0px');
+        imageRef.current.style.setProperty('--shop-parallax-y', '0px');
+    }, []);
 
     return (
-        <motion.article
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="group relative flex flex-col h-full"
+        <article
+            className="tat-shop-card-shell group relative flex flex-col h-full animate-in fade-in slide-in-from-bottom-4 duration-500"
         >
             {/* BLOC IMAGE */}
             <div 
@@ -64,15 +73,17 @@ const ShopProductCard = ({ product, darkMode = false, compact = false, source = 
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
             >
-                <motion.img
+                <img
+                    ref={imageRef}
                     src={product.imageUrl || 'https://images.unsplash.com/photo-1616627456224-a80e6f7dd0bb?auto=format&fit=crop&w=900&q=80'}
                     alt={product.name || 'Produit'}
-                    className="relative z-10 w-full h-full object-contain p-5 transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.08]"
+                    className="relative z-10 w-full h-full object-contain p-5 transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:[--shop-scale:1.08]"
                     style={{
-                        transform: `translate(${parallax.x * 0.4}px, ${parallax.y * 0.4}px)`,
+                        transform: 'translate3d(var(--shop-parallax-x, 0px), var(--shop-parallax-y, 0px), 0) scale(var(--shop-scale, 1))',
                         mixBlendMode: 'multiply',
                     }}
                     loading="lazy"
+                    decoding="async"
                 />
                 
                 {/* Hover Overlay - Type Premium (Citation + Détails) */}
@@ -154,7 +165,7 @@ const ShopProductCard = ({ product, darkMode = false, compact = false, source = 
 
                     {/* CTA */}
                     <div className="flex items-start">
-                        <motion.a
+                        <a
                             href={product.affiliateUrl || '#'}
                             target="_blank"
                             rel="noopener noreferrer sponsored"
@@ -169,22 +180,24 @@ const ShopProductCard = ({ product, darkMode = false, compact = false, source = 
                                     : 'bg-stone-900/5 border-stone-200/50 text-stone-700 hover:bg-amber-500/10 hover:border-amber-500/30 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)]'
                                 }
                             `}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
                         >
                             <span>Découvrir</span>
-                            <motion.span
-                                animate={{ x: [0, 4, 0] }}
-                                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                            >
+                            <span className="transition-transform duration-300 group-hover:translate-x-1">
                                 →
-                            </motion.span>
-                        </motion.a>
+                            </span>
+                        </a>
                     </div>
                 </div>
             </div>
-        </motion.article>
+        </article>
     );
 };
 
-export default ShopProductCard;
+export default React.memo(ShopProductCard, (prev, next) => (
+    prev.product?.id === next.product?.id &&
+    prev.product?.updatedAt === next.product?.updatedAt &&
+    prev.darkMode === next.darkMode &&
+    prev.compact === next.compact &&
+    prev.source === next.source &&
+    prev.parentFurnitureId === next.parentFurnitureId
+));

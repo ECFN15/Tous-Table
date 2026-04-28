@@ -16,6 +16,7 @@ const ThreeBackground = React.lazy(() => import('../components/home/ThreeBackgro
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import SEO from '../components/shared/SEO';
+import { scrollToTarget, scrollToTop } from '../utils/smoothScroll';
 
 // SÉCURITÉ: Sanitize HTML — Autorise uniquement <br> et <br /> (Anti-XSS)
 const sanitizeHtml = (html) => {
@@ -251,10 +252,10 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
     setTimeout(() => {
       const element = document.querySelector(selector);
       if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
+        scrollToTarget(element, { duration: 1.05 });
       } else {
         const feat = document.querySelector('.featured-section');
-        if (feat) feat.scrollIntoView({ behavior: 'smooth' });
+        if (feat) scrollToTarget(feat, { duration: 1.05 });
       }
     }, 500);
   };
@@ -267,31 +268,44 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         ...Object.values(homepageImages).filter(val => typeof val === 'string' && val.startsWith('http')),
         "https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=1200",
         "https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=1200"
-      ];
+      ].slice(0, 6);
 
-      // 2. Load images into browser cache immediately
-      dynamicImages.forEach(src => {
-        const img = new Image();
-        img.src = src;
-      });
+      // 2. Warm the most likely near-fold images during idle time only.
+      const idle = window.requestIdleCallback || ((cb) => window.setTimeout(cb, 600));
+      idle(() => {
+        dynamicImages.forEach(src => {
+          const img = new Image();
+          img.decoding = 'async';
+          img.src = src;
+        });
+      }, { timeout: 2200 });
 
       // 3. Force GPU layers on key animated elements
       // NOTE: .card-visual is EXCLUDED — StackedCards manages its own GPU layers via GSAP force3D:true
       const animatedElements = document.querySelectorAll(
-        '.process-card, .manifesto-item, .team-section, .data-section, .img-parallax img'
+        '.process-card, .manifesto-item, .img-parallax img'
       );
       animatedElements.forEach(el => {
         if (el) {
           el.style.willChange = 'transform, opacity';
-          el.style.transform = 'translate3d(0, 0, 0)';
           el.style.backfaceVisibility = 'hidden';
           el.style.webkitBackfaceVisibility = 'hidden';
         }
       });
+
+      window.setTimeout(() => {
+        animatedElements.forEach(el => {
+          if (!el) return;
+          el.style.willChange = '';
+          el.style.backfaceVisibility = '';
+          el.style.webkitBackfaceVisibility = '';
+        });
+      }, 1800);
     };
 
     // Execute warm-up after a short delay to let DOM stabilize
-    setTimeout(warmUpAnimations, 100);
+    const warmupTimer = setTimeout(warmUpAnimations, 100);
+    return () => clearTimeout(warmupTimer);
   }, []);
 
   // --- PRELOADER STATE ---
@@ -459,6 +473,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
     // They were safe when HomeView used a separate CDN GSAP instance,
     // but now that all components share the same GSAP, they corrupt StackedCards' animations.
 
+    let removeCursorListener = null;
     const ctx = gsap.context(() => {
       // 2. Disparition 3D + PAUSE (Save GPU for Section 10)
       ScrollTrigger.create({
@@ -710,15 +725,22 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       });
 
       // 9. Curseur (Desktop uniquement)
-      if (window.innerWidth >= 1024) {
+      if (window.innerWidth >= 1024 && cursorRef.current) {
+        const moveX = gsap.quickTo(cursorRef.current, 'x', { duration: 0.24, ease: "power2.out" });
+        const moveY = gsap.quickTo(cursorRef.current, 'y', { duration: 0.24, ease: "power2.out" });
         const moveCursor = (e) => {
-          gsap.to(cursorRef.current, { x: e.clientX, y: e.clientY, duration: 0.3, ease: "power2.out" });
+          moveX(e.clientX);
+          moveY(e.clientY);
         };
         window.addEventListener('mousemove', moveCursor);
+        removeCursorListener = () => window.removeEventListener('mousemove', moveCursor);
       }
 
     }, componentRef);
-    return () => ctx.revert();
+    return () => {
+      removeCursorListener?.();
+      ctx.revert();
+    };
   }, [scriptsLoaded]);
 
   // --- NOUVELLE ANIMATION DÉDIÉE AUX STATS ---
@@ -888,7 +910,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         /* Increased to max(3rem) for tablets with thick status bars */
       }
       <header className="fixed top-0 left-0 w-full p-5 md:p-12 pt-[max(2rem,env(safe-area-inset-top))] pr-[max(1.5rem,env(safe-area-inset-right))] pl-[max(1.5rem,env(safe-area-inset-left))] flex justify-between items-center z-[210] mix-blend-difference text-white" style={{ isolation: 'isolate' }}>
-        <div className="flex items-center gap-3 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                        <div className="flex items-center gap-3 cursor-pointer group" onClick={() => scrollToTop({ immediate: false, duration: 0.9 })}>
           <Hammer size={18} className="group-hover:rotate-45 transition-transform duration-500" />
           <span className="font-serif text-xl tracking-widest uppercase font-light italic text-white">Tous à Table</span>
         </div>
@@ -953,7 +975,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
 
           <div className="hero-footer-element flex flex-col items-center gap-2 md:gap-4 text-[#1a1a1a] group cursor-pointer opacity-0 translate-y-5" onClick={() => {
             const manifesto = document.querySelector('.manifesto');
-            if (manifesto) manifesto.scrollIntoView({ behavior: 'smooth' });
+            if (manifesto) scrollToTarget(manifesto, { duration: 1.05 });
           }}>
             <span className="text-[9px] uppercase tracking-[0.2em] md:tracking-[0.3em] font-bold opacity-40 group-hover:opacity-100 transition-opacity text-center">
               Explorer <br className="md:hidden" /> le Comptoir

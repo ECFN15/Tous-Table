@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { X, Menu, Instagram, Facebook, Mail, Plus } from 'lucide-react';
+import { scrollToTop } from '../../utils/smoothScroll';
 
 // ── Courbes d'easing (approximation fidèle des springs Framer Motion) ──
 // Open spring (stiffness:250, damping:35, mass:0.8) → ζ≈1.24 overdamped → pas d'oscillation
@@ -161,7 +162,7 @@ const GlobalMenu = ({
             label: activeDesignId === 'architectural' ? 'Accueil' : 'Accueil.',
             onClick: (e) => {
                 if (!e.ctrlKey && !e.metaKey) {
-                    e.preventDefault(); window.hasShownPreloader = true; setView('home'); setIsMenuOpen(false); window.scrollTo(0, 0);
+                    e.preventDefault(); window.hasShownPreloader = true; setView('home'); setIsMenuOpen(false); scrollToTop();
                 }
             },
             href: '/'
@@ -170,7 +171,7 @@ const GlobalMenu = ({
             label: activeDesignId === 'architectural' ? 'La Galerie' : 'Marketplace.',
             onClick: (e) => {
                 if (!e.ctrlKey && !e.metaKey) {
-                    e.preventDefault(); setView('gallery'); setIsMenuOpen(false); window.scrollTo(0, 0);
+                    e.preventDefault(); setView('gallery'); setIsMenuOpen(false); scrollToTop();
                 }
             },
             href: '/?page=gallery'
@@ -179,18 +180,18 @@ const GlobalMenu = ({
             label: "Le Comptoir",
             onClick: (e) => {
                 if (!e.ctrlKey && !e.metaKey) {
-                    e.preventDefault(); setView('shop'); setIsMenuOpen(false); window.scrollTo(0, 0);
+                    e.preventDefault(); setView('shop'); setIsMenuOpen(false); scrollToTop();
                 }
             },
             href: '/?page=shop'
         },
         ...(user && !user.isAnonymous ? [{
             label: activeDesignId === 'architectural' ? 'Commandes' : 'Commandes.',
-            onClick: () => { setView('my-orders'); setIsMenuOpen(false); window.scrollTo(0, 0); }
+            onClick: () => { setView('my-orders'); setIsMenuOpen(false); scrollToTop(); }
         }] : []),
         ...(isAdmin ? [{
             label: 'Admin.',
-            onClick: () => { setView('admin'); setIsMenuOpen(false); window.scrollTo(0, 0); }
+            onClick: () => { setView('admin'); setIsMenuOpen(false); scrollToTop(); }
         }] : [])
     ], [activeDesignId, user?.uid, user?.isAnonymous, isAdmin, setView, setIsMenuOpen]);
 

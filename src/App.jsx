@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 // --- IMPORTS CONFIG & UTILS ---
 import { db, appId, functions, googleProvider } from './firebase/config';
 import { getMillis } from './utils/time';
+import { lockLenis, scrollToTarget, scrollToTop } from './utils/smoothScroll';
 import { useLiveTheme } from './hooks/useLiveTheme'; // Import hook for forcedMode check
 import { useLenisScroll } from './hooks/useLenisScroll'; // Smooth scroll global (cf. _DOCS/AUDITS/scrolllenis.md)
 
@@ -108,22 +109,36 @@ const AppContent = () => {
   const [showNewsletter, setShowNewsletter] = useState(false);
   const [pendingItem, setPendingItem] = useState(null);
   const scrollYRef = useRef(0);
+  const modalUnlockRef = useRef(null);
+  const wasModalOpenRef = useRef(false);
 
   // iOS-safe body scroll lock for modals
   useEffect(() => {
     const anyModalOpen = showFullLogin || showOrderSuccess || stockAlert;
     if (anyModalOpen) {
-      scrollYRef.current = window.scrollY;
+      if (!wasModalOpenRef.current) {
+        scrollYRef.current = window.scrollY;
+        modalUnlockRef.current = lockLenis();
+      }
+      wasModalOpenRef.current = true;
       document.body.classList.add('modal-open');
       document.body.style.top = `-${scrollYRef.current}px`;
     } else {
       document.body.classList.remove('modal-open');
       document.body.style.top = '';
-      window.scrollTo(0, scrollYRef.current);
+      if (wasModalOpenRef.current) {
+        modalUnlockRef.current?.();
+        modalUnlockRef.current = null;
+        scrollToTarget(scrollYRef.current, { immediate: true, duration: 0 });
+      }
+      wasModalOpenRef.current = false;
     }
     return () => {
       document.body.classList.remove('modal-open');
       document.body.style.top = '';
+      modalUnlockRef.current?.();
+      modalUnlockRef.current = null;
+      wasModalOpenRef.current = false;
     };
   }, [showFullLogin, showOrderSuccess, stockAlert]);
 
@@ -145,7 +160,7 @@ const AppContent = () => {
     // We swap the view while the curtain is opaque
     setView('gallery');
     setIsPreparingGallery(false);
-    window.scrollTo(0, 0);
+    scrollToTop();
 
     // Lift the curtain after a short delay to ensure rendering
     setTimeout(() => {
@@ -171,7 +186,9 @@ const AppContent = () => {
 
   // --- SCROLL HEADER LOGIC ---
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
+  const lastScrollYRef = useRef(0);
+  const headerVisibleRef = useRef(true);
+  const headerScrollRafRef = useRef(0);
 
   // Dark Mode State
   const [darkMode, setDarkMode] = useState(() => {
@@ -237,23 +254,35 @@ const AppContent = () => {
 
 
   useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      if (currentScrollY < 10) {
-        setIsHeaderVisible(true);
-        setLastScrollY(currentScrollY);
-        return;
-      }
-      if (currentScrollY > lastScrollY && currentScrollY > 20) {
-        setIsHeaderVisible(false);
-      } else if (currentScrollY < lastScrollY) {
-        setIsHeaderVisible(true);
-      }
-      setLastScrollY(currentScrollY);
+    const applyVisibility = (nextVisible) => {
+      if (headerVisibleRef.current === nextVisible) return;
+      headerVisibleRef.current = nextVisible;
+      setIsHeaderVisible(nextVisible);
     };
+
+    const handleScroll = () => {
+      if (headerScrollRafRef.current) return;
+      headerScrollRafRef.current = requestAnimationFrame(() => {
+        headerScrollRafRef.current = 0;
+        const currentScrollY = window.scrollY;
+        const lastScrollY = lastScrollYRef.current;
+
+        if (currentScrollY < 10) {
+          applyVisibility(true);
+        } else if (Math.abs(currentScrollY - lastScrollY) > 6) {
+          applyVisibility(currentScrollY < lastScrollY || currentScrollY <= 20);
+        }
+
+        lastScrollYRef.current = currentScrollY;
+      });
+    };
+
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (headerScrollRafRef.current) cancelAnimationFrame(headerScrollRafRef.current);
+    };
+  }, []);
 
   // --- CHARGEMENT ---
   // --- CHARGEMENT DONNÉES PUBLIQUES (Stable) ---
@@ -586,7 +615,7 @@ const AppContent = () => {
         cartItems={cartItems}
         onRemoveItem={removeFromCart}
         totalPrice={cartTotal}
-        onCheckout={() => { setIsCartOpen(false); setView('checkout'); window.scrollTo(0, 0); }}
+        onCheckout={() => { setIsCartOpen(false); setView('checkout'); scrollToTop(); }}
         interacted={cartInteracted}
         darkMode={darkMode}
         activeDesignId={activeDesignId}
@@ -764,7 +793,7 @@ const AppContent = () => {
             />
           ) : (
             <nav className={`fixed top-0 left-0 right-0 z-[110] px-4 md:px-12 pt-[max(4.5rem,env(safe-area-inset-top)+2rem)] pb-4 md:py-8 flex justify-between items-center transition-all duration-500 ease-in-out ${isHeaderVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}>
-              <div className="flex items-center gap-1.5 md:gap-3 cursor-pointer group" onClick={() => { window.hasShownPreloader = true; setView('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
+              <div className="flex items-center gap-1.5 md:gap-3 cursor-pointer group" onClick={() => { window.hasShownPreloader = true; setView('home'); scrollToTop(); }}>
                 <div className={`w-[28px] h-[28px] md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center backdrop-blur-2xl border transition-all group-hover:rotate-6 shadow-sm ${darkMode ? 'bg-white/10 border-white/20 text-white' : 'bg-white border-stone-300 text-stone-900'}`}>
                   <Hammer size={12} strokeWidth={1.5} className="md:w-4 md:h-4" />
                 </div>

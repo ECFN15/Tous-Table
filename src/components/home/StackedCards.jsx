@@ -76,8 +76,6 @@ const ParallaxCard = ({ item, index, onEnterMarketplace }) => {
                 className="card-visual relative w-[90%] md:w-[97%] max-w-[1800px] h-[80vh] md:h-[88vh] bg-[#FAF9F6] rounded-[2.5rem] md:rounded-[4rem] overflow-hidden shadow-[0_20px_70px_rgba(0,0,0,0.15)] flex flex-col items-center"
                 style={{
                     backgroundColor: item.bgColor,
-                    willChange: 'transform', // Hint for browser
-                    transform: 'translateZ(0)', // Force GPU
                 }}
             >
                 {/* 1. IMAGE ZONE (STATIC - NO PARALLAX) */}
@@ -90,7 +88,7 @@ const ParallaxCard = ({ item, index, onEnterMarketplace }) => {
                             <img
                                 src={item.img}
                                 alt={item.title.join(' ')}
-                                loading="eager"
+                                loading={index === 0 ? 'eager' : 'lazy'}
                                 decoding="async"
                                 className="w-full h-full object-cover"
                             />

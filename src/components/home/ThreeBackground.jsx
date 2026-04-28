@@ -52,10 +52,13 @@ const ThreeBackground = () => {
     scene.add(mesh);
 
     let animationId;
+    let pauseTimer;
     const animate = () => {
       // OPTIM: Pause rendering if not in view to save GPU
       if (window._pauseThree) {
-        animationId = requestAnimationFrame(animate);
+        pauseTimer = window.setTimeout(() => {
+          animationId = requestAnimationFrame(animate);
+        }, 220);
         return;
       }
       mesh.rotation.x += 0.0008;
@@ -82,6 +85,7 @@ const ThreeBackground = () => {
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      if (pauseTimer) window.clearTimeout(pauseTimer);
       cancelAnimationFrame(animationId);
       if (mountRef.current && renderer.domElement) {
         // Safe check in case component unmounted

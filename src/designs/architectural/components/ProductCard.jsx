@@ -13,6 +13,48 @@ export const RATIO_CACHE = new Map();
 const getImage = (item) => item?.images?.[0] || item?.imageUrl || item?.thumbnailUrl || '';
 const getPrice = (item) => item?.currentPrice || item?.startingPrice || item?.price;
 
+const LETTERBOX_QUEUE = [];
+let isLetterboxQueueRunning = false;
+
+const requestIdle = (callback) => {
+    if (typeof window === 'undefined') return;
+    const idle = window.requestIdleCallback || ((cb) => window.setTimeout(cb, 120));
+    idle(callback, { timeout: 2800 });
+};
+
+const runLetterboxQueue = () => {
+    if (isLetterboxQueueRunning) return;
+    isLetterboxQueueRunning = true;
+
+    const next = () => {
+        const task = LETTERBOX_QUEUE.shift();
+        if (!task) {
+            isLetterboxQueueRunning = false;
+            return;
+        }
+
+        if (window.__lenis?.isScrolling) {
+            LETTERBOX_QUEUE.unshift(task);
+            window.setTimeout(next, 220);
+            return;
+        }
+
+        requestIdle(() => {
+            task();
+            window.setTimeout(next, 80);
+        });
+    };
+
+    next();
+};
+
+const enqueueLetterboxDetection = (task) => {
+    if (typeof window === 'undefined') return;
+    if (LETTERBOX_QUEUE.length > 32) return;
+    LETTERBOX_QUEUE.push(task);
+    runLetterboxQueue();
+};
+
 const getTopLabel = (item) => {
     if (item.stock !== undefined && Number(item.stock) >= 1) {
         return `Stock : ${item.stock}`;
@@ -100,8 +142,7 @@ const ProductCard = ({
         if (image && !RATIO_CACHE.has(image)) {
             RATIO_CACHE.set(image, { aspectRatio: fastRatio, objectPos: 'center' });
         }
-        const idle = window.requestIdleCallback || ((cb) => setTimeout(cb, 1));
-        idle(() => detectLetterbox(img, fastRatio), { timeout: 800 });
+        enqueueLetterboxDetection(() => detectLetterbox(img, fastRatio));
     };
 
     const handleImageLoad = (e) => applyNaturalRatio(e.currentTarget);

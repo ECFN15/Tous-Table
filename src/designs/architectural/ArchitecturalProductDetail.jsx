@@ -11,6 +11,8 @@ import SEO from '../../components/shared/SEO';
 import { useLiveTheme } from '../../hooks/useLiveTheme';
 import AnimatedPrice from '../../components/ui/AnimatedPrice';
 import ShopProductCard from '../../components/shop/ShopProductCard';
+import LazyYouTubeEmbed from '../../components/ui/LazyYouTubeEmbed';
+import { lockLenis } from '../../utils/smoothScroll';
 
 const RECOMMENDED_TUTORIALS = [
     { videoId: "ictKhF92-pY", label: "Comment appliquer Rubio Monocoat Oil Plus 2C sur un meuble", productMatch: "Rubio Monocoat" },
@@ -40,6 +42,11 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
 
     // LIGHTBOX STATE
     const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+
+    useEffect(() => {
+        if (!isLightboxOpen) return undefined;
+        return lockLenis();
+    }, [isLightboxOpen]);
 
     // TOUCH SWIPE STATE (Mobile)
     const [touchStart, setTouchStart] = useState(null);
@@ -557,7 +564,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
 
             {/* === MODULE : VOUS AIMEREZ AUSSI + TUTO ATELIER === */}
             {recommendedProducts.length > 0 && (
-                <section className="w-full px-6 lg:px-12 pb-8">
+                <section className="tat-heavy-section w-full px-6 lg:px-12 pb-8">
                     <div className={`relative max-w-[1920px] mx-auto p-5 lg:p-8 rounded-[28px] backdrop-blur-xl border ${darkMode ? 'bg-[#141414]/90 border-white/5' : 'bg-white/80 border-stone-200/60'}`}>
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
 
@@ -599,13 +606,10 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                                             transition={{ duration: 0.35 }}
                                             className="relative aspect-video rounded-xl overflow-hidden shadow-2xl"
                                         >
-                                            <iframe
-                                                src={`https://www.youtube.com/embed/${currentTutorial?.videoId}?rel=0&modestbranding=1&color=white`}
+                                            <LazyYouTubeEmbed
+                                                videoId={currentTutorial?.videoId}
                                                 title={currentTutorial?.label}
-                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                                allowFullScreen
-                                                loading="lazy"
-                                                className="absolute inset-0 w-full h-full"
+                                                className="absolute inset-0 h-full w-full"
                                             />
                                         </motion.div>
                                     </AnimatePresence>
@@ -669,7 +673,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
             )}
 
             {/* === MODULE : QUATRE PILIERS DE LA MAISON === */}
-            <section className="w-full px-6 lg:px-12 pb-16">
+            <section className="tat-heavy-section w-full px-6 lg:px-12 pb-16">
                 <div className={`max-w-[1920px] mx-auto p-8 lg:p-12 rounded-[28px] backdrop-blur-xl border ${darkMode ? 'bg-[#141414]/90 border-white/5' : 'bg-white/80 border-stone-200/60'}`}>
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-6">
                         {CARE_FEATURES.map(({ icon: Icon, title, description }) => (

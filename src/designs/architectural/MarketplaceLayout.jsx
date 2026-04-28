@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ProductCard, { RATIO_CACHE } from './components/ProductCard';
 import { ArrowDown, ArrowRight, ChevronDown, Hammer, ShieldCheck, Tag, Truck } from 'lucide-react';
 import TextType from '../../components/ui/TextType';
+import { scrollToTarget } from '../../utils/smoothScroll';
 
 // Nombre de colonnes responsive — aligné sur les breakpoints Tailwind utilisés dans
 // l'ancien `columns-2 md:columns-3 lg:columns-4`.
@@ -428,12 +429,7 @@ const MarketplaceLayout = ({
     const scrollToCollection = () => {
         const target = document.getElementById('collection-grid');
         if (!target) return;
-        const lenis = typeof window !== 'undefined' ? window.__lenis : null;
-        if (lenis) {
-            lenis.scrollTo(target, { offset: -80, duration: 1.4 });
-        } else {
-            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+        scrollToTarget(target, { offset: -80, duration: 1.05 });
     };
 
     return (
@@ -459,7 +455,7 @@ const MarketplaceLayout = ({
                                 }}
                                 loading="eager"
                                 decoding="async"
-                                fetchPriority="high"
+                                fetchpriority="high"
                             />
                         </picture>
                     )}
@@ -680,7 +676,7 @@ const MarketplaceLayout = ({
                            Cf. _DOCS/AUDITS/scrolllenis.md §3.4.A. */
                         .tat-card-shell {
                             content-visibility: auto;
-                            contain-intrinsic-size: 0 480px;
+                            contain-intrinsic-size: auto 480px;
                         }
                     `}</style>
                     {totalVisible === 0 ? (

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import confetti from 'canvas-confetti';
+import { lockLenis, scrollToTarget } from '../../utils/smoothScroll';
 
 
 
@@ -234,19 +235,33 @@ const NewsletterModal = ({ showNewsletter, setShowNewsletter }) => {
 
     // iOS-safe body scroll lock
     const scrollYRef = React.useRef(0);
+    const unlockLenisRef = React.useRef(null);
+    const wasOpenRef = React.useRef(false);
     React.useEffect(() => {
         if (showNewsletter) {
-            scrollYRef.current = window.scrollY;
+            if (!wasOpenRef.current) {
+                scrollYRef.current = window.scrollY;
+                unlockLenisRef.current = lockLenis();
+            }
+            wasOpenRef.current = true;
             document.body.classList.add('modal-open');
             document.body.style.top = `-${scrollYRef.current}px`;
         } else {
             document.body.classList.remove('modal-open');
             document.body.style.top = '';
-            window.scrollTo(0, scrollYRef.current);
+            if (wasOpenRef.current) {
+                unlockLenisRef.current?.();
+                unlockLenisRef.current = null;
+                scrollToTarget(scrollYRef.current, { immediate: true, duration: 0 });
+            }
+            wasOpenRef.current = false;
         }
         return () => {
             document.body.classList.remove('modal-open');
             document.body.style.top = '';
+            unlockLenisRef.current?.();
+            unlockLenisRef.current = null;
+            wasOpenRef.current = false;
         };
     }, [showNewsletter]);
 

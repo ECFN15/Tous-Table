@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { X, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { lockLenis } from '../../utils/smoothScroll';
 
 const CartSidebar = ({ isOpen, onClose, cartItems, onRemoveItem, totalPrice, onCheckout, interacted, darkMode, activeDesignId }) => {
     // We only want transitions AFTER the first interaction to avoid the "closing on mount" bug
@@ -11,6 +13,11 @@ const CartSidebar = ({ isOpen, onClose, cartItems, onRemoveItem, totalPrice, onC
     const bgClass = isArch
         ? (darkMode ? 'bg-[#0A0A0A] border-l border-stone-800 text-stone-200' : 'bg-[#FAFAF9] border-l border-stone-200 text-stone-900')
         : (darkMode ? 'bg-[#0A0A0A] border-l border-stone-800 text-white' : 'bg-[#FAFAF9] text-stone-900');
+
+    useEffect(() => {
+        if (!isOpen) return undefined;
+        return lockLenis();
+    }, [isOpen]);
 
     return (
         <div className={`fixed inset-0 z-[2500] ${isOpen ? 'visible' : 'invisible delay-700'}`}>

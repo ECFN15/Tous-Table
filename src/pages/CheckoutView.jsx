@@ -9,6 +9,7 @@ import { Elements } from '@stripe/react-stripe-js';
 import { stripePromise } from '../main';
 import CheckoutPaymentStep from '../components/cart/CheckoutPaymentStep';
 import { useToast } from '../components/ui/Toast';
+import { lockLenis, scrollToTarget } from '../utils/smoothScroll';
 
 /**
  * PremiumActionBtn — Bouton Ultra-Premium (Mouse Tracking + Morphing Loading)
@@ -190,21 +191,35 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
     const [unavailableItems, setUnavailableItems] = useState([]);
     const [isCleaningUp, setIsCleaningUp] = useState(false);
     const scrollYRef = useRef(0);
+    const unlockLenisRef = useRef(null);
+    const wasPaymentModalOpenRef = useRef(false);
 
     // iOS Safari scroll lock — empêche le body de scroller derrière la modale Stripe
     useEffect(() => {
         if (checkoutState === 'ready_to_pay') {
-            scrollYRef.current = window.scrollY;
+            if (!wasPaymentModalOpenRef.current) {
+                scrollYRef.current = window.scrollY;
+                unlockLenisRef.current = lockLenis();
+            }
+            wasPaymentModalOpenRef.current = true;
             document.body.classList.add('modal-open');
             document.body.style.top = `-${scrollYRef.current}px`;
         } else {
             document.body.classList.remove('modal-open');
             document.body.style.top = '';
-            window.scrollTo(0, scrollYRef.current);
+            if (wasPaymentModalOpenRef.current) {
+                unlockLenisRef.current?.();
+                unlockLenisRef.current = null;
+                scrollToTarget(scrollYRef.current, { immediate: true, duration: 0 });
+            }
+            wasPaymentModalOpenRef.current = false;
         }
         return () => {
             document.body.classList.remove('modal-open');
             document.body.style.top = '';
+            unlockLenisRef.current?.();
+            unlockLenisRef.current = null;
+            wasPaymentModalOpenRef.current = false;
         };
     }, [checkoutState]);
 

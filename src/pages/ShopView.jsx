@@ -8,6 +8,8 @@ import SEO from '../components/shared/SEO';
 import ShopProductCard from '../components/shop/ShopProductCard';
 import ShopSidebar from '../components/shop/ShopSidebar';
 import WorkshopHero from '../components/shop/WorkshopHero';
+import LazyYouTubeEmbed from '../components/ui/LazyYouTubeEmbed';
+import { scrollToTarget } from '../utils/smoothScroll';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -82,6 +84,14 @@ const FAMILIES = [
 
 const RITUAL_WORDS = ['NOURRIR', 'PROTEGER', 'RESTAURER'];
 
+const sortShopProducts = (products) => [...products].sort((a, b) => {
+    const tierOrder = { expert: 3, premium: 2, essentiel: 1 };
+    const aTier = tierOrder[a.tier] || 0;
+    const bTier = tierOrder[b.tier] || 0;
+    if (bTier !== aTier) return bTier - aTier;
+    return (Number(Boolean(b.featured)) - Number(Boolean(a.featured)));
+});
+
 const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) => {
     const { isAdmin } = useAuth();
     
@@ -141,6 +151,27 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
         return tutorialsByCategory;
     }, [firestoreTutorials]);
 
+    const productsByFamily = useMemo(() => {
+        const buckets = {};
+        FAMILIES.forEach((family) => {
+            buckets[family.id] = [];
+        });
+        affiliateProducts.forEach((product) => {
+            if (buckets[product.category]) {
+                buckets[product.category].push(product);
+            }
+        });
+        Object.keys(buckets).forEach((familyId) => {
+            buckets[familyId] = sortShopProducts(buckets[familyId]);
+        });
+        return buckets;
+    }, [affiliateProducts]);
+
+    const visibleFamilies = useMemo(
+        () => FAMILIES.filter((family) => (productsByFamily[family.id] || []).length > 0),
+        [productsByFamily]
+    );
+
     useEffect(() => {
         if (setHeaderProps) {
             setHeaderProps({
@@ -184,6 +215,9 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
             });
         });
 
+        return () => {
+            split.revert();
+        };
     }, [affiliateProducts.length]);
 
     useEffect(() => {
@@ -237,15 +271,9 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
         return () => observers.forEach(o => o.disconnect());
     }, [affiliateProducts.length]);
 
-    const getProductsForFamily = (familyId) => {
-        return affiliateProducts.filter(p => p.category === familyId).sort((a, b) => {
-            const tierOrder = { expert: 3, premium: 2, essentiel: 1 };
-            const aTier = tierOrder[a.tier] || 0;
-            const bTier = tierOrder[b.tier] || 0;
-            if (bTier !== aTier) return bTier - aTier;
-            return (Number(Boolean(b.featured)) - Number(Boolean(a.featured)));
-        });
-    };
+    const getProductsForFamily = useCallback((familyId) => {
+        return productsByFamily[familyId] || [];
+    }, [productsByFamily]);
 
     const handleCategoryChange = useCallback((cat) => {
         isProgrammaticScrollRef.current = true;
@@ -255,8 +283,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
         setTimeout(() => {
             const elem = document.getElementById(targetId);
             if (elem) {
-                const y = elem.getBoundingClientRect().top + window.scrollY - 100;
-                window.scrollTo({ top: y, behavior: 'smooth' });
+                scrollToTarget(elem, { offset: -100, duration: 0.95 });
             }
             // Re-enable scrollspy after scroll animation completes (~1s)
             setTimeout(() => { isProgrammaticScrollRef.current = false; }, 1000);
@@ -346,7 +373,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
             {/* PRODUCTS SECTION */}
             <div className="relative">
                 <ShopSidebar
-                    categories={FAMILIES.filter(f => getProductsForFamily(f.id).length > 0)}
+                    categories={visibleFamilies}
                     activeCategory={activeCategory}
                     onCategoryChange={handleCategoryChange}
                     darkMode={darkMode}
@@ -382,9 +409,8 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                     className={`min-h-screen pt-6 lg:pt-12 pb-20 px-6 xl:px-12 lg:pl-[320px] xl:pl-[360px] ${darkMode ? 'bg-[#0a0a0a]' : 'bg-[#FAFAF9]'}`}
                 >
                     <div className="max-w-[1920px] mx-auto space-y-0">
-                        {FAMILIES.map((family, familyIndex) => {
+                        {visibleFamilies.map((family, familyIndex) => {
                             const products = getProductsForFamily(family.id);
-                            if (products.length === 0) return null;
 
                             const tutorials = getFamilyTutorials[family.id] || [];
                             const currentIdx = getTutorialIndex(family.id);
@@ -394,7 +420,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                                 <section
                                     key={family.id}
                                     id={`section-${family.id}`}
-                                    className="scroll-mt-28 pt-16 lg:pt-20"
+                                    className="tat-heavy-section scroll-mt-28 pt-16 lg:pt-20"
                                 >
                                     {/* Section separator */}
                                     {familyIndex > 0 && (
@@ -456,13 +482,10 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                                                                 transition={{ duration: 0.35 }}
                                                                 className="relative aspect-video rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl"
                                                             >
-                                                                <iframe
-                                                                    src={`https://www.youtube.com/embed/${currentTutorial?.videoId}?rel=0&modestbranding=1&color=white`}
+                                                                <LazyYouTubeEmbed
+                                                                    videoId={currentTutorial?.videoId}
                                                                     title={currentTutorial?.label}
-                                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                                                    allowFullScreen
-                                                                    loading="lazy"
-                                                                    className="absolute inset-0 w-full h-full"
+                                                                    className="absolute inset-0 h-full w-full"
                                                                 />
                                                             </motion.div>
                                                         </AnimatePresence>

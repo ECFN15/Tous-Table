@@ -29,6 +29,23 @@ body,
   overscroll-behavior-x: none;
 }
 
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
 /* iOS-safe body scroll lock for modals */
 body.modal-open {
   overflow: hidden !important;
@@ -192,6 +209,17 @@ body.modal-open {
   transform: translateZ(0);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+}
+
+.tat-shop-card-shell {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 560px;
+  contain: layout paint style;
+}
+
+.tat-heavy-section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 1180px;
 }
 
 /* Optimized image rendering */
