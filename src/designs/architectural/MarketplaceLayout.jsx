@@ -597,7 +597,7 @@ const MarketplaceLayout = ({
                         </div>
 
                         {/* BAS — Titre + description + CTA */}
-                        <div className="mt-auto flex items-end justify-between">
+                        <div className="mt-20 md:mt-24 flex items-end justify-between">
                             <div className="max-w-2xl">
                                 <h1 className="font-serif text-[4.6rem] leading-[0.82] md:text-[7.8rem] lg:text-[8.6rem] tracking-tight text-white drop-shadow-[0_10px_35px_rgba(0,0,0,0.65)]">
                                     <span className="block h-[1.64em] overflow-hidden">
