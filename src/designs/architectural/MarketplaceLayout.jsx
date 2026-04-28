@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 import ProductCard, { RATIO_CACHE } from './components/ProductCard';
 import { ArrowDown, ArrowRight, ChevronDown, Hammer, ShieldCheck, Tag, Truck } from 'lucide-react';
+import { FurnitureHeaderIcon, BreadBoardHeaderIcon, CounterHeaderIcon } from './components/ArchitecturalHeader';
 import TextType from '../../components/ui/TextType';
 import { scrollToTarget } from '../../utils/smoothScroll';
 
@@ -240,6 +242,122 @@ const AtelierBadge = () => (
     </svg>
 );
 
+// === NEON COLLECTION SWITCHER ===
+// Trois boutons (Mobilier / Planches / Le Comptoir) à border néon rotative,
+// affichés au-dessus du label "Collection 2026" dans le hero.
+// Réutilise les mêmes icônes que la nav header pour une identité visuelle cohérente.
+const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilter, onOpenShop }) => {
+    const items = [
+        {
+            id: 'furniture',
+            label: 'Mobilier',
+            Icon: FurnitureHeaderIcon,
+            isActive: activeCollection === 'furniture',
+            onClick: () => {
+                if (typeof setActiveCollection === 'function') setActiveCollection('furniture');
+                if (typeof setFilter === 'function') setFilter('fixed');
+            },
+        },
+        {
+            id: 'cutting_boards',
+            label: 'Planches',
+            Icon: BreadBoardHeaderIcon,
+            isActive: activeCollection === 'cutting_boards',
+            onClick: () => {
+                if (typeof setActiveCollection === 'function') setActiveCollection('cutting_boards');
+            },
+        },
+        {
+            id: 'shop',
+            label: 'Le Comptoir',
+            Icon: CounterHeaderIcon,
+            isActive: false, // Le Comptoir = page séparée → jamais actif sur MarketplaceLayout
+            isShop: true,
+            onClick: () => {
+                if (typeof onOpenShop === 'function') onOpenShop();
+            },
+        },
+    ];
+
+    return (
+        <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3">
+            {items.map(({ id, label, Icon, isActive, isShop, onClick }) => (
+                <div key={id} className="relative">
+                    {isShop ? (
+                        /* LE COMPTOIR — border néon rotative (comme en prod) */
+                        <>
+                            <div className="relative p-[1.5px] rounded-full overflow-hidden">
+                                <motion.div
+                                    animate={{ rotate: -360 }}
+                                    transition={{ repeat: Infinity, duration: 6, ease: 'linear' }}
+                                    className="absolute inset-[-200%]"
+                                    style={{
+                                        background: 'conic-gradient(from 0deg, transparent 30%, rgba(245,158,11,0) 35%, rgba(245,158,11,1) 50%, rgba(245,158,11,0) 65%, transparent 70%)',
+                                    }}
+                                />
+                                <motion.button
+                                    type="button"
+                                    onClick={onClick}
+                                    whileHover={{ scale: 1.04 }}
+                                    whileTap={{ scale: 0.97 }}
+                                    className="relative z-10 inline-flex items-center gap-2 px-5 py-2 rounded-full text-[10px] font-bold uppercase tracking-[0.18em] whitespace-nowrap bg-stone-900/90 text-amber-400"
+                                >
+                                    <Icon size={14} strokeWidth={1.8} className="shrink-0" />
+                                    <span>{label}</span>
+                                </motion.button>
+                            </div>
+                            <motion.div
+                                className="absolute -top-2.5 -right-2 z-20 transform-gpu rotate-[6deg]"
+                                animate={{ y: [0, -2, 0] }}
+                                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                                style={{ willChange: 'transform' }}
+                            >
+                                <div className="inline-flex items-center justify-center min-w-[30px] h-[16px] text-[8.5px] leading-none font-medium uppercase tracking-[0.07em] px-1.5 rounded-full bg-amber-500 text-amber-50 border border-amber-300/45 shadow-[0_2px_6px_rgba(0,0,0,0.3)]">
+                                    NEW
+                                </div>
+                            </motion.div>
+                        </>
+                    ) : isActive ? (
+                        /* MOBILIER actif — pill blanche pleine, pas de neon */
+                        <motion.button
+                            type="button"
+                            onClick={onClick}
+                            whileHover={{ scale: 1.04 }}
+                            whileTap={{ scale: 0.97 }}
+                            className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-[10px] font-bold uppercase tracking-[0.18em] whitespace-nowrap bg-stone-100 text-stone-900"
+                        >
+                            <Icon size={14} strokeWidth={1.8} className="shrink-0" />
+                            <span>{label}</span>
+                        </motion.button>
+                    ) : (
+                        /* MOBILIER inactif & PLANCHES — neon rotatif blanc */
+                        <div className="relative p-[1.5px] rounded-full overflow-hidden">
+                            <motion.div
+                                animate={{ rotate: -360 }}
+                                transition={{ repeat: Infinity, duration: 6, ease: 'linear' }}
+                                className="absolute inset-[-200%]"
+                                style={{
+                                    background: 'conic-gradient(from 0deg, transparent 30%, rgba(255,255,255,0) 35%, rgba(255,255,255,1) 50%, rgba(255,255,255,0) 65%, transparent 70%)',
+                                }}
+                            />
+                            <motion.button
+                                type="button"
+                                onClick={onClick}
+                                whileHover={{ scale: 1.04 }}
+                                whileTap={{ scale: 0.97 }}
+                                className="relative z-10 inline-flex items-center gap-2 px-5 py-2 rounded-full text-[10px] font-bold uppercase tracking-[0.18em] whitespace-nowrap bg-black/80 text-stone-100"
+                            >
+                                <Icon size={14} strokeWidth={1.8} className="shrink-0" />
+                                <span>{label}</span>
+                            </motion.button>
+                        </div>
+                    )}
+                </div>
+            ))}
+        </div>
+    );
+};
+
 const MarketplaceLayout = ({
     items,
     onSelectItem,
@@ -247,7 +365,7 @@ const MarketplaceLayout = ({
     darkMode,
     setHeaderProps
 }) => {
-    const { activeCollection } = headerProps || {};
+    const { activeCollection, setActiveCollection, setFilter, onOpenShop } = headerProps || {};
     const [activeCategory, setActiveCategory] = useState('all');
     const [activeMaterial, setActiveMaterial] = useState('');
     const [activePriceRange, setActivePriceRange] = useState('');
@@ -463,30 +581,42 @@ const MarketplaceLayout = ({
                     <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/28 to-black/5" />
                     <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/70 to-transparent" />
 
-                    <div className="relative z-10 max-w-[1920px] mx-auto px-6 md:px-16 pt-[7.5rem] md:pt-36 pb-14 md:pb-20 min-h-[calc(100vh-5rem)] md:min-h-[560px] lg:min-h-[620px] flex items-end">
-                        <div className="w-full grid lg:grid-cols-[minmax(0,0.95fr)_minmax(260px,0.42fr)] gap-8 items-end">
+                    <div className="relative z-10 max-w-[1920px] mx-auto px-6 md:px-16 pt-10 md:pt-14 pb-14 md:pb-20 min-h-[calc(100vh-5rem)] md:min-h-[560px] lg:min-h-[620px] flex flex-col justify-start">
+
+                        {/* HAUT — Collection 2026 + switcher centré */}
+                        <div className="flex flex-col items-center text-center">
+                            <p className="text-[#dba45f] text-[11px] md:text-xs font-black uppercase tracking-[0.42em] mb-10 md:mb-12">
+                                Collection 2026
+                            </p>
+                            <NeonCollectionSwitcher
+                                activeCollection={activeCollection}
+                                setActiveCollection={setActiveCollection}
+                                setFilter={setFilter}
+                                onOpenShop={onOpenShop}
+                            />
+                        </div>
+
+                        {/* BAS — Titre + description + CTA */}
+                        <div className="mt-auto flex items-end justify-between">
                             <div className="max-w-2xl">
-                                <p className="text-[#dba45f] text-[11px] md:text-xs font-black uppercase tracking-[0.42em] mb-5 md:mb-7">
-                                    Collection 2026
-                                </p>
                                 <h1 className="font-serif text-[4.6rem] leading-[0.82] md:text-[7.8rem] lg:text-[8.6rem] tracking-tight text-white drop-shadow-[0_10px_35px_rgba(0,0,0,0.65)]">
-                                        <span className="block h-[1.64em] overflow-hidden">
-                                            <TextType
-                                                as="span"
-                                                text={[
-                                                    'Made in\nNormandie',
-                                                    'Tous à\nTable',
-                                                    'Savoir-\nFaire',
-                                                    'Pièces\nUniques'
-                                                ]}
-                                                typingSpeed={115}
-                                                deletingSpeed={34}
-                                                pauseDuration={1400}
-                                                cursorCharacter="_"
-                                                cursorClassName="ml-0"
-                                                className="inline-block"
-                                            />
-                                        </span>
+                                    <span className="block h-[1.64em] overflow-hidden">
+                                        <TextType
+                                            as="span"
+                                            text={[
+                                                'Made in\nNormandie',
+                                                'Tous à\nTable',
+                                                'Savoir-\nFaire',
+                                                'Pièces\nUniques'
+                                            ]}
+                                            typingSpeed={115}
+                                            deletingSpeed={34}
+                                            pauseDuration={1400}
+                                            cursorCharacter="_"
+                                            cursorClassName="ml-0"
+                                            className="inline-block"
+                                        />
+                                    </span>
                                 </h1>
                                 <p className="mt-6 md:mt-8 max-w-xl font-serif text-[1.35rem] md:text-[1.7rem] leading-[1.28] text-[#efc489]">
                                     Mobilier ancien restauré et pièces artisanales en bois massif. Chaque meuble raconte une histoire, chaque pièce est unique.
@@ -499,8 +629,7 @@ const MarketplaceLayout = ({
                                     <ArrowRight size={20} strokeWidth={1.5} />
                                 </button>
                             </div>
-
-                            <div className="hidden md:flex justify-end">
+                            <div className="hidden md:flex shrink-0">
                                 <AtelierBadge />
                             </div>
                         </div>
