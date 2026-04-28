@@ -345,7 +345,7 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
                                 onClick={onClick}
                                 whileHover={{ scale: 1.04 }}
                                 whileTap={{ scale: 0.97 }}
-                                className="relative z-10 inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-[0.18em] whitespace-nowrap bg-black/80 text-stone-100"
+                                className="relative z-10 inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-[0.18em] whitespace-nowrap bg-stone-900/90 text-stone-100"
                             >
                                 <Icon size={14} strokeWidth={1.8} className="shrink-0" />
                                 <span>{label}</span>
@@ -588,12 +588,14 @@ const MarketplaceLayout = ({
                             <p className="text-[#dba45f] text-[11px] md:text-xs font-black uppercase tracking-[0.42em] mb-10 md:mb-12">
                                 Collection 2026
                             </p>
-                            <NeonCollectionSwitcher
-                                activeCollection={activeCollection}
-                                setActiveCollection={setActiveCollection}
-                                setFilter={setFilter}
-                                onOpenShop={onOpenShop}
-                            />
+                            <div className="mt-8 md:mt-10">
+                                <NeonCollectionSwitcher
+                                    activeCollection={activeCollection}
+                                    setActiveCollection={setActiveCollection}
+                                    setFilter={setFilter}
+                                    onOpenShop={onOpenShop}
+                                />
+                            </div>
                         </div>
 
                         {/* BAS — Titre + description + CTA */}
