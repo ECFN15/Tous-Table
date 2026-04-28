@@ -280,7 +280,7 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
     ];
 
     return (
-        <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3">
+        <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
             {items.map(({ id, label, Icon, isActive, isShop, onClick }) => (
                 <div key={id} className="relative">
                     {isShop ? (
@@ -300,9 +300,9 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
                                     onClick={onClick}
                                     whileHover={{ scale: 1.04 }}
                                     whileTap={{ scale: 0.97 }}
-                                    className="relative z-10 inline-flex items-center gap-2 px-5 py-2 rounded-full text-[10px] font-bold uppercase tracking-[0.18em] whitespace-nowrap bg-stone-900/90 text-amber-400"
+                                    className="relative z-10 inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-[0.18em] whitespace-nowrap bg-stone-900/90 text-amber-400"
                                 >
-                                    <Icon size={14} strokeWidth={1.8} className="shrink-0" />
+                                    <Icon size={16} strokeWidth={1.8} className="shrink-0" />
                                     <span>{label}</span>
                                 </motion.button>
                             </div>
@@ -324,7 +324,7 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
                             onClick={onClick}
                             whileHover={{ scale: 1.04 }}
                             whileTap={{ scale: 0.97 }}
-                            className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-[10px] font-bold uppercase tracking-[0.18em] whitespace-nowrap bg-stone-100 text-stone-900"
+                            className="inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-[0.18em] whitespace-nowrap bg-stone-100 text-stone-900"
                         >
                             <Icon size={14} strokeWidth={1.8} className="shrink-0" />
                             <span>{label}</span>
@@ -345,7 +345,7 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
                                 onClick={onClick}
                                 whileHover={{ scale: 1.04 }}
                                 whileTap={{ scale: 0.97 }}
-                                className="relative z-10 inline-flex items-center gap-2 px-5 py-2 rounded-full text-[10px] font-bold uppercase tracking-[0.18em] whitespace-nowrap bg-black/80 text-stone-100"
+                                className="relative z-10 inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-[0.18em] whitespace-nowrap bg-black/80 text-stone-100"
                             >
                                 <Icon size={14} strokeWidth={1.8} className="shrink-0" />
                                 <span>{label}</span>
