@@ -841,6 +841,7 @@ const MarketplaceLayout = ({
                                                 <ProductCard
                                                     item={item}
                                                     onClick={() => onSelectItem(item.id)}
+                                                    hideStock={activeCollection === 'furniture'}
                                                 />
                                             </div>
                                         );
