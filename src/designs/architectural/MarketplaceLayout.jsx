@@ -51,12 +51,14 @@ const getPredictedHeightRatio = (item) => {
 // Taxonomie mobilier — slugs alignés avec AdminForm.FURNITURE_CATEGORIES.
 // L'identifiant `all` est la pill par défaut ; les autres correspondent au champ Firestore `category`.
 const FURNITURE_CATEGORIES = [
-    { id: 'all', label: 'Tous les produits' },
+    // `mobileLabel` (optionnel) : libellé court affiché sur mobile (< 640px) pour
+    // que les 7 pills tiennent sur 2 lignes maximum sans scroll horizontal.
+    { id: 'all', label: 'Tous les produits', mobileLabel: 'Tous' },
     { id: 'buffet', label: 'Buffets' },
     { id: 'table', label: 'Tables' },
-    { id: 'chaise', label: 'Chaises & bancs' },
+    { id: 'chaise', label: 'Chaises & bancs', mobileLabel: 'Chaises' },
     { id: 'armoire', label: 'Armoires' },
-    { id: 'commode', label: 'Commodes & chevets' },
+    { id: 'commode', label: 'Commodes & chevets', mobileLabel: 'Commodes' },
     { id: 'autre', label: 'Autres' }, // Pill publique uniquement (pas dans le select admin)
 ];
 
@@ -652,10 +654,13 @@ const MarketplaceLayout = ({
                         </aside>
 
                         <div className="min-w-0">
-                            {/* Categories pills (top) */}
-                            <div className="flex items-center gap-2 md:gap-3 overflow-x-auto no-scrollbar pb-4 border-b border-[#8a5b2a]/20">
+                            {/* Categories pills (top).
+                                  Mobile (< md / 768px) : flex-wrap → toutes visibles sur 2 lignes max.
+                                  md+ : flex-nowrap + scroll horizontal de secours si jamais ça déborde. */}
+                            <div className="flex flex-wrap md:flex-nowrap items-center gap-1 sm:gap-2 md:gap-3 md:overflow-x-auto no-scrollbar pb-3 md:pb-4 border-b border-[#8a5b2a]/20">
                                 {FURNITURE_CATEGORIES.map((category) => {
                                     const active = activeCategory === category.id;
+                                    const shortLabel = category.mobileLabel || category.label;
                                     return (
                                         <button
                                             key={category.id}
@@ -665,13 +670,16 @@ const MarketplaceLayout = ({
                                                 setActiveCategory(category.id);
                                                 resetView();
                                             }}
-                                            className={`shrink-0 rounded-full border px-4 md:px-5 py-2 md:py-2.5 text-[10px] font-black uppercase tracking-[0.22em] transition-all ${
+                                            className={`shrink-0 rounded-full border px-2.5 py-1.5 sm:px-4 sm:py-2 md:px-5 md:py-2.5 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.12em] sm:tracking-[0.20em] md:tracking-[0.22em] transition-all ${
                                                 active
                                                     ? 'border-white/80 bg-stone-100 text-stone-900'
                                                     : 'border-transparent text-stone-300/80 hover:text-white hover:border-[#dba45f]/30'
                                             }`}
                                         >
-                                            {category.label}
+                                            {/* Mobile : libellé court (mobileLabel ou label si déjà court) */}
+                                            <span className="sm:hidden">{shortLabel}</span>
+                                            {/* sm+ : libellé complet */}
+                                            <span className="hidden sm:inline">{category.label}</span>
                                         </button>
                                     );
                                 })}

@@ -208,7 +208,9 @@ const ProductCard = ({
                   lg (1024+, 4 cols). Objectif : bloc texte ≤ 32% de la hauteur de carte
                   pour ne jamais masquer l'image au-delà du tiers inférieur. */}
             <div className="absolute inset-x-0 bottom-0 z-20 p-3 sm:p-4 md:p-5 lg:p-6">
-                <h3 className="max-w-[18rem] font-serif text-[0.95rem] sm:text-[1.05rem] md:text-[1.25rem] lg:text-[1.5rem] leading-[1.02] text-white drop-shadow line-clamp-2">
+                {/* Mobile : 1 ligne max + ellipse CSS pour ne pas couper de mots arbitrairement.
+                      sm+ : 2 lignes max (line-clamp-2) pour laisser respirer les noms longs. */}
+                <h3 className="max-w-[18rem] font-serif text-[0.95rem] sm:text-[1.05rem] md:text-[1.25rem] lg:text-[1.5rem] leading-[1.02] text-white drop-shadow line-clamp-1 sm:line-clamp-2">
                     {item.name}
                 </h3>
                 <div className="mt-1.5 sm:mt-2 flex items-baseline justify-between gap-2 sm:gap-3">
