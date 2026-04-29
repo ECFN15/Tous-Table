@@ -5,11 +5,31 @@ import {
   TorusKnotGeometry, MeshBasicMaterial, Mesh
 } from 'three';
 
+// === Audit fluidité mobile (29 avr. 2026) ===
+// Sur mobile, WebGL + RAF infini = drain GPU + throttling thermique = scroll saccadé.
+// On désactive entièrement Three.js sur les devices tactiles. Le `.three-container`
+// du HomeView reste vide → aucun impact visuel critique (ce n'est qu'une déco wireframe
+// très subtile à opacity 0.09 qui disparaît en scroll bottom).
+const isTouchOrSmallScreen = () => {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
+  if (window.matchMedia?.('(pointer: coarse)').matches) return true;
+  const ua = navigator.userAgent || '';
+  if (/iPad|iPhone|iPod|Android/i.test(ua)) return true;
+  if (navigator.platform === 'MacIntel' && (navigator.maxTouchPoints || 0) > 1) return true;
+  return window.innerWidth < 900;
+};
+
 const ThreeBackground = () => {
   const mountRef = useRef(null);
 
   useEffect(() => {
     if (!mountRef.current) return;
+
+    // Skip WebGL entirely on touch/small screens — voir audit fluidité mobile.
+    if (isTouchOrSmallScreen()) {
+      window._pauseThree = true;
+      return;
+    }
 
     // Reset pause state on mount
     window._pauseThree = false;

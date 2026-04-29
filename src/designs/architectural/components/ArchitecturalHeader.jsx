@@ -84,6 +84,8 @@ const ArchitecturalHeader = ({
 
     const [isVisible, setIsVisible] = useState(true);
     const lastScrollY = React.useRef(0);
+    const visibleRef = React.useRef(true);
+    const rafRef = React.useRef(0);
 
     const navButtonClass = (isActive = false) => `group relative inline-flex h-16 md:h-[78px] items-center gap-2 border-b text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] transition-colors ${
         isActive
@@ -97,20 +99,51 @@ const ArchitecturalHeader = ({
     };
 
     useEffect(() => {
-        const handleScroll = () => {
+        // === Audit 29 avr. 2026 : ce listener était LE plus gros tueur de fluidité mobile. ===
+        // Avant : setIsVisible appelé sur chaque event scroll (60–120×/sec) → React re-render
+        //         du header complet (avec backdrop-blur-xl !) à chaque pixel scrollé.
+        // Maintenant :
+        //  1) RAF throttle : un seul calcul par frame.
+        //  2) Seuil DELTA (8 px) pour éviter le flip-flop near-zero sur le micro-jitter
+        //     du momentum scroll iOS.
+        //  3) Diff via ref → setState UNIQUEMENT quand la valeur change vraiment
+        //     → React ne reconcilie le header que ~2× par session de scroll au lieu de
+        //     plusieurs centaines de fois.
+        const SCROLL_DELTA = 8;
+
+        const compute = () => {
+            rafRef.current = 0;
             const currentScrollY = window.scrollY;
+            const last = lastScrollY.current;
+            const delta = currentScrollY - last;
+
+            let nextVisible = visibleRef.current;
             if (currentScrollY <= 0) {
-                setIsVisible(true);
-            } else if (currentScrollY > lastScrollY.current) {
-                setIsVisible(false);
-            } else if (currentScrollY < lastScrollY.current) {
-                setIsVisible(true);
+                nextVisible = true;
+            } else if (Math.abs(delta) >= SCROLL_DELTA) {
+                nextVisible = delta < 0; // scroll up → visible, scroll down → hidden
             }
-            lastScrollY.current = currentScrollY;
+
+            if (Math.abs(delta) >= SCROLL_DELTA) {
+                lastScrollY.current = currentScrollY;
+            }
+
+            if (nextVisible !== visibleRef.current) {
+                visibleRef.current = nextVisible;
+                setIsVisible(nextVisible);
+            }
+        };
+
+        const handleScroll = () => {
+            if (rafRef.current) return;
+            rafRef.current = requestAnimationFrame(compute);
         };
 
         window.addEventListener('scroll', handleScroll, { passive: true });
-        return () => window.removeEventListener('scroll', handleScroll);
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            if (rafRef.current) cancelAnimationFrame(rafRef.current);
+        };
     }, []);
 
     return (

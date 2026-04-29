@@ -19,6 +19,27 @@ const destroyExistingLenis = () => {
 };
 
 /**
+ * Détecte un environnement tactile (téléphone / tablette).
+ * Couvre iOS, Android, iPadOS 13+ (qui se déclare MacIntel avec maxTouchPoints>1).
+ *
+ * Sur mobile, le scroll natif (iOS WebKit momentum, Chrome Android scroll) est
+ * désormais de très haute qualité. Lenis y ajoute un RAF continu + des scroll
+ * events JS qui combattent React (re-renders du header au scroll) → stutter.
+ * Décision (cf. AGENTS.md 29 avr. 2026 audit complet) :
+ * Lenis = DESKTOP UNIQUEMENT.
+ */
+const isTouchDevice = () => {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
+    // 1. Media query pointer:coarse → couvre quasi tous les mobiles & tablettes.
+    if (window.matchMedia?.('(pointer: coarse)').matches) return true;
+    // 2. Fallback UA pour anciens navigateurs / iPadOS desktop-mode.
+    const ua = navigator.userAgent || '';
+    if (/iPad|iPhone|iPod|Android/i.test(ua)) return true;
+    if (navigator.platform === 'MacIntel' && (navigator.maxTouchPoints || 0) > 1) return true;
+    return false;
+};
+
+/**
  * Smooth scroll hook — instance Lenis UNIQUE pour toute l'app (à monter dans `App.jsx`).
  *
  * Architecture choisie (cf. `_DOCS/AUDITS/scrolllenis.md`) :
@@ -46,6 +67,17 @@ export const useLenisScroll = ({ enabled = true } = {}) => {
         if (typeof window === 'undefined') return;
         if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
 
+        // === Lenis DESKTOP UNIQUEMENT (cf. audit 29 avr. 2026) ===
+        // Sur mobile, on laisse 100% le scroll natif :
+        //  - iOS : momentum WebKit excellent, jamais battu par du JS.
+        //  - Android : Chrome scroll natif très bon en 2024+, Lenis ajoutait du jank.
+        // Cela libère aussi le RAF Lenis + évite les conflits avec les setState
+        // déclenchés par les listeners scroll (header, etc.).
+        // ScrollTrigger fonctionne sans Lenis : il écoute les scroll events natifs.
+        if (isTouchDevice()) {
+            return;
+        }
+
         // Garde-fou hot-reload (Vite HMR peut ré-exécuter l'effet sans démonter le
         // composant) : on détruit l'éventuelle instance précédente avant d'en créer une.
         destroyExistingLenis();
@@ -54,10 +86,8 @@ export const useLenisScroll = ({ enabled = true } = {}) => {
             lerp: 0.1,
             smoothWheel: true,
             wheelMultiplier: 1.05,
-            syncTouch: true,
-            syncTouchLerp: 0.075,
-            touchInertiaMultiplier: 35,
-            touchMultiplier: 1.4,
+            // Touch settings non utilisés (mobile = early return ci-dessus).
+            syncTouch: false,
             gestureOrientation: 'vertical',
             autoRaf: false, // on drive depuis gsap.ticker (cf. ci-dessous)
             autoResize: true,

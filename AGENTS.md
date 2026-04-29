@@ -1,5 +1,65 @@
 # AGENTS.md — Journal de bord technique
 
+## 29 avril 2026 (Suite) — Audit complet fluidité mobile : 3 fixes critiques
+
+**Contexte** : Après le tuning Lenis par plateforme (entrée précédente), le scroll restait saccadé. Audit approfondi du pipeline scroll complet.
+
+**Causes racines identifiées (par ordre d'impact)** :
+
+### 🔴 #1 — `ArchitecturalHeader` : `setIsVisible` à chaque tick scroll
+Fichier : `src/designs/architectural/components/ArchitecturalHeader.jsx`
+- Listener scroll **sans RAF, sans seuil** : `setIsVisible(true/false)` 60–120×/sec.
+- Header utilisé sur **toutes les pages publiques** (galerie, produit, comptoir).
+- Cumulé avec `backdrop-blur-xl` + `transition-transform 300ms` → React reconcilie + GPU recompose à chaque pixel scrollé.
+- **Fix** : RAF throttle + seuil `SCROLL_DELTA = 8px` + diff via `useRef` → setState ~2× par session de scroll au lieu de plusieurs centaines.
+
+### 🔴 #2 — Lenis sur mobile = overhead inutile
+Fichier : `src/hooks/useLenisScroll.js`
+- iOS : momentum WebKit natif déjà excellent, Lenis ne fait que rajouter un RAF qui combat le natif.
+- Android : Chrome scroll natif très bon en 2024+, le `syncTouch` JS ajoutait du jank.
+- Lenis émet en plus des scroll events JS qui amplifient les setState au scroll (header, etc.).
+- **Fix** : early return `if (isTouchDevice()) return;` via `matchMedia('(pointer: coarse)')` + UA fallback. Lenis = **DESKTOP UNIQUEMENT**.
+- Sécurité backward-compat : `window.__lenis` reste undefined sur mobile, mais `scrollToTarget` / `lockLenis` (utils/smoothScroll.js) ont déjà un fallback natif `window.scrollTo({behavior:'smooth'})`.
+
+### 🔴 #3 — `ThreeBackground` WebGL tournait sur mobile
+Fichier : `src/components/home/ThreeBackground.jsx`
+- TorusKnot 120×16 wireframe = **3840 triangles** rendus en RAF infini.
+- `pixelRatio: 1.5` + `antialias: true` + `powerPreference: "high-performance"` → drain GPU + throttling thermique sur mobile mid-range.
+- **Fix** : early return du `useEffect` sur touch device ou `innerWidth < 900`. Le `<div>` reste vide (pas d'impact visuel critique : c'était une déco subtile à `opacity: 0.09`).
+
+**Vérification** : `npm run build` → ✓ built in 12.78s, exit 0, aucun warning fonctionnel.
+
+**Risques résiduels (non bloquants)** :
+- `backdrop-blur-xl` permanent dans `ArchitecturalHeader`, `ArchitecturalProductDetail`, `App.jsx` logo : coût GPU sur mobile, mais maintenant que le header ne re-render plus en boucle, le blur n'est composé qu'une fois par session.
+- `.img-parallax img { will-change: transform }` permanent dans `index.css` : à surveiller si le scroll Home reste lourd, mais HomeView est déjà cadré sur desktop principalement.
+
+**Total impact attendu** : sur Android mid-range, attendu passage de p95 frame ~50ms → ~16-20ms. iOS : attendu retour au scroll natif silky habituel.
+
+---
+
+## 29 avril 2026 — Tuning Lenis par plateforme (mobile lag fix)
+
+**Fichier** : `src/hooks/useLenisScroll.js`
+
+**Problème** : Scroll laggué sur mobile (les deux OS), surtout perceptible sur Android. Desktop OK.
+
+**Cause racine** : Config Lenis `syncTouch: true` agressive (par défaut, identique iOS/Android/Desktop) :
+- **iOS** : `syncTouch: true` doublait le scroll JS Lenis avec le momentum natif WebKit (déjà excellent) → micro-stutters et impression de "fight" entre les deux moteurs.
+- **Android** : `touchInertiaMultiplier: 35` (défaut Lenis) + `syncTouchLerp: 0.075` → décélération très molle, effet "flottant/laggy" sur mid-range Chrome Android.
+
+**Solution : tuning par plateforme (desktop intact)**
+1. Détection `isIOS()` (UA + fallback iPadOS 13+ qui se déclare `MacIntel` avec `maxTouchPoints>1`) et `isAndroid()`.
+2. **iOS** → `syncTouch: false` : scroll natif pur. Lenis continue de réémettre les `scroll` events natifs, donc ScrollTrigger + `lenis.scrollTo` programmatique restent fonctionnels.
+3. **Android** → `syncTouch: true` mais paramètres allégés :
+   - `touchInertiaMultiplier`: 35 → **18**
+   - `syncTouchLerp`: 0.075 → **0.10**
+   - `touchMultiplier`: 1.4 → **1.1**
+4. **Desktop** → strictement inchangé (`smoothWheel`, `lerp: 0.1`, `wheelMultiplier: 1.05`).
+
+**Vérification** : `npm run build` OK (13.16s, exit 0, aucun warning fonctionnel).
+
+---
+
 ## 25 mars 2026 (Suite) — Refonte Premium Admin Analytics (Bento Grid & Sessions Groupées)
 
 **Fichier** : `src/features/admin/AdminAnalytics.jsx`

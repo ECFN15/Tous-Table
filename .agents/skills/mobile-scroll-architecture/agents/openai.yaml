@@ -1,0 +1,4 @@
+interface:
+  display_name: "Mobile Scroll Architecture"
+  short_description: "Strict playbook for iOS / Android / desktop scroll setup with Lenis + GSAP — what to do, what NEVER to do."
+  default_prompt: "Use $mobile-scroll-architecture to set up or fix scroll across desktop, iOS, and Android. Follow Sections 1–4 strictly: Lenis on desktop only, native momentum on mobile, RAF+threshold+diff for any scroll-driven setState, no WebGL on mobile, and run the verification checklist before declaring done."
