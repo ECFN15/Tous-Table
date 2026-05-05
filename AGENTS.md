@@ -21,11 +21,15 @@ Fichier : `src/hooks/useLenisScroll.js`
 - **Fix** : early return `if (isTouchDevice()) return;` via `matchMedia('(pointer: coarse)')` + UA fallback. Lenis = **DESKTOP UNIQUEMENT**.
 - Sécurité backward-compat : `window.__lenis` reste undefined sur mobile, mais `scrollToTarget` / `lockLenis` (utils/smoothScroll.js) ont déjà un fallback natif `window.scrollTo({behavior:'smooth'})`.
 
-### 🔴 #3 — `ThreeBackground` WebGL tournait sur mobile
+### 🔴 #3 — `ThreeBackground` WebGL tournait sur mobile (REVERT — voir note ci-dessous)
 Fichier : `src/components/home/ThreeBackground.jsx`
 - TorusKnot 120×16 wireframe = **3840 triangles** rendus en RAF infini.
 - `pixelRatio: 1.5` + `antialias: true` + `powerPreference: "high-performance"` → drain GPU + throttling thermique sur mobile mid-range.
-- **Fix** : early return du `useEffect` sur touch device ou `innerWidth < 900`. Le `<div>` reste vide (pas d'impact visuel critique : c'était une déco subtile à `opacity: 0.09`).
+- **Fix initial (revert)** : early return sur touch device.
+- **Décision finale** (validée user 29 avr. 2026) : **REVERT** — on garde WebGL actif sur mobile car :
+  - `ThreeBackground` n'est mounted QUE dans `HomeView`. Navigation vers galerie = unmount = `renderer.dispose()` + `cancelAnimationFrame`. Zéro impact sur la page galerie.
+  - Sur Home même, `window._pauseThree = true` est déclenché dès qu'on scroll past `.hero-section` (RAF en sommeil avec setTimeout 220ms = quasi-inerte).
+  - Le user a validé que la perf sur la vitrine était acceptable avec WebGL actif.
 
 **Vérification** : `npm run build` → ✓ built in 12.78s, exit 0, aucun warning fonctionnel.
 

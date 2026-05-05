@@ -143,6 +143,7 @@ const HERO_BY_COLLECTION = {
             '/images/gallery/hero-buffet-parisien-2026-mobile-1122.webp 1122w',
         ].join(', '),
         alt: 'Mobilier ancien restaure',
+        mobileObjectPosition: 'center center',
         objectPosition: 'center center',
     },
     cutting_boards: {
@@ -555,7 +556,7 @@ const MarketplaceLayout = ({
     return (
         <div className="w-full min-h-screen bg-[#050605] text-stone-100 selection:bg-[#dba45f] selection:text-black">
             <main className="relative overflow-hidden">
-                <section className="relative min-h-[calc(100vh-5rem)] md:min-h-[560px] lg:min-h-[620px] overflow-hidden">
+                <section className="relative min-h-[calc(100svh-4rem)] md:min-h-[560px] lg:min-h-[620px] overflow-hidden">
                     {heroConfig.image && (
                         <picture>
                             <source
@@ -583,7 +584,7 @@ const MarketplaceLayout = ({
                     <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/28 to-black/5" />
                     <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/70 to-transparent" />
 
-                    <div className="relative z-10 max-w-[1920px] mx-auto px-6 md:px-16 pt-10 md:pt-14 pb-14 md:pb-20 min-h-[calc(100vh-5rem)] md:min-h-[560px] lg:min-h-[620px] flex flex-col justify-start">
+                    <div className="relative z-10 max-w-[1920px] mx-auto px-6 md:px-16 pt-10 md:pt-14 pb-14 md:pb-20 min-h-[calc(100svh-4rem)] md:min-h-[560px] lg:min-h-[620px] flex flex-col justify-start">
 
                         {/* HAUT — Collection 2026 + switcher centré (mobile/tablette uniquement, sur desktop la nav est dans le header) */}
                         <div className="flex flex-col items-center text-center lg:hidden">
@@ -625,12 +626,12 @@ const MarketplaceLayout = ({
                                         />
                                     </span>
                                 </h1>
-                                <p className="mt-9 md:mt-11 max-w-xl font-serif text-[1.35rem] md:text-[1.7rem] leading-[1.28] text-[#efc489]">
+                                <p className="mt-9 md:mt-11 max-w-xl font-serif text-[1.26rem] md:text-[1.7rem] leading-[1.25] text-[#efc489]">
                                     Mobilier ancien restauré et pièces artisanales en bois massif. Chaque meuble raconte une histoire, chaque pièce est unique.
                                 </p>
                                 <button
                                     onClick={scrollToCollection}
-                                    className="mt-8 md:mt-10 inline-flex h-14 md:h-16 items-center justify-center gap-6 border border-[#dba45f] px-7 md:px-10 text-[#f0b969] text-[11px] md:text-xs font-black uppercase tracking-[0.28em] transition-all hover:bg-[#dba45f] hover:text-black"
+                                    className="mt-12 md:mt-10 inline-flex h-14 md:h-16 items-center justify-center gap-6 border border-[#dba45f] px-7 md:px-10 text-[#f0b969] text-[11px] md:text-xs font-black uppercase tracking-[0.28em] transition-all hover:bg-[#dba45f] hover:text-black"
                                 >
                                     Découvrir la collection
                                     <ArrowRight size={20} strokeWidth={1.5} />
@@ -643,7 +644,7 @@ const MarketplaceLayout = ({
                     </div>
                 </section>
 
-                <section id="collection-grid" className="max-w-[1920px] mx-auto px-5 md:px-12 py-8 md:py-12">
+                <section id="collection-grid" className="max-w-[1920px] mx-auto px-5 md:px-12 pt-[1.875rem] pb-8 md:py-12">
                     {/* === HEADER ROW : sidebar label + pills + filters === */}
                     <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)] lg:items-start lg:gap-10">
                         <aside className="hidden lg:block pt-1">
