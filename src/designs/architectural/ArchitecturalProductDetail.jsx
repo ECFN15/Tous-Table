@@ -257,7 +257,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
 
                     {/* ROUNDED IMAGE CONTAINER (Gallery Style - Full Bleed) */}
                     <div
-                        className="relative w-full md:max-w-2xl mx-auto rounded-[2.5rem] overflow-hidden shadow-2xl shadow-black/20 group bg-stone-100 dark:bg-[#151515] aspect-[3/4] md:aspect-[4/3] lg:aspect-auto lg:h-full lg:max-w-none"
+                        className="relative w-full md:max-w-2xl mx-auto rounded-[0.875rem] md:rounded-[1.125rem] overflow-hidden shadow-2xl shadow-black/20 group bg-stone-100 dark:bg-[#151515] aspect-[3/4] md:aspect-[4/3] lg:aspect-auto lg:h-full lg:max-w-none"
                         onTouchStart={onTouchStart}
                         onTouchMove={onTouchMove}
                         onTouchEnd={onTouchEnd}
