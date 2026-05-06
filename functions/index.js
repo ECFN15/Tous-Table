@@ -68,6 +68,10 @@ const { sitemap, shareMeta } = require('./src/seo/seoTools');
 exports.sitemap = sitemap;
 exports.shareMeta = shareMeta;
 
+const { publicCatalog } = require('./src/public/catalog');
+
+exports.publicCatalog = publicCatalog;
+
 // ── TRIGGERS ─────────────────────────────────────────────
 const { onArtifactDeleted } = require('./src/triggers/onArtifactDeleted');
 

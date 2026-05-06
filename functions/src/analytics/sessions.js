@@ -79,6 +79,13 @@ exports.syncSession = functions.https.onCall(async (data, context) => {
 
     try {
         const sessionRef = db.collection('analytics_sessions').doc(sessionId);
+        const sessionSnap = await sessionRef.get();
+
+        if (!sessionSnap.exists) {
+            console.warn("Sync skipped: session not found", { sessionId });
+            return { success: true, missing: true };
+        }
+
         const updates = {
             lastActivityAt: admin.firestore.FieldValue.serverTimestamp(),
             duration: duration || 0,
@@ -136,6 +143,14 @@ exports.syncSessionBeacon = functions.https.onRequest(async (req, res) => {
         }
 
         const sessionRef = db.collection('analytics_sessions').doc(sessionId);
+        const sessionSnap = await sessionRef.get();
+
+        if (!sessionSnap.exists) {
+            console.warn("Beacon sync skipped: session not found", { sessionId });
+            res.status(204).send('');
+            return;
+        }
+
         const updates = {
             lastActivityAt: admin.firestore.FieldValue.serverTimestamp(),
             duration: duration || 0,

@@ -5,6 +5,7 @@ import { ArrowDown, ArrowRight, ChevronDown, Hammer, ShieldCheck, Tag, Truck } f
 import { FurnitureHeaderIcon, BreadBoardHeaderIcon, CounterHeaderIcon } from './components/ArchitecturalHeader';
 import TextType from '../../components/ui/TextType';
 import { scrollToTarget } from '../../utils/smoothScroll';
+import { LEGACY_FURNITURE_CATEGORY_BY_ID } from '../../data/legacyFurnitureCategories';
 
 // Nombre de colonnes responsive — aligné sur les breakpoints Tailwind utilisés dans
 // l'ancien `columns-2 md:columns-3 lg:columns-4`.
@@ -81,6 +82,10 @@ const normalizeText = (value = '') =>
 // (ex. "table à langer" dans la fiche d'une commode → faisait matcher 'table' à tort).
 const getFurnitureCategory = (item) => {
     if (item?.category) return item.category;
+    if (item?.id && LEGACY_FURNITURE_CATEGORY_BY_ID[item.id]) {
+        return LEGACY_FURNITURE_CATEGORY_BY_ID[item.id];
+    }
+
     const name = normalizeText(item?.name || '');
 
     // 1. Cas spéciaux à traiter en priorité (mots qui pourraient matcher plusieurs catégories).

@@ -51,6 +51,7 @@ const AppContent = () => {
   const footerRef = useRef(null);
   const hasTriggeredPopup = useRef(false);
   const hasViewedProduct = useRef(false); // [NEWSLETTER] Track if user visited at least one product detail
+  const publicCatalogFallbackRef = useRef(null);
 
 
 
@@ -288,24 +289,68 @@ const AppContent = () => {
   // --- CHARGEMENT DONNÉES PUBLIQUES (Stable) ---
   useEffect(() => {
     // 1. Meubles (Données)
+    const sortByCreatedAtDesc = (a, b) => getMillis(b.createdAt) - getMillis(a.createdAt);
+
+    const applyPublicCatalog = (collections = {}) => {
+      setItems((collections.furniture || [])
+        .map((item) => ({ ...item, collectionName: 'furniture' }))
+        .sort(sortByCreatedAtDesc));
+      setBoardItems((collections.cutting_boards || [])
+        .map((item) => ({ ...item, collectionName: 'cutting_boards' }))
+        .sort(sortByCreatedAtDesc));
+      setAffiliateProducts((collections.affiliate_products || [])
+        .filter((product) => product.status === 'published'));
+    };
+
+    const fetchPublicCatalogFallback = (reason) => {
+      if (!publicCatalogFallbackRef.current) {
+        const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
+        const url = `https://us-central1-${projectId}.cloudfunctions.net/publicCatalog`;
+        publicCatalogFallbackRef.current = fetch(url)
+          .then((response) => {
+            if (!response.ok) throw new Error(`publicCatalog ${response.status}`);
+            return response.json();
+          })
+          .then((payload) => {
+            applyPublicCatalog(payload.collections);
+            return payload;
+          })
+          .catch((error) => {
+            publicCatalogFallbackRef.current = null;
+            throw error;
+          });
+      }
+
+      return publicCatalogFallbackRef.current.catch((error) => {
+        console.error(`Fallback catalogue public impossible apres ${reason}:`, error);
+      });
+    };
+
+    const handlePublicReadError = (label, error) => {
+      console.error(`Erreur lecture ${label}:`, error);
+      fetchPublicCatalogFallback(label);
+    };
+
+    fetchPublicCatalogFallback('initial catalog bootstrap');
+
     const unsubData = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'furniture'), (snap) => {
-      setItems(snap.docs.map(d => ({ id: d.id, collectionName: 'furniture', ...d.data() })).sort((a, b) => getMillis(b.createdAt) - getMillis(a.createdAt)));
+      setItems(snap.docs.map(d => ({ id: d.id, collectionName: 'furniture', ...d.data() })).sort(sortByCreatedAtDesc));
     }, (error) => {
-      console.error("Erreur lecture meubles:", error);
+      handlePublicReadError('meubles', error);
     });
 
     // 2. Planches (Données)
     const unsubBoards = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'cutting_boards'), (snap) => {
-      setBoardItems(snap.docs.map(d => ({ id: d.id, collectionName: 'cutting_boards', ...d.data() })).sort((a, b) => getMillis(b.createdAt) - getMillis(a.createdAt)));
+      setBoardItems(snap.docs.map(d => ({ id: d.id, collectionName: 'cutting_boards', ...d.data() })).sort(sortByCreatedAtDesc));
     }, (error) => {
-      console.error("Erreur lecture planches:", error);
+      handlePublicReadError('planches', error);
     });
 
     // 3. Produits affiliés (Boutique L'Atelier)
     const unsubAffiliate = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'affiliate_products'), (snap) => {
       setAffiliateProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.status === 'published'));
     }, (error) => {
-      console.error("Erreur lecture produits affiliés:", error);
+      handlePublicReadError('produits affilies', error);
     });
 
     return () => { unsubData(); unsubBoards(); unsubAffiliate(); };

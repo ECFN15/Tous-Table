@@ -7,7 +7,13 @@
     "dev": "vite",
     "build": "vite build",
     "build:prod": "vite build --mode prod",
-    "preview": "vite preview"
+    "audit:functions-env": "node scripts/audit-functions-env.mjs",
+    "preflight:prod": "node scripts/preflight-prod.mjs",
+    "preview": "vite preview",
+    "verify:functions-syntax": "node --check functions/index.js && node --check functions/src/analytics/sessions.js && node --check functions/src/public/catalog.js",
+    "verify:prod-bundle": "node scripts/verify-prod-bundle.mjs",
+    "verify:prod-env": "node scripts/verify-prod-env.mjs",
+    "verify:prod-furniture": "node scripts/verify-prod-furniture-categories.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
