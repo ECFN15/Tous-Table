@@ -87,10 +87,16 @@ const ArchitecturalHeader = ({
     const visibleRef = React.useRef(true);
     const rafRef = React.useRef(0);
 
+    const galleryHeaderSurface = darkMode
+        ? 'bg-black/92 text-white backdrop-blur-xl'
+        : 'bg-[#f8f2e8]/92 text-stone-950 backdrop-blur-xl border-b border-[#d8b47a]/25 shadow-[0_18px_45px_rgba(92,64,31,0.08)]';
+    const galleryHeaderText = darkMode ? 'text-stone-100' : 'text-stone-950';
+    const galleryHeaderMuted = darkMode ? 'text-stone-300' : 'text-stone-700';
+
     const navButtonClass = (isActive = false) => `group relative inline-flex h-16 md:h-[78px] items-center gap-2 border-b text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] transition-colors ${
         isActive
-            ? 'border-[#dba45f] text-white'
-            : 'border-transparent text-stone-300 hover:border-[#dba45f]/70 hover:text-white'
+            ? `border-[#dba45f] ${darkMode ? 'text-white' : 'text-stone-950'}`
+            : `border-transparent ${darkMode ? 'text-stone-300 hover:text-white' : 'text-stone-600 hover:text-stone-950'} hover:border-[#dba45f]/70`
     }`;
     const navIconClass = 'shrink-0 text-current opacity-90 transition-colors';
 
@@ -150,7 +156,7 @@ const ArchitecturalHeader = ({
         <header
             className={`sticky top-0 z-50 transition-transform duration-300 ease-in-out ${isVisible ? 'translate-y-0' : '-translate-y-full'} ${
                 isGalleryHeader
-                    ? 'bg-black/92 text-white backdrop-blur-xl'
+                    ? galleryHeaderSurface
                     : 'bg-transparent'
             }`}
             style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
@@ -165,11 +171,11 @@ const ArchitecturalHeader = ({
                         onClick={() => { window.location.href = '/'; }}
                     >
                         <span className={`${isGalleryHeader ? 'font-serif normal-case text-[1.3rem] md:text-2xl lg:text-3xl tracking-[0.03em]' : 'font-black uppercase text-sm tracking-widest'} transition-colors ${
-                            isGalleryHeader || darkMode ? 'text-stone-100 group-hover:text-[#f0b969]' : 'text-stone-900 group-hover:text-stone-600'
+                            isGalleryHeader ? `${galleryHeaderText} group-hover:text-[#b8792f]` : darkMode ? 'text-stone-100 group-hover:text-[#f0b969]' : 'text-stone-900 group-hover:text-stone-600'
                         }`}>
                             Tous à Table
                         </span>
-                        <span className={`font-serif italic ${isGalleryHeader ? 'text-[12px] md:text-sm lg:text-base text-[#dba45f] mt-0.5' : `text-xs mt-1 ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}`}>
+                        <span className={`font-serif italic ${isGalleryHeader ? `text-[12px] md:text-sm lg:text-base ${darkMode ? 'text-[#dba45f]' : 'text-[#9b6428]'} mt-0.5` : `text-xs mt-1 ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}`}>
                             Atelier Normand
                         </span>
                     </button>
@@ -233,7 +239,7 @@ const ArchitecturalHeader = ({
                     {(!user || user.isAnonymous) ? (
                         <button
                             onClick={onShowLogin}
-                            className={`${isGalleryHeader ? 'flex w-9 h-9 md:w-10 md:h-10 items-center justify-center text-stone-100 hover:text-[#dba45f] transition-colors' : darkMode ? 'flex items-center gap-2 border border-stone-800 text-stone-500 hover:bg-stone-800 px-3 py-2 rounded' : 'flex items-center gap-2 border border-stone-200 text-stone-500 hover:bg-stone-200 px-3 py-2 rounded'}`}
+                            className={`${isGalleryHeader ? `flex w-9 h-9 md:w-10 md:h-10 items-center justify-center ${galleryHeaderMuted} hover:text-[#b8792f] transition-colors` : darkMode ? 'flex items-center gap-2 border border-stone-800 text-stone-500 hover:bg-stone-800 px-3 py-2 rounded' : 'flex items-center gap-2 border border-stone-200 text-stone-500 hover:bg-stone-200 px-3 py-2 rounded'}`}
                             title="Connexion"
                         >
                             <LogIn size={isGalleryHeader ? 22 : 19} strokeWidth={1.5} />
@@ -248,7 +254,7 @@ const ArchitecturalHeader = ({
                             )}
                             <button
                                 onClick={() => logout()}
-                                className={`${isGalleryHeader ? 'flex w-9 h-9 md:w-10 md:h-10 items-center justify-center text-stone-100 hover:text-red-300 transition-colors' : darkMode ? 'flex items-center gap-2 sm:border sm:border-stone-600 text-stone-200 hover:border-red-500 hover:text-red-400 hover:bg-red-500/10 w-10 h-10 sm:w-auto sm:px-4 sm:py-2 rounded justify-center' : 'flex items-center gap-2 sm:border sm:border-stone-300 text-stone-600 hover:border-red-400 hover:text-red-600 hover:bg-red-50 w-10 h-10 sm:w-auto sm:px-4 sm:py-2 rounded justify-center'}`}
+                                className={`${isGalleryHeader ? `flex w-9 h-9 md:w-10 md:h-10 items-center justify-center ${galleryHeaderMuted} hover:text-red-500 transition-colors` : darkMode ? 'flex items-center gap-2 sm:border sm:border-stone-600 text-stone-200 hover:border-red-500 hover:text-red-400 hover:bg-red-500/10 w-10 h-10 sm:w-auto sm:px-4 sm:py-2 rounded justify-center' : 'flex items-center gap-2 sm:border sm:border-stone-300 text-stone-600 hover:border-red-400 hover:text-red-600 hover:bg-red-50 w-10 h-10 sm:w-auto sm:px-4 sm:py-2 rounded justify-center'}`}
                                 title="Se deconnecter"
                             >
                                 <LogOut size={isGalleryHeader ? 22 : 19} strokeWidth={1.5} />
@@ -262,7 +268,7 @@ const ArchitecturalHeader = ({
                     )}
 
                     <button onClick={onOpenCart} className="relative group w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full border-0 bg-transparent shadow-none transition-colors" title="Panier">
-                        <ShoppingBag size={isGalleryHeader ? 22 : 22} strokeWidth={1.5} className={`transition-colors duration-300 ${isGalleryHeader || darkMode ? 'text-stone-100 group-hover:text-[#dba45f]' : 'text-stone-900 group-hover:text-amber-600'}`} />
+                        <ShoppingBag size={isGalleryHeader ? 22 : 22} strokeWidth={1.5} className={`transition-colors duration-300 ${isGalleryHeader ? `${galleryHeaderText} group-hover:text-[#b8792f]` : darkMode ? 'text-stone-100 group-hover:text-[#dba45f]' : 'text-stone-900 group-hover:text-amber-600'}`} />
                         {cartCount > 0 && (
                             <span className="absolute -top-0.5 -right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#dba45f] px-1 text-[10px] font-black text-black border border-black/50">
                                 {cartCount}
@@ -271,8 +277,8 @@ const ArchitecturalHeader = ({
                     </button>
 
                     <button onClick={onOpenMenu} className={`relative flex items-center justify-center group w-9 h-9 md:w-10 md:h-10 rounded-full border-0 bg-transparent shadow-none cursor-pointer transition-colors`} title="Menu">
-                        <Menu size={isGalleryHeader ? 24 : 24} strokeWidth={1.5} className={`absolute transition-all duration-500 ease-in-out ${isGalleryHeader || darkMode ? 'text-stone-100 group-hover:text-[#dba45f]' : 'text-stone-900 group-hover:text-amber-600'} ${isMenuOpen ? 'opacity-0 rotate-90 scale-50' : 'opacity-100 rotate-0 scale-100'}`} />
-                        <X size={isGalleryHeader ? 24 : 24} strokeWidth={1.5} className={`absolute transition-all duration-500 ease-in-out ${isGalleryHeader || darkMode ? 'text-stone-100 group-hover:text-[#dba45f]' : 'text-stone-900 group-hover:text-amber-600'} ${isMenuOpen ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-50'}`} />
+                        <Menu size={isGalleryHeader ? 24 : 24} strokeWidth={1.5} className={`absolute transition-all duration-500 ease-in-out ${isGalleryHeader ? `${galleryHeaderText} group-hover:text-[#b8792f]` : darkMode ? 'text-stone-100 group-hover:text-[#dba45f]' : 'text-stone-900 group-hover:text-amber-600'} ${isMenuOpen ? 'opacity-0 rotate-90 scale-50' : 'opacity-100 rotate-0 scale-100'}`} />
+                        <X size={isGalleryHeader ? 24 : 24} strokeWidth={1.5} className={`absolute transition-all duration-500 ease-in-out ${isGalleryHeader ? `${galleryHeaderText} group-hover:text-[#b8792f]` : darkMode ? 'text-stone-100 group-hover:text-[#dba45f]' : 'text-stone-900 group-hover:text-amber-600'} ${isMenuOpen ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-50'}`} />
                     </button>
                 </div>
             </div>
