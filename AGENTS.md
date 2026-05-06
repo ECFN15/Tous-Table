@@ -1,5 +1,51 @@
 # AGENTS.md — Journal de bord technique
 
+## 6 mai 2026 — Production Functions : Node 22, secrets et smoke checks
+
+**Contexte** : Suite au deploiement prod, trois points restaient a suivre : nettoyer les env vars legacy des Functions, sortir du runtime Node.js 20, et cadrer le smoke test admin.
+
+**Actions realisees** :
+1. **Runtime Functions prod migre en Node.js 22**
+   - Fichiers : `functions/package.json`, `functions/package-lock.json`
+   - `engines.node` passe de `20` a `22`.
+   - Deploiement Functions prod effectue sur `tousatable-client`.
+   - Audit final : `30/30` Functions en `nodejs22`, `30/30` Functions `ACTIVE`.
+
+2. **Nettoyage des env vars legacy prod**
+   - Projet : `tousatable-client`
+   - Anciennes variables sensibles legacy retirees des Functions : `GMAIL_EMAIL`, `GMAIL_PASSWORD`, `STRIPE_SECRET_KEY`, `STRIPE_WH_SECRET`.
+   - Nettoyage final via API Cloud Functions `updateMask=environmentVariables`.
+   - Audit final : `functionsWithLegacyEnv = 0`, `legacyEnvTotal = 0`, `withSensitiveLegacyEnv = 0`.
+   - Les vrais secrets restent branches via Secret Manager : `secretTotal = 11`.
+   - Important : aucune valeur de secret ne doit etre consignee dans le repo ou les logs de suivi.
+
+3. **Correctif SEO apres suppression des env vars plateforme**
+   - Fichiers : `functions/helpers/config.js`, `functions/src/seo/seoTools.js`
+   - Probleme observe : sans `GCLOUD_PROJECT`, `sitemap` pouvait generer `https://undefined.web.app/`.
+   - Fix : `getSiteUrl(host)` determine le projet via `GCLOUD_PROJECT`, `GCP_PROJECT`, `FIREBASE_CONFIG`, puis fallback par hostname Cloud Functions.
+   - Fallback final prod : `https://tousatable-madeinnormandie.fr`.
+   - Redeploiement limite a `functions:sitemap,functions:shareMeta`.
+
+**Verifications finales** :
+- `npm run build` : OK.
+- `npm run audit:functions-env -- --project=tousatable-client` : `legacyEnvTotal = 0`, `secretTotal = 11`.
+- `publicCatalog` prod : `28` meubles, `44` produits affiliation.
+- `syncSessionBeacon` avec session absente : HTTP `204 No Content` (plus de 500).
+- `sitemap` : premiere URL `https://tousatable-madeinnormandie.fr/`, aucun `undefined`.
+- `shareMeta` : HTTP `200`, balises Open Graph avec domaine prod.
+- Site prod : HTTP `200 OK`.
+- Firebase CLI remis sur alias `default` / sandbox : `tatmadeinnormandie`.
+
+**Garanties donnees pendant l'operation** :
+- Firestore prod non modifie.
+- Aucun meuble client prod cree, modifie ou supprime.
+- Aucun import sandbox vers prod.
+- Hosting public non redeploye pendant ce nettoyage.
+
+**Point restant manuel** :
+- Smoke test admin login/publication a faire avec le compte admin du client.
+- Ne pas creer/supprimer de meuble test en prod sans validation explicite, car cela ecrit dans les donnees client.
+
 ## 29 avril 2026 (Suite) — Audit complet fluidité mobile : 3 fixes critiques
 
 **Contexte** : Après le tuning Lenis par plateforme (entrée précédente), le scroll restait saccadé. Audit approfondi du pipeline scroll complet.

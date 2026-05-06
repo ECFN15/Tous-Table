@@ -7,19 +7,29 @@ const { APP_ID, PRODUCT_COLLECTIONS, getSiteUrl } = require('../../helpers/confi
 
 const db = admin.firestore();
 
+function escapeXml(str) {
+    return String(str || '').replace(/[<>&'"]/g, m => ({
+        '<': '&lt;',
+        '>': '&gt;',
+        '&': '&amp;',
+        "'": '&apos;',
+        '"': '&quot;',
+    }[m]));
+}
+
 // --- SITEMAP XML ---
 exports.sitemap = functions.https.onRequest(async (req, res) => {
-    const SITE_URL = getSiteUrl();
+    const SITE_URL = getSiteUrl(req.headers.host);
     try {
         let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
     <url>
-        <loc>${SITE_URL}/</loc>
+        <loc>${escapeXml(`${SITE_URL}/`)}</loc>
         <changefreq>weekly</changefreq>
         <priority>1.0</priority>
     </url>
     <url>
-        <loc>${SITE_URL}/?page=gallery</loc>
+        <loc>${escapeXml(`${SITE_URL}/?page=gallery`)}</loc>
         <changefreq>daily</changefreq>
         <priority>0.9</priority>
     </url>`;
@@ -32,13 +42,13 @@ exports.sitemap = functions.https.onRequest(async (req, res) => {
                 const lastMod = item.updatedAt?.toDate?.()?.toISOString?.()?.split('T')[0] || new Date().toISOString().split('T')[0];
                 const imgTag = item.images?.[0] ? `
         <image:image>
-            <image:loc>${item.images[0]}</image:loc>
-            <image:title>${(item.name || '').replace(/&/g, '&amp;')}</image:title>
+            <image:loc>${escapeXml(item.images[0])}</image:loc>
+            <image:title>${escapeXml(item.name)}</image:title>
         </image:image>` : '';
 
                 xml += `
     <url>
-        <loc>${SITE_URL}/?product=${doc.id}</loc>
+        <loc>${escapeXml(`${SITE_URL}/?product=${doc.id}`)}</loc>
         <lastmod>${lastMod}</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.7</priority>${imgTag}
@@ -50,7 +60,7 @@ exports.sitemap = functions.https.onRequest(async (req, res) => {
 </urlset>`;
 
         res.set('Content-Type', 'text/xml');
-        res.set('Cache-Control', 'public, max-age=3600, s-maxage=86400');
+        res.set('Cache-Control', 'public, max-age=300, s-maxage=300');
         res.status(200).send(xml);
     } catch (error) {
         console.error("Sitemap Error:", error);
@@ -64,7 +74,7 @@ function escapeHtml(str) {
 }
 
 exports.shareMeta = functions.https.onRequest(async (req, res) => {
-    const SITE_URL = getSiteUrl();
+    const SITE_URL = getSiteUrl(req.headers.host);
     const rawProductId = req.query.product || '';
     const productId = rawProductId.replace(/[^a-zA-Z0-9_-]/g, '');
 
