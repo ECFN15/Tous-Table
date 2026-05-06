@@ -249,7 +249,7 @@ const AtelierBadge = () => (
 // Trois boutons (Mobilier / Planches / Le Comptoir) à border néon rotative,
 // affichés au-dessus du label "Collection 2026" dans le hero.
 // Réutilise les mêmes icônes que la nav header pour une identité visuelle cohérente.
-const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilter, onOpenShop }) => {
+const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilter, onOpenShop, darkMode = false }) => {
     const items = [
         {
             id: 'furniture',
@@ -303,7 +303,9 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
                                     onClick={onClick}
                                     whileHover={{ scale: 1.04 }}
                                     whileTap={{ scale: 0.97 }}
-                                    className="relative z-10 inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-[0.18em] whitespace-nowrap bg-stone-900/90 text-amber-400"
+                                    className={`relative z-10 inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-[0.18em] whitespace-nowrap ${
+                                        darkMode ? 'bg-stone-900/90 text-amber-400' : 'bg-[#fff8ed]/95 text-[#8f5b20] shadow-[0_8px_24px_rgba(128,82,28,0.16)]'
+                                    }`}
                                 >
                                     <Icon size={16} strokeWidth={1.8} className="shrink-0" />
                                     <span>{label}</span>
@@ -327,7 +329,9 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
                             onClick={onClick}
                             whileHover={{ scale: 1.04 }}
                             whileTap={{ scale: 0.97 }}
-                            className="inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-[0.18em] whitespace-nowrap bg-stone-100 text-stone-900"
+                            className={`inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-[0.18em] whitespace-nowrap ${
+                                darkMode ? 'bg-stone-100 text-stone-900' : 'bg-stone-950 text-[#fff7eb] shadow-[0_10px_24px_rgba(61,41,18,0.2)]'
+                            }`}
                         >
                             <Icon size={14} strokeWidth={1.8} className="shrink-0" />
                             <span>{label}</span>
@@ -348,7 +352,9 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
                                 onClick={onClick}
                                 whileHover={{ scale: 1.04 }}
                                 whileTap={{ scale: 0.97 }}
-                                className="relative z-10 inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-[0.18em] whitespace-nowrap bg-stone-900/90 text-stone-100"
+                                className={`relative z-10 inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-[0.18em] whitespace-nowrap ${
+                                    darkMode ? 'bg-stone-900/90 text-stone-100' : 'bg-[#fff8ed]/95 text-stone-800 shadow-[0_8px_24px_rgba(128,82,28,0.14)]'
+                                }`}
                             >
                                 <Icon size={14} strokeWidth={1.8} className="shrink-0" />
                                 <span>{label}</span>
@@ -553,8 +559,25 @@ const MarketplaceLayout = ({
         scrollToTarget(target, { offset: -80, duration: 1.05 });
     };
 
+    const pageClass = darkMode
+        ? 'bg-[#050605] text-stone-100 selection:bg-[#dba45f] selection:text-black'
+        : 'bg-[#f7f0e6] text-stone-950 selection:bg-[#c68a3d] selection:text-white';
+    const collectionShellClass = darkMode
+        ? 'bg-[#050605]'
+        : 'bg-[linear-gradient(180deg,#f7f0e6_0%,#fffaf2_38%,#f2e4d0_100%)]';
+    const subtleBorderClass = darkMode ? 'border-[#8a5b2a]/20' : 'border-[#c79b5d]/28';
+    const labelClass = darkMode ? 'text-stone-400' : 'text-stone-500';
+    const sideCopyClass = darkMode ? 'text-stone-100/85' : 'text-stone-800/85';
+    const selectIdleClass = darkMode
+        ? 'border-[#8a5b2a]/50 text-stone-200 hover:border-[#dba45f] hover:text-white'
+        : 'border-[#c79b5d]/55 bg-white/55 text-stone-700 hover:border-[#b8792f] hover:text-stone-950';
+    const selectActiveClass = darkMode
+        ? 'border-[#dba45f] text-[#f0b969]'
+        : 'border-[#b8792f] bg-[#fff7eb] text-[#8b541b]';
+    const optionClass = darkMode ? 'bg-[#0a0a09] text-white' : 'bg-[#fff7eb] text-stone-950';
+
     return (
-        <div className="w-full min-h-screen bg-[#050605] text-stone-100 selection:bg-[#dba45f] selection:text-black">
+        <div className={`w-full min-h-screen ${pageClass}`}>
             <main className="relative overflow-hidden">
                 <section className="relative min-h-[calc(100svh-4rem)] md:min-h-[560px] lg:min-h-[620px] overflow-hidden">
                     {heroConfig.image && (
@@ -580,9 +603,9 @@ const MarketplaceLayout = ({
                             />
                         </picture>
                     )}
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_42%,rgba(0,0,0,0),rgba(0,0,0,0.28)_46%,rgba(0,0,0,0.72)_100%)]" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/28 to-black/5" />
-                    <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/70 to-transparent" />
+                    <div className={`absolute inset-0 ${darkMode ? 'bg-[radial-gradient(circle_at_72%_42%,rgba(0,0,0,0),rgba(0,0,0,0.28)_46%,rgba(0,0,0,0.72)_100%)]' : 'bg-transparent'}`} />
+                    <div className={`absolute inset-0 ${darkMode ? 'bg-gradient-to-r from-black/85 via-black/28 to-black/5' : 'bg-[linear-gradient(90deg,rgba(0,0,0,0.50)_0%,rgba(0,0,0,0.28)_22%,rgba(0,0,0,0.08)_40%,rgba(0,0,0,0)_56%)]'}`} />
+                    <div className={`absolute inset-x-0 top-0 h-32 ${darkMode ? 'bg-gradient-to-b from-black/70 to-transparent' : 'bg-gradient-to-b from-[#f8f2e8]/16 to-transparent'}`} />
 
                     <div className="relative z-10 max-w-[1920px] mx-auto px-6 md:px-16 pt-10 md:pt-14 pb-14 md:pb-20 min-h-[calc(100svh-4rem)] md:min-h-[560px] lg:min-h-[620px] flex flex-col justify-start">
 
@@ -597,6 +620,7 @@ const MarketplaceLayout = ({
                                     setActiveCollection={setActiveCollection}
                                     setFilter={setFilter}
                                     onOpenShop={onOpenShop}
+                                    darkMode={darkMode}
                                 />
                             </div>
                         </div>
@@ -607,7 +631,7 @@ const MarketplaceLayout = ({
                                 <p className="hidden lg:block text-[#dba45f] text-[11px] md:text-xs font-black uppercase tracking-[0.42em] mb-5 md:mb-7">
                                     Collection 2026
                                 </p>
-                                <h1 className="font-serif text-[4.6rem] leading-[0.82] md:text-[7.8rem] lg:text-[8.6rem] tracking-tight text-white drop-shadow-[0_10px_35px_rgba(0,0,0,0.65)]">
+                                <h1 className={`font-serif text-[4.6rem] leading-[0.82] md:text-[7.8rem] lg:text-[8.6rem] tracking-tight ${darkMode ? 'text-white drop-shadow-[0_10px_35px_rgba(0,0,0,0.65)]' : 'text-[#fff4df] drop-shadow-[0_12px_34px_rgba(0,0,0,0.72)]'}`}>
                                     <span className="block h-[1.64em] overflow-hidden">
                                         <TextType
                                             as="span"
@@ -626,12 +650,12 @@ const MarketplaceLayout = ({
                                         />
                                     </span>
                                 </h1>
-                                <p className="mt-9 md:mt-11 max-w-xl font-serif text-[1.26rem] md:text-[1.7rem] leading-[1.25] text-[#efc489]">
+                                <p className={`mt-9 md:mt-11 max-w-xl font-serif text-[1.26rem] md:text-[1.7rem] leading-[1.25] ${darkMode ? 'text-[#efc489]' : 'text-[#f2c27e] drop-shadow-[0_8px_22px_rgba(0,0,0,0.72)]'}`}>
                                     Mobilier ancien restauré et pièces artisanales en bois massif. Chaque meuble raconte une histoire, chaque pièce est unique.
                                 </p>
                                 <button
                                     onClick={scrollToCollection}
-                                    className="mt-12 md:mt-10 inline-flex h-14 md:h-16 items-center justify-center gap-6 border border-[#dba45f] px-7 md:px-10 text-[#f0b969] text-[11px] md:text-xs font-black uppercase tracking-[0.28em] transition-all hover:bg-[#dba45f] hover:text-black"
+                                    className={`mt-12 md:mt-10 inline-flex h-14 md:h-16 items-center justify-center gap-6 border border-[#dba45f] px-7 md:px-10 text-[11px] md:text-xs font-black uppercase tracking-[0.28em] transition-all hover:bg-[#dba45f] hover:text-black ${darkMode ? 'text-[#f0b969]' : 'bg-black/22 text-[#fff0cf] shadow-[0_16px_36px_rgba(0,0,0,0.24)] backdrop-blur-[2px]'}`}
                                 >
                                     Découvrir la collection
                                     <ArrowRight size={20} strokeWidth={1.5} />
@@ -644,12 +668,12 @@ const MarketplaceLayout = ({
                     </div>
                 </section>
 
-                <section id="collection-grid" className="max-w-[1920px] mx-auto px-5 md:px-12 pt-[1.875rem] pb-8 md:py-12">
+                <section id="collection-grid" className={`max-w-[1920px] mx-auto px-5 md:px-12 pt-[1.875rem] pb-8 md:py-12 ${collectionShellClass}`}>
                     {/* === HEADER ROW : sidebar label + pills + filters === */}
                     <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)] lg:items-start lg:gap-10">
                         <aside className="hidden lg:block pt-1">
-                            <p className="text-stone-400 text-[10px] font-black uppercase tracking-[0.32em] mb-3">Notre mobilier</p>
-                            <p className="font-serif text-[1.05rem] leading-snug text-stone-100/85">
+                            <p className={`${labelClass} text-[10px] font-black uppercase tracking-[0.32em] mb-3`}>Notre mobilier</p>
+                            <p className={`font-serif text-[1.05rem] leading-snug ${sideCopyClass}`}>
                                 Des pièces uniques,<br />sélectionnées avec exigence.
                             </p>
                         </aside>
@@ -658,7 +682,7 @@ const MarketplaceLayout = ({
                             {/* Categories pills (top).
                                   Mobile (< md / 768px) : flex-wrap → toutes visibles sur 2 lignes max.
                                   md+ : flex-nowrap + scroll horizontal de secours si jamais ça déborde. */}
-                            <div className="flex flex-wrap md:flex-nowrap items-center gap-1 sm:gap-2 md:gap-3 md:overflow-x-auto no-scrollbar pb-3 md:pb-4 border-b border-[#8a5b2a]/20">
+                            <div className={`flex flex-wrap md:flex-nowrap items-center gap-1 sm:gap-2 md:gap-3 md:overflow-x-auto no-scrollbar pb-3 md:pb-4 border-b ${subtleBorderClass}`}>
                                 {FURNITURE_CATEGORIES.map((category) => {
                                     const active = activeCategory === category.id;
                                     const shortLabel = category.mobileLabel || category.label;
@@ -673,8 +697,8 @@ const MarketplaceLayout = ({
                                             }}
                                             className={`shrink-0 rounded-full border px-2.5 py-1.5 sm:px-4 sm:py-2 md:px-5 md:py-2.5 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.12em] sm:tracking-[0.20em] md:tracking-[0.22em] transition-all ${
                                                 active
-                                                    ? 'border-white/80 bg-stone-100 text-stone-900'
-                                                    : 'border-transparent text-stone-300/80 hover:text-white hover:border-[#dba45f]/30'
+                                                    ? (darkMode ? 'border-white/80 bg-stone-100 text-stone-900' : 'border-stone-950 bg-stone-950 text-[#fff7eb] shadow-[0_10px_22px_rgba(69,46,21,0.16)]')
+                                                    : (darkMode ? 'border-transparent text-stone-300/80 hover:text-white hover:border-[#dba45f]/30' : 'border-transparent text-stone-600 hover:text-stone-950 hover:border-[#b8792f]/45')
                                             }`}
                                         >
                                             {/* Mobile : libellé court (mobileLabel ou label si déjà court) */}
@@ -691,7 +715,7 @@ const MarketplaceLayout = ({
                                   dès 412 px de viewport (cf. audit FrontSymmetry). */}
                             <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3 md:gap-4 py-3 sm:py-4 md:py-5">
                                 <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 flex-wrap">
-                                    <span className="hidden md:inline text-stone-400 text-[10px] font-black uppercase tracking-[0.26em] mr-1">Filtrer :</span>
+                                    <span className={`hidden md:inline ${labelClass} text-[10px] font-black uppercase tracking-[0.26em] mr-1`}>Filtrer :</span>
 
                                     {/* Filtre Matière — masqué si aucune matière renseignée en BDD */}
                                     {materialOptions.length > 0 && (
@@ -704,13 +728,13 @@ const MarketplaceLayout = ({
                                                 }}
                                                 className={`h-8 sm:h-9 md:h-10 appearance-none rounded-full border bg-transparent pl-3 pr-8 sm:pl-3.5 sm:pr-9 md:pl-4 md:pr-10 text-[9px] md:text-[10px] font-black uppercase tracking-[0.18em] sm:tracking-[0.20em] md:tracking-[0.22em] outline-none transition-colors cursor-pointer ${
                                                     activeMaterial
-                                                        ? 'border-[#dba45f] text-[#f0b969]'
-                                                        : 'border-[#8a5b2a]/50 text-stone-200 hover:border-[#dba45f] hover:text-white'
+                                                        ? selectActiveClass
+                                                        : selectIdleClass
                                                 }`}
                                             >
-                                                <option value="" className="bg-[#0a0a09] text-white">Toutes les matières</option>
+                                                <option value="" className={optionClass}>Toutes les matières</option>
                                                 {materialOptions.map((mat) => (
-                                                    <option key={mat} value={mat} className="bg-[#0a0a09] text-white">{mat}</option>
+                                                    <option key={mat} value={mat} className={optionClass}>{mat}</option>
                                                 ))}
                                             </select>
                                             <ChevronDown size={12} strokeWidth={1.8} className={`pointer-events-none absolute right-2 sm:right-2.5 md:right-3 top-1/2 -translate-y-1/2 md:w-3.5 md:h-3.5 ${activeMaterial ? 'text-[#dba45f]' : 'text-stone-400'}`} />
@@ -727,13 +751,13 @@ const MarketplaceLayout = ({
                                             }}
                                             className={`h-8 sm:h-9 md:h-10 appearance-none rounded-full border bg-transparent pl-3 pr-8 sm:pl-3.5 sm:pr-9 md:pl-4 md:pr-10 text-[9px] md:text-[10px] font-black uppercase tracking-[0.18em] sm:tracking-[0.20em] md:tracking-[0.22em] outline-none transition-colors cursor-pointer ${
                                                 activePriceRange
-                                                    ? 'border-[#dba45f] text-[#f0b969]'
-                                                    : 'border-[#8a5b2a]/50 text-stone-200 hover:border-[#dba45f] hover:text-white'
+                                                    ? selectActiveClass
+                                                    : selectIdleClass
                                             }`}
                                         >
-                                            <option value="" className="bg-[#0a0a09] text-white">Tous les prix</option>
+                                            <option value="" className={optionClass}>Tous les prix</option>
                                             {PRICE_RANGES.map((range) => (
-                                                <option key={range.id} value={range.id} className="bg-[#0a0a09] text-white">{range.label}</option>
+                                                <option key={range.id} value={range.id} className={optionClass}>{range.label}</option>
                                             ))}
                                         </select>
                                         <ChevronDown size={12} strokeWidth={1.8} className={`pointer-events-none absolute right-2 sm:right-2.5 md:right-3 top-1/2 -translate-y-1/2 md:w-3.5 md:h-3.5 ${activePriceRange ? 'text-[#dba45f]' : 'text-stone-400'}`} />
@@ -744,7 +768,7 @@ const MarketplaceLayout = ({
                                         <button
                                             type="button"
                                             onClick={resetAllFilters}
-                                            className="inline-flex h-8 sm:h-9 md:h-10 items-center gap-2 rounded-full px-3 md:px-4 text-[#f0b969] text-[9px] md:text-[10px] font-black uppercase tracking-[0.18em] sm:tracking-[0.20em] md:tracking-[0.22em] transition-colors hover:text-white"
+                                            className={`inline-flex h-8 sm:h-9 md:h-10 items-center gap-2 rounded-full px-3 md:px-4 text-[9px] md:text-[10px] font-black uppercase tracking-[0.18em] sm:tracking-[0.20em] md:tracking-[0.22em] transition-colors ${darkMode ? 'text-[#f0b969] hover:text-white' : 'text-[#8a531c] hover:text-stone-950'}`}
                                         >
                                             Réinitialiser
                                         </button>
@@ -752,7 +776,7 @@ const MarketplaceLayout = ({
                                 </div>
 
                                 <label className="flex items-center gap-2 md:gap-3">
-                                    <span className="hidden md:inline text-stone-400 text-[10px] font-black uppercase tracking-[0.26em]">Trier par :</span>
+                                    <span className={`hidden md:inline ${labelClass} text-[10px] font-black uppercase tracking-[0.26em]`}>Trier par :</span>
                                     <span className="relative">
                                         <select
                                             value={sortMode}
@@ -760,11 +784,11 @@ const MarketplaceLayout = ({
                                                 setSortMode(event.target.value);
                                                 resetView();
                                             }}
-                                            className="h-8 sm:h-9 md:h-10 appearance-none rounded-full border border-[#8a5b2a]/50 bg-transparent pl-3 pr-8 sm:pl-3.5 sm:pr-9 md:pl-4 md:pr-10 text-stone-200 text-[9px] md:text-[10px] font-black uppercase tracking-[0.18em] sm:tracking-[0.20em] md:tracking-[0.22em] outline-none transition-colors hover:border-[#dba45f] focus:border-[#dba45f] cursor-pointer"
+                                            className={`h-8 sm:h-9 md:h-10 appearance-none rounded-full border bg-transparent pl-3 pr-8 sm:pl-3.5 sm:pr-9 md:pl-4 md:pr-10 text-[9px] md:text-[10px] font-black uppercase tracking-[0.18em] sm:tracking-[0.20em] md:tracking-[0.22em] outline-none transition-colors focus:border-[#dba45f] cursor-pointer ${selectIdleClass}`}
                                         >
-                                            <option value="recent" className="bg-[#0a0a09] text-white">Plus récents</option>
-                                            <option value="priceAsc" className="bg-[#0a0a09] text-white">Prix croissant</option>
-                                            <option value="priceDesc" className="bg-[#0a0a09] text-white">Prix décroissant</option>
+                                            <option value="recent" className={optionClass}>Plus récents</option>
+                                            <option value="priceAsc" className={optionClass}>Prix croissant</option>
+                                            <option value="priceDesc" className={optionClass}>Prix décroissant</option>
                                         </select>
                                         <ChevronDown size={12} strokeWidth={1.8} className="pointer-events-none absolute right-2 sm:right-2.5 md:right-3 top-1/2 -translate-y-1/2 md:w-3.5 md:h-3.5 text-stone-400" />
                                     </span>
@@ -853,6 +877,7 @@ const MarketplaceLayout = ({
                                                     item={item}
                                                     onClick={() => onSelectItem(item.id)}
                                                     hideStock={activeCollection === 'furniture'}
+                                                    darkMode={darkMode}
                                                 />
                                             </div>
                                         );
@@ -867,7 +892,7 @@ const MarketplaceLayout = ({
                             <button
                                 type="button"
                                 onClick={loadMore}
-                                className="inline-flex h-14 min-w-[280px] items-center justify-center gap-6 border border-[#dba45f] px-8 text-[#f0b969] text-[11px] font-black uppercase tracking-[0.26em] transition-all hover:bg-[#dba45f] hover:text-black"
+                                className={`inline-flex h-14 min-w-[280px] items-center justify-center gap-6 border border-[#dba45f] px-8 text-[11px] font-black uppercase tracking-[0.26em] transition-all hover:bg-[#dba45f] hover:text-black ${darkMode ? 'text-[#f0b969]' : 'bg-white/45 text-[#8a531c] shadow-[0_14px_32px_rgba(92,57,20,0.1)]'}`}
                             >
                                 Voir plus de produits
                                 <ArrowDown size={18} strokeWidth={1.5} />
@@ -875,13 +900,13 @@ const MarketplaceLayout = ({
                         </div>
                     )}
 
-                    <div className="mt-10 md:mt-14 grid gap-0 overflow-hidden border border-[#8a5b2a]/25 bg-[#15120e]/80 md:grid-cols-4">
+                    <div className={`mt-10 md:mt-14 grid gap-0 overflow-hidden border md:grid-cols-4 ${darkMode ? 'border-[#8a5b2a]/25 bg-[#15120e]/80' : 'border-[#c79b5d]/30 bg-[#fff8ed]/72 shadow-[0_24px_70px_rgba(102,74,36,0.12)]'}`}>
                         {BENEFITS.map(({ title, body, icon: Icon }, index) => (
-                            <div key={title} className={`flex gap-5 p-6 md:p-7 ${index > 0 ? 'border-t md:border-t-0 md:border-l' : ''} border-[#8a5b2a]/25`}>
+                            <div key={title} className={`flex gap-5 p-6 md:p-7 ${index > 0 ? 'border-t md:border-t-0 md:border-l' : ''} ${darkMode ? 'border-[#8a5b2a]/25' : 'border-[#c79b5d]/24'}`}>
                                 <Icon size={28} strokeWidth={1.35} className="shrink-0 text-[#dba45f] mt-0.5" />
                                 <div>
                                     <h2 className="text-[#dba45f] text-[10px] md:text-[11px] font-black uppercase tracking-[0.24em]">{title}</h2>
-                                    <p className="mt-2 font-serif text-[0.98rem] md:text-[1.05rem] leading-snug text-stone-200/90">{body}</p>
+                                    <p className={`mt-2 font-serif text-[0.98rem] md:text-[1.05rem] leading-snug ${darkMode ? 'text-stone-200/90' : 'text-stone-700'}`}>{body}</p>
                                 </div>
                             </div>
                         ))}

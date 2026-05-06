@@ -75,7 +75,8 @@ const ProductCard = ({
     item,
     className = '',
     onClick,
-    hideStock = false
+    hideStock = false,
+    darkMode = false
 }) => {
     const image = getImage(item);
     const price = getPrice(item);
@@ -168,7 +169,11 @@ const ProductCard = ({
                 }
             }}
             style={{ aspectRatio: aspectRatio || '4 / 5', contain: 'layout paint' }}
-            className={`group relative block overflow-hidden rounded-[6px] border border-[#3a2a18]/60 bg-[#0a0a09] text-white no-underline shadow-[0_22px_60px_rgba(0,0,0,0.35)] ${className}`}
+            className={`group relative block overflow-hidden rounded-[6px] border text-white no-underline ${
+                darkMode
+                    ? 'border-[#3a2a18]/60 bg-[#0a0a09] shadow-[0_22px_60px_rgba(0,0,0,0.35)]'
+                    : 'border-[#d9c2a0]/80 bg-[#f4eadc] shadow-[0_24px_55px_rgba(102,74,36,0.16)]'
+            } ${className}`}
         >
             {/* Image remplit la carte — bandes noires recadrées via aspect-ratio + object-position si CORS le permet */}
             {image && (
@@ -185,12 +190,16 @@ const ProductCard = ({
             )}
 
             {/* Gradient overlay — darker at bottom for text readability */}
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/10" />
+            <div className={`pointer-events-none absolute inset-0 ${
+                darkMode
+                    ? 'bg-gradient-to-t from-black/90 via-black/30 to-black/10'
+                    : 'bg-gradient-to-t from-[#1b1209]/82 via-[#1b1209]/18 to-transparent'
+            }`} />
 
             {/* TOP-LEFT : live auction badge only (material moved bottom-right) */}
             {item.auctionActive && (
                 <div className="absolute left-4 top-4 z-30 flex items-center gap-2 max-w-[calc(100%-4rem)]">
-                    <div className="inline-flex items-center gap-2 border border-[#dba45f]/60 bg-black/55 px-3 py-1.5 text-[8px] font-black uppercase tracking-[0.2em] text-[#f0b969] backdrop-blur-sm">
+                    <div className={`inline-flex items-center gap-2 border border-[#dba45f]/60 px-3 py-1.5 text-[8px] font-black uppercase tracking-[0.2em] text-[#f0b969] backdrop-blur-sm ${darkMode ? 'bg-black/55' : 'bg-[#3a2512]/70'}`}>
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                         <Suspense fallback="Live"><AuctionTimer endDate={item.auctionEnd} /></Suspense>
                     </div>
@@ -198,7 +207,7 @@ const ProductCard = ({
             )}
 
             {/* TOP-RIGHT : + button — taille calibrée par breakpoint pour rester ~15-18% de la carte */}
-            <div className="absolute right-3 top-3 sm:right-3.5 sm:top-3.5 md:right-4 md:top-4 z-30 flex h-8 w-8 sm:h-9 sm:w-9 md:h-[38px] md:w-[38px] lg:h-[42px] lg:w-[42px] items-center justify-center rounded-full border border-[#dba45f]/80 bg-black/30 text-[#f0b969] backdrop-blur-sm transition-all duration-300 group-hover:bg-[#dba45f] group-hover:text-black group-hover:scale-105">
+            <div className={`absolute right-3 top-3 sm:right-3.5 sm:top-3.5 md:right-4 md:top-4 z-30 flex h-8 w-8 sm:h-9 sm:w-9 md:h-[38px] md:w-[38px] lg:h-[42px] lg:w-[42px] items-center justify-center rounded-full border border-[#dba45f]/80 text-[#f0b969] backdrop-blur-sm transition-all duration-300 group-hover:bg-[#dba45f] group-hover:text-black group-hover:scale-105 ${darkMode ? 'bg-black/30' : 'bg-[#2b1b0c]/35 shadow-[0_8px_20px_rgba(72,45,18,0.18)]'}`}>
                 <Plus className="w-4 h-4 sm:w-[18px] sm:h-[18px] lg:w-5 lg:h-5" strokeWidth={1.5} />
             </div>
 
@@ -237,5 +246,6 @@ export default React.memo(ProductCard, (prev, next) => {
     return prev.item?.id === next.item?.id &&
         prev.item?.updatedAt === next.item?.updatedAt &&
         prev.className === next.className &&
-        prev.hideStock === next.hideStock;
+        prev.hideStock === next.hideStock &&
+        prev.darkMode === next.darkMode;
 });

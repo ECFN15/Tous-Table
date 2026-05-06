@@ -291,7 +291,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
     }, []);
 
     return (
-        <div className={`min-h-screen animate-in fade-in duration-500 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-[#FAFAF9]'}`}>
+        <div className={`min-h-screen animate-in fade-in duration-500 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-[linear-gradient(180deg,#f8f2e8_0%,#fffaf2_42%,#f1e3cf_100%)]'}`}>
             <SEO
                 title="Le Comptoir - Soin et Entretien du Bois"
                 description="Notre sélection de produits professionnels pour protéger, nourrir et restaurer vos meubles en bois massif. Huiles, cires et savons testés à l'atelier."
@@ -406,7 +406,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                 {/* Sectioned content — all families in order */}
                 <section
                     id="products-grid-section"
-                    className={`min-h-screen pt-6 lg:pt-12 pb-20 px-6 xl:px-12 lg:pl-[320px] xl:pl-[360px] ${darkMode ? 'bg-[#0a0a0a]' : 'bg-[#FAFAF9]'}`}
+                    className={`min-h-screen pt-6 lg:pt-12 pb-20 px-6 xl:px-12 lg:pl-[320px] xl:pl-[360px] ${darkMode ? 'bg-[#0a0a0a]' : 'bg-transparent'}`}
                 >
                     <div className="max-w-[1920px] mx-auto space-y-0">
                         {visibleFamilies.map((family, familyIndex) => {
@@ -454,7 +454,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
 
                                                 {/* Editorial / Video block inline after 4th product ou après le dernier si < 4 */}
                                                 {(index === 3 || (products.length <= 3 && index === products.length - 1)) && tutorials.length > 0 && (
-                                                <div className={`col-span-2 sm:col-span-3 lg:col-span-4 p-8 lg:p-12 rounded-[28px] backdrop-blur-xl bg-gradient-to-br from-amber-500/5 to-stone-800/20 border ${darkMode ? 'border-white/5' : 'border-stone-200/50'}`}>
+                                                <div className={`col-span-2 sm:col-span-3 lg:col-span-4 p-8 lg:p-12 rounded-[28px] backdrop-blur-xl border ${darkMode ? 'bg-gradient-to-br from-amber-500/5 to-stone-800/20 border-white/5' : 'bg-[#fff8ed]/76 border-[#c79b5d]/28 shadow-[0_24px_70px_rgba(102,74,36,0.12)]'}`}>
                                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-6 sm:gap-y-8 lg:gap-x-12 lg:items-stretch">
 
                                                 {/* Text */}
@@ -633,7 +633,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
             </div>
 
             {/* INFO AFFILIATE FOOTER */}
-            <section className={`py-12 px-6 md:px-12 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-[#FAFAF9]'}`}>
+            <section className={`py-12 px-6 md:px-12 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-transparent'}`}>
                 <div className={`max-w-[1920px] mx-auto flex flex-col md:flex-row items-center justify-center gap-3 text-[10px] text-center md:text-left ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>
                     <Info size={14} className={darkMode ? 'text-amber-500' : 'text-amber-600'} />
                     <p className="max-w-2xl leading-relaxed">

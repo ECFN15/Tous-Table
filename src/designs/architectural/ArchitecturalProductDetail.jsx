@@ -233,7 +233,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
 
     // --- RENDER ARCHITECTURAL ---
     return (
-        <div className={`min-h-screen transition-colors duration-700 bg-transparent`}>
+        <div className={`min-h-screen transition-colors duration-700 ${darkMode ? 'bg-[#050605] text-stone-100' : 'bg-[linear-gradient(180deg,#f8f2e8_0%,#fffaf2_48%,#f1e3cf_100%)] text-stone-950'}`}>
             <SEO
                 title={item.name}
                 description={item.description}
