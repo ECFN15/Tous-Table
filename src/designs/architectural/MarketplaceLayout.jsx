@@ -5,6 +5,8 @@ import { ArrowDown, ArrowRight, ChevronDown, Hammer, ShieldCheck, Tag, Truck } f
 import { FurnitureHeaderIcon, BreadBoardHeaderIcon, CounterHeaderIcon } from './components/ArchitecturalHeader';
 import TextType from '../../components/ui/TextType';
 import { scrollToTarget } from '../../utils/smoothScroll';
+import { warmImage } from '../../utils/startupWarmup';
+import { isLowPowerMobileDevice, isTouchDevice, shouldLimitNetworkWarmup } from '../../utils/devicePerformance';
 import { LEGACY_FURNITURE_CATEGORY_BY_ID } from '../../data/legacyFurnitureCategories';
 import { BOARD_SEO_CONTENT, CATEGORY_SEO_CONTENT } from '../../data/categorySeoContent';
 
@@ -38,8 +40,38 @@ const useResponsiveCols = () => {
 // On lit le `RATIO_CACHE` partagé avec `ProductCard` ; à défaut, fallback portrait 4:5
 // (= 1.25), qui est le ratio par défaut posé sur le `<a>` quand l'image n'est pas chargée.
 const FALLBACK_HEIGHT_RATIO = 5 / 4;
+const LOAD_MORE_BATCH_SIZE = 12;
+const wait = (duration) => new Promise((resolve) => setTimeout(resolve, duration));
+const getCardImage = (item) => item?.images?.[0] || item?.imageUrl || item?.thumbnailUrl || '';
+
+const cacheImageRatio = (src, img) => {
+    if (!src || !img?.naturalWidth || !img?.naturalHeight || RATIO_CACHE.has(src)) return;
+    RATIO_CACHE.set(src, {
+        aspectRatio: `${img.naturalWidth} / ${img.naturalHeight}`,
+        objectPos: 'center',
+    });
+};
+
+const isLoadMoreConstrainedDevice = () => {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
+    if (shouldLimitNetworkWarmup()) return true;
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return true;
+
+    const memory = Number(navigator.deviceMemory || 0);
+    const cores = Number(navigator.hardwareConcurrency || 0);
+
+    if (memory > 0 && memory <= 4) return true;
+    if (cores > 0 && cores <= 4) return true;
+
+    // Galaxy S/Ultra, iPhone Pro récents, etc. : largeur mobile, mais budget CPU/RAM solide.
+    // On évite de les envoyer dans le profil prudent prévu pour Android entrée de gamme.
+    if (memory >= 6 || cores >= 6) return false;
+
+    return isLowPowerMobileDevice();
+};
+
 const getPredictedHeightRatio = (item) => {
-    const img = item?.images?.[0] || item?.imageUrl || item?.thumbnailUrl;
+    const img = getCardImage(item);
     if (!img) return FALLBACK_HEIGHT_RATIO;
     const cached = RATIO_CACHE.get(img);
     if (!cached?.aspectRatio) return FALLBACK_HEIGHT_RATIO;
@@ -461,6 +493,7 @@ const MarketplaceLayout = ({
     // sous les colonnes courtes comme avec l'ancien chunking par batch).
     const NUM_COLS = useResponsiveCols();
     const [visibleCount, setVisibleCount] = useState(24);
+    const [isPreparingMore, setIsPreparingMore] = useState(false);
     // Map<itemId, indexDansLeBatchFrais> — uniquement pour les nouveaux items à animer.
     // Vide à l'état initial et après reset des filtres → aucune animation parasite.
     const [freshOrder, setFreshOrder] = useState(() => new Map());
@@ -469,6 +502,7 @@ const MarketplaceLayout = ({
     // Timer pour clear `freshOrder` après la fin de l'animation (libère le will-change
     // GPU des cartes fraîches). Cf. _DOCS/AUDITS/scrolllenis.md §3.4.B.
     const freshClearTimerRef = useRef(null);
+    const loadMoreRunRef = useRef(0);
 
     useEffect(() => {
         if (setHeaderProps && headerProps) setHeaderProps(headerProps);
@@ -512,11 +546,13 @@ const MarketplaceLayout = ({
     // Appelé sur tout changement de filtre / catégorie / matière / tri (l'ordre des items change
     // → les placements précédents n'ont plus de sens, on repart à zéro).
     const resetView = useCallback(() => {
+        loadMoreRunRef.current += 1;
         if (freshClearTimerRef.current) {
             clearTimeout(freshClearTimerRef.current);
             freshClearTimerRef.current = null;
         }
         heightsRef.current = new Map();
+        setIsPreparingMore(false);
         setVisibleCount(24);
         setFreshOrder(new Map());
     }, []);
@@ -531,18 +567,107 @@ const MarketplaceLayout = ({
 
     const heroConfig = HERO_BY_COLLECTION[activeCollection] || HERO_BY_COLLECTION.furniture;
 
-    // "Voir plus" : on étend simplement la fenêtre visible et on marque les 12 nouveaux items
-    // comme "frais" (avec leur ordre d'apparition dans la salve pour le stagger d'animation).
-    // Le `useMemo` `columnsLayout` ré-exécute l'algo : les 24 premiers retombent à l'identique
-    // grâce aux hauteurs gelées dans `heightsRef`, et les 12 nouveaux s'insèrent dans la
-    // colonne actuellement la plus courte. Aucune carte existante ne bouge.
-    const loadMore = useCallback(() => {
-        const newCount = Math.min(visibleCount + 12, sortedItems.length);
-        const newSlice = sortedItems.slice(visibleCount, newCount);
+    // "Voir plus" prépare d'abord les images du prochain lot, puis étend la fenêtre visible.
+    // Les cartes gardent l'animation d'apparition existante, mais elle démarre après le warmup.
+    const warmLoadMoreBatchImages = useCallback((batch, { background = false } = {}) => {
+        const touch = isTouchDevice();
+        const constrained = touch && isLoadMoreConstrainedDevice();
+        const candidates = batch
+            .map((item) => getCardImage(item))
+            .filter(Boolean);
+
+        if (!candidates.length) return Promise.resolve();
+
+        const runWarmers = (urls, {
+            concurrency,
+            decodeCount,
+            imageTimeout,
+            pause = 0,
+        }) => {
+            let cursor = 0;
+            const workers = Array.from({ length: Math.min(concurrency, urls.length) }, async () => {
+                while (cursor < urls.length) {
+                    const index = cursor;
+                    cursor += 1;
+                    const src = urls[index];
+                    const shouldDecode = index < decodeCount;
+                    const img = await warmImage(src, {
+                        priority: shouldDecode ? 'high' : 'low',
+                        decode: shouldDecode,
+                        timeout: imageTimeout,
+                    });
+                    cacheImageRatio(src, img);
+
+                    if (pause > 0) await wait(pause);
+                }
+            });
+
+            return Promise.allSettled(workers);
+        };
+
+        if (background) {
+            const backgroundLimit = touch ? (constrained ? 4 : 6) : 8;
+            return runWarmers(candidates.slice(0, backgroundLimit), {
+                concurrency: touch ? 1 : 2,
+                decodeCount: touch ? 1 : 2,
+                imageTimeout: touch ? 900 : 700,
+                pause: touch ? 45 : 0,
+            });
+        }
+
+        const blockingCount = touch ? 3 : 5;
+        const blockingCandidates = candidates.slice(0, blockingCount);
+        const backgroundCandidates = candidates.slice(blockingCount, touch ? (constrained ? 7 : 10) : candidates.length);
+        const blockingTask = runWarmers(blockingCandidates, {
+            concurrency: touch ? (constrained ? 1 : 3) : 4,
+            decodeCount: blockingCandidates.length,
+            imageTimeout: touch ? (constrained ? 1150 : 620) : 700,
+            pause: touch ? (constrained ? 70 : 10) : 0,
+        });
+
+        if (backgroundCandidates.length > 0) {
+            runWarmers(backgroundCandidates, {
+                concurrency: touch ? (constrained ? 1 : 2) : 3,
+                decodeCount: touch ? 1 : 2,
+                imageTimeout: touch ? 1200 : 900,
+                pause: touch ? 70 : 0,
+            });
+        }
+
+        const totalBudget = touch ? (constrained ? 1300 : 420) : 520;
+        return Promise.race([blockingTask, wait(totalBudget)]);
+    }, []);
+    const getNextBatch = useCallback(() => {
+        const newCount = Math.min(visibleCount + LOAD_MORE_BATCH_SIZE, sortedItems.length);
+        return {
+            newCount,
+            newSlice: sortedItems.slice(visibleCount, newCount),
+        };
+    }, [visibleCount, sortedItems]);
+
+    const warmNextBatchIntent = useCallback(() => {
+        if (isPreparingMore) return;
+        const { newSlice } = getNextBatch();
+        if (!newSlice.length) return;
+        warmLoadMoreBatchImages(newSlice, { background: true });
+    }, [getNextBatch, isPreparingMore, warmLoadMoreBatchImages]);
+
+    const loadMore = useCallback(async () => {
+        if (isPreparingMore) return;
+        const { newCount, newSlice } = getNextBatch();
+        if (!newSlice.length) return;
+
+        const runId = loadMoreRunRef.current + 1;
+        loadMoreRunRef.current = runId;
+        setIsPreparingMore(true);
+
+        await warmLoadMoreBatchImages(newSlice).catch(() => undefined);
+        if (loadMoreRunRef.current !== runId) return;
         const order = new Map();
         newSlice.forEach((item, idx) => order.set(item.id, idx));
         setFreshOrder(order);
         setVisibleCount(newCount);
+        setIsPreparingMore(false);
         // Clear le freshOrder 150 ms après la fin de l'animation (1150 ms keyframe + buffer)
         // → la classe `tat-fresh-card` disparaît → will-change retourne à `auto` → le GPU
         // libère ses layers dédiés. Sinon ils s'accumulaient à chaque clic "Voir plus".
@@ -551,10 +676,11 @@ const MarketplaceLayout = ({
             setFreshOrder(new Map());
             freshClearTimerRef.current = null;
         }, 1300);
-    }, [visibleCount, sortedItems]);
+    }, [getNextBatch, isPreparingMore, warmLoadMoreBatchImages]);
 
     // Cleanup global du timer au unmount du composant.
     useEffect(() => () => {
+        loadMoreRunRef.current += 1;
         if (freshClearTimerRef.current) clearTimeout(freshClearTimerRef.current);
     }, []);
 
@@ -963,6 +1089,7 @@ const MarketplaceLayout = ({
                                                     onClick={() => onSelectItem(item.id)}
                                                     hideStock={activeCollection === 'furniture'}
                                                     darkMode={darkMode}
+                                                    imagePriority={isFresh}
                                                 />
                                             </div>
                                         );
@@ -976,11 +1103,16 @@ const MarketplaceLayout = ({
                         <div className="flex justify-center pt-10">
                             <button
                                 type="button"
+                                disabled={isPreparingMore}
+                                aria-busy={isPreparingMore}
+                                onMouseEnter={warmNextBatchIntent}
+                                onFocus={warmNextBatchIntent}
+                                onPointerDown={warmNextBatchIntent}
                                 onClick={loadMore}
-                                className={`inline-flex h-14 min-w-[280px] items-center justify-center gap-6 border border-[#dba45f] px-8 text-[11px] font-black uppercase tracking-[0.26em] transition-all hover:bg-[#dba45f] hover:text-black ${darkMode ? 'text-[#f0b969]' : 'bg-white/45 text-[#8a531c] shadow-[0_14px_32px_rgba(92,57,20,0.1)]'}`}
+                                className={`inline-flex h-14 min-w-[280px] items-center justify-center gap-6 border border-[#dba45f] px-8 text-[11px] font-black uppercase tracking-[0.26em] transition-all hover:bg-[#dba45f] hover:text-black disabled:pointer-events-none disabled:opacity-70 ${darkMode ? 'text-[#f0b969]' : 'bg-white/45 text-[#8a531c] shadow-[0_14px_32px_rgba(92,57,20,0.1)]'}`}
                             >
                                 Voir plus de produits
-                                <ArrowDown size={18} strokeWidth={1.5} />
+                                <ArrowDown size={18} strokeWidth={1.5} className={isPreparingMore ? 'animate-pulse' : ''} />
                             </button>
                         </div>
                     )}

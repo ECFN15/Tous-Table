@@ -97,8 +97,21 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
   const [menuInteracted, setMenuInteracted] = useState(false); // Prevents initial transition flash
   const [homepageImages, setHomepageImages] = useState({});
   const [isLowPowerMobile, setIsLowPowerMobile] = useState(() => isLowPowerMobileDevice());
+  const [shouldMountThree, setShouldMountThree] = useState(false);
   const layerWarmupDoneRef = useRef(false);
   const warmedHomeImagesRef = useRef(new Set());
+
+  const handleThreeReady = () => {
+    gsap.fromTo('.three-fade-layer',
+      { opacity: 0 },
+      {
+        opacity: 1,
+        duration: 0.85,
+        ease: "power2.out",
+        overwrite: true
+      }
+    );
+  };
 
   // --- FETCH DYNAMIC IMAGES ---
   useEffect(() => {
@@ -374,6 +387,13 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
   // --- PRELOADER & HERO ENTRANCE ---
   useEffect(() => {
     if (!scriptsLoaded) return;
+    setShouldMountThree(false);
+    let threeMountRequested = false;
+    const requestThreeMount = () => {
+      if (threeMountRequested) return;
+      threeMountRequested = true;
+      setShouldMountThree(true);
+    };
 
     // If preloader already shown, just animate hero immediately
     if (window.hasShownPreloader) {
@@ -389,9 +409,12 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       window._pauseThree = false;
 
       // START HERO ANIMATION (Fast version)
-      const tl = gsap.timeline();
+      const tl = gsap.timeline({
+        onComplete: requestThreeMount,
+      });
       // Ensure visibility is restored before animating
       tl.set('.hero-section .reveal-inner', { opacity: 1 });
+      tl.addLabel("heroTitle");
       tl.to('.hero-section .reveal-inner', {
         y: "0%",
         rotate: 0,
@@ -399,16 +422,17 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         ease: "expo.out",
         stagger: 0.1,
         force3D: true
-      })
+      }, "heroTitle")
+        .add(requestThreeMount, "heroTitle+=0.55")
         .to('.hero-footer-element', {
           opacity: 1,
           y: 0,
           duration: 0.8,
           stagger: 0.1,
           ease: "power3.out"
-        }, "-=0.8");
+        }, "heroTitle+=0.5");
 
-      return;
+      return () => tl.kill();
     }
 
     // Lock scroll during preloader
@@ -479,6 +503,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
           stagger: 0.1,
           force3D: true
         }, "exit+=0.3") // Start almost immediately as curtain lifts
+        .add(requestThreeMount, "exit+=0.85")
 
         .to('.hero-footer-element', {
           opacity: 1,
@@ -491,6 +516,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         // 4. Finalisation
         .add(() => {
           setIsLoading(false);
+          requestThreeMount();
           document.body.style.overflow = '';
           setTimeout(() => {
             ScrollTrigger.refresh(true);
@@ -1037,9 +1063,13 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
 
       <div id="main-cursor" ref={cursorRef} className="hidden lg:block"></div>
       <div className="three-container fixed inset-0 pointer-events-none z-0">
-        <React.Suspense fallback={null}>
-          <ThreeBackground />
-        </React.Suspense>
+        {shouldMountThree && (
+          <div className="three-fade-layer absolute inset-0 opacity-0">
+            <React.Suspense fallback={null}>
+              <ThreeBackground onReady={handleThreeReady} />
+            </React.Suspense>
+          </div>
+        )}
       </div>
 
       {/* NAVIGATION */}

@@ -43,7 +43,9 @@ const CRITICAL_ABOUT_IMAGES = {
 
 const STARTUP_PRELOADER_VIEWS = new Set(['home', 'about', 'gallery', 'detail', 'shop', 'shop-detail']);
 
-const warmedImages = new Set();
+const decodedImages = new Set();
+const imageLoadPromises = new Map();
+const imageDecodePromises = new Map();
 let galleryChunkWarmup = null;
 let shopChunkWarmup = null;
 let productDetailChunkWarmup = null;
@@ -162,40 +164,59 @@ const getDetailImageLimit = () => {
   return 4;
 };
 
-export const warmImage = (src, { priority = 'low', timeout = 2600, decode = priority === 'high' } = {}) => new Promise((resolve) => {
-  if (typeof Image === 'undefined' || !src || warmedImages.has(src)) {
-    resolve();
-    return;
+export const warmImage = (src, { priority = 'low', timeout = 2600, decode = priority === 'high' } = {}) => {
+  if (typeof Image === 'undefined' || !src) {
+    return Promise.resolve(null);
   }
 
-  warmedImages.add(src);
+  if (!imageLoadPromises.has(src)) {
+    const loadPromise = new Promise((resolve) => {
+      const img = new Image();
+      let settled = false;
+      const settle = (value = img) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        if (!value) {
+          imageLoadPromises.delete(src);
+          imageDecodePromises.delete(src);
+        }
+        resolve(value);
+      };
+      const timer = setTimeout(() => settle(img.complete ? img : null), timeout);
 
-  const img = new Image();
-  let settled = false;
-  const settle = () => {
-    if (settled) return;
-    settled = true;
-    clearTimeout(timer);
-    resolve();
-  };
-  const timer = setTimeout(settle, timeout);
+      img.decoding = 'async';
+      img.loading = priority === 'high' ? 'eager' : 'lazy';
+      if ('fetchPriority' in img) img.fetchPriority = priority;
+      img.onload = () => settle(img);
+      img.onerror = () => settle(null);
+      img.src = src;
+    });
 
-  img.decoding = 'async';
-  img.loading = priority === 'high' ? 'eager' : 'lazy';
-  if ('fetchPriority' in img) img.fetchPriority = priority;
-  const settleAfterLoad = () => {
-    if (!decode || !img.decode) {
-      settle();
-      return;
-    }
+    imageLoadPromises.set(src, loadPromise);
+  }
 
-    img.decode().then(settle).catch(settle);
-  };
+  const loadPromise = imageLoadPromises.get(src);
+  if (!decode || decodedImages.has(src)) {
+    return loadPromise;
+  }
 
-  img.onload = settleAfterLoad;
-  img.onerror = settle;
-  img.src = src;
-});
+  if (!imageDecodePromises.has(src)) {
+    const decodePromise = loadPromise.then((img) => {
+      if (!img || typeof img.decode !== 'function') return img;
+      return img.decode()
+        .then(() => {
+          decodedImages.add(src);
+          return img;
+        })
+        .catch(() => img);
+    });
+
+    imageDecodePromises.set(src, decodePromise);
+  }
+
+  return imageDecodePromises.get(src);
+};
 
 const warmImageList = async (urls, { highPriorityCount = 1, timeout, concurrency } = {}) => {
   const candidates = unique(urls);
@@ -217,6 +238,23 @@ const warmImageList = async (urls, { highPriorityCount = 1, timeout, concurrency
   });
 
   return Promise.allSettled(workers);
+};
+
+export const warmCatalogCardImages = (items = [], {
+  limit = items.length,
+  highPriorityCount = limit,
+  timeout,
+  concurrency,
+} = {}) => {
+  const urls = items
+    .slice(0, limit)
+    .map(getCatalogImage);
+
+  return warmImageList(urls, {
+    highPriorityCount: Math.min(highPriorityCount, urls.length),
+    timeout,
+    concurrency,
+  });
 };
 
 export const warmupGalleryRouteChunk = () => {

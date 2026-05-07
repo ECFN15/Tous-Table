@@ -103,7 +103,8 @@ const ProductCard = ({
     onIntent,
     onClick,
     hideStock = false,
-    darkMode = false
+    darkMode = false,
+    imagePriority = false
 }) => {
     const image = getImage(item);
     const price = getPrice(item);
@@ -214,8 +215,9 @@ const ProductCard = ({
                     onLoad={handleImageLoad}
                     style={{ objectPosition: objectPos }}
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.04]"
-                    loading="lazy"
+                    loading={imagePriority ? 'eager' : 'lazy'}
                     decoding="async"
+                    fetchPriority={imagePriority ? 'high' : 'auto'}
                 />
             )}
 
@@ -277,5 +279,6 @@ export default React.memo(ProductCard, (prev, next) => {
         prev.item?.updatedAt === next.item?.updatedAt &&
         prev.className === next.className &&
         prev.hideStock === next.hideStock &&
-        prev.darkMode === next.darkMode;
+        prev.darkMode === next.darkMode &&
+        prev.imagePriority === next.imagePriority;
 });

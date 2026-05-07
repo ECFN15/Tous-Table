@@ -9,7 +9,7 @@ import { isTouchDevice } from '../../utils/devicePerformance';
 // WebGL stays visible on mobile, including low-power mobile.
 // The expensive RAF loop runs only while the hero is visible.
 
-const ThreeBackground = () => {
+const ThreeBackground = ({ onReady }) => {
   const mountRef = useRef(null);
 
   useEffect(() => {
@@ -147,6 +147,7 @@ const ThreeBackground = () => {
 
     window.__setThreePaused = setPaused;
     renderer.render(scene, camera);
+    onReady?.();
     setPaused(shouldPauseForScroll());
 
     window.addEventListener('resize', handleResize);

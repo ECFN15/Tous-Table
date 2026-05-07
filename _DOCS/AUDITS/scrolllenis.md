@@ -529,6 +529,12 @@ Correction 8 mai 2026 :
 - demande utilisateur : ne pas casser les animations des sections ; les versions statiques temporaires du marquee et des cartes ont ete supprimees, le parallax manifesto et les reveals complets ont ete restaures ;
 - validation : `npm run build` OK et `/a-propos` repond HTTP 200 en local.
 
+Correction 8 mai 2026 - demarrage WebGL differe :
+- demande utilisateur : eviter que le WebGL du hero demarre en meme temps que l'animation "Le Geste / & L'Ame" et les descriptions du bas ;
+- `HomeView` ne monte plus `ThreeBackground` au premier paint : `shouldMountThree` passe a `true` vers la fin de revelation de "Le Geste / & L'Ame" (`heroTitle+=0.55` / `exit+=0.85`), avec un callback final de securite ;
+- `ThreeBackground` signale son premier rendu via `onReady`, puis `.three-fade-layer` passe de `opacity: 0` a `1` en fondu GSAP pour eviter l'effet d'apparition instantanee ;
+- effet attendu : le chunk Three.js, le renderer WebGL et la RAF commencent apres le titre hero sans concurrencer le premier rendu texte, puis gardent le stop/restart hors viewport deja en place.
+
 ## 10. Audit Comptoir mobile scroll - 7 mai 2026
 
 Objectif : reduire les risques de lag/freeze pendant le scroll mobile sur `/comptoir`, sans casser l'UI ni les animations visibles.
@@ -592,6 +598,22 @@ Correction preloader 8 mai 2026 :
 - les images du warmup sont chargees de maniere cooperative : concurrence limitee pendant le preloader, pauses `requestIdleCallback`/fallback entre images, et `decode()` reserve aux images haute priorite ;
 - le warmup mobilier de demarrage est stage : chunk `GalleryView` + hero mobilier d'abord, puis premieres images produits ;
 - ajustement visuel de la signature : `Atelier Normand` est groupe avec `TOUS A TABLE` pour controler l'ecart sans additionner `gap` et `margin-top`.
+
+Correction marketplace 8 mai 2026 :
+- au clic `Voir plus de produits`, les cartes meubles/planches ne sont plus injectees immediatement : le prochain lot lance d'abord un warmup image/decode limite dans le temps, puis l'animation `tatCardEnter` demarre ;
+- sur mobile, le warmup du lot est sequentiel/concurrentiel limite selon profil appareil, pour eviter de saturer le thread principal pendant l'apparition ;
+- les images critiques du lot remplissent aussi `RATIO_CACHE` quand leurs dimensions sont disponibles, afin de reduire les changements de hauteur pendant le fondu ;
+- les cartes fraiches recoivent `imagePriority` uniquement pendant leur animation, sans supprimer l'animation existante mobile ou desktop.
+
+Ajustement marketplace 8 mai 2026 :
+- sur mobile performant, le clic `Voir plus de produits` ne bloque plus sur un warmup de 8 images : seules les 4 premieres images du lot sont prioritaires, avec budget court, puis le reste continue en arriere-plan pendant le stagger ;
+- sur mobile faible puissance/reseau limite, le warmup reste plus prudent mais le budget bloquant est reduit pour eviter l'impression de bouton fige ;
+- le libelle du bouton reste stable pendant la preparation, afin de reduire la sensation de chargement visible.
+
+Ajustement marketplace S24/iPhone recents - 8 mai 2026 :
+- le profil `Voir plus` ne s'appuie plus directement sur le fallback global `Android largeur mobile`, car il classait des telephones haut de gamme comme faibles puissances ;
+- si le navigateur expose au moins 6 Go de `deviceMemory` ou 6 coeurs CPU, le warmup du clic passe en profil mobile performant : 3 images prioritaires, budget bloquant court (~420 ms), reste du lot en arriere-plan ;
+- les vrais profils limites restent detectes par `saveData`/2G, `prefers-reduced-motion`, RAM <= 4 Go ou CPU <= 4 coeurs.
 
 ## 12. Comptoir - retrait animations d'apparition ciblees - 8 mai 2026
 
