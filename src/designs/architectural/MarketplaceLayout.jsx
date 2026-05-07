@@ -41,6 +41,8 @@ const useResponsiveCols = () => {
 // (= 1.25), qui est le ratio par défaut posé sur le `<a>` quand l'image n'est pas chargée.
 const FALLBACK_HEIGHT_RATIO = 5 / 4;
 const LOAD_MORE_BATCH_SIZE = 12;
+const FRESH_CARD_ANIMATION_MS = 1150;
+const FRESH_CARD_CLEAR_BUFFER_MS = 150;
 const wait = (duration) => new Promise((resolve) => setTimeout(resolve, duration));
 const getCardImage = (item) => item?.images?.[0] || item?.imageUrl || item?.thumbnailUrl || '';
 
@@ -68,6 +70,52 @@ const isLoadMoreConstrainedDevice = () => {
     if (memory >= 6 || cores >= 6) return false;
 
     return isLowPowerMobileDevice();
+};
+
+const getLoadMoreRevealProfile = () => {
+    if (
+        typeof window !== 'undefined' &&
+        window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    ) {
+        return {
+            revealSize: LOAD_MORE_BATCH_SIZE,
+            revealInterval: 0,
+            intraBatchDelay: 0,
+            priorityCount: 2,
+            animationMs: 0,
+        };
+    }
+
+    const touch = isTouchDevice();
+    const constrained = touch && isLoadMoreConstrainedDevice();
+
+    if (constrained) {
+        return {
+            revealSize: 1,
+            revealInterval: 90,
+            intraBatchDelay: 0,
+            priorityCount: 2,
+            animationMs: FRESH_CARD_ANIMATION_MS,
+        };
+    }
+
+    if (touch) {
+        return {
+            revealSize: 2,
+            revealInterval: 120,
+            intraBatchDelay: 60,
+            priorityCount: 3,
+            animationMs: FRESH_CARD_ANIMATION_MS,
+        };
+    }
+
+    return {
+        revealSize: 3,
+        revealInterval: 135,
+        intraBatchDelay: 45,
+        priorityCount: 4,
+        animationMs: FRESH_CARD_ANIMATION_MS,
+    };
 };
 
 const getPredictedHeightRatio = (item) => {
@@ -475,8 +523,8 @@ const MarketplaceLayout = ({
     const [sortMode, setSortMode] = useState('recent');
 
     useEffect(() => {
-        setActiveCategory(initialCategory || 'all');
-    }, [initialCategory]);
+        setActiveCategory(activeCollection === 'cutting_boards' ? 'all' : (initialCategory || 'all'));
+    }, [activeCollection, initialCategory]);
 
     // === ARCHITECTURE MASONRY JS-DRIVEN ===
     // On rend N colonnes flex-col indépendantes (cf. NUM_COLS responsive). Chaque carte est
@@ -494,15 +542,26 @@ const MarketplaceLayout = ({
     const NUM_COLS = useResponsiveCols();
     const [visibleCount, setVisibleCount] = useState(24);
     const [isPreparingMore, setIsPreparingMore] = useState(false);
-    // Map<itemId, indexDansLeBatchFrais> — uniquement pour les nouveaux items à animer.
+    // Map<itemId, delayMs> — uniquement pour les nouveaux items à animer.
     // Vide à l'état initial et après reset des filtres → aucune animation parasite.
     const [freshOrder, setFreshOrder] = useState(() => new Map());
+    const [freshPriorityIds, setFreshPriorityIds] = useState(() => new Set());
     // Map<itemId, ratio h/w> — gelé à la première rencontre pour figer les placements.
     const heightsRef = useRef(new Map());
     // Timer pour clear `freshOrder` après la fin de l'animation (libère le will-change
     // GPU des cartes fraîches). Cf. _DOCS/AUDITS/scrolllenis.md §3.4.B.
     const freshClearTimerRef = useRef(null);
+    const revealTimersRef = useRef([]);
     const loadMoreRunRef = useRef(0);
+
+    const clearLoadMoreTimers = useCallback(() => {
+        if (freshClearTimerRef.current) {
+            clearTimeout(freshClearTimerRef.current);
+            freshClearTimerRef.current = null;
+        }
+        revealTimersRef.current.forEach((timer) => clearTimeout(timer));
+        revealTimersRef.current = [];
+    }, []);
 
     useEffect(() => {
         if (setHeaderProps && headerProps) setHeaderProps(headerProps);
@@ -522,7 +581,7 @@ const MarketplaceLayout = ({
     const sortedItems = useMemo(() => {
         const filtered = items.filter((item) => {
             // 1. Catégorie (priorité au champ Firestore, fallback regex sur nom/description).
-            if (activeCategory !== 'all' && getFurnitureCategory(item) !== activeCategory) return false;
+            if (activeCollection === 'furniture' && activeCategory !== 'all' && getFurnitureCategory(item) !== activeCategory) return false;
             // 2. Matière exacte.
             if (activeMaterial && item.material !== activeMaterial) return false;
             // 3. Tranche de prix.
@@ -538,32 +597,43 @@ const MarketplaceLayout = ({
             if (sortMode === 'priceDesc') return getPrice(b) - getPrice(a);
             return getMillis(b.createdAt || b.updatedAt) - getMillis(a.createdAt || a.updatedAt);
         });
-    }, [items, activeCategory, activeMaterial, priceRange, sortMode]);
+    }, [items, activeCategory, activeCollection, activeMaterial, priceRange, sortMode]);
 
-    const hasActiveFilters = activeCategory !== 'all' || activeMaterial !== '' || activePriceRange !== '';
+    const isBoardsCollection = activeCollection === 'cutting_boards';
+    const showFurnitureCategories = activeCollection === 'furniture';
+    const hasActiveFilters = (showFurnitureCategories && activeCategory !== 'all') || activeMaterial !== '' || activePriceRange !== '';
 
     // Reset à l'état initial : 24 items visibles, aucun item frais à animer, hauteurs effacées.
     // Appelé sur tout changement de filtre / catégorie / matière / tri (l'ordre des items change
     // → les placements précédents n'ont plus de sens, on repart à zéro).
     const resetView = useCallback(() => {
         loadMoreRunRef.current += 1;
-        if (freshClearTimerRef.current) {
-            clearTimeout(freshClearTimerRef.current);
-            freshClearTimerRef.current = null;
-        }
+        clearLoadMoreTimers();
         heightsRef.current = new Map();
         setIsPreparingMore(false);
         setVisibleCount(24);
         setFreshOrder(new Map());
-    }, []);
+        setFreshPriorityIds(new Set());
+    }, [clearLoadMoreTimers]);
 
     const resetAllFilters = useCallback(() => {
         setActiveCategory('all');
         setActiveMaterial('');
         setActivePriceRange('');
-        onCategoryChange?.('all');
+        if (activeCollection === 'furniture') {
+            onCategoryChange?.('all');
+        }
         resetView();
-    }, [onCategoryChange, resetView]);
+    }, [activeCollection, onCategoryChange, resetView]);
+
+    useEffect(() => {
+        resetView();
+        setActiveMaterial('');
+        setActivePriceRange('');
+        if (activeCollection === 'cutting_boards') {
+            setActiveCategory('all');
+        }
+    }, [activeCollection, resetView]);
 
     const heroConfig = HERO_BY_COLLECTION[activeCollection] || HERO_BY_COLLECTION.furniture;
 
@@ -640,7 +710,6 @@ const MarketplaceLayout = ({
     const getNextBatch = useCallback(() => {
         const newCount = Math.min(visibleCount + LOAD_MORE_BATCH_SIZE, sortedItems.length);
         return {
-            newCount,
             newSlice: sortedItems.slice(visibleCount, newCount),
         };
     }, [visibleCount, sortedItems]);
@@ -652,46 +721,92 @@ const MarketplaceLayout = ({
         warmLoadMoreBatchImages(newSlice, { background: true });
     }, [getNextBatch, isPreparingMore, warmLoadMoreBatchImages]);
 
+    const scheduleLoadMoreReveal = useCallback(({ newSlice, startCount, runId, profile }) => {
+        clearLoadMoreTimers();
+        let revealedCount = 0;
+
+        const finishReveal = (lastChunkSize) => {
+            const lastDelay = Math.max(0, (lastChunkSize - 1) * profile.intraBatchDelay);
+            const clearDelay = profile.animationMs + FRESH_CARD_CLEAR_BUFFER_MS + lastDelay;
+            freshClearTimerRef.current = setTimeout(() => {
+                if (loadMoreRunRef.current !== runId) return;
+                setFreshOrder(new Map());
+                setFreshPriorityIds(new Set());
+                setIsPreparingMore(false);
+                freshClearTimerRef.current = null;
+            }, clearDelay);
+        };
+
+        const revealNextChunk = () => {
+            if (loadMoreRunRef.current !== runId) return;
+
+            const nextRevealedCount = Math.min(revealedCount + profile.revealSize, newSlice.length);
+            const chunk = newSlice.slice(revealedCount, nextRevealedCount);
+            revealedCount = nextRevealedCount;
+
+            setFreshOrder((prev) => {
+                const next = new Map(prev);
+                chunk.forEach((item, slot) => {
+                    next.set(item.id, slot * profile.intraBatchDelay);
+                });
+                return next;
+            });
+            setVisibleCount(startCount + revealedCount);
+
+            if (revealedCount < newSlice.length) {
+                const timer = setTimeout(revealNextChunk, profile.revealInterval);
+                revealTimersRef.current.push(timer);
+                return;
+            }
+
+            revealTimersRef.current = [];
+            finishReveal(chunk.length);
+        };
+
+        const firstTimer = setTimeout(revealNextChunk, 0);
+        revealTimersRef.current.push(firstTimer);
+    }, [clearLoadMoreTimers]);
+
     const loadMore = useCallback(async () => {
         if (isPreparingMore) return;
-        const { newCount, newSlice } = getNextBatch();
+        const { newSlice } = getNextBatch();
         if (!newSlice.length) return;
 
         const runId = loadMoreRunRef.current + 1;
         loadMoreRunRef.current = runId;
         setIsPreparingMore(true);
+        clearLoadMoreTimers();
 
         await warmLoadMoreBatchImages(newSlice).catch(() => undefined);
         if (loadMoreRunRef.current !== runId) return;
-        const order = new Map();
-        newSlice.forEach((item, idx) => order.set(item.id, idx));
-        setFreshOrder(order);
-        setVisibleCount(newCount);
-        setIsPreparingMore(false);
-        // Clear le freshOrder 150 ms après la fin de l'animation (1150 ms keyframe + buffer)
-        // → la classe `tat-fresh-card` disparaît → will-change retourne à `auto` → le GPU
-        // libère ses layers dédiés. Sinon ils s'accumulaient à chaque clic "Voir plus".
-        if (freshClearTimerRef.current) clearTimeout(freshClearTimerRef.current);
-        freshClearTimerRef.current = setTimeout(() => {
-            setFreshOrder(new Map());
-            freshClearTimerRef.current = null;
-        }, 1300);
-    }, [getNextBatch, isPreparingMore, warmLoadMoreBatchImages]);
+        const profile = getLoadMoreRevealProfile();
+        setFreshPriorityIds(new Set(newSlice.slice(0, profile.priorityCount).map((item) => item.id)));
+        scheduleLoadMoreReveal({
+            newSlice,
+            startCount: visibleCount,
+            runId,
+            profile,
+        });
+    }, [clearLoadMoreTimers, getNextBatch, isPreparingMore, scheduleLoadMoreReveal, visibleCount, warmLoadMoreBatchImages]);
 
     // Cleanup global du timer au unmount du composant.
     useEffect(() => () => {
         loadMoreRunRef.current += 1;
-        if (freshClearTimerRef.current) clearTimeout(freshClearTimerRef.current);
-    }, []);
+        clearLoadMoreTimers();
+    }, [clearLoadMoreTimers]);
 
     // Quand le nombre de colonnes change (resize fenêtre), les anciens placements ne sont plus
     // pertinents (l'algo va répartir différemment sur N colonnes vs N±1). On efface les
     // hauteurs gelées pour permettre un re-placement propre. Pas de reset de visibleCount —
     // l'utilisateur garde son progrès "Voir plus".
     useEffect(() => {
+        loadMoreRunRef.current += 1;
+        clearLoadMoreTimers();
         heightsRef.current = new Map();
         setFreshOrder(new Map()); // pas d'animation parasite après resize
-    }, [NUM_COLS]);
+        setFreshPriorityIds(new Set());
+        setIsPreparingMore(false);
+    }, [NUM_COLS, clearLoadMoreTimers]);
 
     // Algo masonry "shortest-column-first" — déterministe pour un même `sortedItems` + heightsRef.
     // Retourne un tableau de colonnes, chacune contenant la liste des items qui lui sont assignés.
@@ -729,6 +844,7 @@ const MarketplaceLayout = ({
     // au moment où l'utilisateur clique sur la pill. Limité à 8 images pour ne pas saturer.
     const preloadedRef = useRef(new Set());
     const preloadCategory = useCallback((categoryId) => {
+        if (activeCollection !== 'furniture') return;
         const key = `${categoryId}-${activeMaterial}-${activePriceRange}-${sortMode}`;
         if (preloadedRef.current.has(key)) return;
         preloadedRef.current.add(key);
@@ -750,7 +866,7 @@ const MarketplaceLayout = ({
                 img.src = url;
             }
         });
-    }, [items, activeMaterial, activePriceRange, priceRange, sortMode]);
+    }, [activeCollection, items, activeMaterial, activePriceRange, priceRange, sortMode]);
 
     const scrollToCollection = () => {
         const target = document.getElementById('collection-grid');
@@ -873,7 +989,9 @@ const MarketplaceLayout = ({
                     {/* === HEADER ROW : sidebar label + pills + filters === */}
                     <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)] lg:items-start lg:gap-10">
                         <aside className="hidden lg:block pt-1">
-                            <p className={`${labelClass} text-[10px] font-black uppercase tracking-[0.32em] mb-3`}>Notre mobilier</p>
+                            <p className={`${labelClass} text-[10px] font-black uppercase tracking-[0.32em] mb-3`}>
+                                {isBoardsCollection ? 'Nos planches' : 'Notre mobilier'}
+                            </p>
                             <p className={`font-serif text-[1.05rem] leading-snug ${sideCopyClass}`}>
                                 Des pièces uniques,<br />sélectionnées avec exigence.
                             </p>
@@ -883,7 +1001,8 @@ const MarketplaceLayout = ({
                             {/* Categories pills (top).
                                   Mobile (< md / 768px) : flex-wrap → toutes visibles sur 2 lignes max.
                                   md+ : flex-nowrap + scroll horizontal de secours si jamais ça déborde. */}
-                            <div className={`flex flex-wrap md:flex-nowrap items-center gap-1 sm:gap-2 md:gap-3 md:overflow-x-auto no-scrollbar pb-3 md:pb-4 border-b ${subtleBorderClass}`}>
+                            {showFurnitureCategories && (
+                                <div className={`flex flex-wrap md:flex-nowrap items-center gap-1 sm:gap-2 md:gap-3 md:overflow-x-auto no-scrollbar pb-3 md:pb-4 border-b ${subtleBorderClass}`}>
                                 {FURNITURE_CATEGORIES.map((category) => {
                                     const active = activeCategory === category.id;
                                     const shortLabel = category.mobileLabel || category.label;
@@ -910,7 +1029,8 @@ const MarketplaceLayout = ({
                                         </button>
                                     );
                                 })}
-                            </div>
+                                </div>
+                            )}
 
                             {/* Filter bar — Matière + Prix + Tri + Reset (si au moins un filtre actif).
                                   Tailles & paddings calibrés par breakpoint pour garantir 1 seule ligne
@@ -1071,12 +1191,8 @@ const MarketplaceLayout = ({
                             {columnsLayout.map((col, colIdx) => (
                                 <div key={colIdx} className="flex-1 min-w-0 flex flex-col gap-3">
                                     {col.items.map((item) => {
-                                        const orderIdx = freshOrder.get(item.id);
-                                        const isFresh = orderIdx !== undefined;
-                                        // Stagger 80ms cap 960ms — basé sur l'ordre d'apparition
-                                        // dans la salve (pas l'ordre dans la colonne) pour un
-                                        // déferlement visuel cohérent à l'écran.
-                                        const delay = isFresh ? Math.min(orderIdx * 80, 960) : 0;
+                                        const delay = freshOrder.get(item.id);
+                                        const isFresh = delay !== undefined;
                                         return (
                                             <div
                                                 key={item.id}
@@ -1089,7 +1205,7 @@ const MarketplaceLayout = ({
                                                     onClick={() => onSelectItem(item.id)}
                                                     hideStock={activeCollection === 'furniture'}
                                                     darkMode={darkMode}
-                                                    imagePriority={isFresh}
+                                                    imagePriority={freshPriorityIds.has(item.id)}
                                                 />
                                             </div>
                                         );

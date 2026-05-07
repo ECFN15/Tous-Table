@@ -274,6 +274,7 @@ const GalleryView = ({
                     setActiveCollection: (val) => {
                         setActiveCollection(val);
                         const nextCategory = val === 'furniture' ? activeCategory : 'all';
+                        setActiveCategory(nextCategory);
                         if (saveGalleryState) saveGalleryState({ activeCollection: val, activeCategory: nextCategory });
                         pushUrl(val === 'cutting_boards' ? '/planches-a-decouper-anciennes' : getFurnitureCategoryPath(nextCategory));
                     },

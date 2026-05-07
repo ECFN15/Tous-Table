@@ -531,7 +531,7 @@ Correction 8 mai 2026 :
 
 Correction 8 mai 2026 - demarrage WebGL differe :
 - demande utilisateur : eviter que le WebGL du hero demarre en meme temps que l'animation "Le Geste / & L'Ame" et les descriptions du bas ;
-- `HomeView` ne monte plus `ThreeBackground` au premier paint : `shouldMountThree` passe a `true` vers la fin de revelation de "Le Geste / & L'Ame" (`heroTitle+=0.55` / `exit+=0.85`), avec un callback final de securite ;
+- `HomeView` ne monte plus `ThreeBackground` au premier paint : `shouldMountThree` passe a `true` pendant la revelation de "Le Geste / & L'Ame" (`heroTitle+=0.35` / `exit+=0.65`), avec un callback final de securite ;
 - `ThreeBackground` signale son premier rendu via `onReady`, puis `.three-fade-layer` passe de `opacity: 0` a `1` en fondu GSAP pour eviter l'effet d'apparition instantanee ;
 - effet attendu : le chunk Three.js, le renderer WebGL et la RAF commencent apres le titre hero sans concurrencer le premier rendu texte, puis gardent le stop/restart hors viewport deja en place.
 
@@ -614,6 +614,47 @@ Ajustement marketplace S24/iPhone recents - 8 mai 2026 :
 - le profil `Voir plus` ne s'appuie plus directement sur le fallback global `Android largeur mobile`, car il classait des telephones haut de gamme comme faibles puissances ;
 - si le navigateur expose au moins 6 Go de `deviceMemory` ou 6 coeurs CPU, le warmup du clic passe en profil mobile performant : 3 images prioritaires, budget bloquant court (~420 ms), reste du lot en arriere-plan ;
 - les vrais profils limites restent detectes par `saveData`/2G, `prefers-reduced-motion`, RAM <= 4 Go ou CPU <= 4 coeurs.
+
+Ajustement marketplace reveal progressif - 8 mai 2026 :
+- demande utilisateur : conserver l'animation premium `tatCardEnter` avec blur/fondu, mais eviter le freeze au moment ou les nouvelles cartes arrivent apres `Voir plus de produits` ;
+- `MarketplaceLayout` ne monte plus les 12 nouvelles cartes dans le meme frame apres le warmup : le lot est revele par micro-lots adaptes au profil appareil (desktop, tactile performant, tactile contraint), tout en gardant le meme keyframe d'apparition ;
+- `freshOrder` stocke maintenant un delai en millisecondes par carte fraiche, afin que chaque micro-lot puisse lancer l'animation sans recalculer un stagger global trop couteux ;
+- seules les premieres cartes du lot gardent `imagePriority`, le reste profite du warmup et du lazy loading pour reduire la pression decode/reseau pendant l'animation ;
+- le bouton reste occupe jusqu'a la fin de la salve courante pour eviter deux sequences `Voir plus` concurrentes ;
+- validation : `git diff --check -- src/designs/architectural/MarketplaceLayout.jsx` OK et `npm run build` OK le 8 mai 2026.
+
+Correction marketplace planches - 8 mai 2026 :
+- diagnostic utilisateur : le bouton `Voir plus de produits` des planches n'etait pas systematique, car `visibleCount` etait partage par `MarketplaceLayout` entre mobilier et planches ;
+- passage de collection : la fenetre visible repart a 24, les timers de reveal sont annules, `freshOrder`/`freshPriorityIds` et les hauteurs masonry sont remis a zero ;
+- sur la collection `cutting_boards`, les filtres categories mobilier (`buffet`, `table`, `armoire`, etc.) ne sont plus rendus et la categorie interne est forcee a `all` ;
+- la reinitialisation des filtres sur les planches ne rappelle plus `onCategoryChange`, afin de ne pas renvoyer l'utilisateur vers la page mobilier.
+
+Ajustement preloader desktop/laptop - 8 mai 2026 :
+- demande utilisateur : rendre le preloader plus harmonieux sur laptop et desktop, les espacements marteau / `TOUS A TABLE` / `Atelier Normand` etant trop compresses ;
+- application du skill `frontsymmetry` : le preloader est un overlay fixed isole, donc les ajustements sont limites aux gaps internes et tailles des enfants, sans modifier le flux du site ni la timeline GSAP ;
+- breakpoints ajoutes : `768px`, `1024px`, `1440px` avec respiration verticale progressive, titre plus present, tracking reduit pour contenir la largeur, marteau agrandi et signature reequilibree.
+
+Ajustement preloader vertical - 8 mai 2026 :
+- demande utilisateur : ajouter proportionnellement plus de marge entre le marteau et `TOUS A TABLE`, puis entre `TOUS A TABLE` et `Atelier Normand`, sur mobile, laptop et desktop ;
+- `frontsymmetry` : augmentation des deux gaps internes uniquement (`tat-startup-preloader-content` et `tat-startup-preloader-brand`), sans changement de taille, de timeline GSAP ni de layout public ;
+- valeurs finales : mobile `2.55rem / 1.86rem`, 768px `3.55rem / 2.55rem`, 1024px `4rem / 2.85rem`, 1440px `4.35rem / 3.05rem`.
+
+Ajustement signature preloader desktop/laptop - 8 mai 2026 :
+- demande utilisateur : rendre `Atelier Normand` et ses deux traits plus gros sur laptop/desktop, et l'eloigner davantage de `TOUS A TABLE` ;
+- mobile conserve intact ; seuls les breakpoints `768px`, `1024px`, `1440px` changent ;
+- signature agrandie, traits allonges et gap titre/signature augmente pour une hierarchie plus harmonieuse.
+
+Ajustement icone preloader mobile - 8 mai 2026 :
+- demande utilisateur : le marteau mobile etait trop gros par rapport au titre et a la signature ;
+- taille SVG mobile fixee a `2.8rem`, les tailles laptop/desktop validees restent inchangées via les media queries existantes.
+
+Ajustement signature mobile - 8 mai 2026 :
+- demande utilisateur : descendre legerement `Atelier Normand` sur mobile ;
+- `frontsymmetry` : deplacement visuel seul via `top: 0.22rem` sur la signature mobile, reset a `top: 0` des `768px` pour ne pas changer laptop/desktop.
+
+Ajustement titre preloader mobile - 8 mai 2026 :
+- demande utilisateur : agrandir legerement `TOUS A TABLE` sur mobile apres reequilibrage du marteau et de la signature ;
+- taille mobile passee a `clamp(1.94rem, 8.7vw, 2.34rem)` en conservant la limite de largeur existante pour eviter le contact avec les bords de l'ecran.
 
 ## 12. Comptoir - retrait animations d'apparition ciblees - 8 mai 2026
 

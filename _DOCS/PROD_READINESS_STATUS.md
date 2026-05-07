@@ -1,8 +1,8 @@
 # Readiness production - Etat actuel
 
-Date: 2026-05-06
+Date: 2026-05-08
 
-Verdict: deploye en production le 2026-05-06 avec Functions puis Hosting, en ciblant explicitement `--project tousatable-client`.
+Verdict: deploye en production le 2026-05-08 sur Hosting uniquement, en ciblant explicitement `--project tousatable-client`. Les Functions n'ont pas ete redeployees car les changements etaient frontend.
 
 Decision paiement: les paiements carte ne font pas partie du lancement actuel. `.env.prod` force `VITE_STRIPE_CARD_PAYMENTS_ENABLED=false`, le reglage prod `sys_metadata/payment_settings` est deja `stripeEnabled=false` en lecture seule, et Stripe JS n'est importe dynamiquement que si une vraie cle `pk_` est fournie.
 
@@ -23,6 +23,28 @@ Decision paiement: les paiements carte ne font pas partie du lancement actuel. `
 - Runbook prod: `_DOCS/DEPLOIEMENT_PROD_RUNBOOK.md`.
 
 ## Preuves recentes
+
+Deploiement Hosting du 2026-05-08 :
+
+- `firebase use` initial : `tatmadeinnormandie`.
+- `firebase use prod` : alias prod actif sur `tousatable-client`.
+- `npm run preflight:prod` : OK.
+- `firebase deploy --only hosting --project tousatable-client` : OK, release Hosting publiee.
+- `firebase use default` : retour sur `tatmadeinnormandie`.
+- Smoke public : `https://tousatable-madeinnormandie.fr/` HTTP 200.
+- Smoke public : `https://tousatable-client.web.app/` HTTP 200.
+- `npm run audit:public-seo` : OK, 32 checks passes.
+
+`npm run preflight:prod` du 2026-05-08 :
+
+- Firebase prod valide.
+- Mapping meubles prod valide : 29 meubles prod, mapping 29, aucun manquant, aucun extra, aucune categorie invalide.
+- SEO roadmap : 16 checks passes.
+- Analytics reliability : OK.
+- Syntaxe Functions : OK.
+- Build prod : OK.
+- Bundle prod : OK, aucune config sandbox ni loader Stripe actif.
+- Audit Functions prod : 30 Functions, 0 legacy env vars, 11 secrets attaches ; aucune valeur sensible affichee.
 
 `npm run verify:prod-furniture`:
 

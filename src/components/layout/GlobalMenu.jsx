@@ -168,15 +168,6 @@ const GlobalMenu = ({
             href: '/'
         },
         {
-            label: activeDesignId === 'architectural' ? 'A propos' : 'A propos.',
-            onClick: (e) => {
-                if (!e.ctrlKey && !e.metaKey) {
-                    e.preventDefault(); window.hasShownPreloader = true; setView('about'); setIsMenuOpen(false); scrollToTop();
-                }
-            },
-            href: '/a-propos'
-        },
-        {
             label: "Le Comptoir",
             onClick: (e) => {
                 if (!e.ctrlKey && !e.metaKey) {
@@ -184,6 +175,15 @@ const GlobalMenu = ({
                 }
             },
             href: '/comptoir'
+        },
+        {
+            label: activeDesignId === 'architectural' ? 'A propos' : 'A propos.',
+            onClick: (e) => {
+                if (!e.ctrlKey && !e.metaKey) {
+                    e.preventDefault(); window.hasShownPreloader = true; setView('about'); setIsMenuOpen(false); scrollToTop();
+                }
+            },
+            href: '/a-propos'
         },
         ...(user && !user.isAnonymous ? [{
             label: activeDesignId === 'architectural' ? 'Commandes' : 'Commandes.',

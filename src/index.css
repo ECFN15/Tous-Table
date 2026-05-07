@@ -140,7 +140,7 @@ body.tat-startup-preloading {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2rem;
+  gap: 2.55rem;
   padding: 2rem;
   opacity: 0;
   transform: translateZ(0);
@@ -150,7 +150,7 @@ body.tat-startup-preloading {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.48rem;
+  gap: 1.86rem;
 }
 
 .tat-startup-preloader-icon {
@@ -161,6 +161,8 @@ body.tat-startup-preloading {
 }
 
 .tat-startup-preloader-icon svg {
+  width: 2.8rem;
+  height: 2.8rem;
   filter: drop-shadow(0 0 15px rgba(156, 130, 104, 0.3));
 }
 
@@ -172,7 +174,7 @@ body.tat-startup-preloading {
   overflow: hidden;
   width: min(100%, calc(100vw - 3rem));
   font-family: "Cormorant Garamond", serif;
-  font-size: clamp(1.86rem, 8.35vw, 2.22rem);
+  font-size: clamp(1.94rem, 8.7vw, 2.34rem);
   font-style: italic;
   font-weight: 300;
   letter-spacing: 0.12em;
@@ -189,6 +191,8 @@ body.tat-startup-preloading {
 }
 
 .tat-startup-preloader-footer {
+  position: relative;
+  top: 0.22rem;
   display: flex;
   align-items: center;
   gap: 0.74rem;
@@ -212,26 +216,91 @@ body.tat-startup-preloading {
 }
 
 @media (min-width: 768px) {
+  .tat-startup-preloader-content {
+    gap: 3.55rem;
+  }
+
   .tat-startup-preloader-brand {
-    gap: 1.68rem;
+    gap: 2.95rem;
+  }
+
+  .tat-startup-preloader-icon svg {
+    width: 3.85rem;
+    height: 3.85rem;
   }
 
   .tat-startup-preloader-title {
-    gap: 0.2em;
+    gap: 0.17em;
     width: auto;
-    padding-inline: 1rem;
-    font-size: 3.75rem;
-    letter-spacing: 0.2em;
+    padding-inline: 1.5rem;
+    font-size: clamp(3.55rem, 5.6vw, 4.2rem);
+    letter-spacing: 0.17em;
   }
 
   .tat-startup-preloader-footer {
-    gap: 0.86rem;
-    font-size: 0.75rem;
+    top: 0;
+    gap: 1.18rem;
+    font-size: 0.92rem;
+    letter-spacing: 0.2em;
   }
 
   .tat-startup-preloader-footer span:first-child,
   .tat-startup-preloader-footer span:last-child {
-    width: 1.92rem;
+    width: 3rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .tat-startup-preloader-content {
+    gap: 4rem;
+  }
+
+  .tat-startup-preloader-brand {
+    gap: 3.35rem;
+  }
+
+  .tat-startup-preloader-icon svg {
+    width: 4.15rem;
+    height: 4.15rem;
+  }
+
+  .tat-startup-preloader-title {
+    font-size: clamp(4rem, 4.8vw, 4.75rem);
+    letter-spacing: 0.165em;
+  }
+
+  .tat-startup-preloader-footer {
+    gap: 1.35rem;
+    font-size: 1rem;
+  }
+
+  .tat-startup-preloader-footer span:first-child,
+  .tat-startup-preloader-footer span:last-child {
+    width: 3.45rem;
+  }
+}
+
+@media (min-width: 1440px) {
+  .tat-startup-preloader-content {
+    gap: 4.35rem;
+  }
+
+  .tat-startup-preloader-brand {
+    gap: 3.65rem;
+  }
+
+  .tat-startup-preloader-title {
+    font-size: 4.95rem;
+  }
+
+  .tat-startup-preloader-footer {
+    gap: 1.48rem;
+    font-size: 1.06rem;
+  }
+
+  .tat-startup-preloader-footer span:first-child,
+  .tat-startup-preloader-footer span:last-child {
+    width: 3.8rem;
   }
 }
 

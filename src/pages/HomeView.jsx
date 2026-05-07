@@ -423,7 +423,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         stagger: 0.1,
         force3D: true
       }, "heroTitle")
-        .add(requestThreeMount, "heroTitle+=0.55")
+        .add(requestThreeMount, "heroTitle+=0.35")
         .to('.hero-footer-element', {
           opacity: 1,
           y: 0,
@@ -503,7 +503,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
           stagger: 0.1,
           force3D: true
         }, "exit+=0.3") // Start almost immediately as curtain lifts
-        .add(requestThreeMount, "exit+=0.85")
+        .add(requestThreeMount, "exit+=0.65")
 
         .to('.hero-footer-element', {
           opacity: 1,
