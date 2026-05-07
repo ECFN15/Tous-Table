@@ -53,7 +53,7 @@ const isTouchDevice = () => {
  *        Lenis dans le MÊME tick que l'écriture, drift = 0 ms (vs ~6 ms à 160 Hz avant)
  *      • `gsap.ticker.lagSmoothing(0)` → ScrollTrigger n'avance plus ses tweens "en
  *        rattrapage" lors de drops de frame, ce qui évitait des micro-jumps high-Hz
- *  - `syncTouch: true` (au lieu du déprécié `smoothTouch`) → inertie iOS naturelle.
+ *  - `syncTouch: false` car le tactile early-return : iOS/Android gardent le scroll natif.
  *  - `prefers-reduced-motion: reduce` → on n'instancie PAS Lenis (scroll natif).
  *
  * Backward-compat : l'instance reste exposée sur `window.__lenis` (utilisé par

@@ -255,14 +255,16 @@ const AtelierBadge = () => (
 // Trois boutons (Mobilier / Planches / Le Comptoir) à border néon rotative,
 // affichés au-dessus du label "Collection 2026" dans le hero.
 // Réutilise les mêmes icônes que la nav header pour une identité visuelle cohérente.
-const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilter, onOpenShop, darkMode = false }) => {
+const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilter, onOpenShop, onCollectionIntent, onShopIntent, darkMode = false }) => {
     const items = [
         {
             id: 'furniture',
             label: 'Mobilier',
             Icon: FurnitureHeaderIcon,
             isActive: activeCollection === 'furniture',
+            onIntent: () => onCollectionIntent?.('furniture'),
             onClick: () => {
+                onCollectionIntent?.('furniture');
                 if (typeof setActiveCollection === 'function') setActiveCollection('furniture');
                 if (typeof setFilter === 'function') setFilter('fixed');
             },
@@ -272,7 +274,9 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
             label: 'Planches',
             Icon: BreadBoardHeaderIcon,
             isActive: activeCollection === 'cutting_boards',
+            onIntent: () => onCollectionIntent?.('cutting_boards'),
             onClick: () => {
+                onCollectionIntent?.('cutting_boards');
                 if (typeof setActiveCollection === 'function') setActiveCollection('cutting_boards');
             },
         },
@@ -282,7 +286,9 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
             Icon: CounterHeaderIcon,
             isActive: false, // Le Comptoir = page séparée → jamais actif sur MarketplaceLayout
             isShop: true,
+            onIntent: () => onShopIntent?.(),
             onClick: () => {
+                onShopIntent?.();
                 if (typeof onOpenShop === 'function') onOpenShop();
             },
         },
@@ -290,7 +296,7 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
 
     return (
         <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
-            {items.map(({ id, label, Icon, isActive, isShop, onClick }) => (
+            {items.map(({ id, label, Icon, isActive, isShop, onClick, onIntent }) => (
                 <div key={id} className="relative">
                     {isShop ? (
                         /* LE COMPTOIR — border néon rotative (comme en prod) */
@@ -306,6 +312,9 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
                                 />
                                 <motion.button
                                     type="button"
+                                    onMouseEnter={onIntent}
+                                    onFocus={onIntent}
+                                    onPointerDown={onIntent}
                                     onClick={onClick}
                                     whileHover={{ scale: 1.04 }}
                                     whileTap={{ scale: 0.97 }}
@@ -332,6 +341,9 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
                         /* MOBILIER actif — pill blanche pleine, pas de neon */
                         <motion.button
                             type="button"
+                            onMouseEnter={onIntent}
+                            onFocus={onIntent}
+                            onPointerDown={onIntent}
                             onClick={onClick}
                             whileHover={{ scale: 1.04 }}
                             whileTap={{ scale: 0.97 }}
@@ -355,6 +367,9 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
                             />
                             <motion.button
                                 type="button"
+                                onMouseEnter={onIntent}
+                                onFocus={onIntent}
+                                onPointerDown={onIntent}
                                 onClick={onClick}
                                 whileHover={{ scale: 1.04 }}
                                 whileTap={{ scale: 0.97 }}
@@ -414,13 +429,14 @@ const CategorySeoIntro = ({ content, darkMode }) => {
 const MarketplaceLayout = ({
     items,
     onSelectItem,
+    onProductIntent,
     headerProps,
     darkMode,
     setHeaderProps,
     initialCategory = 'all',
     onCategoryChange
 }) => {
-    const { activeCollection, setActiveCollection, setFilter, onOpenShop } = headerProps || {};
+    const { activeCollection, setActiveCollection, setFilter, onOpenShop, onCollectionIntent, onShopIntent } = headerProps || {};
     const [activeCategory, setActiveCategory] = useState(initialCategory || 'all');
     const [activeMaterial, setActiveMaterial] = useState('');
     const [activePriceRange, setActivePriceRange] = useState('');
@@ -677,6 +693,8 @@ const MarketplaceLayout = ({
                                     setActiveCollection={setActiveCollection}
                                     setFilter={setFilter}
                                     onOpenShop={onOpenShop}
+                                    onCollectionIntent={onCollectionIntent}
+                                    onShopIntent={onShopIntent}
                                     darkMode={darkMode}
                                 />
                             </div>
@@ -907,6 +925,12 @@ const MarketplaceLayout = ({
                             content-visibility: auto;
                             contain-intrinsic-size: auto 480px;
                         }
+                        @media (pointer: coarse) {
+                            .tat-card-shell {
+                                content-visibility: visible;
+                                contain-intrinsic-size: auto;
+                            }
+                        }
                     `}</style>
                     {totalVisible === 0 ? (
                         <div className="min-h-80 border border-[#8a5b2a]/40 flex items-center justify-center text-center">
@@ -935,6 +959,7 @@ const MarketplaceLayout = ({
                                             >
                                                 <ProductCard
                                                     item={item}
+                                                    onIntent={() => onProductIntent?.(item)}
                                                     onClick={() => onSelectItem(item.id)}
                                                     hideStock={activeCollection === 'furniture'}
                                                     darkMode={darkMode}

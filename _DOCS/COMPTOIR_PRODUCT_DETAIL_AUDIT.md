@@ -378,3 +378,39 @@ node scripts/import-comptoir-detail-data.cjs --target=prod --apply --i-understan
 - Ajouter une disclosure affiliation globale dans le footer ou sur chaque fiche.
 - Corriger Firestore prod uniquement apres validation.
 - Decider si les fiches Comptoir doivent etre indexables tout de suite ou lancees en `noindex` le temps de stabiliser les contenus.
+
+---
+
+## Migration prod du 2026-05-07
+
+Objectif : reprendre le fonctionnement valide en sandbox sur la production, sans importer les donnees sandbox et sans toucher aux images produit prod.
+
+Actions realisees :
+
+- audit prod read-only ajoute via `scripts/audit-comptoir-prod.cjs` ;
+- dry-run prod de `scripts/import-comptoir-detail-data.cjs --target=prod` : 44 documents existants, 44 updates possibles ;
+- import prod applique uniquement sur `detailDraft`, `auditMeta` et `proposedCoreFixes` avec `--target=prod --apply --i-understand-prod-write` ;
+- aucune application de `--apply-core-fixes`, donc pas de modification des champs coeur `name`, `brand`, `category`, `imageUrl`, `price`, `affiliateUrl` ;
+- controle post-import : 44 produits publies, 44 fiches completes, 0 image manquante, 0 image en erreur HTTP, 0 mismatch `publicCatalog` ;
+- correction UI : les CTA tutoriels Comptoir ouvrent maintenant la fiche produit au lieu d'aller directement vers Amazon.
+
+Commandes de validation passees :
+
+```bash
+node scripts/validate-comptoir-detail-data.mjs --check-live
+node scripts/audit-comptoir-prod.cjs --target=prod --check-images --require-details
+npm run verify:seo-roadmap
+npm run build
+npm run preflight:prod
+```
+
+Resultat important :
+
+- `Complete detailDraft on published expected docs: 44/44`
+- `Published expected docs without imageUrl: 0`
+- `Image HTTP check failures: 0`
+
+Reste a surveiller :
+
+- 11 produits gardent `auditMeta.needsHumanReviewBeforePublish = true` pour tracer les variantes ou sources a revoir avant d'appliquer d'eventuelles corrections coeur.
+- Les fiches Comptoir dynamiques fonctionnent cote SPA ; sitemap/shareMeta serveur ne listent pas encore chaque fiche produit Comptoir individuellement.

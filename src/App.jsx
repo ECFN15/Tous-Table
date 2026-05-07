@@ -39,6 +39,34 @@ import MarketplaceDiscovery from './components/home/MarketplaceDiscovery';
 import ArchitecturalHeader from './designs/architectural/components/ArchitecturalHeader';
 import NewsletterModal from './components/auth/NewsletterModal';
 import GlobalMenu from './components/layout/GlobalMenu';
+import StartupPreloader from './components/layout/StartupPreloader';
+import {
+  shouldShowStartupPreloader,
+  warmupStartupForRoute,
+  warmupStartupCatalogImagesForRoute,
+} from './utils/startupWarmup';
+import { applyDevicePerformanceClasses } from './utils/devicePerformance';
+
+const getInitialDarkMode = () => {
+  if (typeof window === 'undefined') return true;
+
+  try {
+    const cachedThemeSettings = localStorage.getItem('themeSettings');
+    if (cachedThemeSettings) {
+      const forcedMode = JSON.parse(cachedThemeSettings)?.forcedMode;
+      if (forcedMode === 'dark') return true;
+      if (forcedMode === 'light') return false;
+    }
+
+    const storedDarkMode = localStorage.getItem('darkMode');
+    if (storedDarkMode === 'true') return true;
+    if (storedDarkMode === 'false') return false;
+  } catch {
+    // Keep the public site dark on first paint if storage is unavailable.
+  }
+
+  return true;
+};
 
 const AppContent = () => {
   const toast = useToast();
@@ -80,6 +108,33 @@ const AppContent = () => {
     };
   }, []);
 
+  useEffect(() => {
+    let raf = 0;
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+
+    const updateProfile = () => {
+      raf = 0;
+      applyDevicePerformanceClasses();
+    };
+
+    const scheduleUpdate = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(updateProfile);
+    };
+
+    updateProfile();
+    window.addEventListener('resize', scheduleUpdate, { passive: true });
+    window.addEventListener('orientationchange', scheduleUpdate);
+    connection?.addEventListener?.('change', scheduleUpdate);
+
+    return () => {
+      window.removeEventListener('resize', scheduleUpdate);
+      window.removeEventListener('orientationchange', scheduleUpdate);
+      connection?.removeEventListener?.('change', scheduleUpdate);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+
   // Fetch Contact Info for Menu
   useEffect(() => {
     const unsub = onSnapshot(doc(db, 'sys_metadata', 'contact_info'), (snap) => {
@@ -98,6 +153,7 @@ const AppContent = () => {
   const initialRouteRef = useRef(typeof window !== 'undefined'
     ? getRouteFromLocation(window.location)
     : { view: 'gallery', galleryState: { activeCollection: 'furniture', filter: 'fixed', activeCategory: 'all' } });
+  const startupWarmupPayloadRef = useRef({ items: [], boardItems: [], affiliateProducts: [] });
 
   // Navigation
   const [view, setView] = useState(() => initialRouteRef.current.view); // 'about', 'gallery', 'detail', 'login', 'admin'
@@ -113,6 +169,7 @@ const AppContent = () => {
   const [showAuthSuccess, setShowAuthSuccess] = useState(false);
   const [showNewsletter, setShowNewsletter] = useState(false);
   const [pendingItem, setPendingItem] = useState(null);
+  const [showStartupPreloader, setShowStartupPreloader] = useState(() => shouldShowStartupPreloader(initialRouteRef.current));
   const scrollYRef = useRef(0);
   const modalUnlockRef = useRef(null);
   const wasModalOpenRef = useRef(false);
@@ -198,12 +255,7 @@ const AppContent = () => {
   const headerScrollRafRef = useRef(0);
 
   // Dark Mode State
-  const [darkMode, setDarkMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('darkMode') === 'true';
-    }
-    return false;
-  });
+  const [darkMode, setDarkMode] = useState(getInitialDarkMode);
 
   const { forcedMode, activeDesignId } = useLiveTheme(darkMode);
 
@@ -223,8 +275,34 @@ const AppContent = () => {
     } else {
       document.documentElement.classList.remove('dark');
     }
+    document.documentElement.style.colorScheme = darkMode ? 'dark' : 'light';
+    document.documentElement.style.backgroundColor = darkMode ? '#0A0A0A' : '#FAFAF9';
+    document.body.style.backgroundColor = darkMode ? '#0A0A0A' : '#FAFAF9';
     localStorage.setItem('darkMode', darkMode);
   }, [darkMode]);
+
+  useEffect(() => {
+    startupWarmupPayloadRef.current = { items, boardItems, affiliateProducts };
+  }, [items, boardItems, affiliateProducts]);
+
+  const runStartupWarmup = React.useCallback(() => (
+    warmupStartupForRoute(initialRouteRef.current, startupWarmupPayloadRef.current)
+  ), []);
+
+  const handleStartupPreloaderComplete = React.useCallback(() => {
+    if (typeof window !== 'undefined') {
+      window.__tatStartupPreloaderShown = true;
+      window.hasShownPreloader = true;
+    }
+    setShowStartupPreloader(false);
+  }, []);
+
+  useEffect(() => {
+    if (!showStartupPreloader) return;
+    if (['home', 'about'].includes(initialRouteRef.current.view)) return;
+    if (!items.length && !boardItems.length && !affiliateProducts.length) return;
+    warmupStartupCatalogImagesForRoute(initialRouteRef.current, startupWarmupPayloadRef.current);
+  }, [showStartupPreloader, items, boardItems, affiliateProducts]);
 
   // Marketplace Discovery Trigger (STRICTEMENT sur Accueil - Au Footer)
   useEffect(() => {
@@ -663,7 +741,7 @@ const AppContent = () => {
     console.log("Order placed restoration:", persistentGalleryState, orderData);
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-transparent"><div className="w-10 h-10 border-[3px] border-stone-200 border-t-stone-900 rounded-full animate-spin"></div></div>;
+  if (loading && !showStartupPreloader) return <div className="min-h-screen flex items-center justify-center bg-transparent"><div className="w-10 h-10 border-[3px] border-stone-200 border-t-stone-900 rounded-full animate-spin"></div></div>;
 
   // Active Admin List
 
@@ -686,13 +764,20 @@ const AppContent = () => {
         selectedItemPrice={view === 'shop-detail' ? selectedAffiliateProduct?.price : (selectedCatalogItem?.currentPrice || selectedCatalogItem?.startingPrice)}
       />
 
+      {showStartupPreloader && (
+        <StartupPreloader
+          warmup={runStartupWarmup}
+          onComplete={handleStartupPreloaderComplete}
+        />
+      )}
+
       {/* RIDEAU DE TRANSITION GLOBAL (Masque le switch de page) */}
       <div
         className={`fixed inset-0 z-[2000] pointer-events-none transition-opacity duration-400 ease-in-out ${isTransitioning ? 'opacity-100' : 'opacity-0'}`}
         style={{ backgroundColor: darkMode ? '#0A0A0A' : '#FAFAF9' }}
       ></div>
 
-      {loading && <div className="fixed inset-0 z-[999] flex items-center justify-center bg-transparent"><div className="w-10 h-10 border-[3px] border-stone-200 border-t-stone-900 rounded-full animate-spin"></div></div>}
+      {loading && !showStartupPreloader && <div className="fixed inset-0 z-[999] flex items-center justify-center bg-transparent"><div className="w-10 h-10 border-[3px] border-stone-200 border-t-stone-900 rounded-full animate-spin"></div></div>}
 
       {/* COMPOSANT PANIER - Global (Disponible dès que la navbar est visible) */}
       <CartSidebar

@@ -450,3 +450,168 @@ Mesures synthétiques pendant scroll Lenis programmatique :
 - Mesurer l'accueil en conditions réelles sur mobile Android/iOS, car c'est la seule page qui garde quelques longues frames en test de stress.
 - Envisager un découpage plus profond de certains bundles (`firebase`, `xlsx`, admin) pour réduire la charge initiale.
 - Si le hero 3D de l'accueil reste sensible sur appareils modestes, ajouter une qualité adaptative basée sur `deviceMemory`, `hardwareConcurrency` ou le premier score de frame time.
+
+## 9. Preloader mobile de demarrage - 7 mai 2026
+
+Objectif : reprendre le preloader visuel de la vitrine v50 au lancement mobile, afin de masquer la phase de boot et de lancer les prechargements critiques avant l'interaction utilisateur.
+
+Fichiers modifies :
+- `src/components/layout/StartupPreloader.jsx`
+- `src/utils/startupWarmup.js`
+- `src/App.jsx`
+- `src/index.css`
+
+Changements :
+- ajout d'un preloader global mobile/tactile, avec fond brun sombre et signature Tous a Table inspiree de v50 ;
+- remplacement du spinner initial par ce preloader quand le terminal est mobile/tactile ;
+- warmup pendant le preloader des chunks publics prioritaires (`GalleryView`, `ShopView`, details hors reseau reduit) ;
+- prechargement des images hero marketplace mobiles et des premieres images produits deja recues ;
+- pas de changement du scroll mobile : Lenis reste desktop-only, le tactile reste natif.
+
+Validation :
+- `npm run build` OK.
+
+Risque restant :
+- a verifier sur Xiaomi reel : le preloader deplace la charge initiale avant usage, mais ne corrige pas a lui seul un jank qui viendrait d'un decode image tardif ou d'un rendu Firestore arrive apres la fermeture.
+
+Correction 7 mai 2026 :
+- le `StartupPreloader` reprend le vrai timeline GSAP du preloader v50 pour l'entree et la sortie : fond `#1a1a1a`, voile secondaire `#9C8268` a 20%, entree `expo.out`, sortie rideau `expo.inOut` en 0.8 s avec decalage 0.05 s ;
+- le warmup reste lance pendant le preloader, avec images critiques separees mobile/desktop ;
+- le preloader de demarrage est actif sur les routes publiques marketplace mobile et desktop, en conservant `?skipPreloader=1`, le respect de `prefers-reduced-motion`, et les exclusions admin/login.
+
+Correction 8 mai 2026 :
+- verification des commits v35, v44, v45 et v50 : la sortie historique ne deplacait pas les lettres seules, elle faisait monter tout l'overlay `preloader-overlay` en `yPercent: -100` apres le voile secondaire ;
+- le wrapper React du nouveau `StartupPreloader` garde maintenant un fond transparent, pour que la montee du panneau `#1a1a1a` revele bien la page comme dans l'ancien code, sans couche noire fixe derriere la sortie.
+
+## 10. Optimisation mobile faible puissance de `/a-propos` - 7 mai 2026
+
+Objectif : rendre la page vitrine `/a-propos` fluide sur les telephones avec CPU/GPU modestes, sans changer l'architecture Lenis existante ni supprimer les animations sur les appareils capables.
+
+Cause analyse :
+- la page gardait plusieurs sources de travail continu sur mobile : WebGL hero, marquee editorial avec `gsap.ticker`, `useScroll`/`useVelocity`, cartes Framer Motion liees au scroll, parallax GSAP scrub sur les images manifesto, animations de blur/filter et `will-change` permanents ;
+- les resize mobile lies a la barre d'adresse pouvaient appeler `renderer.setSize(...)` pendant l'inertie native ;
+- le preloader public ne couvrait pas encore `home/about`, donc `/a-propos` ne profitait pas du warmup global de demarrage.
+
+Fichiers modifies :
+- `src/utils/devicePerformance.js`
+- `src/utils/startupWarmup.js`
+- `src/App.jsx`
+- `src/pages/HomeView.jsx`
+- `src/components/home/ThreeBackground.jsx`
+- `src/components/home/StackedCards.jsx`
+- `src/components/ui/EditorialMarquee.jsx`
+- `src/components/home/ProcessSection.jsx`
+- `src/index.css`
+- `src/hooks/useLenisScroll.js`
+
+Changements :
+- ajout d'un profil `tat-low-power-mobile` base sur tactile, `deviceMemory`, `hardwareConcurrency`, `saveData`, reseau lent et largeur mobile ;
+- ajout de `/a-propos`/`home` au `StartupPreloader` global avec warmup cible des images critiques de la page atelier ;
+- WebGL conserve sur mobile faible puissance, mais boucle RAF reellement stoppee quand `.hero-section` sort du viewport, puis relancee au retour vers le haut via `window.__setThreePaused` et un listener scroll RAF-coalesce ;
+- baisse du cout WebGL sur tactile : pas d'antialiasing, pixel ratio 1, geometrie reduite et resize WebGL ignore sur petits changements de hauteur de barre navigateur ;
+- animations conservees sur toutes les sections : marquee editorial, cartes Framer Motion scroll-linked, parallax manifesto, reveals blur/filter, counters, theme transitions et rotations restent actifs ;
+- optimisation du marquee sans changer le rendu : les tickers GSAP sont mis en pause par `IntersectionObserver` quand la section est hors viewport ;
+- les hints `will-change` permanents sont reduits sur profil mobile faible puissance sans supprimer les animations visibles ;
+- ajout de `decoding="async"` / lazy loading sur images tardives de la page.
+
+Validation :
+- `npm run build` OK le 7 mai 2026 ;
+- route locale `http://127.0.0.1:5174/a-propos` repond HTTP 200.
+
+Risques restants :
+- a valider sur un vrai Xiaomi / Android entree de gamme avec le frame sampler, car le gain principal cible le runtime mobile reel ;
+- les gros chunks Vite historiques (`firebase`, `heic2any`, etc.) restent signales par le build, sans regression nouvelle observee.
+
+Correction 8 mai 2026 :
+- demande utilisateur : ne pas supprimer le hero WebGL sur mobile faible puissance ;
+- `ThreeBackground` est a nouveau monte pour tous les profils, mais sa boucle `requestAnimationFrame` est reellement annulee quand `.hero-section` n'est plus visible ;
+- retour en haut : `ScrollTrigger` et le listener scroll RAF-coalesce appellent `window.__setThreePaused(false)` pour relancer la boucle WebGL ;
+- demande utilisateur : ne pas casser les animations des sections ; les versions statiques temporaires du marquee et des cartes ont ete supprimees, le parallax manifesto et les reveals complets ont ete restaures ;
+- validation : `npm run build` OK et `/a-propos` repond HTTP 200 en local.
+
+## 10. Audit Comptoir mobile scroll - 7 mai 2026
+
+Objectif : reduire les risques de lag/freeze pendant le scroll mobile sur `/comptoir`, sans casser l'UI ni les animations visibles.
+
+Constats :
+- Lenis est bien desktop-only dans `src/hooks/useLenisScroll.js` : early return tactile, `syncTouch: false`, `autoRaf: false`, instance unique via `App.jsx`.
+- Le header global utilise deja un scroll listener passif + `requestAnimationFrame` + diff avant `setIsHeaderVisible`, donc pas de setState direct a chaque event scroll.
+- Le Comptoir avait encore une source de travail React hors scroll : le mot "Rituel Bois" mettait a jour l'etat dans `ShopView`, ce qui faisait retraverser la page complete et les grilles produit toutes les 55 a 145 ms pendant toute la visite.
+- Plusieurs surfaces mobiles utilisaient du `backdrop-blur` pendant le scroll : bouton filtre fixed, badges de cartes, CTA, bloc tutoriel. Le blur fixed est le plus risque car il recomposite le contenu en mouvement sous le bouton.
+- Le hero Comptoir charge 6 images produit externes Amazon ; sans `decoding="async"`, le decode pouvait tomber sur les premiers gestes de scroll.
+
+Changements appliques :
+- `src/pages/ShopView.jsx` : extraction de l'animation de mot dans `RitualWordLoop`, afin que les ticks de typing ne rerendent plus toute la page Comptoir.
+- `src/pages/ShopView.jsx` : suppression du `backdrop-blur-xl` du bouton filtre mobile fixed, et passage du blur du bloc tutoriel en `md:backdrop-blur-xl` uniquement.
+- `src/components/shop/ShopProductCard.jsx` : suppression du blur sur mobile pour les badges et le CTA, conserve a partir de `sm`.
+- `src/components/shop/WorkshopHero.jsx` : ajout de `decoding="async"` sur les images hero, `fetchPriority="high"` sur les deux images principales, `loading="lazy"` sur les images secondaires.
+
+Validation :
+- `npm run build` OK le 7 mai 2026.
+- `npm run verify:seo-roadmap` OK le 7 mai 2026, 16 checks passes.
+- Checklist source : une seule instanciation `new Lenis(`, aucun `syncTouch: true`, `autoRaf: false`, scroll handlers Comptoir sans setState par event scroll.
+
+Risques residuels :
+- Playwright n'est pas installe dans le repo, donc aucune mesure frame-time automatisee n'a ete prise dans cette passe.
+- A verifier sur vrai mobile Android/iOS : scroll `/comptoir`, ouverture du drawer categories, passage des blocs tutoriels, decode des images hero au premier chargement.
+- Les classes `.tat-shop-card-shell` et `.tat-heavy-section` desactivent `content-visibility` sur `pointer: coarse` ; c'est un arbitrage a re-mesurer sur appareil reel si les sections longues restent lourdes.
+
+## 11. Warmup oriente parcours marketplace - 8 mai 2026
+
+Objectif : eviter que le preloader de demarrage charge trop de routes/images en parallele, afin de garder l'animation fluide et de concentrer le budget reseau/CPU sur le premier ecran reel : la marketplace mobilier.
+
+Fichiers modifies :
+- `src/utils/startupWarmup.js`
+- `src/App.jsx`
+- `src/Router.jsx`
+- `src/pages/GalleryView.jsx`
+- `src/designs/architectural/MarketplaceLayout.jsx`
+- `src/designs/architectural/components/ArchitecturalHeader.jsx`
+- `src/designs/architectural/components/ProductCard.jsx`
+- `src/pages/ShopView.jsx`
+- `src/components/shop/ShopProductCard.jsx`
+
+Changements :
+- le warmup pendant le preloader marketplace ne charge plus par defaut Planches, Comptoir, `ProductDetail` ni `ShopProductDetail` ;
+- le preloader marketplace charge seulement le chunk `GalleryView`, les images hero mobilier adaptees au viewport et les premieres images mobilier ;
+- le nombre d'images mobilier chauffe pendant le preloader depend du profil appareil : 3 si reseau limite/mobile faible puissance, 5 sur tactile, 8 sur desktop ;
+- le warmup Planches est declenche sur intention utilisateur (`hover`, `focus`, `pointerdown`, puis clic) des boutons Planches dans le header desktop et le switcher mobile ;
+- le warmup Comptoir est declenche sur intention utilisateur du bouton Comptoir ;
+- le warmup detail produit est declenche sur intention/clic d'une carte meuble, et le warmup detail Comptoir sur intention/clic d'une carte produit Comptoir ;
+- les routes directes `/planches-a-decouper-anciennes`, `/comptoir`, `/produit/...` et `/comptoir/...` gardent un warmup cible adapte a leur route initiale.
+
+Validation :
+- `npm run build` OK le 8 mai 2026.
+
+Risques residuels :
+- a valider sur vrai mobile Android/iOS : fluidite de l'animation preloader pendant decode hero mobilier et premier rendu grille ;
+- le prefetch d'intention sur mobile se declenche surtout au `pointerdown`, donc il sert principalement a anticiper le debut de navigation, pas une longue phase de prechargement avant clic.
+
+Correction preloader 8 mai 2026 :
+- l'entree GSAP du preloader garde la priorite : le warmup ne demarre plus sur la premiere frame, il attend la fin de l'intro puis travaille sur un budget court avant la sortie ;
+- les images du warmup sont chargees de maniere cooperative : concurrence limitee pendant le preloader, pauses `requestIdleCallback`/fallback entre images, et `decode()` reserve aux images haute priorite ;
+- le warmup mobilier de demarrage est stage : chunk `GalleryView` + hero mobilier d'abord, puis premieres images produits ;
+- ajustement visuel de la signature : `Atelier Normand` est groupe avec `TOUS A TABLE` pour controler l'ecart sans additionner `gap` et `margin-top`.
+
+## 12. Comptoir - retrait animations d'apparition ciblees - 8 mai 2026
+
+Objectif : retirer les animations d'apparition des deux premieres cartes de chaque section Comptoir et des six images du hero, sans changer la composition visuelle ni les hover states.
+
+Fichiers modifies :
+- `src/pages/ShopView.jsx`
+- `src/components/shop/ShopProductCard.jsx`
+- `src/components/shop/WorkshopHero.jsx`
+
+Changements :
+- `ShopProductCard` accepte `disableAppearAnimation` et expose `data-shop-card-appear` pour distinguer les cartes animables ;
+- `ShopView` passe `disableAppearAnimation={index < 2}` sur chaque section produit ;
+- l'ancien `gsap.from(grid)` sur le wrapper `.product-grid` a ete retire, sinon les deux premieres cartes continuaient a apparaitre avec le groupe ;
+- une tentative d'animation GSAP carte-par-carte a ete retiree immediatement : elle pouvait laisser les cartes suivantes en `opacity: 0` si le `ScrollTrigger` ne jouait pas au bon moment ;
+- `WorkshopHero` ne monte plus de refs ni de `useGSAP` pour les 6 images : elles sont presentes directement au rendu initial, avec les transitions hover conservees.
+
+Validation :
+- `git diff --check` OK sur les fichiers touches.
+- `npm run build` bloque hors scope : `src/components/home/StackedCards.jsx` importe `../ui/EditorialMarquee`, mais `src/components/ui/EditorialMarquee.jsx` est actuellement supprime dans le worktree.
+
+Risque restant :
+- build complet a relancer apres resolution de la suppression de `EditorialMarquee.jsx`.

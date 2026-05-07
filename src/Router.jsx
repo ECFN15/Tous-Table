@@ -162,6 +162,7 @@ const AppRouter = ({
                         <GalleryView
                             items={items}
                             boardItems={boardItems}
+                            affiliateProducts={affiliateProducts}
                             isAdmin={isAdmin} isSecretGateOpen={isSecretGateOpen} user={user}
                             onShowLogin={() => setShowFullLogin(true)}
                             onSelectItem={(id) => { setSelectedItemId(id); setView('detail'); scrollToTop(); }}
@@ -244,6 +245,11 @@ const AppRouter = ({
                             toggleTheme={toggleTheme}
                             setHeaderProps={setHeaderProps}
                             affiliateProducts={affiliateProducts}
+                            onOpenProductDetail={(product) => {
+                                setSelectedAffiliateProductId(product.id);
+                                setView('shop-detail');
+                                scrollToTop();
+                            }}
                         />
                     </div>
                 </Suspense>

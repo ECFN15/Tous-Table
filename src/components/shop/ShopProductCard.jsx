@@ -33,6 +33,8 @@ const ShopProductCard = ({
     parentFurnitureId = null,
     parentFurnitureName = null,
     detailHref = null,
+    onProductIntent = null,
+    disableAppearAnimation = false,
     onOpenProductDetail = null
 }) => {
     const { isAdmin } = useAuth();
@@ -67,13 +69,13 @@ const ShopProductCard = ({
                 decoding="async"
             />
 
-            <div className={`absolute right-2 top-2 z-30 flex items-center justify-center rounded-md border px-1.5 py-0.5 backdrop-blur-md sm:right-4 sm:top-4 sm:px-2.5 sm:py-1 ${darkMode ? 'bg-stone-900/40 border-stone-800/30' : 'bg-stone-900/60 border-stone-800/30 shadow-sm'}`}>
+            <div className={`absolute right-2 top-2 z-30 flex items-center justify-center rounded-md border px-1.5 py-0.5 sm:right-4 sm:top-4 sm:px-2.5 sm:py-1 sm:backdrop-blur-md ${darkMode ? 'bg-stone-900/70 sm:bg-stone-900/40 border-stone-800/30' : 'bg-stone-900/75 sm:bg-stone-900/60 border-stone-800/30 shadow-sm'}`}>
                 <span className="text-[7.5px] font-black uppercase tracking-wider text-white/90 sm:text-[10px]">
                     {PROGRAM_LABELS[product.affiliateProgram] || 'Direct'}
                 </span>
             </div>
 
-            <div className={`absolute bottom-2 left-2 z-30 flex items-center justify-center rounded-full border px-2 py-0.5 shadow-sm backdrop-blur-md sm:bottom-4 sm:left-4 sm:px-3 sm:py-1.5 ${getTierBadgeClass(product.tier, darkMode)}`}>
+            <div className={`absolute bottom-2 left-2 z-30 flex items-center justify-center rounded-full border px-2 py-0.5 shadow-sm sm:bottom-4 sm:left-4 sm:px-3 sm:py-1.5 sm:backdrop-blur-md ${getTierBadgeClass(product.tier, darkMode)}`}>
                 <span className="text-[7.5px] font-bold uppercase tracking-wide sm:text-[9px]">
                     {TIER_LABELS[product.tier] || 'Essentiel'}
                 </span>
@@ -82,10 +84,16 @@ const ShopProductCard = ({
     );
 
     return (
-        <article className="tat-shop-card-shell relative flex h-full flex-col animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <article
+            className={`tat-shop-card-shell relative flex h-full flex-col ${disableAppearAnimation ? '' : 'animate-in fade-in slide-in-from-bottom-4 duration-500'}`}
+            data-shop-card-appear={disableAppearAnimation ? 'false' : 'true'}
+        >
             {onOpenProductDetail ? (
                 <a
                     href={detailHref || '#'}
+                    onMouseEnter={() => onProductIntent?.(product)}
+                    onFocus={() => onProductIntent?.(product)}
+                    onPointerDown={() => onProductIntent?.(product)}
                     onClick={handleAffiliateClick}
                     aria-label={`Voir la fiche ${product.name || 'produit'}`}
                     className={`${imageFrameClass} block cursor-pointer transition-transform duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-4 focus-visible:ring-offset-stone-950 active:scale-[0.99]`}
@@ -117,10 +125,13 @@ const ShopProductCard = ({
                             href={detailHref || product.affiliateUrl || '#'}
                             target={onOpenProductDetail ? undefined : '_blank'}
                             rel={onOpenProductDetail ? undefined : 'noopener noreferrer sponsored'}
+                            onMouseEnter={() => onProductIntent?.(product)}
+                            onFocus={() => onProductIntent?.(product)}
+                            onPointerDown={() => onProductIntent?.(product)}
                             onClick={handleAffiliateClick}
                             className={`
                                 group/cta inline-flex items-center gap-2 rounded-full border px-4 py-2
-                                text-[11px] font-medium backdrop-blur-sm transition-all duration-300
+                                text-[11px] font-medium transition-all duration-300 sm:backdrop-blur-sm
                                 ${darkMode
                                     ? 'bg-white/5 border-white/10 text-stone-300 hover:bg-amber-500/10 hover:border-amber-500/30 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)]'
                                     : 'bg-stone-900/5 border-stone-200/50 text-stone-700 hover:bg-amber-500/10 hover:border-amber-500/30 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)]'
@@ -147,5 +158,7 @@ export default React.memo(ShopProductCard, (prev, next) => (
     prev.source === next.source &&
     prev.parentFurnitureId === next.parentFurnitureId &&
     prev.detailHref === next.detailHref &&
+    prev.onProductIntent === next.onProductIntent &&
+    prev.disableAppearAnimation === next.disableAppearAnimation &&
     prev.onOpenProductDetail === next.onOpenProductDetail
 ));

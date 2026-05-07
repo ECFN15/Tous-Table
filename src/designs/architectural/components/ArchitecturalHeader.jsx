@@ -76,7 +76,7 @@ const ArchitecturalHeader = ({
     toggleTheme,
     darkMode
 }) => {
-    const { activeCollection, setActiveCollection, setFilter, onOpenShop, title } = headerProps || {};
+    const { activeCollection, setActiveCollection, setFilter, onOpenShop, onCollectionIntent, onShopIntent, title } = headerProps || {};
     const isShopView = title === "Le Comptoir";
     const isGalleryHeader = Boolean(setActiveCollection) || isShopView;
     useLiveTheme();
@@ -188,7 +188,11 @@ const ArchitecturalHeader = ({
                     <nav className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-8 xl:gap-10 z-0 w-max">
                         <button
                             type="button"
+                            onMouseEnter={() => onCollectionIntent?.('furniture')}
+                            onFocus={() => onCollectionIntent?.('furniture')}
+                            onPointerDown={() => onCollectionIntent?.('furniture')}
                             onClick={() => {
+                                onCollectionIntent?.('furniture');
                                 if (isShopView) {
                                     goToGallery();
                                 } else {
@@ -203,7 +207,11 @@ const ArchitecturalHeader = ({
                         </button>
                         <button
                             type="button"
+                            onMouseEnter={() => onCollectionIntent?.('cutting_boards')}
+                            onFocus={() => onCollectionIntent?.('cutting_boards')}
+                            onPointerDown={() => onCollectionIntent?.('cutting_boards')}
                             onClick={() => {
+                                onCollectionIntent?.('cutting_boards');
                                 if (isShopView) {
                                     goToGallery();
                                 } else {
@@ -218,7 +226,13 @@ const ArchitecturalHeader = ({
                         {(onOpenShop || isShopView) && (
                             <button
                                 type="button"
-                                onClick={onOpenShop || (() => {})}
+                                onMouseEnter={() => onShopIntent?.()}
+                                onFocus={() => onShopIntent?.()}
+                                onPointerDown={() => onShopIntent?.()}
+                                onClick={() => {
+                                    onShopIntent?.();
+                                    onOpenShop?.();
+                                }}
                                 className={`${navButtonClass(isShopView)} relative`}
                             >
                                 <CounterHeaderIcon size={18} className={navIconClass} />

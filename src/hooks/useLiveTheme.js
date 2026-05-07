@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
+const DEFAULT_FORCED_MODE = 'dark';
+
 /**
  * useLiveTheme - Simplified Version
  * Forces the 'architectural' design as the primary and only frontend.
@@ -13,7 +15,7 @@ export const useLiveTheme = () => {
             const cached = localStorage.getItem('themeSettings');
             if (cached) return JSON.parse(cached).forcedMode;
         } catch { /* ignore error */ }
-        return 'light';
+        return DEFAULT_FORCED_MODE;
     });
 
     const [isThemeLoading, setIsThemeLoading] = useState(true);
@@ -25,7 +27,7 @@ export const useLiveTheme = () => {
             if (docSnap.exists()) {
                 const data = docSnap.data();
                 localStorage.setItem('themeSettings', JSON.stringify({ ...data, activeDesignId: 'architectural' }));
-                setForcedMode(data.forcedMode || 'light');
+                setForcedMode(data.forcedMode || DEFAULT_FORCED_MODE);
             }
             setIsThemeLoading(false);
         }, (err) => {

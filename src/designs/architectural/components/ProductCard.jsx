@@ -16,6 +16,31 @@ const getPrice = (item) => item?.currentPrice || item?.startingPrice || item?.pr
 
 const LETTERBOX_QUEUE = [];
 let isLetterboxQueueRunning = false;
+let nativeScrollTrackingReady = false;
+let lastNativeScrollAt = -Infinity;
+
+const isCoarsePointer = () => (
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(pointer: coarse)').matches
+);
+
+const markNativeScroll = () => {
+    lastNativeScrollAt = performance.now();
+};
+
+const ensureNativeScrollTracking = () => {
+    if (nativeScrollTrackingReady || !isCoarsePointer()) return;
+    window.addEventListener('scroll', markNativeScroll, { passive: true });
+    nativeScrollTrackingReady = true;
+};
+
+const shouldDelayExpensiveImageWork = () => {
+    if (typeof window === 'undefined') return false;
+    ensureNativeScrollTracking();
+    const nativeScrollInProgress = nativeScrollTrackingReady && (performance.now() - lastNativeScrollAt < 360);
+    return window.__lenis?.isScrolling || nativeScrollInProgress;
+};
 
 const requestIdle = (callback) => {
     if (typeof window === 'undefined') return;
@@ -34,7 +59,7 @@ const runLetterboxQueue = () => {
             return;
         }
 
-        if (window.__lenis?.isScrolling) {
+        if (shouldDelayExpensiveImageWork()) {
             LETTERBOX_QUEUE.unshift(task);
             window.setTimeout(next, 220);
             return;
@@ -75,6 +100,7 @@ const getTopLabel = (item, hideStock = false) => {
 const ProductCard = ({
     item,
     className = '',
+    onIntent,
     onClick,
     hideStock = false,
     darkMode = false
@@ -163,6 +189,9 @@ const ProductCard = ({
     return (
         <a
             href={getProductPath(item)}
+            onMouseEnter={onIntent}
+            onFocus={onIntent}
+            onPointerDown={onIntent}
             onClick={(event) => {
                 if (!event.ctrlKey && !event.metaKey) {
                     event.preventDefault();

@@ -1,5 +1,6 @@
 ﻿import React, { useEffect, useState, useMemo } from 'react';
 import { useLiveTheme } from '../hooks/useLiveTheme';
+import { useCallback } from 'react';
 // Note : le smooth scroll Lenis est montÃ© globalement dans App.jsx (cf. _DOCS/AUDITS/scrolllenis.md).
 
 // DESIGNS (Layouts)
@@ -7,6 +8,12 @@ import ArchitecturalLayout from '../designs/architectural/MarketplaceLayout';
 import SEO from '../components/shared/SEO';
 import { getFurnitureCategory } from '../utils/furnitureCategory';
 import { FURNITURE_CATEGORY_ROUTES, SITE_URL, getFurnitureCategoryPath, getProductPath, pushUrl } from '../utils/seoRoutes';
+import {
+    warmupBoardsIntent,
+    warmupFurnitureIntent,
+    warmupProductDetailIntent,
+    warmupShopIntent,
+} from '../utils/startupWarmup';
 
 // SEO component is imported at the top.
 
@@ -81,7 +88,7 @@ const buildProductListSchema = (item, url, image) => {
 };
 
 const GalleryView = ({ 
-    items, boardItems = [], user, onSelectItem, onShowLogin, darkMode = false,
+    items, boardItems = [], affiliateProducts = [], user, onSelectItem, onShowLogin, darkMode = false,
     onOpenMenu, onOpenCart, toggleTheme, setHeaderProps,
     persistentGalleryState, saveGalleryState, onOpenShop
 }) => {
@@ -125,7 +132,29 @@ const GalleryView = ({
 
 
 
+    const handleCollectionIntent = useCallback((collection) => {
+        if (collection === 'cutting_boards') {
+            warmupBoardsIntent({ boardItems });
+            return;
+        }
+
+        if (collection === 'furniture') {
+            warmupFurnitureIntent({ items });
+        }
+    }, [boardItems, items]);
+
+    const handleShopIntent = useCallback(() => {
+        warmupShopIntent({ affiliateProducts });
+    }, [affiliateProducts]);
+
+    const handleProductIntent = useCallback((item) => {
+        warmupProductDetailIntent(item);
+    }, []);
+
     const handleSelectItem = (id) => {
+        const selectedItem = filteredItems.find((item) => item.id === id);
+        if (selectedItem) handleProductIntent(selectedItem);
+
         // [PERSISTENCE] Save current sub-view state before navigating away
         if (saveGalleryState) {
             saveGalleryState({ activeCollection, filter, activeCategory });
@@ -239,6 +268,7 @@ const GalleryView = ({
                 onOpenCart={onOpenCart}
                 toggleTheme={toggleTheme}
                 setHeaderProps={setHeaderProps}
+                onProductIntent={handleProductIntent}
                 headerProps={useMemo(() => ({
                     activeCollection,
                     setActiveCollection: (val) => {
@@ -253,9 +283,11 @@ const GalleryView = ({
                         if (saveGalleryState) saveGalleryState({ filter: val });
                     },
                     onOpenShop,
+                    onCollectionIntent: handleCollectionIntent,
+                    onShopIntent: handleShopIntent,
                     setViewMode,
                     viewMode
-                }), [activeCollection, activeCategory, filter, viewMode, saveGalleryState, onOpenShop])}
+                }), [activeCollection, activeCategory, filter, viewMode, saveGalleryState, onOpenShop, handleCollectionIntent, handleShopIntent])}
                 initialCategory={activeCategory}
                 onCategoryChange={(category) => {
                     setActiveCategory(category);

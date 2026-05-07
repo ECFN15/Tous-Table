@@ -32,6 +32,32 @@
   <meta property="twitter:description"
     content="Atelier de restauration de mobilier a Ifs pres de Caen. Vente de meubles anciens restaures en bois massif : tables de ferme, armoires, buffets, commodes et planches anciennes. Livraison locale, France et pays frontaliers." />
 
+  <script>
+    (function () {
+      var shouldUseDark = true;
+
+      try {
+        var cachedThemeSettings = localStorage.getItem('themeSettings');
+
+        if (cachedThemeSettings) {
+          var forcedMode = JSON.parse(cachedThemeSettings).forcedMode;
+          if (forcedMode === 'dark') shouldUseDark = true;
+          else if (forcedMode === 'light') shouldUseDark = false;
+        } else {
+          var storedDarkMode = localStorage.getItem('darkMode');
+          if (storedDarkMode === 'true') shouldUseDark = true;
+          else if (storedDarkMode === 'false') shouldUseDark = false;
+        }
+      } catch (error) {
+        shouldUseDark = true;
+      }
+
+      document.documentElement.classList.toggle('dark', shouldUseDark);
+      document.documentElement.style.colorScheme = shouldUseDark ? 'dark' : 'light';
+      document.documentElement.style.backgroundColor = shouldUseDark ? '#0A0A0A' : '#FAFAF9';
+    })();
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://firebasestorage.googleapis.com" crossorigin>

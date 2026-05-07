@@ -16,6 +16,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import SplitType from 'split-type';
 import { trackAffiliateClick } from '../utils/tracking';
 import { getShopProductPath } from '../utils/seoRoutes';
+import { warmupShopProductDetailIntent } from '../utils/startupWarmup';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -133,11 +134,99 @@ const buildShopItemList = (products) => products
         };
     });
 
+const RitualWordLoop = React.memo(({ darkMode = false }) => {
+    const [activeRitualIndex, setActiveRitualIndex] = useState(0);
+    const [typedRitualWord, setTypedRitualWord] = useState('');
+    const [isDeletingRitualWord, setIsDeletingRitualWord] = useState(false);
+
+    useEffect(() => {
+        const currentWord = RITUAL_WORDS[activeRitualIndex];
+        const typeDelay = 145;
+        const eraseDelay = 55;
+        const holdDelay = 2800;
+        let timeoutId;
+
+        if (!isDeletingRitualWord && typedRitualWord === currentWord) {
+            timeoutId = setTimeout(() => setIsDeletingRitualWord(true), holdDelay);
+            return () => clearTimeout(timeoutId);
+        }
+
+        if (isDeletingRitualWord && typedRitualWord === '') {
+            setIsDeletingRitualWord(false);
+            setActiveRitualIndex((prev) => (prev + 1) % RITUAL_WORDS.length);
+            return undefined;
+        }
+
+        timeoutId = setTimeout(() => {
+            setTypedRitualWord((prev) => {
+                if (isDeletingRitualWord) {
+                    return currentWord.slice(0, Math.max(prev.length - 1, 0));
+                }
+                return currentWord.slice(0, prev.length + 1);
+            });
+        }, isDeletingRitualWord ? eraseDelay : typeDelay);
+
+        return () => clearTimeout(timeoutId);
+    }, [activeRitualIndex, typedRitualWord, isDeletingRitualWord]);
+
+    return (
+        <div className="space-y-4 sm:space-y-5 md:space-y-7">
+            <div className="flex items-center gap-3 hero-reveal">
+                <span className={`h-px w-12 ${darkMode ? 'bg-white/15' : 'bg-stone-300/90'}`} />
+                <span className={`text-[10px] uppercase tracking-[0.28em] font-black ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>
+                    Rituel Bois
+                </span>
+            </div>
+
+            <div className="leading-[0.85]">
+                <div className={`font-serif text-[2rem] sm:text-[2.6rem] xl:text-[4rem] tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                    <span className={`inline-block transition-all duration-300 ${isDeletingRitualWord ? 'blur-[1.8px] opacity-80' : 'blur-0 opacity-100'} ${darkMode ? 'text-amber-300' : 'text-amber-800'}`}>
+                        {typedRitualWord.split('').map((char, idx, arr) => (
+                            <span
+                                key={`${activeRitualIndex}-${idx}-${arr.length}`}
+                                style={{
+                                    display: 'inline-block',
+                                    animation: !isDeletingRitualWord && idx === arr.length - 1
+                                        ? 'ritualLetterIn 500ms cubic-bezier(0.16,0.84,0.25,1)'
+                                        : 'none'
+                                }}
+                            >
+                                {char}
+                            </span>
+                        ))}
+                    </span>
+                    <span className={`ml-2 font-black animate-pulse text-[1.7rem] xl:text-[2.4rem] ${darkMode ? 'text-amber-400/90' : 'text-amber-700/90'}`}>
+                        |
+                    </span>
+                </div>
+            </div>
+
+            <div className="flex items-center gap-2.5">
+                {RITUAL_WORDS.map((word, idx) => (
+                    <span
+                        key={word}
+                        className={`px-2.5 py-1 rounded-full text-[9px] uppercase tracking-[0.18em] font-black transition-colors duration-300 flex-shrink-0 ${idx === activeRitualIndex
+                            ? (darkMode ? 'bg-amber-400/20 text-amber-300 border border-amber-300/35' : 'bg-amber-700/15 text-amber-800 border border-amber-700/30')
+                            : (darkMode ? 'bg-white/5 text-stone-500 border border-white/10' : 'bg-stone-200/40 text-stone-500 border border-stone-300/70')
+                        }`}
+                    >
+                        {word}
+                    </span>
+                ))}
+            </div>
+        </div>
+    );
+});
+
 const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, onOpenProductDetail }) => {
     const { isAdmin } = useAuth();
     
     const handleTutorialClick = async (event, linkedProduct) => {
         event.preventDefault();
+        if (onOpenProductDetail && linkedProduct?.id) {
+            onOpenProductDetail(linkedProduct);
+            return;
+        }
         trackAffiliateClick({
             product: linkedProduct,
             source: 'shop_tutorial',
@@ -145,9 +234,6 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
         });
     };
 
-    const [activeRitualIndex, setActiveRitualIndex] = useState(0);
-    const [typedRitualWord, setTypedRitualWord] = useState('');
-    const [isDeletingRitualWord, setIsDeletingRitualWord] = useState(false);
     const [activeCategory, setActiveCategory] = useState(null);
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
     const [tutorialIndexes, setTutorialIndexes] = useState({});
@@ -314,53 +400,10 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
             delay: 0.1
         });
 
-        gsap.utils.toArray('.product-grid').forEach(grid => {
-            gsap.from(grid, {
-                y: 80,
-                opacity: 0,
-                duration: 1.2,
-                ease: "power4.out",
-                scrollTrigger: {
-                    trigger: grid,
-                    start: "top 85%",
-                }
-            });
-        });
-
         return () => {
             split.revert();
         };
     }, [affiliateProducts.length]);
-
-    useEffect(() => {
-        const currentWord = RITUAL_WORDS[activeRitualIndex];
-        const typeDelay = 145;
-        const eraseDelay = 55;
-        const holdDelay = 2800;
-        let timeoutId;
-
-        if (!isDeletingRitualWord && typedRitualWord === currentWord) {
-            timeoutId = setTimeout(() => setIsDeletingRitualWord(true), holdDelay);
-            return () => clearTimeout(timeoutId);
-        }
-
-        if (isDeletingRitualWord && typedRitualWord === '') {
-            setIsDeletingRitualWord(false);
-            setActiveRitualIndex((prev) => (prev + 1) % RITUAL_WORDS.length);
-            return undefined;
-        }
-
-        timeoutId = setTimeout(() => {
-            setTypedRitualWord((prev) => {
-                if (isDeletingRitualWord) {
-                    return currentWord.slice(0, Math.max(prev.length - 1, 0));
-                }
-                return currentWord.slice(0, prev.length + 1);
-            });
-        }, isDeletingRitualWord ? eraseDelay : typeDelay);
-
-        return () => clearTimeout(timeoutId);
-    }, [activeRitualIndex, typedRitualWord, isDeletingRitualWord]);
 
     // Scrollspy - highlight sidebar item matching the section currently in view
     useEffect(() => {
@@ -403,8 +446,13 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
     }, []);
 
     const handleProductDetailOpen = useCallback((product) => {
+        warmupShopProductDetailIntent(product);
         onOpenProductDetail?.(product);
     }, [onOpenProductDetail]);
+
+    const handleProductIntent = useCallback((product) => {
+        warmupShopProductDetailIntent(product);
+    }, []);
 
     return (
         <div className={`min-h-screen animate-in fade-in duration-500 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-[linear-gradient(180deg,#f8f2e8_0%,#fffaf2_42%,#f1e3cf_100%)]'}`}>
@@ -426,51 +474,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
                             100% { opacity: 1; filter: blur(0px); transform: translateY(0) scale(1); }
                         }
                     `}</style>
-                    <div className="space-y-4 sm:space-y-5 md:space-y-7">
-                        <div className="flex items-center gap-3 hero-reveal">
-                            <span className={`h-px w-12 ${darkMode ? 'bg-white/15' : 'bg-stone-300/90'}`} />
-                            <span className={`text-[10px] uppercase tracking-[0.28em] font-black ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>
-                                Rituel Bois
-                            </span>
-                        </div>
-
-                        <div className="leading-[0.85]">
-                            <div className={`font-serif text-[2rem] sm:text-[2.6rem] xl:text-[4rem] tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>
-                                <span className={`inline-block transition-all duration-300 ${isDeletingRitualWord ? 'blur-[1.8px] opacity-80' : 'blur-0 opacity-100'} ${darkMode ? 'text-amber-300' : 'text-amber-800'}`}>
-                                    {typedRitualWord.split('').map((char, idx, arr) => (
-                                        <span
-                                            key={`${activeRitualIndex}-${idx}-${arr.length}`}
-                                            style={{
-                                                display: 'inline-block',
-                                                animation: !isDeletingRitualWord && idx === arr.length - 1
-                                                    ? 'ritualLetterIn 500ms cubic-bezier(0.16,0.84,0.25,1)'
-                                                    : 'none'
-                                            }}
-                                        >
-                                            {char}
-                                        </span>
-                                    ))}
-                                </span>
-                                <span className={`ml-2 font-black animate-pulse text-[1.7rem] xl:text-[2.4rem] ${darkMode ? 'text-amber-400/90' : 'text-amber-700/90'}`}>
-                                    |
-                                </span>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-2.5">
-                            {RITUAL_WORDS.map((word, idx) => (
-                                <span
-                                    key={word}
-                                    className={`px-2.5 py-1 rounded-full text-[9px] uppercase tracking-[0.18em] font-black transition-colors duration-300 flex-shrink-0 ${idx === activeRitualIndex
-                                        ? (darkMode ? 'bg-amber-400/20 text-amber-300 border border-amber-300/35' : 'bg-amber-700/15 text-amber-800 border border-amber-700/30')
-                                        : (darkMode ? 'bg-white/5 text-stone-500 border border-white/10' : 'bg-stone-200/40 text-stone-500 border border-stone-300/70')
-                                    }`}
-                                >
-                                    {word}
-                                </span>
-                            ))}
-                        </div>
-                    </div>
+                    <RitualWordLoop darkMode={darkMode} />
                 </div>
 
                 <div className={`absolute top-0 right-0 w-[50vw] h-[50vw] md:w-[30vw] md:h-[30vw] rounded-full blur-[100px] opacity-20 pointer-events-none z-0 ${darkMode ? 'bg-amber-500/20' : 'bg-amber-700/10'}`} />
@@ -548,7 +552,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
                         lg:hidden fixed bottom-6 right-6 z-40
                         w-14 h-14 rounded-full
                         flex items-center justify-center
-                        shadow-2xl backdrop-blur-xl
+                        shadow-2xl
                         transition-all duration-300
                         ${darkMode
                             ? 'bg-amber-500/90 hover:bg-amber-500 text-white'
@@ -612,12 +616,14 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
                                                     product={product}
                                                     darkMode={darkMode}
                                                     detailHref={getShopProductPath(product)}
+                                                    onProductIntent={handleProductIntent}
+                                                    disableAppearAnimation={index < 2}
                                                     onOpenProductDetail={handleProductDetailOpen}
                                                 />
 
                                                 {/* Editorial / Video block inline after 4th product ou apres le dernier si < 4 */}
                                                 {(index === 3 || (products.length <= 3 && index === products.length - 1)) && tutorials.length > 0 && (
-                                                <div className={`col-span-2 sm:col-span-3 lg:col-span-4 p-8 lg:p-12 rounded-[28px] backdrop-blur-xl border ${darkMode ? 'bg-gradient-to-br from-amber-500/5 to-stone-800/20 border-white/5' : 'bg-[#fff8ed]/76 border-[#c79b5d]/28 shadow-[0_24px_70px_rgba(102,74,36,0.12)]'}`}>
+                                                <div className={`col-span-2 sm:col-span-3 lg:col-span-4 p-8 lg:p-12 rounded-[28px] md:backdrop-blur-xl border ${darkMode ? 'bg-gradient-to-br from-amber-500/5 to-stone-800/20 border-white/5' : 'bg-[#fff8ed]/76 border-[#c79b5d]/28 shadow-[0_24px_70px_rgba(102,74,36,0.12)]'}`}>
                                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-6 sm:gap-y-8 lg:gap-x-12 lg:items-stretch">
 
                                                 {/* Text */}
@@ -758,13 +764,13 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
                                                                             </div>
                                                                             <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 sm:mt-auto flex justify-start sm:justify-end border-t sm:border-0 border-stone-200/10 dark:border-white/5">
                                                                                 <a
-                                                                                    href={linked.affiliateUrl}
-                                                                                    target="_blank"
-                                                                                    rel="noopener noreferrer sponsored"
+                                                                                    href={getShopProductPath(linked)}
+                                                                                    target={onOpenProductDetail ? undefined : '_blank'}
+                                                                                    rel={onOpenProductDetail ? undefined : 'noopener noreferrer sponsored'}
                                                                                     onClick={(e) => handleTutorialClick(e, linked)}
                                                                                     className={`inline-flex items-center justify-center w-full sm:w-auto gap-2 px-6 py-2.5 sm:py-2.5 rounded-full text-[10.5px] lg:text-[11px] font-semibold transition-all duration-200 ${darkMode ? 'bg-amber-500/15 border border-amber-500/30 text-amber-400 hover:bg-amber-500/25' : 'bg-amber-600/10 border border-amber-600/25 text-amber-700 hover:bg-amber-600/20'}`}
                                                                                 >
-                                                                                    Decouvrir <span>-&gt;</span>
+                                                                                    Voir la fiche <span>-&gt;</span>
                                                                                 </a>
                                                                             </div>
                                                                         </div>

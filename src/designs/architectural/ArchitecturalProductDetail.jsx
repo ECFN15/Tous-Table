@@ -6,7 +6,7 @@ import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestor
 import { httpsCallable } from 'firebase/functions';
 import { getMillis } from '../../utils/time';
 import SEO from '../../components/shared/SEO';
-import { getProductPath, SITE_URL } from '../../utils/seoRoutes';
+import { getProductPath, getShopProductPath, SITE_URL } from '../../utils/seoRoutes';
 
 
 import { useLiveTheme } from '../../hooks/useLiveTheme';
@@ -38,7 +38,7 @@ const getStructuredDataPrice = (item) => {
     return Number.isFinite(price) && price > 0 ? price : null;
 };
 
-const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCart, onShowLogin, darkMode, setHeaderProps, cartItems = [], affiliateProducts = [] }) => {
+const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCart, onShowLogin, darkMode, setHeaderProps, cartItems = [], affiliateProducts = [], onOpenProductDetail }) => {
     const { palette } = useLiveTheme();
     const [activeImg, setActiveImg] = useState(0);
     const [bidLoading, setBidLoading] = useState(false);
@@ -626,6 +626,8 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                                             source="gallery_detail"
                                             parentFurnitureId={item.id}
                                             parentFurnitureName={item.name}
+                                            detailHref={getShopProductPath(product)}
+                                            onOpenProductDetail={onOpenProductDetail}
                                         />
                                     ))}
                                 </div>
