@@ -46,6 +46,40 @@ const BOARD_SEO = {
     description: 'Planches a decouper en bois, pieces anciennes et objets en bois massif selectionnes par Tous a Table Made in Normandie.',
 };
 
+const getStructuredDataPrice = (item) => {
+    if (!item || item.priceOnRequest) return null;
+    const rawPrice = item.currentPrice ?? item.startingPrice ?? item.price;
+    const price = Number(rawPrice);
+    return Number.isFinite(price) && price > 0 ? price : null;
+};
+
+const getStructuredDataAvailability = (item) => {
+    const stock = Number(item?.stock ?? 1);
+    return !item?.sold && stock > 0
+        ? 'https://schema.org/InStock'
+        : 'https://schema.org/OutOfStock';
+};
+
+const buildProductListSchema = (item, url, image) => {
+    const price = getStructuredDataPrice(item);
+    if (!price) return null;
+
+    return {
+        '@type': 'Product',
+        name: item.name,
+        url,
+        ...(image ? { image } : {}),
+        offers: {
+            '@type': 'Offer',
+            url,
+            priceCurrency: 'EUR',
+            price,
+            availability: getStructuredDataAvailability(item),
+            itemCondition: 'https://schema.org/UsedCondition',
+        },
+    };
+};
+
 const GalleryView = ({ 
     items, boardItems = [], user, onSelectItem, onShowLogin, darkMode = false,
     onOpenMenu, onOpenCart, toggleTheme, setHeaderProps,
@@ -118,16 +152,12 @@ const GalleryView = ({
         return categoryItems.slice(0, 24).map((item, index) => {
             const url = `${SITE_URL}${getProductPath(item)}`;
             const image = item.images?.[0] || item.imageUrl || item.thumbnailUrl;
+            const productSchema = buildProductListSchema(item, url, image);
             return {
                 '@type': 'ListItem',
                 position: index + 1,
                 url,
-                item: {
-                    '@type': 'Product',
-                    name: item.name,
-                    url,
-                    ...(image ? { image } : {}),
-                },
+                ...(productSchema ? { item: productSchema } : {}),
             };
         });
     }, [activeCategory, activeCollection, filteredItems]);

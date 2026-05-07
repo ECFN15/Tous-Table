@@ -289,9 +289,9 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
     ];
 
     return (
-        <div className="grid w-full max-w-[22rem] grid-cols-2 items-center justify-items-center gap-2 md:flex md:max-w-full md:flex-wrap md:justify-center md:gap-4">
+        <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
             {items.map(({ id, label, Icon, isActive, isShop, onClick }) => (
-                <div key={id} className={`relative ${isShop ? 'col-span-2 md:col-span-1' : ''}`}>
+                <div key={id} className="relative">
                     {isShop ? (
                         /* LE COMPTOIR — border néon rotative (comme en prod) */
                         <>
@@ -309,7 +309,7 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
                                     onClick={onClick}
                                     whileHover={{ scale: 1.04 }}
                                     whileTap={{ scale: 0.97 }}
-                                    className={`relative z-10 inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-[0.12em] whitespace-nowrap sm:gap-2.5 sm:px-6 sm:text-[11px] sm:tracking-[0.18em] ${
+                                    className={`relative z-10 inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-[0.18em] whitespace-nowrap ${
                                         darkMode ? 'bg-stone-900/90 text-amber-400' : 'bg-[#fff8ed]/95 text-[#8f5b20] shadow-[0_8px_24px_rgba(128,82,28,0.16)]'
                                     }`}
                                 >
@@ -335,7 +335,7 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
                             onClick={onClick}
                             whileHover={{ scale: 1.04 }}
                             whileTap={{ scale: 0.97 }}
-                            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-[0.12em] whitespace-nowrap sm:gap-2.5 sm:px-6 sm:text-[11px] sm:tracking-[0.18em] ${
+                            className={`inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-[0.18em] whitespace-nowrap ${
                                 darkMode ? 'bg-stone-100 text-stone-900' : 'bg-stone-950 text-[#fff7eb] shadow-[0_10px_24px_rgba(61,41,18,0.2)]'
                             }`}
                         >
@@ -358,7 +358,7 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
                                 onClick={onClick}
                                 whileHover={{ scale: 1.04 }}
                                 whileTap={{ scale: 0.97 }}
-                                className={`relative z-10 inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-[0.12em] whitespace-nowrap sm:gap-2.5 sm:px-6 sm:text-[11px] sm:tracking-[0.18em] ${
+                                className={`relative z-10 inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-[0.18em] whitespace-nowrap ${
                                     darkMode ? 'bg-stone-900/90 text-stone-100' : 'bg-[#fff8ed]/95 text-stone-800 shadow-[0_8px_24px_rgba(128,82,28,0.14)]'
                                 }`}
                             >
@@ -671,7 +671,7 @@ const MarketplaceLayout = ({
                             <p className="relative top-4 text-[#dba45f] text-[11px] md:text-xs font-black uppercase tracking-[0.42em] mb-10 md:mb-12">
                                 Collection 2026
                             </p>
-                            <div className="mt-8 w-full max-w-full md:mt-10">
+                            <div className="mt-8 md:mt-10">
                                 <NeonCollectionSwitcher
                                     activeCollection={activeCollection}
                                     setActiveCollection={setActiveCollection}

@@ -1763,6 +1763,150 @@ Prochaine action recommandee :
 
 ---
 
+## Chapitre 27 - Deploy prod SEO et audit public vert
+
+Date : 7 mai 2026
+Statut : deploy prod effectue, audits publics OK, Search Console manuel restant
+
+Accord utilisateur :
+
+- L'utilisateur a valide le deploy prod SEO apres demande d'audit prealable.
+- Workflow suivi :
+  - `.agent/workflows/production_workflow.md` ;
+  - `_DOCS/DEPLOIEMENT_PROD_RUNBOOK.md`.
+
+Audit pre-deploy :
+
+- `firebase use` avant ciblage : `tatmadeinnormandie`.
+- `firebase use prod` OK :
+  - alias `prod` ;
+  - projet `tousatable-client`.
+- `npm run preflight:prod` OK :
+  - config prod OK ;
+  - namespace prod OK ;
+  - paiements carte desactives ;
+  - 28 meubles prod ;
+  - 28 mappings categories ;
+  - aucun mapping manquant, extra ou invalide ;
+  - gate SEO roadmap OK ;
+  - syntax Functions OK ;
+  - build prod OK ;
+  - bundle prod OK ;
+  - audit Functions prod avant deploy : 30 Functions, 0 legacy env, 11 secrets.
+
+Deploy effectue :
+
+```bash
+firebase deploy --only functions:sitemap,functions:shareMeta,hosting --project tousatable-client
+```
+
+Resultat :
+
+- `sitemap(us-central1)` update OK.
+- `shareMeta(us-central1)` update OK.
+- Hosting `tousatable-client` release OK.
+- Aucun import sandbox.
+- Aucune ecriture Firestore prod.
+
+Securisation apres deploy :
+
+- `firebase use default` OK :
+  - retour sur `tatmadeinnormandie`.
+- Le deploy Firebase a reintroduit automatiquement des variables d'environnement non secretes sur `sitemap` et `shareMeta` :
+  - `FIREBASE_CONFIG` ;
+  - `GCLOUD_PROJECT` ;
+  - `EVENTARC_CLOUD_EVENT_SOURCE`.
+- Nettoyage refait via API Cloud Functions `updateMask=environmentVariables`, sans afficher de valeur sensible.
+- Audit final Functions :
+  - `functions = 30` ;
+  - `functionsWithLegacyEnv = 0` ;
+  - `legacyEnvTotal = 0` ;
+  - `secretTotal = 11` ;
+  - runtime `nodejs22`.
+
+Audit public SEO apres deploy :
+
+- Commande :
+
+```bash
+npm run audit:public-seo
+```
+
+- Resultat :
+  - 32 checks passes.
+- Sitemap public :
+  - HTTP 200 ;
+  - `loc_count = 69` ;
+  - routes propres requises presentes ;
+  - `query_url_count = 0` ;
+  - `product_path_url_count = 57`.
+- `robots.txt` :
+  - HTTP 200 ;
+  - pointe vers `https://tousatable-madeinnormandie.fr/sitemap.xml`.
+- Routes publiques HTTP 200 :
+  - `/` ;
+  - `/meubles-anciens` ;
+  - `/meubles-anciens/buffets` ;
+  - `/meubles-anciens/tables-de-ferme` ;
+  - `/meubles-anciens/armoires` ;
+  - `/meubles-anciens/commodes-chevets` ;
+  - `/meubles-anciens/chaises-bancs` ;
+  - `/meubles-anciens/autres` ;
+  - `/planches-a-decouper-anciennes` ;
+  - `/comptoir` ;
+  - `/a-propos` ;
+  - `/livraison-meubles-anciens-france`.
+- `shareMeta` direct OK :
+  - `/meubles-anciens` : titre et canonical propres ;
+  - `/comptoir` : titre et canonical propres ;
+  - `/livraison-meubles-anciens-france` : titre et canonical propres ;
+  - `/a-propos` : titre et canonical propres.
+
+Smoke public complementaire :
+
+- `publicCatalog` prod :
+  - `furniture = 28` ;
+  - `cutting_boards = 29` ;
+  - `affiliate_products = 44` ;
+  - total public lu = 101 documents.
+- Captures Edge headless publiques :
+  - `buffets-mobile.png` ;
+  - `planches-mobile.png` ;
+  - `livraison-desktop.png` ;
+  - `comptoir-desktop.png`.
+- Verification visuelle :
+  - header mobile visible ;
+  - switcher mobile visible ;
+  - CTA visible ;
+  - carte livraison visible.
+
+Checks locaux apres deploy :
+
+- `npm run verify:seo-roadmap` OK :
+  - 16 checks passes.
+- `firebase use` final :
+  - `tatmadeinnormandie`.
+- `git status --short` :
+  - propre avant ajout de cette note documentaire.
+
+Limites :
+
+- Rich Results Test officiel reste manuel via Google :
+  - https://search.google.com/test/rich-results
+- Search Console reste manuel cote proprietaire :
+  - soumission sitemap ;
+  - inspection URL ;
+  - demande d'indexation.
+- Le dump DOM Edge multi-route a timeoute ; les validations automatisees retenues sont donc `audit:public-seo`, checks HTTP, `shareMeta`, `publicCatalog` et captures headless.
+
+Prochaine etape Google Search Console :
+
+- Soumettre `https://tousatable-madeinnormandie.fr/sitemap.xml`.
+- Inspecter et demander indexation pour les URLs strategiques listees dans `_DOCS/SEO_PUBLIC_GOOGLE_CHECKS.md`.
+- Me transmettre les captures ou les statuts Search Console / Rich Results pour documentation finale.
+
+---
+
 ## Chapitre 18 - Carte particulaire livraison France
 
 Date : 7 mai 2026

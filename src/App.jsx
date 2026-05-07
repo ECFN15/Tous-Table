@@ -831,7 +831,7 @@ const AppContent = () => {
 
       {/* --- NAVBAR & MENU GLOBAUX (NE S'AFFICHENT PAS SUR LA PAGE D'ACCUEIL) --- */}
       {/* --- MENU GLOBAL (Toujours disponible sauf Home) --- */}
-      {view !== 'home' && (
+      {!['home', 'about'].includes(view) && (
         <GlobalMenu
           isMenuOpen={isMenuOpen}
           setIsMenuOpen={setIsMenuOpen}
@@ -845,7 +845,7 @@ const AppContent = () => {
       )}
 
       {/* --- NAVBAR GLOBALE --- */}
-      {view !== 'home' && (
+      {!['home', 'about'].includes(view) && (
         <>
           {activeDesignId === 'architectural' ? (
             <ArchitecturalHeader
