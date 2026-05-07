@@ -1,0 +1,2238 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-05-07",
+  "catalogSource": "https://us-central1-tousatable-client.cloudfunctions.net/publicCatalog",
+  "targetCollectionPath": "artifacts/tat-made-in-normandie/public/data/affiliate_products",
+  "safety": {
+    "firestoreProdWrite": false,
+    "sourceCheckMode": "catalog + manufacturer sources + reseller fallback",
+    "importRecommendation": "Importer d'abord detailDraft et auditMeta. Appliquer proposedCoreFixes seulement apres validation humaine ou import sandbox."
+  },
+  "defaultImportFields": [
+    "detailDraft",
+    "auditMeta",
+    "proposedCoreFixes"
+  ],
+  "tutorialFixes": [
+    {
+      "tutorialId": "p46KSmmVlFf5NC8jfeR1",
+      "issue": "Tutoriel Rust-Oleum lie a un coffret de ciseaux Kirschen.",
+      "currentProductId": "CrTsSg5woDt7TFGBUmI0",
+      "proposedProductId": "4lywJnKX3TcTML301cZA",
+      "confidence": "high"
+    },
+    {
+      "tutorialId": "x8ze4JUzu1ICOChft6eT",
+      "issue": "Tutoriel resine epoxy lie a un ID produit introuvable dans le catalogue publie.",
+      "currentProductId": "6pKe1iPGrUJ1v7fDWC6q",
+      "proposedProductId": "5JdaPBeW3nciiFkzZxY7",
+      "confidence": "high"
+    },
+    {
+      "tutorialId": "2g2UrQAfJilGoyUQ2MYL",
+      "issue": "Tutoriel V33 sans productId alors que le produit existe.",
+      "currentProductId": "",
+      "proposedProductId": "0KYju4e5GufRe7B1tkZR",
+      "confidence": "high"
+    }
+  ],
+  "products": [
+    {
+      "productId": "9MzD771h3MD1m5YGjxOv",
+      "currentName": "3M bloc de poncage caoutchouc pro 9292",
+      "currentBrand": "3M",
+      "proposedCoreFixes": {
+        "name": "3M Rubber Sanding Block 9292"
+      },
+      "detailDraft": {
+        "slug": "3m-rubber-sanding-block-9292",
+        "shortTitle": "Bloc de poncage 3M 9292",
+        "correctedBrand": "3M",
+        "productType": "accessoire-poncage",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Un bloc de poncage manuel simple et durable pour garder une pression reguliere sur les surfaces en bois. Il aide a eviter les creux que l'on cree souvent en poncant directement a la main.",
+        "useCases": [
+          "Poncage manuel de surfaces planes ou legerement courbes",
+          "Egrenage entre couches avant finition",
+          "Preparation de petites reparations"
+        ],
+        "strengths": [
+          "Prise en main stable",
+          "Pression plus homogene qu'un papier tenu a la main",
+          "Compatible avec abrasifs a couper au format voulu"
+        ],
+        "atelierTips": [
+          "Poncer dans le sens du fil du bois et laisser le bloc faire le travail.",
+          "Changer d'abrasif avant qu'il ne chauffe ou qu'il ne s'encrasse."
+        ],
+        "safetyNotes": [
+          "Porter un masque adapte si le poncage genere de la poussiere fine."
+        ],
+        "avoidIf": [
+          "Ne remplace pas une cale souple specialisee pour moulures tres profilees."
+        ],
+        "sourceUrls": [
+          "https://www.3m.com/3M/en_US/p/d/b10013802/"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "current-name-marketing-pro"
+        ],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "8fpGsi3Gc3VZLRS37cFr",
+      "currentName": "Furniture Clinic Chiffons de Nettoyage Non Pelucheux - Chiffons de Nettoyage pour Nettoyer, huiler Les Meubles en Bois",
+      "currentBrand": "Furniture Clinic",
+      "proposedCoreFixes": {
+        "name": "Furniture Clinic Chiffons de nettoyage non pelucheux"
+      },
+      "detailDraft": {
+        "slug": "furniture-clinic-chiffons-non-pelucheux",
+        "shortTitle": "Chiffons non pelucheux Furniture Clinic",
+        "correctedBrand": "Furniture Clinic",
+        "productType": "chiffon-application",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Des chiffons propres et non pelucheux pour appliquer, essuyer et lustrer les huiles, cires et nettoyants sans laisser de fibres dans la finition.",
+        "useCases": [
+          "Essuyage final avant finition",
+          "Application d'huile ou de cire",
+          "Lustrage d'un meuble cire"
+        ],
+        "strengths": [
+          "Coton non pelucheux",
+          "Limite les poussieres dans les finitions",
+          "Consommable utile a chaque etape d'entretien"
+        ],
+        "atelierTips": [
+          "Garder des chiffons separes pour depoussierer, appliquer et lustrer.",
+          "Utiliser un chiffon propre par couche de finition."
+        ],
+        "safetyNotes": [
+          "Les chiffons imbibes d'huile, cire ou solvant ne doivent pas etre laisses en boule.",
+          "Les faire secher a plat dans un lieu ventile ou suivre les consignes du produit utilise."
+        ],
+        "avoidIf": [
+          "Ne pas reutiliser un chiffon contamine par poussiere ou ancienne cire sur une finition fraiche."
+        ],
+        "sourceUrls": [
+          "https://www.furnitureclinic.co.uk/wood-care-products/wood-tools-accessories/lint-free-cleaning-cloth"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "current-name-too-long"
+        ],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "2GBaJDHrLmG3gIuGEyOj",
+      "currentName": "Liberon Coton a mecher professionnel (200g)",
+      "currentBrand": "Libero",
+      "proposedCoreFixes": {
+        "brand": "Liberon",
+        "name": "Liberon Coton a mecher 200g"
+      },
+      "detailDraft": {
+        "slug": "liberon-coton-a-mecher-200g",
+        "shortTitle": "Coton a mecher Liberon",
+        "correctedBrand": "Liberon",
+        "productType": "accessoire-application",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Un coton d'application pour travailler proprement les teintes, cires, vernis au tampon et finitions fines sur meuble.",
+        "useCases": [
+          "Application de teinte bois",
+          "Mise en cire",
+          "Lustrage fin ou vernis au tampon"
+        ],
+        "strengths": [
+          "Ne peluche pas",
+          "Permet une application reguliere",
+          "Epouse les reliefs et moulures"
+        ],
+        "atelierTips": [
+          "Former une boule ferme et travailler en mouvements reguliers.",
+          "Changer de meche des qu'elle charge en ancienne cire ou poussiere."
+        ],
+        "safetyNotes": [
+          "Traiter les meches imbibees d'huile ou solvant comme des dechets a risque d'auto-echauffement."
+        ],
+        "avoidIf": [
+          "Ne pas utiliser une meche sale pour appliquer une finition claire."
+        ],
+        "sourceUrls": [
+          "https://www.liberon.fr/products/le-coton-a-mecher"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "brand-typo-libero"
+        ],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "5ik1HvVGWaCzNgaruZU0",
+      "currentName": "Liberon Laine d'Acier Grade 0000 (150g)",
+      "currentBrand": "Liberon",
+      "proposedCoreFixes": {
+        "name": "Liberon Laine d'Acier N 000 (150g)"
+      },
+      "detailDraft": {
+        "slug": "liberon-laine-acier-000-150g",
+        "shortTitle": "Laine d'acier Liberon N 000",
+        "correctedBrand": "Liberon",
+        "productType": "abrasif-fin",
+        "detailStatus": "needs-source-check",
+        "confidence": "medium",
+        "sourceGrade": "manufacturer-variant-mismatch",
+        "detailIntro": "Une laine d'acier tres fine pour egrener, lustrer et faire penetrer une cire dans les moulures sans rayer fortement le support.",
+        "useCases": [
+          "Egrenage leger entre finitions",
+          "Lustrage de cire",
+          "Nettoyage doux de reliefs"
+        ],
+        "strengths": [
+          "Souple sur moulures",
+          "Finition fine",
+          "Pratique pour les zones ou une cale ne passe pas"
+        ],
+        "atelierTips": [
+          "Travailler sans appuyer et aspirer soigneusement les poussieres metalliques.",
+          "Utiliser avec une noisette de cire pour un lustrage profond."
+        ],
+        "safetyNotes": [
+          "Porter des gants si la laine accroche la peau.",
+          "Stocker au sec pour eviter la rouille."
+        ],
+        "avoidIf": [
+          "Ne pas utiliser sur bois humide.",
+          "Eviter sur tanins sensibles sans essai discret."
+        ],
+        "sourceUrls": [
+          "https://www.liberon.fr/products/la-laine-d-acier-n-000"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "grade-0000-not-confirmed-official-source",
+          "needs-sku-check"
+        ],
+        "needsHumanReviewBeforePublish": true,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "FqgzmcqqVU1S13Irrn2W",
+      "currentName": "Liberon Pinceau Plat 'Le Spalter' (40mm)",
+      "currentBrand": "Liberon",
+      "proposedCoreFixes": {
+        "name": "Liberon Pinceau Plat 40mm"
+      },
+      "detailDraft": {
+        "slug": "liberon-pinceau-plat-40mm",
+        "shortTitle": "Pinceau plat Liberon 40mm",
+        "correctedBrand": "Liberon",
+        "productType": "pinceau-finition",
+        "detailStatus": "needs-source-check",
+        "confidence": "medium",
+        "sourceGrade": "manufacturer-name-mismatch",
+        "detailIntro": "Un pinceau plat pour appliquer proprement peintures et finitions sur petites surfaces de meuble, chants et moulures simples.",
+        "useCases": [
+          "Application de peinture meuble",
+          "Retouches de finition",
+          "Travail de chants et petites surfaces"
+        ],
+        "strengths": [
+          "Format maniable",
+          "Application reguliere sur petites zones",
+          "Accessoire coherent avec peintures Liberon"
+        ],
+        "atelierTips": [
+          "Ne pas trop charger le pinceau pour eviter les sur-epaisseurs.",
+          "Nettoyer immediatement selon la finition utilisee."
+        ],
+        "safetyNotes": [
+          "Respecter le nettoyant recommande par le produit applique."
+        ],
+        "avoidIf": [
+          "Pour de grandes surfaces, preferer un vrai spalter plus large ou un rouleau adapte."
+        ],
+        "sourceUrls": [
+          "https://www.liberon.fr/products/le-pinceau-plat-40-mm",
+          "https://www.leroymerlin.fr/produits/pinceau-plat-universel-pour-peinture-40-mm-liberon-63252021.html"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "spalter-name-not-confirmed",
+          "tutorial-linked-ok-but-label-should-be-checked"
+        ],
+        "needsHumanReviewBeforePublish": true,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "JfCCI3cXtr1xQiVr3BbF",
+      "currentName": "Masques 3M Aura 9332+ FFP3 (Lot de 5)",
+      "currentBrand": "3M",
+      "proposedCoreFixes": {},
+      "detailDraft": {
+        "slug": "3m-aura-9332-ffp3-lot-5",
+        "shortTitle": "Masques 3M Aura 9332+ FFP3",
+        "correctedBrand": "3M",
+        "productType": "securite-respiratoire",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Un masque FFP3 pour se proteger des poussieres fines de poncage et de travaux bois lorsque l'atelier genere des particules.",
+        "useCases": [
+          "Poncage de bois",
+          "Depoussierage intensif",
+          "Travaux produisant des particules fines"
+        ],
+        "strengths": [
+          "Niveau FFP3",
+          "Valve d'expiration",
+          "Forme 3 panneaux confortable"
+        ],
+        "atelierTips": [
+          "Verifier l'etancheite au visage avant de poncer.",
+          "Remplacer le masque s'il est sale, abime ou difficile a respirer."
+        ],
+        "safetyNotes": [
+          "Ne protege pas des vapeurs de solvants ni des gaz.",
+          "Acheter via un canal fiable, 3M signale des risques de contrefacon sur cette famille de produits."
+        ],
+        "avoidIf": [
+          "Pour solvants ou decapants volatils, utiliser une protection respiratoire adaptee aux vapeurs."
+        ],
+        "sourceUrls": [
+          "https://www.3mfrance.fr/3M/fr_FR/p/d/v100570014/",
+          "https://multimedia.3m.com/mws/media/2158265O/3m-9330-and-9332-counterfeit-communication-letter.pdf"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "safety-product"
+        ],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "RkD1tagKa00OiHWLGWOf",
+      "currentName": "Titebond III Ultimate Wood Glue (473ml)",
+      "currentBrand": "Titebond",
+      "proposedCoreFixes": {},
+      "detailDraft": {
+        "slug": "titebond-iii-ultimate-wood-glue-473ml",
+        "shortTitle": "Colle bois Titebond III 473ml",
+        "correctedBrand": "Titebond",
+        "productType": "colle-bois",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Une colle a bois resistante a l'eau pour assemblages interieurs et exterieurs, interessante pour reparations et collages exigeants.",
+        "useCases": [
+          "Collage de bois massif",
+          "Assemblages soumis a l'humidite",
+          "Reparation de mobilier ou planches"
+        ],
+        "strengths": [
+          "Resistance a l'eau Type I",
+          "Temps ouvert confortable",
+          "Nettoyage a l'eau avant sechage"
+        ],
+        "atelierTips": [
+          "Faire un montage a blanc avant collage.",
+          "Nettoyer les bavures de colle fraiche avec un chiffon humide."
+        ],
+        "safetyNotes": [
+          "Respecter le temps de serrage et de cure complet.",
+          "Ne pas utiliser pour immersion continue ou usage structurel."
+        ],
+        "avoidIf": [
+          "Bois tres gras ou exotique sans test prealable.",
+          "Assemblage destine a rester sous l'eau."
+        ],
+        "sourceUrls": [
+          "https://www.titebond.com/App_Static/literature/glues/FF681_TBIIIUltimateBrochureTB.pdf"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "h8VJVPlQSeAjk7ZMOEqT",
+      "currentName": "Bitume de Judee (Patine a l'Ancienne) 125mL",
+      "currentBrand": "Les Freres Nordin`",
+      "proposedCoreFixes": {
+        "brand": "Les Freres Nordin"
+      },
+      "detailDraft": {
+        "slug": "bitume-de-judee-patine-ancienne-125ml",
+        "shortTitle": "Bitume de Judee 125ml",
+        "correctedBrand": "Les Freres Nordin",
+        "productType": "patine",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Un produit de patine pour ombrer les reliefs, marquer les moulures et donner un aspect plus ancien a un meuble ou un cadre.",
+        "useCases": [
+          "Patiner moulures et sculptures",
+          "Vieillir un bois clair",
+          "Accentuer les reliefs apres peinture ou teinte"
+        ],
+        "strengths": [
+          "Effet antiquaire rapide",
+          "Tres utile sur les reliefs",
+          "Bon produit editorial pour expliquer la patine"
+        ],
+        "atelierTips": [
+          "Appliquer peu de produit et essuyer vite pour ne garder la patine que dans les creux.",
+          "Toujours faire un essai sur chute ou zone discrete."
+        ],
+        "safetyNotes": [
+          "Produit dangereux et inflammable : ventilation, gants et eloignement des flammes.",
+          "Respecter la fiche securite du fabricant."
+        ],
+        "avoidIf": [
+          "Ne pas utiliser sans protection sur un plan alimentaire.",
+          "Eviter les pieces mal ventilees."
+        ],
+        "sourceUrls": [
+          "https://freresnordin.fr/cires-pour-parquet-escalier/34-bitume-de-judee-3466022529016.html"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "brand-backtick",
+          "safety-product"
+        ],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "4mE2bGE6WXyM744jI40V",
+      "currentName": "Liberon Black Bison Cire antiquaire 500g",
+      "currentBrand": "Liberon",
+      "proposedCoreFixes": {
+        "name": "Liberon Black Bison Cire antiquaire 500ml"
+      },
+      "detailDraft": {
+        "slug": "liberon-black-bison-cire-antiquaire",
+        "shortTitle": "Cire antiquaire Black Bison",
+        "correctedBrand": "Liberon",
+        "productType": "cire",
+        "detailStatus": "needs-data-fix",
+        "confidence": "medium",
+        "sourceGrade": "manufacturer-variant-mismatch",
+        "detailIntro": "Une cire antiquaire pour nourrir, proteger et faire briller les meubles et boiseries en bois.",
+        "useCases": [
+          "Mise en cire d'un meuble ancien",
+          "Lustrage de boiseries",
+          "Protection d'une patine"
+        ],
+        "strengths": [
+          "Cire de reference pour patine",
+          "Bel effet lustre",
+          "Application accessible avec coton a mecher ou chiffon"
+        ],
+        "atelierTips": [
+          "Appliquer en couche fine, laisser tirer, puis lustrer avec une brosse douce.",
+          "Deux couches fines sont plus propres qu'une couche epaisse."
+        ],
+        "safetyNotes": [
+          "Ventiler pendant l'application.",
+          "Traiter les chiffons imbibes avec precaution."
+        ],
+        "avoidIf": [
+          "Ne pas vernir par-dessus une cire.",
+          "Eviter les surfaces exposees a beaucoup d'eau."
+        ],
+        "sourceUrls": [
+          "https://www.liberon.fr/produit/cire-antiquaire-black-bison/",
+          "https://www.liberon.fr/wp-content/uploads/2018/06/Liberon-2018-Finitions-antiquaire-cirer.pdf"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "possible-duplicate-black-bison",
+          "500g-vs-500ml"
+        ],
+        "needsHumanReviewBeforePublish": true,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "O5uxnoMnD5kew6mkx2Ap",
+      "currentName": "Liberon Cire Black Bison \"Antiquaire\" (500ml)",
+      "currentBrand": "Liberon",
+      "proposedCoreFixes": {},
+      "detailDraft": {
+        "slug": "liberon-cire-black-bison-antiquaire-500ml",
+        "shortTitle": "Cire Black Bison 500ml",
+        "correctedBrand": "Liberon",
+        "productType": "cire",
+        "detailStatus": "needs-data-fix",
+        "confidence": "medium",
+        "sourceGrade": "manufacturer-variant-mismatch",
+        "detailIntro": "Une cire de finition pour redonner de la profondeur et une patine lustree aux meubles en bois.",
+        "useCases": [
+          "Finition ciree de meuble ancien",
+          "Raviver une patine",
+          "Protection legere apres teinte"
+        ],
+        "strengths": [
+          "Rendu chaleureux",
+          "Bon produit de finition traditionnelle",
+          "Compatible avec travail au coton a mecher"
+        ],
+        "atelierTips": [
+          "Lustrer seulement apres le temps de prise pour obtenir une brillance reguliere.",
+          "Tester la teinte sur une partie cachee."
+        ],
+        "safetyNotes": [
+          "Ventiler et eloigner les chiffons imbibes de toute source de chaleur."
+        ],
+        "avoidIf": [
+          "Ne pas utiliser comme finition unique sur une table tres exposee a l'eau."
+        ],
+        "sourceUrls": [
+          "https://www.liberon.fr/produit/cire-antiquaire-black-bison/"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "possible-duplicate-black-bison",
+          "tutorial-linked"
+        ],
+        "needsHumanReviewBeforePublish": true,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "upKFUxNxGCco3dLBlXux",
+      "currentName": "Liberon Peinture a base de caseine (Blanc Albatre) 500ML",
+      "currentBrand": "Liberon",
+      "proposedCoreFixes": {
+        "category": "peintures"
+      },
+      "detailDraft": {
+        "slug": "liberon-peinture-caseine-blanc-albatre-500ml",
+        "shortTitle": "Peinture caseine Blanc Albatre",
+        "correctedBrand": "Liberon",
+        "productType": "peinture",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Une peinture mate pour relooker un meuble en bois avec un rendu doux, poudré et decoratif.",
+        "useCases": [
+          "Relooking de meuble",
+          "Peinture de boiseries interieures",
+          "Creation d'un rendu mat ancien"
+        ],
+        "strengths": [
+          "Rendu mat profond",
+          "Couleur Blanc Albatre confirmee",
+          "Bon support editorial pour expliquer la preparation"
+        ],
+        "atelierTips": [
+          "Preparer le support selon son etat : bois brut, verni ou deja peint.",
+          "Egrener legerement entre couches pour un toucher plus fin."
+        ],
+        "safetyNotes": [
+          "Respecter temps de sechage et aeration."
+        ],
+        "avoidIf": [
+          "Ce n'est pas une cire : prevoir une protection adaptee selon usage."
+        ],
+        "sourceUrls": [
+          "https://www.liberon.fr/products/peinture-meuble-signe-caseine-mat-blanc-albatre"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "category-cires-is-inaccurate"
+        ],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "Gl6Ush6OukkAh48BabmC",
+      "currentName": "Liberon Peinture decorative Le Metal Poudre, Fonte, 500 ML",
+      "currentBrand": "Resin Pro",
+      "proposedCoreFixes": {
+        "brand": "Liberon",
+        "category": "peintures"
+      },
+      "detailDraft": {
+        "slug": "liberon-metal-poudre-fonte-500ml",
+        "shortTitle": "Liberon Metal Poudre Fonte",
+        "correctedBrand": "Liberon",
+        "productType": "peinture-decorative",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Une peinture decorative effet metal mat pour apporter une finition contemporaine a un meuble, un objet ou une boiserie.",
+        "useCases": [
+          "Relooking decoratif de meuble",
+          "Effet metal mat sur bois ou objet prepare",
+          "Contraste contemporain sur mobilier ancien"
+        ],
+        "strengths": [
+          "Effet fonte mat",
+          "Produit officiel Liberon",
+          "Application decorative simple"
+        ],
+        "atelierTips": [
+          "Travailler en couches fines pour eviter les marques.",
+          "Associer a des zones sobres plutot qu'a tout le meuble si l'on veut garder l'ame de l'ancien."
+        ],
+        "safetyNotes": [
+          "Respecter la preparation du support et l'aeration."
+        ],
+        "avoidIf": [
+          "Ne pas classer comme cire ou resine.",
+          "Eviter sur surfaces alimentaires."
+        ],
+        "sourceUrls": [
+          "https://www.liberon.fr/produit/peinture-le-metal-poudre/"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "brand-wrong-resin-pro",
+          "category-cires-is-inaccurate"
+        ],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "q0sdpAOy5LBcrCadFHRv",
+      "currentName": "Liberon Teinte Antiquaire (Merisier / Chene) 0,5L",
+      "currentBrand": "Liberon`",
+      "proposedCoreFixes": {
+        "brand": "Liberon",
+        "category": "teintes"
+      },
+      "detailDraft": {
+        "slug": "liberon-teinte-antiquaire-merisier-chene-05l",
+        "shortTitle": "Teinte Antiquaire Liberon",
+        "correctedBrand": "Liberon",
+        "productType": "teinte-bois",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Une teinte bois pour modifier ou harmoniser la couleur d'un meuble avant d'appliquer une finition de protection.",
+        "useCases": [
+          "Harmoniser une restauration",
+          "Rechauffer un bois clair",
+          "Preparer une finition ciree ou vernie"
+        ],
+        "strengths": [
+          "Teintes antiquaires confirmees",
+          "Permet de garder le veinage visible",
+          "Bon produit pour expliquer l'ordre teinte puis finition"
+        ],
+        "atelierTips": [
+          "Appliquer sur bois propre et regulierement ponce.",
+          "Essuyer l'excedent pour eviter les reprises."
+        ],
+        "safetyNotes": [
+          "Faire un essai : la teinte finale depend du bois."
+        ],
+        "avoidIf": [
+          "Une teinte ne protege pas seule : ajouter une cire, huile ou vernis adapte."
+        ],
+        "sourceUrls": [
+          "https://www.liberon.fr/wp-content/uploads/2018/06/Liberon-2018-Finitions-antiquaire-teinter.pdf"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "brand-backtick",
+          "category-cires-is-inaccurate",
+          "tutorial-linked"
+        ],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "5JdaPBeW3nciiFkzZxY7",
+      "currentName": "Resin Pro - Resine Epoxy Ultra Transparente (3.2 Kg)",
+      "currentBrand": "Resin Pro",
+      "proposedCoreFixes": {
+        "category": "resines"
+      },
+      "detailDraft": {
+        "slug": "resin-pro-resine-epoxy-transparente-32kg",
+        "shortTitle": "Resine epoxy transparente Resin Pro",
+        "correctedBrand": "Resin Pro",
+        "productType": "resine-epoxy",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Une resine epoxy bi-composant transparente pour creations bois/resine, inclusions et revetements decoratifs.",
+        "useCases": [
+          "Table riviere",
+          "Inclusions decoratives",
+          "Revetement transparent sur creation bois"
+        ],
+        "strengths": [
+          "Transparence",
+          "Auto-nivelant",
+          "Bon sujet pour expliquer les dosages"
+        ],
+        "atelierTips": [
+          "Peser precisement les deux composants.",
+          "Sceller le bois avant une coulee importante pour limiter les bulles."
+        ],
+        "safetyNotes": [
+          "Porter gants et lunettes.",
+          "Eviter humidite et travailler dans une zone ventilee."
+        ],
+        "avoidIf": [
+          "Ne pas classer en cire.",
+          "Ne pas improviser une grosse coulee sans lire la fiche technique."
+        ],
+        "sourceUrls": [
+          "https://resinpro.fr/products/resines-transparentes-resin-pro/?add-to-cart=189954",
+          "https://resinpro.fr/SDS/RESINE%20EPOXY%20TRANSPARENTE%20RESIN%20PRO%20TDS%20FR.pdf"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "category-cires-is-inaccurate",
+          "tutorial-should-link-here"
+        ],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "4lywJnKX3TcTML301cZA",
+      "currentName": "Rust-Oleum Chalky Finish (750ML)",
+      "currentBrand": "Rust-Oleum",
+      "proposedCoreFixes": {
+        "category": "peintures"
+      },
+      "detailDraft": {
+        "slug": "rust-oleum-chalky-finish-750ml",
+        "shortTitle": "Rust-Oleum Chalky Finish",
+        "correctedBrand": "Rust-Oleum",
+        "productType": "peinture",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Une peinture a effet craie pour donner un rendu mat et doux a un meuble relooke.",
+        "useCases": [
+          "Relooking meuble",
+          "Effet shabby chic ou patine douce",
+          "Peinture decorative interieure"
+        ],
+        "strengths": [
+          "Rendu mat",
+          "Faible odeur",
+          "Bon pouvoir decoratif"
+        ],
+        "atelierTips": [
+          "Poncer legerement les aretes apres sechage pour creer une patine naturelle.",
+          "Protegger ensuite avec cire ou vernis selon usage."
+        ],
+        "safetyNotes": [
+          "Respecter l'aeration et le temps de sechage."
+        ],
+        "avoidIf": [
+          "Ne pas laisser sans protection sur une surface tres sollicitee.",
+          "Ce n'est pas une cire."
+        ],
+        "sourceUrls": [
+          "https://rustoleumcolours.co.uk/chalky-finish-furniture-paint/"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "category-cires-is-inaccurate",
+          "tutorial-should-link-here"
+        ],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "TerYOC7ozZczxlEilD75",
+      "currentName": "Blanchon - Huile cire bois brut 1 litre",
+      "currentBrand": "Blanchon",
+      "proposedCoreFixes": {
+        "name": "Blanchon Huile-Cire Bois Brut 1L"
+      },
+      "detailDraft": {
+        "slug": "blanchon-huile-cire-bois-brut-1l",
+        "shortTitle": "Huile-Cire Bois Brut Blanchon",
+        "correctedBrand": "Blanchon",
+        "productType": "huile-cire",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Une huile-cire pour proteger le bois tout en gardant un aspect naturel et peu transforme.",
+        "useCases": [
+          "Protection de meuble en bois",
+          "Finition de parquet ou boiserie",
+          "Rendu bois brut sur chene, hetre ou sapin"
+        ],
+        "strengths": [
+          "Aspect naturel",
+          "Entretien local possible",
+          "Penetre dans le bois"
+        ],
+        "atelierTips": [
+          "Appliquer en couches tres fines.",
+          "Lustrer et ne jamais laisser de surplus collant."
+        ],
+        "safetyNotes": [
+          "Les pads et chiffons imbibes d'huile peuvent s'auto-echauffer : les rincer ou les stocker selon consignes."
+        ],
+        "avoidIf": [
+          "Ne pas appliquer en couche epaisse.",
+          "Faire un essai car le rendu varie selon essence."
+        ],
+        "sourceUrls": [
+          "https://www.blanchon.com/media/docs-pdf/FT_Huile_Cire_Web_02_19.pdf",
+          "https://www.blanchon.com/professionnels/produits-interieurs/protection-decoration/huiles-cires.html?synt_packing=248"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "safety-rags"
+        ],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "6VWv1jlveIwDA0d5VX53",
+      "currentName": "Blanchon - Huile cire chene clair 1 litre",
+      "currentBrand": "Blanchon",
+      "proposedCoreFixes": {
+        "name": "Blanchon Huile-Cire Chene Clair 1L"
+      },
+      "detailDraft": {
+        "slug": "blanchon-huile-cire-chene-clair-1l",
+        "shortTitle": "Huile-Cire Chene Clair Blanchon",
+        "correctedBrand": "Blanchon",
+        "productType": "huile-cire",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Une huile-cire teintee chene clair pour proteger le bois tout en rechauffant legerement sa couleur.",
+        "useCases": [
+          "Protection de meubles et boiseries",
+          "Rendu chene clair",
+          "Finition de bois clair"
+        ],
+        "strengths": [
+          "Protection et decoration en un produit",
+          "Rendu naturel si applique finement",
+          "Entretien local possible"
+        ],
+        "atelierTips": [
+          "Faire un essai sur zone discrete avant toute surface visible.",
+          "Appliquer deux couches fines plutot qu'une couche chargee."
+        ],
+        "safetyNotes": [
+          "Traiter les chiffons imbibes d'huile avec precaution."
+        ],
+        "avoidIf": [
+          "Ne pas utiliser sans test si l'on veut garder un bois tres clair non rechauffe."
+        ],
+        "sourceUrls": [
+          "https://www.blanchon.com/media/docs-pdf/FT_Huile_Cire_Web_02_19.pdf"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "safety-rags"
+        ],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "NzVafj2LzzHJOv2SSgnJ",
+      "currentName": "Howard Butcher Block Conditioner (355ml)",
+      "currentBrand": "Howard",
+      "proposedCoreFixes": {},
+      "detailDraft": {
+        "slug": "howard-butcher-block-conditioner-355ml",
+        "shortTitle": "Howard Butcher Block Conditioner",
+        "correctedBrand": "Howard",
+        "productType": "huile-planche",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Un conditionneur pour planches, billots et plans de travail en bois qui combine huile minerale alimentaire et cires protectrices.",
+        "useCases": [
+          "Entretien de planche a decouper",
+          "Protection de billot",
+          "Nourrir un plan de travail bois"
+        ],
+        "strengths": [
+          "Huile minerale alimentaire",
+          "Cire d'abeille et carnauba",
+          "Aide a limiter le dessechement"
+        ],
+        "atelierTips": [
+          "Huiler d'abord si le bois est tres sec, puis finir avec le conditioner.",
+          "Appliquer sur toutes les faces d'une planche pour limiter les tensions."
+        ],
+        "safetyNotes": [
+          "Essuyer l'excedent avant contact alimentaire."
+        ],
+        "avoidIf": [
+          "Ne pas utiliser sur bois verni ou peint qui ne peut pas absorber."
+        ],
+        "sourceUrls": [
+          "https://www.howardproducts.com/product/butcher-block-conditioner/"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "rQY2aQIzY1K1EgoANcmk",
+      "currentName": "John Boos Board Cream (148 ML)",
+      "currentBrand": "John",
+      "proposedCoreFixes": {
+        "brand": "John Boos",
+        "name": "John Boos Board Cream 148ml"
+      },
+      "detailDraft": {
+        "slug": "john-boos-board-cream-148ml",
+        "shortTitle": "John Boos Board Cream",
+        "correctedBrand": "John Boos",
+        "productType": "creme-planche",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Une creme de protection pour planches et billots, utile en finition apres une huile d'entretien.",
+        "useCases": [
+          "Finition apres huile de planche",
+          "Protection de billot",
+          "Entretien mensuel d'une planche"
+        ],
+        "strengths": [
+          "Cire d'abeille et huile minerale alimentaire",
+          "Aide a creer une barriere hydrophobe",
+          "Complement naturel de Mystery Oil"
+        ],
+        "atelierTips": [
+          "Appliquer apres Mystery Oil lorsque le bois a deja absorbe l'huile.",
+          "Laisser poser puis essuyer le surplus."
+        ],
+        "safetyNotes": [
+          "Essuyer avant reutilisation alimentaire."
+        ],
+        "avoidIf": [
+          "Ne pas utiliser sur bois verni qui n'absorbe pas."
+        ],
+        "sourceUrls": [
+          "https://www.johnboos.com/products/boos-block-board-cream-for-butcher-blocks-and-cutting-boards?Ounces=5+oz."
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "brand-incomplete"
+        ],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "HxO6wzN5vJP1pbMuYkKc",
+      "currentName": "John Boos Mystery Oil (473ml)",
+      "currentBrand": "John",
+      "proposedCoreFixes": {
+        "brand": "John Boos",
+        "name": "John Boos Mystery Oil 473ml"
+      },
+      "detailDraft": {
+        "slug": "john-boos-mystery-oil-473ml",
+        "shortTitle": "John Boos Mystery Oil",
+        "correctedBrand": "John Boos",
+        "productType": "huile-planche",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Une huile d'entretien alimentaire pour nourrir les fibres des planches, billots et plans de travail en bois.",
+        "useCases": [
+          "Entretien courant de planche",
+          "Nourrir un billot",
+          "Routine avant Board Cream"
+        ],
+        "strengths": [
+          "Food-safe",
+          "Penetre le bois",
+          "Format coherent pour usage regulier"
+        ],
+        "atelierTips": [
+          "Appliquer le soir et laisser penetrer avant d'essuyer.",
+          "Renouveler quand le bois semble sec ou terne."
+        ],
+        "safetyNotes": [
+          "Essuyer tout excedent avant contact alimentaire."
+        ],
+        "avoidIf": [
+          "Ne pas appliquer sur une surface vernie ou plastifiee."
+        ],
+        "sourceUrls": [
+          "https://www.johnboos.com/products/mystery-oil-for-butcher-blocks-cutting-boards?Ounces=16+oz."
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "brand-incomplete",
+          "tutorial-linked"
+        ],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "NdCeO23HWsYTQ012F8St",
+      "currentName": "Osmo Polyx-Oil 3032 MAT (incolore) 750ml",
+      "currentBrand": "Osmo",
+      "proposedCoreFixes": {
+        "name": "Osmo Polyx-Oil 3032 Satinee (incolore) 750ml"
+      },
+      "detailDraft": {
+        "slug": "osmo-polyx-oil-3032-satinee-750ml",
+        "shortTitle": "Osmo Polyx-Oil 3032",
+        "correctedBrand": "Osmo",
+        "productType": "huile-cire",
+        "detailStatus": "needs-data-fix",
+        "confidence": "low",
+        "sourceGrade": "manufacturer-code-mismatch",
+        "detailIntro": "Une huile-cire Osmo pour proteger durablement bois interieurs, meubles, escaliers et parquets, mais le libelle actuel doit etre corrige avant publication.",
+        "useCases": [
+          "Protection de meubles",
+          "Parquets et escaliers",
+          "Bois interieurs bruts"
+        ],
+        "strengths": [
+          "Gamme Osmo reconnue",
+          "Protection huile-cire",
+          "Bon sujet de conseil d'application"
+        ],
+        "atelierTips": [
+          "Appliquer en couches tres fines.",
+          "Verifier la reference exacte : 3032 est satinee, la mate est a confirmer separement."
+        ],
+        "safetyNotes": [
+          "Ventiler et traiter les chiffons imbibes avec precaution."
+        ],
+        "avoidIf": [
+          "Ne pas publier comme 3032 MAT tant que la reference n'est pas corrigee."
+        ],
+        "sourceUrls": [
+          "https://www.osmo.fr/finitions/finitions-pour-linterieur/finitions-pour-sols/huile-cire-original"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "critical-name-reference-mismatch",
+          "3032-is-satin-not-mat",
+          "tutorial-linked"
+        ],
+        "needsHumanReviewBeforePublish": true,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "VfwitPReBAkJYQmq59gd",
+      "currentName": "Osmo Polyx-Oil 3032 Satinee (750ml)",
+      "currentBrand": "Osmo",
+      "proposedCoreFixes": {},
+      "detailDraft": {
+        "slug": "osmo-polyx-oil-3032-satinee-750ml-2",
+        "shortTitle": "Osmo Polyx-Oil Satinee",
+        "correctedBrand": "Osmo",
+        "productType": "huile-cire",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Une huile-cire satinee pour proteger les bois interieurs tout en gardant un toucher naturel.",
+        "useCases": [
+          "Meubles en bois massif",
+          "Escaliers et parquets",
+          "Bois interieurs soumis au passage"
+        ],
+        "strengths": [
+          "Finition satinee",
+          "Resistance aux taches",
+          "Produit polyvalent"
+        ],
+        "atelierTips": [
+          "Egrener tres legerement entre couches si le support le demande.",
+          "Ne pas chercher a charger : Osmo se travaille en film fin."
+        ],
+        "safetyNotes": [
+          "Ventiler pendant l'application.",
+          "Traiter les chiffons ou pads selon consignes de securite."
+        ],
+        "avoidIf": [
+          "Si l'objectif est un rendu totalement mat, verifier une reference mate."
+        ],
+        "sourceUrls": [
+          "https://www.osmo.fr/finitions/finitions-pour-linterieur/finitions-pour-sols/huile-cire-original"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "Myj3UKhijTH4lMcOx5Uv",
+      "currentName": "Rubio Monocoat Oil Plus 2C (Pure) 130ml",
+      "currentBrand": "Rubio",
+      "proposedCoreFixes": {
+        "brand": "Rubio Monocoat"
+      },
+      "detailDraft": {
+        "slug": "rubio-monocoat-oil-plus-2c-pure-130ml",
+        "shortTitle": "Rubio Oil Plus 2C Pure",
+        "correctedBrand": "Rubio Monocoat",
+        "productType": "huile-bois",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Une huile bi-composant pour proteger et colorer le bois interieur en une couche, avec un rendu naturel en teinte Pure.",
+        "useCases": [
+          "Meubles en bois brut",
+          "Plans et tables",
+          "Escaliers ou sols interieurs"
+        ],
+        "strengths": [
+          "Protection en une couche",
+          "0% COV selon fabricant",
+          "Tres bon angle pedagogique pour application controlee"
+        ],
+        "atelierTips": [
+          "Melanger uniquement la quantite necessaire avec l'accelerateur.",
+          "Retirer soigneusement l'excedent : c'est le geste cle."
+        ],
+        "safetyNotes": [
+          "Immerger les chiffons dans l'eau apres usage selon les consignes Rubio."
+        ],
+        "avoidIf": [
+          "Ne pas appliquer sur bois deja verni ou cire sans remise a nu."
+        ],
+        "sourceUrls": [
+          "https://store.rubiomonocoat.fr/products/huile-plus-2c"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "brand-can-be-more-specific",
+          "tutorial-linked"
+        ],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "lzi3nhuUPQ3NgAGPAMqh",
+      "currentName": "Star Brite Teak Oil Premium 950ml",
+      "currentBrand": "Star brite",
+      "proposedCoreFixes": {
+        "brand": "Star brite"
+      },
+      "detailDraft": {
+        "slug": "star-brite-teak-oil-premium-950ml",
+        "shortTitle": "Star brite Teak Oil Premium",
+        "correctedBrand": "Star brite",
+        "productType": "huile-teck",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Une huile de teck pour proteger et raviver les bois durs exterieurs, notamment mobilier de jardin et usages marine.",
+        "useCases": [
+          "Mobilier exterieur en teck",
+          "Bois durs exposes",
+          "Raviver un bois grise apres preparation"
+        ],
+        "strengths": [
+          "Protection exterieure",
+          "Ton dore",
+          "Produit adapte aux bois durs"
+        ],
+        "atelierTips": [
+          "Nettoyer et degriser le bois avant huile si le support est terni.",
+          "Appliquer par temps sec, hors plein soleil."
+        ],
+        "safetyNotes": [
+          "Produit inflammable/irritant : ventiler et traiter les chiffons imbibes avec precaution."
+        ],
+        "avoidIf": [
+          "Ne pas presenter comme produit contact alimentaire.",
+          "Peu pertinent pour une planche a decouper."
+        ],
+        "sourceUrls": [
+          "https://shop.starbrite.com/products/star-brite-premium-golden-teak-oil-ideal-for-boats-furniture"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "outdoor-specific"
+        ],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "Vg71zBP2nPFFhWu6xTdg",
+      "currentName": "Bahco 474 Cabinet Scraper (Racloir d'ebeniste)",
+      "currentBrand": "Bahco",
+      "proposedCoreFixes": {},
+      "detailDraft": {
+        "slug": "bahco-474-racloir-ebeniste",
+        "shortTitle": "Bahco 474 Racloir d'ebeniste",
+        "correctedBrand": "Bahco",
+        "productType": "racloir-morfil",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Un racloir d'ebeniste plat pour lisser le bois, retirer de fines traces et preparer une surface avant finition.",
+        "useCases": [
+          "Raclage fin du bois",
+          "Egalisation avant huile ou cire",
+          "Retrait leger de finition ou colle"
+        ],
+        "strengths": [
+          "Outil simple et durable",
+          "Finition fine sans poussiere de poncage",
+          "Tres bon outil pedagogique pour expliquer le morfil"
+        ],
+        "atelierTips": [
+          "L'outil fonctionne seulement avec un morfil bien forme.",
+          "Tenir a environ 75 degres et chercher un fin copeau, pas de la poussiere."
+        ],
+        "safetyNotes": [
+          "Les aretes peuvent etre coupantes apres affilage."
+        ],
+        "avoidIf": [
+          "Ne remplace pas un grattoir carbure pour decapage lourd."
+        ],
+        "sourceUrls": [
+          "https://www.bahco.com/au_en/cabinet-scrapers-with-plastic-edge-protector-pb_474_.html"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "tutorial-linked"
+        ],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "quBU3u8r8lT3j09jnU33",
+      "currentName": "Bahco 625 Grattoir de Poche de Precision",
+      "currentBrand": "Bahco",
+      "proposedCoreFixes": {
+        "name": "Bahco 625 ERGO Grattoir de precision"
+      },
+      "detailDraft": {
+        "slug": "bahco-625-ergo-grattoir-precision",
+        "shortTitle": "Bahco 625 Grattoir precision",
+        "correctedBrand": "Bahco",
+        "productType": "grattoir-carbure",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Un grattoir de precision a lame carbure pour reprendre peinture, vernis ou traces dans les coins et petites zones.",
+        "useCases": [
+          "Grattage de coins",
+          "Reprise de moulures simples",
+          "Retrait local de peinture ou colle"
+        ],
+        "strengths": [
+          "Lame carbure",
+          "Format maniable",
+          "Compatible avec plusieurs formes de lames"
+        ],
+        "atelierTips": [
+          "Tester sur zone cachee : le carbure peut vite marquer un bois tendre.",
+          "Travailler par passes legeres."
+        ],
+        "safetyNotes": [
+          "Lame agressive : garder hors de portee des enfants et proteger la lame."
+        ],
+        "avoidIf": [
+          "Pour une finition ebenisterie fine, preferer un racloir a morfil."
+        ],
+        "sourceUrls": [
+          "https://www.bahco.com/int_en/ergotm-precision-paint-scrapers-with-dual-component-handle-pb_625_.html"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "zDPjzzMFEj3VlXYXN1jE",
+      "currentName": "Bessey Presse a Vis Tout Acier avec Poignee a Garrot, 600mm/120mm",
+      "currentBrand": "Bessey",
+      "proposedCoreFixes": {
+        "name": "Bessey GZ60K Presse a vis tout acier 600/120"
+      },
+      "detailDraft": {
+        "slug": "bessey-gz60k-presse-vis-600-120",
+        "shortTitle": "Bessey GZ60K 600/120",
+        "correctedBrand": "Bessey",
+        "productType": "serre-joint",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Une presse a vis tout acier pour serrages puissants lors de collages, assemblages et travaux de menuiserie.",
+        "useCases": [
+          "Collage de bois",
+          "Maintien d'assemblage",
+          "Serrage puissant en atelier"
+        ],
+        "strengths": [
+          "Ouverture 600mm et saillie 120mm",
+          "Force de serrage elevee",
+          "Poignee a garrot"
+        ],
+        "atelierTips": [
+          "Utiliser des cales pour ne pas marquer un bois fini.",
+          "Serrer progressivement et verifier l'equerrage."
+        ],
+        "safetyNotes": [
+          "Ne pas utiliser pour lever, tirer ou transporter.",
+          "Attention au sur-serrage qui peut deformer un collage."
+        ],
+        "avoidIf": [
+          "Pas adapte aux surfaces fragiles sans cales de protection."
+        ],
+        "sourceUrls": [
+          "https://bessey.de/fr-fr/bessey-tool/produits/technique-de-serrage/presses-a-vis-tout-acier/presse-a-vis-tout-acier-avec-poignee-a-garrot-gz-k"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "reference-probably-gz60k"
+        ],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "itXRTMpwIswaVGLhv7or",
+      "currentName": "Hazet 821-2 Grattoir Triangulaire Finistion Pro",
+      "currentBrand": "Hazet",
+      "proposedCoreFixes": {
+        "name": "Hazet 821-2 Grattoir triangulaire finition pro"
+      },
+      "detailDraft": {
+        "slug": "hazet-821-2-grattoir-triangulaire",
+        "shortTitle": "Hazet 821-2 Grattoir triangulaire",
+        "correctedBrand": "Hazet",
+        "productType": "grattoir-ebavurage",
+        "detailStatus": "needs-source-check",
+        "confidence": "medium",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Un grattoir triangulaire plutot oriente ebavurage et finition mecanique, a positionner avec prudence dans un univers bois.",
+        "useCases": [
+          "Ebavurage",
+          "Grattage de zones etroites",
+          "Travail de finition en atelier"
+        ],
+        "strengths": [
+          "Fabrication robuste",
+          "Lame triangulaire",
+          "Peut servir sur certaines reprises difficiles"
+        ],
+        "atelierTips": [
+          "Utiliser avec une main legere sur le bois.",
+          "Faire un essai car la lame peut marquer vite."
+        ],
+        "safetyNotes": [
+          "Outil coupant : proteger la pointe et la lame."
+        ],
+        "avoidIf": [
+          "Moins adapte a la finition bois fine qu'un racloir d'ebeniste."
+        ],
+        "sourceUrls": [
+          "https://www.hazet.de/en/products/hand-tools/grinding-/-separation-and-cutting-thread-repair/scraper/product/ean-4000896033690"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "typo-finistion",
+          "wood-fit-medium"
+        ],
+        "needsHumanReviewBeforePublish": true,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "IShhyzBUgV6ULqGkGbof",
+      "currentName": "Kirschen Racloir 'Col de Cygne' Professionnel",
+      "currentBrand": "Kirschen",
+      "proposedCoreFixes": {
+        "name": "Kirschen Racloir Col de Cygne"
+      },
+      "detailDraft": {
+        "slug": "kirschen-racloir-col-de-cygne",
+        "shortTitle": "Racloir Col de Cygne Kirschen",
+        "correctedBrand": "Kirschen / Two Cherries",
+        "productType": "racloir-morfil",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Un racloir de forme col de cygne pour travailler les courbes, profils, moulures et zones que le racloir plat ne suit pas.",
+        "useCases": [
+          "Raclage de moulures",
+          "Surfaces concaves ou convexes",
+          "Finition de profils"
+        ],
+        "strengths": [
+          "Forme adaptee aux courbes",
+          "Complement expert du racloir plat",
+          "Outil durable si bien affile"
+        ],
+        "atelierTips": [
+          "Former un morfil propre avec un affiloir avant usage.",
+          "Huiler legerement apres usage pour limiter la corrosion."
+        ],
+        "safetyNotes": [
+          "Aretes coupantes apres affilage."
+        ],
+        "avoidIf": [
+          "Ne pas utiliser comme grattoir carbure de decapage lourd."
+        ],
+        "sourceUrls": [
+          "https://www.kirschen-shop.de/en/3802000_Cabinet-Scraper-swan-neck_p3802.html"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "brand-can-be-normalized-kirschen-two-cherries"
+        ],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "CrTsSg5woDt7TFGBUmI0",
+      "currentName": "Kirschen 'Two Cherries' - Coffret 6 Ciseaux Pro",
+      "currentBrand": "Kirschen",
+      "proposedCoreFixes": {
+        "name": "Kirschen / Two Cherries Coffret 6 ciseaux a bois"
+      },
+      "detailDraft": {
+        "slug": "kirschen-two-cherries-coffret-6-ciseaux",
+        "shortTitle": "Coffret 6 ciseaux Kirschen",
+        "correctedBrand": "Kirschen / Two Cherries",
+        "productType": "ciseaux-bois",
+        "detailStatus": "needs-source-check",
+        "confidence": "medium",
+        "sourceGrade": "manufacturer-sku-to-confirm",
+        "detailIntro": "Un coffret de ciseaux a bois pour ajustages, chanfreins, reprises d'assemblages et travaux de menuiserie fine.",
+        "useCases": [
+          "Ajustage d'assemblage",
+          "Reprise de bois massif",
+          "Chanfreins et petites entailles"
+        ],
+        "strengths": [
+          "Acier de qualite",
+          "Largeurs variees",
+          "Outil durable avec affutage"
+        ],
+        "atelierTips": [
+          "Aiguiser et honer avant un usage fin.",
+          "Toujours pousser un ciseau loin de la main libre."
+        ],
+        "safetyNotes": [
+          "Outils tres coupants : proteger les tranchants et travailler avec maintien stable."
+        ],
+        "avoidIf": [
+          "Confirmer le SKU exact avant de publier une promesse de composition."
+        ],
+        "sourceUrls": [
+          "https://www.kirschen-shop.de/en/1101000_Firmer-Chisel-Set-with-hornbeam-handles-in-wooden-box_p1101.html",
+          "https://twocherriesusa.com/product/set-of-six-chisels-in-wooden-box/"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "tutorial-wrongly-linked-from-rust-oleum",
+          "sku-needs-check"
+        ],
+        "needsHumanReviewBeforePublish": true,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "KmtEL1eniy4RiLT06q8i",
+      "currentName": "Kit Premium Kirschen (3 Racloirs + Affiloir)",
+      "currentBrand": "Kirschen",
+      "proposedCoreFixes": {
+        "name": "Kirschen Kit 3 racloirs + affiloir"
+      },
+      "detailDraft": {
+        "slug": "kirschen-kit-3-racloirs-affiloir",
+        "shortTitle": "Kit racloirs Kirschen + affiloir",
+        "correctedBrand": "Kirschen / Two Cherries",
+        "productType": "kit-racloirs",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer-plus-reseller",
+        "detailIntro": "Un kit complet pour apprendre et pratiquer la finition au racloir : racloirs de formes differentes et affiloir pour creer le morfil.",
+        "useCases": [
+          "Finition ebenisterie",
+          "Raclage de surfaces et courbes",
+          "Retrait fin de colle ou traces"
+        ],
+        "strengths": [
+          "Comprend l'affiloir indispensable",
+          "Plusieurs formes de racloirs",
+          "Excellent support pedagogique"
+        ],
+        "atelierTips": [
+          "Dresser l'arete, polir, puis former le morfil avec l'affiloir.",
+          "Chercher un copeau fin et continu."
+        ],
+        "safetyNotes": [
+          "Attention aux aretes affilees."
+        ],
+        "avoidIf": [
+          "Ne pas attendre un bon resultat sans apprentissage du morfil."
+        ],
+        "sourceUrls": [
+          "https://www.kirschen-shop.de/en/-TWO-CHERRIES-Scraper-burnisher_c21.html",
+          "https://www.thecarpentrystore.com/p/kirschen-3824000-cabinet-scraper-set-with-scraper-burnisher/4016649038249"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "tutorial-linked",
+          "premium-word-marketing"
+        ],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "GDy1LxHWaS22aztZ5sVh",
+      "currentName": "Racleur lame l.65mm manche suppl. BAHCO",
+      "currentBrand": "Hazet",
+      "proposedCoreFixes": {
+        "brand": "Bahco",
+        "name": "Bahco 665 Racleur lame 65mm avec manche supplementaire"
+      },
+      "detailDraft": {
+        "slug": "bahco-665-racleur-lame-65mm",
+        "shortTitle": "Bahco 665 Racleur 65mm",
+        "correctedBrand": "Bahco",
+        "productType": "grattoir-carbure",
+        "detailStatus": "needs-data-fix",
+        "confidence": "medium",
+        "sourceGrade": "manufacturer-reseller-ean-to-confirm",
+        "detailIntro": "Un racleur lourd a lame carbure de 65mm, probablement Bahco 665, pour retirer peinture, colle, vernis ou rouille sur grandes surfaces.",
+        "useCases": [
+          "Decapage mecanique local",
+          "Retrait de colle sechee",
+          "Grattage de peinture ou vernis"
+        ],
+        "strengths": [
+          "Lame carbure large",
+          "Travail a deux mains possible",
+          "Efficace sur grandes zones"
+        ],
+        "atelierTips": [
+          "Travailler par passes controlees pour ne pas creuser le bois.",
+          "Garder une lame de rechange si usage intensif."
+        ],
+        "safetyNotes": [
+          "Lame tres agressive : porter lunettes et proteger les mains."
+        ],
+        "avoidIf": [
+          "Ne pas publier sous marque Hazet sans correction.",
+          "Ne pas confondre avec un racloir d'ebeniste a morfil."
+        ],
+        "sourceUrls": [
+          "https://www.bahco.com/int_en/ergotm-heavy-duty-paint-scrapers-with-dual-component-handle-pb_665_.html",
+          "https://www.leroymerlin.fr/produits/racleur-lame-l-65mm-manche-suppl-97436478.html"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "brand-wrong-hazet",
+          "needs-ean-check-7311518221607"
+        ],
+        "needsHumanReviewBeforePublish": true,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "AQDF2EoZ0W9HfoDG3nys",
+      "currentName": "Liberon  50 g cire a reboucher - Chene moyen",
+      "currentBrand": "Liberon",
+      "proposedCoreFixes": {
+        "name": "Liberon Cire a reboucher Chene moyen 50g"
+      },
+      "detailDraft": {
+        "slug": "liberon-cire-a-reboucher-chene-moyen-50g",
+        "shortTitle": "Cire a reboucher Chene moyen",
+        "correctedBrand": "Liberon",
+        "productType": "retouche-cire",
+        "detailStatus": "needs-source-check",
+        "confidence": "medium",
+        "sourceGrade": "manufacturer-glossary-plus-reseller",
+        "detailIntro": "Une cire de retouche pour combler les petits trous, rayures et trous de vers sur un meuble deja fini.",
+        "useCases": [
+          "Reboucher une petite rayure",
+          "Masquer un trou de ver",
+          "Retouche sur meuble cire ou verni"
+        ],
+        "strengths": [
+          "Application locale",
+          "Teinte bois",
+          "Ne demande pas un poncage lourd"
+        ],
+        "atelierTips": [
+          "Chauffer legerement la cire entre les doigts pour faciliter l'application.",
+          "Egaliser proprement l'excedent."
+        ],
+        "safetyNotes": [
+          "Tenir hors de portee des enfants."
+        ],
+        "avoidIf": [
+          "Pour un trou structurel ou a repercer, preferer une pate a bois adaptee.",
+          "Verifier SKU/EAN avant publication forte."
+        ],
+        "sourceUrls": [
+          "https://www.liberon.fr/glossaire/cire-a-reboucher/",
+          "https://camdentools.com/fr-FR/product/liberon-batonnet-de-cire-a-reboucher-chene-moyen-50g-LIBWFSMON-FR"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "exact-official-product-page-not-found",
+          "name-double-space"
+        ],
+        "needsHumanReviewBeforePublish": true,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "ZHc6HkhOuaA1bbBkMWJt",
+      "currentName": "Liberon Crayon de Retouche (Lot de 3 teintes)",
+      "currentBrand": "Liberon",
+      "proposedCoreFixes": {
+        "name": "Liberon Crayons de Retouche Chene - lot de 3 teintes"
+      },
+      "detailDraft": {
+        "slug": "liberon-crayons-retouche-3-teintes",
+        "shortTitle": "Crayons de retouche Liberon",
+        "correctedBrand": "Liberon",
+        "productType": "retouche-cire",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Des crayons de retouche pour masquer rapidement petites griffures et eraflures sur bois cire ou verni.",
+        "useCases": [
+          "Masquer une rayure",
+          "Retoucher un eclat leger",
+          "Harmoniser une petite zone abimee"
+        ],
+        "strengths": [
+          "Plusieurs teintes",
+          "Application rapide",
+          "Ideal pour petits accidents du quotidien"
+        ],
+        "atelierTips": [
+          "Choisir une teinte proche, parfois legerement plus foncee.",
+          "Retirer l'excedent avec une laine d'acier fine ou un chiffon propre."
+        ],
+        "safetyNotes": [
+          "Faire un essai discret pour valider la teinte."
+        ],
+        "avoidIf": [
+          "Ne repare pas un eclat profond ou une piece manquante."
+        ],
+        "sourceUrls": [
+          "https://www.liberon.fr/products/les-crayons-de-retouche-chene"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "7hOG1RJMtFTspBDqFlzd",
+      "currentName": "Liberon Pate a bois - Merisier (150g)",
+      "currentBrand": "Liberon",
+      "proposedCoreFixes": {
+        "name": "Liberon Pate a bois Merisier 150g"
+      },
+      "detailDraft": {
+        "slug": "liberon-pate-a-bois-merisier-150g",
+        "shortTitle": "Pate a bois Merisier Liberon",
+        "correctedBrand": "Liberon",
+        "productType": "rebouchage-bois",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Une pate a bois pour reboucher trous, fentes et eclats avant poncage puis finition.",
+        "useCases": [
+          "Reboucher un petit trou",
+          "Reparer un eclat",
+          "Preparer une zone avant teinte ou peinture"
+        ],
+        "strengths": [
+          "Ponçable",
+          "Recouvrable par finition",
+          "Plus adaptee qu'une cire pour une zone a retravailler"
+        ],
+        "atelierTips": [
+          "Depasser legerement du trou car la matiere peut se retracter.",
+          "Poncer apres sechage complet avant finition."
+        ],
+        "safetyNotes": [
+          "Travailler sur support propre, sec et depoussiere."
+        ],
+        "avoidIf": [
+          "Pour une retouche invisible sur meuble deja fini, une cire de rebouchage peut etre plus discrete."
+        ],
+        "sourceUrls": [
+          "https://www.liberon.fr/produit/pate-a-bois/"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "t03JhQKslHBBjecveeLZ",
+      "currentName": "Liberon RING REMOVER (Popote) 125mL",
+      "currentBrand": "Liberon",
+      "proposedCoreFixes": {},
+      "detailDraft": {
+        "slug": "liberon-ring-remover-popote-125ml",
+        "shortTitle": "Liberon Ring Remover / Popote",
+        "correctedBrand": "Liberon",
+        "productType": "renovateur-vernis",
+        "detailStatus": "needs-source-check",
+        "confidence": "low",
+        "sourceGrade": "manufacturer-ambiguous-region",
+        "detailIntro": "Un produit de renovation legere pour traces blanches, auréoles ou vernis ternes, mais la reference exacte doit etre verifiee avant publication.",
+        "useCases": [
+          "Traces blanches d'eau ou chaleur",
+          "Raviver un vernis terni",
+          "Renovation douce sans decapage"
+        ],
+        "strengths": [
+          "Tres utile pour accidents courants",
+          "Sujet parfait pour conseil avant/apres",
+          "Peut eviter un decapage inutile"
+        ],
+        "atelierTips": [
+          "Frotter doucement et progressivement avec coton a mecher.",
+          "Tester sur zone cachee avant surface visible."
+        ],
+        "safetyNotes": [
+          "Ventiler et porter des gants selon la fiche du produit exact."
+        ],
+        "avoidIf": [
+          "Ne pas publier tant que la confusion Ring Remover UK / Popote FR / Renovateur FR n'est pas resolue.",
+          "Ne pas utiliser sur finition inconnue sans essai."
+        ],
+        "sourceUrls": [
+          "https://liberon.co.uk/product/ring-remover/",
+          "https://www.liberon.fr/products/la-popote-des-antiquaires",
+          "https://www.liberon.fr/products/le-renovateur"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "critical-product-identity-ambiguous",
+          "region-name-mismatch",
+          "capacity-mismatch-possible"
+        ],
+        "needsHumanReviewBeforePublish": true,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "yHzKctMnjTeyPDsiPxmL",
+      "currentName": "Starwax Fabulous Acide Oxalique / Sel d'Oseille (400g)",
+      "currentBrand": "Starwax",
+      "proposedCoreFixes": {
+        "name": "Starwax Fabulous Sel d'Oseille 400g"
+      },
+      "detailDraft": {
+        "slug": "starwax-fabulous-sel-oseille-400g",
+        "shortTitle": "Starwax Sel d'Oseille",
+        "correctedBrand": "Starwax",
+        "productType": "detachant-bois",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Un acide oxalique en poudre pour eclaircir un bois grise ou traiter certaines taches noires, de rouille ou d'encre.",
+        "useCases": [
+          "Degriser un bois",
+          "Eclaircir une tache noire",
+          "Retirer certaines traces de rouille ou encre"
+        ],
+        "strengths": [
+          "Produit puissant",
+          "Tres pertinent en restauration",
+          "Bon contenu pedagogique sur rincage et neutralisation"
+        ],
+        "atelierTips": [
+          "Travailler par petites zones et comparer le rendu apres sechage.",
+          "Rincer abondamment pour stopper l'action."
+        ],
+        "safetyNotes": [
+          "Produit acide : gants, lunettes, ventilation.",
+          "Tenir hors de portee des enfants."
+        ],
+        "avoidIf": [
+          "Ne pas utiliser comme nettoyant quotidien.",
+          "Ne pas appliquer sans essai sur bois teinte ou finition inconnue."
+        ],
+        "sourceUrls": [
+          "https://www.starwax.fr/products/starwax-fabulous-sel-doseille"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "safety-product"
+        ],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "0KYju4e5GufRe7B1tkZR",
+      "currentName": "V33 Decapant Bois Gel Express (1L)",
+      "currentBrand": "V33",
+      "proposedCoreFixes": {},
+      "detailDraft": {
+        "slug": "v33-decapant-bois-gel-express-1l",
+        "shortTitle": "V33 Decapant Bois Gel Express",
+        "correctedBrand": "V33",
+        "productType": "decapant",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Un decapant gel pour retirer peintures, vernis, lasures ou vitrificateurs sur bois avant remise a nu.",
+        "useCases": [
+          "Decaper un meuble peint",
+          "Retirer un vieux vernis",
+          "Travailler sur surfaces verticales grace au gel"
+        ],
+        "strengths": [
+          "Texture gel qui coule moins",
+          "Action rapide",
+          "Tres utile avant restauration lourde"
+        ],
+        "atelierTips": [
+          "Appliquer en couche epaisse et respecter le temps d'action.",
+          "Rincer puis laisser secher completement avant poncage ou finition."
+        ],
+        "safetyNotes": [
+          "Gants, lunettes et ventilation indispensables.",
+          "Eviter plastiques et surfaces sensibles.",
+          "Ne pas travailler au soleil ou pres d'une flamme."
+        ],
+        "avoidIf": [
+          "Inefficace sur certaines finitions bi-composants selon fabricant.",
+          "Ne pas utiliser pour un simple nettoyage doux."
+        ],
+        "sourceUrls": [
+          "https://www.v33.fr/special-bois-decapant-gel-express-r.html"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "safety-product",
+          "tutorial-should-link-here"
+        ],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "7zJ6SZOmxnMTM0Rf3CGF",
+      "currentName": "Blanchon Decapant Degraissant Parquet (1L)",
+      "currentBrand": "Blanchon",
+      "proposedCoreFixes": {
+        "category": "renovation"
+      },
+      "detailDraft": {
+        "slug": "blanchon-decapant-degraissant-parquet-1l",
+        "shortTitle": "Blanchon Decapant Degraissant",
+        "correctedBrand": "Blanchon",
+        "productType": "degraissant-fort",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Un produit de nettoyage intensif pour degraisser et decaper avant renovation de parquets ou sols compatibles.",
+        "useCases": [
+          "Nettoyage fort avant renovation",
+          "Degraissage de parquet vitrifié ou stratifie compatible",
+          "Retrait d'anciennes couches de polish"
+        ],
+        "strengths": [
+          "Produit technique Blanchon",
+          "Efficace avant remise en etat",
+          "Bon candidat fiche conseil/securite"
+        ],
+        "atelierTips": [
+          "Rincer soigneusement apres application.",
+          "Toujours lire les supports compatibles avant usage."
+        ],
+        "safetyNotes": [
+          "Produit fort : gants, lunettes, ventilation.",
+          "Ne pas traiter comme un savon doux."
+        ],
+        "avoidIf": [
+          "Ne pas utiliser pour entretien quotidien.",
+          "Ne pas appliquer sur support non compatible sans test."
+        ],
+        "sourceUrls": [
+          "https://www.blanchon.com/professionnels/produits-interieurs/entretien/parquets-vitrifies/decapant-degraissant.html"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "category-savons-is-misleading",
+          "safety-product"
+        ],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "V3CHsepiYxegMHPT2MBF",
+      "currentName": "Liberon Decireur Professionnel (500ml)",
+      "currentBrand": "Liberon",
+      "proposedCoreFixes": {
+        "category": "renovation"
+      },
+      "detailDraft": {
+        "slug": "liberon-decireur-professionnel-500ml",
+        "shortTitle": "Decireur Professionnel Liberon",
+        "correctedBrand": "Liberon",
+        "productType": "decireur",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Un decireur pour retirer anciennes couches de cire, saletes incrustees et gras avant une nouvelle finition.",
+        "useCases": [
+          "Restaurer un meuble cire",
+          "Preparer avant nouvelle cire",
+          "Nettoyer des moulures encrassees"
+        ],
+        "strengths": [
+          "Preserve la patine selon fabricant",
+          "Evite un poncage agressif",
+          "Tres utile en restauration de meuble ancien"
+        ],
+        "atelierTips": [
+          "Travailler avec laine d'acier fine dans les moulures.",
+          "Changer souvent de chiffon pour ne pas redeposer la vieille cire."
+        ],
+        "safetyNotes": [
+          "Produit solvanté/inflammable : ventilation, gants, eloigner flammes.",
+          "Eliminer les residus correctement."
+        ],
+        "avoidIf": [
+          "Ne pas classer comme savon doux.",
+          "Ne pas utiliser sur finition fragile sans essai."
+        ],
+        "sourceUrls": [
+          "https://www.liberon.fr/products/le-decireur"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "category-savons-is-misleading",
+          "safety-product"
+        ],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "HMKO41S5LH34YeF5SpeB",
+      "currentName": "Osmo Wash & Care 8016 (1L)",
+      "currentBrand": "Osmo",
+      "proposedCoreFixes": {},
+      "detailDraft": {
+        "slug": "osmo-wash-care-8016-1l",
+        "shortTitle": "Osmo Wash & Care 8016",
+        "correctedBrand": "Osmo",
+        "productType": "nettoyant-doux",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Un nettoyant concentre doux pour entretenir regulierement les bois huiles ou cires sans les agresser.",
+        "useCases": [
+          "Entretien courant de surfaces huilees",
+          "Nettoyage de parquets ou meubles compatibles",
+          "Routine douce entre deux entretiens nourrissants"
+        ],
+        "strengths": [
+          "Nettoyant doux",
+          "Concentre",
+          "Ne forme pas de couche"
+        ],
+        "atelierTips": [
+          "Ne pas surdoser : peu de produit suffit.",
+          "Nettoyer avec une serpilliere ou chiffon humide, jamais detrempe."
+        ],
+        "safetyNotes": [
+          "Ne pas melanger avec d'autres nettoyants."
+        ],
+        "avoidIf": [
+          "Ne remplace pas un renovateur ou un decapant pour une surface tres encrassee."
+        ],
+        "sourceUrls": [
+          "https://www.osmo.com/finishes/interior-finishes/finishes-for-stairs-and-staircases/wash-and-care"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "tutorial-linked"
+        ],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "8RRgL7nsOPhxqxtEIcom",
+      "currentName": "Rampal-Latour Savon Noir Liquide (5L)",
+      "currentBrand": "Rampal-Latour",
+      "proposedCoreFixes": {},
+      "detailDraft": {
+        "slug": "rampal-latour-savon-noir-liquide-5l",
+        "shortTitle": "Savon noir Rampal-Latour 5L",
+        "correctedBrand": "Rampal-Latour",
+        "productType": "savon-noir",
+        "detailStatus": "needs-source-check",
+        "confidence": "medium",
+        "sourceGrade": "manufacturer-variant-to-confirm",
+        "detailIntro": "Un savon noir liquide multi-usages, interessant pour l'entretien doux selon la variante exacte vendue.",
+        "useCases": [
+          "Nettoyage multi-usages",
+          "Entretien doux de certains sols",
+          "Nettoyage d'outils selon dilution"
+        ],
+        "strengths": [
+          "Format economique",
+          "Produit traditionnel",
+          "Variante huile de lin interessante pour sols"
+        ],
+        "atelierTips": [
+          "Diluer plutot que l'utiliser pur pour l'entretien courant.",
+          "Verifier la variante huile d'olive ou huile de lin avant conseil bois."
+        ],
+        "safetyNotes": [
+          "Respecter les supports exclus sur la fiche du fabricant."
+        ],
+        "avoidIf": [
+          "Ne pas promettre un usage parquet sans connaitre la variante exacte.",
+          "Eviter sur sols vitrifies si la fiche de la variante l'exclut."
+        ],
+        "sourceUrls": [
+          "https://rampal-latour.fr/products/savon-noir-a-lhuile-dolive-5l-ecodetergent",
+          "https://www.rampal-latour.fr/products/savon-noir-a-lhuile-de-lin-amande-5l-ecodetergent"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "variant-olive-vs-lin-to-confirm"
+        ],
+        "needsHumanReviewBeforePublish": true,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "vtb5ld1DFg50DyI138js",
+      "currentName": "Starwax Fabulous Savon de Marseille en Copeaux (750g)",
+      "currentBrand": "Starwax",
+      "proposedCoreFixes": {},
+      "detailDraft": {
+        "slug": "starwax-savon-marseille-copeaux-750g",
+        "shortTitle": "Savon de Marseille en copeaux",
+        "correctedBrand": "Starwax",
+        "productType": "savon-doux",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Des copeaux de savon de Marseille pour preparer des solutions de nettoyage doux et des recettes menageres simples.",
+        "useCases": [
+          "Preparation de nettoyant doux",
+          "Lessive maison",
+          "Nettoyage leger de surfaces compatibles"
+        ],
+        "strengths": [
+          "Sans parfum ni colorant selon fabricant",
+          "Origine naturelle",
+          "Polyvalent pour recettes menageres"
+        ],
+        "atelierTips": [
+          "Dissoudre dans l'eau tiede avant usage.",
+          "Tester la solution sur zone discrete avant meuble sensible."
+        ],
+        "safetyNotes": [
+          "Ne pas surcharger en savon pour eviter un film collant."
+        ],
+        "avoidIf": [
+          "Peu pertinent pour decapage ou renovation lourde.",
+          "Ne remplace pas un produit specifique bois huile/cire."
+        ],
+        "sourceUrls": [
+          "https://www.starwax.fr/products/starwax-fabulous-savon-de-marseille-en-copeaux"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "wood-relevance-medium"
+        ],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    },
+    {
+      "productId": "cOfTz166vDUp4DIB0sH4",
+      "currentName": "Starwax Nettoyant Pinceaux & Outils (1L)",
+      "currentBrand": "Starwax",
+      "proposedCoreFixes": {
+        "category": "accessoires"
+      },
+      "detailDraft": {
+        "slug": "starwax-nettoyant-pinceaux-outils-1l",
+        "shortTitle": "Nettoyant pinceaux Starwax",
+        "correctedBrand": "Starwax",
+        "productType": "nettoyant-outils",
+        "detailStatus": "ready",
+        "confidence": "high",
+        "sourceGrade": "manufacturer",
+        "detailIntro": "Un nettoyant pour recuperer et entretenir pinceaux, rouleaux et outils apres peinture ou vernis.",
+        "useCases": [
+          "Nettoyer pinceaux apres finition",
+          "Renover des pinceaux encrasses",
+          "Dissoudre certaines peintures ou vernis secs"
+        ],
+        "strengths": [
+          "Prolonge la vie des outils",
+          "Utile en atelier",
+          "Complement logique du pinceau Liberon"
+        ],
+        "atelierTips": [
+          "Suspendre les pinceaux sans ecraser les poils pendant le trempage.",
+          "Rincer et remodeler les poils apres nettoyage."
+        ],
+        "safetyNotes": [
+          "Porter gants et lunettes.",
+          "Ne pas utiliser sur sols vitrifies ou peints sans compatibilite."
+        ],
+        "avoidIf": [
+          "Ne pas classer comme savon doux."
+        ],
+        "sourceUrls": [
+          "https://www.starwax.fr/products/starwax-nettoyant-renovateur-pinceaux-rouleaux-et-outils-1l"
+        ]
+      },
+      "auditMeta": {
+        "issueFlags": [
+          "category-savons-is-misleading"
+        ],
+        "needsHumanReviewBeforePublish": false,
+        "canImportDetailDraft": true,
+        "lastSourceCheckAt": "2026-05-07"
+      }
+    }
+  ]
+}

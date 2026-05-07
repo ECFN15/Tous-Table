@@ -16,10 +16,12 @@ Ce fichier est le chef d'orchestre du projet. Lis-le en premier, puis va seuleme
 - SEO, routes, sitemap, schemas, Search Console : lire `SEOlivre.md`.
 - Checks publics Google apres deploy SEO : lire `_DOCS/SEO_PUBLIC_GOOGLE_CHECKS.md`.
 - Historique technique complet des anciens agents : lire `_DOCS/AGENTS_HISTORY.md`.
+- Analytics admin, sessions, visiteurs uniques, IP, fiabilite du tracking : lire `_DOCS/ANALYTICS_RELIABILITY.md`.
 - Deploiement production : lire `_DOCS/DEPLOIEMENT_PROD_RUNBOOK.md`.
 - Etat de readiness prod : lire `_DOCS/PROD_READINESS_STATUS.md`.
 - Securite, regles, risques : lire `_DOCS/SECURITE.md` et `firestore.rules`.
 - Architecture et donnees Firestore : lire `architecture_firestore_rules.md`, `migrationfirestore.md`, `migrationprodtosandbox.md`.
+- Comptoir, produits affilies, tracking client, fiches detail avant Amazon : lire `_DOCS/COMPTOIR_PRODUCT_DETAIL_AUDIT.md`.
 - Import images admin mobilier/planches, formats mobiles, cases blanches : lire `_DOCS/IMAGE_UPLOAD_NORMALIZATION.md`.
 - Audits anciens : lire `_DOCS/AUDITS/` et `audit/` seulement si la tache concerne le sujet.
 - Commandes utiles : lire `_DOCS/COMMANDS.md` et `package.json`.

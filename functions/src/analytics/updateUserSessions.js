@@ -7,14 +7,14 @@
 const functions = require('firebase-functions/v1');
 const admin = require('firebase-admin');
 const { SUPER_ADMIN_EMAIL } = require('../../helpers/security');
+const { getClientIpInfo } = require('./ip');
 
 const db = admin.firestore();
 
 exports.updateUserSessions = functions.https.onCall(async (data, context) => {
     if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'Authentification requise.');
 
-    const rawIp = context.rawRequest.headers['x-forwarded-for'] || context.rawRequest.connection.remoteAddress;
-    const ip = rawIp ? rawIp.split(',')[0].trim() : 'Unknown';
+    const { ip } = getClientIpInfo(context.rawRequest);
     const userId = context.auth.uid;
     const email = context.auth.token.email;
 

@@ -3,10 +3,16 @@ import {
     Users, Clock, Activity, Smartphone, Monitor, Globe, Trash2, AlertCircle, ChevronDown, ChevronRight,
     TrendingUp, MousePointerClick, ShoppingBag
 } from 'lucide-react';
-import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { collection, query, orderBy, limit, onSnapshot, where, Timestamp } from 'firebase/firestore';
 import { db, functions, appId } from '../../firebase/config';
 import { httpsCallable } from 'firebase/functions';
 import { getMillis } from '../../utils/time';
+import {
+    ANALYTICS_TIME_FILTERS,
+    MAX_ANALYTICS_SESSIONS,
+    buildAnalyticsStats,
+    getAnalyticsWindow
+} from './analyticsReliability';
 
 // ─── Custom SVG Bar Chart — Premium responsive (remplace Recharts) ──
 const TrafficChart = ({ data, darkMode, valueLabel = 'visite' }) => {
@@ -299,6 +305,16 @@ const TrafficChart = ({ data, darkMode, valueLabel = 'visite' }) => {
                     }}>
                         {tooltipInfo.d.visites} {valueLabel}{tooltipInfo.d.visites > 1 ? 's' : ''}
                     </div>
+                    {tooltipInfo.d.sessions !== undefined && tooltipInfo.d.sessions !== tooltipInfo.d.visites && (
+                        <div style={{
+                            position: 'relative', zIndex: 1,
+                            fontSize: isMobile ? '9px' : '10px',
+                            fontWeight: 800, color: darkMode ? '#a8a29e' : '#78716c',
+                            textTransform: 'uppercase'
+                        }}>
+                            {tooltipInfo.d.sessions} session{tooltipInfo.d.sessions > 1 ? 's' : ''}
+                        </div>
+                    )}
                 </div>
             )}
         </div>
@@ -948,10 +964,19 @@ const AdminAnalytics = ({ darkMode = false }) => {
 
     // Kpis
     const [kpis, setKpis] = useState({
+        totalSessions: 0,
         uniqueVisitors: 0,
+        uniqueIps: 0,
+        ipCoverage: 100,
         avgDuration: 0,
         bounceRate: 0,
         mobilePercentage: 0
+    });
+    const [dataQuality, setDataQuality] = useState({
+        confidence: 'haute',
+        isWindowComplete: true,
+        missingIpSessions: 0,
+        method: 'UID Firebase client/anonyme, puis IP serveur, puis session si IP absente.'
     });
 
     const [chartData, setChartData] = useState([]);
@@ -1021,11 +1046,13 @@ const AdminAnalytics = ({ darkMode = false }) => {
     }, [groupedByDay.length]);
 
     useEffect(() => {
-        // We only fetch recent 500 sessions to not overload
+        const historyWindow = getAnalyticsWindow('1ans');
+        const historyCutoff = Timestamp.fromMillis(Date.now() - historyWindow.duration);
         const q = query(
             collection(db, 'analytics_sessions'),
+            where('startedAt', '>=', historyCutoff),
             orderBy('startedAt', 'desc'),
-            limit(1000)
+            limit(MAX_ANALYTICS_SESSIONS)
         );
 
         const unsub = onSnapshot(q, (snap) => {
@@ -1039,102 +1066,29 @@ const AdminAnalytics = ({ darkMode = false }) => {
             setSessions(cleanData);
             processData(cleanData, timeFilter);
             setLoading(false);
+        }, (error) => {
+            console.error("Analytics snapshot error:", error);
+            setLoading(false);
         });
 
         return () => unsub();
     }, [timeFilter]);
 
     const processData = (allSessions, filter) => {
-        const rawNow = Date.now();
-        let cutoff = 0;
-        let step = 0;
+        const oldestStartedAt = allSessions
+            .map(session => getMillis(session.startedAt))
+            .filter(Boolean)
+            .reduce((oldest, value) => Math.min(oldest, value), Infinity);
 
-        // On ancre le temps sur la minute pile pour éviter la vibration des barres au refresh
-        const now = filter === '1h' ? Math.floor(rawNow / 60000) * 60000 : rawNow;
-
-        switch (filter) {
-            case '1h':
-                step = 60 * 1000; // 1 minute exacte
-                cutoff = now - 60 * 60 * 1000; // 1 heure glissante (60 bars)
-                break;
-            case '1j':
-                step = 3600 * 1000; // 1 heure
-                cutoff = now - 24 * 3600 * 1000;
-                break;
-            case '7j':
-                step = 6 * 3600 * 1000; // 6 heures
-                cutoff = now - 7 * 24 * 3600 * 1000;
-                break;
-            case '1mois':
-                step = 24 * 3600 * 1000; // 1 jour
-                cutoff = now - 30 * 24 * 3600 * 1000;
-                break;
-            case '1ans':
-                step = 30 * 24 * 3600 * 1000; // ~1 mois
-                cutoff = now - 365 * 24 * 3600 * 1000;
-                break;
-            default:
-                step = 24 * 3600 * 1000;
-                cutoff = now - 7 * 24 * 3600 * 1000;
-        }
-
-        // Filtre les sessions réelles
-        const realTraffic = allSessions.filter(s => {
-            const time = s.startedAt ? getMillis(s.startedAt) : 0;
-            return time >= cutoff && s.type !== 'admin';
+        const result = buildAnalyticsStats(allSessions, filter, {
+            coverageStartMs: Number.isFinite(oldestStartedAt) ? oldestStartedAt : null,
+            fetchedCount: allSessions.length,
+            maxFetched: MAX_ANALYTICS_SESSIONS
         });
 
-        // 1. Calcul des KPIs
-        const uniqueIPs = new Set(realTraffic.map(s => s.ip).filter(Boolean));
-        const uniques = uniqueIPs.size;
-        const totalSessions = realTraffic.length;
-        const totalDuration = realTraffic.reduce((acc, s) => acc + (s.duration || 0), 0);
-        // Durée moyenne par session (pas par IP unique)
-        const avgDur = totalSessions > 0 ? Math.round(totalDuration / totalSessions) : 0;
-        // Taux de rebond = sessions à 1 page OU < 10s / total sessions
-        const bounces = realTraffic.filter(s => (s.journey && s.journey.length <= 1) || s.duration < 10).length;
-        const bRate = totalSessions > 0 ? Math.round((bounces / totalSessions) * 100) : 0;
-        const mobiles = realTraffic.filter(s => s.device === 'Mobile').length;
-        const mRate = totalSessions > 0 ? Math.round((mobiles / totalSessions) * 100) : 0;
-
-        setKpis({
-            uniqueVisitors: uniques,
-            avgDuration: avgDur,
-            bounceRate: bRate,
-            mobilePercentage: mRate
-        });
-
-        // 2. Génération du graphique style TRADING (Continu & Stable)
-        const timeline = [];
-        for (let t = cutoff; t <= now; t += step) {
-            const d = new Date(t);
-            const timeLabelStr =
-                filter === '1h' ? d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) :
-                filter === '1j' ? d.getHours() + 'h' :
-                (filter === '7j' || filter === '1mois') ? d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) :
-                d.toLocaleDateString('fr-FR', { month: '2-digit', year: 'numeric' });
-
-            timeline.push({
-                timestamp: t,
-                name: timeLabelStr,
-                visites: 0
-            });
-        }
-
-        // 3. Remplissage précis (Division temporelle)
-        realTraffic.forEach(s => {
-            const time = s.startedAt ? getMillis(s.startedAt) : null;
-            if (!time) return;
-
-            const offset = time - cutoff;
-            const slotIdx = Math.floor(offset / step);
-
-            if (slotIdx >= 0 && slotIdx < timeline.length) {
-                timeline[slotIdx].visites += 1;
-            }
-        });
-
-        setChartData(timeline);
+        setKpis(result.kpis);
+        setDataQuality(result.dataQuality);
+        setChartData(result.chartData);
     };
 
     const formatDuration = (seconds) => {
@@ -1211,13 +1165,13 @@ const AdminAnalytics = ({ darkMode = false }) => {
                         Purger Data
                     </button>
                     <div className={`flex p-1 rounded-xl border ${darkMode ? 'bg-stone-900 border-white/5' : 'bg-stone-100 border-stone-200'}`}>
-                        {['1h', '1j', '7j', '1mois', '1ans'].map(tf => (
+                        {ANALYTICS_TIME_FILTERS.map(tf => (
                             <button
-                                key={tf}
-                                onClick={() => { setTimeFilter(tf); processData(sessions, tf); }}
-                                className={`px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${timeFilter === tf ? (darkMode ? 'bg-white/10 text-white shadow-sm border border-white/10' : 'bg-white text-stone-900 shadow-sm border border-stone-200') : 'text-stone-500 hover:text-stone-300'}`}
+                                key={tf.id}
+                                onClick={() => { setTimeFilter(tf.id); processData(sessions, tf.id); }}
+                                className={`px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${timeFilter === tf.id ? (darkMode ? 'bg-white/10 text-white shadow-sm border border-white/10' : 'bg-white text-stone-900 shadow-sm border border-stone-200') : 'text-stone-500 hover:text-stone-300'}`}
                             >
-                                {tf}
+                                {tf.label}
                             </button>
                         ))}
                     </div>
@@ -1225,28 +1179,45 @@ const AdminAnalytics = ({ darkMode = false }) => {
             </div>
 
             {/* KPI BENTO GRID */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 lg:gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2 md:gap-4 lg:gap-6">
                 {[
-                    { label: 'Visiteurs Uniques', value: kpis.uniqueVisitors, color: 'text-blue-500' },
-                    { label: 'Durée Moyenne', value: formatDuration(kpis.avgDuration), color: 'text-emerald-500' },
-                    { label: 'Taux de Rebond', value: `${kpis.bounceRate}%`, color: 'text-amber-500' },
-                    { label: 'Trafic Mobile', value: `${kpis.mobilePercentage}%`, color: 'text-indigo-500' }
+                    { label: 'Sessions', value: kpis.totalSessions, sub: 'visites brutes', color: 'text-stone-400' },
+                    { label: 'Visiteurs Fiables', value: kpis.uniqueVisitors, sub: 'UID puis IP', color: 'text-blue-500' },
+                    { label: 'IPs Uniques', value: kpis.uniqueIps, sub: 'reseaux detectes', color: 'text-cyan-500' },
+                    { label: 'Couverture IP', value: `${kpis.ipCoverage}%`, sub: dataQuality.missingIpSessions > 0 ? `${dataQuality.missingIpSessions} sans IP` : 'IP OK', color: 'text-emerald-500' },
+                    { label: 'Rebond', value: `${kpis.bounceRate}%`, sub: 'sessions courtes', color: 'text-amber-500' },
+                    { label: 'Mobile', value: `${kpis.mobilePercentage}%`, sub: formatDuration(kpis.avgDuration), color: 'text-indigo-500' }
                 ].map((kpi, i) => (
                     <div key={i} className={`p-4 sm:p-5 rounded-2xl border transition-all ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100 shadow-sm'}`}>
                         <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] text-stone-500 mb-1.5 sm:mb-2 truncate">{kpi.label}</p>
                         <h4 className={`text-xl sm:text-2xl md:text-3xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>{kpi.value}</h4>
+                        <p className={`mt-1 text-[8px] font-black uppercase tracking-widest ${kpi.color}`}>{kpi.sub}</p>
                     </div>
                 ))}
+            </div>
+
+            <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center gap-3 ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100 shadow-sm'}`}>
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${dataQuality.confidence === 'haute' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'}`}>
+                    <AlertCircle size={16} />
+                </div>
+                <div className="min-w-0">
+                    <p className={`text-[9px] font-black uppercase tracking-[0.22em] ${darkMode ? 'text-white/60' : 'text-stone-500'}`}>
+                        Fiabilite {dataQuality.confidence}
+                    </p>
+                    <p className="text-[10px] font-bold text-stone-500 leading-relaxed">
+                        {dataQuality.method} Fenetre {dataQuality.isWindowComplete ? 'complete' : `plafonnee a ${dataQuality.maxFetched} sessions`}.
+                    </p>
+                </div>
             </div>
 
             {/* CUSTOM SVG CHART BENTO */}
             <div className={`p-6 md:p-8 rounded-[2rem] border transition-all ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100 shadow-sm'}`}>
                 <div className="flex items-center justify-between mb-8">
-                    <h3 className={`text-[10px] font-black uppercase tracking-[0.3em] ${darkMode ? 'text-white/40' : 'text-stone-400'}`}>Évolution du Trafic</h3>
+                    <h3 className={`text-[10px] font-black uppercase tracking-[0.3em] ${darkMode ? 'text-white/40' : 'text-stone-400'}`}>Evolution des visiteurs</h3>
                 </div>
                 <div className="h-[240px] md:h-[320px] w-full">
                     {chartData.length > 0 ? (
-                        <TrafficChart data={chartData} darkMode={darkMode} />
+                        <TrafficChart data={chartData} darkMode={darkMode} valueLabel="visiteur" />
                     ) : (
                         <div className="flex items-center justify-center h-full text-stone-500 font-bold italic text-xs">Pas assez de données.</div>
                     )}
@@ -1475,9 +1446,10 @@ const AdminAnalytics = ({ darkMode = false }) => {
             <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 py-4 border-t border-white/5">
                 {[
                     "Sessions admin auto-exclues",
-                    "IPs blacklistées au login",
-                    "Rétention data: 30 jours",
-                    "Temps réel activé"
+                    "IPs admin exclues au login",
+                    "Uniques: UID puis IP serveur",
+                    "Sync protegee par jeton",
+                    "Fenetre locale: 1 an"
                 ].map((info, i) => (
                     <div key={i} className="flex items-center gap-1.5">
                         <div className="w-1 h-1 rounded-full bg-stone-700"></div>

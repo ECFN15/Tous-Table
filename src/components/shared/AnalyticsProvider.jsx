@@ -29,6 +29,7 @@ const getDeviceInfo = () => {
 const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedItemPrice }) => {
     const { user, isAdmin } = useAuth();
     const sessionIdRef = useRef(null);
+    const syncTokenRef = useRef(null);
     const initCalledRef = useRef(false);
     const journeyToSend = useRef([]);
     const startTimeRef = useRef(Date.now());
@@ -95,7 +96,11 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
                 const initRes = await httpsCallable(functions, 'initLiveSession')(userInfo);
                 if (initRes.data.success && isMounted) {
                     sessionIdRef.current = initRes.data.sessionId;
+                    syncTokenRef.current = initRes.data.syncToken || null;
                     sessionStorage.setItem('analytics_session_id', initRes.data.sessionId);
+                    if (initRes.data.syncToken) {
+                        sessionStorage.setItem('analytics_session_token', initRes.data.syncToken);
+                    }
                     recordCurrentView();
                 } else {
                     initCalledRef.current = false;
@@ -130,6 +135,7 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
 
             httpsCallable(functions, 'syncSession')({
                 sessionId: sessionIdRef.current,
+                syncToken: syncTokenRef.current,
                 duration: totalDuration,
                 journey: chunk,
                 sessionActive: document.visibilityState === 'visible'
@@ -181,6 +187,7 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
 
             navigator.sendBeacon(url, JSON.stringify({
                 sessionId: sessionIdRef.current,
+                syncToken: syncTokenRef.current,
                 duration: totalDuration,
                 journey: chunk,
                 sessionActive: isActive
@@ -197,6 +204,7 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
                 const totalDuration = Math.round((Date.now() - startTimeRef.current) / 1000);
                 httpsCallable(functions, 'syncSession')({
                     sessionId: sessionIdRef.current,
+                    syncToken: syncTokenRef.current,
                     duration: totalDuration,
                     sessionActive: true
                 }).catch(() => {});
