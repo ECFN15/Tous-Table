@@ -107,6 +107,31 @@ const sortShopProducts = (products) => [...products].sort((a, b) => {
     return (Number(Boolean(b.featured)) - Number(Boolean(a.featured)));
 });
 
+const buildShopItemList = (products) => products
+    .filter((product) => product?.name)
+    .slice(0, 24)
+    .map((product, index) => {
+        const price = Number(product.price);
+        return {
+            '@type': 'ListItem',
+            position: index + 1,
+            item: {
+                '@type': 'Product',
+                name: product.name,
+                ...(product.brand ? { brand: { '@type': 'Brand', name: product.brand } } : {}),
+                ...(product.imageUrl ? { image: product.imageUrl } : {}),
+                ...(product.description || product.whyWeRecommend ? { description: product.description || product.whyWeRecommend } : {}),
+                offers: {
+                    '@type': 'Offer',
+                    priceCurrency: 'EUR',
+                    ...(Number.isFinite(price) && price > 0 ? { price } : {}),
+                    availability: 'https://schema.org/InStock',
+                    url: 'https://tousatable-madeinnormandie.fr/comptoir',
+                },
+            },
+        };
+    });
+
 const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) => {
     const { isAdmin } = useAuth();
     
@@ -187,9 +212,9 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
         [productsByFamily]
     );
 
-    const shopSchema = useMemo(() => ({
-        '@context': 'https://schema.org',
-        '@graph': [
+    const shopSchema = useMemo(() => {
+        const shopItemList = buildShopItemList(affiliateProducts);
+        const graph = [
             {
                 '@type': 'CollectionPage',
                 '@id': 'https://tousatable-madeinnormandie.fr/comptoir#collection',
@@ -239,8 +264,24 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                     },
                 })),
             },
-        ],
-    }), []);
+        ];
+
+        if (shopItemList.length > 0) {
+            graph.push({
+                '@type': 'ItemList',
+                '@id': 'https://tousatable-madeinnormandie.fr/comptoir#selection',
+                name: 'Selection entretien bois ancien du Comptoir',
+                itemListOrder: 'https://schema.org/ItemListOrderAscending',
+                numberOfItems: shopItemList.length,
+                itemListElement: shopItemList,
+            });
+        }
+
+        return {
+            '@context': 'https://schema.org',
+            '@graph': graph,
+        };
+    }, [affiliateProducts]);
 
     useEffect(() => {
         if (setHeaderProps) {
@@ -467,6 +508,21 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                             </p>
                         </div>
                     </div>
+                    <nav className={`mt-8 flex flex-wrap gap-3 text-[10px] font-black uppercase tracking-[0.22em] ${darkMode ? 'text-stone-500' : 'text-stone-500'}`} aria-label="Liens Comptoir">
+                        {[
+                            { href: '/meubles-anciens', label: 'Voir les meubles anciens' },
+                            { href: '/livraison-meubles-anciens-france', label: 'Livraison meubles' },
+                            { href: '/a-propos', label: 'L atelier a Ifs' },
+                        ].map((link) => (
+                            <a
+                                key={link.href}
+                                href={link.href}
+                                className={`inline-flex items-center border-b pb-1 transition-colors duration-300 ${darkMode ? 'border-white/15 hover:text-amber-400 hover:border-amber-400/60' : 'border-stone-300 hover:text-amber-700 hover:border-amber-700/60'}`}
+                            >
+                                {link.label}
+                            </a>
+                        ))}
+                    </nav>
                 </div>
             </section>
 

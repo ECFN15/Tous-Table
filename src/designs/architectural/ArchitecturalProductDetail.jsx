@@ -580,6 +580,13 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                                     <div className="absolute bottom-0 left-0 -ml-8 -mb-8 w-24 h-24 blur-3xl opacity-10 rounded-full" style={{ backgroundColor: palette.statusValid }}></div>
                                 </div>
                             )}
+                            <a
+                                href="/livraison-meubles-anciens-france"
+                                className={`mt-5 flex items-center justify-between border-t pt-4 text-[10px] font-black uppercase tracking-[0.2em] transition-colors duration-300 ${darkMode ? 'border-white/10 text-stone-500 hover:text-amber-400' : 'border-stone-200 text-stone-500 hover:text-amber-700'}`}
+                            >
+                                <span>Livraison France et pays frontaliers</span>
+                                <ArrowRight size={14} />
+                            </a>
                         </div>
                     </div>
                 </div>

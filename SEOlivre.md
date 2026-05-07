@@ -128,7 +128,7 @@ Reste a faire :
 
 ## Chapitre 3 - Sitemap et partage social
 
-Date : 7 mai 2026  
+Date : 7 mai 2026
 Statut : renforce localement, aucun deploy
 
 Objectif :
@@ -1109,6 +1109,69 @@ Tests :
 - Verification bundle : les textes categories sont presents dans `dist/assets/GalleryView-*.js`.
 - `git diff --check` OK hors warnings CRLF Windows.
 
+---
+
+## Chapitre 18 - Carte particulaire livraison France
+
+Date : 7 mai 2026
+Statut : implemente localement, aucun deploy
+
+Objectif :
+
+- Rendre la page livraison plus vivante et plus explicite.
+- Montrer visuellement que la livraison part de l atelier de Ifs vers toute la France et peut etre etudiee vers les pays frontaliers.
+- Garder la page utile, premium et lisible, sans creer de nouvelle route.
+
+Fichiers touches :
+
+- `src/pages/DeliveryView.jsx`
+- `SEOlivre.md`
+
+Changements :
+
+- Ajout d une section `DeliveryParticleMap` sous le hero livraison :
+  - carte SVG stylisee en particules ;
+  - point depart `IFS`, atelier pres de Caen ;
+  - trajectoires animees vers regions francaises et pays frontaliers ;
+  - clusters de particules pour Belgique/Luxembourg, Suisse et Espagne ;
+  - micro-indicateurs : local 20 km, France, pays frontaliers, sur devis.
+- Reprise qualitative de la carte apres retour visuel :
+  - contour de France reconstruit depuis des coordonnees lon/lat simplifiees ;
+  - particules plus denses et plus petites ;
+  - grandes villes en points majeurs : Paris, Bordeaux, Lyon, Marseille, Lille, Nantes, Toulouse, Strasbourg, Rennes, Nice ;
+  - ajout de la Corse ;
+  - suppression de l allumage des points au scroll.
+- Animation GSAP :
+  - flux fins animes en continu depuis Ifs vers les villes ;
+  - pulse tres discret autour de Ifs ;
+  - respect de `prefers-reduced-motion`.
+- Amelioration des cartes zones :
+  - remplacement des libelles generiques `Zone 01/02/03/04` par des libelles utiles : Remise locale, Trajet regional, Transport France, Sur devis.
+
+Impact SEO / UX :
+
+- La promesse de livraison France entiere et pays frontaliers devient comprehensible en quelques secondes.
+- Le texte visible continue de soutenir les requetes livraison meuble ancien France, Caen, Ifs, Normandie et pays frontaliers.
+- La page reste sur `/livraison-meubles-anciens-france`.
+
+Impact admin data :
+
+- Aucune nouvelle route.
+- Aucun renommage de page.
+- Aucun nouveau type d evenement analytics.
+- `src/features/admin/AdminAnalytics.jsx` n a donc pas besoin de modification pour cette etape.
+
+Tests :
+
+- `npm run build` OK.
+- Preview locale `/livraison-meubles-anciens-france` : HTTP 200.
+- Verification bundle `DeliveryView-*.js` : texte livraison et carte presents.
+- Captures headless :
+  - desktop 1440 x 1400 ;
+  - mobile 390 x 1200 ;
+  - carte rendue, particules visibles, pas de page blanche.
+- `git diff --check` OK hors warnings CRLF Windows.
+
 Limite de verification :
 
 - Capture initiale mobile/laptop via Chrome headless effectuee sur `/meubles-anciens/buffets`.
@@ -1123,3 +1186,71 @@ Reste a faire :
   - planches ;
   - filtres matiere/prix pour verifier que le bloc se masque.
 - Ne pas deployer Hosting avant accord explicite.
+
+---
+
+## Chapitre 17 - Maillage Comptoir et livraison fiche produit
+
+Date : 7 mai 2026
+Statut : implemente localement, aucun deploy
+
+Objectif :
+
+- Continuer la roadmap SEO sans creer de nouvelle page.
+- Renforcer le Comptoir comme page editoriale utile autour de l'entretien du bois.
+- Ajouter un signal schema sur la selection produits du Comptoir.
+- Relier les fiches produit a la page livraison deja creee.
+
+Fichiers touches :
+
+- `src/pages/ShopView.jsx`
+- `src/designs/architectural/ArchitecturalProductDetail.jsx`
+- `SEOlivre.md`
+
+Changements :
+
+- Ajout d'un `ItemList` schema.org dans le JSON-LD du Comptoir :
+  - jusqu'a 24 produits publies recus par la page ;
+  - nom, marque, image, description et offre EUR si le prix est disponible ;
+  - URL d'offre ramenee a `/comptoir` pour garder le signal centre sur la page locale.
+- Ajout d'un maillage visible discret dans le bloc editorial du Comptoir :
+  - lien vers `/meubles-anciens` ;
+  - lien vers `/livraison-meubles-anciens-france` ;
+  - lien vers `/a-propos`.
+- Ajout d'un lien discret dans les fiches produit :
+  - `Livraison France et pays frontaliers` ;
+  - destination `/livraison-meubles-anciens-france` ;
+  - place sous la zone prix/actions, sans changer le tunnel panier.
+
+Impact SEO :
+
+- Le Comptoir gagne un signal structure complementaire entre `CollectionPage`, `FAQPage` et liste de produits.
+- Les pages fortes se relient mieux : Comptoir, marketplace, atelier et livraison.
+- Les fiches produit transmettent plus clairement le contexte livraison, utile pour les requetes meuble ancien + transport/livraison.
+
+Impact admin data :
+
+- Aucune nouvelle route et aucun renommage de page.
+- Aucun nouveau type d'evenement analytics.
+- `src/features/admin/AdminAnalytics.jsx` n'a donc pas besoin de modification pour ce lot.
+- Rappel : si une prochaine etape ajoute une page ou change un libelle de parcours, l'onglet data admin devra etre mis a jour.
+
+Risque UI :
+
+- Faible : ajout de liens texte secondaires, non cardes.
+- Le Comptoir garde son layout actuel.
+- La fiche produit garde ses CTA panier/encheres inchanges.
+
+Tests :
+
+- `npm run build` OK.
+- Preview locale sur `http://127.0.0.1:4195`.
+- Routes testees en HTTP 200 :
+  - `/comptoir`
+  - `/meubles-anciens`
+  - `/livraison-meubles-anciens-france`
+- Verification bundle :
+  - `ItemList` / `Selection entretien bois ancien du Comptoir` presents dans `dist/assets/ShopView-*.js` ;
+  - `Voir les meubles anciens` present dans `dist/assets/ShopView-*.js` ;
+  - `Livraison France et pays frontaliers` present dans `dist/assets/ProductDetail-*.js`.
+- `git diff --check` OK hors warnings CRLF Windows.
