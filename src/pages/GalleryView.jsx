@@ -1,12 +1,50 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useEffect, useState, useMemo } from 'react';
 import { useLiveTheme } from '../hooks/useLiveTheme';
-// Note : le smooth scroll Lenis est monté globalement dans App.jsx (cf. _DOCS/AUDITS/scrolllenis.md).
+// Note : le smooth scroll Lenis est montÃ© globalement dans App.jsx (cf. _DOCS/AUDITS/scrolllenis.md).
 
 // DESIGNS (Layouts)
 import ArchitecturalLayout from '../designs/architectural/MarketplaceLayout';
 import SEO from '../components/shared/SEO';
+import { getFurnitureCategory } from '../utils/furnitureCategory';
+import { FURNITURE_CATEGORY_ROUTES, SITE_URL, getFurnitureCategoryPath, getProductPath, pushUrl } from '../utils/seoRoutes';
 
 // SEO component is imported at the top.
+
+const CATEGORY_SEO = {
+    all: {
+        title: 'Marketplace - Meubles Anciens Restaures',
+        description: 'Marketplace Tous a Table : meubles anciens restaures en Normandie, tables de ferme, buffets, armoires, commodes, chaises et bancs. Livraison France entiere.',
+    },
+    buffet: {
+        title: 'Buffets Anciens Restaures',
+        description: 'Selection de buffets anciens restaures, bahuts et meubles de rangement en bois massif, choisis et prepares par l atelier Tous a Table en Normandie.',
+    },
+    table: {
+        title: 'Tables de Ferme Anciennes',
+        description: 'Tables de ferme anciennes et tables en bois massif restaurees, pieces uniques pour salle a manger, cuisine et maison de caractere.',
+    },
+    chaise: {
+        title: 'Chaises et Bancs Anciens',
+        description: 'Chaises anciennes, bancs et assises en bois massif selectionnes pour accompagner les meubles anciens et tables de ferme restaurees.',
+    },
+    armoire: {
+        title: 'Armoires Anciennes Restaures',
+        description: 'Armoires anciennes en bois massif, vestiaires et meubles hauts restaures avec soin, disponibles a la vente avec livraison en France.',
+    },
+    commode: {
+        title: 'Commodes et Chevets Anciens',
+        description: 'Commodes anciennes, chevets, secretaires et meubles de rangement restaures pour interieur authentique et durable.',
+    },
+    autre: {
+        title: 'Autres Meubles Anciens',
+        description: 'Selection de meubles anciens singuliers : vitrines, consoles, coffres, miroirs, meubles de metier et pieces de caractere.',
+    },
+};
+
+const BOARD_SEO = {
+    title: 'Planches a Decouper Anciennes et Bois Massif',
+    description: 'Planches a decouper en bois, pieces anciennes et objets en bois massif selectionnes par Tous a Table Made in Normandie.',
+};
 
 const GalleryView = ({ 
     items, boardItems = [], user, onSelectItem, onShowLogin, darkMode = false,
@@ -15,10 +53,23 @@ const GalleryView = ({
 }) => {
     const [filter, setFilter] = useState(persistentGalleryState?.filter || 'fixed');
     const [activeCollection, setActiveCollection] = useState(persistentGalleryState?.activeCollection || 'furniture'); // 'furniture' | 'cutting_boards'
+    const [activeCategory, setActiveCategory] = useState(persistentGalleryState?.activeCategory || 'all');
     const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list'
 
     // THEME & DESIGN HOOK
     const { palette } = useLiveTheme(darkMode);
+
+    useEffect(() => {
+        if (persistentGalleryState?.activeCollection) {
+            setActiveCollection(persistentGalleryState.activeCollection);
+        }
+        if (persistentGalleryState?.filter) {
+            setFilter(persistentGalleryState.filter);
+        }
+        if (persistentGalleryState?.activeCategory) {
+            setActiveCategory(persistentGalleryState.activeCategory);
+        }
+    }, [persistentGalleryState?.activeCollection, persistentGalleryState?.filter, persistentGalleryState?.activeCategory]);
 
     // --- LOGIC: FILTER & SORT ---
     // 1. Choose collection source
@@ -28,7 +79,7 @@ const GalleryView = ({
     const filteredItems = sourceItems.filter(item => {
         if (item.status !== 'published') return false;
 
-        // Séparation stricte : Enchères vs Vente Directe
+        // SÃ©paration stricte : EnchÃ¨res vs Vente Directe
         if (filter === 'auction') {
             return item.auctionActive === true;
         } else {
@@ -43,20 +94,107 @@ const GalleryView = ({
     const handleSelectItem = (id) => {
         // [PERSISTENCE] Save current sub-view state before navigating away
         if (saveGalleryState) {
-            saveGalleryState({ activeCollection, filter });
+            saveGalleryState({ activeCollection, filter, activeCategory });
         }
         onSelectItem(id);
     };
 
     // Always use Architectural
     const LayoutComponent = ArchitecturalLayout;
+    const seoUrl = typeof window !== 'undefined' && window.location.pathname === '/'
+        ? '/'
+        : activeCollection === 'cutting_boards' ? '/planches-a-decouper-anciennes' : getFurnitureCategoryPath(activeCategory);
+    const seoCopy = activeCollection === 'cutting_boards'
+        ? BOARD_SEO
+        : (CATEGORY_SEO[activeCategory] || CATEGORY_SEO.all);
+    const breadcrumbName = activeCollection === 'cutting_boards'
+        ? 'Planches a decouper anciennes'
+        : (FURNITURE_CATEGORY_ROUTES[activeCategory]?.label || FURNITURE_CATEGORY_ROUTES.all.label);
+    const seoListItems = useMemo(() => {
+        const categoryItems = activeCollection === 'furniture' && activeCategory !== 'all'
+            ? filteredItems.filter((item) => getFurnitureCategory(item) === activeCategory)
+            : filteredItems;
+
+        return categoryItems.slice(0, 24).map((item, index) => {
+            const url = `${SITE_URL}${getProductPath(item)}`;
+            const image = item.images?.[0] || item.imageUrl || item.thumbnailUrl;
+            return {
+                '@type': 'ListItem',
+                position: index + 1,
+                url,
+                item: {
+                    '@type': 'Product',
+                    name: item.name,
+                    url,
+                    ...(image ? { image } : {}),
+                },
+            };
+        });
+    }, [activeCategory, activeCollection, filteredItems]);
+
+    const gallerySchema = useMemo(() => {
+        const graph = [
+            {
+                '@type': 'CollectionPage',
+                '@id': `${SITE_URL}${seoUrl}#collection`,
+                url: `${SITE_URL}${seoUrl}`,
+                name: seoCopy.title,
+                description: seoCopy.description,
+                isPartOf: {
+                    '@type': 'WebSite',
+                    name: 'Tous a Table Made in Normandie',
+                    url: SITE_URL,
+                },
+            },
+            {
+                '@type': 'BreadcrumbList',
+                '@id': `${SITE_URL}${seoUrl}#breadcrumb`,
+                itemListElement: [
+                    {
+                        '@type': 'ListItem',
+                        position: 1,
+                        name: 'Accueil',
+                        item: `${SITE_URL}/`,
+                    },
+                    {
+                        '@type': 'ListItem',
+                        position: 2,
+                        name: activeCollection === 'cutting_boards' ? 'Planches' : 'Meubles anciens',
+                        item: activeCollection === 'cutting_boards' ? `${SITE_URL}/planches-a-decouper-anciennes` : `${SITE_URL}/meubles-anciens`,
+                    },
+                    ...(activeCollection === 'furniture' && activeCategory !== 'all' ? [{
+                        '@type': 'ListItem',
+                        position: 3,
+                        name: breadcrumbName,
+                        item: `${SITE_URL}${seoUrl}`,
+                    }] : []),
+                ],
+            },
+        ];
+
+        if (seoListItems.length > 0) {
+            graph.push({
+                '@type': 'ItemList',
+                '@id': `${SITE_URL}${seoUrl}#items`,
+                name: seoCopy.title,
+                numberOfItems: seoListItems.length,
+                itemListElement: seoListItems,
+            });
+        }
+
+        return {
+            '@context': 'https://schema.org',
+            '@graph': graph,
+        };
+    }, [activeCollection, activeCategory, breadcrumbName, seoCopy.description, seoCopy.title, seoListItems, seoUrl]);
 
     return (
         <div className="min-h-screen">
             <SEO
-                title="La Galerie — Meubles Anciens & Tables de Ferme"
-                description="Découvrez nos pièces uniques de mobilier restauré : tables de ferme en chêne, armoires parisiennes, buffets normands. Vente directe, livraison France entière."
-                url="/?page=gallery"
+                title={seoCopy.title}
+                description={seoCopy.description}
+                url={seoUrl}
+                schema={gallerySchema}
             />
 
             <LayoutComponent
@@ -75,7 +213,9 @@ const GalleryView = ({
                     activeCollection,
                     setActiveCollection: (val) => {
                         setActiveCollection(val);
-                        if (saveGalleryState) saveGalleryState({ activeCollection: val });
+                        const nextCategory = val === 'furniture' ? activeCategory : 'all';
+                        if (saveGalleryState) saveGalleryState({ activeCollection: val, activeCategory: nextCategory });
+                        pushUrl(val === 'cutting_boards' ? '/planches-a-decouper-anciennes' : getFurnitureCategoryPath(nextCategory));
                     },
                     filter,
                     setFilter: (val) => {
@@ -85,7 +225,13 @@ const GalleryView = ({
                     onOpenShop,
                     setViewMode,
                     viewMode
-                }), [activeCollection, filter, viewMode, saveGalleryState, onOpenShop])}
+                }), [activeCollection, activeCategory, filter, viewMode, saveGalleryState, onOpenShop])}
+                initialCategory={activeCategory}
+                onCategoryChange={(category) => {
+                    setActiveCategory(category);
+                    if (saveGalleryState) saveGalleryState({ activeCollection: 'furniture', activeCategory: category });
+                    pushUrl(getFurnitureCategoryPath(category));
+                }}
             />
         </div>
     );

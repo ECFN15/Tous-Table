@@ -312,11 +312,108 @@ const TIER_LABELS_B = { essentiel: 'Essentiel', premium: 'Premium', expert: 'Exp
 const TIER_COLORS_B = { essentiel: '#78716c', premium: '#f59e0b', expert: '#e2e8f0' };
 const SOURCE_LABELS_B = { shop_grid: 'Comptoir (Grille)', shop_tutorial: 'Comptoir (Tuto)', gallery_detail: 'Galerie (Meuble)', inconnu: 'Inconnu' };
 const SOURCE_COLORS_B = { shop_grid: '#3B82F6', shop_tutorial: '#F59E0B', gallery_detail: '#8B5CF6', inconnu: '#6B7280' };
+const BOUTIQUE_TIME_FILTERS = [
+    { id: '1h', label: '1H', duration: 60 * 60 * 1000, step: 5 * 60 * 1000 },
+    { id: '5h', label: '5H', duration: 5 * 60 * 60 * 1000, step: 15 * 60 * 1000 },
+    { id: '1j', label: '1J', duration: 24 * 60 * 60 * 1000, step: 60 * 60 * 1000 },
+    { id: '2sem', label: '2 Sem.', duration: 14 * 24 * 60 * 60 * 1000, step: 24 * 60 * 60 * 1000 },
+    { id: '1mois', label: '1 Mois', duration: 30 * 24 * 60 * 60 * 1000, step: 24 * 60 * 60 * 1000 },
+    { id: '3mois', label: '3 Mois', duration: 90 * 24 * 60 * 60 * 1000, step: 7 * 24 * 60 * 60 * 1000 },
+    { id: '6mois', label: '6 Mois', duration: 180 * 24 * 60 * 60 * 1000, step: 14 * 24 * 60 * 60 * 1000 },
+    { id: '1ans', label: '1 An', duration: 365 * 24 * 60 * 60 * 1000, step: 30 * 24 * 60 * 60 * 1000 },
+];
+
+const PAGE_LABELS = {
+    home: 'A propos',
+    about: 'A propos',
+    gallery: 'Marketplace',
+    detail: 'Fiche produit',
+    shop: 'Le Comptoir',
+    delivery: 'Livraison',
+    checkout: 'Checkout',
+    'my-orders': 'Mes commandes',
+    login: 'Connexion',
+};
+
+const AFFILIATE_JOURNEY_LABELS = {
+    affiliate_shop_grid: 'Clic Comptoir',
+    affiliate_shop_tutorial: 'Clic Tutoriel Comptoir',
+    affiliate_gallery_detail: 'Clic depuis fiche meuble',
+    comptoir: 'Clic Comptoir',
+};
+
+const getBoutiqueFilterConfig = (filterId) => BOUTIQUE_TIME_FILTERS.find(f => f.id === filterId) || BOUTIQUE_TIME_FILTERS[2];
+
+const formatBoutiqueSlot = (time, step) => {
+    const d = new Date(time);
+    if (step < 60 * 60 * 1000) return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    if (step < 24 * 60 * 60 * 1000) return `${d.getHours()}h`;
+    if (step < 30 * 24 * 60 * 60 * 1000) return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+    return d.toLocaleDateString('fr-FR', { month: '2-digit', year: 'numeric' });
+};
+
+const isComptoirPageView = (page) => page === 'shop' || page === 'comptoir';
+const isComptoirJourneyStep = (step) => {
+    const page = step?.page;
+    return isComptoirPageView(page) || page === 'affiliate_shop_grid' || page === 'affiliate_shop_tutorial';
+};
+const isAffiliateJourneyStep = (page) => page === 'comptoir' || String(page || '').startsWith('affiliate_');
+
+const getJourneyLabel = (page) => AFFILIATE_JOURNEY_LABELS[page] || PAGE_LABELS[page] || page || 'Inconnu';
+const getJourneyAccent = (page) => {
+    if (page === 'shop') return { dot: 'bg-violet-500 shadow-[0_0_10px_rgba(139,92,246,0.3)]', text: 'text-violet-400/60', label: 'text-violet-400', chip: 'bg-indigo-500/10 text-indigo-400/80 border-indigo-500/10' };
+    if (isAffiliateJourneyStep(page)) return { dot: 'bg-teal-400 shadow-[0_0_10px_rgba(45,212,191,0.4)]', text: 'text-teal-400/60', label: 'text-teal-400', chip: 'bg-teal-500/10 text-teal-400/80 border-teal-500/10' };
+    if (page === 'delivery') return { dot: 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]', text: 'text-emerald-500/60', label: 'text-emerald-500', chip: 'bg-emerald-500/10 text-emerald-400/80 border-emerald-500/10' };
+    return { dot: 'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.3)]', text: 'text-blue-500/60', label: 'text-amber-500', chip: 'bg-indigo-500/10 text-indigo-400/80 border-indigo-500/10' };
+};
+
+const formatDurationLabel = (seconds) => {
+    if (!seconds) return '0s';
+    if (seconds < 60) return `${seconds}s`;
+    const min = Math.floor(seconds / 60);
+    const sec = seconds % 60;
+    return `${min}m ${sec}s`;
+};
+
+const estimateComptoirDuration = (session) => {
+    const journey = Array.isArray(session?.journey) ? session.journey : [];
+    if (journey.length === 0) return { total: 0, segments: 0 };
+
+    const durations = journey.map(step => Number(step?.duration) || 0);
+    const trailingDuration = Math.max(0, (Number(session.duration) || 0) - durations.reduce((sum, value) => sum + value, 0));
+    let total = 0;
+    let segments = 0;
+    let hasPageView = false;
+
+    journey.forEach((step, index) => {
+        if (!isComptoirPageView(step?.page)) return;
+        hasPageView = true;
+        const nextDuration = Number(journey[index + 1]?.duration);
+        const segmentDuration = Number.isFinite(nextDuration) && nextDuration > 0 ? nextDuration : (index === journey.length - 1 ? trailingDuration : 0);
+        if (segmentDuration > 0) {
+            total += segmentDuration;
+            segments += 1;
+        }
+    });
+
+    if (!hasPageView) {
+        const clickDurations = journey
+            .filter(step => isComptoirJourneyStep(step))
+            .map(step => Number(step.duration) || 0)
+            .filter(Boolean);
+        if (clickDurations.length > 0) {
+            total += Math.max(...clickDurations);
+            segments += 1;
+        }
+    }
+
+    return { total, segments };
+};
 
 const BoutiqueAnalytics = ({ darkMode, sessions = [] }) => {
     const [clicks, setClicks] = useState([]);
     const [loadingClicks, setLoadingClicks] = useState(true);
-    const [timeFilter, setTimeFilter] = useState('7j');
+    const [timeFilter, setTimeFilter] = useState('1j');
     const [openDays, setOpenDays] = useState({});
 
     const sessionGeoMap = useMemo(() => {
@@ -345,34 +442,28 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [] }) => {
 
     const filteredClicks = useMemo(() => {
         const now = Date.now();
-        let cutoff = 0;
-        if (timeFilter === '1j') cutoff = now - 24 * 3600 * 1000;
-        else if (timeFilter === '7j') cutoff = now - 7 * 24 * 3600 * 1000;
-        else if (timeFilter === '30j') cutoff = now - 30 * 24 * 3600 * 1000;
+        const { duration } = getBoutiqueFilterConfig(timeFilter);
+        const cutoff = now - duration;
         return clicks.filter(c => getMillis(c.timestamp) >= cutoff);
     }, [clicks, timeFilter]);
 
-    const chartData = useMemo(() => {
+    const comptoirSessions = useMemo(() => {
         const now = Date.now();
-        let cutoff, step, fmt;
-        if (timeFilter === '1j') {
-            cutoff = now - 24 * 3600 * 1000; step = 3600 * 1000;
-            fmt = t => new Date(t).getHours() + 'h';
-        } else if (timeFilter === '7j') {
-            cutoff = now - 7 * 24 * 3600 * 1000; step = 24 * 3600 * 1000;
-            fmt = t => new Date(t).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-        } else if (timeFilter === '30j') {
-            cutoff = now - 30 * 24 * 3600 * 1000; step = 24 * 3600 * 1000;
-            fmt = t => new Date(t).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-        } else {
-            const ts = clicks.map(c => getMillis(c.timestamp)).filter(Boolean);
-            cutoff = ts.length > 0 ? Math.min(...ts) : now - 30 * 24 * 3600 * 1000;
-            const range = now - cutoff;
-            step = range > 60 * 24 * 3600 * 1000 ? 7 * 24 * 3600 * 1000 : 24 * 3600 * 1000;
-            fmt = t => new Date(t).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-        }
+        const { duration } = getBoutiqueFilterConfig(timeFilter);
+        const cutoff = now - duration;
+        return sessions.filter((session) => {
+            const started = getMillis(session.startedAt);
+            if (!started || started < cutoff) return false;
+            return (session.journey || []).some(isComptoirJourneyStep);
+        });
+    }, [sessions, timeFilter]);
+
+    const clickChartData = useMemo(() => {
+        const now = Date.now();
+        const { duration, step } = getBoutiqueFilterConfig(timeFilter);
+        const cutoff = now - duration;
         const timeline = [];
-        for (let t = cutoff; t <= now; t += step) timeline.push({ timestamp: t, name: fmt(t), visites: 0 });
+        for (let t = cutoff; t <= now; t += step) timeline.push({ timestamp: t, name: formatBoutiqueSlot(t, step), visites: 0 });
         filteredClicks.forEach(c => {
             const t = getMillis(c.timestamp);
             if (!t) return;
@@ -380,7 +471,31 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [] }) => {
             if (idx >= 0 && idx < timeline.length) timeline[idx].visites += 1;
         });
         return timeline;
-    }, [clicks, filteredClicks, timeFilter]);
+    }, [filteredClicks, timeFilter]);
+
+    const comptoirVisitChartData = useMemo(() => {
+        const now = Date.now();
+        const { duration, step } = getBoutiqueFilterConfig(timeFilter);
+        const cutoff = now - duration;
+        const timeline = [];
+        for (let t = cutoff; t <= now; t += step) {
+            timeline.push({ timestamp: t, name: formatBoutiqueSlot(t, step), visites: 0, visitors: new Set() });
+        }
+
+        comptoirSessions.forEach(session => {
+            const t = getMillis(session.startedAt);
+            if (!t) return;
+            const idx = Math.floor((t - cutoff) / step);
+            if (idx < 0 || idx >= timeline.length) return;
+            timeline[idx].visitors.add(session.ip || session.userId || session.id);
+        });
+
+        return timeline.map(slot => ({
+            timestamp: slot.timestamp,
+            name: slot.name,
+            visites: slot.visitors.size
+        }));
+    }, [comptoirSessions, timeFilter]);
 
     const topProducts = useMemo(() => {
         const counts = {};
@@ -471,9 +586,28 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [] }) => {
     }, [sessionsByDay.length]);
 
     const kpis = useMemo(() => {
-        const peak = chartData.length > 0 ? chartData.reduce((best, d) => d.visites > best.visites ? d : best, chartData[0]) : null;
-        return { total: filteredClicks.length, uniqueProducts: topProducts.length, topProg: byProgram[0] || null, peak };
-    }, [filteredClicks, topProducts, byProgram, chartData]);
+        const peak = clickChartData.length > 0 ? clickChartData.reduce((best, d) => d.visites > best.visites ? d : best, clickChartData[0]) : null;
+        const uniqueComptoirVisitors = new Set(comptoirSessions.map(s => s.ip || s.userId || s.id).filter(Boolean)).size;
+        const durationEstimate = comptoirSessions.reduce((acc, session) => {
+            const estimate = estimateComptoirDuration(session);
+            return {
+                total: acc.total + estimate.total,
+                segments: acc.segments + estimate.segments
+            };
+        }, { total: 0, segments: 0 });
+        const avgComptoirDuration = durationEstimate.segments > 0 ? Math.round(durationEstimate.total / durationEstimate.segments) : 0;
+        const amazonClicks = filteredClicks.filter(c => c.affiliateProgram === 'amazon').length;
+
+        return {
+            total: filteredClicks.length,
+            uniqueProducts: topProducts.length,
+            topProg: byProgram[0] || null,
+            peak,
+            uniqueComptoirVisitors,
+            avgComptoirDuration,
+            amazonClicks
+        };
+    }, [filteredClicks, topProducts, byProgram, clickChartData, comptoirSessions]);
 
     const handleClearAllAffiliate = async () => {
         if (!window.confirm("☢️ ACTION CRITIQUE : Supprimer TOUS les clics affiliés (boutique) définitivement ?")) return;
@@ -508,10 +642,10 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [] }) => {
                     >
                         Purger Data
                     </button>
-                    <div className={`flex p-1 rounded-xl border ${darkMode ? 'bg-stone-900 border-white/5' : 'bg-stone-100 border-stone-200'}`}>
-                        {[{ id: '1j', label: '24h' }, { id: '7j', label: '7j' }, { id: '30j', label: '30j' }, { id: 'tout', label: 'Tout' }].map(tf => (
+                    <div className={`flex flex-wrap p-1 rounded-xl border ${darkMode ? 'bg-stone-900 border-white/5' : 'bg-stone-100 border-stone-200'}`}>
+                        {BOUTIQUE_TIME_FILTERS.map(tf => (
                             <button key={tf.id} onClick={() => setTimeFilter(tf.id)}
-                                className={`px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${timeFilter === tf.id ? (darkMode ? 'bg-white/10 text-white shadow-sm border border-white/10' : 'bg-white text-stone-900 shadow-sm border border-stone-200') : 'text-stone-500 hover:text-stone-300'}`}>
+                                className={`px-3 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${timeFilter === tf.id ? (darkMode ? 'bg-white/10 text-white shadow-sm border border-white/10' : 'bg-white text-stone-900 shadow-sm border border-stone-200') : 'text-stone-500 hover:text-stone-300'}`}>
                                 {tf.label}
                             </button>
                         ))}
@@ -522,11 +656,17 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [] }) => {
             {/* KPI GRID */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 {[
+                    ...[
+                        { label: 'Visiteurs Comptoir', value: kpis.uniqueComptoirVisitors, sub: 'IPs uniques', accent: 'text-blue-400', icon: Users },
+                        { label: 'Temps Moyen', value: formatDurationLabel(kpis.avgComptoirDuration), sub: 'sur Le Comptoir', accent: 'text-emerald-400', icon: Clock },
+                        { label: 'Clics Amazon', value: kpis.amazonClicks, sub: `${kpis.total} clics totaux`, accent: 'text-orange-400', icon: MousePointerClick },
+                        { label: 'Produits Cliques', value: kpis.uniqueProducts, sub: 'produits distincts', accent: 'text-amber-400', icon: ShoppingBag },
+                    ],
                     { label: 'Clics Totaux', value: kpis.total, sub: 'sur la période', accent: 'text-amber-400', icon: MousePointerClick },
                     { label: 'Produits Cliqués', value: kpis.uniqueProducts, sub: 'produits distincts', accent: 'text-blue-400', icon: ShoppingBag },
                     { label: 'Top Programme', value: kpis.topProg ? (PROG_LABELS_B[kpis.topProg.name] || kpis.topProg.name) : '—', sub: kpis.topProg ? `${kpis.topProg.count} clics` : 'aucun', accent: 'text-orange-400', icon: TrendingUp },
                     { label: 'Pic de Clics', value: kpis.peak?.visites || 0, sub: kpis.peak?.visites > 0 ? kpis.peak.name : '—', accent: 'text-emerald-400', icon: Activity },
-                ].map((kpi, i) => (
+                ].slice(0, 4).map((kpi, i) => (
                     <div key={i} className={`p-4 sm:p-5 rounded-2xl border ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100 shadow-sm'}`}>
                         <div className="flex items-center justify-between mb-3">
                             <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] text-stone-500 truncate">{kpi.label}</p>
@@ -540,14 +680,28 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [] }) => {
                 ))}
             </div>
 
+            {/* COMPTOIR VISITS CHART */}
+            <div className={`p-6 md:p-8 rounded-[2rem] border ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100 shadow-sm'}`}>
+                <div className="flex items-center justify-between mb-8">
+                    <h3 className={`text-[10px] font-black uppercase tracking-[0.3em] ${darkMode ? 'text-white/40' : 'text-stone-400'}`}>Visiteurs sur Le Comptoir</h3>
+                </div>
+                <div className="h-[200px] md:h-[260px] w-full">
+                    {comptoirVisitChartData.some(d => d.visites > 0) ? (
+                        <TrafficChart data={comptoirVisitChartData} darkMode={darkMode} valueLabel="visiteur" />
+                    ) : (
+                        <div className="flex items-center justify-center h-full text-stone-500 font-bold italic text-xs">Aucune visite Comptoir sur cette periode.</div>
+                    )}
+                </div>
+            </div>
+
             {/* CHART */}
             <div className={`p-6 md:p-8 rounded-[2rem] border ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100 shadow-sm'}`}>
                 <div className="flex items-center justify-between mb-8">
                     <h3 className={`text-[10px] font-black uppercase tracking-[0.3em] ${darkMode ? 'text-white/40' : 'text-stone-400'}`}>Évolution des Clics</h3>
                 </div>
                 <div className="h-[200px] md:h-[260px] w-full">
-                    {chartData.some(d => d.visites > 0) ? (
-                        <TrafficChart data={chartData} darkMode={darkMode} valueLabel="clic" />
+                    {clickChartData.some(d => d.visites > 0) ? (
+                        <TrafficChart data={clickChartData} darkMode={darkMode} valueLabel="clic" />
                     ) : (
                         <div className="flex items-center justify-center h-full text-stone-500 font-bold italic text-xs">Aucun clic sur cette période.</div>
                     )}
@@ -1219,42 +1373,33 @@ const AdminAnalytics = ({ darkMode = false }) => {
                                                                         {!session.journey || session.journey.length === 0 ? (
                                                                             <p className="text-[10px] italic text-stone-500">Aucune activité enregistrée</p>
                                                                         ) : (
-                                                                            session.journey.map((step, idx) => (
+                                                                            session.journey.map((step, idx) => {
+                                                                                const accent = getJourneyAccent(step.page);
+                                                                                const stepLabel = getJourneyLabel(step.page);
+                                                                                const isAffiliateStep = isAffiliateJourneyStep(step.page);
+                                                                                return (
                                                                                 <div key={idx} className="relative group/step">
                                                                                     {/* DOT centered on the 11px line */}
-                                                                                    <div className={`absolute -left-[18.5px] top-1.5 w-[7px] h-[7px] rounded-full ring-4 ${darkMode ? 'ring-stone-900/50' : 'ring-white'} ${
-                                                                                        step.page === 'comptoir'
-                                                                                            ? 'bg-teal-400 shadow-[0_0_10px_rgba(45,212,191,0.4)]'
-                                                                                            : step.page === 'shop'
-                                                                                                ? 'bg-violet-500 shadow-[0_0_10px_rgba(139,92,246,0.3)]'
-                                                                                                : 'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.3)]'
-                                                                                    } transition-all group-hover/step:scale-125`}></div>
+                                                                                    <div className={`absolute -left-[18.5px] top-1.5 w-[7px] h-[7px] rounded-full ring-4 ${darkMode ? 'ring-stone-900/50' : 'ring-white'} ${accent.dot} transition-all group-hover/step:scale-125`}></div>
 
                                                                                     <div className="flex flex-col gap-1 -translate-y-0.5">
                                                                                         <span className={`text-[8px] font-black uppercase tracking-widest leading-none ${
                                                                                             step.page === 'comptoir' ? 'text-teal-400/60' : step.page === 'shop' ? 'text-violet-400/60' : 'text-blue-500/60'
                                                                                         }`}>{step.time} • {formatDuration(step.duration)}</span>
                                                                                         <p className={`font-black text-[11px] leading-tight ${darkMode ? 'text-stone-300' : 'text-stone-900'}`}>
-                                                                                            {step.page === 'comptoir' ? (
-                                                                                                <>Clic : <span className="uppercase text-teal-400">Comptoir</span></>
-                                                                                            ) : (
-                                                                                                <>Vue : <span className={`uppercase ${step.page === 'shop' ? 'text-violet-400' : 'text-amber-500'}`}>{step.page}</span></>
-                                                                                            )}
+                                                                                            {isAffiliateStep ? 'Clic' : 'Vue'} : <span className={`uppercase ${accent.label}`}>{stepLabel}</span>
                                                                                         </p>
                                                                                         {step.itemId && (
                                                                                             <div className="flex flex-wrap items-center gap-2 mt-0.5">
-                                                                                                <span className={`text-[8px] font-bold px-2 py-0.5 rounded-md truncate max-w-full italic border ${
-                                                                                                    step.page === 'comptoir'
-                                                                                                        ? 'bg-teal-500/10 text-teal-400/80 border-teal-500/10'
-                                                                                                        : 'bg-indigo-500/10 text-indigo-400/80 border-indigo-500/10'
-                                                                                                }`}>
-                                                                                                    {step.page !== 'comptoir' && 'ID: '}{step.itemId}
+                                                                                                <span className={`text-[8px] font-bold px-2 py-0.5 rounded-md truncate max-w-full italic border ${accent.chip}`}>
+                                                                                                    {!isAffiliateStep && 'ID: '}{step.itemId}
                                                                                                 </span>
                                                                                             </div>
                                                                                         )}
                                                                                     </div>
                                                                                 </div>
-                                                                            ))
+                                                                                );
+                                                                            })
                                                                         )}
                                                                     </div>
                                                                 </div>

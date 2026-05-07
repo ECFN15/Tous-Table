@@ -6,6 +6,7 @@ import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestor
 import { httpsCallable } from 'firebase/functions';
 import { getMillis } from '../../utils/time';
 import SEO from '../../components/shared/SEO';
+import { getProductPath, SITE_URL } from '../../utils/seoRoutes';
 
 
 import { useLiveTheme } from '../../hooks/useLiveTheme';
@@ -147,22 +148,44 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
 
     const productSchema = useMemo(() => {
         if (!item) return null;
+        const productUrl = `${SITE_URL}${getProductPath(item)}`;
+        const price = Number(item.currentPrice || item.startingPrice || item.price || 0);
+        const isAvailable = !item.sold && Number(item.stock ?? 1) > 0;
+        const categoryName = collectionName === 'cutting_boards' ? 'Planches a decouper anciennes' : 'Meubles anciens';
+        const categoryUrl = collectionName === 'cutting_boards' ? '/planches-a-decouper-anciennes' : '/meubles-anciens';
         return {
-            "@context": "https://schema.org/",
+            "@context": "https://schema.org",
+            "@graph": [{
             "@type": "Product",
+            "@id": `${productUrl}#product`,
             "name": item.name,
             "image": images,
-            "description": item.description,
+            "description": item.description || `${item.name} selectionne par Tous a Table Made in Normandie.`,
+            "sku": item.reference || item.id,
+            "category": categoryName,
+            "material": item.material || undefined,
             "brand": { "@type": "Brand", "name": "Tous à Table Made in Normandie" },
             "offers": {
                 "@type": "Offer",
-                "url": `${window.location.origin}/?product=${item.id}`,
+                "@id": `${productUrl}#offer`,
+                "url": productUrl,
                 "priceCurrency": "EUR",
-                "price": item.currentPrice || item.startingPrice,
-                "availability": !item.sold ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+                ...(price > 0 && !item.priceOnRequest ? { "price": price } : {}),
+                "availability": isAvailable ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+                "itemCondition": "https://schema.org/UsedCondition",
+                "seller": { "@type": "FurnitureStore", "name": "Tous a Table Made in Normandie", "url": SITE_URL },
             }
+            }, {
+                "@type": "BreadcrumbList",
+                "@id": `${productUrl}#breadcrumb`,
+                "itemListElement": [
+                    { "@type": "ListItem", "position": 1, "name": "Accueil", "item": `${SITE_URL}/` },
+                    { "@type": "ListItem", "position": 2, "name": categoryName, "item": `${SITE_URL}${categoryUrl}` },
+                    { "@type": "ListItem", "position": 3, "name": item.name, "item": productUrl }
+                ]
+            }]
         };
-    }, [item, images]);
+    }, [item, images, collectionName]);
 
     const handleQuickBid = async (inc) => {
         if (bidLoading) return;
@@ -238,7 +261,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                 title={item.name}
                 description={item.description}
                 image={images[0]}
-                url={window.location.href}
+                url={getProductPath(item)}
                 type="product"
                 schema={productSchema}
             />

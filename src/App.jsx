@@ -17,6 +17,13 @@ import { getMillis } from './utils/time';
 import { lockLenis, scrollToTarget, scrollToTop } from './utils/smoothScroll';
 import { useLiveTheme } from './hooks/useLiveTheme'; // Import hook for forcedMode check
 import { useLenisScroll } from './hooks/useLenisScroll'; // Smooth scroll global (cf. _DOCS/AUDITS/scrolllenis.md)
+import {
+  getFurnitureCategoryPath,
+  getProductPath,
+  getRouteFromLocation,
+  pushUrl,
+  replaceUrl,
+} from './utils/seoRoutes';
 
 import AppRouter from './Router';
 import ErrorBoundary from './components/shared/ErrorBoundary';
@@ -86,18 +93,12 @@ const AppContent = () => {
   const [showOrderSuccess, setShowOrderSuccess] = useState(false);
   const [orderSuccessMethod, setOrderSuccessMethod] = useState(''); // Tracks which payment method was used
   const [stockAlert, setStockAlert] = useState(null); // { currentStock: number }
+  const initialRouteRef = useRef(typeof window !== 'undefined'
+    ? getRouteFromLocation(window.location)
+    : { view: 'gallery', galleryState: { activeCollection: 'furniture', filter: 'fixed', activeCategory: 'all' } });
 
   // Navigation
-  const [view, setView] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const hash = window.location.hash.replace('#', '');
-      if (['gallery', 'login', 'admin', 'my-orders', 'checkout', 'shop'].includes(hash)) return hash;
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('page') === 'gallery') return 'gallery';
-      if (params.get('page') === 'shop') return 'shop';
-    }
-    return 'home';
-  }); // 'home', 'gallery', 'detail', 'login', 'admin'
+  const [view, setView] = useState(() => initialRouteRef.current.view); // 'about', 'gallery', 'detail', 'login', 'admin'
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isSecretGateOpen, setIsSecretGateOpen] = useState(false);
@@ -170,7 +171,7 @@ const AppContent = () => {
   };
 
   // Deep Linking State
-  const [pendingDeepLink, setPendingDeepLink] = useState(null);
+  const [pendingDeepLink, setPendingDeepLink] = useState(initialRouteRef.current.productId || null);
 
   // Header Props for Architectural Design
   const [headerProps, setHeaderProps] = useState(null);
@@ -178,7 +179,9 @@ const AppContent = () => {
   // [NEW] Persistent Gallery State (To restore collection after detail/checkout)
   const [persistentGalleryState, setPersistentGalleryState] = useState({
     activeCollection: 'furniture',
-    filter: 'fixed'
+    filter: 'fixed',
+    activeCategory: 'all',
+    ...(initialRouteRef.current.galleryState || {}),
   });
 
   const saveGalleryState = React.useCallback((state) => {
@@ -360,8 +363,7 @@ const AppContent = () => {
   useEffect(() => {
     // Logic dependent on user/auth state
     const params = new URLSearchParams(window.location.search);
-    const productId = params.get('product');
-    const hash = window.location.hash.replace('#', '');
+    const route = getRouteFromLocation(window.location);
 
     // --- SECURITY LOG (IP CAPTURE) ---
     if (user && !user.isAnonymous) {
@@ -379,7 +381,7 @@ const AppContent = () => {
         setView('gallery');
 
         // 2. Nettoyer l'URL pour éviter de re-déclencher au F5
-        window.history.replaceState({}, document.title, '/?page=gallery#gallery');
+        replaceUrl('/');
 
         // 3. Vider le panier Firestore réellement
         try {
@@ -405,14 +407,17 @@ const AppContent = () => {
     // -------------------------------
 
 
-    if (params.get('admin') === 'true' || window.location.pathname === '/admin' || hash === 'admin') {
+    if (route.adminGate) {
       setIsSecretGateOpen(true);
       if (isAdmin) setView('admin'); else setView('login');
-    } else if (productId) {
-      setPendingDeepLink(productId);
+    } else if (route.productId) {
+      setPendingDeepLink(route.productId);
     } else {
-      if (params.get('page') === 'gallery' || hash === 'gallery') setView('gallery');
-      if (params.get('page') === 'shop' || hash === 'shop') setView('shop');
+      if (route.galleryState) {
+        setPersistentGalleryState(prev => ({ ...prev, ...route.galleryState }));
+      }
+      setView(route.view);
+      setIsSecretGateOpen(false);
     }
     setLoading(false);
 
@@ -451,40 +456,60 @@ const AppContent = () => {
 
   // --- PERSISTANCE NAVIGATION (HASH & URL) ---
   useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.replace('#', '');
-      if (['home', 'gallery', 'shop', 'admin', 'login', 'my-orders'].includes(hash)) {
-        setView(hash);
+    const applyRoute = () => {
+      const route = getRouteFromLocation(window.location);
+      if (route.adminGate) {
+        setIsSecretGateOpen(true);
+        setView(isAdmin ? 'admin' : 'login');
+        return;
       }
+      if (route.productId) {
+        setPendingDeepLink(route.productId);
+        return;
+      }
+      if (route.galleryState) {
+        setPersistentGalleryState(prev => ({ ...prev, ...route.galleryState }));
+      }
+      setView(route.view);
     };
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
 
-  // Synchronisation URL <-> View State
+    window.addEventListener('popstate', applyRoute);
+    window.addEventListener('hashchange', applyRoute);
+    return () => {
+      window.removeEventListener('popstate', applyRoute);
+      window.removeEventListener('hashchange', applyRoute);
+    };
+  }, [isAdmin]);
+
+
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const allItems = [...items, ...boardItems];
+    const selectedItem = allItems.find((item) => item.id === selectedItemId);
+
     if (view === 'detail' && selectedItemId) {
-      // Mode Produit : On affiche l'ID dans l'URL pour le partage
-      const newUrl = `/?product=${selectedItemId}`;
-      if (window.location.search !== `?product=${selectedItemId}`) {
-        window.history.pushState({ view: 'detail', itemId: selectedItemId }, '', newUrl);
-      }
-    } else if (view !== 'detail' && view !== 'home') {
-      // Autres vues : On utilise le hash (ex: #gallery)
-      // On nettoie les query params si on sort du détail
-      if (window.location.search.includes('product=')) {
-        const cleanUrl = `${window.location.pathname}#${view}`;
-        window.history.pushState({ view }, '', cleanUrl);
-      } else {
-        window.location.hash = view;
-      }
-    } else if (view === 'home') {
-      // Home : Clean URL
-      if (window.location.hash || window.location.search) {
-        window.history.replaceState(null, null, ' ');
-      }
+      pushUrl(selectedItem ? getProductPath(selectedItem) : `/produit/${selectedItemId}`, { view: 'detail', itemId: selectedItemId });
+    } else if (view === 'shop') {
+      pushUrl('/comptoir', { view });
+    } else if (view === 'delivery') {
+      pushUrl('/livraison-meubles-anciens-france', { view });
+    } else if (view === 'about' || view === 'home') {
+      pushUrl('/a-propos', { view: 'about' });
+    } else if (view === 'checkout') {
+      pushUrl('/checkout', { view });
+    } else if (view === 'my-orders') {
+      pushUrl('/mes-commandes', { view });
+    } else if (view === 'admin') {
+      pushUrl('/admin', { view });
+    } else if (view === 'gallery') {
+      if (window.location.pathname === '/' && !window.location.search && !window.location.hash) return;
+      const path = persistentGalleryState.activeCollection === 'cutting_boards'
+        ? '/planches-a-decouper-anciennes'
+        : getFurnitureCategoryPath(persistentGalleryState.activeCategory || 'all');
+      pushUrl(path, { view });
     }
-  }, [view, selectedItemId]);
+  }, [view, selectedItemId, items, boardItems, persistentGalleryState.activeCollection, persistentGalleryState.activeCategory]);
 
   // --- TRAITEMENT DEEP LINK ---
   useEffect(() => {
@@ -497,8 +522,6 @@ const AppContent = () => {
         setSelectedItemId(pendingDeepLink);
         setView('detail');
         setPendingDeepLink(null); // Lien consommé
-        // Nettoyer l'URL sans recharger
-        window.history.replaceState({}, document.title, window.location.pathname);
       }
     }
   }, [items, boardItems, pendingDeepLink]);
@@ -838,7 +861,7 @@ const AppContent = () => {
             />
           ) : (
             <nav className={`fixed top-0 left-0 right-0 z-[110] px-4 md:px-12 pt-[max(4.5rem,env(safe-area-inset-top)+2rem)] pb-4 md:py-8 flex justify-between items-center transition-all duration-500 ease-in-out ${isHeaderVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}>
-              <div className="flex items-center gap-1.5 md:gap-3 cursor-pointer group" onClick={() => { window.hasShownPreloader = true; setView('home'); scrollToTop(); }}>
+              <div className="flex items-center gap-1.5 md:gap-3 cursor-pointer group" onClick={() => { window.hasShownPreloader = true; setView('about'); scrollToTop(); }}>
                 <div className={`w-[28px] h-[28px] md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center backdrop-blur-2xl border transition-all group-hover:rotate-6 shadow-sm ${darkMode ? 'bg-white/10 border-white/20 text-white' : 'bg-white border-stone-300 text-stone-900'}`}>
                   <Hammer size={12} strokeWidth={1.5} className="md:w-4 md:h-4" />
                 </div>

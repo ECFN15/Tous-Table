@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+﻿import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { collection, onSnapshot, query, orderBy, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, appId } from '../firebase/config';
 import { useAuth } from '../contexts/AuthContext';
@@ -23,66 +23,81 @@ const FAMILIES = [
         id: 'huiles',
         title: "Protection Profonde",
         subtitle: "Huiles & Nourrissants",
-        description: "Le premier geste pour chérir un meuble en bois massif. Des huiles professionnelles qui pénètrent au cœur des fibres pour une protection de l'intérieur, respectant le grain et le toucher naturel. Inclut aussi les huiles alimentaires pour vos planches de découpe artisanales.",
+        description: "Le premier geste pour cherir un meuble en bois massif. Des huiles professionnelles qui penetrent au coeur des fibres pour une protection de l'interieur, respectant le grain et le toucher naturel. Inclut aussi les huiles alimentaires pour vos planches de decoupe artisanales.",
         tutorials: [
             { videoId: "ictKhF92-pY", label: "Application Rubio Monocoat Oil Plus 2C sur meuble", productName: "Rubio Monocoat Oil Plus 2C (Pure/Incolore)" },
             { videoId: "EZ2w0DBLkTI", label: "Comment appliquer Osmo PolyX Oil sur un meuble", productName: "Osmo Polyx-Oil 3032 MAT" },
-            { videoId: "KfHoHFA7Av8", label: "John Boos Mystery Oil & Board Cream — entretien planche", productName: "John Boos Mystery Oil (473ml)" }
+            { videoId: "KfHoHFA7Av8", label: "John Boos Mystery Oil & Board Cream - entretien planche", productName: "John Boos Mystery Oil (473ml)" }
         ]
     },
     {
         id: 'cires',
         title: "Patine & Finition",
         subtitle: "Cires, Peintures & Effets",
-        description: "Sublimez vos meubles avec des cires authentiques, peintures naturelles ou effets décorés. Maintenez l'âme de l'ancien ou créez de nouveaux styles sans compromettre la qualité du bois.",
+        description: "Sublimez vos meubles avec des cires authentiques, peintures naturelles ou effets decores. Maintenez l'ame de l'ancien ou creez de nouveaux styles sans compromettre la qualite du bois.",
         tutorials: [
-            { videoId: "zhV4UVEC_Gg", label: "Effet patiné avec la patine Libéron", productName: "Libéron Teinte Antiquaire (Merisier / Chêne)" },
-            { videoId: "sIXtHjSiIRY", label: "Cire Black Bison Libéron — application sur meuble", productName: "Libéron Black Bison Incolore 500ml" },
-            { videoId: "lRTlQNcmyig", label: "Peinture Rust-Oleum Chalky Finish sur meuble", productName: "Rust-Oleum Chalky Finish (Peinture à la Craie)" },
-            { videoId: "wh7EQGOqnfI", label: "Créer une table rivière en résine époxy", productName: "Resin Pro — Résine Époxy Ultra Transparente (3.2 Kg)" }
+            { videoId: "zhV4UVEC_Gg", label: "Effet patine avec la patine Liberon", productName: "Liberon Teinte Antiquaire (Merisier / Chene)" },
+            { videoId: "sIXtHjSiIRY", label: "Cire Black Bison Liberon - application sur meuble", productName: "Liberon Black Bison Incolore 500ml" },
+            { videoId: "lRTlQNcmyig", label: "Peinture Rust-Oleum Chalky Finish sur meuble", productName: "Rust-Oleum Chalky Finish (Peinture a la Craie)" },
+            { videoId: "wh7EQGOqnfI", label: "Creer une table riviere en resine epoxy", productName: "Resin Pro - Resine Epoxy Ultra Transparente (3.2 Kg)" }
         ]
     },
     {
         id: 'savons',
         title: "Le Geste Quotidien",
         subtitle: "Savons & Nettoyants",
-        description: "Évitez les produits chimiques qui agressent vos meubles. Entretenez la beauté de votre table jour après jour avec des nettoyants très doux conçus pour les surfaces huilées.",
+        description: "Evitez les produits chimiques qui agressent vos meubles. Entretenez la beaute de votre table jour apres jour avec des nettoyants tres doux concus pour les surfaces huilees.",
         tutorials: [
-            { videoId: "ulx9fAGC7BM", label: "Entretien quotidien surfaces bois huilées", productName: "Osmo Wash & Care 8016 (1L)" }
+            { videoId: "ulx9fAGC7BM", label: "Entretien quotidien surfaces bois huilees", productName: "Osmo Wash & Care 8016 (1L)" }
         ]
     },
     {
         id: 'accessoires',
         title: "L'Essentiel du Quotidien",
         subtitle: "Accessoires Essentiels",
-        description: "Les petits indispensables qui font la différence. Le matériel de consommation régulière pour un entretien optimal sans friction.",
+        description: "Les petits indispensables qui font la difference. Le materiel de consommation reguliere pour un entretien optimal sans friction.",
         tutorials: [
-            { videoId: "sVXN8ASgzi4", label: "Choisir le bon pinceau pour vos finitions bois", productName: "Libéron Pinceau Plat \"Le Spalter\"" }
+            { videoId: "sVXN8ASgzi4", label: "Choisir le bon pinceau pour vos finitions bois", productName: "Liberon Pinceau Plat \"Le Spalter\"" }
         ]
     },
     {
         id: 'renovation',
         title: "Seconde Jeunesse",
-        subtitle: "Décapage & Retouches",
-        description: "Transformez vos meubles fatigués. Décapez efficacement, éliminez les taches sans poncer, ou retouchez précisément les accidents du quotidien.",
+        subtitle: "Decapage & Retouches",
+        description: "Transformez vos meubles fatigues. Decapez efficacement, eliminez les taches sans poncer, ou retouchez precisement les accidents du quotidien.",
         tutorials: [
-            { videoId: "0lAtz_V4Xl4", label: "Décapant bois V33 — mode d'emploi", productName: "V33 Décapant Bois Gel Express (1L)" },
-            { videoId: "GIB3HJeQgp8", label: "Décaper efficacement un meuble en bois", productName: "Libéron Rénovateur pour Meubles" }
+            { videoId: "0lAtz_V4Xl4", label: "Decapant bois V33 - mode d'emploi", productName: "V33 Decapant Bois Gel Express (1L)" },
+            { videoId: "GIB3HJeQgp8", label: "Decaper efficacement un meuble en bois", productName: "Liberon Renovateur pour Meubles" }
         ]
     },
     {
         id: 'outils',
-        title: "La Boîte à Outils",
-        subtitle: "Outils & Matériel Pro",
-        description: "Les compagnons fidèles de l'artisan. Pinceaux, rouleaux, ciseaux, presses, racloirs — tout le matériel pour travailler comme un pro avec précision et finesse.",
+        title: "La Boite a Outils",
+        subtitle: "Outils & Materiel Pro",
+        description: "Les compagnons fideles de l'artisan. Pinceaux, rouleaux, ciseaux, presses, racloirs - tout le materiel pour travailler comme un pro avec precision et finesse.",
         tutorials: [
-            { videoId: "IVAvfGG2lmU", label: "Affûtage d'un racloir d'ébéniste", productName: "Bahco 474 Racloir d'Ébéniste / Kit Kirschen" },
-            { videoId: "ECMVRc5N3K0", label: "Les racloirs : affûter, préparer, utiliser", productName: "Kit Premium Kirschen (Affiloir + 3 Racloirs)" }
+            { videoId: "IVAvfGG2lmU", label: "Affutage d'un racloir d'ebeniste", productName: "Bahco 474 Racloir d'Ebeniste / Kit Kirschen" },
+            { videoId: "ECMVRc5N3K0", label: "Les racloirs : affuter, preparer, utiliser", productName: "Kit Premium Kirschen (Affiloir + 3 Racloirs)" }
         ]
     }
 ];
 
 const RITUAL_WORDS = ['NOURRIR', 'PROTEGER', 'RESTAURER'];
+
+const SHOP_SEO_FAQ = [
+    {
+        question: "Quels produits utiliser pour entretenir un meuble ancien en bois ?",
+        answer: "Pour un meuble ancien en bois massif, il faut privilegier des produits doux et adaptes a la finition : huile pour nourrir, cire pour proteger une patine, savon naturel pour l'entretien courant et accessoires non abrasifs pour eviter de marquer le bois.",
+    },
+    {
+        question: "Comment proteger une table en bois massif au quotidien ?",
+        answer: "Une table en bois massif se protege avec une finition adaptee a son usage : huile dure, cire ou produit de protection specifique. L'entretien regulier doit rester doux, sans detergent agressif ni eponge abrasive.",
+    },
+    {
+        question: "Le Comptoir convient-il aux meubles restaures et aux planches en bois ?",
+        answer: "Oui. La selection couvre l'entretien des meubles restaures, tables de ferme, buffets, armoires, commodes, chaises, bancs et planches en bois massif, avec des produits choisis pour respecter la matiere.",
+    },
+];
 
 const sortShopProducts = (products) => [...products].sort((a, b) => {
     const tierOrder = { expert: 3, premium: 2, essentiel: 1 };
@@ -116,7 +131,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
     const getTutorialIndex = (categoryId) => tutorialIndexes[categoryId] || 0;
     const setTutorialIndex = (categoryId, idx) => setTutorialIndexes(prev => ({ ...prev, [categoryId]: idx }));
 
-    // Charger les tutoriels depuis Firestore (temps réel)
+    // Charger les tutoriels depuis Firestore (temps reel)
     useEffect(() => {
         const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'shop_tutorials');
         const q = query(colRef, orderBy('order', 'asc'));
@@ -130,7 +145,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
     const getFamilyTutorials = useMemo(() => {
         const tutorialsByCategory = {};
         FAMILIES.forEach(f => { tutorialsByCategory[f.id] = f.tutorials || []; });
-        // Les catégories ayant des tutoriels Firestore écrasent les tutoriels statiques correspondants
+        // Les categories ayant des tutoriels Firestore ecrasent les tutoriels statiques correspondants
         if (firestoreTutorials.length > 0) {
             const firestoreCategories = new Set(firestoreTutorials.map(t => t.category));
             firestoreCategories.forEach(cat => {
@@ -171,6 +186,61 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
         () => FAMILIES.filter((family) => (productsByFamily[family.id] || []).length > 0),
         [productsByFamily]
     );
+
+    const shopSchema = useMemo(() => ({
+        '@context': 'https://schema.org',
+        '@graph': [
+            {
+                '@type': 'CollectionPage',
+                '@id': 'https://tousatable-madeinnormandie.fr/comptoir#collection',
+                url: 'https://tousatable-madeinnormandie.fr/comptoir',
+                name: 'Le Comptoir - Boutique bois et entretien meuble ancien',
+                description: "Selection de produits pour entretenir, proteger et restaurer les meubles en bois massif, les tables de ferme anciennes et les planches en bois.",
+                isPartOf: {
+                    '@type': 'WebSite',
+                    name: 'Tous a Table Made in Normandie',
+                    url: 'https://tousatable-madeinnormandie.fr',
+                },
+                about: [
+                    'entretien meuble ancien',
+                    'soin du bois massif',
+                    'huile bois',
+                    'cire meuble bois',
+                    'restauration meuble bois',
+                ],
+            },
+            {
+                '@type': 'BreadcrumbList',
+                '@id': 'https://tousatable-madeinnormandie.fr/comptoir#breadcrumb',
+                itemListElement: [
+                    {
+                        '@type': 'ListItem',
+                        position: 1,
+                        name: 'Accueil',
+                        item: 'https://tousatable-madeinnormandie.fr/',
+                    },
+                    {
+                        '@type': 'ListItem',
+                        position: 2,
+                        name: 'Le Comptoir',
+                        item: 'https://tousatable-madeinnormandie.fr/comptoir',
+                    },
+                ],
+            },
+            {
+                '@type': 'FAQPage',
+                '@id': 'https://tousatable-madeinnormandie.fr/comptoir#faq',
+                mainEntity: SHOP_SEO_FAQ.map((item) => ({
+                    '@type': 'Question',
+                    name: item.question,
+                    acceptedAnswer: {
+                        '@type': 'Answer',
+                        text: item.answer,
+                    },
+                })),
+            },
+        ],
+    }), []);
 
     useEffect(() => {
         if (setHeaderProps) {
@@ -250,7 +320,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
         return () => clearTimeout(timeoutId);
     }, [activeRitualIndex, typedRitualWord, isDeletingRitualWord]);
 
-    // Scrollspy — highlight sidebar item matching the section currently in view
+    // Scrollspy - highlight sidebar item matching the section currently in view
     useEffect(() => {
         if (affiliateProducts.length === 0) return;
         const observers = [];
@@ -293,9 +363,10 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
     return (
         <div className={`min-h-screen animate-in fade-in duration-500 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-[linear-gradient(180deg,#f8f2e8_0%,#fffaf2_42%,#f1e3cf_100%)]'}`}>
             <SEO
-                title="Le Comptoir - Soin et Entretien du Bois"
-                description="Notre sélection de produits professionnels pour protéger, nourrir et restaurer vos meubles en bois massif. Huiles, cires et savons testés à l'atelier."
-                url="/?page=shop"
+                title="Le Comptoir - Boutique Bois & Entretien Meuble Ancien"
+                description="Produits pour entretenir, proteger et restaurer les meubles en bois massif : huiles, cires, savons, accessoires et soins du bois testes en atelier."
+                url="/comptoir"
+                schema={shopSchema}
             />
 
             {/* HERO SECTION */}
@@ -364,8 +435,37 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                     </h1>
                     <div className="hero-reveal w-[90%] sm:w-[85%] md:w-[45%] lg:w-[40%] xl:w-full xl:max-w-2xl pointer-events-auto">
                         <p className={`text-sm md:text-base lg:text-lg xl:text-xl leading-relaxed ${darkMode ? 'text-stone-400' : 'text-stone-500'} w-full`}>
-                            Le bois massif est vivant. Protégez, nourrissez et restaurez vos créations avec notre sélection pointue des meilleurs produits d'entretien. Exclusivement testés et validés par l'atelier.
+                            <span className="block sm:inline">Le bois massif est vivant. Protegez, nourrissez</span>{' '}
+                            <span className="block sm:inline">et restaurez vos creations avec notre selection</span>{' '}
+                            <span className="block sm:inline">pointue des meilleurs produits d'entretien.</span>{' '}
+                            <span className="block sm:inline">Exclusivement testes et valides par l'atelier.</span>
                         </p>
+                    </div>
+                </div>
+            </section>
+
+            <section className={`px-6 xl:px-12 py-10 md:py-14 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-transparent'}`}>
+                <div className={`max-w-[1920px] mx-auto border-y py-8 md:py-10 ${darkMode ? 'border-white/10' : 'border-[#c79b5d]/28'}`}>
+                    <div className="grid gap-8 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">
+                        <div>
+                            <p className={`text-[10px] font-black uppercase tracking-[0.28em] mb-4 ${darkMode ? 'text-amber-500' : 'text-amber-700'}`}>
+                                Boutique bois
+                            </p>
+                            <h2 className={`font-serif text-3xl md:text-5xl leading-[0.95] tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                                Entretenir un meuble ancien sans trahir sa matiere.
+                            </h2>
+                        </div>
+                        <div className={`grid gap-5 md:grid-cols-3 text-sm md:text-base leading-relaxed ${darkMode ? 'text-stone-400' : 'text-stone-600'}`}>
+                            <p>
+                                Le Comptoir rassemble les produits utiles pour le soin du bois massif : huiles, cires, savons doux, accessoires et materiel de finition.
+                            </p>
+                            <p>
+                                Chaque famille repond a un geste concret : nourrir une table de ferme, proteger un buffet, raviver une commode ou nettoyer une planche en bois.
+                            </p>
+                            <p>
+                                La selection reste volontairement courte pour aider a choisir les bons produits d'entretien, sans multiplier les references inutiles.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -403,7 +503,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                     <SlidersHorizontal size={20} />
                 </motion.button>
 
-                {/* Sectioned content — all families in order */}
+                {/* Sectioned content - all families in order */}
                 <section
                     id="products-grid-section"
                     className={`min-h-screen pt-6 lg:pt-12 pb-20 px-6 xl:px-12 lg:pl-[320px] xl:pl-[360px] ${darkMode ? 'bg-[#0a0a0a]' : 'bg-transparent'}`}
@@ -443,7 +543,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                                         </p>
                                     </div>
 
-                                    {/* Products grid — editorial block inline after 4th card */}
+                                    {/* Products grid - editorial block inline after 4th card */}
                                     <div className="product-grid grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6 lg:gap-8">
                                         {products.map((product, index) => (
                                             <React.Fragment key={product.id}>
@@ -452,7 +552,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                                                     darkMode={darkMode}
                                                 />
 
-                                                {/* Editorial / Video block inline after 4th product ou après le dernier si < 4 */}
+                                                {/* Editorial / Video block inline after 4th product ou apres le dernier si < 4 */}
                                                 {(index === 3 || (products.length <= 3 && index === products.length - 1)) && tutorials.length > 0 && (
                                                 <div className={`col-span-2 sm:col-span-3 lg:col-span-4 p-8 lg:p-12 rounded-[28px] backdrop-blur-xl border ${darkMode ? 'bg-gradient-to-br from-amber-500/5 to-stone-800/20 border-white/5' : 'bg-[#fff8ed]/76 border-[#c79b5d]/28 shadow-[0_24px_70px_rgba(102,74,36,0.12)]'}`}>
                                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-6 sm:gap-y-8 lg:gap-x-12 lg:items-stretch">
@@ -460,7 +560,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                                                 {/* Text */}
                                                 <div className="lg:col-span-5 flex flex-col justify-center order-1 lg:order-none">
                                                     <p className={`text-[9px] sm:text-[10px] uppercase tracking-[0.28em] font-black mb-2 sm:mb-3 ${darkMode ? 'text-amber-500' : 'text-amber-700'}`}>
-                                                        {family.subtitle} · Tuto Atelier
+                                                        {family.subtitle} - Tuto Atelier
                                                     </p>
                                                     <h3 className={`text-2xl sm:text-3xl lg:text-4xl font-serif leading-tight mb-2 sm:mb-4 ${darkMode ? 'text-stone-50' : 'text-stone-900'}`}>
                                                         {family.title}
@@ -508,7 +608,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                                                     </div>
                                                     <div className="mt-2.5 sm:mt-3 flex items-center justify-between gap-3">
                                                         <p className={`text-[9px] sm:text-[10px] tracking-wide opacity-50 truncate ${darkMode ? 'text-stone-400' : 'text-stone-600'}`}>
-                                                            ▶ {currentTutorial?.label}
+                                                            &gt; {currentTutorial?.label}
                                                         </p>
                                                         {tutorials.length > 1 && (
                                                             <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -531,7 +631,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                                                 {/* Linked product card */}
                                                 <div className="lg:col-span-5 lg:col-start-1 lg:row-start-2 flex flex-col justify-end order-3 lg:order-none">
                                                     {(() => {
-                                                        // Matching par productId (Firestore) — fallback sur productName (legacy)
+                                                        // Matching par productId (Firestore) - fallback sur productName (legacy)
                                                         let linked = null;
                                                         if (currentTutorial?.productId) {
                                                             linked = affiliateProducts.find(p => p.id === currentTutorial.productId);
@@ -601,7 +701,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                                                                                     onClick={(e) => handleTutorialClick(e, linked)}
                                                                                     className={`inline-flex items-center justify-center w-full sm:w-auto gap-2 px-6 py-2.5 sm:py-2.5 rounded-full text-[10.5px] lg:text-[11px] font-semibold transition-all duration-200 ${darkMode ? 'bg-amber-500/15 border border-amber-500/30 text-amber-400 hover:bg-amber-500/25' : 'bg-amber-600/10 border border-amber-600/25 text-amber-700 hover:bg-amber-600/20'}`}
                                                                                 >
-                                                                                    Découvrir <span>→</span>
+                                                                                    Decouvrir <span>-&gt;</span>
                                                                                 </a>
                                                                             </div>
                                                                         </div>
@@ -632,12 +732,37 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                 </section>
             </div>
 
+            <section className={`px-6 md:px-12 py-14 md:py-20 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-transparent'}`}>
+                <div className="max-w-[1120px] mx-auto">
+                    <div className="mb-8">
+                        <p className={`text-[10px] font-black uppercase tracking-[0.28em] mb-3 ${darkMode ? 'text-amber-500' : 'text-amber-700'}`}>
+                            Questions atelier
+                        </p>
+                        <h2 className={`font-serif text-3xl md:text-5xl leading-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                            Bien choisir ses produits d'entretien bois.
+                        </h2>
+                    </div>
+                    <div className={`divide-y border-y ${darkMode ? 'divide-white/10 border-white/10' : 'divide-[#c79b5d]/25 border-[#c79b5d]/28'}`}>
+                        {SHOP_SEO_FAQ.map((item) => (
+                            <div key={item.question} className="py-6 grid gap-3 md:grid-cols-[0.8fr_1.2fr] md:gap-10">
+                                <h3 className={`font-serif text-xl md:text-2xl leading-snug ${darkMode ? 'text-stone-100' : 'text-stone-900'}`}>
+                                    {item.question}
+                                </h3>
+                                <p className={`text-sm md:text-base leading-relaxed ${darkMode ? 'text-stone-400' : 'text-stone-600'}`}>
+                                    {item.answer}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
             {/* INFO AFFILIATE FOOTER */}
             <section className={`py-12 px-6 md:px-12 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-transparent'}`}>
                 <div className={`max-w-[1920px] mx-auto flex flex-col md:flex-row items-center justify-center gap-3 text-[10px] text-center md:text-left ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>
                     <Info size={14} className={darkMode ? 'text-amber-500' : 'text-amber-600'} />
                     <p className="max-w-2xl leading-relaxed">
-                        Cette vitrine contient des liens du Programme Partenaires. En achetant vos produits d'entretien via ces liens, vous soutenez le travail de l'atelier sans aucun surcoût pour vous. <br className="hidden md:block"/>
+                        Cette vitrine contient des liens du Programme Partenaires. En achetant vos produits d'entretien via ces liens, vous soutenez le travail de l'atelier sans aucun surcout pour vous. <br className="hidden md:block"/>
                         <a href="/mentions-legales#affiliation" className="underline underline-offset-4 hover:text-stone-900 dark:hover:text-white transition-colors">Notre politique de transparence</a>
                     </p>
                 </div>

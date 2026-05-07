@@ -6,6 +6,7 @@ import { FurnitureHeaderIcon, BreadBoardHeaderIcon, CounterHeaderIcon } from './
 import TextType from '../../components/ui/TextType';
 import { scrollToTarget } from '../../utils/smoothScroll';
 import { LEGACY_FURNITURE_CATEGORY_BY_ID } from '../../data/legacyFurnitureCategories';
+import { BOARD_SEO_CONTENT, CATEGORY_SEO_CONTENT } from '../../data/categorySeoContent';
 
 // Nombre de colonnes responsive — aligné sur les breakpoints Tailwind utilisés dans
 // l'ancien `columns-2 md:columns-3 lg:columns-4`.
@@ -372,18 +373,62 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
     );
 };
 
+const CategorySeoIntro = ({ content, darkMode }) => {
+    if (!content) return null;
+
+    return (
+        <section className={`mt-1 mb-6 md:mb-8 border-y py-5 md:py-6 ${darkMode ? 'border-[#8a5b2a]/20' : 'border-[#c79b5d]/28'}`}>
+            <div className="grid gap-4 md:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] md:gap-10">
+                <div>
+                    <p className={`text-[9px] md:text-[10px] font-black uppercase tracking-[0.28em] ${darkMode ? 'text-[#f0b969]/80' : 'text-[#8a531c]'}`}>
+                        {content.eyebrow}
+                    </p>
+                    <h2 className={`mt-2 font-serif text-2xl md:text-3xl leading-tight ${darkMode ? 'text-stone-100' : 'text-stone-950'}`}>
+                        {content.title}
+                    </h2>
+                </div>
+                <div className="space-y-3">
+                    <p className={`max-w-[72ch] text-sm md:text-[15px] leading-relaxed ${darkMode ? 'text-stone-300/82' : 'text-stone-700'}`}>
+                        {content.body}
+                    </p>
+                    {content.links?.length > 0 && (
+                        <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1">
+                            {content.links.map((link) => (
+                                <a
+                                    key={link.href}
+                                    href={link.href}
+                                    className={`inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.18em] underline-offset-4 hover:underline ${darkMode ? 'text-[#f0b969]' : 'text-[#8a531c]'}`}
+                                >
+                                    {link.label}
+                                    <ArrowRight size={12} strokeWidth={1.7} />
+                                </a>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </section>
+    );
+};
+
 const MarketplaceLayout = ({
     items,
     onSelectItem,
     headerProps,
     darkMode,
-    setHeaderProps
+    setHeaderProps,
+    initialCategory = 'all',
+    onCategoryChange
 }) => {
     const { activeCollection, setActiveCollection, setFilter, onOpenShop } = headerProps || {};
-    const [activeCategory, setActiveCategory] = useState('all');
+    const [activeCategory, setActiveCategory] = useState(initialCategory || 'all');
     const [activeMaterial, setActiveMaterial] = useState('');
     const [activePriceRange, setActivePriceRange] = useState('');
     const [sortMode, setSortMode] = useState('recent');
+
+    useEffect(() => {
+        setActiveCategory(initialCategory || 'all');
+    }, [initialCategory]);
 
     // === ARCHITECTURE MASONRY JS-DRIVEN ===
     // On rend N colonnes flex-col indépendantes (cf. NUM_COLS responsive). Chaque carte est
@@ -464,8 +509,9 @@ const MarketplaceLayout = ({
         setActiveCategory('all');
         setActiveMaterial('');
         setActivePriceRange('');
+        onCategoryChange?.('all');
         resetView();
-    }, [resetView]);
+    }, [onCategoryChange, resetView]);
 
     const heroConfig = HERO_BY_COLLECTION[activeCollection] || HERO_BY_COLLECTION.furniture;
 
@@ -530,6 +576,12 @@ const MarketplaceLayout = ({
 
     const totalVisible = Math.min(visibleCount, sortedItems.length);
     const hasMore = totalVisible < sortedItems.length;
+    const categorySeoContent = useMemo(() => {
+        if (activeMaterial || activePriceRange) return null;
+        if (activeCollection === 'cutting_boards') return BOARD_SEO_CONTENT;
+        if (activeCategory === 'all') return null;
+        return CATEGORY_SEO_CONTENT[activeCategory] || null;
+    }, [activeCategory, activeCollection, activeMaterial, activePriceRange]);
 
     // Préchauffe le cache HTTP pour la catégorie survolée (desktop) → ratios déjà calculables
     // au moment où l'utilisateur clique sur la pill. Limité à 8 images pour ne pas saturer.
@@ -698,6 +750,7 @@ const MarketplaceLayout = ({
                                             onFocus={() => preloadCategory(category.id)}
                                             onClick={() => {
                                                 setActiveCategory(category.id);
+                                                onCategoryChange?.(category.id);
                                                 resetView();
                                             }}
                                             className={`shrink-0 rounded-full border px-2.5 py-1.5 sm:px-4 sm:py-2 md:px-5 md:py-2.5 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.12em] sm:tracking-[0.20em] md:tracking-[0.22em] transition-all ${
@@ -799,6 +852,8 @@ const MarketplaceLayout = ({
                                     </span>
                                 </label>
                             </div>
+
+                            <CategorySeoIntro content={categorySeoContent} darkMode={darkMode} />
                         </div>
                     </div>
 

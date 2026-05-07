@@ -101,7 +101,10 @@ const ArchitecturalHeader = ({
     const navIconClass = 'shrink-0 text-current opacity-90 transition-colors';
 
     const goToGallery = () => {
-        if (typeof window !== 'undefined') window.location.hash = 'gallery';
+        if (typeof window !== 'undefined') {
+            window.history.pushState({}, document.title, '/meubles-anciens');
+            window.dispatchEvent(new Event('popstate'));
+        }
     };
 
     useEffect(() => {

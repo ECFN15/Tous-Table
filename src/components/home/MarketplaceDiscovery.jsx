@@ -91,7 +91,7 @@ const MarketplaceDiscovery = ({ isOpen, onClose, onExplore }) => {
 
                             {/* Centered Content - Clickable */}
                             <a
-                                href="/?page=gallery"
+                                href="/meubles-anciens"
                                 onClick={(e) => {
                                     if (onExplore) {
                                         e.preventDefault();

@@ -1,12 +1,12 @@
-import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
+﻿import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import { Hammer, Menu, X, ArrowRight, ArrowDown, Plus } from 'lucide-react';
 import StackedCards from '../components/home/StackedCards'; // New Import
 import ProcessSection from '../components/home/ProcessSection'; // New Component (Hybrid Layout)
 
 // --- NPM IMPORTS (remplace les anciens CDN) ---
-// NOTE : Lenis n'est plus importé ici. L'instance unique vit au niveau App.jsx via
+// NOTE : Lenis n'est plus importÃ© ici. L'instance unique vit au niveau App.jsx via
 // useLenisScroll() (cf. _DOCS/AUDITS/scrolllenis.md). ScrollTrigger reste lockstep avec
-// Lenis grâce à gsap.ticker.add(lenis.raf) dans le hook global.
+// Lenis grÃ¢ce Ã  gsap.ticker.add(lenis.raf) dans le hook global.
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 gsap.registerPlugin(ScrollTrigger);
@@ -16,18 +16,19 @@ const ThreeBackground = React.lazy(() => import('../components/home/ThreeBackgro
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import SEO from '../components/shared/SEO';
+import { SITE_URL } from '../utils/seoRoutes';
 import { scrollToTarget, scrollToTop } from '../utils/smoothScroll';
 
-// SÉCURITÉ: Sanitize HTML — Autorise uniquement <br> et <br /> (Anti-XSS)
+// SÃ‰CURITÃ‰: Sanitize HTML â€” Autorise uniquement <br> et <br /> (Anti-XSS)
 const sanitizeHtml = (html) => {
   if (!html || typeof html !== 'string') return '';
-  // 1. Échappe tout le HTML
+  // 1. Ã‰chappe tout le HTML
   const escaped = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  // 2. Ré-autorise UNIQUEMENT les balises <br> et <br />
+  // 2. RÃ©-autorise UNIQUEMENT les balises <br> et <br />
   return escaped.replace(/&lt;br\s*\/?&gt;/gi, '<br />');
 };
 
-// --- COMPOSANT : REVEAL TEXT (CORRIGÉ & ÉLARGI) ---
+// --- COMPOSANT : REVEAL TEXT (CORRIGÃ‰ & Ã‰LARGI) ---
 const RevealText = ({ text, className, delay = 0 }) => {
   return (
     <span className={`block overflow-hidden w-fit pb-[0.2em] pr-6 -mr-6 md:pr-32 md:-mr-32 whitespace-nowrap ${className}`}>
@@ -42,7 +43,7 @@ const RevealText = ({ text, className, delay = 0 }) => {
 };
 
 // --- COMPOSANT : ROTATING SYMBOL (HEADER) ---
-const RotatingSymbol = ({ className, size = 120, text = "TOUS À TABLE • 2026 •" }) => {
+const RotatingSymbol = ({ className, size = 120, text = "TOUS Ã€ TABLE â€¢ 2026 â€¢" }) => {
   return (
     <div className={`relative flex items-center justify-center pointer-events-none select-none ${className}`}>
       <svg width={size} height={size} viewBox="0 0 100 100" className="animate-spin-extremely-slow">
@@ -59,7 +60,7 @@ const RotatingSymbol = ({ className, size = 120, text = "TOUS À TABLE • 2026 
 };
 
 
-// --- COMPOSANT : ACCORDION ITEM (POUR LA FAQ - RESSERRÉ) ---
+// --- COMPOSANT : ACCORDION ITEM (POUR LA FAQ - RESSERRÃ‰) ---
 const AccordionItem = ({ question, answer, isOpen, onClick }) => {
   const contentRef = useRef(null);
 
@@ -116,8 +117,8 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
 
   // ... (Keep existing Navigation logic) ...
 
-  // --- DONNÉES UTILISANT LES IMAGES DYNAMIQUES ---
-  // --- DONNÉES UTILISANT LES IMAGES DYNAMIQUES ET TEXTES ---
+  // --- DONNÃ‰ES UTILISANT LES IMAGES DYNAMIQUES ---
+  // --- DONNÃ‰ES UTILISANT LES IMAGES DYNAMIQUES ET TEXTES ---
   const featuredItems = [
     {
       id: 1,
@@ -128,10 +129,10 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         (homepageImages && homepageImages['featured_1_text']?.title_2) || "Signature"
       ],
       showTitle2: (homepageImages && homepageImages['featured_1_text']?.show_title_2) !== false,
-      desc: (homepageImages && homepageImages['featured_1_text']?.desc) || "\"Une renaissance historique pour l'époque contemporaine.\"",
+      desc: (homepageImages && homepageImages['featured_1_text']?.desc) || "\"Une renaissance historique pour l'Ã©poque contemporaine.\"",
       img: (homepageImages && homepageImages.featured_1) || "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1200",
       imgMobile: (homepageImages && homepageImages.featured_1_mobile) || (homepageImages && homepageImages.featured_1) || "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=800",
-      bgColor: "#FDF0D5", // Carte 1: Crème Vanille (Mieux intégré, moins blanc vif)
+      bgColor: "#FDF0D5", // Carte 1: CrÃ¨me Vanille (Mieux intÃ©grÃ©, moins blanc vif)
       textColor: "#1a1a1a",
       subColor: "#9C8268",
       faintColor: "rgba(0,0,0,0.03)"
@@ -142,27 +143,27 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       subtitle: (homepageImages && homepageImages['featured_2_text']?.subtitle) || "Collection Permanente",
       title: [
         (homepageImages && homepageImages['featured_2_text']?.title_1) || "Console",
-        (homepageImages && homepageImages['featured_2_text']?.title_2) || "Héritage"
+        (homepageImages && homepageImages['featured_2_text']?.title_2) || "HÃ©ritage"
       ],
       showTitle2: (homepageImages && homepageImages['featured_2_text']?.show_title_2) !== false,
-      desc: (homepageImages && homepageImages['featured_2_text']?.desc) || "\"Formes épurées et assemblage traditionnel. L'équilibre parfait entre passé et présent.\"",
+      desc: (homepageImages && homepageImages['featured_2_text']?.desc) || "\"Formes Ã©purÃ©es et assemblage traditionnel. L'Ã©quilibre parfait entre passÃ© et prÃ©sent.\"",
       img: (homepageImages && homepageImages.featured_2) || "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=1200",
       imgMobile: (homepageImages && homepageImages.featured_2_mobile) || (homepageImages && homepageImages.featured_2) || "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=800",
-      bgColor: "#EFC894", // Carte 2: Miel Doré / Sable Solaire (Chaleur et caractère)
+      bgColor: "#EFC894", // Carte 2: Miel DorÃ© / Sable Solaire (Chaleur et caractÃ¨re)
       textColor: "#1a1a1a",
       subColor: "#9C8268",
       faintColor: "rgba(0,0,0,0.03)"
     },
     {
       id: 3,
-      bgTitle: "Secrétaire",
-      subtitle: (homepageImages && homepageImages['featured_3_text']?.subtitle) || "Pièce Unique",
+      bgTitle: "SecrÃ©taire",
+      subtitle: (homepageImages && homepageImages['featured_3_text']?.subtitle) || "PiÃ¨ce Unique",
       title: [
-        (homepageImages && homepageImages['featured_3_text']?.title_1) || "Le Secrétaire",
+        (homepageImages && homepageImages['featured_3_text']?.title_1) || "Le SecrÃ©taire",
         (homepageImages && homepageImages['featured_3_text']?.title_2) || "Secret"
       ],
       showTitle2: (homepageImages && homepageImages['featured_3_text']?.show_title_2) !== false,
-      desc: (homepageImages && homepageImages['featured_3_text']?.desc) || "\"Bois de rose et marqueterie complexe. Un gardien de correspondances oubliées.\"",
+      desc: (homepageImages && homepageImages['featured_3_text']?.desc) || "\"Bois de rose et marqueterie complexe. Un gardien de correspondances oubliÃ©es.\"",
       img: (homepageImages && homepageImages.featured_3) || "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?q=80&w=1200",
       imgMobile: (homepageImages && homepageImages.featured_3_mobile) || (homepageImages && homepageImages.featured_3) || "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?q=80&w=800",
       bgColor: "#DE8F59", // Carte 3: Caramel Rayonnant / Terre d'Ombre
@@ -172,17 +173,17 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
     },
     {
       id: 4,
-      bgTitle: "Bibliothèque",
+      bgTitle: "BibliothÃ¨que",
       subtitle: (homepageImages && homepageImages['featured_4_text']?.subtitle) || "Nouvelle Acquisition",
       title: [
-        (homepageImages && homepageImages['featured_4_text']?.title_1) || "Bibliothèque",
-        (homepageImages && homepageImages['featured_4_text']?.title_2) || "Céleste"
+        (homepageImages && homepageImages['featured_4_text']?.title_1) || "BibliothÃ¨que",
+        (homepageImages && homepageImages['featured_4_text']?.title_2) || "CÃ©leste"
       ],
       showTitle2: (homepageImages && homepageImages['featured_4_text']?.show_title_2) !== false,
-      desc: (homepageImages && homepageImages['featured_4_text']?.desc) || "\"Chêne massif et échelles en laiton. Une structure qui élève l'esprit.\"",
+      desc: (homepageImages && homepageImages['featured_4_text']?.desc) || "\"ChÃªne massif et Ã©chelles en laiton. Une structure qui Ã©lÃ¨ve l'esprit.\"",
       img: (homepageImages && homepageImages.featured_4) || "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?q=80&w=1200",
       imgMobile: (homepageImages && homepageImages.featured_4_mobile) || (homepageImages && homepageImages.featured_4) || "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?q=80&w=800",
-      bgColor: "#BC5735", // Carte 4: Terre Cuite Ensoleillée / Brique
+      bgColor: "#BC5735", // Carte 4: Terre Cuite EnsoleillÃ©e / Brique
       textColor: "#1a1a1a",
       subColor: "#9C8268",
       faintColor: "rgba(0,0,0,0.04)"
@@ -192,10 +193,10 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
   // --- STATS DYNAMIQUES (SECTION 12) ---
   const stats = [
     {
-      // Priorité à la donnée Firebase (même vide), sinon défaut
+      // PrioritÃ© Ã  la donnÃ©e Firebase (mÃªme vide), sinon dÃ©faut
       value: (homepageImages?.['stat_1_text']?.value !== undefined) ? homepageImages['stat_1_text'].value : "15",
       suffix: (homepageImages?.['stat_1_text']?.suffix !== undefined) ? homepageImages['stat_1_text'].suffix : "+",
-      label: (homepageImages?.['stat_1_text']?.label !== undefined) ? homepageImages['stat_1_text'].label : "Années d'excellence"
+      label: (homepageImages?.['stat_1_text']?.label !== undefined) ? homepageImages['stat_1_text'].label : "AnnÃ©es d'excellence"
     },
     {
       value: (homepageImages?.['stat_2_text']?.value !== undefined) ? homepageImages['stat_2_text'].value : "400",
@@ -210,7 +211,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
     {
       value: (homepageImages?.['stat_4_text']?.value !== undefined) ? homepageImages['stat_4_text'].value : "85",
       suffix: (homepageImages?.['stat_4_text']?.suffix !== undefined) ? homepageImages['stat_4_text'].suffix : "+",
-      label: (homepageImages?.['stat_4_text']?.label !== undefined) ? homepageImages['stat_4_text'].label : "Patrimoines sauvés"
+      label: (homepageImages?.['stat_4_text']?.label !== undefined) ? homepageImages['stat_4_text'].label : "Patrimoines sauvÃ©s"
     }
   ];
 
@@ -219,7 +220,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
     // 1. Transition vers Marketplace (Sync avec le Menu & App.jsx)
     if (selector === 'marketplace') {
 
-      // SIGNAL PRELOAD: On pré-monte la Marketplace en arrière-plan
+      // SIGNAL PRELOAD: On prÃ©-monte la Marketplace en arriÃ¨re-plan
       if (onStartMarketplaceTransition) onStartMarketplaceTransition();
 
       const tl = gsap.timeline({
@@ -228,7 +229,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         }
       });
 
-      // Sortie Éclair (Snappy Exit)
+      // Sortie Ã‰clair (Snappy Exit)
       tl.to('.menu-link', {
         y: -100,
         opacity: 0,
@@ -281,7 +282,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       }, { timeout: 2200 });
 
       // 3. Force GPU layers on key animated elements
-      // NOTE: .card-visual is EXCLUDED — StackedCards manages its own GPU layers via GSAP force3D:true
+      // NOTE: .card-visual is EXCLUDED â€” StackedCards manages its own GPU layers via GSAP force3D:true
       const animatedElements = document.querySelectorAll(
         '.process-card, .manifesto-item, .img-parallax img'
       );
@@ -414,7 +415,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         }, "-=0.8") // Start slightly before chars finish
 
         // 2. Curtain Exit - Rapide et Tranchant
-        .addLabel("exit", "+=0.0") // Départ immédiat (Snappy)
+        .addLabel("exit", "+=0.0") // DÃ©part immÃ©diat (Snappy)
         .to('.preloader-secondary-bg', {
           yPercent: -100,
           duration: 0.8, // Reduced from 1.2
@@ -459,10 +460,10 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
     return () => ctx.revert();
   }, [scriptsLoaded]);
 
-  // --- LENIS — instance hoisée au niveau App.jsx ---
-  // Le smooth-scroll de cette page utilise l'instance unique exposée sur window.__lenis
+  // --- LENIS â€” instance hoisÃ©e au niveau App.jsx ---
+  // Le smooth-scroll de cette page utilise l'instance unique exposÃ©e sur window.__lenis
   // (cf. src/hooks/useLenisScroll.js). Plus de RAF/Lenis local : ScrollTrigger reste en
-  // lockstep avec Lenis grâce à gsap.ticker.add(lenis.raf) dans le hook global.
+  // lockstep avec Lenis grÃ¢ce Ã  gsap.ticker.add(lenis.raf) dans le hook global.
   // Cf. _DOCS/AUDITS/scrolllenis.md pour le contexte de cet audit.
 
   // --- GSAP ORCHESTRATION ---
@@ -651,7 +652,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         });
       }
 
-      // Quote Reveal (Bordure + Mots avec flou cinétique)
+      // Quote Reveal (Bordure + Mots avec flou cinÃ©tique)
       const quoteWords = gsap.utils.toArray('.quote-word');
       const quoteBorder = document.querySelector('.quote-border');
       
@@ -664,7 +665,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
           }
         });
 
-        // 1. La bordure s'étire
+        // 1. La bordure s'Ã©tire
         quoteTl.fromTo(quoteBorder, 
           { scaleY: 0 }, 
           { scaleY: 1, duration: 1, ease: "slow(0.7, 0.7, false)" }
@@ -704,7 +705,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
             once: true
           },
           onUpdate: () => {
-             // Si c'est en chiffres romains dans la donnée, on garde un truc spécial ou juste le chiffre
+             // Si c'est en chiffres romains dans la donnÃ©e, on garde un truc spÃ©cial ou juste le chiffre
              counterEl.innerText = Math.round(counterTarget.val);
           }
         });
@@ -743,7 +744,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
     };
   }, [scriptsLoaded]);
 
-  // --- NOUVELLE ANIMATION DÉDIÉE AUX STATS ---
+  // --- NOUVELLE ANIMATION DÃ‰DIÃ‰E AUX STATS ---
   useEffect(() => {
     if (!homepageImages) return;
 
@@ -787,30 +788,144 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
 
 
 
-  // DONNÉES FAQ
-  // DONNÉES FAQ (DYNAMIQUES)
+  // DONNÃ‰ES FAQ
+  // DONNÃ‰ES FAQ (DYNAMIQUES)
   const faqItems = [
     {
-      q: homepageImages['faq_main_text']?.q1 || "Comment se déroule la restauration d'un meuble ?",
-      a: homepageImages['faq_main_text']?.a1 || "Chaque projet commence par une analyse approfondie de l'état du meuble. Nous établissons un diagnostic précis avant de procéder au nettoyage, à la consolidation structurelle, puis aux finitions respectueuses de l'époque."
+      q: homepageImages['faq_main_text']?.q1 || "Comment se dÃ©roule la restauration d'un meuble ?",
+      a: homepageImages['faq_main_text']?.a1 || "Chaque projet commence par une analyse approfondie de l'Ã©tat du meuble. Nous Ã©tablissons un diagnostic prÃ©cis avant de procÃ©der au nettoyage, Ã  la consolidation structurelle, puis aux finitions respectueuses de l'Ã©poque."
     },
     {
       q: homepageImages['faq_main_text']?.q2 || "Puis-je personnaliser les finitions ?",
-      a: homepageImages['faq_main_text']?.a2 || "Absolument. Bien que nous privilégions les techniques traditionnelles, nous pouvons adapter la teinte, le vernis ou le tissu pour que la pièce s'intègre parfaitement à votre intérieur contemporain."
+      a: homepageImages['faq_main_text']?.a2 || "Absolument. Bien que nous privilÃ©gions les techniques traditionnelles, nous pouvons adapter la teinte, le vernis ou le tissu pour que la piÃ¨ce s'intÃ¨gre parfaitement Ã  votre intÃ©rieur contemporain."
     },
     {
-      q: homepageImages['faq_main_text']?.q3 || "Utilisez-vous des produits écologiques ?",
-      a: homepageImages['faq_main_text']?.a3 || "Oui, nous privilégions les cires naturelles, les huiles végétales et les vernis à l'eau ou au tampon (gomme laque) pour garantir la santé de votre intérieur et celle de la planète."
+      q: homepageImages['faq_main_text']?.q3 || "Utilisez-vous des produits Ã©cologiques ?",
+      a: homepageImages['faq_main_text']?.a3 || "Oui, nous privilÃ©gions les cires naturelles, les huiles vÃ©gÃ©tales et les vernis Ã  l'eau ou au tampon (gomme laque) pour garantir la santÃ© de votre intÃ©rieur et celle de la planÃ¨te."
     },
     {
-      q: homepageImages['faq_main_text']?.q4 || "Quels sont les délais moyens ?",
-      a: homepageImages['faq_main_text']?.a4 || "Cela dépend de la complexité de la restauration. Comptez en moyenne 4 à 8 semaines pour une restauration complète. Chaque étape de séchage et de pose est cruciale et ne peut être accélérée."
+      q: homepageImages['faq_main_text']?.q4 || "Quels sont les dÃ©lais moyens ?",
+      a: homepageImages['faq_main_text']?.a4 || "Cela dÃ©pend de la complexitÃ© de la restauration. Comptez en moyenne 4 Ã  8 semaines pour une restauration complÃ¨te. Chaque Ã©tape de sÃ©chage et de pose est cruciale et ne peut Ãªtre accÃ©lÃ©rÃ©e."
     },
     {
-      q: homepageImages['faq_main_text']?.q5 || "Livrez-vous à l'international ?",
-      a: homepageImages['faq_main_text']?.a5 || "Oui, nous organisons l'expédition sécurisée de nos pièces dans le monde entier, avec des caisses de transport sur-mesure pour garantir une protection optimale."
+      q: homepageImages['faq_main_text']?.q5 || "Livrez-vous Ã  l'international ?",
+      a: homepageImages['faq_main_text']?.a5 || "Oui, nous organisons l'expÃ©dition sÃ©curisÃ©e de nos piÃ¨ces dans le monde entier, avec des caisses de transport sur-mesure pour garantir une protection optimale."
     }
   ];
+
+  const aboutSchema = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": `${SITE_URL}/a-propos#webpage`,
+        "url": `${SITE_URL}/a-propos`,
+        "name": "Tous a Table Made in Normandie - Atelier de restauration de meubles",
+        "description": "Atelier de restauration de mobilier a Ifs pres de Caen. Vente de meubles anciens restaures, tables de ferme, buffets, armoires et pieces uniques en bois massif.",
+        "isPartOf": {
+          "@id": `${SITE_URL}/#website`
+        },
+        "about": {
+          "@id": `${SITE_URL}/#atelier`
+        }
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${SITE_URL}/#website`,
+        "url": SITE_URL,
+        "name": "Tous a Table Made in Normandie",
+        "publisher": {
+          "@id": `${SITE_URL}/#atelier`
+        }
+      },
+      {
+        "@type": ["FurnitureStore", "LocalBusiness"],
+        "@id": `${SITE_URL}/#atelier`,
+        "name": "Tous a Table Made in Normandie",
+        "alternateName": "Tous a Table - Atelier Normand",
+        "image": "https://firebasestorage.googleapis.com/v0/b/tousatable-client.appspot.com/o/sys_assets%2Fog_cover.jpg?alt=media",
+        "url": SITE_URL,
+        "telephone": "+33 7 77 32 41 78",
+        "priceRange": "EUR EUR-EUR EUR EUR",
+        "description": "Atelier de restauration de mobilier a Ifs pres de Caen. Vente de meubles anciens restaures en Normandie avec livraison locale, France entiere et pays frontaliers selon transport.",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "346 Chemin de Fleury",
+          "addressLocality": "Ifs",
+          "addressRegion": "Normandie",
+          "postalCode": "14123",
+          "addressCountry": "FR"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 49.1417,
+          "longitude": -0.3472
+        },
+        "areaServed": [
+          { "@type": "City", "name": "Ifs" },
+          { "@type": "City", "name": "Caen" },
+          { "@type": "AdministrativeArea", "name": "Normandie" },
+          { "@type": "Country", "name": "France" }
+        ],
+        "knowsAbout": [
+          "restauration de meubles anciens",
+          "tables de ferme anciennes",
+          "buffets anciens",
+          "armoires anciennes",
+          "meubles en bois massif",
+          "livraison de meubles anciens"
+        ],
+        "sameAs": [
+          "https://www.google.com/maps/dir/?api=1&destination=Tous+a+Table+Atelier+Normand+346+Chem.+de+Fleury+14123+Ifs"
+        ],
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday"
+            ],
+            "opens": "09:00",
+            "closes": "19:00"
+          }
+        ]
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": `${SITE_URL}/a-propos#breadcrumb`,
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Accueil",
+            "item": `${SITE_URL}/`
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "A propos",
+            "item": `${SITE_URL}/a-propos`
+          }
+        ]
+      },
+      {
+        "@type": "FAQPage",
+        "@id": `${SITE_URL}/a-propos#faq`,
+        "mainEntity": faqItems.map((item) => ({
+          "@type": "Question",
+          "name": item.q,
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": item.a
+          }
+        }))
+      }
+    ]
+  };
 
   // SEO component is already imported at the top.
   // We just need to ensure it is used correctly in the return statement.
@@ -818,48 +933,10 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
   return (
     <div ref={componentRef} className="bg-[#FAF9F6] text-[#1a1a1a] transition-colors duration-700 antialiased">
       <SEO
-        title="Rénovation d'Anciennes Tables de Ferme et de Meubles"
-        description="Atelier de restauration de mobilier à Ifs (14123). Vente de meubles normands authentiques en chêne : tables de ferme, armoires parisiennes et buffets. Livraison Caen, Deauville, toute la France et pays frontaliers. Tel: 07 77 32 41 78."
-        schema={{
-          "@context": "https://schema.org",
-          "@type": "FurnitureStore",
-          "name": "Tous à Table Made in Normandie",
-          "alternateName": "Tous à Table — Ameublement",
-          "image": "https://firebasestorage.googleapis.com/v0/b/tousatable-client.appspot.com/o/sys_assets%2Fog_cover.jpg?alt=media",
-          "@id": "https://tousatable-madeinnormandie.fr",
-          "url": "https://tousatable-madeinnormandie.fr",
-          "telephone": "+33 7 77 32 41 78",
-          "address": {
-            "@type": "PostalAddress",
-            "streetAddress": "346 Chemin de Fleury",
-            "addressLocality": "Ifs",
-            "addressRegion": "Normandie",
-            "postalCode": "14123",
-            "addressCountry": "FR"
-          },
-          "geo": {
-            "@type": "GeoCoordinates",
-            "latitude": 49.1417,
-            "longitude": -0.3472
-          },
-          "priceRange": "€€-€€€",
-          "description": "Atelier de restauration de mobilier à Ifs (14123). Vente de meubles normands authentiques en chêne : tables de ferme, armoires parisiennes et buffets. Livraison sur Caen, Deauville, toute la Normandie, la France et pays frontaliers.",
-          "openingHoursSpecification": [
-            {
-              "@type": "OpeningHoursSpecification",
-              "dayOfWeek": [
-                "Monday",
-                "Tuesday",
-                "Wednesday",
-                "Thursday",
-                "Friday",
-                "Saturday"
-              ],
-              "opens": "09:00",
-              "closes": "19:00"
-            }
-          ]
-        }}
+        title="RÃ©novation d'Anciennes Tables de Ferme et de Meubles"
+        description="Atelier de restauration de mobilier Ã  Ifs (14123). Vente de meubles normands authentiques en chÃªne : tables de ferme, armoires parisiennes et buffets. Livraison Caen, Deauville, toute la France et pays frontaliers. Tel: 07 77 32 41 78."
+        url="/a-propos"
+        schema={aboutSchema}
       />
 
 
@@ -880,7 +957,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
                   <Hammer size={56} strokeWidth={1} className="text-[#9C8268] drop-shadow-[0_0_15px_rgba(156,130,104,0.3)]" />
                 </div>
                 <div className="overflow-hidden flex gap-[0.2em] px-4">
-                  {"TOUS À TABLE".split("").map((char, i) => (
+                  {"TOUS Ã€ TABLE".split("").map((char, i) => (
                     <span
                       key={i}
                       className="preloader-char font-serif text-4xl md:text-6xl italic font-light tracking-[0.2em] inline-block will-change-transform opacity-0"
@@ -912,9 +989,9 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       <header className="fixed top-0 left-0 w-full p-5 md:p-12 pt-[max(2rem,env(safe-area-inset-top))] pr-[max(1.5rem,env(safe-area-inset-right))] pl-[max(1.5rem,env(safe-area-inset-left))] flex justify-between items-center z-[210] mix-blend-difference text-white" style={{ isolation: 'isolate' }}>
                         <div className="flex items-center gap-3 cursor-pointer group" onClick={() => scrollToTop({ immediate: false, duration: 0.9 })}>
           <Hammer size={18} className="group-hover:rotate-45 transition-transform duration-500" />
-          <span className="font-serif text-xl tracking-widest uppercase font-light italic text-white">Tous à Table</span>
+          <span className="font-serif text-xl tracking-widest uppercase font-light italic text-white">Tous Ã  Table</span>
         </div>
-        {/* BOUTON MENU ANIMÉ */}
+        {/* BOUTON MENU ANIMÃ‰ */}
         <button onClick={() => { setIsMenuOpen(!isMenuOpen); setMenuInteracted(true); }} className="flex items-center gap-4 group focus:outline-none">
           <span className={`text-[9px] uppercase tracking-[0.4em] transition-opacity duration-500 ${isMenuOpen ? 'opacity-100' : 'opacity-40 group-hover:opacity-100'}`}>Menu</span>
 
@@ -957,10 +1034,10 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       <section className="hero-section relative h-screen flex flex-col justify-center px-6 md:px-12 lg:px-[10vw] z-10 pb-12 md:pb-32" style={{ height: '100svh' }}>
         {/* Title resized to 10.5vw (was 12.5) to free up vertical space for bottom text */}
         <h1 className="font-serif text-[18vw] md:text-[10.5vw] leading-[0.8] uppercase flex flex-col font-light text-[#1a1a1a] mix-blend-multiply">
-          <span className="sr-only">Restauration de mobilier normand et meubles anciens à Caen</span>
+          <span className="sr-only">Restauration de mobilier normand et meubles anciens Ã  Caen</span>
           <RevealText text="Le Geste" />
           <div className="flex items-center gap-4 self-end md:mr-[8vw] mt-2 md:mt-0">
-            <RevealText text="& L'Âme" className="text-[#9C8268] italic pt-[0.25em] -mt-[0.25em]" />
+            <RevealText text="& L'Ã‚me" className="text-[#9C8268] italic pt-[0.25em] -mt-[0.25em]" />
           </div>
         </h1>
 
@@ -991,9 +1068,9 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       {/* Reduced py-60 to py-32 for tablets (md) to avoid huge gaps */}
       <section className="manifesto relative py-32 md:pt-40 md:pb-64 px-8 md:px-[10vw] bg-transparent">
         <div className="mb-48 max-w-3xl">
-          <span className="text-[10px] uppercase tracking-[0.6em] text-[#9C8268] block mb-12">Héritage</span>
+          <span className="text-[10px] uppercase tracking-[0.6em] text-[#9C8268] block mb-12">HÃ©ritage</span>
           <h2 className="font-serif text-5xl md:text-8xl leading-tight font-light italic text-[#1a1a1a]">
-            Réveiller la splendeur <br /> du bois oublié.
+            RÃ©veiller la splendeur <br /> du bois oubliÃ©.
           </h2>
         </div>
 
@@ -1005,7 +1082,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
               <img
                 src={homepageImages['manifesto_1'] || "https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=1200"}
                 className="w-full h-full object-cover will-change-transform"
-                alt="Table en Chêne"
+                alt="Table en ChÃªne"
                 decoding="async"
                 loading="lazy"
               />
@@ -1016,7 +1093,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
                 dangerouslySetInnerHTML={{ __html: sanitizeHtml(homepageImages['manifesto_1_text']?.title || "Le Plateau d'Antan") }}
               />
               <p className="text-[10px] md:text-xs opacity-60 font-light leading-relaxed uppercase tracking-[0.25em] text-[#1a1a1a]">
-                {homepageImages['manifesto_1_text']?.desc || "Chêne de pays — Finition à la cire d'abeille."}
+                {homepageImages['manifesto_1_text']?.desc || "ChÃªne de pays â€” Finition Ã  la cire d'abeille."}
               </p>
             </div>
           </div>
@@ -1037,7 +1114,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
                 dangerouslySetInnerHTML={{ __html: sanitizeHtml(homepageImages['manifesto_2_text']?.title || "La Console Royale") }}
               />
               <p className="text-[10px] md:text-xs uppercase tracking-[0.25em] opacity-60 font-light text-[#1a1a1a]">
-                {homepageImages['manifesto_2_text']?.desc || "Noyer sculpté — XIXème siècle."}
+                {homepageImages['manifesto_2_text']?.desc || "Noyer sculptÃ© â€” XIXÃ¨me siÃ¨cle."}
               </p>
             </div>
           </div>
@@ -1055,17 +1132,17 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
             <div className="w-full max-w-lg 2xl:max-w-none 2xl:w-2/5 space-y-8 mx-auto 2xl:mx-0">
               <h3
                 className="font-serif text-4xl md:text-5xl lg:text-6xl italic leading-tight text-[#1a1a1a] md:whitespace-nowrap"
-                dangerouslySetInnerHTML={{ __html: sanitizeHtml(homepageImages['manifesto_3_text']?.title || "La Renaissance <br /> d'un Chef-d'œuvre") }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(homepageImages['manifesto_3_text']?.title || "La Renaissance <br /> d'un Chef-d'Å“uvre") }}
               />
               <p className="text-[10px] md:text-xs opacity-60 font-light leading-relaxed uppercase tracking-[0.25em] text-[#1a1a1a]">
-                {homepageImages['manifesto_3_text']?.desc || "Après 400 heures de restauration méticuleuse, cette pièce a retrouvé sa profondeur originelle. Un dialogue suspendu entre le XVIIIème et aujourd'hui."}
+                {homepageImages['manifesto_3_text']?.desc || "AprÃ¨s 400 heures de restauration mÃ©ticuleuse, cette piÃ¨ce a retrouvÃ© sa profondeur originelle. Un dialogue suspendu entre le XVIIIÃ¨me et aujourd'hui."}
               </p>
               <button onClick={onEnterMarketplace} className="flex items-center gap-6 group">
                 <div className="w-14 h-14 rounded-full border border-black/10 flex items-center justify-center group-hover:bg-black group-hover:text-white transition-all duration-500">
                   <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                 </div>
                 <span className="text-[10px] uppercase tracking-[0.4em] text-[#1a1a1a]">
-                  {homepageImages['manifesto_3_text']?.btn || "Découvrir la pièce"}
+                  {homepageImages['manifesto_3_text']?.btn || "DÃ©couvrir la piÃ¨ce"}
                 </span>
               </button>
             </div>
@@ -1085,10 +1162,10 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       />
 
 
-      {/* [SECTION 12: RENDU - DATA (REWORK STYLE LUMOSINE - ALIGNÉ)] */}
+      {/* [SECTION 12: RENDU - DATA (REWORK STYLE LUMOSINE - ALIGNÃ‰)] */}
       < section className="data-section relative py-40 bg-[#111111] text-[#FAF9F6] overflow-hidden" style={{ contain: 'layout' }} >
 
-        {/* Marquee stylisé : Ticker de luxe */}
+        {/* Marquee stylisÃ© : Ticker de luxe */}
         < div className="marquee-wrapper border-y border-white/5 bg-[#0a0a0a] py-12 mb-40" >
           <div className="flex whitespace-nowrap animate-marquee">
             {[...Array(6)].map((_, i) => (
@@ -1106,23 +1183,23 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
           </div>
         </div >
 
-        {/* Grille de données - Style Architectural (CORRIGÉ : TAILLES & ALIGNEMENT) */}
+        {/* Grille de donnÃ©es - Style Architectural (CORRIGÃ‰ : TAILLES & ALIGNEMENT) */}
         < div className="max-w-[110rem] mx-auto px-12 md:px-[10vw]" >
           {/* AJOUT DE border-t POUR FERMER LA GRILLE */}
           < div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 border-l border-t border-white/10" >
             {
               stats.map((stat, idx) => (
                 <div key={idx} className="stat-item p-12 md:p-16 border-r border-b border-white/10 group flex flex-col justify-between min-h-[300px] md:min-h-[400px]">
-                  {/* En-tête de la cellule */}
+                  {/* En-tÃªte de la cellule */}
                   <div className="flex justify-between items-start">
                     <span className="text-[11px] uppercase tracking-[0.5em] font-bold opacity-30 group-hover:opacity-100 group-hover:text-[#9C8268] transition-all duration-700">Mesure 0{idx + 1}</span>
                     <Hammer size={18} className="opacity-20 group-hover:opacity-100 group-hover:text-[#9C8268] transition-all duration-700" />
                   </div>
 
-                  {/* Chiffres avec taille contrôlée pour éviter l'overflow */}
+                  {/* Chiffres avec taille contrÃ´lÃ©e pour Ã©viter l'overflow */}
                   <div className="my-16">
                     <div className="flex items-baseline gap-2 flex-wrap">
-                      {/* Taille ajustée pour 4 colonnes : text-6xl -> xl:text-8xl */}
+                      {/* Taille ajustÃ©e pour 4 colonnes : text-6xl -> xl:text-8xl */}
                       <span className="stat-number font-serif text-6xl md:text-7xl xl:text-8xl leading-none font-light italic tracking-tighter" data-target={stat.value}>0</span>
                       <span className="text-4xl md:text-5xl font-serif italic text-[#9C8268]">{stat.suffix}</span>
                     </div>
@@ -1142,12 +1219,12 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
             <div className="max-w-2xl">
               <h3 className="font-serif text-5xl italic mb-10 text-[#9C8268]">La mesure de notre engagement.</h3>
               <p className="text-xs md:text-lg font-light opacity-40 leading-relaxed uppercase tracking-[0.2em]">
-                Ces données ne sont pas que des chiffres, elles sont le reflet de milliers d'heures de passion dévouées à la transmission du patrimoine normand.
+                Ces donnÃ©es ne sont pas que des chiffres, elles sont le reflet de milliers d'heures de passion dÃ©vouÃ©es Ã  la transmission du patrimoine normand.
               </p>
             </div>
             <div className="flex flex-col items-end gap-6">
               <div className="w-52 h-[1px] bg-white/10"></div>
-              <span className="text-[11px] uppercase tracking-[0.6em] opacity-30">Atelier Tous à Table © — Archive 2026</span>
+              <span className="text-[11px] uppercase tracking-[0.6em] opacity-30">Atelier Tous Ã  Table Â© â€” Archive 2026</span>
             </div>
           </div>
         </div >
@@ -1161,7 +1238,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
           {/* COLONNE GAUCHE (TEXTE) - STICKY */}
           {/* md: tablettes (768px+), lg: laptops (1024px+), xl: desktops (1280px+) */}
           <div className="w-full md:w-1/2 md:sticky md:top-0 md:h-auto lg:h-screen flex flex-col md:justify-start lg:justify-center px-8 md:px-8 lg:px-[6vw] pt-24 pb-0 md:pt-[15vh] md:pb-16 lg:py-0 text-[#1a1a1a]">
-            {/* Espacement interne augmenté : space-y-8 (was space-y-6) */}
+            {/* Espacement interne augmentÃ© : space-y-8 (was space-y-6) */}
             <div className="space-y-8 md:space-y-8 lg:space-y-10">
               <span className="team-tag text-[10px] md:text-[11px] lg:text-[12px] uppercase tracking-[1.4em] text-[#9C8268] block font-black italic">La Direction</span>
               
@@ -1180,22 +1257,22 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
               </h2>
             </div>
 
-            {/* Quote Reveal (A.04 WordByWordFade Amélioré) */}
+            {/* Quote Reveal (A.04 WordByWordFade AmÃ©liorÃ©) */}
             <p className="text-base md:text-lg lg:text-xl font-light leading-loose italic pl-6 md:pl-6 lg:pl-8 xl:pl-10 mt-12 md:mt-8 lg:mt-12 overflow-hidden relative">
-               {/* Bordure animée séparée */}
+               {/* Bordure animÃ©e sÃ©parÃ©e */}
                <span className="quote-border absolute left-0 top-0 bottom-0 w-[1px] bg-black/20 origin-top transform-gpu" />
                
-               {(homepageImages['team_main_text']?.quote || "On ne sauve pas un meuble pour qu'il paraisse neuf, mais pour qu'il reste vrai. L'imperfection est la signature de l'histoire, je suis juste là pour qu'elle continue.").split(' ').map((word, i) => (
+               {(homepageImages['team_main_text']?.quote || "On ne sauve pas un meuble pour qu'il paraisse neuf, mais pour qu'il reste vrai. L'imperfection est la signature de l'histoire, je suis juste lÃ  pour qu'elle continue.").split(' ').map((word, i) => (
                  <span key={i} className="quote-word inline-block mr-[0.25em] will-change-[transform,opacity,filter]">
                    {word}
                  </span>
                ))}
             </p>
 
-            {/* Marge augmentée : mt-12 (was mt-8) */}
+            {/* Marge augmentÃ©e : mt-12 (was mt-8) */}
             <div className="flex gap-6 md:gap-8 lg:gap-12 xl:gap-16 pt-8 md:pt-8 lg:pt-12 border-t border-black/5 items-center mt-12 md:mt-8 lg:mt-12">
               <div>
-                <span className="block text-[9px] uppercase tracking-widest opacity-30 mb-2 font-black">Expérience</span>
+                <span className="block text-[9px] uppercase tracking-widest opacity-30 mb-2 font-black">ExpÃ©rience</span>
                 <span className="font-serif text-3xl md:text-4xl lg:text-5xl xl:text-6xl italic text-[#9C8268] flex items-baseline">
                    <span className="exp-counter">0</span>
                    <span className="ml-2 text-xl md:text-2xl opacity-60">Ans</span>
@@ -1207,12 +1284,12 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
           </div>
 
           {/* COLONNE DROITE (IMAGE) - SCROLLABLE, PLUS HAUTE */}
-          {/* Mobile: pt-16 (Gap entre texte et image), pb-24 (Marge bas symétrique à pt-24 du haut) */}
+          {/* Mobile: pt-16 (Gap entre texte et image), pb-24 (Marge bas symÃ©trique Ã  pt-24 du haut) */}
           <div className="w-full md:w-1/2 md:min-h-[160vh] lg:min-h-[150vh] flex flex-col justify-start px-8 md:px-8 lg:px-[4vw] pt-16 pb-24 md:pt-[15vh] md:pb-[20vh] lg:py-[15vh] bg-[#FAF9F6]">
             <div className="relative w-full aspect-[3/4] md:aspect-[2/3] shadow-[0_80px_160px_rgba(0,0,0,0.15)] bg-stone-200 overflow-hidden">
               <img
                 src={homepageImages['team_main'] || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1600"}
-                alt="Maître Ebéniste"
+                alt="MaÃ®tre EbÃ©niste"
                 className="w-full h-full object-cover force-color-tablet 2xl:grayscale 2xl:hover:grayscale-0 transition-all duration-1000"
               />
               <RotatingSymbol className="absolute -bottom-16 -right-16 text-[#9C8268] opacity-20" size={200} />
@@ -1222,15 +1299,15 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         </div>
       </section>
 
-      {/* [SECTION 13.5 : FAQ - Layout Centré Simple] */}
+      {/* [SECTION 13.5 : FAQ - Layout CentrÃ© Simple] */}
       <section className="faq-section py-24 md:py-40 px-8 md:px-[10vw] bg-[#F0F2EB] text-[#1a1a1a]" style={{ contain: 'layout' }}>
         <div className="max-w-6xl mx-auto w-full">
 
-          {/* En-tête */}
+          {/* En-tÃªte */}
           <div className="text-center mb-16 md:mb-24">
             <span className="text-[10px] uppercase tracking-[0.6em] text-[#9C8268] block mb-6 font-bold">Le Savoir</span>
             <h2 className="font-serif text-5xl md:text-7xl font-light italic text-[#1a1a1a] leading-tight">
-              Réponses Rapides
+              RÃ©ponses Rapides
             </h2>
           </div>
 
@@ -1254,7 +1331,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
             <div className="w-full aspect-square overflow-hidden bg-white shadow-2xl hidden md:block">
               <img
                 src={homepageImages['faq_main'] || "https://images.unsplash.com/photo-1610701596007-11502861dcfa?q=80&w=1600"}
-                alt="Détail savoir-faire"
+                alt="DÃ©tail savoir-faire"
                 className="w-full h-full object-cover scale-110 hover:scale-100 transition-transform duration-[2s] ease-out force-color-tablet 2xl:grayscale 2xl:hover:grayscale-0"
               />
             </div>

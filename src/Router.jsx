@@ -12,6 +12,7 @@ const ShopView = React.lazy(() => import('./pages/ShopView'));
 const ProductDetail = React.lazy(() => import('./pages/ProductDetail'));
 const CheckoutView = React.lazy(() => import('./pages/CheckoutView'));
 const LoginView = React.lazy(() => import('./pages/LoginView'));
+const DeliveryView = React.lazy(() => import('./pages/DeliveryView'));
 import { Palette,
     CreditCard, Mail, Users, Share2, Globe,
     Activity, Home, Package, Layout, LayoutPanelTop, BarChart3, ChevronLeft,
@@ -138,8 +139,8 @@ const AppRouter = ({
 
     return (
         <main>
-            {(view === 'home' || isPreparingGallery) && (
-                <div className={view === 'home' ? 'contents' : 'hidden'}>
+            {((view === 'home' || view === 'about') || isPreparingGallery) && (
+                <div className={(view === 'home' || view === 'about') ? 'contents' : 'hidden'}>
                     <HomeView
                         onEnterMarketplace={completeGalleryTransition}
                         onStartMarketplaceTransition={startGalleryTransition}
@@ -161,7 +162,7 @@ const AppRouter = ({
                             isAdmin={isAdmin} isSecretGateOpen={isSecretGateOpen} user={user}
                             onShowLogin={() => setShowFullLogin(true)}
                             onSelectItem={(id) => { setSelectedItemId(id); setView('detail'); scrollToTop(); }}
-                            onOpenShop={() => { setView('shop'); window.location.hash = 'shop'; scrollToTop(); }}
+                            onOpenShop={() => { setView('shop'); scrollToTop(); }}
                             darkMode={darkMode}
                             onOpenMenu={onOpenMenu}
                             onOpenCart={onOpenCart}
@@ -184,6 +185,12 @@ const AppRouter = ({
                         toggleTheme={toggleTheme}
                         setHeaderProps={setHeaderProps}
                     />
+                </Suspense>
+            )}
+
+            {view === 'delivery' && (
+                <Suspense fallback={<div className="min-h-screen bg-transparent"></div>}>
+                    <DeliveryView darkMode={darkMode} />
                 </Suspense>
             )}
 

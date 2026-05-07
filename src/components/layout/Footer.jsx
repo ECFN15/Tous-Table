@@ -52,11 +52,12 @@ const Footer = ({ darkMode = false }) => {
             <div className="max-w-[1920px] mx-auto px-5 md:px-16 py-12 md:py-16">
                 <div className="md:hidden">
                     <MobileDisclosure title="A propos" darkMode={darkMode}>
-                        <a href="/" className="block hover:text-[#dba45f]">Notre histoire</a>
-                        <a href="/?page=gallery" className="block hover:text-[#dba45f]">La galerie</a>
-                        <a href="/?page=shop" className="block hover:text-[#dba45f]">Le comptoir</a>
+                        <a href="/a-propos" className="block hover:text-[#dba45f]">Notre histoire</a>
+                        <a href="/meubles-anciens" className="block hover:text-[#dba45f]">La galerie</a>
+                        <a href="/comptoir" className="block hover:text-[#dba45f]">Le comptoir</a>
                     </MobileDisclosure>
                     <MobileDisclosure title="Aide" darkMode={darkMode}>
+                        <a href="/livraison-meubles-anciens-france" className="block hover:text-[#dba45f]">Livraison</a>
                         <a href={`tel:${phone.replace(/\s/g, '')}`} className="block hover:text-[#dba45f]">{phone}</a>
                         <a href={`mailto:${email}`} className="block break-all hover:text-[#dba45f]">{email}</a>
                         <a
@@ -103,15 +104,15 @@ const Footer = ({ darkMode = false }) => {
 
                     <div className="hidden md:block">
                         <FooterColumn title="A propos" darkMode={darkMode}>
-                            <a href="/" className="block hover:text-[#dba45f]">Notre histoire</a>
-                            <a href="/?page=gallery" className="block hover:text-[#dba45f]">La galerie</a>
-                            <a href="/?page=shop" className="block hover:text-[#dba45f]">Le comptoir</a>
+                            <a href="/a-propos" className="block hover:text-[#dba45f]">Notre histoire</a>
+                            <a href="/meubles-anciens" className="block hover:text-[#dba45f]">La galerie</a>
+                            <a href="/comptoir" className="block hover:text-[#dba45f]">Le comptoir</a>
                         </FooterColumn>
                     </div>
 
                     <div className="hidden md:block">
                         <FooterColumn title="Aide" darkMode={darkMode}>
-                            <a href={`tel:${phone.replace(/\s/g, '')}`} className="block hover:text-[#dba45f]">Livraison & retours</a>
+                            <a href="/livraison-meubles-anciens-france" className="block hover:text-[#dba45f]">Livraison</a>
                             <a href={`mailto:${email}`} className="block hover:text-[#dba45f]">Contact</a>
                             <span className="block">FAQ</span>
                         </FooterColumn>
@@ -165,7 +166,7 @@ const Footer = ({ darkMode = false }) => {
                         <a href="tel:0782013155" className="hover:text-[#dba45f]">Contact : 07.82.01.31.55</a>
                     </div>
                     <div className="flex gap-5 text-[10px] font-black uppercase tracking-[0.18em] text-stone-500">
-                        <a href="/?page=gallery" className="hover:text-[#dba45f]">La galerie</a>
+                        <a href="/meubles-anciens" className="hover:text-[#dba45f]">La galerie</a>
                         <span>Privacy policy</span>
                         <span>Legal mentions</span>
                     </div>

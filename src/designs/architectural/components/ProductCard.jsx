@@ -1,6 +1,7 @@
 import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { Plus } from 'lucide-react';
 import AuctionTimer from '../../../components/ui/AuctionTimer';
+import { getProductPath } from '../../../utils/seoRoutes';
 
 // Cache module-level : survit aux unmount/remount des cartes (changement de filtre/catégorie).
 // Tue le "flash de carrés" quand on switche de catégorie : si on a déjà calculé le ratio
@@ -161,7 +162,7 @@ const ProductCard = ({
 
     return (
         <a
-            href={`/?product=${item.id}`}
+            href={getProductPath(item)}
             onClick={(event) => {
                 if (!event.ctrlKey && !event.metaKey) {
                     event.preventDefault();

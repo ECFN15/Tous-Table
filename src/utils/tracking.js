@@ -38,7 +38,8 @@ export const trackAffiliateClick = async ({
             tier: product.tier || 'essentiel',
             timestamp: serverTimestamp(),
             sessionId: sessionStorage.getItem('analytics_session_id') || null,
-            source: source
+            source: source,
+            referrer: window.location.pathname || '/'
         };
 
         if (parentFurnitureId) payload.parentFurnitureId = parentFurnitureId;
