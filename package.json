@@ -13,7 +13,8 @@
     "verify:functions-syntax": "node --check functions/index.js && node --check functions/src/analytics/sessions.js && node --check functions/src/public/catalog.js",
     "verify:prod-bundle": "node scripts/verify-prod-bundle.mjs",
     "verify:prod-env": "node scripts/verify-prod-env.mjs",
-    "verify:prod-furniture": "node scripts/verify-prod-furniture-categories.mjs"
+    "verify:prod-furniture": "node scripts/verify-prod-furniture-categories.mjs",
+    "verify:seo-roadmap": "node scripts/verify-seo-roadmap.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
@@ -34,8 +35,7 @@
     "react-helmet-async": "^2.0.5",
     "recharts": "^3.7.0",
     "split-type": "^0.3.4",
-    "three": "^0.160.0",
-    "xlsx": "^0.18.5"
+    "three": "^0.160.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

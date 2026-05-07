@@ -1111,6 +1111,466 @@ Tests :
 
 ---
 
+## Chapitre 19 - Schema local A propos aligne
+
+Date : 7 mai 2026
+Statut : implemente localement, aucun deploy
+
+Objectif :
+
+- Continuer la roadmap SEO sur un lot invisible.
+- Corriger le schema local de la page `/a-propos`.
+- Aligner les signaux business de la page A propos avec le schema statique racine deja present dans `index.html`.
+
+Fichiers touches :
+
+- `src/pages/HomeView.jsx`
+- `SEOlivre.md`
+
+Changements :
+
+- Correction du `priceRange` invalide :
+  - avant : `EUR EUR-EUR EUR EUR` ;
+  - apres : `EUR 500 - EUR 3000`.
+- Ajout du `logo` dans le schema `FurnitureStore` / `LocalBusiness`.
+- Extension de `areaServed` :
+  - Ifs ;
+  - Caen ;
+  - Deauville ;
+  - Bayeux ;
+  - Normandie ;
+  - France.
+- Extension de `sameAs` :
+  - Instagram ;
+  - TikTok ;
+  - Facebook ;
+  - Le Bon Coin ;
+  - Google Maps.
+- Ajout de `hasOfferCatalog` :
+  - tables de ferme anciennes ;
+  - buffets et armoires anciennes ;
+  - commodes, chevets, chaises et bancs anciens ;
+  - planches a decouper anciennes et bois massif.
+
+Impact SEO :
+
+- Le schema local de `/a-propos` devient plus propre et coherent.
+- Google recoit des signaux business plus complets sur l atelier, les zones desservies et les familles de produits.
+- Aucun contenu visible n est modifie.
+
+Impact admin data :
+
+- Aucune nouvelle route.
+- Aucun renommage de page.
+- Aucun nouveau type d evenement analytics.
+- `src/features/admin/AdminAnalytics.jsx` n a donc pas besoin de modification pour cette etape.
+
+Tests :
+
+- `npm run build` OK.
+- Preview locale `/a-propos` : HTTP 200.
+- Verification bundle : `EUR 500 - EUR 3000` present dans `dist/assets/index-*.js`.
+- Verification source : `hasOfferCatalog`, `instagram.com/tous.table.made.in`, `tiktok.com/@tous.table.made.in`, `leboncoin.fr/boutique/tous-a-table-made-in-normandie` presents dans `src/pages/HomeView.jsx`.
+- `git diff --check` OK hors warnings CRLF Windows.
+
+---
+
+## Chapitre 20 - Audit visuel pre-deploy SEO
+
+Date : 7 mai 2026
+Statut : audit local effectue, aucun deploy
+
+Objectif :
+
+- Verifier les surfaces SEO visibles avant de continuer la roadmap.
+- S assurer que les ajouts SEO ne cassent pas la disposition principale des meubles.
+- Controler desktop et mobile sur les pages les plus sensibles.
+
+Pages auditees en preview locale :
+
+- `/meubles-anciens/buffets`
+- `/planches-a-decouper-anciennes`
+- `/comptoir`
+- `/livraison-meubles-anciens-france`
+- `/a-propos`
+
+Captures generees :
+
+- `buffets-desktop.png` en 1366 x 1600
+- `buffets-mobile.png` en 390 x 1400
+- `planches-desktop.png` en 1366 x 1600
+- `comptoir-desktop.png` en 1366 x 1600
+- `comptoir-mobile.png` en 390 x 1400
+- `livraison-desktop.png` en 1366 x 1600
+- `livraison-mobile.png` en 390 x 1400
+- `apropos-desktop.png` en 1366 x 1400
+
+Constats :
+
+- La page categorie meubles conserve son hero, ses filtres, son tri et sa zone masonry.
+- Le bloc SEO categorie apparait sous les filtres, avant la grille, sans remplacer la disposition principale.
+- La grille principale n a pas ete modifiee pendant cet audit.
+- Le Comptoir mobile affiche le bloc editorial et les liens internes sans casser le layout.
+- La page livraison affiche la carte France + villes + flux sans page blanche.
+- `/a-propos` reste accessible en preview.
+
+Limites :
+
+- La preview locale peut ne pas contenir tous les produits prod. Une categorie peut afficher `Aucune piece disponible` sans indiquer une regression de layout.
+- Sur mobile, le hero marketplace est haut : le bloc SEO categorie peut etre sous le premier ecran. C est conforme au layout existant, a verifier humainement avant deploy.
+- Les captures ne remplacent pas un smoke humain complet sur iPhone/Android reel.
+
+Decision :
+
+- Aucun changement de design supplementaire n a ete fait dans ce chapitre.
+- Pas de modification admin data : aucune page creee ou renommee.
+- Prochaine etape : audit SEO technique routes, canonicals, schemas et sitemap/shareMeta.
+
+---
+
+## Chapitre 21 - Audit SEO technique routes schemas sitemap
+
+Date : 7 mai 2026
+Statut : audit local effectue, aucun deploy
+
+Objectif :
+
+- Verifier la coherence entre routes publiques, canonicals, schemas JSON-LD, sitemap et shareMeta.
+- Recontroler les Functions SEO sans les redeployer.
+- Identifier ce qui reste obligatoirement post-deploy.
+
+Routes controlees en HTTP preview :
+
+- `/`
+- `/meubles-anciens`
+- `/meubles-anciens/buffets`
+- `/planches-a-decouper-anciennes`
+- `/comptoir`
+- `/livraison-meubles-anciens-france`
+- `/a-propos`
+
+Resultat :
+
+- Toutes les routes ci-dessus repondent en HTTP 200 sur `http://127.0.0.1:4195`.
+- `SEO.jsx` conserve la generation du canonical via `resolvedUrl`.
+- `GalleryView.jsx` couvre :
+  - `CollectionPage`
+  - `BreadcrumbList`
+  - `ItemList`
+  - `Product` dans les items de liste.
+- `ShopView.jsx` couvre :
+  - `CollectionPage`
+  - `BreadcrumbList`
+  - `FAQPage`
+  - `ItemList` Comptoir.
+- `DeliveryView.jsx` couvre :
+  - `WebPage`
+  - `BreadcrumbList`
+  - `FAQPage`.
+- `HomeView.jsx` couvre `/a-propos` avec :
+  - `WebPage`
+  - `WebSite`
+  - `FurnitureStore`
+  - `LocalBusiness`
+  - `BreadcrumbList`
+  - `FAQPage`.
+- `ArchitecturalProductDetail.jsx` couvre les fiches produit avec :
+  - `Product`
+  - `Offer`
+  - `UsedCondition`
+  - `FurnitureStore`
+  - `BreadcrumbList`.
+
+Sitemap / shareMeta :
+
+- `functions/src/seo/seoTools.js` contient toutes les routes SEO publiques :
+  - `/meubles-anciens`
+  - `/meubles-anciens/buffets`
+  - `/meubles-anciens/tables-de-ferme`
+  - `/meubles-anciens/armoires`
+  - `/meubles-anciens/commodes-chevets`
+  - `/meubles-anciens/chaises-bancs`
+  - `/meubles-anciens/autres`
+  - `/planches-a-decouper-anciennes`
+  - `/comptoir`
+  - `/a-propos`
+  - `/livraison-meubles-anciens-france`
+- `ROUTE_SHARE_META` couvre les memes routes principales.
+- Les chemins produit dynamiques utilisent `getProductPath`.
+
+Verifications techniques :
+
+- `node --check functions/src/seo/seoTools.js` OK.
+- `node --check functions/helpers/config.js` OK.
+- Verification bundle :
+  - `Livraison meubles anciens France` present dans `DeliveryView-*.js`.
+  - `Product` / schemas produit retrouves dans `ProductDetail-*.js` et `GalleryView-*.js`.
+  - `ItemList` retrouve dans les bundles.
+
+Limites :
+
+- Le dump DOM Chrome complet des metas/canonicals a timeoute sur un lot de routes. L audit local s appuie donc sur :
+  - verification source ;
+  - build Vite ;
+  - presence bundle ;
+  - HTTP preview.
+- Rich Results Test et Search Console ne peuvent etre consideres comme valides qu apres deploy public.
+
+Decision :
+
+- Aucun changement code effectue dans ce chapitre.
+- Aucun deploy.
+- Aucun besoin de modifier `AdminAnalytics.jsx`, car aucune route n a ete creee ou renommee.
+- Prochaine etape : preflight deploy et controles securite/vulnerabilites sans deploy prod.
+
+---
+
+## Chapitre 22 - Preflight deploy securite et dependances
+
+Date : 7 mai 2026
+Statut : fait localement, aucun deploy
+
+Objectif :
+
+- Auditer le lot SEO avant deploy sans pousser en production.
+- Verifier le bundle prod, les dependances runtime, les Functions et les regles Firestore.
+- Corriger les vulnerabilites qui peuvent etre traitees sans migration lourde.
+
+Fichiers touches :
+
+- `package.json`
+- `package-lock.json`
+- `firestore.rules`
+- `src/utils/csvExport.js`
+- `src/features/admin/AdminNewsletter.jsx`
+- `src/features/admin/AdminOrders.jsx`
+- `src/features/admin/AdminDashboard.jsx`
+- `src/features/admin/AdminAuctions.jsx`
+- `SEOlivre.md`
+
+Actions securite :
+
+- `postcss` mis a jour en `8.5.14`.
+- `protobufjs` mis a jour en `7.5.6`.
+- `dompurify` mis a jour en `3.4.2`.
+- `brace-expansion` mis a jour en `1.1.14`.
+- Suppression de `xlsx@0.18.5`, qui avait deux alertes high sans correctif npm officiel.
+- Remplacement des exports admin XLSX par un export CSV local :
+  - pas de dependance externe ;
+  - separateur `;` adapte Excel FR ;
+  - BOM UTF-8 ;
+  - protection contre l injection de formule CSV pour les cellules commencant par `=`, `+`, `-` ou `@`.
+- Durcissement Firestore de `affiliate_clicks` :
+  - liste de champs autorises conservee ;
+  - validation stricte des types ;
+  - tailles maximales ;
+  - `tier` limite a `essentiel`, `premium`, `expert` ;
+  - `timestamp` obligatoire en type timestamp ;
+  - champs optionnels encadres.
+
+Verifications :
+
+- `npm audit --omit=dev --json` : 0 vulnerabilite runtime/prod.
+- `npm audit --json` : 2 vulnerabilites moderate restantes en dev-only :
+  - `vite@5.4.21` ;
+  - `esbuild@0.21.5`.
+- Le correctif npm propose pour Vite exige une migration majeure vers `vite@8.0.11`. Decision : ne pas faire cette migration dans le preflight SEO, car elle touche l outillage de build/dev et doit etre testee comme chantier dedie.
+- `npm run build:prod` OK.
+- `npm run verify:prod-bundle` OK :
+  - 40 fichiers scannes ;
+  - aucune config sandbox ;
+  - aucun loader Stripe actif.
+- `npm run verify:prod-env` OK :
+  - Firebase prod ;
+  - namespace prod ;
+  - paiements carte desactives.
+- `npm run verify:prod-furniture` OK :
+  - lecture prod uniquement ;
+  - 28 meubles ;
+  - 28 mappings categorie ;
+  - aucun `missing`, `extra` ou `invalidCategories`.
+- `npm run verify:functions-syntax` OK.
+- `firebase deploy --only firestore:rules --dry-run --project tatmadeinnormandie` OK :
+  - regles Firestore compilees ;
+  - dry-run uniquement ;
+  - aucun deploy.
+- `git diff --check` OK hors warnings CRLF Windows.
+
+Impact SEO :
+
+- Aucun changement de route.
+- Aucun changement de la grille meubles/planches.
+- Le bundle prod est plus propre : le gros chunk `xlsx` a disparu, remplace par un helper CSV de moins d 1 kB.
+
+Risque UI :
+
+- Public : nul, aucune page publique modifiee dans ce chapitre.
+- Admin : les exports passent de `.xlsx` a `.csv`. C est volontaire pour retirer une dependance vulnérable sans migrer vers une autre librairie lourde.
+
+Reste a faire :
+
+- Programmer un chantier separe pour la migration Vite majeure si on veut supprimer les deux alertes dev-only restantes.
+- Avant deploy prod, refaire un smoke admin export CSV sur sandbox.
+
+---
+
+## Chapitre 23 - Audit admin data analytics apres roadmap SEO
+
+Date : 7 mai 2026
+Statut : fait localement, aucun deploy
+
+Objectif :
+
+- Verifier le rappel utilisateur : si une page est ajoutee ou renommee, la page data admin doit rester coherente.
+- Auditer le tracking de parcours et les libelles admin apres les routes SEO.
+- Verifier que les durcissements securite ne touchent pas la disposition marketplace.
+
+Fichiers audites :
+
+- `src/App.jsx`
+- `src/utils/seoRoutes.js`
+- `src/components/shared/AnalyticsProvider.jsx`
+- `src/utils/tracking.js`
+- `src/features/admin/AdminAnalytics.jsx`
+- `firestore.rules`
+
+Constats routes / analytics :
+
+- Les routes SEO publiques ne creent pas de nouveaux types de vue :
+  - `/meubles-anciens` et les categories restent `gallery` ;
+  - `/planches-a-decouper-anciennes` reste `gallery` avec collection `cutting_boards` ;
+  - `/comptoir` reste `shop` ;
+  - `/livraison-meubles-anciens-france` reste `delivery` ;
+  - `/a-propos` reste `about`.
+- `AdminAnalytics.jsx` contient deja les libelles utiles :
+  - `about` -> `A propos` ;
+  - `gallery` -> `Marketplace` ;
+  - `shop` -> `Le Comptoir` ;
+  - `delivery` -> `Livraison` ;
+  - `detail` -> `Fiche produit`.
+- Le suivi affiliation garde ses evenements dedies :
+  - `affiliate_shop_grid` ;
+  - `affiliate_shop_tutorial` ;
+  - `affiliate_gallery_detail`.
+- Aucun renommage de page n impose une modification supplementaire de `AdminAnalytics.jsx`.
+
+Constats securite data :
+
+- `AnalyticsProvider` ne cree pas de session tant que l auth n est pas resolue et ignore les admins.
+- Les sessions analytics restent ecrites par Cloud Functions, pas directement par le client.
+- Les clics affiliation restent creables par les visiteurs authentifies anonymes, mais la regle Firestore impose maintenant un schema strict.
+- `trackAffiliateClick` ouvre le lien partenaire avec `noopener,noreferrer`.
+- Les exports admin ne chargent plus `xlsx`.
+
+Limites :
+
+- Pas de smoke admin reel avec compte client dans ce chapitre, pour eviter toute ecriture non validee en donnees client.
+- Pas de deploy Firestore rules ou Hosting.
+- Les captures visuelles publiques deja faites ne remplacent pas un test manuel admin export CSV en sandbox.
+
+Decision :
+
+- Aucun changement necessaire dans `src/features/admin/AdminAnalytics.jsx`.
+- La grille principale meubles/planches n a pas ete modifiee.
+- Les points critiques avant deploy sont maintenant documentes.
+
+---
+
+## Chapitre 24 - Gate automatisable roadmap SEO
+
+Date : 7 mai 2026
+Statut : fait localement, aucun deploy
+
+Objectif :
+
+- Continuer la roadmap avec un audit de fin de section reproductible.
+- Eviter que les prochains changements SEO cassent silencieusement une route, un schema, le sitemap, `shareMeta`, l analytics admin ou les durcissements securite.
+- Integrer ce controle au preflight existant sans deploy.
+
+Fichiers touches :
+
+- `scripts/verify-seo-roadmap.mjs`
+- `scripts/preflight-prod.mjs`
+- `package.json`
+- `SEOlivre.md`
+
+Controle ajoute :
+
+- Nouvelle commande :
+  - `npm run verify:seo-roadmap`
+- Integration dans :
+  - `npm run preflight:prod`
+
+Le verificateur controle :
+
+- `functions/src/seo/seoTools.js` :
+  - toutes les routes SEO publiques sont dans `CATEGORY_URLS` ;
+  - toutes les routes SEO publiques sont couvertes par `ROUTE_SHARE_META` ;
+  - les balises Open Graph, Twitter et canonical existent dans `shareMeta`.
+- `src/utils/seoRoutes.js` :
+  - les routes SEO sont reconnues cote client ;
+  - les vues `about`, `shop`, `delivery`, `gallery` sont toujours mappees.
+- `src/components/shared/SEO.jsx` :
+  - canonical ;
+  - JSON-LD ;
+  - Open Graph ;
+  - Twitter card.
+- Schemas attendus :
+  - `GalleryView.jsx` : `CollectionPage`, `BreadcrumbList`, `ItemList`, `Product` ;
+  - `ShopView.jsx` : `CollectionPage`, `BreadcrumbList`, `FAQPage`, `ItemList` ;
+  - `DeliveryView.jsx` : `WebPage`, `BreadcrumbList`, `FAQPage` ;
+  - `HomeView.jsx` : `FurnitureStore`, `LocalBusiness`, `hasOfferCatalog`, `FAQPage`, `BreadcrumbList` ;
+  - `ArchitecturalProductDetail.jsx` : `Product`, `Offer`, `UsedCondition`, `FurnitureStore`, `BreadcrumbList`.
+- `AdminAnalytics.jsx` :
+  - libelles des vues SEO ;
+  - evenements affiliation.
+- `firestore.rules` :
+  - schema strict `affiliate_clicks`.
+- Dependances :
+  - `xlsx` absent de `package.json` ;
+  - aucun usage XLSX runtime dans `src`.
+- Documentation :
+  - chapitres 20 a 23 presents dans `SEOlivre.md`.
+
+Verifications :
+
+- `npm run verify:seo-roadmap` OK :
+  - 16 checks passes.
+- `npm run build:prod` OK.
+- `npm run preflight:prod` OK :
+  - config prod OK ;
+  - 28 meubles prod, 28 mappings categorie, aucun missing/extra/invalid ;
+  - gate SEO roadmap OK ;
+  - Functions syntax OK ;
+  - build prod OK ;
+  - bundle prod OK, 40 fichiers scannes ;
+  - audit Functions prod en lecture seule : 30 Functions, 0 legacy env, 11 secrets branches, runtime `nodejs22` ;
+  - aucun deploy.
+
+Impact SEO :
+
+- La roadmap gagne un garde-fou executable a chaque fin de section.
+- Les futures modifications de page devront passer ce gate avant deploy.
+- Le controle ne remplace pas Search Console ni Rich Results Test apres deploy public.
+
+Impact UI / marketplace :
+
+- Aucun changement visuel.
+- Aucune modification de la grille meubles/planches.
+
+Limites :
+
+- Le gate verifie la presence et la coherence source ; il ne valide pas le rendu DOM final comme Googlebot.
+- Warning Vite restant : chunks superieurs a 500 kB, non bloquant SEO mais a surveiller performance.
+- Les deux alertes dev-only `vite/esbuild` restent liees a une migration majeure Vite.
+
+Reste a faire :
+
+- Smoke visuel manuel preview avant accord deploy.
+- Apres deploy public : sitemap public, Rich Results Test, inspection Search Console.
+
+---
+
 ## Chapitre 18 - Carte particulaire livraison France
 
 Date : 7 mai 2026

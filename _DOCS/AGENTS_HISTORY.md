@@ -1,7 +1,143 @@
-# CLAUDE.md — Journal de bord technique
+# AGENTS.md — Journal de bord technique
 
-> Point d'entree prioritaire : lire `AGENTS.md` avant ce fichier.
-> `CLAUDE.md` est un journal historique specialise ; `AGENTS.md` decide quel document lire selon la tache.
+## 7 mai 2026 — Gate automatisable roadmap SEO
+
+**Contexte** : La roadmap SEO locale a ete avancee avec des routes propres, schemas JSON-LD, sitemap/shareMeta, durcissements securite et audits documentes dans `SEOlivre.md`. Pour eviter les regressions silencieuses avant deploy, un gate reproductible a ete ajoute.
+
+**Commandes** :
+- `npm run verify:seo-roadmap` : lance uniquement le gate SEO.
+- `npm run preflight:prod` : lance maintenant aussi `verify:seo-roadmap` au milieu du preflight complet.
+
+**Ce que le gate verifie** :
+- Routes SEO presentes dans `functions/src/seo/seoTools.js` (`CATEGORY_URLS` et `ROUTE_SHARE_META`).
+- Routing client aligne dans `src/utils/seoRoutes.js`.
+- Canonical, Open Graph, Twitter card et JSON-LD via `src/components/shared/SEO.jsx`.
+- Schemas attendus sur `GalleryView`, `ShopView`, `DeliveryView`, `HomeView` et `ArchitecturalProductDetail`.
+- Libelles admin analytics pour les vues SEO dans `src/features/admin/AdminAnalytics.jsx`.
+- Durcissement Firestore `affiliate_clicks`.
+- Absence de `xlsx` dans `package.json` et absence d usage runtime XLSX dans `src`.
+- Chapitres d audit SEO presents dans `SEOlivre.md`.
+
+**Verifications finales connues** :
+- `npm run verify:seo-roadmap` : OK, 16 checks passes.
+- `npm run preflight:prod` : OK, aucun deploy.
+- `npm audit --omit=dev` : 0 vulnerabilite prod/runtime.
+
+**Important** :
+- Ce gate ne se lance pas automatiquement tout seul au demarrage du projet.
+- Il se lance manuellement via `npm run verify:seo-roadmap`.
+- Il se lance automatiquement quand quelqu un execute `npm run preflight:prod`.
+- Il ne remplace pas Search Console, Rich Results Test ni le smoke visuel manuel apres deploy public.
+
+## 6 mai 2026 — Production Functions : Node 22, secrets et smoke checks
+
+**Contexte** : Suite au deploiement prod, trois points restaient a suivre : nettoyer les env vars legacy des Functions, sortir du runtime Node.js 20, et cadrer le smoke test admin.
+
+**Actions realisees** :
+1. **Runtime Functions prod migre en Node.js 22**
+   - Fichiers : `functions/package.json`, `functions/package-lock.json`
+   - `engines.node` passe de `20` a `22`.
+   - Deploiement Functions prod effectue sur `tousatable-client`.
+   - Audit final : `30/30` Functions en `nodejs22`, `30/30` Functions `ACTIVE`.
+
+2. **Nettoyage des env vars legacy prod**
+   - Projet : `tousatable-client`
+   - Anciennes variables sensibles legacy retirees des Functions : `GMAIL_EMAIL`, `GMAIL_PASSWORD`, `STRIPE_SECRET_KEY`, `STRIPE_WH_SECRET`.
+   - Nettoyage final via API Cloud Functions `updateMask=environmentVariables`.
+   - Audit final : `functionsWithLegacyEnv = 0`, `legacyEnvTotal = 0`, `withSensitiveLegacyEnv = 0`.
+   - Les vrais secrets restent branches via Secret Manager : `secretTotal = 11`.
+   - Important : aucune valeur de secret ne doit etre consignee dans le repo ou les logs de suivi.
+
+3. **Correctif SEO apres suppression des env vars plateforme**
+   - Fichiers : `functions/helpers/config.js`, `functions/src/seo/seoTools.js`
+   - Probleme observe : sans `GCLOUD_PROJECT`, `sitemap` pouvait generer `https://undefined.web.app/`.
+   - Fix : `getSiteUrl(host)` determine le projet via `GCLOUD_PROJECT`, `GCP_PROJECT`, `FIREBASE_CONFIG`, puis fallback par hostname Cloud Functions.
+   - Fallback final prod : `https://tousatable-madeinnormandie.fr`.
+   - Redeploiement limite a `functions:sitemap,functions:shareMeta`.
+
+**Verifications finales** :
+- `npm run build` : OK.
+- `npm run audit:functions-env -- --project=tousatable-client` : `legacyEnvTotal = 0`, `secretTotal = 11`.
+- `publicCatalog` prod : `28` meubles, `44` produits affiliation.
+- `syncSessionBeacon` avec session absente : HTTP `204 No Content` (plus de 500).
+- `sitemap` : premiere URL `https://tousatable-madeinnormandie.fr/`, aucun `undefined`.
+- `shareMeta` : HTTP `200`, balises Open Graph avec domaine prod.
+- Site prod : HTTP `200 OK`.
+- Firebase CLI remis sur alias `default` / sandbox : `tatmadeinnormandie`.
+
+**Garanties donnees pendant l'operation** :
+- Firestore prod non modifie.
+- Aucun meuble client prod cree, modifie ou supprime.
+- Aucun import sandbox vers prod.
+- Hosting public non redeploye pendant ce nettoyage.
+
+**Point restant manuel** :
+- Smoke test admin login/publication a faire avec le compte admin du client.
+- Ne pas creer/supprimer de meuble test en prod sans validation explicite, car cela ecrit dans les donnees client.
+
+## 29 avril 2026 (Suite) — Audit complet fluidité mobile : 3 fixes critiques
+
+**Contexte** : Après le tuning Lenis par plateforme (entrée précédente), le scroll restait saccadé. Audit approfondi du pipeline scroll complet.
+
+**Causes racines identifiées (par ordre d'impact)** :
+
+### 🔴 #1 — `ArchitecturalHeader` : `setIsVisible` à chaque tick scroll
+Fichier : `src/designs/architectural/components/ArchitecturalHeader.jsx`
+- Listener scroll **sans RAF, sans seuil** : `setIsVisible(true/false)` 60–120×/sec.
+- Header utilisé sur **toutes les pages publiques** (galerie, produit, comptoir).
+- Cumulé avec `backdrop-blur-xl` + `transition-transform 300ms` → React reconcilie + GPU recompose à chaque pixel scrollé.
+- **Fix** : RAF throttle + seuil `SCROLL_DELTA = 8px` + diff via `useRef` → setState ~2× par session de scroll au lieu de plusieurs centaines.
+
+### 🔴 #2 — Lenis sur mobile = overhead inutile
+Fichier : `src/hooks/useLenisScroll.js`
+- iOS : momentum WebKit natif déjà excellent, Lenis ne fait que rajouter un RAF qui combat le natif.
+- Android : Chrome scroll natif très bon en 2024+, le `syncTouch` JS ajoutait du jank.
+- Lenis émet en plus des scroll events JS qui amplifient les setState au scroll (header, etc.).
+- **Fix** : early return `if (isTouchDevice()) return;` via `matchMedia('(pointer: coarse)')` + UA fallback. Lenis = **DESKTOP UNIQUEMENT**.
+- Sécurité backward-compat : `window.__lenis` reste undefined sur mobile, mais `scrollToTarget` / `lockLenis` (utils/smoothScroll.js) ont déjà un fallback natif `window.scrollTo({behavior:'smooth'})`.
+
+### 🔴 #3 — `ThreeBackground` WebGL tournait sur mobile (REVERT — voir note ci-dessous)
+Fichier : `src/components/home/ThreeBackground.jsx`
+- TorusKnot 120×16 wireframe = **3840 triangles** rendus en RAF infini.
+- `pixelRatio: 1.5` + `antialias: true` + `powerPreference: "high-performance"` → drain GPU + throttling thermique sur mobile mid-range.
+- **Fix initial (revert)** : early return sur touch device.
+- **Décision finale** (validée user 29 avr. 2026) : **REVERT** — on garde WebGL actif sur mobile car :
+  - `ThreeBackground` n'est mounted QUE dans `HomeView`. Navigation vers galerie = unmount = `renderer.dispose()` + `cancelAnimationFrame`. Zéro impact sur la page galerie.
+  - Sur Home même, `window._pauseThree = true` est déclenché dès qu'on scroll past `.hero-section` (RAF en sommeil avec setTimeout 220ms = quasi-inerte).
+  - Le user a validé que la perf sur la vitrine était acceptable avec WebGL actif.
+
+**Vérification** : `npm run build` → ✓ built in 12.78s, exit 0, aucun warning fonctionnel.
+
+**Risques résiduels (non bloquants)** :
+- `backdrop-blur-xl` permanent dans `ArchitecturalHeader`, `ArchitecturalProductDetail`, `App.jsx` logo : coût GPU sur mobile, mais maintenant que le header ne re-render plus en boucle, le blur n'est composé qu'une fois par session.
+- `.img-parallax img { will-change: transform }` permanent dans `index.css` : à surveiller si le scroll Home reste lourd, mais HomeView est déjà cadré sur desktop principalement.
+
+**Total impact attendu** : sur Android mid-range, attendu passage de p95 frame ~50ms → ~16-20ms. iOS : attendu retour au scroll natif silky habituel.
+
+---
+
+## 29 avril 2026 — Tuning Lenis par plateforme (mobile lag fix)
+
+**Fichier** : `src/hooks/useLenisScroll.js`
+
+**Problème** : Scroll laggué sur mobile (les deux OS), surtout perceptible sur Android. Desktop OK.
+
+**Cause racine** : Config Lenis `syncTouch: true` agressive (par défaut, identique iOS/Android/Desktop) :
+- **iOS** : `syncTouch: true` doublait le scroll JS Lenis avec le momentum natif WebKit (déjà excellent) → micro-stutters et impression de "fight" entre les deux moteurs.
+- **Android** : `touchInertiaMultiplier: 35` (défaut Lenis) + `syncTouchLerp: 0.075` → décélération très molle, effet "flottant/laggy" sur mid-range Chrome Android.
+
+**Solution : tuning par plateforme (desktop intact)**
+1. Détection `isIOS()` (UA + fallback iPadOS 13+ qui se déclare `MacIntel` avec `maxTouchPoints>1`) et `isAndroid()`.
+2. **iOS** → `syncTouch: false` : scroll natif pur. Lenis continue de réémettre les `scroll` events natifs, donc ScrollTrigger + `lenis.scrollTo` programmatique restent fonctionnels.
+3. **Android** → `syncTouch: true` mais paramètres allégés :
+   - `touchInertiaMultiplier`: 35 → **18**
+   - `syncTouchLerp`: 0.075 → **0.10**
+   - `touchMultiplier`: 1.4 → **1.1**
+4. **Desktop** → strictement inchangé (`smoothWheel`, `lerp: 0.1`, `wheelMultiplier: 1.05`).
+
+**Vérification** : `npm run build` OK (13.16s, exit 0, aucun warning fonctionnel).
+
+---
 
 ## 25 mars 2026 (Suite) — Refonte Premium Admin Analytics (Bento Grid & Sessions Groupées)
 
@@ -449,7 +585,7 @@ La solution : déplacer ces valeurs dans des `style={{}}` inline pour que le CSS
 
 ---
 
-### Corrections appliquées lors du merge (review Claude)
+### Corrections appliquées lors du merge (review Codex)
 
 **6. HomeView.jsx — Header page d'accueil**
 - Jules avait utilisé `calc()` au lieu de `max()` : `calc(env(safe-area-inset-top, 0px) + 2rem)` donnait trop de padding sur iPhone (notch + 2rem au lieu de max des deux)
@@ -644,7 +780,7 @@ La solution : déplacer ces valeurs dans des `style={{}}` inline pour que le CSS
 
 ---
 
-### Corrections appliquées lors du merge (review Claude)
+### Corrections appliquées lors du merge (review Codex)
 
 **6. HomeView.jsx — Header page d'accueil**
 - Jules avait utilisé `calc()` au lieu de `max()` : `calc(env(safe-area-inset-top, 0px) + 2rem)` donnait trop de padding sur iPhone (notch + 2rem au lieu de max des deux)

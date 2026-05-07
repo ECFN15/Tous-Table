@@ -844,9 +844,10 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         "name": "Tous a Table Made in Normandie",
         "alternateName": "Tous a Table - Atelier Normand",
         "image": "https://firebasestorage.googleapis.com/v0/b/tousatable-client.appspot.com/o/sys_assets%2Fog_cover.jpg?alt=media",
+        "logo": "https://firebasestorage.googleapis.com/v0/b/tousatable-client.appspot.com/o/sys_assets%2Flogo_hammer.png?alt=media",
         "url": SITE_URL,
         "telephone": "+33 7 77 32 41 78",
-        "priceRange": "EUR EUR-EUR EUR EUR",
+        "priceRange": "EUR 500 - EUR 3000",
         "description": "Atelier de restauration de mobilier a Ifs pres de Caen. Vente de meubles anciens restaures en Normandie avec livraison locale, France entiere et pays frontaliers selon transport.",
         "address": {
           "@type": "PostalAddress",
@@ -864,6 +865,8 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         "areaServed": [
           { "@type": "City", "name": "Ifs" },
           { "@type": "City", "name": "Caen" },
+          { "@type": "City", "name": "Deauville" },
+          { "@type": "City", "name": "Bayeux" },
           { "@type": "AdministrativeArea", "name": "Normandie" },
           { "@type": "Country", "name": "France" }
         ],
@@ -876,8 +879,22 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
           "livraison de meubles anciens"
         ],
         "sameAs": [
+          "https://www.instagram.com/tous.table.made.in/",
+          "https://www.tiktok.com/@tous.table.made.in",
+          "https://www.facebook.com/profile.php?id=61571869498498",
+          "https://www.leboncoin.fr/boutique/tous-a-table-made-in-normandie",
           "https://www.google.com/maps/dir/?api=1&destination=Tous+a+Table+Atelier+Normand+346+Chem.+de+Fleury+14123+Ifs"
         ],
+        "hasOfferCatalog": {
+          "@type": "OfferCatalog",
+          "name": "Meubles anciens restaures",
+          "itemListElement": [
+            { "@type": "OfferCatalog", "name": "Tables de ferme anciennes" },
+            { "@type": "OfferCatalog", "name": "Buffets et armoires anciennes" },
+            { "@type": "OfferCatalog", "name": "Commodes, chevets, chaises et bancs anciens" },
+            { "@type": "OfferCatalog", "name": "Planches a decouper anciennes et bois massif" }
+          ]
+        },
         "openingHoursSpecification": [
           {
             "@type": "OpeningHoursSpecification",

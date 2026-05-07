@@ -3,6 +3,7 @@ import { collection, onSnapshot, query, orderBy, deleteDoc, doc } from 'firebase
 import { db } from '../../firebase/config';
 import { Mail, Trash2, Download, Search } from 'lucide-react';
 import { getMillis } from '../../utils/time';
+import { exportRowsToCsv } from '../../utils/csvExport';
 
 const AdminNewsletter = ({ darkMode }) => {
     const [subscribers, setSubscribers] = useState([]);
@@ -40,7 +41,7 @@ const AdminNewsletter = ({ darkMode }) => {
         }
     };
 
-    const handleExportExcel = async () => {
+    const handleExportCsv = () => {
         const data = subscribers.map(sub => ({
             'Nom': sub.lastName || '',
             'Prénom': sub.firstName || '',
@@ -49,11 +50,7 @@ const AdminNewsletter = ({ darkMode }) => {
             'Source': sub.source || 'Inconnu'
         }));
 
-        const XLSX = await import('xlsx');
-        const ws = XLSX.utils.json_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Abonnés");
-        XLSX.writeFile(wb, `Newsletter_${new Date().toISOString().split('T')[0]}.xlsx`);
+        exportRowsToCsv(data, `Newsletter_${new Date().toISOString().split('T')[0]}.csv`);
     };
 
     const filteredSubscribers = subscribers.filter(sub =>
@@ -86,10 +83,10 @@ const AdminNewsletter = ({ darkMode }) => {
                         />
                     </div>
                     <button
-                        onClick={handleExportExcel}
+                        onClick={handleExportCsv}
                         className="w-full sm:w-auto px-6 py-4 bg-white text-stone-900 rounded-xl font-black uppercase text-[10px] md:text-xs tracking-widest hover:bg-stone-200 transition-colors flex items-center justify-center gap-3 shadow-lg shrink-0"
                     >
-                        <Download size={16} /> Exporter Excel
+                        <Download size={16} /> Exporter CSV
                     </button>
                 </div>
             </div>

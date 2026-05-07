@@ -29,6 +29,7 @@ function runStep(label, command, args) {
 
 runStep('Prod env', npmBin, ['run', 'verify:prod-env']);
 runStep('Prod furniture category mapping', npmBin, ['run', 'verify:prod-furniture']);
+runStep('SEO roadmap verification', npmBin, ['run', 'verify:seo-roadmap']);
 runStep('Functions syntax', npmBin, ['run', 'verify:functions-syntax']);
 runStep('Prod frontend build', npmBin, ['run', 'build:prod']);
 runStep('Prod bundle verification', npmBin, ['run', 'verify:prod-bundle']);

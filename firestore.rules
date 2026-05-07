@@ -57,6 +57,40 @@ service cloud.firestore {
         (!("auctionActive" in data) || data.auctionActive is bool);
     }
 
+    function isOptionalString(data, field, maxSize) {
+      return !(field in data)
+        || data[field] == null
+        || (data[field] is string && data[field].size() <= maxSize);
+    }
+
+    function isValidAffiliateClick() {
+      let data = request.resource.data;
+      return data.keys().hasOnly(['productId', 'productName', 'affiliateProgram', 'category', 'tier', 'timestamp', 'sessionId', 'referrer', 'source', 'parentFurnitureId', 'parentFurnitureName'])
+        && data.productId is string
+        && data.productId.size() > 0
+        && data.productId.size() < 120
+        && data.productName is string
+        && data.productName.size() <= 255
+        && data.affiliateProgram is string
+        && data.affiliateProgram.size() > 0
+        && data.affiliateProgram.size() < 50
+        && data.category is string
+        && data.category.size() > 0
+        && data.category.size() < 80
+        && data.tier is string
+        && data.tier in ['essentiel', 'premium', 'expert']
+        && data.timestamp is timestamp
+        && data.source is string
+        && data.source.size() > 0
+        && data.source.size() < 80
+        && data.referrer is string
+        && data.referrer.size() > 0
+        && data.referrer.size() < 300
+        && isOptionalString(data, 'sessionId', 120)
+        && isOptionalString(data, 'parentFurnitureId', 120)
+        && isOptionalString(data, 'parentFurnitureName', 255);
+    }
+
     // Produits affiliés — validation schema spécifique (écrase la validation générique)
     match /artifacts/{appId}/public/data/affiliate_products/{productId} {
       allow read: if true;
@@ -81,9 +115,7 @@ service cloud.firestore {
     // Tracking clics affiliation — création par utilisateurs auth, lecture/suppression admin
     match /affiliate_clicks/{clickId} {
       allow create: if request.auth != null
-        && request.resource.data.keys().hasOnly(['productId', 'productName', 'affiliateProgram', 'category', 'tier', 'timestamp', 'sessionId', 'referrer', 'source', 'parentFurnitureId', 'parentFurnitureName'])
-        && request.resource.data.productId is string
-        && request.resource.data.productId.size() > 0;
+        && isValidAffiliateClick();
       allow read, delete: if isArtisan();
     }
 

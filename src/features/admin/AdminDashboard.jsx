@@ -7,6 +7,7 @@ import { collection, getDocs } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, appId, functions } from '../../firebase/config';
 import { getMillis } from '../../utils/time';
+import { exportRowsToCsv } from '../../utils/csvExport';
 
 // ─── CUSTOM SVG CHARTS ───
 
@@ -375,8 +376,7 @@ const AdminDashboard = ({ user, darkMode = false }) => {
     // ─── ACTIONS ───
     const handleResetOrdersClick = () => setIsOrderResetModalOpen(true);
 
-    const exportToExcel = async (orders) => {
-        const XLSX = await import('xlsx');
+    const exportToCsv = (orders) => {
         const data = orders.map(order => ({
             'ID Commande': order.id,
             'Date': new Date(getMillis(order.createdAt)).toLocaleString(),
@@ -384,15 +384,12 @@ const AdminDashboard = ({ user, darkMode = false }) => {
             'Total': `${order.total} €`,
             'Statut': order.status || 'N/A'
         }));
-        const ws = XLSX.utils.json_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Commandes");
-        XLSX.writeFile(wb, `Commandes_${new Date().toISOString().split('T')[0]}.xlsx`);
+        exportRowsToCsv(data, `Commandes_${new Date().toISOString().split('T')[0]}.csv`);
     };
 
     const confirmResetOrders = async () => {
         try {
-            await exportToExcel(allOrders);
+            exportToCsv(allOrders);
             const resetOrdersFn = httpsCallable(functions, 'resetAllOrders');
             const result = await resetOrdersFn();
             const count = result.data.count;
@@ -451,11 +448,7 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                 'Connexion': new Date(u.lastSignInTime).toLocaleDateString()
             }));
 
-            const XLSX = await import('xlsx');
-            const ws = XLSX.utils.json_to_sheet(data);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Clients");
-            XLSX.writeFile(wb, `Clients_${new Date().toISOString().split('T')[0]}.xlsx`);
+            exportRowsToCsv(data, `Clients_${new Date().toISOString().split('T')[0]}.csv`);
 
             alert(`✅ Export réussi : ${users.length} clients exportés.`);
         } catch (error) { console.error(error); alert("Erreur export utilisateurs: " + error.message); } 
@@ -518,7 +511,7 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                         }`}
                     >
                         {exportingUsers ? <RefreshCw size={14} className="animate-spin" /> : <Archive size={14} />} 
-                        <span>Exporter XLSX</span>
+                        <span>Exporter CSV</span>
                     </button>
                     {/* Catalog value strictly positioned on top right of clients card as a tiny metric */}
                     <div className="absolute top-8 right-8 text-right">
@@ -708,7 +701,7 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                 <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md ${darkMode ? 'bg-black/80' : 'bg-stone-900/50'}`}>
                     <div className={`rounded-[32px] p-8 max-w-sm w-full shadow-2xl border text-center space-y-4 ${darkMode ? 'bg-[#161616] border-white/10' : 'bg-white border-stone-100'}`}>
                         <h3 className={`text-lg font-black ${darkMode ? 'text-white' : 'text-stone-900'}`}>Purger Commandes ?</h3>
-                        <p className={`text-xs ${textMuted}`}>Export Excel + Suppression définitive.</p>
+                        <p className={`text-xs ${textMuted}`}>Export CSV + Suppression définitive.</p>
                         <div className="flex gap-2">
                             <button onClick={confirmResetOrders} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold text-xs">Confirmer</button>
                             <button onClick={() => setIsOrderResetModalOpen(false)} className={`flex-1 py-3 rounded-xl font-bold text-xs ${darkMode ? 'bg-white/5 text-white/70' : 'bg-stone-200 text-stone-600'}`}>Annuler</button>
