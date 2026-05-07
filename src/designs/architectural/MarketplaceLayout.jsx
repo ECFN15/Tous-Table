@@ -289,9 +289,9 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
     ];
 
     return (
-        <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
+        <div className="grid w-full max-w-[22rem] grid-cols-2 items-center justify-items-center gap-2 md:flex md:max-w-full md:flex-wrap md:justify-center md:gap-4">
             {items.map(({ id, label, Icon, isActive, isShop, onClick }) => (
-                <div key={id} className="relative">
+                <div key={id} className={`relative ${isShop ? 'col-span-2 md:col-span-1' : ''}`}>
                     {isShop ? (
                         /* LE COMPTOIR — border néon rotative (comme en prod) */
                         <>
@@ -309,7 +309,7 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
                                     onClick={onClick}
                                     whileHover={{ scale: 1.04 }}
                                     whileTap={{ scale: 0.97 }}
-                                    className={`relative z-10 inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-[0.18em] whitespace-nowrap ${
+                                    className={`relative z-10 inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-[0.12em] whitespace-nowrap sm:gap-2.5 sm:px-6 sm:text-[11px] sm:tracking-[0.18em] ${
                                         darkMode ? 'bg-stone-900/90 text-amber-400' : 'bg-[#fff8ed]/95 text-[#8f5b20] shadow-[0_8px_24px_rgba(128,82,28,0.16)]'
                                     }`}
                                 >
@@ -335,7 +335,7 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
                             onClick={onClick}
                             whileHover={{ scale: 1.04 }}
                             whileTap={{ scale: 0.97 }}
-                            className={`inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-[0.18em] whitespace-nowrap ${
+                            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-[0.12em] whitespace-nowrap sm:gap-2.5 sm:px-6 sm:text-[11px] sm:tracking-[0.18em] ${
                                 darkMode ? 'bg-stone-100 text-stone-900' : 'bg-stone-950 text-[#fff7eb] shadow-[0_10px_24px_rgba(61,41,18,0.2)]'
                             }`}
                         >
@@ -358,7 +358,7 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
                                 onClick={onClick}
                                 whileHover={{ scale: 1.04 }}
                                 whileTap={{ scale: 0.97 }}
-                                className={`relative z-10 inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-[0.18em] whitespace-nowrap ${
+                                className={`relative z-10 inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-[0.12em] whitespace-nowrap sm:gap-2.5 sm:px-6 sm:text-[11px] sm:tracking-[0.18em] ${
                                     darkMode ? 'bg-stone-900/90 text-stone-100' : 'bg-[#fff8ed]/95 text-stone-800 shadow-[0_8px_24px_rgba(128,82,28,0.14)]'
                                 }`}
                             >
@@ -634,7 +634,7 @@ const MarketplaceLayout = ({
     const optionClass = darkMode ? 'bg-[#0a0a09] text-white' : 'bg-[#fff7eb] text-stone-950';
 
     return (
-        <div className={`w-full min-h-screen ${pageClass}`}>
+        <div className={`w-full min-h-screen overflow-x-hidden ${pageClass}`}>
             <main className="relative overflow-hidden">
                 <section className="relative min-h-[calc(100svh-4rem)] md:min-h-[560px] lg:min-h-[620px] overflow-hidden">
                     {heroConfig.image && (
@@ -671,7 +671,7 @@ const MarketplaceLayout = ({
                             <p className="relative top-4 text-[#dba45f] text-[11px] md:text-xs font-black uppercase tracking-[0.42em] mb-10 md:mb-12">
                                 Collection 2026
                             </p>
-                            <div className="mt-8 md:mt-10">
+                            <div className="mt-8 w-full max-w-full md:mt-10">
                                 <NeonCollectionSwitcher
                                     activeCollection={activeCollection}
                                     setActiveCollection={setActiveCollection}
@@ -683,12 +683,12 @@ const MarketplaceLayout = ({
                         </div>
 
                         {/* BAS — Titre + description + CTA */}
-                        <div className="mt-14 md:mt-16 lg:mt-auto flex items-end justify-between">
-                            <div className="max-w-2xl">
+                        <div className="mt-14 flex w-full min-w-0 items-end justify-between md:mt-16 lg:mt-auto">
+                            <div className="w-full min-w-0 max-w-[calc(100vw-3rem)] md:max-w-2xl">
                                 <p className="hidden lg:block text-[#dba45f] text-[11px] md:text-xs font-black uppercase tracking-[0.42em] mb-5 md:mb-7">
                                     Collection 2026
                                 </p>
-                                <h1 className={`font-serif text-[4.6rem] leading-[0.82] md:text-[7.8rem] lg:text-[8.6rem] tracking-tight ${darkMode ? 'text-white drop-shadow-[0_10px_35px_rgba(0,0,0,0.65)]' : 'text-[#fff4df] drop-shadow-[0_12px_34px_rgba(0,0,0,0.72)]'}`}>
+                                <h1 className={`max-w-full font-serif text-[4rem] leading-[0.82] tracking-tight sm:text-[4.6rem] md:text-[7.8rem] lg:text-[8.6rem] ${darkMode ? 'text-white drop-shadow-[0_10px_35px_rgba(0,0,0,0.65)]' : 'text-[#fff4df] drop-shadow-[0_12px_34px_rgba(0,0,0,0.72)]'}`}>
                                     <span className="block h-[1.64em] overflow-hidden">
                                         <TextType
                                             as="span"
@@ -707,12 +707,12 @@ const MarketplaceLayout = ({
                                         />
                                     </span>
                                 </h1>
-                                <p className={`mt-9 md:mt-11 max-w-xl font-serif text-[1.26rem] md:text-[1.7rem] leading-[1.25] ${darkMode ? 'text-[#efc489]' : 'text-[#f2c27e] drop-shadow-[0_8px_22px_rgba(0,0,0,0.72)]'}`}>
+                                <p className={`mt-9 max-w-[20rem] font-serif text-[1.14rem] leading-[1.3] md:mt-11 md:max-w-xl md:text-[1.7rem] md:leading-[1.25] ${darkMode ? 'text-[#efc489]' : 'text-[#f2c27e] drop-shadow-[0_8px_22px_rgba(0,0,0,0.72)]'}`}>
                                     Mobilier ancien restauré et pièces artisanales en bois massif. Chaque meuble raconte une histoire, chaque pièce est unique.
                                 </p>
                                 <button
                                     onClick={scrollToCollection}
-                                    className={`mt-12 md:mt-10 inline-flex h-14 md:h-16 items-center justify-center gap-6 border border-[#dba45f] px-7 md:px-10 text-[11px] md:text-xs font-black uppercase tracking-[0.28em] transition-all hover:bg-[#dba45f] hover:text-black ${darkMode ? 'text-[#f0b969]' : 'bg-black/22 text-[#fff0cf] shadow-[0_16px_36px_rgba(0,0,0,0.24)] backdrop-blur-[2px]'}`}
+                                    className={`mt-12 inline-flex h-14 w-full max-w-[330px] items-center justify-center gap-4 border border-[#dba45f] px-6 text-[10px] font-black uppercase tracking-[0.22em] transition-all hover:bg-[#dba45f] hover:text-black md:mt-10 md:h-16 md:w-auto md:max-w-none md:gap-6 md:px-10 md:text-xs md:tracking-[0.28em] ${darkMode ? 'text-[#f0b969]' : 'bg-black/22 text-[#fff0cf] shadow-[0_16px_36px_rgba(0,0,0,0.24)] backdrop-blur-[2px]'}`}
                                 >
                                     Découvrir la collection
                                     <ArrowRight size={20} strokeWidth={1.5} />

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLiveTheme } from '../../../hooks/useLiveTheme';
 import { useAuth } from '../../../contexts/AuthContext';
-import { LogIn, LogOut, Menu, ShoppingBag, X } from 'lucide-react';
+import { LogIn, LogOut, Menu, Moon, ShoppingBag, Sun, X } from 'lucide-react';
 import AnimatedThemeToggler from '../../../components/ui/AnimatedThemeToggler';
 
 export const FurnitureHeaderIcon = ({ size = 26, className = '', strokeWidth = 1.65 }) => (
@@ -157,7 +157,7 @@ const ArchitecturalHeader = ({
 
     return (
         <header
-            className={`sticky top-0 z-50 transition-transform duration-300 ease-in-out ${isVisible ? 'translate-y-0' : '-translate-y-full'} ${
+            className={`sticky top-0 z-50 overflow-x-clip transition-transform duration-300 ease-in-out ${isVisible ? 'translate-y-0' : '-translate-y-full'} ${
                 isGalleryHeader
                     ? galleryHeaderSurface
                     : 'bg-transparent'
@@ -166,7 +166,7 @@ const ArchitecturalHeader = ({
         >
             <div className={`max-w-[1920px] mx-auto h-16 md:h-[78px] flex items-center justify-between relative ${
                 isGalleryHeader ? 'px-4 md:px-8 lg:px-12' : 'px-4 md:px-12'
-            }`}>
+            }`} style={isGalleryHeader ? { maxWidth: 'min(1920px, 100vw)' } : undefined}>
                 <div className="flex items-center z-10">
                     <button
                         type="button"
@@ -238,11 +238,44 @@ const ArchitecturalHeader = ({
                     </nav>
                 )}
 
-                <div className={`${isGalleryHeader ? 'ml-auto gap-1.5 md:gap-3' : 'gap-2 md:gap-4'} flex items-center z-10`}>
+                {isGalleryHeader && (
+                    <div
+                        className="absolute right-[76px] top-1/2 z-20 -translate-y-1/2 md:hidden"
+                        style={{ width: 104, minWidth: 104 }}
+                    >
+                        <div className="flex w-[104px] min-w-[104px] items-center justify-end gap-1">
+                            {toggleTheme && (
+                                <button onClick={toggleTheme} className="flex h-8 w-8 items-center justify-center rounded-full border-0 bg-transparent shadow-none transition-colors" title={darkMode ? 'Mode clair' : 'Mode sombre'}>
+                                    {darkMode ? (
+                                        <Moon size={19} strokeWidth={1.5} className={galleryHeaderText} />
+                                    ) : (
+                                        <Sun size={19} strokeWidth={1.5} className={galleryHeaderText} />
+                                    )}
+                                </button>
+                            )}
+
+                            <button onClick={onOpenCart} className="relative flex h-8 w-8 items-center justify-center rounded-full border-0 bg-transparent shadow-none transition-colors" title="Panier">
+                                <ShoppingBag size={20} strokeWidth={1.5} className={`${galleryHeaderText} transition-colors duration-300`} />
+                                {cartCount > 0 && (
+                                    <span className="absolute -top-0.5 -right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#dba45f] px-1 text-[10px] font-black text-black border border-black/50">
+                                        {cartCount}
+                                    </span>
+                                )}
+                            </button>
+
+                            <button onClick={onOpenMenu} className="relative flex h-8 w-8 items-center justify-center rounded-full border-0 bg-transparent shadow-none transition-colors" title="Menu">
+                                <Menu size={22} strokeWidth={1.5} className={`${galleryHeaderText} absolute transition-all duration-500 ease-in-out ${isMenuOpen ? 'opacity-0 rotate-90 scale-50' : 'opacity-100 rotate-0 scale-100'}`} />
+                                <X size={22} strokeWidth={1.5} className={`${galleryHeaderText} absolute transition-all duration-500 ease-in-out ${isMenuOpen ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-50'}`} />
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                <div className={isGalleryHeader ? 'hidden z-10 md:ml-auto md:flex md:items-center md:gap-3' : 'z-10 flex items-center gap-2 md:gap-4'}>
                     {(!user || user.isAnonymous) ? (
                         <button
                             onClick={onShowLogin}
-                            className={`${isGalleryHeader ? `flex w-9 h-9 md:w-10 md:h-10 items-center justify-center ${galleryHeaderMuted} hover:text-[#b8792f] transition-colors` : darkMode ? 'flex items-center gap-2 border border-stone-800 text-stone-500 hover:bg-stone-800 px-3 py-2 rounded' : 'flex items-center gap-2 border border-stone-200 text-stone-500 hover:bg-stone-200 px-3 py-2 rounded'}`}
+                            className={`${isGalleryHeader ? `hidden w-9 h-9 items-center justify-center ${galleryHeaderMuted} hover:text-[#b8792f] transition-colors sm:flex md:w-10 md:h-10` : darkMode ? 'flex items-center gap-2 border border-stone-800 text-stone-500 hover:bg-stone-800 px-3 py-2 rounded' : 'flex items-center gap-2 border border-stone-200 text-stone-500 hover:bg-stone-200 px-3 py-2 rounded'}`}
                             title="Connexion"
                         >
                             <LogIn size={isGalleryHeader ? 22 : 19} strokeWidth={1.5} />
@@ -257,7 +290,7 @@ const ArchitecturalHeader = ({
                             )}
                             <button
                                 onClick={() => logout()}
-                                className={`${isGalleryHeader ? `flex w-9 h-9 md:w-10 md:h-10 items-center justify-center ${galleryHeaderMuted} hover:text-red-500 transition-colors` : darkMode ? 'flex items-center gap-2 sm:border sm:border-stone-600 text-stone-200 hover:border-red-500 hover:text-red-400 hover:bg-red-500/10 w-10 h-10 sm:w-auto sm:px-4 sm:py-2 rounded justify-center' : 'flex items-center gap-2 sm:border sm:border-stone-300 text-stone-600 hover:border-red-400 hover:text-red-600 hover:bg-red-50 w-10 h-10 sm:w-auto sm:px-4 sm:py-2 rounded justify-center'}`}
+                                className={`${isGalleryHeader ? `hidden w-9 h-9 items-center justify-center ${galleryHeaderMuted} hover:text-red-500 transition-colors sm:flex md:w-10 md:h-10` : darkMode ? 'flex items-center gap-2 sm:border sm:border-stone-600 text-stone-200 hover:border-red-500 hover:text-red-400 hover:bg-red-500/10 w-10 h-10 sm:w-auto sm:px-4 sm:py-2 rounded justify-center' : 'flex items-center gap-2 sm:border sm:border-stone-300 text-stone-600 hover:border-red-400 hover:text-red-600 hover:bg-red-50 w-10 h-10 sm:w-auto sm:px-4 sm:py-2 rounded justify-center'}`}
                                 title="Se deconnecter"
                             >
                                 <LogOut size={isGalleryHeader ? 22 : 19} strokeWidth={1.5} />
@@ -271,7 +304,7 @@ const ArchitecturalHeader = ({
                     )}
 
                     <button onClick={onOpenCart} className="relative group w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full border-0 bg-transparent shadow-none transition-colors" title="Panier">
-                        <ShoppingBag size={isGalleryHeader ? 22 : 22} strokeWidth={1.5} className={`transition-colors duration-300 ${isGalleryHeader ? `${galleryHeaderText} group-hover:text-[#b8792f]` : darkMode ? 'text-stone-100 group-hover:text-[#dba45f]' : 'text-stone-900 group-hover:text-amber-600'}`} />
+                        <ShoppingBag size={isGalleryHeader ? 21 : 22} strokeWidth={1.5} className={`transition-colors duration-300 ${isGalleryHeader ? `${galleryHeaderText} group-hover:text-[#b8792f]` : darkMode ? 'text-stone-100 group-hover:text-[#dba45f]' : 'text-stone-900 group-hover:text-amber-600'}`} />
                         {cartCount > 0 && (
                             <span className="absolute -top-0.5 -right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#dba45f] px-1 text-[10px] font-black text-black border border-black/50">
                                 {cartCount}
@@ -280,8 +313,8 @@ const ArchitecturalHeader = ({
                     </button>
 
                     <button onClick={onOpenMenu} className={`relative flex items-center justify-center group w-9 h-9 md:w-10 md:h-10 rounded-full border-0 bg-transparent shadow-none cursor-pointer transition-colors`} title="Menu">
-                        <Menu size={isGalleryHeader ? 24 : 24} strokeWidth={1.5} className={`absolute transition-all duration-500 ease-in-out ${isGalleryHeader ? `${galleryHeaderText} group-hover:text-[#b8792f]` : darkMode ? 'text-stone-100 group-hover:text-[#dba45f]' : 'text-stone-900 group-hover:text-amber-600'} ${isMenuOpen ? 'opacity-0 rotate-90 scale-50' : 'opacity-100 rotate-0 scale-100'}`} />
-                        <X size={isGalleryHeader ? 24 : 24} strokeWidth={1.5} className={`absolute transition-all duration-500 ease-in-out ${isGalleryHeader ? `${galleryHeaderText} group-hover:text-[#b8792f]` : darkMode ? 'text-stone-100 group-hover:text-[#dba45f]' : 'text-stone-900 group-hover:text-amber-600'} ${isMenuOpen ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-50'}`} />
+                        <Menu size={isGalleryHeader ? 22 : 24} strokeWidth={1.5} className={`absolute transition-all duration-500 ease-in-out ${isGalleryHeader ? `${galleryHeaderText} group-hover:text-[#b8792f]` : darkMode ? 'text-stone-100 group-hover:text-[#dba45f]' : 'text-stone-900 group-hover:text-amber-600'} ${isMenuOpen ? 'opacity-0 rotate-90 scale-50' : 'opacity-100 rotate-0 scale-100'}`} />
+                        <X size={isGalleryHeader ? 22 : 24} strokeWidth={1.5} className={`absolute transition-all duration-500 ease-in-out ${isGalleryHeader ? `${galleryHeaderText} group-hover:text-[#b8792f]` : darkMode ? 'text-stone-100 group-hover:text-[#dba45f]' : 'text-stone-900 group-hover:text-amber-600'} ${isMenuOpen ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-50'}`} />
                     </button>
                 </div>
             </div>

@@ -14,6 +14,7 @@ Ce fichier est le chef d'orchestre du projet. Lis-le en premier, puis va seuleme
 ## Documents a lire selon la tache
 
 - SEO, routes, sitemap, schemas, Search Console : lire `SEOlivre.md`.
+- Checks publics Google apres deploy SEO : lire `_DOCS/SEO_PUBLIC_GOOGLE_CHECKS.md`.
 - Historique technique complet des anciens agents : lire `_DOCS/AGENTS_HISTORY.md`.
 - Deploiement production : lire `_DOCS/DEPLOIEMENT_PROD_RUNBOOK.md`.
 - Etat de readiness prod : lire `_DOCS/PROD_READINESS_STATUS.md`.
@@ -30,6 +31,7 @@ Commandes :
 
 - `npm run verify:seo-roadmap` : gate SEO rapide.
 - `npm run preflight:prod` : preflight complet, inclut `verify:seo-roadmap`.
+- `npm run audit:public-seo` : audit du domaine public apres deploy SEO, verifie sitemap, routes propres, robots.txt et `shareMeta`.
 
 Le gate SEO verifie les routes SEO, sitemap/shareMeta, schemas JSON-LD, canonical, libelles analytics admin, absence de `xlsx`, durcissement `affiliate_clicks` et presence des chapitres d'audit.
 

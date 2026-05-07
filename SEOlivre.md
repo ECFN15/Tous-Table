@@ -1571,6 +1571,198 @@ Reste a faire :
 
 ---
 
+## Chapitre 25 - Smoke visuel mobile preview SEO
+
+Date : 7 mai 2026
+Statut : implemente localement, aucun deploy
+
+Objectif :
+
+- Reprendre la roadmap SEO par le point restant le plus important : verifier le rendu reel des pages SEO avant tout deploy.
+- Auditer les pages publiques fortes en preview, surtout mobile 390 px et desktop.
+- Corriger uniquement les debordements visuels qui peuvent nuire a la comprehension SEO/UX.
+- Ne pas toucher a la disposition principale des meubles, a la grille produit, ni aux donnees client.
+
+Pages auditees :
+
+- `/meubles-anciens/buffets`
+- `/planches-a-decouper-anciennes`
+- `/comptoir`
+- `/livraison-meubles-anciens-france`
+- `/a-propos`
+
+Fichiers touches :
+
+- `src/designs/architectural/MarketplaceLayout.jsx`
+- `src/designs/architectural/components/ArchitecturalHeader.jsx`
+- `SEOlivre.md`
+
+Constats :
+
+- Les routes SEO testees repondent en HTTP 200 sur la preview locale.
+- La page livraison rend bien la carte particulaire France/pays frontaliers.
+- La page Comptoir et la page A propos ne presentent pas de page blanche.
+- Sur mobile, le hero marketplace avait un debordement horizontal :
+  - switcher Mobilier / Planches / Comptoir trop large ;
+  - CTA et texte trop proches des limites ;
+  - actions du header galerie poussees hors viewport.
+
+Corrections appliquees :
+
+- `MarketplaceLayout.jsx` :
+  - switcher mobile transforme en grille compacte 2 colonnes + Comptoir pleine largeur ;
+  - reduction mobile des paddings, tailles et tracking des boutons du switcher ;
+  - wrapper hero contraint en largeur viewport ;
+  - titre, description et CTA ajustes sur mobile pour eviter le clipping horizontal ;
+  - ajout de `overflow-x-hidden` au shell marketplace.
+- `ArchitecturalHeader.jsx` :
+  - contrainte `100vw` explicite sur le header galerie ;
+  - login/logout masques sous `sm` sur header galerie mobile pour laisser la place aux actions utiles ;
+  - barre d actions mobile galerie dediee : theme, panier, menu ;
+  - aucune modification du header desktop/tablette au-dela de la separation mobile.
+
+Garanties UI / catalogue :
+
+- La grille principale meubles/planches n'a pas ete modifiee.
+- Les filtres, categories et cartes produit restent dans leur architecture existante.
+- Aucun changement de route publique.
+- Aucun changement de libelle de page analytics.
+- `src/features/admin/AdminAnalytics.jsx` n'a donc pas besoin de modification pour ce lot.
+
+Verifications :
+
+- `npm run preflight:prod` OK :
+  - config prod OK ;
+  - 28 meubles prod, mappings categories OK ;
+  - gate SEO roadmap OK ;
+  - Functions syntax OK ;
+  - build prod OK ;
+  - bundle prod OK ;
+  - audit Functions prod lecture seule : 30 Functions, 0 legacy env, 11 secrets, runtime `nodejs22` ;
+  - aucun deploy.
+- `npm run build:prod` OK.
+- `npm run verify:seo-roadmap` OK :
+  - 16 checks passes.
+- `npm run verify:prod-bundle` OK :
+  - 40 fichiers scannes ;
+  - aucun config sandbox ;
+  - aucun loader Stripe actif dans le bundle.
+- `git diff --check` OK hors warnings CRLF Windows sur les deux fichiers UI touches.
+- Captures Edge headless :
+  - `buffets-mobile-preview-after3.png` : header mobile, switcher, CTA visibles ;
+  - `planches-mobile-preview-after.png` : header mobile, switcher, CTA visibles ;
+  - captures precedentes desktop/mobile conservees dans le dossier temporaire local de smoke.
+
+Limites :
+
+- Les captures ont ete faites en preview locale, pas sur le domaine public.
+- Le texte anime `TextType` peut etre capture en cours de frappe ; ce n'est pas un bug SEO.
+- Les warnings de taille de chunks Vite restent non bloquants mais a surveiller pour la performance.
+- Les tests Search Console / Rich Results restent a faire apres deploy public.
+
+Reste a faire :
+
+- Accord explicite avant deploy Hosting.
+- Apres deploy : verifier sitemap public, Rich Results Test et inspection Search Console.
+
+---
+
+## Chapitre 26 - Audit public sitemap et prerequis Search Console
+
+Date : 7 mai 2026
+Statut : audit public effectue, deploy prod requis, aucun deploy
+
+Objectif :
+
+- Passer du smoke local aux controles publics :
+  - sitemap public ;
+  - Rich Results Test ;
+  - inspection Search Console.
+- Verifier l'etat reel du domaine `https://tousatable-madeinnormandie.fr` avant de demander les tests Google.
+
+Checks publics effectues :
+
+- Nouvelle commande ajoutee :
+  - `npm run audit:public-seo`
+- Role de la commande :
+  - verifier `robots.txt` ;
+  - verifier `/sitemap.xml` ;
+  - verifier la presence des routes propres dans le sitemap ;
+  - echouer si des URLs legacy en query string restent dans le sitemap ;
+  - verifier les routes publiques HTTP 200 ;
+  - verifier `shareMeta` direct sur les routes SEO fortes.
+- Routes publiques testees en HTTP :
+  - `/` : HTTP 200 ;
+  - `/sitemap.xml` : HTTP 200 ;
+  - `/robots.txt` : HTTP 200 ;
+  - `/meubles-anciens` : HTTP 200 ;
+  - `/meubles-anciens/buffets` : HTTP 200 ;
+  - `/planches-a-decouper-anciennes` : HTTP 200 ;
+  - `/comptoir` : HTTP 200 ;
+  - `/livraison-meubles-anciens-france` : HTTP 200 ;
+  - `/a-propos` : HTTP 200.
+- `robots.txt` public :
+  - `User-agent: *`
+  - `Allow: /`
+  - `Sitemap: https://tousatable-madeinnormandie.fr/sitemap.xml`
+
+Blocage constate :
+
+- `npm run audit:public-seo` echoue volontairement tant que la prod sert l'ancien SEO :
+  - 11 checks failed au 7 mai 2026 ;
+  - les routes publiques sont en 200, mais sitemap/shareMeta sont obsoletes.
+- Le sitemap public est encore l'ancien sitemap prod :
+  - `loc_count = 59` ;
+  - `clean_route_count = 0` ;
+  - `query_url_count = 58` ;
+  - premiere URL propre OK : `/` ;
+  - puis anciennes URLs : `/?page=gallery`, `/?product=...`.
+- Les routes SEO propres ne sont pas encore dans le sitemap public :
+  - `/meubles-anciens` absent ;
+  - `/meubles-anciens/buffets` absent ;
+  - `/planches-a-decouper-anciennes` absent ;
+  - `/comptoir` absent ;
+  - `/livraison-meubles-anciens-france` absent ;
+  - `/a-propos` absent.
+- URL directe Cloud Function prod :
+  - `https://us-central1-tousatable-client.cloudfunctions.net/sitemap` retourne aussi l'ancien sitemap ;
+  - `shareMeta?path=/meubles-anciens` retourne encore le titre legacy `Ma Boutique`.
+
+Conclusion technique :
+
+- Le code local est pret et verifie par `npm run preflight:prod`.
+- La prod n'a pas encore recu les dernieres Functions `sitemap` / `shareMeta`.
+- Rich Results Test et inspection Search Console ne doivent pas etre consideres comme finaux tant que le domaine public ne sert pas le nouveau sitemap et les nouvelles metas.
+
+Acces Search Console :
+
+- Aucun acces Search Console/API utilisable localement n'a ete detecte.
+- `gcloud` n'est pas disponible dans l'environnement local.
+- L'inspection Search Console demandera :
+  - soit une connexion manuelle au compte proprietaire de la propriete ;
+  - soit des identifiants API Search Console valides avec acces a la propriete.
+- Runbook post-deploy ajoute :
+  - `_DOCS/SEO_PUBLIC_GOOGLE_CHECKS.md`
+  - contient les URLs Rich Results Test et les etapes Search Console a documenter.
+
+Risque :
+
+- Lancer Rich Results Test maintenant testerait l'ancien etat public, pas la roadmap locale finalisee.
+- Soumettre le sitemap maintenant dans Search Console resoumettrait un sitemap qui ne contient pas les URLs propres.
+
+Prochaine action recommandee :
+
+- Demander accord explicite pour deploy prod :
+  - Functions : `sitemap`, `shareMeta` ;
+  - Hosting : build public si les dernieres pages/schema/UI doivent aussi etre en ligne.
+- Apres deploy :
+  - lancer `npm run audit:public-seo` ;
+  - re-fetch `/sitemap.xml` et verifier `clean_route_count > 0`, `query_url_count = 0` ou fortement reduit selon politique produit ;
+  - lancer Rich Results Test sur les URLs propres ;
+  - faire inspection Search Console et demander indexation des pages strategiques.
+
+---
+
 ## Chapitre 18 - Carte particulaire livraison France
 
 Date : 7 mai 2026
