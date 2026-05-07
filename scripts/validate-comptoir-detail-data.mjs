@@ -65,6 +65,12 @@ for (const product of products) {
   if (slugs.has(detailDraft.slug)) fail(`${productId}: duplicate slug ${detailDraft.slug}`);
   slugs.add(detailDraft.slug);
 
+  if (!detailDraft.customerDescription || typeof detailDraft.customerDescription !== 'string') {
+    fail(`${productId}: customerDescription missing`);
+  } else if (detailDraft.customerDescription.length < 160) {
+    fail(`${productId}: customerDescription too short (${detailDraft.customerDescription.length} chars)`);
+  }
+
   if (!allowedStatuses.has(detailDraft.detailStatus)) {
     fail(`${productId}: unknown detailStatus ${detailDraft.detailStatus}`);
   }

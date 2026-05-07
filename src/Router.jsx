@@ -9,6 +9,7 @@ import { scrollToTop } from './utils/smoothScroll';
 // Optimisation critique pour mobile : on ne télécharge pas tout d'un coup.
 const GalleryView = React.lazy(() => import('./pages/GalleryView'));
 const ShopView = React.lazy(() => import('./pages/ShopView'));
+const ShopProductDetail = React.lazy(() => import('./pages/ShopProductDetail'));
 const ProductDetail = React.lazy(() => import('./pages/ProductDetail'));
 const CheckoutView = React.lazy(() => import('./pages/CheckoutView'));
 const LoginView = React.lazy(() => import('./pages/LoginView'));
@@ -57,6 +58,8 @@ const AppRouter = ({
     setShowFullLogin,
     setSelectedItemId,
     selectedItemId,
+    selectedAffiliateProductId,
+    setSelectedAffiliateProductId,
     addToCart,
     cartItems,
     cartTotal,
@@ -184,6 +187,26 @@ const AppRouter = ({
                         onOpenCart={onOpenCart}
                         toggleTheme={toggleTheme}
                         setHeaderProps={setHeaderProps}
+                        onOpenProductDetail={(product) => {
+                            setSelectedAffiliateProductId(product.id);
+                            setView('shop-detail');
+                            scrollToTop();
+                        }}
+                    />
+                </Suspense>
+            )}
+
+            {view === 'shop-detail' && selectedAffiliateProductId && (
+                <Suspense fallback={<div className="min-h-screen bg-transparent"></div>}>
+                    <ShopProductDetail
+                        product={affiliateProducts.find(p => p.id === selectedAffiliateProductId)}
+                        isLoading={affiliateProducts.length === 0}
+                        darkMode={darkMode}
+                        onBack={() => {
+                            setView('shop');
+                            setSelectedAffiliateProductId(null);
+                            scrollToTop();
+                        }}
                     />
                 </Suspense>
             )}

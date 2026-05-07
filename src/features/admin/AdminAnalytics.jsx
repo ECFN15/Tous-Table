@@ -326,8 +326,8 @@ const PROG_LABELS_B = { amazon: 'Amazon', manomano: 'ManoMano', leroymerlin: 'Le
 const PROG_COLORS_B = { amazon: '#FF9900', manomano: '#2ECC71', leroymerlin: '#006600', rakuten: '#BF0000', castorama: '#FF6600', direct: '#6B7280' };
 const TIER_LABELS_B = { essentiel: 'Essentiel', premium: 'Premium', expert: 'Expert' };
 const TIER_COLORS_B = { essentiel: '#78716c', premium: '#f59e0b', expert: '#e2e8f0' };
-const SOURCE_LABELS_B = { shop_grid: 'Comptoir (Grille)', shop_tutorial: 'Comptoir (Tuto)', gallery_detail: 'Galerie (Meuble)', inconnu: 'Inconnu' };
-const SOURCE_COLORS_B = { shop_grid: '#3B82F6', shop_tutorial: '#F59E0B', gallery_detail: '#8B5CF6', inconnu: '#6B7280' };
+const SOURCE_LABELS_B = { shop_grid: 'Comptoir (Grille)', shop_detail: 'Comptoir (Fiche)', shop_tutorial: 'Comptoir (Tuto)', gallery_detail: 'Galerie (Meuble)', inconnu: 'Inconnu' };
+const SOURCE_COLORS_B = { shop_grid: '#3B82F6', shop_detail: '#14B8A6', shop_tutorial: '#F59E0B', gallery_detail: '#8B5CF6', inconnu: '#6B7280' };
 const BOUTIQUE_TIME_FILTERS = [
     { id: '1h', label: '1H', duration: 60 * 60 * 1000, step: 5 * 60 * 1000 },
     { id: '5h', label: '5H', duration: 5 * 60 * 60 * 1000, step: 15 * 60 * 1000 },
@@ -345,6 +345,7 @@ const PAGE_LABELS = {
     gallery: 'Marketplace',
     detail: 'Fiche produit',
     shop: 'Le Comptoir',
+    'shop-detail': 'Fiche Comptoir',
     delivery: 'Livraison',
     checkout: 'Checkout',
     'my-orders': 'Mes commandes',
@@ -353,6 +354,7 @@ const PAGE_LABELS = {
 
 const AFFILIATE_JOURNEY_LABELS = {
     affiliate_shop_grid: 'Clic Comptoir',
+    affiliate_shop_detail: 'Achat depuis fiche Comptoir',
     affiliate_shop_tutorial: 'Clic Tutoriel Comptoir',
     affiliate_gallery_detail: 'Clic depuis fiche meuble',
     comptoir: 'Clic Comptoir',
@@ -368,10 +370,10 @@ const formatBoutiqueSlot = (time, step) => {
     return d.toLocaleDateString('fr-FR', { month: '2-digit', year: 'numeric' });
 };
 
-const isComptoirPageView = (page) => page === 'shop' || page === 'comptoir';
+const isComptoirPageView = (page) => page === 'shop' || page === 'shop-detail' || page === 'comptoir';
 const isComptoirJourneyStep = (step) => {
     const page = step?.page;
-    return isComptoirPageView(page) || page === 'affiliate_shop_grid' || page === 'affiliate_shop_tutorial';
+    return isComptoirPageView(page) || page === 'affiliate_shop_grid' || page === 'affiliate_shop_detail' || page === 'affiliate_shop_tutorial';
 };
 const isAffiliateJourneyStep = (page) => page === 'comptoir' || String(page || '').startsWith('affiliate_');
 
@@ -1064,7 +1066,6 @@ const AdminAnalytics = ({ darkMode = false }) => {
             // On filtre les admins pour ne pas polluer l'affichage et les stats
             const cleanData = data.filter(s => s.type !== 'admin');
             setSessions(cleanData);
-            processData(cleanData, timeFilter);
             setLoading(false);
         }, (error) => {
             console.error("Analytics snapshot error:", error);
@@ -1072,15 +1073,16 @@ const AdminAnalytics = ({ darkMode = false }) => {
         });
 
         return () => unsub();
-    }, [timeFilter]);
+    }, []);
 
-    const processData = (allSessions, filter) => {
+    const processData = (allSessions, filter, nowMs = Date.now()) => {
         const oldestStartedAt = allSessions
             .map(session => getMillis(session.startedAt))
             .filter(Boolean)
             .reduce((oldest, value) => Math.min(oldest, value), Infinity);
 
         const result = buildAnalyticsStats(allSessions, filter, {
+            now: nowMs,
             coverageStartMs: Number.isFinite(oldestStartedAt) ? oldestStartedAt : null,
             fetchedCount: allSessions.length,
             maxFetched: MAX_ANALYTICS_SESSIONS
@@ -1090,6 +1092,10 @@ const AdminAnalytics = ({ darkMode = false }) => {
         setDataQuality(result.dataQuality);
         setChartData(result.chartData);
     };
+
+    useEffect(() => {
+        processData(sessions, timeFilter, now);
+    }, [sessions, timeFilter, now]);
 
     const formatDuration = (seconds) => {
         if (!seconds) return '0s';
@@ -1168,7 +1174,7 @@ const AdminAnalytics = ({ darkMode = false }) => {
                         {ANALYTICS_TIME_FILTERS.map(tf => (
                             <button
                                 key={tf.id}
-                                onClick={() => { setTimeFilter(tf.id); processData(sessions, tf.id); }}
+                                onClick={() => setTimeFilter(tf.id)}
                                 className={`px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${timeFilter === tf.id ? (darkMode ? 'bg-white/10 text-white shadow-sm border border-white/10' : 'bg-white text-stone-900 shadow-sm border border-stone-200') : 'text-stone-500 hover:text-stone-300'}`}
                             >
                                 {tf.label}
@@ -1298,12 +1304,17 @@ const AdminAnalytics = ({ darkMode = false }) => {
                                                                     <div className="flex items-center gap-2 mb-0.5 overflow-hidden">
                                                                         <Globe size={11} className="text-stone-500 shrink-0" />
                                                                         <span className={`text-[10px] font-bold truncate ${darkMode ? 'text-white/80' : 'text-stone-900'}`}>{session.geo?.city && session.geo.city !== 'Unknown' ? `${session.geo.city}${session.geo.region && session.geo.region !== 'Unknown' ? `, ${session.geo.region}` : ''}` : 'Inconnu'}</span>
-                                                                        <span className="hidden md:inline text-[8px] text-stone-500 opacity-50 truncate">• {session.ip}</span>
                                                                     </div>
                                                                     <div className="flex items-center gap-1.5 overflow-hidden">
                                                                         {session.device === 'Mobile' ? <Smartphone size={10} className="text-stone-500 shrink-0" /> : <Monitor size={10} className="text-stone-500 shrink-0" />}
                                                                         <span className="text-[9px] font-bold text-stone-500 truncate uppercase">
                                                                             {session.os || 'Inconnu'} • {session.browser || 'Inconnu'}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-1.5 overflow-hidden">
+                                                                        <span className="text-[8px] font-black uppercase tracking-widest text-stone-600 shrink-0">IP</span>
+                                                                        <span className="text-[9px] font-mono font-bold text-stone-500 truncate" title={session.ip || 'IP inconnue'}>
+                                                                            {session.ip && session.ip !== 'Unknown' ? session.ip : 'IP inconnue'}
                                                                         </span>
                                                                     </div>
                                                                 </div>

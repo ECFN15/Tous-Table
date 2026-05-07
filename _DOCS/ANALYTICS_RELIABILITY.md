@@ -92,7 +92,19 @@ La commande couvre:
 - meme UID anonyme + IPs differentes = 1 visiteur fiable mais 2 IPs uniques;
 - IP `Unknown` exclue du compteur IP et visible dans la couverture;
 - deduplication du graphique par creneau;
+- bornes de fenetre et nombre de slots stables pour `1h`, `1j`, `7j`, `1mois`, `1ans`;
+- `avgDuration`, `bounceRate`, `mobilePercentage` et normalisation des durees invalides;
+- detection de fenetre plafonnee quand la lecture atteint `MAX_ANALYTICS_SESSIONS`;
 - normalisation IP backend (`x-forwarded-for`, IPv4 mappee IPv6, IPv4 avec port).
+
+## Audit 2026-05-07 - Mise a jour dashboard
+
+- UI sessions: l'IP est maintenant affichee comme une ligne dediee sous la ville et le device, visible sur mobile et desktop.
+- Snapshot admin: un seul listener Firestore lit la fenetre locale d'1 an; le changement de filtre ne recree plus inutilement le listener.
+- Fenetres glissantes: les KPIs et le graphe sont recalcules depuis `sessions + timeFilter + now`, donc les filtres se mettent a jour quand l'horloge locale avance, meme sans nouveau snapshot.
+- Rebond: les sessions sans parcours ou avec 0/1 etape comptent comme rebond, ainsi que les sessions de moins de 10 secondes.
+- Duree moyenne: les durees sont normalisees entre 0 et 24h avant moyenne pour eviter qu'une valeur corrompue fausse le KPI.
+- Graphique: chaque creneau deduplique les visiteurs fiables; le tooltip garde le nombre de sessions quand il differe du nombre de visiteurs.
 
 Avant de deployer:
 

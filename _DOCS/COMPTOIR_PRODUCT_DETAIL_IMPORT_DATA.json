@@ -53,6 +53,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Un bloc de poncage manuel simple et durable pour garder une pression reguliere sur les surfaces en bois. Il aide a eviter les creux que l'on cree souvent en poncant directement a la main.",
+        "customerDescription": "Ce bloc sert a transformer une simple feuille abrasive en outil de poncage plus stable. Pour un meuble ancien, il aide a travailler plus droit, a mieux repartir la pression et a eviter les marques de doigts dans le bois. C'est un accessoire basique, mais utile avant une huile, une cire ou une peinture, surtout sur les plateaux, chants et zones planes.",
         "useCases": [
           "Poncage manuel de surfaces planes ou legerement courbes",
           "Egrenage entre couches avant finition",
@@ -102,6 +103,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Des chiffons propres et non pelucheux pour appliquer, essuyer et lustrer les huiles, cires et nettoyants sans laisser de fibres dans la finition.",
+        "customerDescription": "Ces chiffons sont faits pour les moments ou un chiffon ordinaire peut ruiner une finition en laissant des fibres, de la poussiere ou des traces. Ils servent autant a depoussierer avant finition qu'a essuyer une huile, lustrer une cire ou retirer un excedent proprement. C'est le genre de consommable discret qui rend le resultat final plus net.",
         "useCases": [
           "Essuyage final avant finition",
           "Application d'huile ou de cire",
@@ -153,6 +155,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Un coton d'application pour travailler proprement les teintes, cires, vernis au tampon et finitions fines sur meuble.",
+        "customerDescription": "Le coton a mecher sert a appliquer ou lustrer une finition avec plus de controle qu'un chiffon classique. Sur un meuble ancien, il permet de travailler dans les moulures, d'etaler une teinte, de poser une cire en couche fine ou de raviver un vernis avec une popote adaptee. Il s'adresse surtout aux finitions soignees ou aux petites restaurations.",
         "useCases": [
           "Application de teinte bois",
           "Mise en cire",
@@ -202,6 +205,7 @@
         "confidence": "medium",
         "sourceGrade": "manufacturer-variant-mismatch",
         "detailIntro": "Une laine d'acier tres fine pour egrener, lustrer et faire penetrer une cire dans les moulures sans rayer fortement le support.",
+        "customerDescription": "La laine d'acier fine est utile quand le papier abrasif est trop rigide ou trop agressif. Elle aide a matifier legerement, lustrer une cire, nettoyer des reliefs ou travailler autour de moulures sans casser les details. C'est un accessoire de finition, pas un outil de decapage lourd : elle sert a affiner le toucher et le rendu.",
         "useCases": [
           "Egrenage leger entre finitions",
           "Lustrage de cire",
@@ -254,6 +258,7 @@
         "confidence": "medium",
         "sourceGrade": "manufacturer-name-mismatch",
         "detailIntro": "Un pinceau plat pour appliquer proprement peintures et finitions sur petites surfaces de meuble, chants et moulures simples.",
+        "customerDescription": "Ce pinceau est destine aux petites surfaces, chants, angles et zones ou un rouleau manque de precision. Il permet d'appliquer une peinture ou une finition avec plus de controle sur un meuble, notamment autour des moulures et des bords. Avant achat, il faut juste verifier que le format 40 mm correspond bien a la surface a travailler.",
         "useCases": [
           "Application de peinture meuble",
           "Retouches de finition",
@@ -303,6 +308,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Un masque FFP3 pour se proteger des poussieres fines de poncage et de travaux bois lorsque l'atelier genere des particules.",
+        "customerDescription": "Ce masque sert a proteger les voies respiratoires pendant les travaux qui soulevent de la poussiere fine : poncage, raclage sec, nettoyage d'atelier ou travail sur vieux bois. Il est pertinent si le client restaure lui-meme un meuble et veut eviter de respirer les poussieres. Il ne remplace pas un masque a cartouches pour les vapeurs de solvants.",
         "useCases": [
           "Poncage de bois",
           "Depoussierage intensif",
@@ -352,6 +358,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Une colle a bois resistante a l'eau pour assemblages interieurs et exterieurs, interessante pour reparations et collages exigeants.",
+        "customerDescription": "Cette colle sert aux assemblages bois qui demandent plus de resistance qu'une colle basique, notamment quand l'objet peut rencontrer de l'humidite. Elle convient pour reparer, recoller ou assembler des pieces de bois, a condition de bien serrer et de respecter le temps de prise. Elle n'est pas faite pour une immersion permanente ni pour remplacer une vraie fixation structurelle.",
         "useCases": [
           "Collage de bois massif",
           "Assemblages soumis a l'humidite",
@@ -401,6 +408,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Un produit de patine pour ombrer les reliefs, marquer les moulures et donner un aspect plus ancien a un meuble ou un cadre.",
+        "customerDescription": "Le bitume de Judee sert a creer une patine ancienne en foncant legerement les creux, moulures et reliefs. Il ne sert pas a proteger le bois comme une cire ou une huile : son role est surtout decoratif. Il est utile pour donner de la profondeur a un meuble trop neuf, accentuer des details sculptes ou harmoniser une restauration.",
         "useCases": [
           "Patiner moulures et sculptures",
           "Vieillir un bois clair",
@@ -453,6 +461,7 @@
         "confidence": "medium",
         "sourceGrade": "manufacturer-variant-mismatch",
         "detailIntro": "Une cire antiquaire pour nourrir, proteger et faire briller les meubles et boiseries en bois.",
+        "customerDescription": "Cette cire est faite pour les meubles et boiseries qui doivent retrouver une patine chaude et un toucher satine. Elle nourrit legerement, donne de la profondeur au veinage et apporte une protection douce. Elle convient bien aux meubles anciens peu exposes a l'eau, mais ce n'est pas la finition la plus robuste pour une table utilisee intensivement au quotidien.",
         "useCases": [
           "Mise en cire d'un meuble ancien",
           "Lustrage de boiseries",
@@ -504,6 +513,7 @@
         "confidence": "medium",
         "sourceGrade": "manufacturer-variant-mismatch",
         "detailIntro": "Une cire de finition pour redonner de la profondeur et une patine lustree aux meubles en bois.",
+        "customerDescription": "Cette fiche correspond a la famille Black Bison, utilisee pour cirer et lustrer un meuble en bois. Le client doit comprendre qu'une cire donne un beau rendu et un toucher agreable, mais demande un entretien periodique. Elle est ideale pour buffets, commodes, boiseries et pieces decoratives, moins pour les zones regulierement mouillees.",
         "useCases": [
           "Finition ciree de meuble ancien",
           "Raviver une patine",
@@ -554,6 +564,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Une peinture mate pour relooker un meuble en bois avec un rendu doux, poudré et decoratif.",
+        "customerDescription": "Cette peinture sert a transformer l'apparence d'un meuble sans chercher a garder le bois apparent. Elle donne un rendu mat, doux et decoratif, interessant pour moderniser une commode, une chaise ou une petite boiserie. Le client doit savoir qu'une peinture demande une bonne preparation du support et parfois une protection finale selon l'usage.",
         "useCases": [
           "Relooking de meuble",
           "Peinture de boiseries interieures",
@@ -604,6 +615,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Une peinture decorative effet metal mat pour apporter une finition contemporaine a un meuble, un objet ou une boiserie.",
+        "customerDescription": "Cette peinture sert a creer un effet metal mat, ici dans un esprit fonte, sur un meuble ou un objet prepare. Elle n'a pas le meme role qu'une cire : elle change franchement le style visuel. Elle peut etre interessante par petites touches, sur des details ou un meuble decoratif, quand on veut un contraste plus contemporain.",
         "useCases": [
           "Relooking decoratif de meuble",
           "Effet metal mat sur bois ou objet prepare",
@@ -656,6 +668,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Une teinte bois pour modifier ou harmoniser la couleur d'un meuble avant d'appliquer une finition de protection.",
+        "customerDescription": "Cette teinte sert a colorer le bois sans masquer completement son veinage. Elle est utile pour harmoniser une reparation, rechauffer un bois trop clair ou retrouver un ton plus ancien. Le point important pour le client : une teinte ne protege pas le bois a elle seule, il faut ensuite appliquer une finition adaptee.",
         "useCases": [
           "Harmoniser une restauration",
           "Rechauffer un bois clair",
@@ -707,6 +720,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Une resine epoxy bi-composant transparente pour creations bois/resine, inclusions et revetements decoratifs.",
+        "customerDescription": "Cette resine sert aux projets creatifs ou decoratifs, comme les inclusions, petites coulees transparentes ou effets bois/resine. Ce n'est pas un produit d'entretien classique : il faut doser precisement, melanger proprement et respecter les conditions de temperature et d'humidite. Elle s'adresse plutot a un client qui veut fabriquer ou transformer, pas simplement nourrir un meuble.",
         "useCases": [
           "Table riviere",
           "Inclusions decoratives",
@@ -760,6 +774,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Une peinture a effet craie pour donner un rendu mat et doux a un meuble relooke.",
+        "customerDescription": "Cette peinture est faite pour relooker un meuble avec un rendu mat, un peu poudré, souvent recherche pour les effets patines ou shabby chic. Elle cache le bois au lieu de le nourrir, donc elle convient quand le client veut changer le style du meuble. Pour une surface sollicitee, il faut prevoir une protection adaptee apres peinture.",
         "useCases": [
           "Relooking meuble",
           "Effet shabby chic ou patine douce",
@@ -811,6 +826,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Une huile-cire pour proteger le bois tout en gardant un aspect naturel et peu transforme.",
+        "customerDescription": "Cette huile-cire sert a proteger un bois interieur tout en conservant un rendu proche du bois brut. Elle est utile quand le client veut eviter un effet vernis brillant ou une couleur trop marquee. Elle penetre dans le support et laisse une finition plus naturelle, mais demande une application en couches fines et un bon essuyage des surplus.",
         "useCases": [
           "Protection de meuble en bois",
           "Finition de parquet ou boiserie",
@@ -862,6 +878,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Une huile-cire teintee chene clair pour proteger le bois tout en rechauffant legerement sa couleur.",
+        "customerDescription": "Cette huile-cire combine protection et nuance chene clair. Elle convient quand un bois parait trop pale, irregulier ou froid apres poncage, mais que l'on veut garder un aspect naturel. Le client doit surtout retenir que la teinte depend du bois de depart : un essai discret est indispensable avant de traiter tout un plateau ou une facade.",
         "useCases": [
           "Protection de meubles et boiseries",
           "Rendu chene clair",
@@ -909,6 +926,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Un conditionneur pour planches, billots et plans de travail en bois qui combine huile minerale alimentaire et cires protectrices.",
+        "customerDescription": "Ce produit sert a entretenir les bois en contact alimentaire comme les planches, billots et plans de travail. Il nourrit la surface et ajoute une protection ciree qui aide a limiter le dessechement et l'absorption. Il est interessant apres une huile d'entretien, quand le client veut une surface plus douce et mieux protegee au toucher.",
         "useCases": [
           "Entretien de planche a decouper",
           "Protection de billot",
@@ -957,6 +975,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Une creme de protection pour planches et billots, utile en finition apres une huile d'entretien.",
+        "customerDescription": "Cette creme est une finition d'entretien pour planches a decouper, billots et ustensiles en bois. Elle vient plutot apres une huile : l'huile nourrit, la creme aide a sceller la surface avec une couche ciree. Pour un client, c'est le bon choix si la planche devient seche, accroche au toucher ou marque trop vite l'humidite.",
         "useCases": [
           "Finition apres huile de planche",
           "Protection de billot",
@@ -1007,6 +1026,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Une huile d'entretien alimentaire pour nourrir les fibres des planches, billots et plans de travail en bois.",
+        "customerDescription": "Cette huile sert a nourrir les planches et billots en bois qui sechent avec le lavage et l'usage. Elle penetre dans les fibres pour limiter les fissures, les odeurs et l'absorption excessive d'eau. C'est un produit de routine : on l'utilise regulierement, puis on peut completer avec une creme de protection si l'on veut une surface plus fermee.",
         "useCases": [
           "Entretien courant de planche",
           "Nourrir un billot",
@@ -1057,6 +1077,7 @@
         "confidence": "low",
         "sourceGrade": "manufacturer-code-mismatch",
         "detailIntro": "Une huile-cire Osmo pour proteger durablement bois interieurs, meubles, escaliers et parquets, mais le libelle actuel doit etre corrige avant publication.",
+        "customerDescription": "Cette famille de produit sert a proteger les bois interieurs avec une finition huile-cire resistante et naturelle au toucher. Elle peut convenir a un meuble, un escalier ou un parquet, mais le produit actuel melange probablement la reference et le rendu. Avant de l'afficher au client, il faut clarifier si l'on vend une version satinee 3032 ou une vraie version mate.",
         "useCases": [
           "Protection de meubles",
           "Parquets et escaliers",
@@ -1106,6 +1127,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Une huile-cire satinee pour proteger les bois interieurs tout en gardant un toucher naturel.",
+        "customerDescription": "Cette huile-cire est faite pour proteger un bois interieur tout en gardant une sensation naturelle sous la main. Le rendu satine apporte un leger reflet sans effet plastique. Elle convient au client qui veut une protection plus robuste qu'une cire traditionnelle, notamment sur meubles, marches, parquets ou surfaces sollicitees.",
         "useCases": [
           "Meubles en bois massif",
           "Escaliers et parquets",
@@ -1154,6 +1176,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Une huile bi-composant pour proteger et colorer le bois interieur en une couche, avec un rendu naturel en teinte Pure.",
+        "customerDescription": "Cette huile est un produit technique pour bois remis a nu : elle protege en une couche et garde un rendu tres proche du bois naturel en version Pure. Elle est interessante pour tables, plans, meubles et escaliers quand on veut une finition fine et durable. Le client doit comprendre que la cle n'est pas d'en mettre beaucoup, mais d'appliquer, faire penetrer, puis retirer tout excedent.",
         "useCases": [
           "Meubles en bois brut",
           "Plans et tables",
@@ -1204,6 +1227,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Une huile de teck pour proteger et raviver les bois durs exterieurs, notamment mobilier de jardin et usages marine.",
+        "customerDescription": "Cette huile s'adresse surtout aux bois durs exterieurs comme le teck, l'eucalyptus ou certains mobiliers de jardin. Elle sert a raviver une couleur plus chaude et a aider le bois a mieux resister dehors. Elle ne doit pas etre confondue avec une huile alimentaire pour planche ou une huile interieure pour meuble ancien de salon.",
         "useCases": [
           "Mobilier exterieur en teck",
           "Bois durs exposes",
@@ -1252,6 +1276,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Un racloir d'ebeniste plat pour lisser le bois, retirer de fines traces et preparer une surface avant finition.",
+        "customerDescription": "Ce racloir sert a enlever de tres fins copeaux de bois pour obtenir une surface propre, souvent plus nette qu'apres un poncage. Il est utile pour effacer de petites marques, lisser un plateau ou preparer une finition. Le client doit savoir qu'il fonctionne seulement s'il est bien affile avec un morfil : ce n'est pas une simple spatule.",
         "useCases": [
           "Raclage fin du bois",
           "Egalisation avant huile ou cire",
@@ -1301,6 +1326,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Un grattoir de precision a lame carbure pour reprendre peinture, vernis ou traces dans les coins et petites zones.",
+        "customerDescription": "Ce grattoir sert a retirer localement peinture, vernis, colle ou petites sur-epaisseurs dans des endroits ou un outil large ne passe pas. Sa lame carbure travaille vite et fort. Il est donc pratique pour la restauration, mais demande de la prudence sur les bois tendres ou les finitions que l'on veut conserver.",
         "useCases": [
           "Grattage de coins",
           "Reprise de moulures simples",
@@ -1348,6 +1374,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Une presse a vis tout acier pour serrages puissants lors de collages, assemblages et travaux de menuiserie.",
+        "customerDescription": "Cette presse sert a maintenir deux pieces de bois bien en place pendant un collage ou un assemblage. Elle est beaucoup plus puissante qu'un petit serre-joint de bricolage, ce qui aide sur des plateaux, traverses ou pieces epaisses. Le client doit prevoir des cales pour ne pas marquer le bois et ne pas confondre serrer fort avec serrer trop fort.",
         "useCases": [
           "Collage de bois",
           "Maintien d'assemblage",
@@ -1398,6 +1425,7 @@
         "confidence": "medium",
         "sourceGrade": "manufacturer",
         "detailIntro": "Un grattoir triangulaire plutot oriente ebavurage et finition mecanique, a positionner avec prudence dans un univers bois.",
+        "customerDescription": "Ce grattoir est un outil de finition et d'ebavurage, plus proche de l'atelier mecanique que de la finition traditionnelle du bois. Il peut aider dans certains angles ou reprises precises, mais il n'est pas le premier outil a choisir pour lisser un meuble ancien. La fiche doit l'expliquer clairement pour eviter un achat mal compris.",
         "useCases": [
           "Ebavurage",
           "Grattage de zones etroites",
@@ -1448,6 +1476,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Un racloir de forme col de cygne pour travailler les courbes, profils, moulures et zones que le racloir plat ne suit pas.",
+        "customerDescription": "Ce racloir sert aux surfaces courbes, moulures, creux et profils ou un racloir plat ne porte pas correctement. Il est utile sur les meubles anciens sculptes ou galbes, quand on veut travailler proprement sans arrondir les details au papier abrasif. Comme tout racloir d'ebeniste, il demande un affilage correct.",
         "useCases": [
           "Raclage de moulures",
           "Surfaces concaves ou convexes",
@@ -1497,6 +1526,7 @@
         "confidence": "medium",
         "sourceGrade": "manufacturer-sku-to-confirm",
         "detailIntro": "Un coffret de ciseaux a bois pour ajustages, chanfreins, reprises d'assemblages et travaux de menuiserie fine.",
+        "customerDescription": "Ce coffret s'adresse a ceux qui veulent ajuster, reprendre ou fabriquer des assemblages en bois proprement. Les ciseaux permettent d'enlever de la matiere avec precision, de nettoyer un angle ou de reprendre une entaille. Ce n'est pas un outil d'entretien courant : c'est un vrai outil de menuiserie qui demande affutage, maintien stable et gestes prudents.",
         "useCases": [
           "Ajustage d'assemblage",
           "Reprise de bois massif",
@@ -1548,6 +1578,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer-plus-reseller",
         "detailIntro": "Un kit complet pour apprendre et pratiquer la finition au racloir : racloirs de formes differentes et affiloir pour creer le morfil.",
+        "customerDescription": "Ce kit sert a travailler le bois au racloir avec plusieurs formes adaptees aux surfaces plates, courbes et profiles. L'affiloir est important parce qu'il permet de creer le morfil, la petite arête qui coupe le bois. C'est un excellent choix pour quelqu'un qui veut progresser en finition fine et reduire le poncage poussiereux.",
         "useCases": [
           "Finition ebenisterie",
           "Raclage de surfaces et courbes",
@@ -1600,6 +1631,7 @@
         "confidence": "medium",
         "sourceGrade": "manufacturer-reseller-ean-to-confirm",
         "detailIntro": "Un racleur lourd a lame carbure de 65mm, probablement Bahco 665, pour retirer peinture, colle, vernis ou rouille sur grandes surfaces.",
+        "customerDescription": "Ce racleur sert aux travaux plus agressifs : retirer de la colle, de la peinture, un vieux vernis ou des residus tenaces. La lame large travaille vite sur de grandes zones, mais elle peut aussi marquer le bois si l'on force. Le client doit comprendre que c'est un outil de decapage mecanique, pas un racloir de finition.",
         "useCases": [
           "Decapage mecanique local",
           "Retrait de colle sechee",
@@ -1652,6 +1684,7 @@
         "confidence": "medium",
         "sourceGrade": "manufacturer-glossary-plus-reseller",
         "detailIntro": "Une cire de retouche pour combler les petits trous, rayures et trous de vers sur un meuble deja fini.",
+        "customerDescription": "Cette cire sert a masquer de petits defauts sur un meuble deja verni ou cire, sans reprendre toute la finition. Elle convient aux rayures, trous de vers ou petits impacts visibles. Elle ne remplace pas une pate a bois pour une reparation a poncer ou a repercer : elle est surtout faite pour une retouche discrete en surface.",
         "useCases": [
           "Reboucher une petite rayure",
           "Masquer un trou de ver",
@@ -1704,6 +1737,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Des crayons de retouche pour masquer rapidement petites griffures et eraflures sur bois cire ou verni.",
+        "customerDescription": "Ces crayons servent a faire disparaitre visuellement les petites rayures et marques claires qui attirent l'oeil sur un meuble. Le but n'est pas de reconstruire le bois, mais de recolorer localement le defaut pour le rendre beaucoup moins visible. C'est un produit pratique pour l'entretien courant d'un meuble deja fini.",
         "useCases": [
           "Masquer une rayure",
           "Retoucher un eclat leger",
@@ -1751,6 +1785,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Une pate a bois pour reboucher trous, fentes et eclats avant poncage puis finition.",
+        "customerDescription": "Cette pate sert a combler un manque de matiere avant de poncer et refaire une finition. Elle est plus adaptee qu'une cire quand la zone doit etre retravaillee, poncee ou repeinte. Le client doit comprendre qu'elle demande un support propre, un temps de sechage et souvent une reprise de teinte ou de finition apres poncage.",
         "useCases": [
           "Reboucher un petit trou",
           "Reparer un eclat",
@@ -1796,6 +1831,7 @@
         "confidence": "low",
         "sourceGrade": "manufacturer-ambiguous-region",
         "detailIntro": "Un produit de renovation legere pour traces blanches, auréoles ou vernis ternes, mais la reference exacte doit etre verifiee avant publication.",
+        "customerDescription": "Cette famille de produit sert a traiter des marques blanches, aureoles d'eau ou vernis ternes sans decaper completement le meuble. C'est potentiellement tres utile pour les accidents du quotidien sur plateau verni. Mais la reference actuelle melange plusieurs noms possibles, donc il faut confirmer le produit exact avant de l'afficher au client.",
         "useCases": [
           "Traces blanches d'eau ou chaleur",
           "Raviver un vernis terni",
@@ -1850,6 +1886,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Un acide oxalique en poudre pour eclaircir un bois grise ou traiter certaines taches noires, de rouille ou d'encre.",
+        "customerDescription": "Ce produit sert a traiter des taches difficiles que le poncage ou le savon ne suffisent pas toujours a enlever : traces noires, rouille, encre, bois grise. Il peut aider a recuperer un bois taché avant finition, mais c'est un produit acide a utiliser avec methode. Le client doit comprendre qu'il faut tester, rincer abondamment et laisser secher avant de juger le resultat.",
         "useCases": [
           "Degriser un bois",
           "Eclaircir une tache noire",
@@ -1899,6 +1936,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Un decapant gel pour retirer peintures, vernis, lasures ou vitrificateurs sur bois avant remise a nu.",
+        "customerDescription": "Ce decapant sert quand une ancienne finition est trop epaisse, abimee ou accrochee pour etre simplement nettoyee ou poncee. Sa texture gel aide a rester en place sur les surfaces verticales et les moulures pendant qu'il ramollit peintures, vernis, lasures ou vitrificateurs. C'est un produit de restauration lourde : il prepare le bois pour repartir sur une base plus saine avant poncage et nouvelle finition.",
         "useCases": [
           "Decaper un meuble peint",
           "Retirer un vieux vernis",
@@ -1952,6 +1990,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Un produit de nettoyage intensif pour degraisser et decaper avant renovation de parquets ou sols compatibles.",
+        "customerDescription": "Ce produit sert a remettre a propre un sol ou parquet compatible avant une renovation, quand un nettoyage doux ne suffit plus. Il aide a enlever gras, salissures incrustees ou anciennes couches de polish. Le client doit bien comprendre que ce n'est pas un savon d'entretien courant : c'est une preparation forte avant remise en etat.",
         "useCases": [
           "Nettoyage fort avant renovation",
           "Degraissage de parquet vitrifié ou stratifie compatible",
@@ -2004,6 +2043,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Un decireur pour retirer anciennes couches de cire, saletes incrustees et gras avant une nouvelle finition.",
+        "customerDescription": "Ce decireur sert a retirer les vieilles couches de cire qui encrassent un meuble ancien et empechent une nouvelle finition d'accrocher correctement. Il est utile quand le bois semble poisseux, sombre dans les moulures ou charge de produits accumules. Il permet souvent de restaurer sans poncer agressivement, mais il reste un produit solvanté a manipuler avec precautions.",
         "useCases": [
           "Restaurer un meuble cire",
           "Preparer avant nouvelle cire",
@@ -2054,6 +2094,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Un nettoyant concentre doux pour entretenir regulierement les bois huiles ou cires sans les agresser.",
+        "customerDescription": "Ce nettoyant sert a l'entretien regulier des surfaces en bois deja huilees ou cirees. Il est fait pour nettoyer sans retirer la finition ni dessecher le bois, contrairement a des detergents trop agressifs. Le client doit surtout retenir qu'il se dose legerement et s'utilise avec peu d'eau, car le bois n'aime pas etre detrempe.",
         "useCases": [
           "Entretien courant de surfaces huilees",
           "Nettoyage de parquets ou meubles compatibles",
@@ -2101,6 +2142,7 @@
         "confidence": "medium",
         "sourceGrade": "manufacturer-variant-to-confirm",
         "detailIntro": "Un savon noir liquide multi-usages, interessant pour l'entretien doux selon la variante exacte vendue.",
+        "customerDescription": "Le savon noir est un nettoyant traditionnel multi-usages qui peut servir dans l'entretien de la maison et parfois de certains sols ou outils. Pour le bois, la variante exacte compte beaucoup : huile d'olive, huile de lin ou autre formule ne se conseillent pas exactement pareil. La fiche devra donc confirmer le produit vendu avant de promettre un usage precis sur parquet ou meuble.",
         "useCases": [
           "Nettoyage multi-usages",
           "Entretien doux de certains sols",
@@ -2150,6 +2192,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Des copeaux de savon de Marseille pour preparer des solutions de nettoyage doux et des recettes menageres simples.",
+        "customerDescription": "Ces copeaux servent a preparer des solutions de nettoyage douces ou des recettes menageres maison. Ils ne sont pas un produit de restauration specialise, mais peuvent interesser un client qui veut entretenir simplement certains supports compatibles. Il faut les dissoudre correctement et eviter les dosages trop riches qui laisseraient un film sur la surface.",
         "useCases": [
           "Preparation de nettoyant doux",
           "Lessive maison",
@@ -2200,6 +2243,7 @@
         "confidence": "high",
         "sourceGrade": "manufacturer",
         "detailIntro": "Un nettoyant pour recuperer et entretenir pinceaux, rouleaux et outils apres peinture ou vernis.",
+        "customerDescription": "Ce produit sert a nettoyer ou recuperer les pinceaux, rouleaux et outils apres des travaux de peinture ou de finition. Il aide a prolonger la vie du materiel, surtout quand les poils commencent a durcir. Pour le client, l'interet est simple : garder de bons outils propres evite les traces, les poils colles et les finitions ratees.",
         "useCases": [
           "Nettoyer pinceaux apres finition",
           "Renover des pinceaux encrasses",

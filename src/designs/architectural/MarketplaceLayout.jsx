@@ -636,7 +636,7 @@ const MarketplaceLayout = ({
     return (
         <div className={`w-full min-h-screen overflow-x-hidden ${pageClass}`}>
             <main className="relative overflow-hidden">
-                <section className="relative min-h-[calc(100svh-4rem)] md:min-h-[560px] lg:min-h-[620px] overflow-hidden">
+                <section className="marketplace-hero relative min-h-[calc(100svh-4rem)] md:min-h-[560px] lg:min-h-[620px] overflow-hidden">
                     {heroConfig.image && (
                         <picture>
                             <source
@@ -683,7 +683,7 @@ const MarketplaceLayout = ({
                         </div>
 
                         {/* BAS — Titre + description + CTA */}
-                        <div className="mt-14 flex w-full min-w-0 items-end justify-between md:mt-16 lg:mt-auto">
+                        <div className="marketplace-hero-copy-row mt-14 flex w-full min-w-0 items-end justify-between md:mt-16 lg:mt-auto">
                             <div className="w-full min-w-0 max-w-[calc(100vw-3rem)] md:max-w-2xl">
                                 <p className="hidden lg:block text-[#dba45f] text-[11px] md:text-xs font-black uppercase tracking-[0.42em] mb-5 md:mb-7">
                                     Collection 2026

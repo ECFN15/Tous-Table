@@ -15,6 +15,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import SplitType from 'split-type';
 import { trackAffiliateClick } from '../utils/tracking';
+import { getShopProductPath } from '../utils/seoRoutes';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -132,7 +133,7 @@ const buildShopItemList = (products) => products
         };
     });
 
-const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) => {
+const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, onOpenProductDetail }) => {
     const { isAdmin } = useAuth();
     
     const handleTutorialClick = async (event, linkedProduct) => {
@@ -401,6 +402,10 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
         }, 10);
     }, []);
 
+    const handleProductDetailOpen = useCallback((product) => {
+        onOpenProductDetail?.(product);
+    }, [onOpenProductDetail]);
+
     return (
         <div className={`min-h-screen animate-in fade-in duration-500 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-[linear-gradient(180deg,#f8f2e8_0%,#fffaf2_42%,#f1e3cf_100%)]'}`}>
             <SEO
@@ -606,6 +611,8 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps }) 
                                                 <ShopProductCard
                                                     product={product}
                                                     darkMode={darkMode}
+                                                    detailHref={getShopProductPath(product)}
+                                                    onOpenProductDetail={handleProductDetailOpen}
                                                 />
 
                                                 {/* Editorial / Video block inline after 4th product ou apres le dernier si < 4 */}

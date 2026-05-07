@@ -293,6 +293,7 @@ Ajouter ou preparer ces champs dans `affiliate_products` avant implementation UI
   productType: string,
   detailStatus: 'ready' | 'needs-data-fix' | 'needs-source-check',
   detailIntro: string,
+  customerDescription: string,
   useCases: string[],
   strengths: string[],
   atelierTips: string[],

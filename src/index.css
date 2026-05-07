@@ -88,6 +88,13 @@ body.modal-open {
   font-family: 'Cormorant Garamond', serif;
 }
 
+@media (max-width: 767px) {
+  .marketplace-hero-copy-row {
+    margin-top: auto;
+    padding-top: clamp(3.5rem, 8svh, 4.75rem);
+  }
+}
+
 /* Custom Utilities from HomeView */
 #main-cursor {
   position: fixed;

@@ -8,6 +8,8 @@ export const ANALYTICS_TIME_FILTERS = [
     { id: '1ans', label: '1ans', duration: 365 * 24 * 60 * 60 * 1000, step: 30 * 24 * 60 * 60 * 1000 }
 ];
 
+const MAX_ANALYTICS_DURATION_SECONDS = 24 * 60 * 60;
+
 export const getAnalyticsFilterConfig = (filterId) => (
     ANALYTICS_TIME_FILTERS.find(filter => filter.id === filterId) || ANALYTICS_TIME_FILTERS[2]
 );
@@ -59,6 +61,12 @@ export const getVisitorIdentity = (session) => {
 };
 
 export const getReliableVisitorKey = (session) => getVisitorIdentity(session).key;
+
+export const normalizeSessionDuration = (duration) => {
+    const value = Number(duration);
+    if (!Number.isFinite(value)) return 0;
+    return Math.max(0, Math.min(MAX_ANALYTICS_DURATION_SECONDS, Math.round(value)));
+};
 
 export const getAnalyticsWindow = (filterId, rawNow = Date.now()) => {
     const config = getAnalyticsFilterConfig(filterId);
@@ -123,9 +131,10 @@ export const buildAnalyticsStats = (sessions = [], filterId = '1j', options = {}
         if (ipKey) ipKeys.add(ipKey);
         else missingIpSessions += 1;
 
-        const duration = Number(session.duration) || 0;
+        const duration = normalizeSessionDuration(session.duration);
+        const journeyLength = Array.isArray(session.journey) ? session.journey.length : 0;
         totalDuration += duration;
-        if ((Array.isArray(session.journey) && session.journey.length <= 1) || duration < 10) bounces += 1;
+        if (journeyLength <= 1 || duration < 10) bounces += 1;
         if (session.device === 'Mobile') mobiles += 1;
     });
 

@@ -51,8 +51,21 @@ export const getProductPath = (item) => {
   return `/produit/${slugify(item.name)}-${item.id}`;
 };
 
+export const getShopProductPath = (product) => {
+  if (!product?.id) return '/comptoir';
+  const title = product.detailDraft?.slug || slugify(product.detailDraft?.shortTitle || product.name);
+  return `/comptoir/${title}-${product.id}`;
+};
+
 export const getProductIdFromPath = (pathname = '') => {
   const match = String(pathname).match(/^\/produit\/(.+)$/);
+  if (!match) return null;
+  const parts = match[1].split('-');
+  return parts[parts.length - 1] || null;
+};
+
+export const getShopProductIdFromPath = (pathname = '') => {
+  const match = String(pathname).match(/^\/comptoir\/(.+)$/);
   if (!match) return null;
   const parts = match[1].split('-');
   return parts[parts.length - 1] || null;
@@ -81,6 +94,9 @@ export const getRouteFromLocation = (location = window.location) => {
 
   const productId = params.get('product') || getProductIdFromPath(pathname);
   if (productId) return { view: 'detail', productId };
+
+  const shopProductId = getShopProductIdFromPath(pathname);
+  if (shopProductId) return { view: 'shop-detail', shopProductId };
 
   if (pathname === '/a-propos' || pathname === '/atelier' || hash === 'home') {
     return { view: 'about' };

@@ -7,7 +7,7 @@ import {
 import { httpsCallable } from 'firebase/functions'; // Added for logUserConnection
 // Auth imports removed (handled in Context)
 import {
-  Hammer, LogOut, ShieldCheck, Menu, Eye, EyeOff, ShoppingBag, Sun, Moon, AlertTriangle
+  Hammer, LogOut, ShieldCheck, Menu, Eye, EyeOff, ShoppingBag, Sun, Moon, AlertTriangle, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -20,6 +20,8 @@ import { useLenisScroll } from './hooks/useLenisScroll'; // Smooth scroll global
 import {
   getFurnitureCategoryPath,
   getProductPath,
+  getShopProductIdFromPath,
+  getShopProductPath,
   getRouteFromLocation,
   pushUrl,
   replaceUrl,
@@ -100,6 +102,7 @@ const AppContent = () => {
   // Navigation
   const [view, setView] = useState(() => initialRouteRef.current.view); // 'about', 'gallery', 'detail', 'login', 'admin'
   const [selectedItemId, setSelectedItemId] = useState(null);
+  const [selectedAffiliateProductId, setSelectedAffiliateProductId] = useState(initialRouteRef.current.shopProductId || null);
   const [loading, setLoading] = useState(true);
   const [isSecretGateOpen, setIsSecretGateOpen] = useState(false);
   const [showFullLogin, setShowFullLogin] = useState(false);
@@ -467,6 +470,11 @@ const AppContent = () => {
         setPendingDeepLink(route.productId);
         return;
       }
+      if (route.shopProductId) {
+        setSelectedAffiliateProductId(route.shopProductId);
+        setView('shop-detail');
+        return;
+      }
       if (route.galleryState) {
         setPersistentGalleryState(prev => ({ ...prev, ...route.galleryState }));
       }
@@ -487,9 +495,17 @@ const AppContent = () => {
 
     const allItems = [...items, ...boardItems];
     const selectedItem = allItems.find((item) => item.id === selectedItemId);
+    const selectedAffiliateProduct = affiliateProducts.find((product) => product.id === selectedAffiliateProductId);
 
     if (view === 'detail' && selectedItemId) {
       pushUrl(selectedItem ? getProductPath(selectedItem) : `/produit/${selectedItemId}`, { view: 'detail', itemId: selectedItemId });
+    } else if (view === 'shop-detail' && selectedAffiliateProductId) {
+      const currentShopProductId = getShopProductIdFromPath(window.location.pathname);
+      if (currentShopProductId === selectedAffiliateProductId && !selectedAffiliateProduct) return;
+      pushUrl(
+        selectedAffiliateProduct ? getShopProductPath(selectedAffiliateProduct) : `/comptoir/${selectedAffiliateProductId}`,
+        { view: 'shop-detail', itemId: selectedAffiliateProductId }
+      );
     } else if (view === 'shop') {
       pushUrl('/comptoir', { view });
     } else if (view === 'delivery') {
@@ -509,7 +525,7 @@ const AppContent = () => {
         : getFurnitureCategoryPath(persistentGalleryState.activeCategory || 'all');
       pushUrl(path, { view });
     }
-  }, [view, selectedItemId, items, boardItems, persistentGalleryState.activeCollection, persistentGalleryState.activeCategory]);
+  }, [view, selectedItemId, selectedAffiliateProductId, items, boardItems, affiliateProducts, persistentGalleryState.activeCollection, persistentGalleryState.activeCategory]);
 
   // --- TRAITEMENT DEEP LINK ---
   useEffect(() => {
@@ -657,15 +673,17 @@ const AppContent = () => {
   const currentAdminItems = adminCollection === 'furniture' ? items : boardItems;
   // Cart Total
   const cartTotal = cartItems.reduce((sum, item) => sum + (item.price || 0), 0);
+  const selectedAffiliateProduct = affiliateProducts.find((product) => product.id === selectedAffiliateProductId);
+  const selectedCatalogItem = items.concat(boardItems).find(i => i.id === selectedItemId);
 
   return (
     <div className={`min-h-screen font-sans selection:bg-stone-300 transition-colors duration-700 ${darkMode ? 'bg-[#0A0A0A] text-stone-200' : 'bg-[#FAFAF9] text-stone-900'}`}>
       <SEO />
       <AnalyticsProvider
         view={view}
-        selectedItemId={selectedItemId}
-        selectedItemName={items.concat(boardItems).find(i => i.id === selectedItemId)?.name}
-        selectedItemPrice={items.concat(boardItems).find(i => i.id === selectedItemId)?.currentPrice || items.concat(boardItems).find(i => i.id === selectedItemId)?.startingPrice}
+        selectedItemId={view === 'shop-detail' ? selectedAffiliateProductId : selectedItemId}
+        selectedItemName={view === 'shop-detail' ? selectedAffiliateProduct?.name : selectedCatalogItem?.name}
+        selectedItemPrice={view === 'shop-detail' ? selectedAffiliateProduct?.price : (selectedCatalogItem?.currentPrice || selectedCatalogItem?.startingPrice)}
       />
 
       {/* RIDEAU DE TRANSITION GLOBAL (Masque le switch de page) */}
@@ -857,7 +875,7 @@ const AppContent = () => {
               cartCount={cartItems.length}
               toggleTheme={() => setDarkMode(!darkMode)}
               darkMode={darkMode}
-              onBack={view === 'detail' ? () => setView('gallery') : null}
+              onBack={view === 'detail' ? () => setView('gallery') : view === 'shop-detail' ? () => setView('shop') : null}
             />
           ) : (
             <nav className={`fixed top-0 left-0 right-0 z-[110] px-4 md:px-12 pt-[max(4.5rem,env(safe-area-inset-top)+2rem)] pb-4 md:py-8 flex justify-between items-center transition-all duration-500 ease-in-out ${isHeaderVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}>
@@ -938,6 +956,8 @@ const AppContent = () => {
           setShowFullLogin={setShowFullLogin}
           setSelectedItemId={setSelectedItemId}
           selectedItemId={selectedItemId}
+          selectedAffiliateProductId={selectedAffiliateProductId}
+          setSelectedAffiliateProductId={setSelectedAffiliateProductId}
           addToCart={addToCart}
           cartItems={cartItems}
           cartTotal={cartTotal}
@@ -960,7 +980,7 @@ const AppContent = () => {
         />
       </main>
       {
-        ['home', 'gallery', 'detail', 'checkout', 'my-orders', 'shop'].includes(view) && (
+        ['home', 'gallery', 'detail', 'checkout', 'my-orders', 'shop', 'shop-detail'].includes(view) && (
           <div ref={footerRef}>
             <Footer darkMode={darkMode} />
           </div>
