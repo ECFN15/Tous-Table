@@ -1114,7 +1114,7 @@ Tests :
 ## Chapitre 19 - Schema local A propos aligne
 
 Date : 7 mai 2026
-Statut : implemente localement, aucun deploy
+Statut : deploy Hosting prod effectue, controles publics OK, validation Search Console restante
 
 Objectif :
 
@@ -2077,6 +2077,7 @@ Fichiers touches :
 
 - `src/pages/GalleryView.jsx`
 - `src/designs/architectural/ArchitecturalProductDetail.jsx`
+- `src/data/legacyFurnitureCategories.js`
 - `scripts/verify-seo-roadmap.mjs`
 - `SEOlivre.md`
 
@@ -2094,6 +2095,10 @@ Changements :
   - le `BreadcrumbList` reste emis meme si le produit est en prix sur demande.
 - `verify-seo-roadmap.mjs` :
   - le gate marketplace verifie maintenant aussi `Offer`, `priceCurrency`, `availability` et `UsedCondition`.
+- `legacyFurnitureCategories.js` :
+  - ajout du mapping local `aeqBE7DDp0V7Liro0LKa: autre` pour `Malle ancienne 1920` ;
+  - correction necessaire car le preflight prod a detecte 29 meubles prod pour 28 mappings ;
+  - aucune ecriture Firestore prod : le document prod avait deja `category: autre`.
 
 Mapping prix / statut vers `offers` :
 
@@ -2124,20 +2129,51 @@ Risque UI :
 
 Securite / donnees :
 
-- Aucun deploy effectue.
+- Deploy limite a Hosting uniquement, avec accord utilisateur.
 - Aucune ecriture Firestore prod.
 - Aucun secret lu ou consigne.
 - Aucun faux avis ou note artificielle ajoute.
 
 Tests effectues :
 
+- Premier `npm run preflight:prod` bloque comme prevu :
+  - `prodFurnitureCount = 29` ;
+  - `mappingCount = 28` ;
+  - missing `aeqBE7DDp0V7Liro0LKa`.
+- Lecture prod read-only du document manquant :
+  - `name = Malle ancienne 1920` ;
+  - `category = autre` ;
+  - `currentPrice = 120` ;
+  - `stock = 1` ;
+  - `sold = false`.
+- Mapping local ajoute puis `npm run preflight:prod` OK :
+  - `prodFurnitureCount = 29` ;
+  - `mappingCount = 29` ;
+  - no missing ;
+  - no extra ;
+  - no invalid categories.
 - `npm run build` OK.
 - `npm run verify:seo-roadmap` OK : 16 checks passes.
 - `git diff --check` OK hors warnings CRLF Windows.
+- `firebase deploy --only hosting --project tousatable-client` OK.
+- `firebase use default` OK apres deploy :
+  - alias final `tatmadeinnormandie`.
+- `npm run audit:public-seo` OK :
+  - 32 checks passes ;
+  - sitemap public `loc_count = 70` ;
+  - `product_path_url_count = 58` ;
+  - routes propres OK.
+- Smoke HTTP prod OK :
+  - `/meubles-anciens` HTTP 200 ;
+  - `/meubles-anciens/buffets` HTTP 200 ;
+  - `/produit/malle-ancienne-1920-aeqBE7DDp0V7Liro0LKa` HTTP 200.
+- Bundle public prod verifie :
+  - `GalleryView-DtxPMqUO.js` contient `Offer`, `priceCurrency`, `availability`, `UsedCondition` ;
+  - `ProductDetail-CCqEYfa1.js` contient `Offer`, `priceCurrency`, `UsedCondition`, `priceOnRequest`.
 
 Reste a faire :
 
-- Apres accord et deploy futur Hosting, tester en public :
+- Tester en public dans Google :
   - Rich Results Test sur `/meubles-anciens` ;
   - Rich Results Test sur `/meubles-anciens/buffets` ;
   - Rich Results Test sur une fiche produit avec prix ;

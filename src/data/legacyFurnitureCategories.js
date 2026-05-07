@@ -11,6 +11,7 @@ export const LEGACY_FURNITURE_CATEGORY_BY_ID = {
   nLQDH4f3utiRka9ALmTO: 'commode', // Commode
   gkkb3yTggloFmz70HYay: 'commode', // Commode vintage renovee
   oluSHrCWltBEUbGtu6Nf: 'armoire', // L'armoire de basile
+  aeqBE7DDp0V7Liro0LKa: 'autre', // Malle ancienne 1920
   mHUsTLrBYvDbqXQ4HlH9: 'chaise', // Lot de 6 chaises espagnol
   Yrq9LuSgEuYJUZaSIaTF: 'buffet', // Meuble de metier
   anmYy1Ew8ZW6Rxh3ksM5: 'buffet', // Meuble de metier
@@ -30,4 +31,3 @@ export const LEGACY_FURNITURE_CATEGORY_BY_ID = {
   GhpesY9osftcuMmaD1lw: 'table', // Table monastere
   orANR1BDdCQQTQOXT3iJ: 'armoire', // Vestiaire chene
 };
-

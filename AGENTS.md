@@ -20,6 +20,7 @@ Ce fichier est le chef d'orchestre du projet. Lis-le en premier, puis va seuleme
 - Etat de readiness prod : lire `_DOCS/PROD_READINESS_STATUS.md`.
 - Securite, regles, risques : lire `_DOCS/SECURITE.md` et `firestore.rules`.
 - Architecture et donnees Firestore : lire `architecture_firestore_rules.md`, `migrationfirestore.md`, `migrationprodtosandbox.md`.
+- Import images admin mobilier/planches, formats mobiles, cases blanches : lire `_DOCS/IMAGE_UPLOAD_NORMALIZATION.md`.
 - Audits anciens : lire `_DOCS/AUDITS/` et `audit/` seulement si la tache concerne le sujet.
 - Commandes utiles : lire `_DOCS/COMMANDS.md` et `package.json`.
 
