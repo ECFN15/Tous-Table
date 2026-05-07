@@ -6,7 +6,18 @@ Date: 2026-05-07
 
 Un client pouvait importer certaines photos depuis mobile et obtenir des cases blanches dans le formulaire mobilier/planches. Le contournement manuel etait de faire une capture d'ecran puis de reimporter cette capture.
 
-Le comportement pointe vers des fichiers photo mobiles lisibles par l'appareil, mais fragiles pour le pipeline web: HEIC/HEIF, HDR/Ultra HDR, profils couleur, metadata complexe, ou images tres lourdes.
+Le probleme a ete reproduit avec l'option photo haute performance / haute efficacite activee sur mobile: la photo importee etait en HEIF. Le navigateur pouvait accepter le fichier dans le champ d'import, mais l'apercu et/ou le pipeline canvas pouvaient produire une case blanche.
+
+Le contournement par capture d'ecran fonctionnait parce que la capture ressortait dans un format plus classique et mieux supporte par le navigateur, typiquement PNG/JPEG.
+
+## Cause confirmee
+
+La cause confirmee est le format HEIF/HEIC issu du mode photo haute efficacite.
+
+Deux points etaient necessaires pour regler le cas reel:
+
+- convertir explicitement les fichiers HEIF/HEIC en JPEG avant de les envoyer dans le canvas;
+- autoriser les workers `blob:` dans la CSP Firebase Hosting, car la librairie de conversion HEIF utilise un worker. Sans `worker-src 'self' blob:`, l'interface pouvait rester bloquee sur "Conversion...".
 
 ## Decision
 
@@ -16,11 +27,16 @@ Les images importees dans `src/features/admin/AdminForm.jsx` passent par un sas 
 - les fichiers HEIC/HEIF sont d'abord convertis en JPEG via `heic2any`;
 - l'image est redessinee dans un canvas;
 - le canvas exporte un fichier stable en WebP haute qualite, avec fallback JPEG;
-- l'aperçu admin est remplace par cette version normalisee;
+- l'apercu admin est remplace par cette version normalisee;
 - l'upload Firebase Storage utilise uniquement le fichier normalise;
 - si la normalisation echoue, la publication est bloquee pour cette image.
 
 La normalisation est dans `src/utils/imageUtils.js`.
+
+La correction qui a vraiment debloque le cas HEIF en production est donc le couple:
+
+1. dependance `heic2any` + detection `.heic/.heif` ou MIME `image/heic` / `image/heif`;
+2. CSP Hosting dans `firebase.json` avec `worker-src 'self' blob:`.
 
 ## Qualite
 
@@ -31,6 +47,8 @@ Parametres actuels:
 - format prefere: `image/webp`;
 - fallback: `image/jpeg`;
 - conversion HEIC/HEIF intermediaire: `heic2any` vers JPEG;
+- la CSP Hosting autorise `worker-src 'self' blob:` pour les workers de `heic2any`;
+- timeout conversion HEIC/HEIF: 45 secondes;
 - fond blanc pour aplatir proprement les images avec transparence.
 
 Ces valeurs gardent une qualite suffisante pour les fiches meubles/planches tout en evitant les fichiers trop lourds.
@@ -43,6 +61,7 @@ La conversion HEIC/HEIF depend de `heic2any` et peut echouer sur certains fichie
 
 - `src/utils/imageUtils.js`
 - `src/features/admin/AdminForm.jsx`
+- `firebase.json`
 - `AGENTS.md`
 - `_DOCS/IMAGE_UPLOAD_NORMALIZATION.md`
 - `package.json`
@@ -61,5 +80,15 @@ Verification manuelle recommandee:
 - importer une photo JPEG Android standard;
 - importer une tres grande photo mobile;
 - importer une image PNG avec transparence;
-- tenter un fichier HEIC/HEIF si disponible et verifier que la publication est bloquee avec un message lisible;
+- importer une photo HEIF/HEIC prise avec le mode photo haute efficacite et verifier qu'elle est convertie, visible en apercu, puis publiee sans case blanche;
+- verifier que l'etat "Conversion..." disparait bien apres la conversion;
 - verifier la creation d'un meuble et d'une planche sans toucher au comportement de la grille publique.
+
+## Verification terrain
+
+Le 2026-05-07, le probleme a ete reproduit avec une photo HEIF issue du mode haute efficacite, puis valide comme corrige apres ajout de la conversion `heic2any` et de la directive CSP `worker-src 'self' blob:`.
+
+Deploiements effectues apres validation:
+
+- production Hosting: projet `tousatable-client`;
+- sandbox Hosting: projet `tatmadeinnormandie`.

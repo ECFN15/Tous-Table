@@ -75,6 +75,9 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
   };
 
   const getImageImportErrorMessage = (error) => {
+    if (error?.code === 'heic-conversion-timeout') {
+      return "Conversion HEIC/HEIF trop longue. Essayez une photo moins lourde ou passez l'appareil en JPEG.";
+    }
     if (error?.code === 'heic-conversion-failed' || error?.code === 'heic-conversion-empty') {
       return "Conversion HEIC/HEIF impossible. Exportez la photo en JPEG ou desactivez le mode haute efficacite.";
     }
@@ -192,6 +195,7 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
       originalSize: file.size,
       isExisting: false,
       isCompressed: false,
+      isProcessing: true,
       uploadError: null
     }));
 
@@ -207,12 +211,14 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
           file: compressed,
           preview: optimizedPreview,
           isCompressed: true,
+          isProcessing: false,
           uploadError: null
         };
       } catch (error) {
         console.error("Auto-compression failed for", item.file.name, error);
         return {
           ...item,
+          isProcessing: false,
           uploadError: getImageImportErrorMessage(error)
         };
       }
@@ -410,9 +416,9 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
     setDraggedItemIndex(null);
   };
 
-  const handlePreviewError = (itemId) => {
+  const handlePreviewError = (itemId, failedPreview) => {
     setGalleryItems(prev => prev.map(item => (
-      item.id === itemId && !item.uploadError
+      item.id === itemId && item.preview === failedPreview && item.isCompressed && !item.uploadError
         ? { ...item, uploadError: "Image non lisible. Importez une version JPEG/PNG standard." }
         : item
     )));
@@ -485,8 +491,14 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
                   src={item.preview}
                   className={`w-full h-full object-cover pointer-events-none ${item.uploadError ? 'opacity-20' : ''}`}
                   alt=""
-                  onError={() => handlePreviewError(item.id)}
+                  onError={() => handlePreviewError(item.id, item.preview)}
                 />
+
+                {item.isProcessing && (
+                  <div className={`absolute inset-0 z-20 flex items-center justify-center p-3 text-center ${darkMode ? 'bg-stone-950/75 text-amber-200' : 'bg-white/80 text-stone-700'}`}>
+                    <span className="text-[9px] font-black uppercase tracking-widest">Conversion...</span>
+                  </div>
+                )}
 
                 {item.uploadError && (
                   <div className={`absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 p-3 text-center ${darkMode ? 'bg-stone-950/85 text-red-200' : 'bg-white/90 text-red-600'}`}>

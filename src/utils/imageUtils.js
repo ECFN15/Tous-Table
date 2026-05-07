@@ -36,14 +36,32 @@ const canvasToBlob = (canvas, mimeType, quality) =>
         canvas.toBlob((blob) => resolve(blob), mimeType, quality);
     });
 
+const withTimeout = (promise, timeoutMs, timeoutMessage, timeoutCode) => {
+    let timeoutId;
+    const timeout = new Promise((_, reject) => {
+        timeoutId = window.setTimeout(() => {
+            reject(createImageFileError(timeoutMessage, timeoutCode));
+        }, timeoutMs);
+    });
+
+    return Promise.race([promise, timeout]).finally(() => {
+        window.clearTimeout(timeoutId);
+    });
+};
+
 const convertHeicToJpeg = async (file, quality) => {
     try {
         const { default: heic2any } = await import('heic2any');
-        const converted = await heic2any({
-            blob: file,
-            toType: 'image/jpeg',
-            quality
-        });
+        const converted = await withTimeout(
+            heic2any({
+                blob: file,
+                toType: 'image/jpeg',
+                quality
+            }),
+            45000,
+            'Conversion HEIC/HEIF trop longue.',
+            'heic-conversion-timeout'
+        );
         const blob = Array.isArray(converted) ? converted[0] : converted;
 
         if (!blob || blob.size === 0) {

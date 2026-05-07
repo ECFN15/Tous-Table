@@ -2056,7 +2056,7 @@ Tests :
 ## Chapitre 28 - Correction Search Console extraits produits
 
 Date : 7 mai 2026
-Statut : implemente localement, aucun deploy
+Statut : deploy prod valide par Search Console live
 
 Contexte Search Console :
 
@@ -2173,9 +2173,48 @@ Tests effectues :
 
 Reste a faire :
 
-- Tester en public dans Google :
-  - Rich Results Test sur `/meubles-anciens` ;
-  - Rich Results Test sur `/meubles-anciens/buffets` ;
-  - Rich Results Test sur une fiche produit avec prix ;
-  - Search Console > Extraits de produits > Valider la correction.
+- Suivre la prise en compte par l index Google dans les prochains jours.
 - Si Google remonte ensuite une erreur `price` sur certains produits, verifier si ces produits sont en `priceOnRequest` ou avec prix manquant dans les donnees admin avant toute modification.
+
+Validation Google Search Console :
+
+- Tests live effectues apres deploy prod Hosting.
+- `/meubles-anciens` :
+  - Google a acces a l URL ;
+  - page peut etre indexee ;
+  - `Extraits de produits` : 24 elements valides ;
+  - `Fiches de marchand` : 24 elements valides ;
+  - `Fil d Ariane` : 1 element valide ;
+  - indexation demandee.
+- `/meubles-anciens/buffets` :
+  - Google a acces a l URL ;
+  - page peut etre indexee ;
+  - `Extraits de produits` : 7 elements valides ;
+  - `Fiches de marchand` : 7 elements valides ;
+  - `Fil d Ariane` : 1 element valide.
+- `/produit/malle-ancienne-1920-aeqBE7DDp0V7Liro0LKa` :
+  - Google a acces a l URL ;
+  - page peut etre indexee ;
+  - `Extraits de produits` : 1 element valide ;
+  - `Fiches de marchand` : 1 element valide ;
+  - `Fil d Ariane` : 1 element valide.
+
+Conclusion Search Console :
+
+- L ancienne erreur obligatoire `Il faut indiquer offers, review ou aggregateRating` n apparait plus dans les tests live.
+- `offers` est reconnu par Google sur :
+  - galerie ;
+  - categorie ;
+  - fiche produit.
+- `review` et `aggregateRating` restent absents volontairement :
+  - ils sont facultatifs/non bloquants ;
+  - le site n a pas de systeme d avis client ;
+  - aucun faux avis ou fausse note ne doit etre ajoute.
+- Le rapport general `Achats > Extraits de produits` affiche encore `Nous n avons trouve aucune donnee`, donc aucun bouton `Valider la correction` n est disponible a ce stade.
+- Sitemap GSC :
+  - `/sitemap.xml` soumis ;
+  - etat `Operation effectuee` ;
+  - derniere lecture : 7 mai 2026 ;
+  - pages decouvertes affichees : 69 ;
+  - sitemap renvoye manuellement via `sitemap.xml`.
+- Note : l audit public local voit 70 URLs apres ajout de `Malle ancienne 1920`; l ecart avec les 69 URLs GSC peut venir du delai de relecture Google.
