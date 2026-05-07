@@ -2050,3 +2050,96 @@ Tests :
   - `Voir les meubles anciens` present dans `dist/assets/ShopView-*.js` ;
   - `Livraison France et pays frontaliers` present dans `dist/assets/ProductDetail-*.js`.
 - `git diff --check` OK hors warnings CRLF Windows.
+
+---
+
+## Chapitre 28 - Correction Search Console extraits produits
+
+Date : 7 mai 2026
+Statut : implemente localement, aucun deploy
+
+Contexte Search Console :
+
+- URL testee en live : `https://tousatable-madeinnormandie.fr/meubles-anciens`.
+- Page indexable et fil d Ariane valide.
+- Erreur Rich Results : `Extraits de produits`, 24 elements non valides.
+- Message Google : `Il faut indiquer "offers", "review", ou "aggregateRating"`.
+- Les captures recues montrent des `Product` issus de la page liste avec `name`, `url`, `image`, mais sans `offers`.
+
+Objectif :
+
+- Corriger les `Product` JSON-LD sans inventer de fausses donnees.
+- Ajouter uniquement des `Offer` basees sur un prix reel et un statut stock/vendu exploitable.
+- Ne pas ajouter de faux avis, fausses notes ou `aggregateRating`.
+- Garder la correction invisible cote UI.
+
+Fichiers touches :
+
+- `src/pages/GalleryView.jsx`
+- `src/designs/architectural/ArchitecturalProductDetail.jsx`
+- `scripts/verify-seo-roadmap.mjs`
+- `SEOlivre.md`
+
+Changements :
+
+- `GalleryView.jsx` :
+  - ajout de `getStructuredDataPrice(item)` ;
+  - ajout de `getStructuredDataAvailability(item)` ;
+  - ajout de `buildProductListSchema(item, url, image)` ;
+  - les items de `ItemList` recoivent maintenant un `Product` avec `offers` seulement si le prix est fiable ;
+  - si le prix est absent, nul, invalide ou `priceOnRequest`, le `ListItem` garde son URL mais n emet pas de `Product` incomplet.
+- `ArchitecturalProductDetail.jsx` :
+  - meme logique de prix fiable ;
+  - le schema `Product` de fiche detail est emis seulement quand un prix reel existe ;
+  - le `BreadcrumbList` reste emis meme si le produit est en prix sur demande.
+- `verify-seo-roadmap.mjs` :
+  - le gate marketplace verifie maintenant aussi `Offer`, `priceCurrency`, `availability` et `UsedCondition`.
+
+Mapping prix / statut vers `offers` :
+
+- Prix :
+  - source : `currentPrice ?? startingPrice ?? price` ;
+  - conversion via `Number(...)` ;
+  - accepte uniquement un nombre fini strictement superieur a `0` ;
+  - refuse si `priceOnRequest === true`.
+- Disponibilite :
+  - `InStock` si `sold` est faux et `stock ?? 1` est strictement superieur a `0` ;
+  - `OutOfStock` si `sold` est vrai ou si le stock vaut `0` ou moins.
+- Etat :
+  - `itemCondition: https://schema.org/UsedCondition`, coherent avec meubles anciens / pieces en bois massif.
+- Devise :
+  - `priceCurrency: EUR`.
+
+Impact SEO :
+
+- Les produits avec prix/statut exploitables ont maintenant un `Offer` conforme dans les listes marketplace/categorie.
+- L erreur Google `Il faut indiquer "offers", "review", ou "aggregateRating"` doit disparaitre pour ces produits apres deploy et nouvelle validation.
+- Les produits sans prix fiable ne generent pas de faux signal produit eligible, ce qui evite les donnees structurees trompeuses.
+
+Risque UI :
+
+- Nul attendu : JSON-LD invisible uniquement.
+- Aucune modification de grille meubles/planches.
+- Aucun changement de filtres, layout, CTA ou navigation visible.
+
+Securite / donnees :
+
+- Aucun deploy effectue.
+- Aucune ecriture Firestore prod.
+- Aucun secret lu ou consigne.
+- Aucun faux avis ou note artificielle ajoute.
+
+Tests effectues :
+
+- `npm run build` OK.
+- `npm run verify:seo-roadmap` OK : 16 checks passes.
+- `git diff --check` OK hors warnings CRLF Windows.
+
+Reste a faire :
+
+- Apres accord et deploy futur Hosting, tester en public :
+  - Rich Results Test sur `/meubles-anciens` ;
+  - Rich Results Test sur `/meubles-anciens/buffets` ;
+  - Rich Results Test sur une fiche produit avec prix ;
+  - Search Console > Extraits de produits > Valider la correction.
+- Si Google remonte ensuite une erreur `price` sur certains produits, verifier si ces produits sont en `priceOnRequest` ou avec prix manquant dans les donnees admin avant toute modification.

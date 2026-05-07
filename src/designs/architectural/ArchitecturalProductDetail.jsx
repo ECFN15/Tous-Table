@@ -31,6 +31,13 @@ const CARE_FEATURES = [
 const placeBidFunction = httpsCallable(functions, 'placeBid');
 const wakeUpFunction = httpsCallable(functions, 'wakeUp');
 
+const getStructuredDataPrice = (item) => {
+    if (!item || item.priceOnRequest) return null;
+    const rawPrice = item.currentPrice ?? item.startingPrice ?? item.price;
+    const price = Number(rawPrice);
+    return Number.isFinite(price) && price > 0 ? price : null;
+};
+
 const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCart, onShowLogin, darkMode, setHeaderProps, cartItems = [], affiliateProducts = [] }) => {
     const { palette } = useLiveTheme();
     const [activeImg, setActiveImg] = useState(0);
@@ -149,13 +156,22 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
     const productSchema = useMemo(() => {
         if (!item) return null;
         const productUrl = `${SITE_URL}${getProductPath(item)}`;
-        const price = Number(item.currentPrice || item.startingPrice || item.price || 0);
+        const price = getStructuredDataPrice(item);
         const isAvailable = !item.sold && Number(item.stock ?? 1) > 0;
         const categoryName = collectionName === 'cutting_boards' ? 'Planches a decouper anciennes' : 'Meubles anciens';
         const categoryUrl = collectionName === 'cutting_boards' ? '/planches-a-decouper-anciennes' : '/meubles-anciens';
-        return {
-            "@context": "https://schema.org",
-            "@graph": [{
+        const graph = [{
+                "@type": "BreadcrumbList",
+                "@id": `${productUrl}#breadcrumb`,
+                "itemListElement": [
+                    { "@type": "ListItem", "position": 1, "name": "Accueil", "item": `${SITE_URL}/` },
+                    { "@type": "ListItem", "position": 2, "name": categoryName, "item": `${SITE_URL}${categoryUrl}` },
+                    { "@type": "ListItem", "position": 3, "name": item.name, "item": productUrl }
+                ]
+            }];
+
+        if (price) {
+            graph.unshift({
             "@type": "Product",
             "@id": `${productUrl}#product`,
             "name": item.name,
@@ -170,20 +186,17 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                 "@id": `${productUrl}#offer`,
                 "url": productUrl,
                 "priceCurrency": "EUR",
-                ...(price > 0 && !item.priceOnRequest ? { "price": price } : {}),
+                "price": price,
                 "availability": isAvailable ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
                 "itemCondition": "https://schema.org/UsedCondition",
                 "seller": { "@type": "FurnitureStore", "name": "Tous a Table Made in Normandie", "url": SITE_URL },
             }
-            }, {
-                "@type": "BreadcrumbList",
-                "@id": `${productUrl}#breadcrumb`,
-                "itemListElement": [
-                    { "@type": "ListItem", "position": 1, "name": "Accueil", "item": `${SITE_URL}/` },
-                    { "@type": "ListItem", "position": 2, "name": categoryName, "item": `${SITE_URL}${categoryUrl}` },
-                    { "@type": "ListItem", "position": 3, "name": item.name, "item": productUrl }
-                ]
-            }]
+            });
+        }
+
+        return {
+            "@context": "https://schema.org",
+            "@graph": graph
         };
     }, [item, images, collectionName]);
 

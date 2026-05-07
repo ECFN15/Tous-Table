@@ -79,7 +79,7 @@ const schemaChecks = [
   {
     file: 'src/pages/GalleryView.jsx',
     label: 'marketplace/category schemas',
-    tokens: ['CollectionPage', 'BreadcrumbList', 'ItemList', 'Product'],
+    tokens: ['CollectionPage', 'BreadcrumbList', 'ItemList', 'Product', 'Offer', 'priceCurrency', 'availability', 'UsedCondition'],
   },
   {
     file: 'src/pages/ShopView.jsx',
