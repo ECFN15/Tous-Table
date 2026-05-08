@@ -10,8 +10,11 @@ import { getMillis } from '../../utils/time';
 import {
     ANALYTICS_TIME_FILTERS,
     MAX_ANALYTICS_SESSIONS,
+    buildVisitorDayGroups,
     buildAnalyticsStats,
-    getAnalyticsWindow
+    getFilteredTrafficSessions,
+    getAnalyticsWindow,
+    getReliableVisitorKey
 } from './analyticsReliability';
 
 // ─── Custom SVG Bar Chart — Premium responsive (remplace Recharts) ──
@@ -393,6 +396,170 @@ const formatDurationLabel = (seconds) => {
     return `${min}m ${sec}s`;
 };
 
+const SessionJourneyTrace = ({ session, darkMode, formatDuration }) => (
+    <div className={`p-4 border-t ${darkMode ? 'border-white/5 bg-black/20' : 'border-stone-100 bg-white'} animate-in slide-in-from-top-2 duration-300`}>
+        <div className="space-y-5">
+            <div className="flex items-center justify-between px-1">
+                <h4 className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-500">Parcours Utilisateur</h4>
+                <span className="text-[8px] font-bold text-stone-600 opacity-60 uppercase tracking-tighter">{session.journey?.length || 0} Etapes</span>
+            </div>
+
+            <div className="relative pl-6 space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-px before:bg-stone-800">
+                {!session.journey || session.journey.length === 0 ? (
+                    <p className="text-[10px] italic text-stone-500">Aucune activite enregistree</p>
+                ) : (
+                    session.journey.map((step, idx) => {
+                        const accent = getJourneyAccent(step.page);
+                        const stepLabel = getJourneyLabel(step.page);
+                        const isAffiliateStep = isAffiliateJourneyStep(step.page);
+                        return (
+                            <div key={idx} className="relative group/step">
+                                <div className={`absolute -left-[18.5px] top-1.5 w-[7px] h-[7px] rounded-full ring-4 ${darkMode ? 'ring-stone-900/50' : 'ring-white'} ${accent.dot} transition-all group-hover/step:scale-125`}></div>
+
+                                <div className="flex flex-col gap-1 -translate-y-0.5">
+                                    <span className={`text-[8px] font-black uppercase tracking-widest leading-none ${step.page === 'comptoir' ? 'text-teal-400/60' : step.page === 'shop' ? 'text-violet-400/60' : 'text-blue-500/60'}`}>{step.time} - {formatDuration(step.duration)}</span>
+                                    <p className={`font-black text-[11px] leading-tight ${darkMode ? 'text-stone-300' : 'text-stone-900'}`}>
+                                        {isAffiliateStep ? 'Clic' : 'Vue'} : <span className={`uppercase ${accent.label}`}>{stepLabel}</span>
+                                    </p>
+                                    {step.itemId && (
+                                        <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                                            <span className={`text-[8px] font-bold px-2 py-0.5 rounded-md truncate max-w-full italic border ${accent.chip}`}>
+                                                {!isAffiliateStep && 'ID: '}{step.itemId}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })
+                )}
+            </div>
+        </div>
+    </div>
+);
+
+const VisitorSessionGroup = ({
+    darkMode,
+    visitor,
+    now,
+    isOpen,
+    onToggle,
+    expandedSessionId,
+    setExpandedSessionId,
+    handleDeleteSession,
+    formatDuration
+}) => {
+    const lastTime = visitor.lastActivityAt
+        ? new Date(visitor.lastActivityAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+        : '--:--';
+
+    return (
+        <div className={`rounded-xl border overflow-hidden transition-all ${darkMode ? 'bg-stone-900 border-white/5 hover:border-white/10' : 'bg-stone-50 border-stone-100 shadow-sm'}`}>
+            <button
+                onClick={onToggle}
+                className="w-full p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left transition-colors hover:bg-white/[0.03] active:scale-[0.995]"
+            >
+                <div className="flex items-start gap-3 min-w-0">
+                    <div className={`mt-0.5 p-1.5 rounded-lg shrink-0 ${darkMode ? 'bg-white/5' : 'bg-white border border-stone-200'}`}>
+                        {isOpen ? <ChevronDown size={14} className="text-stone-400" /> : <ChevronRight size={14} className="text-stone-400" />}
+                    </div>
+                    <div className="min-w-0">
+                        <div className="flex items-center gap-2 mb-1 overflow-hidden">
+                            <Globe size={11} className="text-stone-500 shrink-0" />
+                            <span className={`text-[10px] font-black truncate ${darkMode ? 'text-white/80' : 'text-stone-900'}`}>{visitor.locationLabel}</span>
+                            {visitor.isActive ? (
+                                <span className="text-[8px] font-black uppercase text-emerald-500 animate-pulse shrink-0">En ligne</span>
+                            ) : (
+                                <span className="text-[8px] font-black uppercase text-stone-600 shrink-0">Termine</span>
+                            )}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[9px] font-bold text-stone-500 uppercase">
+                            <span className="inline-flex items-center gap-1.5 min-w-0">
+                                {visitor.device === 'Mobile' ? <Smartphone size={10} className="shrink-0" /> : <Monitor size={10} className="shrink-0" />}
+                                <span className="truncate">{visitor.deviceLabel}</span>
+                            </span>
+                            <span className="font-mono normal-case">{visitor.ipLabel}</span>
+                            <span>{visitor.identitySource}</span>
+                        </div>
+                    </div>
+                </div>
+                <div className="grid grid-cols-3 gap-3 sm:min-w-[260px] text-right">
+                    <div>
+                        <p className="text-[8px] font-black uppercase tracking-widest text-stone-500 leading-none">Sessions</p>
+                        <p className={`mt-1 text-xs font-black tabular-nums ${darkMode ? 'text-white' : 'text-stone-900'}`}>{visitor.sessionCount}</p>
+                    </div>
+                    <div>
+                        <p className="text-[8px] font-black uppercase tracking-widest text-stone-500 leading-none">Duree</p>
+                        <p className={`mt-1 text-xs font-black tabular-nums ${darkMode ? 'text-white' : 'text-stone-900'}`}>{formatDuration(visitor.totalDuration)}</p>
+                    </div>
+                    <div>
+                        <p className="text-[8px] font-black uppercase tracking-widest text-stone-500 leading-none">Dernier</p>
+                        <p className={`mt-1 text-xs font-black tabular-nums ${darkMode ? 'text-white' : 'text-stone-900'}`}>{lastTime}</p>
+                    </div>
+                </div>
+            </button>
+
+            {isOpen && (
+                <div className={`border-t ${darkMode ? 'border-white/5 bg-black/10' : 'border-stone-100 bg-white/70'}`}>
+                    {visitor.sessions.map(session => {
+                        const isExpanded = expandedSessionId === session.id;
+                        const lastActiveMs = getMillis(session.lastActivityAt);
+                        const isInactive = (now - lastActiveMs) > 30000;
+                        const isFinished = session.sessionActive === false || isInactive;
+                        const startedTime = session.startedAt ? new Date(getMillis(session.startedAt)).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+
+                        return (
+                            <div key={session.id} className={`border-t first:border-t-0 ${darkMode ? 'border-white/5' : 'border-stone-100'}`}>
+                                <div className="p-3 flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="flex flex-col min-w-[44px] shrink-0">
+                                            <span className="text-[10px] font-black text-stone-500 tabular-nums">{startedTime}</span>
+                                            <span className={`text-[8px] font-black uppercase ${isFinished ? 'text-stone-600' : 'text-emerald-500 animate-pulse'}`}>
+                                                {isFinished ? 'Termine' : 'En ligne'}
+                                            </span>
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className={`text-[10px] font-black truncate ${darkMode ? 'text-stone-300' : 'text-stone-900'}`}>
+                                                Session {session.journey?.length || 0} etape{(session.journey?.length || 0) > 1 ? 's' : ''}
+                                            </p>
+                                            <p className="text-[9px] font-bold text-stone-500 truncate uppercase">
+                                                {session.os || 'Inconnu'} - {session.browser || 'Inconnu'} - {formatDuration(session.duration)}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <button
+                                            onClick={() => setExpandedSessionId(isExpanded ? null : session.id)}
+                                            className={`px-3 py-1.5 h-8 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 ${isExpanded ? 'bg-blue-500 text-white' : (darkMode ? 'bg-white/5 text-white/50 hover:bg-white/10' : 'bg-white border border-stone-200 text-stone-600')}`}
+                                        >
+                                            {isExpanded ? 'Masquer' : 'Tracer'}
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteSession(session.id)}
+                                            className="p-1.5 text-stone-500 hover:text-red-500 transition-colors active:scale-90"
+                                            aria-label="Supprimer la session"
+                                        >
+                                            <Trash2 size={12} />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {isExpanded && (
+                                    <SessionJourneyTrace
+                                        session={session}
+                                        darkMode={darkMode}
+                                        formatDuration={formatDuration}
+                                    />
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+};
+
 const estimateComptoirDuration = (session) => {
     const journey = Array.isArray(session?.journey) ? session.journey : [];
     if (journey.length === 0) return { total: 0, segments: 0 };
@@ -505,7 +672,7 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [] }) => {
             if (!t) return;
             const idx = Math.floor((t - cutoff) / step);
             if (idx < 0 || idx >= timeline.length) return;
-            timeline[idx].visitors.add(session.ip || session.userId || session.id);
+            timeline[idx].visitors.add(getReliableVisitorKey(session));
         });
 
         return timeline.map(slot => ({
@@ -605,7 +772,7 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [] }) => {
 
     const kpis = useMemo(() => {
         const peak = clickChartData.length > 0 ? clickChartData.reduce((best, d) => d.visites > best.visites ? d : best, clickChartData[0]) : null;
-        const uniqueComptoirVisitors = new Set(comptoirSessions.map(s => s.ip || s.userId || s.id).filter(Boolean)).size;
+        const uniqueComptoirVisitors = new Set(comptoirSessions.map(getReliableVisitorKey).filter(Boolean)).size;
         const durationEstimate = comptoirSessions.reduce((acc, session) => {
             const estimate = estimateComptoirDuration(session);
             return {
@@ -957,6 +1124,7 @@ const AdminAnalytics = ({ darkMode = false }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const DAYS_PER_PAGE = 10;
     const [view, setView] = useState('traffic');
+    const [openVisitors, setOpenVisitors] = useState({});
 
     // Refresh "now" every 30s to update "Online" vs "Finished" markers
     useEffect(() => {
@@ -984,32 +1152,13 @@ const AdminAnalytics = ({ darkMode = false }) => {
     const [chartData, setChartData] = useState([]);
 
     // ─── Groupement des sessions par jour ───
-    const groupedByDay = useMemo(() => {
-        const groups = {};
-        const today = new Date().toLocaleDateString('fr-FR');
-        const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('fr-FR');
+    const filteredTrafficSessions = useMemo(() => (
+        getFilteredTrafficSessions(sessions, timeFilter, { now })
+    ), [sessions, timeFilter, now]);
 
-        sessions.forEach(s => {
-            const dateObj = new Date(getMillis(s.startedAt));
-            const dateKey = dateObj.toLocaleDateString('fr-FR');
-            
-            let label = dateKey;
-            if (dateKey === today) label = "Aujourd'hui";
-            else if (dateKey === yesterday) label = "Hier";
-
-            if (!groups[dateKey]) {
-                groups[dateKey] = {
-                    key: dateKey,
-                    label,
-                    timestamp: dateObj.getTime(),
-                    items: []
-                };
-            }
-            groups[dateKey].items.push(s);
-        });
-
-        return Object.values(groups).sort((a, b) => b.timestamp - a.timestamp);
-    }, [sessions]);
+    const groupedByDay = useMemo(() => (
+        buildVisitorDayGroups(filteredTrafficSessions, { now })
+    ), [filteredTrafficSessions, now]);
 
     const totalPages = Math.ceil(groupedByDay.length / DAYS_PER_PAGE);
     const paginatedGroups = useMemo(() => {
@@ -1020,6 +1169,7 @@ const AdminAnalytics = ({ darkMode = false }) => {
     // Reset pagination when data changes significantly
     useEffect(() => {
         setCurrentPage(1);
+        setExpandedSessionId(null);
     }, [timeFilter]);
 
     // ─── Sessions en ligne (Live) ───
@@ -1184,22 +1334,29 @@ const AdminAnalytics = ({ darkMode = false }) => {
                 </div>
             </div>
 
-            {/* KPI BENTO GRID */}
-            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2 md:gap-4 lg:gap-6">
-                {[
-                    { label: 'Sessions', value: kpis.totalSessions, sub: 'visites brutes', color: 'text-stone-400' },
-                    { label: 'Visiteurs Fiables', value: kpis.uniqueVisitors, sub: 'UID puis IP', color: 'text-blue-500' },
-                    { label: 'IPs Uniques', value: kpis.uniqueIps, sub: 'reseaux detectes', color: 'text-cyan-500' },
-                    { label: 'Couverture IP', value: `${kpis.ipCoverage}%`, sub: dataQuality.missingIpSessions > 0 ? `${dataQuality.missingIpSessions} sans IP` : 'IP OK', color: 'text-emerald-500' },
-                    { label: 'Rebond', value: `${kpis.bounceRate}%`, sub: 'sessions courtes', color: 'text-amber-500' },
-                    { label: 'Mobile', value: `${kpis.mobilePercentage}%`, sub: formatDuration(kpis.avgDuration), color: 'text-indigo-500' }
-                ].map((kpi, i) => (
-                    <div key={i} className={`p-4 sm:p-5 rounded-2xl border transition-all ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100 shadow-sm'}`}>
-                        <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] text-stone-500 mb-1.5 sm:mb-2 truncate">{kpi.label}</p>
-                        <h4 className={`text-xl sm:text-2xl md:text-3xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>{kpi.value}</h4>
-                        <p className={`mt-1 text-[8px] font-black uppercase tracking-widest ${kpi.color}`}>{kpi.sub}</p>
+            {/* KPI PRINCIPAL */}
+            <div className={`p-5 sm:p-6 rounded-2xl border transition-all ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100 shadow-sm'}`}>
+                <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+                    <div>
+                        <p className="text-[9px] font-black uppercase tracking-[0.24em] text-stone-500 mb-2">Utilisateurs uniques</p>
+                        <h4 className={`text-4xl sm:text-5xl font-black tracking-tighter tabular-nums ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                            {kpis.uniqueVisitors}
+                        </h4>
                     </div>
-                ))}
+                    <div className="grid grid-cols-2 sm:flex sm:items-center gap-3 sm:gap-5 text-left sm:text-right">
+                        <div>
+                            <p className="text-[8px] font-black uppercase tracking-widest text-stone-500">IPs uniques</p>
+                            <p className="mt-1 text-sm font-black text-cyan-500 tabular-nums">{kpis.uniqueIps}</p>
+                        </div>
+                        <div>
+                            <p className="text-[8px] font-black uppercase tracking-widest text-stone-500">Sessions brutes</p>
+                            <p className="mt-1 text-sm font-black text-stone-500 tabular-nums">{kpis.totalSessions}</p>
+                        </div>
+                    </div>
+                </div>
+                <p className="mt-4 text-[10px] font-bold text-stone-500 leading-relaxed">
+                    Deduplication par UID Firebase, puis IP serveur. Les sessions brutes restent visibles seulement comme controle.
+                </p>
             </div>
 
             <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center gap-3 ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100 shadow-sm'}`}>
@@ -1219,7 +1376,10 @@ const AdminAnalytics = ({ darkMode = false }) => {
             {/* CUSTOM SVG CHART BENTO */}
             <div className={`p-6 md:p-8 rounded-[2rem] border transition-all ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100 shadow-sm'}`}>
                 <div className="flex items-center justify-between mb-8">
-                    <h3 className={`text-[10px] font-black uppercase tracking-[0.3em] ${darkMode ? 'text-white/40' : 'text-stone-400'}`}>Evolution des visiteurs</h3>
+                    <div>
+                        <h3 className={`text-[10px] font-black uppercase tracking-[0.3em] ${darkMode ? 'text-white/40' : 'text-stone-400'}`}>Evolution des visiteurs</h3>
+                        <p className="mt-1 text-[9px] font-bold text-stone-500">Chaque barre deduplique les visiteurs dans son creneau.</p>
+                    </div>
                 </div>
                 <div className="h-[240px] md:h-[320px] w-full">
                     {chartData.length > 0 ? (
@@ -1271,7 +1431,9 @@ const AdminAnalytics = ({ darkMode = false }) => {
                                         </div>
                                         <div>
                                             <span className={`text-[11px] font-black uppercase tracking-widest ${darkMode ? 'text-white/70' : 'text-stone-900'}`}>{group.label}</span>
-                                            <span className="ml-3 text-[10px] font-bold text-stone-500">{group.items.length} session{group.items.length > 1 ? 's' : ''}</span>
+                                            <span className="ml-3 text-[10px] font-bold text-stone-500">
+                                                {group.visitors.length} visiteur{group.visitors.length > 1 ? 's' : ''} / {group.sessionCount} session{group.sessionCount > 1 ? 's' : ''}
+                                            </span>
                                         </div>
                                     </div>
                                     <div className="h-px flex-1 bg-gradient-to-r from-transparent via-stone-500/10 to-transparent mx-6"></div>
@@ -1280,114 +1442,21 @@ const AdminAnalytics = ({ darkMode = false }) => {
                                 {isOpen && (
                                     <div className="px-2 sm:px-4 pb-3 sm:pb-4 animate-in slide-in-from-top-1 duration-200">
                                         <div className="space-y-1 sm:space-y-1.5">
-                                            {group.items.map(session => {
-                                                const isExpanded = expandedSessionId === session.id;
-                                                const lastActiveMs = getMillis(session.lastActivityAt);
-                                                const isInactive = (now - lastActiveMs) > 30000;
-                                                const isFinished = session.sessionActive === false || isInactive;
-                                                const startedTime = session.startedAt ? new Date(getMillis(session.startedAt)).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
-
+                                            {group.visitors.map(visitor => {
+                                                const visitorOpen = openVisitors[visitor.key] ?? group.visitors.length === 1;
                                                 return (
-                                                    <div key={session.id} className={`group rounded-xl border transition-all ${darkMode ? 'bg-stone-900 border-white/5 hover:border-white/10' : 'bg-stone-50 border-stone-100 shadow-sm'}`}>
-                                                        <div className="p-3 flex items-center justify-between gap-4">
-                                                            <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
-                                                                <div className="flex flex-col min-w-[40px] shrink-0">
-                                                                    <span className="text-[10px] font-black text-white/40">{startedTime}</span>
-                                                                    {isFinished ? (
-                                                                        <span className="text-[8px] font-black uppercase text-stone-600">Terminé</span>
-                                                                    ) : (
-                                                                        <span className="text-[8px] font-black uppercase text-emerald-500 animate-pulse">En ligne</span>
-                                                                    )}
-                                                                </div>
-
-                                                                <div className="min-w-0">
-                                                                    <div className="flex items-center gap-2 mb-0.5 overflow-hidden">
-                                                                        <Globe size={11} className="text-stone-500 shrink-0" />
-                                                                        <span className={`text-[10px] font-bold truncate ${darkMode ? 'text-white/80' : 'text-stone-900'}`}>{session.geo?.city && session.geo.city !== 'Unknown' ? `${session.geo.city}${session.geo.region && session.geo.region !== 'Unknown' ? `, ${session.geo.region}` : ''}` : 'Inconnu'}</span>
-                                                                    </div>
-                                                                    <div className="flex items-center gap-1.5 overflow-hidden">
-                                                                        {session.device === 'Mobile' ? <Smartphone size={10} className="text-stone-500 shrink-0" /> : <Monitor size={10} className="text-stone-500 shrink-0" />}
-                                                                        <span className="text-[9px] font-bold text-stone-500 truncate uppercase">
-                                                                            {session.os || 'Inconnu'} • {session.browser || 'Inconnu'}
-                                                                        </span>
-                                                                    </div>
-                                                                    <div className="flex items-center gap-1.5 overflow-hidden">
-                                                                        <span className="text-[8px] font-black uppercase tracking-widest text-stone-600 shrink-0">IP</span>
-                                                                        <span className="text-[9px] font-mono font-bold text-stone-500 truncate" title={session.ip || 'IP inconnue'}>
-                                                                            {session.ip && session.ip !== 'Unknown' ? session.ip : 'IP inconnue'}
-                                                                        </span>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="flex items-center gap-2 sm:gap-3 md:gap-6 shrink-0">
-                                                                <div className="hidden min-[450px]:block text-right">
-                                                                    <p className="text-[9px] font-black uppercase tracking-widest text-stone-500 mb-0.5 leading-none">Durée</p>
-                                                                    <p className={`text-[11px] sm:text-xs font-black ${darkMode ? 'text-white' : 'text-stone-900'}`}>{formatDuration(session.duration)}</p>
-                                                                </div>
-
-                                                                <div className="flex items-center gap-2">
-                                                                    <button
-                                                                        onClick={() => setExpandedSessionId(isExpanded ? null : session.id)}
-                                                                        className={`px-3 py-1.5 h-8 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${isExpanded ? 'bg-blue-500 text-white' : (darkMode ? 'bg-white/5 text-white/50 hover:bg-white/10' : 'bg-white border border-stone-200 text-stone-600')}`}
-                                                                    >
-                                                                        {isExpanded ? 'Masquer' : 'Tracer'}
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={() => handleDeleteSession(session.id)}
-                                                                        className="p-1.5 text-stone-500 hover:text-red-500 transition-colors"
-                                                                    >
-                                                                        <Trash2 size={12} />
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        {isExpanded && (
-                                                            <div className={`p-4 border-t ${darkMode ? 'border-white/5 bg-black/20' : 'border-stone-100 bg-white'} animate-in slide-in-from-top-2 duration-300`}>
-                                                                <div className="space-y-5">
-                                                                    <div className="flex items-center justify-between px-1">
-                                                                        <h4 className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-500">Parcours Utilisateur</h4>
-                                                                        <span className="text-[8px] font-bold text-stone-600 opacity-60 uppercase tracking-tighter">{session.journey?.length || 0} Étapes</span>
-                                                                    </div>
-                                                                    
-                                                                    <div className="relative pl-6 space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-px before:bg-stone-800">
-                                                                        {!session.journey || session.journey.length === 0 ? (
-                                                                            <p className="text-[10px] italic text-stone-500">Aucune activité enregistrée</p>
-                                                                        ) : (
-                                                                            session.journey.map((step, idx) => {
-                                                                                const accent = getJourneyAccent(step.page);
-                                                                                const stepLabel = getJourneyLabel(step.page);
-                                                                                const isAffiliateStep = isAffiliateJourneyStep(step.page);
-                                                                                return (
-                                                                                <div key={idx} className="relative group/step">
-                                                                                    {/* DOT centered on the 11px line */}
-                                                                                    <div className={`absolute -left-[18.5px] top-1.5 w-[7px] h-[7px] rounded-full ring-4 ${darkMode ? 'ring-stone-900/50' : 'ring-white'} ${accent.dot} transition-all group-hover/step:scale-125`}></div>
-
-                                                                                    <div className="flex flex-col gap-1 -translate-y-0.5">
-                                                                                        <span className={`text-[8px] font-black uppercase tracking-widest leading-none ${
-                                                                                            step.page === 'comptoir' ? 'text-teal-400/60' : step.page === 'shop' ? 'text-violet-400/60' : 'text-blue-500/60'
-                                                                                        }`}>{step.time} • {formatDuration(step.duration)}</span>
-                                                                                        <p className={`font-black text-[11px] leading-tight ${darkMode ? 'text-stone-300' : 'text-stone-900'}`}>
-                                                                                            {isAffiliateStep ? 'Clic' : 'Vue'} : <span className={`uppercase ${accent.label}`}>{stepLabel}</span>
-                                                                                        </p>
-                                                                                        {step.itemId && (
-                                                                                            <div className="flex flex-wrap items-center gap-2 mt-0.5">
-                                                                                                <span className={`text-[8px] font-bold px-2 py-0.5 rounded-md truncate max-w-full italic border ${accent.chip}`}>
-                                                                                                    {!isAffiliateStep && 'ID: '}{step.itemId}
-                                                                                                </span>
-                                                                                            </div>
-                                                                                        )}
-                                                                                    </div>
-                                                                                </div>
-                                                                                );
-                                                                            })
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
+                                                    <VisitorSessionGroup
+                                                        key={visitor.key}
+                                                        darkMode={darkMode}
+                                                        visitor={visitor}
+                                                        now={now}
+                                                        isOpen={visitorOpen}
+                                                        onToggle={() => setOpenVisitors(prev => ({ ...prev, [visitor.key]: !visitorOpen }))}
+                                                        expandedSessionId={expandedSessionId}
+                                                        setExpandedSessionId={setExpandedSessionId}
+                                                        handleDeleteSession={handleDeleteSession}
+                                                        formatDuration={formatDuration}
+                                                    />
                                                 );
                                             })}
                                         </div>

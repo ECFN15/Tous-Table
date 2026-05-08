@@ -1,15 +1,21 @@
 import assert from 'node:assert/strict';
 import ipTools from '../functions/src/analytics/ip.js';
+import sessionSecurity from '../functions/src/analytics/sessionSecurity.js';
 import {
     ANALYTICS_TIME_FILTERS,
+    buildVisitorDayGroups,
     buildAnalyticsStats,
+    getFilteredTrafficSessions,
     getReliableVisitorKey,
     isUsableAnalyticsIp,
+    maskAnalyticsIp,
     normalizeSessionDuration
 } from '../src/features/admin/analyticsReliability.js';
 
 const baseNow = Date.UTC(2026, 4, 7, 12, 0, 0);
 const ts = (offsetMs) => ({ seconds: Math.floor((baseNow + offsetMs) / 1000) });
+const syncToken = 'session-proof-token';
+const syncTokenHash = sessionSecurity.hashSyncToken(syncToken);
 
 const sameIpSessions = [
     { id: 's1', startedAt: ts(-60 * 60 * 1000), type: 'anonymous', ip: '203.0.113.10', duration: 30 },
@@ -109,6 +115,33 @@ result = buildAnalyticsStats(sameIpSessions, '1j', {
 assert.equal(result.dataQuality.isWindowComplete, false);
 assert.equal(result.dataQuality.confidence, 'plafonnee');
 
+const visitorGroups = buildVisitorDayGroups(getFilteredTrafficSessions(slotDedup, '1j', { now: baseNow }), { now: baseNow });
+assert.equal(visitorGroups.length, 1);
+assert.equal(visitorGroups[0].sessionCount, 2);
+assert.equal(visitorGroups[0].visitors.length, 1);
+assert.equal(visitorGroups[0].visitors[0].sessionCount, 2);
+assert.equal(visitorGroups[0].visitors[0].journeySteps, 0);
+assert.equal(visitorGroups[0].visitors[0].ipLabel, '203.0.x.x');
+assert.equal(maskAnalyticsIp('2001:861:50:1090:44ee:1330:2c05:4928'), '2001:861:50:1090:...');
+
+const dashboardConsistencySessions = [
+    { id: 'dc1', userId: 'anon-a', authProvider: 'anonymous', startedAt: ts(-3 * 60 * 60 * 1000), type: 'anonymous', ip: '203.0.113.70', duration: 30 },
+    { id: 'dc2', userId: 'anon-a', authProvider: 'anonymous', startedAt: ts(-2 * 60 * 60 * 1000), type: 'anonymous', ip: '203.0.113.70', duration: 45 },
+    { id: 'dc3', userId: 'anon-b', authProvider: 'anonymous', startedAt: ts(-30 * 60 * 1000), type: 'anonymous', ip: '203.0.113.71', duration: 20 },
+    { id: 'dc4', userId: 'admin-user', startedAt: ts(-20 * 60 * 1000), type: 'admin', ip: '203.0.113.72', duration: 99 },
+    { id: 'dc5', userId: 'outside', startedAt: ts(-25 * 60 * 60 * 1000), type: 'anonymous', ip: '203.0.113.73', duration: 99 }
+];
+result = buildAnalyticsStats(dashboardConsistencySessions, '1j', { now: baseNow });
+const filteredForDashboard = getFilteredTrafficSessions(dashboardConsistencySessions, '1j', { now: baseNow });
+const groupedForDashboard = buildVisitorDayGroups(filteredForDashboard, { now: baseNow });
+const groupedVisitorKeys = new Set(groupedForDashboard.flatMap(day => day.visitors.map(visitor => visitor.key)));
+assert.equal(filteredForDashboard.length, result.kpis.totalSessions, 'dashboard list session source matches KPI sessions');
+assert.equal(groupedForDashboard.reduce((sum, day) => sum + day.sessionCount, 0), result.kpis.totalSessions, 'grouped day session counts match KPI sessions');
+assert.equal(groupedVisitorKeys.size, result.kpis.uniqueVisitors, 'unique visitor rectangles match KPI unique visitors');
+assert.equal(result.chartData.reduce((sum, slot) => sum + slot.sessions, 0), result.kpis.totalSessions, 'bar chart session sum matches KPI sessions');
+assert.equal(result.kpis.uniqueVisitors, 2);
+assert.equal(result.chartData.reduce((sum, slot) => sum + slot.visites, 0), 3, 'bar chart visitors are deduped per slot, not globally');
+
 assert.equal(ipTools.normalizeIp('::ffff:203.0.113.42'), '203.0.113.42');
 assert.equal(ipTools.normalizeIp('203.0.113.42:443'), '203.0.113.42');
 assert.deepEqual(
@@ -117,6 +150,69 @@ assert.deepEqual(
         connection: { remoteAddress: '10.0.0.2' }
     }).ip,
     '198.51.100.1'
+);
+
+assert.equal(sessionSecurity.isValidSyncToken({}, null), true, 'sync keeps legacy session compatibility');
+assert.equal(sessionSecurity.isValidSyncToken({ syncTokenHash }, syncToken), true);
+assert.equal(sessionSecurity.isValidSyncToken({ syncTokenHash }, 'wrong-token'), false);
+assert.equal(
+    sessionSecurity.canResumeSession({
+        userId: 'anon-secure',
+        type: 'anonymous',
+        syncTokenHash,
+        lastActivityAt: ts(-5 * 60 * 1000)
+    }, { authUid: 'anon-secure', syncToken, now: baseNow }),
+    true,
+    'resume accepts matching UID, token hash and recent activity'
+);
+assert.equal(
+    sessionSecurity.canResumeSession({
+        userId: 'anon-secure',
+        type: 'anonymous',
+        lastActivityAt: ts(-5 * 60 * 1000)
+    }, { authUid: 'anon-secure', syncToken, now: baseNow }),
+    false,
+    'resume rejects legacy sessions without token hash'
+);
+assert.equal(
+    sessionSecurity.canResumeSession({
+        userId: 'anon-secure',
+        type: 'anonymous',
+        syncTokenHash,
+        lastActivityAt: ts(-5 * 60 * 1000)
+    }, { authUid: 'other-user', syncToken, now: baseNow }),
+    false,
+    'resume rejects UID mismatch'
+);
+assert.equal(
+    sessionSecurity.canResumeSession({
+        userId: 'anon-secure',
+        type: 'admin',
+        syncTokenHash,
+        lastActivityAt: ts(-5 * 60 * 1000)
+    }, { authUid: 'anon-secure', syncToken, now: baseNow }),
+    false,
+    'resume rejects admin sessions'
+);
+assert.equal(
+    sessionSecurity.canResumeSession({
+        userId: 'anon-secure',
+        type: 'anonymous',
+        syncTokenHash,
+        lastActivityAt: ts(-59 * 60 * 1000)
+    }, { authUid: 'anon-secure', syncToken, now: baseNow }),
+    true,
+    'resume accepts same visitor activity inside one hour'
+);
+assert.equal(
+    sessionSecurity.canResumeSession({
+        userId: 'anon-secure',
+        type: 'anonymous',
+        syncTokenHash,
+        lastActivityAt: ts(-61 * 60 * 1000)
+    }, { authUid: 'anon-secure', syncToken, now: baseNow }),
+    false,
+    'resume rejects stale sessions'
 );
 
 console.log('Analytics reliability verifier passed.');

@@ -85,7 +85,11 @@ const ShopProductCard = ({
         event.preventDefault();
 
         if (onOpenProductDetail) {
-            onOpenProductDetail(product);
+            onOpenProductDetail(product, {
+                source,
+                parentFurnitureId,
+                parentFurnitureName
+            });
             return;
         }
 

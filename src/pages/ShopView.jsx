@@ -224,7 +224,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
     const handleTutorialClick = async (event, linkedProduct) => {
         event.preventDefault();
         if (onOpenProductDetail && linkedProduct?.id) {
-            onOpenProductDetail(linkedProduct);
+            onOpenProductDetail(linkedProduct, { source: 'shop_tutorial' });
             return;
         }
         trackAffiliateClick({
@@ -447,7 +447,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
 
     const handleProductDetailOpen = useCallback((product) => {
         warmupShopProductDetailIntent(product);
-        onOpenProductDetail?.(product);
+        onOpenProductDetail?.(product, { source: 'shop_grid' });
     }, [onOpenProductDetail]);
 
     const handleProductIntent = useCallback((product) => {

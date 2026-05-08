@@ -6,10 +6,20 @@
  */
 const functions = require('firebase-functions/v1');
 const admin = require('firebase-admin');
+const crypto = require('crypto');
 const { SUPER_ADMIN_EMAIL } = require('../../helpers/security');
 const { getClientIpInfo } = require('./ip');
 
 const db = admin.firestore();
+
+const redactForLog = (value) => {
+    if (!value) return 'none';
+    return crypto
+        .createHash('sha256')
+        .update(String(value))
+        .digest('hex')
+        .slice(0, 10);
+};
 
 exports.updateUserSessions = functions.https.onCall(async (data, context) => {
     if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'Authentification requise.');
@@ -34,7 +44,11 @@ exports.updateUserSessions = functions.https.onCall(async (data, context) => {
         }
     }
 
-    console.log(`updateUserSessions called for ${email}, isAdmin: ${isAdmin}, IP: ${ip}`);
+    console.log('updateUserSessions called', {
+        emailHash: redactForLog(email),
+        ipHash: redactForLog(ip),
+        isAdmin
+    });
 
     try {
         // Si c'est un admin, on supprime TOUTES ses sessions (anonymes ou non)
@@ -45,7 +59,10 @@ exports.updateUserSessions = functions.https.onCall(async (data, context) => {
                 .where('sessionActive', '==', true)
                 .get();
 
-            console.log(`Found ${snapshot.size} active sessions for admin IP ${ip}`);
+            console.log('Found active sessions for admin IP', {
+                count: snapshot.size,
+                ipHash: redactForLog(ip)
+            });
 
             const batch = db.batch();
             let deletedCount = 0;
@@ -64,7 +81,10 @@ exports.updateUserSessions = functions.https.onCall(async (data, context) => {
 
             if (deletedCount > 0) {
                 await batch.commit();
-                console.log(`Deleted ${deletedCount} sessions for admin ${email}`);
+                console.log('Deleted sessions for admin', {
+                    deletedCount,
+                    emailHash: redactForLog(email)
+                });
             }
 
             return { success: true, deletedCount, isAdmin: true };
@@ -100,7 +120,10 @@ exports.updateUserSessions = functions.https.onCall(async (data, context) => {
 
             if (updatedCount > 0) {
                 await batch.commit();
-                console.log(`Updated ${updatedCount} sessions for client ${email}`);
+                console.log('Updated sessions for client', {
+                    updatedCount,
+                    emailHash: redactForLog(email)
+                });
             }
 
             return { success: true, updatedCount, isAdmin: false };

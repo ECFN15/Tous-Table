@@ -91,7 +91,7 @@ const InfoList = ({ title, items = [], darkMode, className = '' }) => (
     </div>
 );
 
-const ShopProductDetail = ({ product, isLoading = false, darkMode = false, onBack }) => {
+const ShopProductDetail = ({ product, isLoading = false, darkMode = false, onBack, affiliateContext = null }) => {
     const { isAdmin } = useAuth();
     const draft = useMemo(() => product?.detailDraft || fallbackDraft(product), [product]);
     const pagePath = useMemo(() => product ? getShopProductPath(product) : '/comptoir', [product]);
@@ -140,7 +140,9 @@ const ShopProductDetail = ({ product, isLoading = false, darkMode = false, onBac
         trackAffiliateClick({
             product,
             source: 'shop_detail',
-            isAdmin
+            isAdmin,
+            parentFurnitureId: affiliateContext?.parentFurnitureId || null,
+            parentFurnitureName: affiliateContext?.parentFurnitureName || null
         });
     };
 

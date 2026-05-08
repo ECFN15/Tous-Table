@@ -172,6 +172,7 @@ const AppContent = () => {
   const [view, setView] = useState(() => initialRouteRef.current.view); // 'about', 'gallery', 'detail', 'login', 'admin'
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [selectedAffiliateProductId, setSelectedAffiliateProductId] = useState(initialRouteRef.current.shopProductId || null);
+  const [selectedAffiliateProductContext, setSelectedAffiliateProductContext] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isSecretGateOpen, setIsSecretGateOpen] = useState(false);
   const [showFullLogin, setShowFullLogin] = useState(false);
@@ -608,6 +609,7 @@ const AppContent = () => {
       }
       if (route.shopProductId) {
         setSelectedAffiliateProductId(route.shopProductId);
+        setSelectedAffiliateProductContext(null);
         setView('shop-detail');
         return;
       }
@@ -820,6 +822,7 @@ const AppContent = () => {
         selectedItemId={view === 'shop-detail' ? selectedAffiliateProductId : selectedItemId}
         selectedItemName={view === 'shop-detail' ? selectedAffiliateProduct?.name : selectedCatalogItem?.name}
         selectedItemPrice={view === 'shop-detail' ? selectedAffiliateProduct?.price : (selectedCatalogItem?.currentPrice || selectedCatalogItem?.startingPrice)}
+        selectedItemContext={view === 'shop-detail' ? selectedAffiliateProductContext : null}
       />
 
       {showStartupPreloader && (
@@ -1095,6 +1098,8 @@ const AppContent = () => {
           selectedItemId={selectedItemId}
           selectedAffiliateProductId={selectedAffiliateProductId}
           setSelectedAffiliateProductId={setSelectedAffiliateProductId}
+          selectedAffiliateProductContext={selectedAffiliateProductContext}
+          setSelectedAffiliateProductContext={setSelectedAffiliateProductContext}
           addToCart={addToCart}
           cartItems={cartItems}
           cartTotal={cartTotal}

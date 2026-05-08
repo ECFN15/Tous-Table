@@ -116,6 +116,67 @@ npm run build
 
 Pour un deploy prod, respecter `AGENTS.md`: obtenir l'accord explicite puis lancer `npm run preflight:prod`.
 
+## Refonte 2026-05-08 - Reprise de session et organisation par visiteur
+
+Contexte verifie en lecture seule sur Firestore prod `tousatable-client`:
+
+- la serie Bordeaux vue dans `imagecodex/` correspondait a un meme visiteur technique;
+- les sessions partageaient la meme IP complete, le meme UID Firebase anonyme et le meme device `Mobile Android Chrome`;
+- aucune IP complete ni UID complet ne doit etre recopie dans les reponses ou documents.
+
+Cause racine confirmee:
+
+- `AnalyticsProvider.jsx` persistait `analytics_session_id` et `analytics_session_token` en `sessionStorage`;
+- avant cette refonte, ces valeurs n'etaient pas relues au montage;
+- chaque reload/remontage complet rappelait donc `initLiveSession`, et le backend creait un nouveau document.
+
+Changements realises:
+
+- Le client relit maintenant `analytics_session_id` + `analytics_session_token` au demarrage.
+- `initLiveSession` accepte une demande de reprise (`resumeSessionId`, `resumeSyncToken`).
+- La reprise est acceptee seulement si:
+  - le document existe;
+  - le `syncToken` correspond au hash stocke;
+  - le `userId` de la session correspond a l'UID Firebase authentifie;
+  - la derniere activite date de moins d'1 heure;
+  - la session n'est pas une session admin.
+- Si la reprise echoue, le comportement historique reste valable: une nouvelle session est creee.
+- La duree de session reprise repart depuis `startedAtMs` renvoye par le backend, pour ne pas ecraser la duree existante avec une valeur plus basse apres reload.
+- Les logs de `updateUserSessions` masquent maintenant email et IP via hash court au lieu d'ecrire les valeurs brutes.
+- Le dashboard traffic affiche maintenant:
+  - jours filtres selon le filtre actif (`1h`, `1j`, `7j`, etc.);
+  - rectangles de visiteurs fiables par jour;
+  - dans chaque rectangle, les sessions de ce visiteur;
+  - dans chaque session, le tracking/parcours existant via `Tracer`.
+- Coherence dashboard:
+  - les KPIs, le graphique et les rectangles utilisent la meme identite `getVisitorIdentity`;
+  - les rectangles visiteurs sont calcules depuis la meme fenetre glissante que les KPIs;
+  - la somme des sessions des rectangles correspond a `Sessions`;
+  - le nombre de rectangles visiteurs uniques correspond a `Visiteurs Fiables`;
+  - le graphique deduplique les visiteurs par creneau, donc la somme des barres peut etre superieure a `Visiteurs Fiables` si un meme visiteur revient sur plusieurs creneaux.
+
+Choix de securite:
+
+- Pas de fusion serveur agressive par IP seule.
+- Pas de reutilisation d'une session sans preuve de possession du `syncToken`.
+- Audit du 2026-05-08: la reprise exige maintenant explicitement un `syncTokenHash`
+  existant et un `userId` strictement identique a l'UID Firebase authentifie; la
+  compatibilite legacy sans hash reste limitee aux syncs d'anciennes sessions.
+- Audit post-deploiement 2026-05-08: pour eviter les sessions inutiles quand un
+  meme visiteur revient dans une fenetre courte, le client conserve aussi
+  `analytics_session_id` et `analytics_session_token` dans `localStorage`, et la
+  fenetre de reprise serveur est portee a 1 heure. Au-dela, une nouvelle session
+  reste creee.
+- L'IP reste une aide de diagnostic, pas une identite certaine.
+
+Commandes de verification cible:
+
+```bash
+npm run verify:analytics-reliability
+npm run verify:functions-syntax
+npm run build
+```
+
 ## Limites restantes
 
 - Sans consentement et sans fingerprinting invasif, il est impossible de garantir "1 personne physique exacte".

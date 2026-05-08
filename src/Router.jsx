@@ -59,6 +59,8 @@ const AppRouter = ({
     selectedItemId,
     selectedAffiliateProductId,
     setSelectedAffiliateProductId,
+    selectedAffiliateProductContext,
+    setSelectedAffiliateProductContext,
     addToCart,
     cartItems,
     cartTotal,
@@ -186,8 +188,13 @@ const AppRouter = ({
                         onOpenCart={onOpenCart}
                         toggleTheme={toggleTheme}
                         setHeaderProps={setHeaderProps}
-                        onOpenProductDetail={(product) => {
+                        onOpenProductDetail={(product, context = {}) => {
                             setSelectedAffiliateProductId(product.id);
+                            setSelectedAffiliateProductContext({
+                                source: context.source || 'shop_grid',
+                                parentFurnitureId: context.parentFurnitureId || null,
+                                parentFurnitureName: context.parentFurnitureName || null
+                            });
                             setView('shop-detail');
                             scrollToTop();
                         }}
@@ -201,9 +208,11 @@ const AppRouter = ({
                         product={affiliateProducts.find(p => p.id === selectedAffiliateProductId)}
                         isLoading={affiliateProducts.length === 0}
                         darkMode={darkMode}
+                        affiliateContext={selectedAffiliateProductContext}
                         onBack={() => {
                             setView('shop');
                             setSelectedAffiliateProductId(null);
+                            setSelectedAffiliateProductContext(null);
                             scrollToTop();
                         }}
                     />
@@ -243,8 +252,13 @@ const AppRouter = ({
                             toggleTheme={toggleTheme}
                             setHeaderProps={setHeaderProps}
                             affiliateProducts={affiliateProducts}
-                            onOpenProductDetail={(product) => {
+                            onOpenProductDetail={(product, context = {}) => {
                                 setSelectedAffiliateProductId(product.id);
+                                setSelectedAffiliateProductContext({
+                                    source: context.source || 'gallery_detail',
+                                    parentFurnitureId: context.parentFurnitureId || selectedItemId || null,
+                                    parentFurnitureName: context.parentFurnitureName || [...items, ...boardItems].find(i => i.id === selectedItemId)?.name || null
+                                });
                                 setView('shop-detail');
                                 scrollToTop();
                             }}

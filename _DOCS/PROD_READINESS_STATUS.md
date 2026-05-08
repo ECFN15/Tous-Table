@@ -24,6 +24,46 @@ Decision paiement: les paiements carte ne font pas partie du lancement actuel. `
 
 ## Preuves recentes
 
+Deploiement Functions analytics + Hosting du 2026-05-08 - reprise session 1h et KPI unique :
+
+- Accord utilisateur explicite : demande "deploy en prod ! .agent\workflows\production_workflow.md".
+- Workflow lu : `.agent\workflows\production_workflow.md`.
+- `firebase use` initial : `tatmadeinnormandie`.
+- `firebase use prod` : alias prod actif sur `tousatable-client`.
+- `npm run preflight:prod` : OK.
+- `firebase deploy --only functions:initLiveSession,functions:syncSession,functions:syncSessionBeacon,functions:updateUserSessions --project tousatable-client` : OK.
+- `firebase deploy --only hosting --project tousatable-client` : OK.
+- `firebase use default` : retour sur `tatmadeinnormandie`.
+- Audit Functions prod apres deploy : 30 Functions, 30 avec legacy env vars, 90 legacy env vars au total, 11 secrets attaches ; aucune valeur sensible affichee.
+- Smoke public : `https://tousatable-madeinnormandie.fr/` HTTP 200.
+- Smoke public : `https://tousatable-madeinnormandie.fr/meubles-anciens` HTTP 200.
+- Smoke public : `https://tousatable-madeinnormandie.fr/planches-a-decouper-anciennes` HTTP 200.
+- Smoke public : `https://tousatable-madeinnormandie.fr/comptoir` HTTP 200.
+- Smoke public : `https://tousatable-madeinnormandie.fr/admin` HTTP 200.
+- Smoke public : `https://tousatable-client.web.app/` HTTP 200.
+- `npm run audit:public-seo` : OK, 32 checks passes.
+- Deploiement volontairement limite : Functions analytics ciblees + Hosting ; aucune regle Firestore/Storage redeployee et aucune ecriture Firestore prod.
+
+Deploiement Functions analytics + Hosting du 2026-05-08 - fiabilite visiteurs uniques :
+
+- Accord utilisateur explicite : demande "ok deploy en prod avec .agent\workflows\production_workflow.md".
+- Workflow lu : `.agent\workflows\production_workflow.md`.
+- `firebase use` initial : `tatmadeinnormandie`.
+- `firebase use prod` : alias prod actif sur `tousatable-client`.
+- `npm run preflight:prod` : OK.
+- `firebase deploy --only functions:initLiveSession,functions:syncSession,functions:syncSessionBeacon,functions:updateUserSessions --project tousatable-client` : OK.
+- `firebase deploy --only hosting --project tousatable-client` : OK.
+- `firebase use default` : retour sur `tatmadeinnormandie`.
+- Audit Functions prod apres deploy : 30 Functions, 30 avec legacy env vars, 90 legacy env vars au total, 11 secrets attaches ; aucune valeur sensible affichee.
+- Smoke public : `https://tousatable-madeinnormandie.fr/` HTTP 200.
+- Smoke public : `https://tousatable-madeinnormandie.fr/meubles-anciens` HTTP 200.
+- Smoke public : `https://tousatable-madeinnormandie.fr/planches-a-decouper-anciennes` HTTP 200.
+- Smoke public : `https://tousatable-madeinnormandie.fr/comptoir` HTTP 200.
+- Smoke public : `https://tousatable-madeinnormandie.fr/admin` HTTP 200.
+- Smoke public : `https://tousatable-client.web.app/` HTTP 200.
+- `npm run audit:public-seo` : OK, 32 checks passes.
+- Deploiement volontairement limite : Functions analytics ciblees + Hosting ; aucune regle Firestore/Storage redeployee et aucune ecriture Firestore prod.
+
 Deploiement Hosting du 2026-05-08 - reveal mobile preloader titre :
 
 - Accord utilisateur explicite : demande "push en prod".

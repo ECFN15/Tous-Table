@@ -26,7 +26,43 @@ const getDeviceInfo = () => {
     return { device, browser, os };
 };
 
-const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedItemPrice }) => {
+const ANALYTICS_SESSION_ID_KEY = 'analytics_session_id';
+const ANALYTICS_SESSION_TOKEN_KEY = 'analytics_session_token';
+
+const readStorageValue = (storage, key) => {
+    try {
+        return storage?.getItem(key) || null;
+    } catch {
+        return null;
+    }
+};
+
+const getStoredAnalyticsSession = () => {
+    const sessionId = readStorageValue(sessionStorage, ANALYTICS_SESSION_ID_KEY)
+        || readStorageValue(localStorage, ANALYTICS_SESSION_ID_KEY);
+    const syncToken = readStorageValue(sessionStorage, ANALYTICS_SESSION_TOKEN_KEY)
+        || readStorageValue(localStorage, ANALYTICS_SESSION_TOKEN_KEY);
+    if (!sessionId || !syncToken) return null;
+    return { sessionId, syncToken };
+};
+
+const persistStorageValue = (storage, key, value) => {
+    try {
+        if (value) storage?.setItem(key, value);
+        else storage?.removeItem(key);
+    } catch {
+        // Storage can be unavailable in hardened private browsing modes.
+    }
+};
+
+const persistAnalyticsSession = (sessionId, syncToken) => {
+    persistStorageValue(sessionStorage, ANALYTICS_SESSION_ID_KEY, sessionId);
+    persistStorageValue(sessionStorage, ANALYTICS_SESSION_TOKEN_KEY, syncToken);
+    persistStorageValue(localStorage, ANALYTICS_SESSION_ID_KEY, sessionId);
+    persistStorageValue(localStorage, ANALYTICS_SESSION_TOKEN_KEY, syncToken);
+};
+
+const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedItemPrice, selectedItemContext = null }) => {
     const { user, isAdmin } = useAuth();
     const sessionIdRef = useRef(null);
     const syncTokenRef = useRef(null);
@@ -34,12 +70,12 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
     const journeyToSend = useRef([]);
     const startTimeRef = useRef(Date.now());
     const lastActionTimeRef = useRef(Date.now());
-    const latestViewRef = useRef({ view, selectedItemId, selectedItemName, selectedItemPrice });
+    const latestViewRef = useRef({ view, selectedItemId, selectedItemName, selectedItemPrice, selectedItemContext });
     const lastRecordedKeyRef = useRef(null);
 
     useEffect(() => {
-        latestViewRef.current = { view, selectedItemId, selectedItemName, selectedItemPrice };
-    }, [view, selectedItemId, selectedItemName, selectedItemPrice]);
+        latestViewRef.current = { view, selectedItemId, selectedItemName, selectedItemPrice, selectedItemContext };
+    }, [view, selectedItemId, selectedItemName, selectedItemPrice, selectedItemContext]);
 
     const recordCurrentView = () => {
         if (!sessionIdRef.current || isAdmin) return false;
@@ -51,7 +87,9 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
             current.view || '',
             current.selectedItemId || '',
             current.selectedItemName || '',
-            current.selectedItemPrice || ''
+            current.selectedItemPrice || '',
+            current.selectedItemContext?.source || '',
+            current.selectedItemContext?.parentFurnitureId || ''
         ].join('|');
         if (lastRecordedKeyRef.current === actionKey) return false;
 
@@ -63,6 +101,11 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
             displayId = current.selectedItemName
                 ? `${current.selectedItemId} | ${current.selectedItemName} ${current.selectedItemPrice ? `(${current.selectedItemPrice}EUR)` : ''}`
                 : current.selectedItemId;
+            if (current.selectedItemContext?.parentFurnitureName) {
+                displayId += ` [depuis: ${current.selectedItemContext.parentFurnitureName}]`;
+            } else if (current.selectedItemContext?.source) {
+                displayId += ` [source: ${current.selectedItemContext.source}]`;
+            }
         }
 
         journeyToSend.current.push({
@@ -91,16 +134,22 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
                 type: isAdmin ? 'admin' : (user && !user.isAnonymous ? 'client' : 'anonymous'),
                 ...getDeviceInfo()
             };
+            const storedSession = getStoredAnalyticsSession();
+            if (storedSession) {
+                userInfo.resumeSessionId = storedSession.sessionId;
+                userInfo.resumeSyncToken = storedSession.syncToken;
+            }
 
             try {
                 const initRes = await httpsCallable(functions, 'initLiveSession')(userInfo);
                 if (initRes.data.success && isMounted) {
                     sessionIdRef.current = initRes.data.sessionId;
                     syncTokenRef.current = initRes.data.syncToken || null;
-                    sessionStorage.setItem('analytics_session_id', initRes.data.sessionId);
-                    if (initRes.data.syncToken) {
-                        sessionStorage.setItem('analytics_session_token', initRes.data.syncToken);
+                    const startedAtMs = Number(initRes.data.startedAtMs);
+                    if (Number.isFinite(startedAtMs) && startedAtMs > 0) {
+                        startTimeRef.current = startedAtMs;
                     }
+                    persistAnalyticsSession(initRes.data.sessionId, initRes.data.syncToken);
                     recordCurrentView();
                 } else {
                     initCalledRef.current = false;
@@ -123,7 +172,7 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
 
     useEffect(() => {
         recordCurrentView();
-    }, [view, selectedItemId, selectedItemName, selectedItemPrice]);
+    }, [view, selectedItemId, selectedItemName, selectedItemPrice, selectedItemContext]);
 
     useEffect(() => {
         const interval = setInterval(() => {

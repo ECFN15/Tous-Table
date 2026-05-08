@@ -78,6 +78,131 @@ export const getAnalyticsWindow = (filterId, rawNow = Date.now()) => {
     };
 };
 
+export const getFilteredTrafficSessions = (sessions = [], filterId = '1j', options = {}) => {
+    const { now, cutoff } = getAnalyticsWindow(filterId, options.now || Date.now());
+    return sessions.filter((session) => {
+        const started = toAnalyticsMillis(session.startedAt);
+        return started >= cutoff && started < now && session.type !== 'admin';
+    });
+};
+
+export const maskAnalyticsIp = (ip) => {
+    const value = normalizeAnalyticsValue(ip);
+    if (!value) return 'IP inconnue';
+
+    if (value.includes(':')) {
+        return `${value.split(':').slice(0, 4).join(':')}:...`;
+    }
+
+    const parts = value.split('.');
+    if (parts.length === 4) return `${parts[0]}.${parts[1]}.x.x`;
+
+    return 'IP masquee';
+};
+
+const getSessionLocationLabel = (session) => {
+    const city = normalizeAnalyticsValue(session?.geo?.city);
+    if (!city) return 'Localisation inconnue';
+
+    const region = normalizeAnalyticsValue(session?.geo?.region);
+    return region ? `${city}, ${region}` : city;
+};
+
+const getDayLabel = (dateObj, rawNow = Date.now()) => {
+    const dateKey = dateObj.toLocaleDateString('fr-FR');
+    const today = new Date(rawNow).toLocaleDateString('fr-FR');
+    const yesterday = new Date(rawNow - 86400000).toLocaleDateString('fr-FR');
+
+    if (dateKey === today) return "Aujourd'hui";
+    if (dateKey === yesterday) return 'Hier';
+    return dateKey;
+};
+
+const getSessionLastActivityMillis = (session) => (
+    toAnalyticsMillis(session?.lastActivityAt) || toAnalyticsMillis(session?.startedAt)
+);
+
+export const buildVisitorDayGroups = (sessions = [], options = {}) => {
+    const now = options.now || Date.now();
+    const activeWindowMs = options.activeWindowMs || 30000;
+    const dayMap = new Map();
+
+    sessions.forEach((session) => {
+        const started = toAnalyticsMillis(session.startedAt);
+        if (!started) return;
+
+        const dateObj = new Date(started);
+        const dateKey = dateObj.toLocaleDateString('fr-FR');
+        if (!dayMap.has(dateKey)) {
+            dayMap.set(dateKey, {
+                key: dateKey,
+                label: getDayLabel(dateObj, now),
+                timestamp: new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()).getTime(),
+                visitors: new Map()
+            });
+        }
+
+        const day = dayMap.get(dateKey);
+        const identity = getVisitorIdentity(session);
+        if (!day.visitors.has(identity.key)) {
+            day.visitors.set(identity.key, {
+                key: identity.key,
+                identitySource: identity.source,
+                sessions: []
+            });
+        }
+
+        day.visitors.get(identity.key).sessions.push(session);
+    });
+
+    return Array.from(dayMap.values())
+        .map((day) => ({
+            ...day,
+            visitors: Array.from(day.visitors.values())
+                .map((visitor) => {
+                    const sortedSessions = [...visitor.sessions].sort(
+                        (a, b) => toAnalyticsMillis(b.startedAt) - toAnalyticsMillis(a.startedAt)
+                    );
+                    const primarySession = sortedSessions[0] || {};
+                    const lastActivityAt = Math.max(...sortedSessions.map(getSessionLastActivityMillis));
+                    const firstStartedAt = Math.min(...sortedSessions.map(session => toAnalyticsMillis(session.startedAt)).filter(Boolean));
+                    const totalDuration = sortedSessions.reduce(
+                        (sum, session) => sum + normalizeSessionDuration(session.duration),
+                        0
+                    );
+                    const journeySteps = sortedSessions.reduce(
+                        (sum, session) => sum + (Array.isArray(session.journey) ? session.journey.length : 0),
+                        0
+                    );
+                    const isActive = sortedSessions.some((session) => {
+                        const lastActive = getSessionLastActivityMillis(session);
+                        return session.sessionActive !== false && lastActive && (now - lastActive) <= activeWindowMs;
+                    });
+
+                    return {
+                        ...visitor,
+                        sessions: sortedSessions,
+                        sessionCount: sortedSessions.length,
+                        totalDuration,
+                        journeySteps,
+                        firstStartedAt,
+                        lastActivityAt,
+                        isActive,
+                        locationLabel: getSessionLocationLabel(primarySession),
+                        deviceLabel: [primarySession.os, primarySession.browser].filter(Boolean).join(' - ') || 'Device inconnu',
+                        device: primarySession.device || 'Unknown',
+                        ipLabel: maskAnalyticsIp(primarySession.ip)
+                    };
+                })
+                .sort((a, b) => b.lastActivityAt - a.lastActivityAt),
+            sessionCount: Array.from(day.visitors.values()).reduce(
+                (sum, visitor) => sum + visitor.sessions.length,
+                0
+            )
+        }))
+        .sort((a, b) => b.timestamp - a.timestamp);
+};
+
 const formatSlotLabel = (time, filterId) => {
     const d = new Date(time);
     if (filterId === '1h') {
@@ -103,10 +228,7 @@ export const buildAnalyticsStats = (sessions = [], filterId = '1j', options = {}
     const isFetchCapped = fetchedCount >= maxFetched;
     const isWindowComplete = !isFetchCapped || !coverageStartMs || coverageStartMs <= cutoff;
 
-    const realTraffic = sessions.filter((session) => {
-        const started = toAnalyticsMillis(session.startedAt);
-        return started >= cutoff && started < now && session.type !== 'admin';
-    });
+    const realTraffic = getFilteredTrafficSessions(sessions, filterId, { now });
 
     const visitorKeys = new Set();
     const ipKeys = new Set();
