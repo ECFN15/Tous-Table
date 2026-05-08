@@ -414,3 +414,25 @@ Reste a surveiller :
 
 - 11 produits gardent `auditMeta.needsHumanReviewBeforePublish = true` pour tracer les variantes ou sources a revoir avant d'appliquer d'eventuelles corrections coeur.
 - Les fiches Comptoir dynamiques fonctionnent cote SPA ; sitemap/shareMeta serveur ne listent pas encore chaque fiche produit Comptoir individuellement.
+
+---
+
+## Ajustement UI mobile du 2026-05-08
+
+Objectif : reduire les marges verticales trop fortes observees sur mobile dans `/comptoir` et les fiches detail Comptoir, sans modifier les routes, le tracking, les donnees Firestore ni les valeurs desktop.
+
+Actions realisees :
+
+- `src/pages/ShopView.jsx` : reduction des espacements mobile entre le bloc editorial Comptoir et la premiere famille produit, ainsi que des separations entre familles (`pt`, `pb`, `mb` mobiles uniquement).
+- `src/pages/ShopProductDetail.jsx` : suppression du `min-h-[100dvh]` sur le hero mobile, reduction des `py/pb` mobiles entre la fiche produit, les cartes de conseils, le bloc precautions et le CTA Amazon.
+- Conservation des espacements desktop via `md:` et `lg:`.
+
+Validation :
+
+```bash
+npm run build
+```
+
+Resultat : build Vite OK. Warning existant de taille de chunks, sans lien avec ce changement.
+
+Reste a faire : smoke visuel mobile sur navigateur reel pour confirmer le calibrage exact des marges vues dans les captures.

@@ -74,11 +74,11 @@ const buildSchema = (product, draft, path) => {
 };
 
 const InfoList = ({ title, items = [], darkMode, className = '' }) => (
-    <div className={`shop-detail-reveal ${className} rounded-[1.5rem] p-6 md:p-8 border ${darkMode ? 'bg-white/[0.035] border-white/10' : 'bg-white/72 border-[#d8c2a2]/60 shadow-[0_20px_70px_rgba(91,64,38,0.08)]'}`}>
-        <p className={`text-[10px] uppercase tracking-[0.24em] font-black mb-5 ${darkMode ? 'text-amber-300/80' : 'text-amber-800/80'}`}>
+    <div className={`shop-detail-reveal ${className} rounded-[1.5rem] p-5 md:p-8 border ${darkMode ? 'bg-white/[0.035] border-white/10' : 'bg-white/72 border-[#d8c2a2]/60 shadow-[0_20px_70px_rgba(91,64,38,0.08)]'}`}>
+        <p className={`text-[10px] uppercase tracking-[0.24em] font-black mb-4 md:mb-5 ${darkMode ? 'text-amber-300/80' : 'text-amber-800/80'}`}>
             {title}
         </p>
-        <div className="space-y-4">
+        <div className="space-y-3 md:space-y-4">
             {items.map((item) => (
                 <div key={item} className="flex gap-4">
                     <span className={`mt-2 h-1.5 w-1.5 rounded-full flex-none ${darkMode ? 'bg-amber-300' : 'bg-amber-700'}`} />
@@ -190,21 +190,21 @@ const ShopProductDetail = ({ product, isLoading = false, darkMode = false, onBac
                 schema={schema}
             />
 
-            <section className="relative px-4 md:px-10 xl:px-14 pt-32 md:pt-40 pb-24 md:pb-36 min-h-[100dvh] overflow-hidden">
+            <section className="relative px-4 md:px-10 xl:px-14 pt-28 md:pt-40 pb-8 md:pb-36 lg:min-h-[100dvh] overflow-hidden">
                 <div className={`absolute inset-x-0 top-0 h-[38rem] pointer-events-none ${darkMode ? 'bg-[radial-gradient(circle_at_72%_20%,rgba(217,151,63,0.22),transparent_34%),radial-gradient(circle_at_18%_12%,rgba(255,255,255,0.08),transparent_28%)]' : 'bg-[radial-gradient(circle_at_72%_20%,rgba(177,111,45,0.18),transparent_34%),radial-gradient(circle_at_18%_12%,rgba(255,255,255,0.85),transparent_28%)]'}`} />
 
-                <div className="relative mx-auto max-w-[1920px] grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+                <div className="relative mx-auto max-w-[1920px] grid grid-cols-1 lg:grid-cols-12 gap-7 lg:gap-14 items-center">
                     <div className="lg:col-span-7 shop-detail-reveal">
                         <button
                             type="button"
                             onClick={onBack}
-                            className={`mb-10 inline-flex items-center gap-3 rounded-full px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-black transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] ${darkMode ? 'bg-white/8 text-stone-300 hover:bg-white/12' : 'bg-white/72 text-stone-700 hover:bg-white'}`}
+                            className={`mb-7 md:mb-10 inline-flex items-center gap-3 rounded-full px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-black transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] ${darkMode ? 'bg-white/8 text-stone-300 hover:bg-white/12' : 'bg-white/72 text-stone-700 hover:bg-white'}`}
                         >
                             <span className={`flex h-7 w-7 items-center justify-center rounded-full ${darkMode ? 'bg-white/10' : 'bg-stone-950 text-white'}`}>&lt;</span>
                             Comptoir
                         </button>
 
-                        <div className="flex flex-wrap items-center gap-3 mb-7">
+                        <div className="flex flex-wrap items-center gap-3 mb-5 md:mb-7">
                             {[brand, CATEGORY_LABELS[product.category] || product.category, TIER_LABELS[product.tier] || product.tier].filter(Boolean).map((item) => (
                                 <span key={item} className={`rounded-full px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] font-black ${darkMode ? 'bg-white/7 text-amber-200/80' : 'bg-white/76 text-amber-900/80'}`}>
                                     {item}
@@ -216,11 +216,11 @@ const ShopProductDetail = ({ product, isLoading = false, darkMode = false, onBac
                             {title}
                         </h1>
 
-                        <p className={`mt-8 max-w-3xl text-lg md:text-2xl leading-relaxed ${darkMode ? 'text-stone-300' : 'text-stone-700'}`}>
+                        <p className={`mt-6 md:mt-8 max-w-3xl text-lg md:text-2xl leading-relaxed ${darkMode ? 'text-stone-300' : 'text-stone-700'}`}>
                             {draft.customerDescription || draft.detailIntro}
                         </p>
 
-                        <div className="mt-10 flex flex-col sm:flex-row gap-4 sm:items-center">
+                        <div className="mt-7 md:mt-10 flex flex-col sm:flex-row gap-4 sm:items-center">
                             <a
                                 href={product.affiliateUrl}
                                 onClick={handleBuy}
@@ -245,7 +245,7 @@ const ShopProductDetail = ({ product, isLoading = false, darkMode = false, onBac
                                 <img
                                     src={product.imageUrl || 'https://picsum.photos/seed/atelier-wood-finish/1200/1500'}
                                     alt={product.name}
-                                    className="h-full w-full object-contain p-8 md:p-12 transition-transform duration-1000 ease-[cubic-bezier(0.32,0.72,0,1)] hover:scale-[1.035]"
+                                    className="h-full w-full object-contain p-6 md:p-12 transition-transform duration-1000 ease-[cubic-bezier(0.32,0.72,0,1)] hover:scale-[1.035]"
                                 />
                                 <div className={`absolute bottom-5 left-5 right-5 rounded-[1.25rem] px-5 py-4 ${darkMode ? 'bg-black/55 text-stone-200' : 'bg-white/82 text-stone-800'}`}>
                                     <p className="text-[10px] uppercase tracking-[0.2em] font-black opacity-60">Source produit</p>
@@ -257,10 +257,10 @@ const ShopProductDetail = ({ product, isLoading = false, darkMode = false, onBac
                 </div>
             </section>
 
-            <section className="px-4 md:px-10 xl:px-14 py-24 md:py-36">
+            <section className="px-4 md:px-10 xl:px-14 pt-8 pb-10 md:py-36">
                 <div className="mx-auto max-w-[1500px] grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 grid-flow-dense">
-                    <div className={`shop-detail-reveal lg:col-span-7 rounded-[1.75rem] p-7 md:p-10 ${darkMode ? 'bg-white/[0.035] border border-white/10' : 'bg-white/78 border border-[#d8c2a2]/60 shadow-[0_22px_80px_rgba(91,64,38,0.08)]'}`}>
-                        <p className={`text-[10px] uppercase tracking-[0.24em] font-black mb-5 ${darkMode ? 'text-amber-300/80' : 'text-amber-800/80'}`}>A quoi ca sert</p>
+                    <div className={`shop-detail-reveal lg:col-span-7 rounded-[1.75rem] p-6 md:p-10 ${darkMode ? 'bg-white/[0.035] border border-white/10' : 'bg-white/78 border border-[#d8c2a2]/60 shadow-[0_22px_80px_rgba(91,64,38,0.08)]'}`}>
+                        <p className={`text-[10px] uppercase tracking-[0.24em] font-black mb-4 md:mb-5 ${darkMode ? 'text-amber-300/80' : 'text-amber-800/80'}`}>A quoi ca sert</p>
                         <p className={`font-serif text-3xl md:text-5xl leading-tight ${darkMode ? 'text-white' : 'text-stone-950'}`}>
                             {draft.detailIntro}
                         </p>
@@ -272,11 +272,11 @@ const ShopProductDetail = ({ product, isLoading = false, darkMode = false, onBac
                 </div>
             </section>
 
-            <section className="px-4 md:px-10 xl:px-14 pb-24 md:pb-40">
-                <div className={`shop-detail-reveal mx-auto max-w-[1500px] rounded-[2rem] p-8 md:p-12 grid gap-8 lg:grid-cols-[0.85fr_1.15fr] ${darkMode ? 'bg-[#120f0a] border border-amber-300/10' : 'bg-[#24170d] text-white shadow-[0_30px_110px_rgba(67,39,18,0.22)]'}`}>
+            <section className="px-4 md:px-10 xl:px-14 pb-10 md:pb-40">
+                <div className={`shop-detail-reveal mx-auto max-w-[1500px] rounded-[2rem] p-6 md:p-12 grid gap-5 md:gap-8 lg:grid-cols-[0.85fr_1.15fr] ${darkMode ? 'bg-[#120f0a] border border-amber-300/10' : 'bg-[#24170d] text-white shadow-[0_30px_110px_rgba(67,39,18,0.22)]'}`}>
                     <div>
                         <p className="text-[10px] uppercase tracking-[0.26em] font-black text-amber-200/70">Precautions</p>
-                        <h2 className="mt-5 font-serif text-4xl md:text-6xl leading-[0.95]">Avant d'ouvrir le pot.</h2>
+                        <h2 className="mt-4 md:mt-5 font-serif text-4xl md:text-6xl leading-[0.95]">Avant d'ouvrir le pot.</h2>
                     </div>
                     <div className="space-y-5">
                         {(draft.safetyNotes || []).map((item) => (
@@ -298,12 +298,12 @@ const ShopProductDetail = ({ product, isLoading = false, darkMode = false, onBac
                 </div>
             </section>
 
-            <section className="px-4 md:px-10 xl:px-14 pb-28 md:pb-40">
+            <section className="px-4 md:px-10 xl:px-14 pb-16 md:pb-40">
                 <div className="mx-auto max-w-[1500px] text-center">
                     <p className={`shop-detail-reveal mx-auto max-w-3xl text-base md:text-xl leading-relaxed ${darkMode ? 'text-stone-400' : 'text-stone-600'}`}>
                         Le bouton ci-dessous ouvre Amazon dans un nouvel onglet. La fiche reste ici pour garder les conseils, les precautions et le contexte d'usage sous la main.
                     </p>
-                    <div className="shop-detail-reveal mt-10 flex justify-center">
+                    <div className="shop-detail-reveal mt-7 md:mt-10 flex justify-center">
                         <a
                             href={product.affiliateUrl}
                             onClick={handleBuy}

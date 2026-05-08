@@ -326,8 +326,8 @@ const DeliveryParticleMap = ({ darkMode, shell, core, muted }) => {
     }, []);
 
     return (
-        <section ref={mapRef} className="px-5 md:px-12 py-14 md:py-24">
-            <div className="mx-auto grid min-w-0 max-w-[1680px] grid-flow-dense gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+        <section ref={mapRef} className="px-5 md:px-12 py-6 md:py-24">
+            <div className="mx-auto grid min-w-0 max-w-[1680px] grid-flow-dense gap-6 md:gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
                 <motion.div
                     initial={{ opacity: 0, y: 34 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -508,20 +508,20 @@ const DeliveryParticleMap = ({ darkMode, shell, core, muted }) => {
                     transition={{ duration: 0.9, delay: 0.08, ease: [0.32, 0.72, 0, 1] }}
                     className="min-w-0"
                 >
-                    <p className={`mb-5 inline-flex rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.24em] ${darkMode ? 'border-white/10 text-amber-400' : 'border-[#c79b5d]/45 text-amber-800'}`}>
+                    <p className={`mb-4 md:mb-5 inline-flex rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.24em] ${darkMode ? 'border-white/10 text-amber-400' : 'border-[#c79b5d]/45 text-amber-800'}`}>
                         Couverture transport
                     </p>
                     <h2 className="max-w-4xl font-serif text-4xl leading-[0.95] tracking-tight md:text-6xl xl:text-7xl">
                         La piece part de Normandie, pas de votre imagination.
                     </h2>
-                    <p className={`mt-7 max-w-2xl text-base leading-relaxed md:text-lg ${muted}`}>
+                    <p className={`mt-5 md:mt-7 max-w-2xl text-base leading-relaxed md:text-lg ${muted}`}>
                         La carte rend visible ce qui compte au moment d acheter : un meuble ancien peut etre livre localement autour de Caen, organise partout en France, et etudie vers les pays frontaliers selon le meuble, la distance et les acces.
                     </p>
 
-                    <div className="mt-9 grid grid-flow-dense gap-3 sm:grid-cols-2">
+                    <div className="mt-6 md:mt-9 grid grid-flow-dense gap-3 sm:grid-cols-2">
                         {DELIVERY_METRICS.map(([value, label]) => (
                             <div key={value} className={`rounded-[1.6rem] p-1 ring-1 ${shell}`}>
-                                <div className={`rounded-[calc(1.6rem-0.25rem)] border px-5 py-5 ${core}`}>
+                                <div className={`rounded-[calc(1.6rem-0.25rem)] border px-5 py-4 md:py-5 ${core}`}>
                                     <p className="font-serif text-3xl leading-none tracking-tight">{value}</p>
                                     <p className={`mt-2 text-xs font-bold uppercase tracking-[0.18em] ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>{label}</p>
                                 </div>
@@ -605,17 +605,17 @@ const DeliveryView = ({ darkMode = false }) => {
                 schema={schema}
             />
 
-            <section className="px-5 md:px-12 pt-24 md:pt-28 pb-12 md:pb-16">
+            <section className="px-5 md:px-12 pt-4 sm:pt-6 md:pt-12 lg:pt-14 pb-6 md:pb-14">
                 <div className="mx-auto max-w-[1680px]">
                     <motion.div
                         initial={{ opacity: 0, y: 28 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, ease: [0.32, 0.72, 0, 1] }}
-                        className={`border-y ${hairline} py-10 md:py-14`}
+                        className={`border-b ${hairline} py-7 md:py-10`}
                     >
-                        <div className="grid min-w-0 gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-end">
+                        <div className="grid min-w-0 gap-7 md:gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-end">
                             <div className="min-w-0">
-                                <p className={`mb-6 inline-flex rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.24em] ${darkMode ? 'border-white/10 text-amber-400' : 'border-[#c79b5d]/45 text-amber-800'}`}>
+                                <p className={`mb-4 md:mb-6 inline-flex rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.24em] ${darkMode ? 'border-white/10 text-amber-400' : 'border-[#c79b5d]/45 text-amber-800'}`}>
                                     Livraison atelier
                                 </p>
                                 <h1
@@ -651,7 +651,7 @@ const DeliveryView = ({ darkMode = false }) => {
                 muted={muted}
             />
 
-            <section className="px-5 md:px-12 py-10 md:py-20">
+            <section className="px-5 md:px-12 py-6 md:py-20">
                 <div className="mx-auto grid max-w-[1680px] gap-5 md:grid-cols-2 xl:grid-cols-4">
                     {DELIVERY_ZONES.map((zone, index) => (
                         <motion.div
@@ -662,17 +662,17 @@ const DeliveryView = ({ darkMode = false }) => {
                             transition={{ duration: 0.75, delay: index * 0.06, ease: [0.32, 0.72, 0, 1] }}
                             className={`rounded-[2rem] p-1.5 ring-1 ${shell}`}
                         >
-                            <div className={`h-full rounded-[calc(2rem-0.375rem)] border p-6 md:p-7 ${core}`}>
-                                <p className={`mb-8 text-[10px] font-black uppercase tracking-[0.24em] ${darkMode ? 'text-amber-400' : 'text-amber-800'}`}>
+                            <div className={`h-full rounded-[calc(2rem-0.375rem)] border p-5 md:p-7 ${core}`}>
+                                <p className={`mb-5 md:mb-8 text-[10px] font-black uppercase tracking-[0.24em] ${darkMode ? 'text-amber-400' : 'text-amber-800'}`}>
                                     {zone.kicker}
                                 </p>
-                                <h2 className="mb-4 font-serif text-3xl leading-none tracking-tight">
+                                <h2 className="mb-3 md:mb-4 font-serif text-3xl leading-none tracking-tight">
                                     {zone.title}
                                 </h2>
-                                <p className={`mb-5 text-sm leading-relaxed ${muted}`}>
+                                <p className={`mb-4 md:mb-5 text-sm leading-relaxed ${muted}`}>
                                     {zone.body}
                                 </p>
-                                <p className={`border-t pt-5 text-xs leading-relaxed ${hairline} ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>
+                                <p className={`border-t pt-4 md:pt-5 text-xs leading-relaxed ${hairline} ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>
                                     {zone.detail}
                                 </p>
                             </div>
@@ -681,9 +681,9 @@ const DeliveryView = ({ darkMode = false }) => {
                 </div>
             </section>
 
-            <section className="px-5 md:px-12 py-12 md:py-24">
+            <section className="px-5 md:px-12 py-6 md:py-24">
                 <div className="mx-auto max-w-[1680px]">
-                    <div className="grid gap-10 lg:grid-cols-[0.65fr_1.35fr]">
+                    <div className="grid gap-7 md:gap-10 lg:grid-cols-[0.65fr_1.35fr]">
                         <div>
                             <p className={`mb-4 text-[10px] font-black uppercase tracking-[0.28em] ${darkMode ? 'text-amber-400' : 'text-amber-800'}`}>
                                 Methode
@@ -700,7 +700,7 @@ const DeliveryView = ({ darkMode = false }) => {
                                     whileInView={{ opacity: 1, y: 0 }}
                                     viewport={{ once: true, margin: '-80px' }}
                                     transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
-                                    className={`grid gap-4 py-7 md:grid-cols-[90px_0.8fr_1.2fr] md:items-start ${hairline}`}
+                                    className={`grid gap-3 md:gap-4 py-5 md:py-7 md:grid-cols-[90px_0.8fr_1.2fr] md:items-start ${hairline}`}
                                 >
                                     <span className={`font-serif text-3xl ${darkMode ? 'text-amber-400/70' : 'text-amber-800/70'}`}>
                                         {step.label}
@@ -718,9 +718,9 @@ const DeliveryView = ({ darkMode = false }) => {
                 </div>
             </section>
 
-            <section className="px-5 md:px-12 py-12 md:py-24">
+            <section className="px-5 md:px-12 pt-6 pb-8 md:py-24">
                 <div className="mx-auto max-w-[1240px]">
-                    <div className="mb-10">
+                    <div className="mb-7 md:mb-10">
                         <p className={`mb-4 text-[10px] font-black uppercase tracking-[0.28em] ${darkMode ? 'text-amber-400' : 'text-amber-800'}`}>
                             Questions transport
                         </p>
@@ -730,7 +730,7 @@ const DeliveryView = ({ darkMode = false }) => {
                     </div>
                     <div className={`divide-y border-y ${hairline}`}>
                         {DELIVERY_FAQ.map((item) => (
-                            <div key={item.question} className="grid gap-3 py-6 md:grid-cols-[0.8fr_1.2fr] md:gap-10">
+                            <div key={item.question} className="grid gap-3 py-5 md:py-6 md:grid-cols-[0.8fr_1.2fr] md:gap-10">
                                 <h3 className="font-serif text-xl leading-snug md:text-2xl">
                                     {item.question}
                                 </h3>

@@ -444,13 +444,18 @@ html.tat-low-power-mobile .tat-startup-preloader-char {
 .tat-heavy-section {
   content-visibility: auto;
   contain-intrinsic-size: auto 1180px;
+  contain: layout paint style;
 }
 
 @media (pointer: coarse) {
-  .tat-shop-card-shell,
+  .tat-shop-card-shell {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 520px;
+  }
+
   .tat-heavy-section {
-    content-visibility: visible;
-    contain-intrinsic-size: auto;
+    content-visibility: auto;
+    contain-intrinsic-size: auto 860px;
   }
 }
 

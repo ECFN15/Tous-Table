@@ -494,9 +494,9 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
                 </div>
             </section>
 
-            <section className={`px-6 xl:px-12 py-10 md:py-14 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-transparent'}`}>
-                <div className={`max-w-[1920px] mx-auto border-y py-8 md:py-10 ${darkMode ? 'border-white/10' : 'border-[#c79b5d]/28'}`}>
-                    <div className="grid gap-8 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">
+            <section className={`px-6 xl:px-12 pt-8 pb-5 md:py-14 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-transparent'}`}>
+                <div className={`max-w-[1920px] mx-auto border-y pt-6 pb-5 md:py-10 ${darkMode ? 'border-white/10' : 'border-[#c79b5d]/28'}`}>
+                    <div className="grid gap-6 lg:gap-8 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">
                         <div>
                             <p className={`text-[10px] font-black uppercase tracking-[0.28em] mb-4 ${darkMode ? 'text-amber-500' : 'text-amber-700'}`}>
                                 Boutique bois
@@ -517,7 +517,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
                             </p>
                         </div>
                     </div>
-                    <nav className={`mt-8 flex flex-wrap gap-3 text-[10px] font-black uppercase tracking-[0.22em] ${darkMode ? 'text-stone-500' : 'text-stone-500'}`} aria-label="Liens Comptoir">
+                    <nav className={`mt-6 md:mt-8 flex flex-wrap gap-3 text-[10px] font-black uppercase tracking-[0.22em] ${darkMode ? 'text-stone-500' : 'text-stone-500'}`} aria-label="Liens Comptoir">
                         {[
                             { href: '/meubles-anciens', label: 'Voir les meubles anciens' },
                             { href: '/livraison-meubles-anciens-france', label: 'Livraison meubles' },
@@ -571,7 +571,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
                 {/* Sectioned content - all families in order */}
                 <section
                     id="products-grid-section"
-                    className={`min-h-screen pt-6 lg:pt-12 pb-20 px-6 xl:px-12 lg:pl-[320px] xl:pl-[360px] ${darkMode ? 'bg-[#0a0a0a]' : 'bg-transparent'}`}
+                    className={`min-h-screen pt-0 lg:pt-12 pb-20 px-6 xl:px-12 lg:pl-[320px] xl:pl-[360px] ${darkMode ? 'bg-[#0a0a0a]' : 'bg-transparent'}`}
                 >
                     <div className="max-w-[1920px] mx-auto space-y-0">
                         {visibleFamilies.map((family, familyIndex) => {
@@ -585,22 +585,22 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
                                 <section
                                     key={family.id}
                                     id={`section-${family.id}`}
-                                    className="tat-heavy-section scroll-mt-28 pt-16 lg:pt-20"
+                                    className="tat-heavy-section scroll-mt-28 pt-8 lg:pt-20"
                                 >
                                     {/* Section separator */}
                                     {familyIndex > 0 && (
-                                        <div className={`w-full h-px mb-16 ${darkMode ? 'bg-white/5' : 'bg-stone-200'}`} />
+                                        <div className={`w-full h-px mb-8 lg:mb-16 ${darkMode ? 'bg-white/5' : 'bg-stone-200'}`} />
                                     )}
 
                                     {/* Section header */}
-                                    <div className="mb-10 max-w-2xl">
-                                        <div className="flex items-center gap-4 mb-5">
+                                    <div className="mb-7 lg:mb-10 max-w-2xl">
+                                        <div className="flex items-center gap-4 mb-3 sm:mb-5">
                                             <span className={`w-8 h-px ${darkMode ? 'bg-white/20' : 'bg-stone-300'}`} />
                                             <span className={`text-[10px] md:text-[11px] font-black uppercase tracking-widest ${darkMode ? 'text-amber-500' : 'text-amber-700'}`}>
                                                 {family.subtitle}
                                             </span>
                                         </div>
-                                        <h2 className={`font-serif text-4xl md:text-5xl xl:text-6xl leading-[0.9] tracking-tighter mb-5 ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                                        <h2 className={`font-serif text-4xl md:text-5xl xl:text-6xl leading-[0.9] tracking-tighter mb-3 sm:mb-5 ${darkMode ? 'text-white' : 'text-stone-900'}`}>
                                             {family.title}
                                         </h2>
                                         <p className={`text-sm md:text-base leading-relaxed ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>

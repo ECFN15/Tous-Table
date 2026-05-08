@@ -68,6 +68,18 @@ const getInitialDarkMode = () => {
   return true;
 };
 
+const scheduleIdleCallback = (callback, timeout = 1200) => {
+  if (typeof window === 'undefined') return () => {};
+
+  if (typeof window.requestIdleCallback === 'function') {
+    const id = window.requestIdleCallback(callback, { timeout });
+    return () => window.cancelIdleCallback?.(id);
+  }
+
+  const id = window.setTimeout(callback, Math.min(timeout, 450));
+  return () => window.clearTimeout(id);
+};
+
 const AppContent = () => {
   const toast = useToast();
 
@@ -170,6 +182,7 @@ const AppContent = () => {
   const [showNewsletter, setShowNewsletter] = useState(false);
   const [pendingItem, setPendingItem] = useState(null);
   const [showStartupPreloader, setShowStartupPreloader] = useState(() => shouldShowStartupPreloader(initialRouteRef.current));
+  const [publicRealtimeReady, setPublicRealtimeReady] = useState(() => !showStartupPreloader);
   const scrollYRef = useRef(0);
   const modalUnlockRef = useRef(null);
   const wasModalOpenRef = useRef(false);
@@ -248,6 +261,20 @@ const AppContent = () => {
     setPersistentGalleryState(prev => ({ ...prev, ...state }));
   }, []);
 
+  const activePublicRealtimeCollectionsKey = React.useMemo(() => {
+    if (view === 'admin') return 'furniture|cutting_boards|affiliate_products';
+    if (view === 'shop' || view === 'shop-detail') return 'affiliate_products';
+    if (view === 'gallery') {
+      return persistentGalleryState.activeCollection === 'cutting_boards' ? 'cutting_boards' : 'furniture';
+    }
+    if (view === 'detail') {
+      if (boardItems.some((item) => item.id === selectedItemId)) return 'cutting_boards';
+      if (items.some((item) => item.id === selectedItemId)) return 'furniture';
+      return persistentGalleryState.activeCollection === 'cutting_boards' ? 'cutting_boards' : 'furniture';
+    }
+    return '';
+  }, [view, persistentGalleryState.activeCollection, selectedItemId, items, boardItems]);
+
   // --- SCROLL HEADER LOGIC ---
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const lastScrollYRef = useRef(0);
@@ -296,6 +323,14 @@ const AppContent = () => {
     }
     setShowStartupPreloader(false);
   }, []);
+
+  useEffect(() => {
+    if (publicRealtimeReady || showStartupPreloader) return undefined;
+
+    return scheduleIdleCallback(() => {
+      setPublicRealtimeReady(true);
+    }, 1600);
+  }, [publicRealtimeReady, showStartupPreloader]);
 
   useEffect(() => {
     if (!showStartupPreloader) return;
@@ -416,29 +451,42 @@ const AppContent = () => {
     };
 
     fetchPublicCatalogFallback('initial catalog bootstrap');
+    if (!publicRealtimeReady) return undefined;
 
-    const unsubData = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'furniture'), (snap) => {
-      setItems(snap.docs.map(d => ({ id: d.id, collectionName: 'furniture', ...d.data() })).sort(sortByCreatedAtDesc));
-    }, (error) => {
-      handlePublicReadError('meubles', error);
-    });
+    const activeCollections = activePublicRealtimeCollectionsKey
+      ? activePublicRealtimeCollectionsKey.split('|')
+      : [];
 
-    // 2. Planches (Données)
-    const unsubBoards = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'cutting_boards'), (snap) => {
-      setBoardItems(snap.docs.map(d => ({ id: d.id, collectionName: 'cutting_boards', ...d.data() })).sort(sortByCreatedAtDesc));
-    }, (error) => {
-      handlePublicReadError('planches', error);
-    });
+    if (!activeCollections.length) return undefined;
 
-    // 3. Produits affiliés (Boutique L'Atelier)
-    const unsubAffiliate = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'affiliate_products'), (snap) => {
-      setAffiliateProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.status === 'published'));
-    }, (error) => {
-      handlePublicReadError('produits affilies', error);
-    });
+    const subscriptions = [];
 
-    return () => { unsubData(); unsubBoards(); unsubAffiliate(); };
-  }, []); // Dépendances vides pour éviter le re-subscribe fréquent
+    if (activeCollections.includes('furniture')) {
+      subscriptions.push(onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'furniture'), (snap) => {
+        setItems(snap.docs.map(d => ({ id: d.id, collectionName: 'furniture', ...d.data() })).sort(sortByCreatedAtDesc));
+      }, (error) => {
+        handlePublicReadError('meubles', error);
+      }));
+    }
+
+    if (activeCollections.includes('cutting_boards')) {
+      subscriptions.push(onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'cutting_boards'), (snap) => {
+        setBoardItems(snap.docs.map(d => ({ id: d.id, collectionName: 'cutting_boards', ...d.data() })).sort(sortByCreatedAtDesc));
+      }, (error) => {
+        handlePublicReadError('planches', error);
+      }));
+    }
+
+    if (activeCollections.includes('affiliate_products')) {
+      subscriptions.push(onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'affiliate_products'), (snap) => {
+        setAffiliateProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.status === 'published'));
+      }, (error) => {
+        handlePublicReadError('produits affilies', error);
+      }));
+    }
+
+    return () => subscriptions.forEach((unsubscribe) => unsubscribe());
+  }, [publicRealtimeReady, activePublicRealtimeCollectionsKey]); // Realtime differe apres preloader/idle et limite a la collection active.
 
   // --- LOGIQUE ROUTING & AUTH (Dépend du User) ---
   useEffect(() => {
