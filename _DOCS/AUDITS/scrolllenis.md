@@ -656,6 +656,22 @@ Ajustement titre preloader mobile - 8 mai 2026 :
 - demande utilisateur : agrandir legerement `TOUS A TABLE` sur mobile apres reequilibrage du marteau et de la signature ;
 - taille mobile passee a `clamp(1.94rem, 8.7vw, 2.34rem)` en conservant la limite de largeur existante pour eviter le contact avec les bords de l'ecran.
 
+Ajustement signature mobile preloader - 8 mai 2026 :
+- demande utilisateur : descendre un peu plus `Atelier Normand` et augmenter legerement sa taille de police sur mobile uniquement ;
+- signature mobile passee a `top: 0.34rem` et `font-size: 0.7rem`, avec reset `top: 0` conserve des `768px` pour ne pas modifier laptop/desktop.
+
+Optimisation fluidite preloader mobile - 8 mai 2026 :
+- diagnostic utilisateur : sur mobile moins performant, la fin de l'apparition `TOUS A TABLE` pouvait perdre des FPS, surtout sur `A TABLE` ;
+- cause principale : animation simultanee de plusieurs lettres avec `filter: blur(...)` + `transform` + `opacity`, le blur texte etant couteux en rasterisation sur GPU/CPU mobile ;
+- cause secondaire : le warmup catalogue pouvait se lancer pendant que le preloader etait encore en intro si les donnees arrivaient rapidement ;
+- correction : `StartupPreloader` active une variante `tat-startup-preloader--lean` uniquement pour profils mobiles contraints (RAM <= 4 Go, CPU <= 4 coeurs, reduction motion/reseau limite, fallback bas de gamme), en gardant l'animation `transform/opacity` mais sans blur/drop-shadow ;
+- les mobiles haut de gamme exposes par le navigateur (>= 6 Go RAM ou >= 6 coeurs) gardent l'animation complete ;
+- `App` attend l'evenement `tat-startup-preloader-intro-complete` avant de lancer le warmup catalogue opportuniste, afin de ne pas concurrencer l'apparition du texte.
+
+Ajustement reveal signature preloader - 8 mai 2026 :
+- demande utilisateur : eviter que `Atelier Normand` et ses deux traits apparaissent trop d'un coup ;
+- le footer du preloader demarre maintenant a `y: 8` et passe en `opacity: 1` sur `1.08s` avec `sine.out`, en gardant uniquement `transform/opacity` pour rester fluide sur mobile.
+
 ## 12. Comptoir - retrait animations d'apparition ciblees - 8 mai 2026
 
 Objectif : retirer les animations d'apparition des deux premieres cartes de chaque section Comptoir et des six images du hero, sans changer la composition visuelle ni les hover states.
@@ -678,3 +694,23 @@ Validation :
 
 Risque restant :
 - build complet a relancer apres resolution de la suppression de `EditorialMarquee.jsx`.
+
+## 13. Marketplace - release mobile Voir plus - 8 mai 2026
+
+Objectif : reduire le freeze percu sur mobile apres le clic `Voir plus de produits`, tout en conservant l'animation premium des nouvelles cartes.
+
+Fichier modifie :
+- `src/designs/architectural/MarketplaceLayout.jsx`
+
+Changements :
+- le warmup bloquant mobile du lot suivant chauffe moins d'images en priorite et rend la main plus vite avant de laisser le reste continuer en arriere-plan ;
+- le reveal tactile garde les micro-lots, mais avec une cadence plus courte et moins d'images `fetchPriority="high"` pour reduire la pression decode/reseau ;
+- sur tactile, `tatCardEnter` utilise un blur et une distance plus faibles, avec une duree plus courte ; les profils mobiles contraints descendent encore le blur et evitent le `will-change: filter` ;
+- le bouton `Voir plus de produits` n'attend plus la fin complete de l'animation pour sortir de l'etat occupe : il se libere quand le dernier micro-lot est monte, puis les classes d'animation sont nettoyees apres leur fin ;
+- le hover orange du bouton est maintenant limite aux pointeurs fins desktop, afin d'eviter l'etat orange persistant apres tap mobile.
+
+Validation :
+- `git diff --check -- src/designs/architectural/MarketplaceLayout.jsx` OK.
+
+Risque restant :
+- smoke mobile reel a faire sur `/mobilier` et `/planches-a-decouper-anciennes` pour juger le compromis exact entre flou visuel et fluidite.

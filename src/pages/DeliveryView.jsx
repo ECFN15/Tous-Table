@@ -98,16 +98,21 @@ const projectPoint = (lon, lat) => {
 };
 
 const FRANCE_MAINLAND_LONLAT = [
-    [2.55, 51.09], [1.86, 50.96], [1.34, 50.63], [0.34, 50.12],
-    [-0.17, 49.49], [-1.62, 49.65], [-2.27, 49.23], [-3.08, 48.83],
-    [-4.77, 48.39], [-4.58, 47.79], [-3.48, 47.70], [-2.52, 47.30],
-    [-2.05, 46.83], [-1.16, 46.16], [-1.48, 43.49], [-0.76, 43.34],
-    [0.70, 42.82], [1.74, 42.57], [2.95, 42.48], [3.17, 43.07],
-    [4.08, 43.35], [5.36, 43.30], [6.22, 43.10], [7.53, 43.78],
-    [6.91, 44.18], [6.80, 45.11], [7.10, 45.92], [6.13, 46.23],
-    [6.08, 46.72], [6.85, 47.58], [7.59, 48.06], [7.81, 48.58],
-    [7.34, 49.17], [6.38, 49.45], [5.82, 49.55], [4.81, 50.16],
-    [3.52, 50.36],
+    [2.55, 51.09], [1.75, 50.96], [1.28, 50.72], [1.06, 50.36],
+    [0.12, 49.52], [-0.72, 49.36], [-1.26, 49.68], [-1.95, 49.72],
+    [-1.88, 49.36], [-2.55, 49.20], [-3.08, 48.84], [-4.34, 48.68],
+    [-4.78, 48.39], [-4.78, 48.04], [-4.47, 47.78], [-3.86, 47.70],
+    [-3.18, 47.84], [-2.42, 47.52], [-2.05, 47.28], [-2.23, 46.86],
+    [-1.63, 46.35], [-1.20, 45.75], [-1.13, 45.28], [-1.44, 44.66],
+    [-1.22, 44.10], [-1.66, 43.39], [-0.76, 43.30], [0.18, 42.86],
+    [1.44, 42.62], [2.16, 42.43], [2.95, 42.35], [3.18, 42.84],
+    [3.02, 43.24], [3.78, 43.37], [4.35, 43.51], [4.78, 43.36],
+    [5.38, 43.25], [5.98, 43.08], [6.73, 43.14], [7.53, 43.78],
+    [7.16, 44.17], [6.98, 44.74], [6.80, 45.18], [7.05, 45.74],
+    [6.64, 45.94], [6.10, 46.24], [6.14, 46.67], [6.82, 47.43],
+    [7.50, 47.78], [7.80, 48.58], [7.36, 49.11], [6.90, 49.16],
+    [6.38, 49.45], [5.88, 49.53], [5.48, 49.50], [4.84, 50.16],
+    [4.14, 49.98], [3.63, 50.38], [3.07, 50.78],
 ];
 
 const CORSICA_LONLAT = [
@@ -212,7 +217,7 @@ const buildPolygonParticles = (polygon, options = {}) => {
 };
 
 const buildBoundaryParticles = (polygon, options = {}) => {
-    const { spacing = 7, radius = 1.35, seed = 10 } = options;
+    const { spacing = 7, radius = 1.35, jitter = 0.65, seed = 10 } = options;
     const points = [];
     polygon.forEach(([x1, y1], index) => {
         const [x2, y2] = polygon[(index + 1) % polygon.length];
@@ -222,8 +227,8 @@ const buildBoundaryParticles = (polygon, options = {}) => {
             const progress = step / count;
             const n = seed + index * 31 + step;
             points.push({
-                x: Number((x1 + (x2 - x1) * progress + (seededNoise(n) - 0.5) * 1.5).toFixed(1)),
-                y: Number((y1 + (y2 - y1) * progress + (seededNoise(n + 7) - 0.5) * 1.5).toFixed(1)),
+                x: Number((x1 + (x2 - x1) * progress + (seededNoise(n) - 0.5) * jitter).toFixed(1)),
+                y: Number((y1 + (y2 - y1) * progress + (seededNoise(n + 7) - 0.5) * jitter).toFixed(1)),
                 r: Number((radius + seededNoise(n + 13) * 0.8).toFixed(2)),
             });
         }
@@ -250,13 +255,15 @@ const FRANCE_PARTICLES = [
 
 const FRANCE_BOUNDARY_PARTICLES = [
     ...buildBoundaryParticles(FRANCE_POLYGON, {
-        spacing: 5.2,
-        radius: 0.9,
+        spacing: 4.6,
+        radius: 0.82,
+        jitter: 0.42,
         seed: 84,
     }),
     ...buildBoundaryParticles(CORSICA_POLYGON, {
         spacing: 4.5,
         radius: 0.76,
+        jitter: 0.35,
         seed: 91,
     }),
 ];
@@ -311,14 +318,20 @@ const DeliveryParticleMap = ({ darkMode, shell, core, muted }) => {
                 stagger: 0.16,
             });
 
-            gsap.to('.delivery-pulse', {
-                opacity: 0.42,
-                scale: 1.58,
-                duration: 2.6,
-                stagger: 0.42,
-                repeat: -1,
-                yoyo: true,
-                ease: 'sine.inOut',
+            gsap.utils.toArray('.delivery-pulse').forEach((ring, index) => {
+                const from = Number(ring.dataset.pulseFrom);
+                const to = Number(ring.dataset.pulseTo);
+                gsap.fromTo(ring, {
+                    attr: { r: from },
+                    opacity: 0.44,
+                }, {
+                    attr: { r: to },
+                    opacity: 0,
+                    duration: 2.35,
+                    delay: index * 0.58,
+                    repeat: -1,
+                    ease: 'sine.out',
+                });
             });
         }, mapRef);
 
@@ -443,8 +456,30 @@ const DeliveryParticleMap = ({ darkMode, shell, core, muted }) => {
                                 </g>
                             ))}
 
-                            <circle className="delivery-pulse" cx={IFS_COORD.x} cy={IFS_COORD.y} r="18" fill="none" stroke="#f0b969" strokeWidth="2" />
-                            <circle className="delivery-pulse" cx={IFS_COORD.x} cy={IFS_COORD.y} r="30" fill="none" stroke="#f0b969" strokeWidth="1.2" />
+                            <circle
+                                className="delivery-pulse"
+                                cx={IFS_COORD.x}
+                                cy={IFS_COORD.y}
+                                r="14"
+                                data-pulse-from="14"
+                                data-pulse-to="38"
+                                fill="none"
+                                stroke="#f0b969"
+                                strokeWidth="1.6"
+                                vectorEffect="non-scaling-stroke"
+                            />
+                            <circle
+                                className="delivery-pulse"
+                                cx={IFS_COORD.x}
+                                cy={IFS_COORD.y}
+                                r="26"
+                                data-pulse-from="26"
+                                data-pulse-to="58"
+                                fill="none"
+                                stroke="#f0b969"
+                                strokeWidth="1"
+                                vectorEffect="non-scaling-stroke"
+                            />
 
                             {DELIVERY_CITIES.map((city) => (
                                 <g key={city.name}>

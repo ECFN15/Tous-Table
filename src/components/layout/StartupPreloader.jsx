@@ -1,10 +1,27 @@
 import React from 'react';
 import { gsap } from 'gsap';
 import { Hammer } from 'lucide-react';
+import { isLowPowerMobileDevice } from '../../utils/devicePerformance';
 
 const BRAND_CHARS = 'TOUS \u00c0 TABLE'.split('');
 
 const wait = (duration) => new Promise((resolve) => setTimeout(resolve, duration));
+const shouldUseLeanPreloaderMotion = () => {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return true;
+
+  const memory = Number(navigator.deviceMemory || 0);
+  const cores = Number(navigator.hardwareConcurrency || 0);
+
+  if (memory > 0 && memory <= 4) return true;
+  if (cores > 0 && cores <= 4) return true;
+
+  // Recent Galaxy S/Ultra, iPhone Pro, etc. keep the full text blur animation.
+  if (memory >= 6 || cores >= 6) return false;
+
+  return isLowPowerMobileDevice();
+};
+
 const waitForPaint = () => new Promise((resolve) => {
   if (typeof requestAnimationFrame !== 'function') {
     setTimeout(resolve, 0);
@@ -23,6 +40,7 @@ const StartupPreloader = ({
   const rootRef = React.useRef(null);
   const completeRef = React.useRef(false);
   const onCompleteRef = React.useRef(onComplete);
+  const leanMobileMotion = React.useMemo(() => shouldUseLeanPreloaderMotion(), []);
 
   React.useEffect(() => {
     onCompleteRef.current = onComplete;
@@ -44,13 +62,36 @@ const StartupPreloader = ({
     const chars = root.querySelectorAll('.tat-startup-preloader-char');
     const footer = root.querySelector('.tat-startup-preloader-footer');
     const isCoarsePointer = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
-    const initialCharBlur = isCoarsePointer ? 'blur(6px)' : 'blur(10px)';
-    const initialIconBlur = isCoarsePointer ? 'blur(3px)' : 'blur(5px)';
+    const useLeanMotion = leanMobileMotion;
+    const initialCharBlur = useLeanMotion ? 'none' : (isCoarsePointer ? 'blur(6px)' : 'blur(10px)');
+    const initialIconBlur = useLeanMotion ? 'none' : (isCoarsePointer ? 'blur(3px)' : 'blur(5px)');
+    const initialCharY = useLeanMotion ? 32 : 40;
+    const iconIntroVars = {
+      scale: 1,
+      opacity: 1,
+      duration: useLeanMotion ? 0.82 : 1.0,
+      ease: useLeanMotion ? 'power3.out' : 'expo.out',
+      force3D: true,
+    };
+    const charIntroVars = {
+      y: 0,
+      opacity: 1,
+      duration: useLeanMotion ? 0.82 : 1.0,
+      stagger: useLeanMotion ? 0.05 : 0.06,
+      ease: useLeanMotion ? 'power3.out' : 'expo.out',
+      force3D: true,
+    };
+
+    if (!useLeanMotion) {
+      iconIntroVars.filter = 'blur(0px)';
+      charIntroVars.filter = 'blur(0px)';
+    }
 
     completeRef.current = false;
     document.body.classList.add('tat-startup-preloading');
     if (typeof window !== 'undefined') {
       window.hasShownPreloader = true;
+      window.__tatStartupPreloaderIntroComplete = false;
     }
 
     const finish = () => {
@@ -62,38 +103,33 @@ const StartupPreloader = ({
 
     gsap.set(content, { opacity: 0 });
     gsap.set(icon, { scale: 0.8, opacity: 0, filter: initialIconBlur, force3D: true });
-    gsap.set(chars, { y: 40, opacity: 0, filter: initialCharBlur, force3D: true });
-    gsap.set(footer, { opacity: 0 });
+    gsap.set(chars, { y: initialCharY, opacity: 0, filter: initialCharBlur, force3D: true });
+    gsap.set(footer, { y: 8, opacity: 0, force3D: true });
     gsap.set([secondary, panel], { yPercent: 0, force3D: true });
 
     const introTask = new Promise((resolve) => {
       resolveIntro = resolve;
-      introTimeline = gsap.timeline({ onComplete: resolve });
+      introTimeline = gsap.timeline({
+        onComplete: () => {
+          if (typeof window !== 'undefined') {
+            window.__tatStartupPreloaderIntroComplete = true;
+            window.dispatchEvent(new CustomEvent('tat-startup-preloader-intro-complete'));
+          }
+          resolve();
+        },
+      });
 
       introTimeline
         .to(content, { opacity: 1, duration: 0.1 })
-        .to(icon, {
-          scale: 1,
-          opacity: 1,
-          filter: 'blur(0px)',
-          duration: 1.0,
-          ease: 'expo.out',
-          force3D: true,
-        })
-        .to(chars, {
+        .to(icon, iconIntroVars)
+        .to(chars, charIntroVars, '-=0.5')
+        .to(footer, {
           y: 0,
           opacity: 1,
-          filter: 'blur(0px)',
-          duration: 1.0,
-          stagger: 0.06,
-          ease: 'expo.out',
+          duration: 1.08,
+          ease: 'sine.out',
           force3D: true,
-        }, '-=0.5')
-        .to(footer, {
-          opacity: 1,
-          duration: 0.8,
-          ease: 'power2.out',
-        }, '-=0.8');
+        }, '-=0.55');
     });
 
     const run = async () => {
@@ -149,7 +185,7 @@ const StartupPreloader = ({
   return (
     <div
       ref={rootRef}
-      className="tat-startup-preloader"
+      className={`tat-startup-preloader${leanMobileMotion ? ' tat-startup-preloader--lean' : ''}`}
       role="status"
       aria-label="Chargement de Tous a Table"
     >

@@ -190,9 +190,19 @@ body.tat-startup-preloading {
   will-change: transform, opacity, filter;
 }
 
+.tat-startup-preloader--lean .tat-startup-preloader-icon,
+.tat-startup-preloader--lean .tat-startup-preloader-char {
+  filter: none;
+  will-change: transform, opacity;
+}
+
+.tat-startup-preloader--lean .tat-startup-preloader-icon svg {
+  filter: none;
+}
+
 .tat-startup-preloader-footer {
   position: relative;
-  top: 0.22rem;
+  top: 0.34rem;
   display: flex;
   align-items: center;
   gap: 0.74rem;
@@ -200,7 +210,7 @@ body.tat-startup-preloading {
   margin-top: 0;
   color: #FAF9F6;
   font-family: "Cormorant Garamond", serif;
-  font-size: 0.66rem;
+  font-size: 0.7rem;
   font-style: italic;
   font-weight: 300;
   letter-spacing: 0.155em;

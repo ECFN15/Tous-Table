@@ -1941,6 +1941,10 @@ Changements :
   - flux fins animes en continu depuis Ifs vers les villes ;
   - pulse tres discret autour de Ifs ;
   - respect de `prefers-reduced-motion`.
+- Retouche visuelle du 8 mai 2026 :
+  - contour France affine avec plus de points lon/lat pour une silhouette moins schematique ;
+  - bord particulaire plus net, moins jittere ;
+  - pulse autour de Ifs corrige sans `scale` SVG, animation par rayon fixe sur le meme centre.
 - Amelioration des cartes zones :
   - remplacement des libelles generiques `Zone 01/02/03/04` par des libelles utiles : Remise locale, Trajet regional, Transport France, Sur devis.
 
@@ -1967,6 +1971,7 @@ Tests :
   - mobile 390 x 1200 ;
   - carte rendue, particules visibles, pas de page blanche.
 - `git diff --check` OK hors warnings CRLF Windows.
+- `npm run build` OK le 8 mai 2026 apres retouche carte/pulse.
 
 Limite de verification :
 

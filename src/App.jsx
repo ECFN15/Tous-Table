@@ -166,6 +166,7 @@ const AppContent = () => {
     ? getRouteFromLocation(window.location)
     : { view: 'gallery', galleryState: { activeCollection: 'furniture', filter: 'fixed', activeCategory: 'all' } });
   const startupWarmupPayloadRef = useRef({ items: [], boardItems: [], affiliateProducts: [] });
+  const startupCatalogWarmupStartedRef = useRef(false);
 
   // Navigation
   const [view, setView] = useState(() => initialRouteRef.current.view); // 'about', 'gallery', 'detail', 'login', 'admin'
@@ -268,9 +269,11 @@ const AppContent = () => {
       return persistentGalleryState.activeCollection === 'cutting_boards' ? 'cutting_boards' : 'furniture';
     }
     if (view === 'detail') {
-      if (boardItems.some((item) => item.id === selectedItemId)) return 'cutting_boards';
-      if (items.some((item) => item.id === selectedItemId)) return 'furniture';
-      return persistentGalleryState.activeCollection === 'cutting_boards' ? 'cutting_boards' : 'furniture';
+      if (boardItems.some((item) => item.id === selectedItemId)) return 'cutting_boards|affiliate_products';
+      if (items.some((item) => item.id === selectedItemId)) return 'furniture|affiliate_products';
+      return persistentGalleryState.activeCollection === 'cutting_boards'
+        ? 'cutting_boards|affiliate_products'
+        : 'furniture|affiliate_products';
     }
     return '';
   }, [view, persistentGalleryState.activeCollection, selectedItemId, items, boardItems]);
@@ -336,7 +339,27 @@ const AppContent = () => {
     if (!showStartupPreloader) return;
     if (['home', 'about'].includes(initialRouteRef.current.view)) return;
     if (!items.length && !boardItems.length && !affiliateProducts.length) return;
-    warmupStartupCatalogImagesForRoute(initialRouteRef.current, startupWarmupPayloadRef.current);
+    if (startupCatalogWarmupStartedRef.current) return;
+
+    let cleanupIdle = null;
+    const startCatalogWarmup = () => {
+      if (startupCatalogWarmupStartedRef.current) return;
+      startupCatalogWarmupStartedRef.current = true;
+      cleanupIdle = scheduleIdleCallback(() => {
+        warmupStartupCatalogImagesForRoute(initialRouteRef.current, startupWarmupPayloadRef.current);
+      }, 650);
+    };
+
+    if (window.__tatStartupPreloaderIntroComplete) {
+      startCatalogWarmup();
+    } else {
+      window.addEventListener('tat-startup-preloader-intro-complete', startCatalogWarmup, { once: true });
+    }
+
+    return () => {
+      window.removeEventListener('tat-startup-preloader-intro-complete', startCatalogWarmup);
+      cleanupIdle?.();
+    };
   }, [showStartupPreloader, items, boardItems, affiliateProducts]);
 
   // Marketplace Discovery Trigger (STRICTEMENT sur Accueil - Au Footer)

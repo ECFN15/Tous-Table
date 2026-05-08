@@ -42,6 +42,8 @@ const useResponsiveCols = () => {
 const FALLBACK_HEIGHT_RATIO = 5 / 4;
 const LOAD_MORE_BATCH_SIZE = 12;
 const FRESH_CARD_ANIMATION_MS = 1150;
+const FRESH_CARD_TOUCH_ANIMATION_MS = 850;
+const FRESH_CARD_CONSTRAINED_ANIMATION_MS = 680;
 const FRESH_CARD_CLEAR_BUFFER_MS = 150;
 const wait = (duration) => new Promise((resolve) => setTimeout(resolve, duration));
 const getCardImage = (item) => item?.images?.[0] || item?.imageUrl || item?.thumbnailUrl || '';
@@ -92,20 +94,20 @@ const getLoadMoreRevealProfile = () => {
     if (constrained) {
         return {
             revealSize: 1,
-            revealInterval: 90,
+            revealInterval: 75,
             intraBatchDelay: 0,
-            priorityCount: 2,
-            animationMs: FRESH_CARD_ANIMATION_MS,
+            priorityCount: 1,
+            animationMs: FRESH_CARD_CONSTRAINED_ANIMATION_MS,
         };
     }
 
     if (touch) {
         return {
             revealSize: 2,
-            revealInterval: 120,
-            intraBatchDelay: 60,
-            priorityCount: 3,
-            animationMs: FRESH_CARD_ANIMATION_MS,
+            revealInterval: 95,
+            intraBatchDelay: 45,
+            priorityCount: 2,
+            animationMs: FRESH_CARD_TOUCH_ANIMATION_MS,
         };
     }
 
@@ -685,14 +687,14 @@ const MarketplaceLayout = ({
             });
         }
 
-        const blockingCount = touch ? 3 : 5;
+        const blockingCount = touch ? 2 : 5;
         const blockingCandidates = candidates.slice(0, blockingCount);
-        const backgroundCandidates = candidates.slice(blockingCount, touch ? (constrained ? 7 : 10) : candidates.length);
+        const backgroundCandidates = candidates.slice(blockingCount, touch ? (constrained ? 6 : 9) : candidates.length);
         const blockingTask = runWarmers(blockingCandidates, {
-            concurrency: touch ? (constrained ? 1 : 3) : 4,
-            decodeCount: blockingCandidates.length,
-            imageTimeout: touch ? (constrained ? 1150 : 620) : 700,
-            pause: touch ? (constrained ? 70 : 10) : 0,
+            concurrency: touch ? (constrained ? 1 : 2) : 4,
+            decodeCount: touch ? Math.min(2, blockingCandidates.length) : blockingCandidates.length,
+            imageTimeout: touch ? (constrained ? 850 : 520) : 700,
+            pause: touch ? (constrained ? 55 : 10) : 0,
         });
 
         if (backgroundCandidates.length > 0) {
@@ -704,7 +706,7 @@ const MarketplaceLayout = ({
             });
         }
 
-        const totalBudget = touch ? (constrained ? 1300 : 420) : 520;
+        const totalBudget = touch ? (constrained ? 820 : 300) : 520;
         return Promise.race([blockingTask, wait(totalBudget)]);
     }, []);
     const getNextBatch = useCallback(() => {
@@ -728,11 +730,11 @@ const MarketplaceLayout = ({
         const finishReveal = (lastChunkSize) => {
             const lastDelay = Math.max(0, (lastChunkSize - 1) * profile.intraBatchDelay);
             const clearDelay = profile.animationMs + FRESH_CARD_CLEAR_BUFFER_MS + lastDelay;
+            setIsPreparingMore(false);
             freshClearTimerRef.current = setTimeout(() => {
                 if (loadMoreRunRef.current !== runId) return;
                 setFreshOrder(new Map());
                 setFreshPriorityIds(new Set());
-                setIsPreparingMore(false);
                 freshClearTimerRef.current = null;
             }, clearDelay);
         };
@@ -1137,8 +1139,8 @@ const MarketplaceLayout = ({
                         @keyframes tatCardEnter {
                             0% {
                                 opacity: 0;
-                                transform: translate3d(0, 56px, 0);
-                                filter: blur(14px);
+                                transform: translate3d(0, var(--tat-card-enter-distance, 56px), 0);
+                                filter: blur(var(--tat-card-enter-blur, 14px));
                             }
                             55% {
                                 filter: blur(0);
@@ -1150,7 +1152,10 @@ const MarketplaceLayout = ({
                             }
                         }
                         .tat-fresh-card {
-                            animation: tatCardEnter 1150ms cubic-bezier(0.32, 0.72, 0, 1) both;
+                            --tat-card-enter-distance: 56px;
+                            --tat-card-enter-blur: 14px;
+                            --tat-card-enter-duration: ${FRESH_CARD_ANIMATION_MS}ms;
+                            animation: tatCardEnter var(--tat-card-enter-duration) cubic-bezier(0.32, 0.72, 0, 1) both;
                             will-change: transform, opacity, filter;
                             backface-visibility: hidden;
                         }
@@ -1160,6 +1165,40 @@ const MarketplaceLayout = ({
                         @media (prefers-reduced-motion: reduce) {
                             .tat-fresh-card {
                                 animation: none;
+                            }
+                        }
+                        @media (pointer: coarse) {
+                            .tat-fresh-card {
+                                --tat-card-enter-distance: 34px;
+                                --tat-card-enter-blur: 8px;
+                                --tat-card-enter-duration: ${FRESH_CARD_TOUCH_ANIMATION_MS}ms;
+                            }
+                            .tat-fresh-card > * {
+                                transform: none;
+                            }
+                        }
+                        html.tat-low-power-mobile .tat-fresh-card {
+                            --tat-card-enter-distance: 24px;
+                            --tat-card-enter-blur: 5px;
+                            --tat-card-enter-duration: ${FRESH_CARD_CONSTRAINED_ANIMATION_MS}ms;
+                            will-change: transform, opacity;
+                        }
+                        .tat-load-more-button {
+                            -webkit-tap-highlight-color: transparent;
+                            background: var(--tat-load-more-bg);
+                            color: var(--tat-load-more-color);
+                        }
+                        @media (hover: hover) and (pointer: fine) {
+                            .tat-load-more-button:hover:not(:disabled) {
+                                background: #dba45f;
+                                color: #000;
+                            }
+                        }
+                        @media (pointer: coarse) {
+                            .tat-load-more-button:hover,
+                            .tat-load-more-button:active {
+                                background: var(--tat-load-more-bg);
+                                color: var(--tat-load-more-color);
                             }
                         }
                         /* Skip le paint des cartes hors viewport pendant le scroll.
@@ -1225,7 +1264,11 @@ const MarketplaceLayout = ({
                                 onFocus={warmNextBatchIntent}
                                 onPointerDown={warmNextBatchIntent}
                                 onClick={loadMore}
-                                className={`inline-flex h-14 min-w-[280px] items-center justify-center gap-6 border border-[#dba45f] px-8 text-[11px] font-black uppercase tracking-[0.26em] transition-all hover:bg-[#dba45f] hover:text-black disabled:pointer-events-none disabled:opacity-70 ${darkMode ? 'text-[#f0b969]' : 'bg-white/45 text-[#8a531c] shadow-[0_14px_32px_rgba(92,57,20,0.1)]'}`}
+                                style={{
+                                    '--tat-load-more-bg': darkMode ? 'transparent' : 'rgba(255,255,255,0.45)',
+                                    '--tat-load-more-color': darkMode ? '#f0b969' : '#8a531c',
+                                }}
+                                className={`tat-load-more-button inline-flex h-14 min-w-[280px] items-center justify-center gap-6 border border-[#dba45f] px-8 text-[11px] font-black uppercase tracking-[0.26em] transition-colors disabled:pointer-events-none disabled:opacity-70 ${darkMode ? '' : 'shadow-[0_14px_32px_rgba(92,57,20,0.1)]'}`}
                             >
                                 Voir plus de produits
                                 <ArrowDown size={18} strokeWidth={1.5} className={isPreparingMore ? 'animate-pulse' : ''} />

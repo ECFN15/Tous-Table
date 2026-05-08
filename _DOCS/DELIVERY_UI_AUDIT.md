@@ -35,6 +35,13 @@ Comme l'objectif est de rapprocher les modules entre eux, la correction se fait 
 - Methode : section mobile passee de `py-12` a `py-6`, gap et lignes reduits sur mobile.
 - FAQ : section mobile passee de `py-12` a `pt-6 pb-8`, titre `mb-10` a `mb-7`, lignes `py-6` a `py-5`.
 
+## Retouche carte du 2026-05-08
+
+- Contour France affine dans `src/pages/DeliveryView.jsx` avec davantage de points lon/lat pour mieux marquer Bretagne, Cotentin, facade Atlantique, Pyrenees, Mediterranee, Alpes et frontiere nord-est.
+- Particules de bord reduites et moins jitterees pour obtenir un perimetre plus net sans perdre l aspect particulaire.
+- Animation des deux cercles autour de Ifs remplacee : plus de `scale` SVG, les anneaux pulsent maintenant par variation de rayon `r` avec `cx/cy` fixes.
+- Ajout de `vectorEffect="non-scaling-stroke"` sur les anneaux pour garder une epaisseur propre pendant l animation.
+
 ## Validation
 
 A lancer apres modification :
@@ -42,5 +49,7 @@ A lancer apres modification :
 ```bash
 npm run build
 ```
+
+Derniere validation : `npm run build` OK le 2026-05-08 apres retouche de la carte et du pulse Ifs.
 
 Reste a faire : smoke visuel mobile sur navigateur reel pour confirmer le calibrage exact des marges.
