@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowRight, ChevronDown, Facebook, Instagram, Mail, MapPin, Phone } from 'lucide-react';
+import { ChevronDown, Facebook, Instagram, Mail, MapPin, Phone } from 'lucide-react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 
@@ -127,21 +127,10 @@ const Footer = ({ darkMode = false }) => {
                     </div>
 
                     <div className="space-y-5">
-                        <h3 className="text-[#dba45f] text-[11px] font-black uppercase tracking-[0.24em]">Recevoir nos nouveautes</h3>
+                        <h3 className="text-[#dba45f] text-[11px] font-black uppercase tracking-[0.24em]">Contact atelier</h3>
                         <p className={`font-serif text-lg leading-snug ${darkMode ? 'text-stone-300' : 'text-stone-700'}`}>
-                            Nouveaux arrivages, pieces uniques et inspirations directement dans votre boite mail.
+                            Une question sur une piece, une livraison ou une restauration ? Contactez directement l'atelier.
                         </p>
-                        <form onSubmit={(event) => event.preventDefault()} className={`flex h-14 overflow-hidden border border-[#8a5b2a]/65 ${darkMode ? '' : 'bg-white/55'}`}>
-                            <input
-                                type="email"
-                                placeholder="Votre adresse email"
-                                className={`min-w-0 flex-1 bg-transparent px-4 font-serif text-lg outline-none placeholder:text-stone-500 ${darkMode ? 'text-white' : 'text-stone-950'}`}
-                                aria-label="Votre adresse email"
-                            />
-                            <button type="submit" className="flex w-14 items-center justify-center text-[#dba45f] transition-colors hover:bg-[#dba45f] hover:text-black" aria-label="S'inscrire a la newsletter">
-                                <ArrowRight size={23} strokeWidth={1.5} />
-                            </button>
-                        </form>
                         <div className={`space-y-3 border-l border-[#8a5b2a]/50 pl-4 ${darkMode ? 'text-stone-300' : 'text-stone-700'}`}>
                             <a href={`mailto:${email}`} className={`flex items-start gap-3 break-all font-serif text-lg italic hover:text-[#dba45f] ${darkMode ? 'text-white' : 'text-stone-950'}`}>
                                 <Mail size={17} className="mt-1 shrink-0 text-[#dba45f]" />

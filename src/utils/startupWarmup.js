@@ -221,6 +221,9 @@ export const warmImage = (src, { priority = 'low', timeout = 2600, decode = prio
 const warmImageList = async (urls, { highPriorityCount = 1, timeout, concurrency } = {}) => {
   const candidates = unique(urls);
   const workerCount = Math.max(1, Math.min(concurrency || getWarmupConcurrency(), candidates.length || 1));
+  const effectiveHighPriorityCount = isStartupPreloaderActive() && isTouchDevice()
+    ? 0
+    : highPriorityCount;
   let cursor = 0;
 
   const workers = Array.from({ length: workerCount }, async () => {
@@ -230,8 +233,8 @@ const warmImageList = async (urls, { highPriorityCount = 1, timeout, concurrency
 
       await waitForWarmupSlot(index);
       await warmImage(candidates[index], {
-        priority: index < highPriorityCount ? 'high' : 'low',
-        decode: index < highPriorityCount,
+        priority: index < effectiveHighPriorityCount ? 'high' : 'low',
+        decode: index < effectiveHighPriorityCount,
         ...(timeout ? { timeout } : {}),
       });
     }

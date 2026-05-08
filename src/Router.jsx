@@ -15,7 +15,7 @@ const CheckoutView = React.lazy(() => import('./pages/CheckoutView'));
 const LoginView = React.lazy(() => import('./pages/LoginView'));
 const DeliveryView = React.lazy(() => import('./pages/DeliveryView'));
 import { Palette,
-    CreditCard, Mail, Users, Share2, Globe,
+    CreditCard, Users, Share2, Globe,
     Activity, Home, Package, Layout, LayoutPanelTop, BarChart3, ChevronLeft,
     MoreHorizontal, ChevronDown, ShoppingBag
 } from 'lucide-react';
@@ -29,7 +29,6 @@ const AdminStudio = React.lazy(() => import('./features/admin/AdminStudio'));
 const AdminForm = React.lazy(() => import('./features/admin/AdminForm'));
 const AdminItemList = React.lazy(() => import('./features/admin/AdminItemList'));
 const AdminUsers = React.lazy(() => import('./features/admin/AdminUsers'));
-const AdminNewsletter = React.lazy(() => import('./features/admin/AdminNewsletter'));
 const AdminAnalytics = React.lazy(() => import('./features/admin/AdminAnalytics'));
 
 const AdminSEO = React.lazy(() => import('./features/admin/AdminSEO'));
@@ -95,7 +94,6 @@ const AppRouter = ({
         { id: 'users', label: 'Admin', icon: Users },
         { id: 'ip_manager', label: 'Session Exclu', icon: Globe },
         { id: 'seo', label: 'SEO', icon: Share2 },
-        { id: 'newsletter', label: 'Newsletter', icon: Mail },
         { id: 'payment_settings', label: 'Paiement', icon: CreditCard },
     ];
 
@@ -428,8 +426,6 @@ const AppRouter = ({
                             <AdminUsers darkMode={darkMode} />
                         ) : adminCollection === 'ip_manager' ? (
                             <AdminIPManager darkMode={darkMode} />
-                        ) : adminCollection === 'newsletter' ? (
-                            <AdminNewsletter darkMode={darkMode} />
                         ) : adminCollection === 'seo' ? (
                             <AdminSEO darkMode={darkMode} />
                         ) : adminCollection === 'analytics' ? (

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { trackAffiliateClick } from '../../utils/tracking';
 
@@ -35,9 +35,51 @@ const ShopProductCard = ({
     detailHref = null,
     onProductIntent = null,
     disableAppearAnimation = false,
-    onOpenProductDetail = null
+    onOpenProductDetail = null,
+    mobileLightweight = false,
+    deferImageOnMobile = false,
+    imageDelayMs = 0
 }) => {
     const { isAdmin } = useAuth();
+    const imageFrameRef = useRef(null);
+    const shouldDeferImage = deferImageOnMobile &&
+        typeof window !== 'undefined' &&
+        window.matchMedia?.('(pointer: coarse)').matches;
+    const [shouldLoadImage, setShouldLoadImage] = useState(() => !shouldDeferImage);
+
+    useEffect(() => {
+        if (!shouldDeferImage) {
+            setShouldLoadImage(true);
+            return undefined;
+        }
+
+        setShouldLoadImage(false);
+        const target = imageFrameRef.current;
+        let timer = null;
+        const loadImage = () => {
+            timer = window.setTimeout(() => setShouldLoadImage(true), imageDelayMs);
+        };
+
+        if (!target || typeof IntersectionObserver === 'undefined') {
+            loadImage();
+            return () => {
+                if (timer) window.clearTimeout(timer);
+            };
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+            if (!entries.some((entry) => entry.isIntersecting)) return;
+            observer.disconnect();
+            loadImage();
+        }, { rootMargin: '220px 0px' });
+
+        observer.observe(target);
+
+        return () => {
+            observer.disconnect();
+            if (timer) window.clearTimeout(timer);
+        };
+    }, [imageDelayMs, product?.id, shouldDeferImage]);
 
     const handleAffiliateClick = async (event) => {
         event.preventDefault();
@@ -57,17 +99,24 @@ const ShopProductCard = ({
     };
 
     const ctaLabel = onOpenProductDetail ? 'Voir la fiche' : 'Acheter';
-    const imageFrameClass = "relative mb-4 aspect-[3/4] overflow-hidden rounded-[16px] bg-[#e8d9c6] [clip-path:inset(1.5px_round_16px)] lg:rounded-[28px] lg:[clip-path:inset(1.5px_round_28px)]";
+    const imageFrameClass = mobileLightweight
+        ? "relative isolate mb-4 aspect-[3/4] overflow-hidden rounded-[16px] bg-[#e8d9c6] md:[clip-path:inset(1.5px_round_16px)] lg:rounded-[28px] lg:[clip-path:inset(1.5px_round_28px)]"
+        : "relative mb-4 aspect-[3/4] overflow-hidden rounded-[16px] bg-[#e8d9c6] [clip-path:inset(1.5px_round_16px)] lg:rounded-[28px] lg:[clip-path:inset(1.5px_round_28px)]";
+    const imageClassName = `tat-shop-card-image relative z-10 h-full w-full object-contain ${compact ? 'p-4' : 'p-5'} ${mobileLightweight ? 'tat-shop-card-image--mobile-light' : 'tat-shop-card-image--blend'}`;
     const imageFrameContent = (
         <>
-            <img
-                src={product.imageUrl || 'https://images.unsplash.com/photo-1616627456224-a80e6f7dd0bb?auto=format&fit=crop&w=900&q=80'}
-                alt={product.name || 'Produit'}
-                className={`relative z-10 h-full w-full object-contain ${compact ? 'p-4' : 'p-5'}`}
-                style={{ mixBlendMode: 'multiply' }}
-                loading="lazy"
-                decoding="async"
-            />
+            {shouldLoadImage ? (
+                <img
+                    src={product.imageUrl || 'https://images.unsplash.com/photo-1616627456224-a80e6f7dd0bb?auto=format&fit=crop&w=900&q=80'}
+                    alt={product.name || 'Produit'}
+                    className={imageClassName}
+                    loading="lazy"
+                    decoding="async"
+                    fetchPriority="low"
+                />
+            ) : (
+                <div className="absolute inset-0 z-10 bg-[linear-gradient(135deg,rgba(255,255,255,0.18),rgba(120,84,45,0.08))]" aria-hidden="true" />
+            )}
 
             <div className={`absolute right-2 top-2 z-30 flex items-center justify-center rounded-md border px-1.5 py-0.5 sm:right-4 sm:top-4 sm:px-2.5 sm:py-1 sm:backdrop-blur-md ${darkMode ? 'bg-stone-900/70 sm:bg-stone-900/40 border-stone-800/30' : 'bg-stone-900/75 sm:bg-stone-900/60 border-stone-800/30 shadow-sm'}`}>
                 <span className="text-[7.5px] font-black uppercase tracking-wider text-white/90 sm:text-[10px]">
@@ -85,11 +134,12 @@ const ShopProductCard = ({
 
     return (
         <article
-            className={`tat-shop-card-shell relative flex h-full flex-col ${disableAppearAnimation ? '' : 'animate-in fade-in slide-in-from-bottom-4 duration-500'}`}
+            className={`tat-shop-card-shell ${mobileLightweight ? 'tat-shop-card-shell--mobile-light' : ''} relative flex h-full flex-col ${disableAppearAnimation ? '' : 'animate-in fade-in slide-in-from-bottom-4 duration-500'}`}
             data-shop-card-appear={disableAppearAnimation ? 'false' : 'true'}
         >
             {onOpenProductDetail ? (
                 <a
+                    ref={imageFrameRef}
                     href={detailHref || '#'}
                     onMouseEnter={() => onProductIntent?.(product)}
                     onFocus={() => onProductIntent?.(product)}
@@ -101,7 +151,7 @@ const ShopProductCard = ({
                     {imageFrameContent}
                 </a>
             ) : (
-                <div className={imageFrameClass}>
+                <div ref={imageFrameRef} className={imageFrameClass}>
                     {imageFrameContent}
                 </div>
             )}
@@ -160,5 +210,8 @@ export default React.memo(ShopProductCard, (prev, next) => (
     prev.detailHref === next.detailHref &&
     prev.onProductIntent === next.onProductIntent &&
     prev.disableAppearAnimation === next.disableAppearAnimation &&
+    prev.mobileLightweight === next.mobileLightweight &&
+    prev.deferImageOnMobile === next.deferImageOnMobile &&
+    prev.imageDelayMs === next.imageDelayMs &&
     prev.onOpenProductDetail === next.onOpenProductDetail
 ));

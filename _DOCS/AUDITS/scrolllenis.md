@@ -714,3 +714,76 @@ Validation :
 
 Risque restant :
 - smoke mobile reel a faire sur `/mobilier` et `/planches-a-decouper-anciennes` pour juger le compromis exact entre flou visuel et fluidite.
+
+## 14. Preloader mobile - signature et warmup Xiaomi - 8 mai 2026
+
+Objectif : descendre legerement `Atelier Normand` sous `TOUS A TABLE` et eviter que le warmup catalogue concurrence la fin de l'animation du titre sur mobile Android/Xiaomi.
+
+Fichiers modifies :
+- `src/components/layout/StartupPreloader.jsx`
+- `src/utils/startupWarmup.js`
+- `src/App.jsx`
+- `src/index.css`
+
+Changements :
+- augmentation legere du gap vertical entre `TOUS A TABLE` et `Atelier Normand` sur mobile, tablette, laptop et desktop ;
+- les mobiles Android tactiles en viewport mobile passent maintenant en variante preloader lean, meme si `hardwareConcurrency` expose beaucoup de coeurs, car le blur texte reste couteux sur certains GPU Android ;
+- le blur initial tactile hors lean descend de `6px` a `3px`, et la distance d'entree des lettres est reduite ;
+- le budget warmup interne du preloader est reduit sur tactile (`260ms` en lean, `420ms` sinon), au lieu de garder un long budget mobile ;
+- pendant `body.tat-startup-preloading`, le warmup image tactile ne force plus `decode()` : il peut amorcer le cache reseau, mais evite la phase la plus bloquante pour l'animation ;
+- le fallback catalogue public ne pousse plus `setItems`/`setBoardItems`/`setAffiliateProducts` pendant le preloader : les donnees recues sont stockees puis appliquees apres la sortie, sur idle court ;
+- le warmup catalogue opportuniste demarre apres la fermeture du preloader, avec un delai plus long sur tactile.
+
+Validation :
+- `git diff --check` OK sur les fichiers touches.
+- `npm run build` OK, avec le warning Vite historique sur les chunks volumineux.
+
+Risque restant :
+- a valider sur le Xiaomi reel : le premier rendu catalogue peut arriver une fraction plus tard, mais la fin de l'animation `A TABLE` doit rester plus stable.
+
+Ajustement signature preloader :
+- apparition `Atelier Normand` acceleree (`0.78s` au lieu de `1.08s`) pour eviter un fondu trop lent ;
+- taille de la signature legerement augmentee sur mobile, tablette, laptop et desktop, sans changer le placement ni le warmup.
+
+Ajustement titre preloader mobile :
+- demande utilisateur : remplacer l'animation `TOUS A TABLE` mobile, encore sujette a des drops FPS en fin d'apparition, par une variante moins couteuse ;
+- sur mobile tactile uniquement (`pointer: coarse` + viewport < 768px), les lettres ne sont plus animees une par une : elles sont rendues directement, sans blur ni stagger ;
+- le titre complet est revele par un seul masque vertical anime en `transform`, avec une couleur initiale beige sourde (`#9C8268`) qui fond vers le blanc casse (`#FAF9F6`) pendant l'arrivee ;
+- `Atelier Normand` demarre sur la fin de l'arrivee du titre mobile (`-=0.14`) pour garder une transition plus dynamique sans superposer trop de travail ;
+- laptop et desktop conservent strictement l'animation existante lettre par lettre.
+
+Validation :
+- `git diff --check` OK sur les fichiers touches.
+- `npm run build` OK, avec le warning Vite historique sur les chunks volumineux.
+
+## 14. Comptoir - recommandations fiche meuble mobile - 8 mai 2026
+
+Objectif : reduire les freezes mobiles dans le bloc "Vous aimerez aussi" d'une fiche meuble, quand les cartes Comptoir chargent leurs images produit.
+
+Diagnostic :
+- le bloc montait 4 cartes Comptoir en meme temps, avec 4 images externes a decodage asynchrone mais posees simultanement ;
+- sur mobile, ces cartes cumulaient aussi plusieurs couts de rendu : `backdrop-blur-xl` sur le conteneur, `mix-blend-mode: multiply` sur les images et `clip-path` mobile, pendant que l'animation d'apparition jouait ;
+- le cout le plus visible pouvait tomber pendant un scroll ou juste apres l'arrivee du module, d'ou la sensation de freeze.
+
+Fichiers modifies :
+- `src/designs/architectural/ArchitecturalProductDetail.jsx`
+- `src/components/shop/ShopProductCard.jsx`
+- `src/index.css`
+
+Changements :
+- le conteneur du module "Vous aimerez aussi" garde le blur seulement a partir de `md` ;
+- `ShopProductCard` expose un mode `mobileLightweight`, `deferImageOnMobile` et `imageDelayMs` ;
+- dans les recommandations de fiche meuble, les 4 images Comptoir sont revelees progressivement sur tactile via `IntersectionObserver` avec un stagger court de 110 ms ;
+- sur tactile et uniquement pour ce mode leger, le clip-path mobile est retire et le blend-mode image reste isole a la frame beige pour eviter le carre blanc des visuels Amazon, tandis que l'animation transform/opacity est conservee ;
+- desktop/laptop et les grilles Comptoir standard gardent le rendu existant.
+
+Ajustement visuel :
+- apres test mobile, le retrait complet du `mix-blend-mode` faisait reapparaitre un carre blanc autour de certains produits Amazon ;
+- le `multiply` est donc conserve sur l'image, mais dans une frame `isolate` et avec le reste des optimisations maintenu : images staggered, pas de blur mobile sur conteneur, pas de clip-path mobile.
+
+Validation :
+- `git diff --check` OK sur les fichiers touches.
+- `npm run build` OK, avec le warning Vite historique sur les chunks volumineux.
+
+Risque restant :
+- verifier sur vrai mobile que le stagger image n'est pas perceptible comme un chargement vide, et qu'il reduit bien le freeze autour du module.

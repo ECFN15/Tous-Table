@@ -24,6 +24,77 @@ Decision paiement: les paiements carte ne font pas partie du lancement actuel. `
 
 ## Preuves recentes
 
+Deploiement Hosting du 2026-05-08 - reveal mobile preloader titre :
+
+- Accord utilisateur explicite : demande "push en prod".
+- `firebase use` initial : `tatmadeinnormandie`.
+- `firebase use prod` : alias prod actif sur `tousatable-client`.
+- `npm run preflight:prod` : OK.
+- `firebase deploy --only hosting --project tousatable-client` : OK, release Hosting publiee.
+- `firebase use default` : retour sur `tatmadeinnormandie`.
+- Smoke public : `https://tousatable-madeinnormandie.fr/` HTTP 200.
+- Smoke public : `https://tousatable-madeinnormandie.fr/meubles-anciens` HTTP 200.
+- Smoke public : `https://tousatable-madeinnormandie.fr/planches-a-decouper-anciennes` HTTP 200.
+- Smoke public : `https://tousatable-madeinnormandie.fr/comptoir` HTTP 200.
+- Smoke public : `https://tousatable-madeinnormandie.fr/admin` HTTP 200.
+- Smoke public : `https://tousatable-client.web.app/` HTTP 200.
+- `npm run audit:public-seo` : OK, 32 checks passes.
+- Non deploye volontairement : Functions et Firestore rules, car la passe ne concernait que le frontend Hosting.
+
+Deploiement Hosting du 2026-05-08 - optimisations mobiles Comptoir/recommandations :
+
+- Accord utilisateur explicite : demande "deploy en prod".
+- `firebase use` initial : `tatmadeinnormandie`.
+- `firebase use prod` : alias prod actif sur `tousatable-client`.
+- `npm run preflight:prod` : OK.
+- `firebase deploy --only hosting --project tousatable-client` : OK, release Hosting publiee.
+- `firebase use default` : retour sur `tatmadeinnormandie`.
+- Smoke public : `https://tousatable-madeinnormandie.fr/` HTTP 200.
+- Smoke public : `https://tousatable-madeinnormandie.fr/meubles-anciens` HTTP 200.
+- Smoke public : `https://tousatable-madeinnormandie.fr/planches-a-decouper-anciennes` HTTP 200.
+- Smoke public : `https://tousatable-madeinnormandie.fr/comptoir` HTTP 200.
+- Smoke public : `https://tousatable-madeinnormandie.fr/admin` HTTP 200.
+- Smoke public : `https://tousatable-client.web.app/` HTTP 200.
+- `npm run audit:public-seo` : OK, 32 checks passes.
+- Non deploye volontairement : Functions et Firestore rules, car la passe ne concernait que le frontend Hosting.
+
+Deploiement Hosting + Firestore rules du 2026-05-08 - retrait newsletter :
+
+- Accord utilisateur explicite : demande "deploy en prod".
+- `npm run preflight:prod` : OK.
+- `firebase deploy --only hosting,firestore:rules --project tousatable-client` : OK.
+- Firestore rules compilees et publiees : `newsletter_subscribers` bloque cote client (`allow read, create, update, delete: if false`).
+- Smoke public : `https://tousatable-madeinnormandie.fr/` HTTP 200.
+- Smoke public : `https://tousatable-madeinnormandie.fr/meubles-anciens` HTTP 200.
+- Smoke public : `https://tousatable-madeinnormandie.fr/planches-a-decouper-anciennes` HTTP 200.
+- Smoke public : `https://tousatable-madeinnormandie.fr/comptoir` HTTP 200.
+- Smoke public : `https://tousatable-madeinnormandie.fr/admin` HTTP 200.
+- Smoke public : `https://tousatable-client.web.app/` HTTP 200.
+- `npm run audit:public-seo` : OK, 32 checks passes.
+- Verification bundle local `dist`/`src` : aucune reference active a `NewsletterModal`, `AdminNewsletter`, `newsletter_subscribers`, `newsletterSubscribed`, `newsletterDismissed` ou `showNewsletter`.
+
+Deploiement Hosting du 2026-05-08 - preloader et marketplace :
+
+- `firebase use` initial : `tatmadeinnormandie`.
+- `firebase use prod` : alias prod actif sur `tousatable-client`.
+- `npm run preflight:prod` : OK.
+- `firebase deploy --only hosting --project tousatable-client` : OK, release Hosting publiee.
+- `firebase use default` : retour sur `tatmadeinnormandie`.
+- Smoke public : `https://tousatable-madeinnormandie.fr/` HTTP 200.
+- Smoke public : `https://tousatable-client.web.app/` HTTP 200.
+- `npm run audit:public-seo` : OK, 32 checks passes.
+
+`npm run preflight:prod` du 2026-05-08 apres ajustements preloader :
+
+- Firebase prod valide.
+- Mapping meubles prod valide : 29 meubles prod, mapping 29, aucun manquant, aucun extra, aucune categorie invalide.
+- SEO roadmap : 16 checks passes.
+- Analytics reliability : OK.
+- Syntaxe Functions : OK.
+- Build prod : OK.
+- Bundle prod : OK, aucune config sandbox ni loader Stripe actif.
+- Audit Functions prod : 30 Functions, 30 avec legacy env vars, 90 legacy env vars au total, 11 secrets attaches ; aucune valeur sensible affichee.
+
 Deploiement Hosting du 2026-05-08 :
 
 - `firebase use` initial : `tatmadeinnormandie`.

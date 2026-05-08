@@ -137,18 +137,10 @@ service cloud.firestore {
 
     }
 
-    // Newsletter Subscribers - Authenticated users can subscribe, Admin can read/manage
+    // Newsletter retired from public site and admin (2026-05-08).
+    // Keep historical documents protected; no client path should create/read/manage them.
     match /newsletter_subscribers/{docId} {
-      allow create: if request.auth != null
-        && request.resource.data.keys().hasOnly(['contactInfo', 'firstName', 'lastName', 'createdAt', 'source'])
-        && request.resource.data.firstName is string
-        && request.resource.data.firstName.size() > 0
-        && request.resource.data.firstName.size() < 100
-        && request.resource.data.lastName is string
-        && request.resource.data.lastName.size() > 0
-        && request.resource.data.lastName.size() < 100
-        && request.resource.data.source is string;
-      allow read, update, delete: if isArtisan();
+      allow read, create, update, delete: if false;
     }
 
     // Fonction Validation Cart

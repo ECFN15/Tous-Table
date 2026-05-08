@@ -436,3 +436,27 @@ npm run build
 Resultat : build Vite OK. Warning existant de taille de chunks, sans lien avec ce changement.
 
 Reste a faire : smoke visuel mobile sur navigateur reel pour confirmer le calibrage exact des marges vues dans les captures.
+
+---
+
+## Optimisation recommandations Comptoir mobile du 2026-05-08
+
+Objectif : reduire les micro-freezes observes sur mobile dans le bloc "Vous aimerez aussi" des fiches meubles, quand les images de produits Comptoir se chargent et se decodent en meme temps.
+
+Actions realisees :
+
+- `src/designs/architectural/ArchitecturalProductDetail.jsx` : le conteneur du module garde le `backdrop-blur` seulement a partir de `md`, pour eviter une recomposition couteuse pendant le scroll mobile.
+- `src/components/shop/ShopProductCard.jsx` : ajout d'un mode `mobileLightweight` utilise uniquement par les recommandations Comptoir embarquees dans une fiche meuble.
+- Sur mobile/tactile, les images de ces cartes sont montees progressivement via `IntersectionObserver` et un delai court par carte, au lieu de poser 4 `src` externes simultanement.
+- `src/index.css` : le mode mobile leger retire le `clip-path` mobile sur ces cartes, tout en conservant l'animation d'apparition. Le `mix-blend-mode` reste actif mais isole dans la frame beige, pour eviter le carre blanc autour des visuels Amazon. Le rendu desktop et les cartes Comptoir standard restent inchanges.
+
+Validation :
+
+```bash
+git diff --check -- src/components/shop/ShopProductCard.jsx src/designs/architectural/ArchitecturalProductDetail.jsx src/index.css _DOCS/AUDITS/scrolllenis.md _DOCS/COMPTOIR_PRODUCT_DETAIL_AUDIT.md
+npm run build
+```
+
+Resultat : `git diff --check` OK. `npm run build` OK, avec le warning Vite historique sur les chunks volumineux.
+
+Reste a faire : smoke sur vrai mobile Android/iOS, en particulier ouverture d'une fiche meuble avec le bloc "Vous aimerez aussi" visible et scroll autour du module.

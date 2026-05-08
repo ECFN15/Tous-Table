@@ -37,7 +37,6 @@ import { ToastProvider, useToast } from './components/ui/Toast';
 
 import MarketplaceDiscovery from './components/home/MarketplaceDiscovery';
 import ArchitecturalHeader from './designs/architectural/components/ArchitecturalHeader';
-import NewsletterModal from './components/auth/NewsletterModal';
 import GlobalMenu from './components/layout/GlobalMenu';
 import StartupPreloader from './components/layout/StartupPreloader';
 import {
@@ -45,7 +44,7 @@ import {
   warmupStartupForRoute,
   warmupStartupCatalogImagesForRoute,
 } from './utils/startupWarmup';
-import { applyDevicePerformanceClasses } from './utils/devicePerformance';
+import { applyDevicePerformanceClasses, isTouchDevice } from './utils/devicePerformance';
 
 const getInitialDarkMode = () => {
   if (typeof window === 'undefined') return true;
@@ -80,6 +79,8 @@ const scheduleIdleCallback = (callback, timeout = 1200) => {
   return () => window.clearTimeout(id);
 };
 
+const sortByCreatedAtDesc = (a, b) => getMillis(b.createdAt) - getMillis(a.createdAt);
+
 const AppContent = () => {
   const toast = useToast();
 
@@ -98,9 +99,8 @@ const AppContent = () => {
 
   const [showMarketplacePopup, setShowMarketplacePopup] = useState(false);
   const footerRef = useRef(null);
-  const hasTriggeredPopup = useRef(false);
-  const hasViewedProduct = useRef(false); // [NEWSLETTER] Track if user visited at least one product detail
   const publicCatalogFallbackRef = useRef(null);
+  const deferredPublicCatalogRef = useRef(null);
 
 
 
@@ -180,7 +180,6 @@ const AppContent = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showAuthSuccess, setShowAuthSuccess] = useState(false);
-  const [showNewsletter, setShowNewsletter] = useState(false);
   const [pendingItem, setPendingItem] = useState(null);
   const [showStartupPreloader, setShowStartupPreloader] = useState(() => shouldShowStartupPreloader(initialRouteRef.current));
   const [publicRealtimeReady, setPublicRealtimeReady] = useState(() => !showStartupPreloader);
@@ -315,6 +314,26 @@ const AppContent = () => {
     startupWarmupPayloadRef.current = { items, boardItems, affiliateProducts };
   }, [items, boardItems, affiliateProducts]);
 
+  const applyPublicCatalog = React.useCallback((collections = {}, { deferWhilePreloading = true } = {}) => {
+    if (
+      deferWhilePreloading &&
+      typeof document !== 'undefined' &&
+      document.body.classList.contains('tat-startup-preloading')
+    ) {
+      deferredPublicCatalogRef.current = collections;
+      return;
+    }
+
+    setItems((collections.furniture || [])
+      .map((item) => ({ ...item, collectionName: 'furniture' }))
+      .sort(sortByCreatedAtDesc));
+    setBoardItems((collections.cutting_boards || [])
+      .map((item) => ({ ...item, collectionName: 'cutting_boards' }))
+      .sort(sortByCreatedAtDesc));
+    setAffiliateProducts((collections.affiliate_products || [])
+      .filter((product) => product.status === 'published'));
+  }, []);
+
   const runStartupWarmup = React.useCallback(() => (
     warmupStartupForRoute(initialRouteRef.current, startupWarmupPayloadRef.current)
   ), []);
@@ -328,6 +347,24 @@ const AppContent = () => {
   }, []);
 
   useEffect(() => {
+    if (showStartupPreloader || !deferredPublicCatalogRef.current) return undefined;
+
+    let cleanupIdle = null;
+    const timer = window.setTimeout(() => {
+      const pendingCollections = deferredPublicCatalogRef.current;
+      deferredPublicCatalogRef.current = null;
+      cleanupIdle = scheduleIdleCallback(() => {
+        applyPublicCatalog(pendingCollections, { deferWhilePreloading: false });
+      }, isTouchDevice() ? 1200 : 600);
+    }, isTouchDevice() ? 380 : 80);
+
+    return () => {
+      window.clearTimeout(timer);
+      cleanupIdle?.();
+    };
+  }, [showStartupPreloader, applyPublicCatalog]);
+
+  useEffect(() => {
     if (publicRealtimeReady || showStartupPreloader) return undefined;
 
     return scheduleIdleCallback(() => {
@@ -336,28 +373,22 @@ const AppContent = () => {
   }, [publicRealtimeReady, showStartupPreloader]);
 
   useEffect(() => {
-    if (!showStartupPreloader) return;
+    if (showStartupPreloader) return undefined;
     if (['home', 'about'].includes(initialRouteRef.current.view)) return;
     if (!items.length && !boardItems.length && !affiliateProducts.length) return;
     if (startupCatalogWarmupStartedRef.current) return;
 
     let cleanupIdle = null;
-    const startCatalogWarmup = () => {
-      if (startupCatalogWarmupStartedRef.current) return;
+    const delay = isTouchDevice() ? 1400 : 420;
+    const timer = window.setTimeout(() => {
       startupCatalogWarmupStartedRef.current = true;
       cleanupIdle = scheduleIdleCallback(() => {
         warmupStartupCatalogImagesForRoute(initialRouteRef.current, startupWarmupPayloadRef.current);
-      }, 650);
-    };
-
-    if (window.__tatStartupPreloaderIntroComplete) {
-      startCatalogWarmup();
-    } else {
-      window.addEventListener('tat-startup-preloader-intro-complete', startCatalogWarmup, { once: true });
-    }
+      }, isTouchDevice() ? 2000 : 900);
+    }, delay);
 
     return () => {
-      window.removeEventListener('tat-startup-preloader-intro-complete', startCatalogWarmup);
+      window.clearTimeout(timer);
       cleanupIdle?.();
     };
   }, [showStartupPreloader, items, boardItems, affiliateProducts]);
@@ -431,19 +462,6 @@ const AppContent = () => {
   // --- CHARGEMENT DONNÉES PUBLIQUES (Stable) ---
   useEffect(() => {
     // 1. Meubles (Données)
-    const sortByCreatedAtDesc = (a, b) => getMillis(b.createdAt) - getMillis(a.createdAt);
-
-    const applyPublicCatalog = (collections = {}) => {
-      setItems((collections.furniture || [])
-        .map((item) => ({ ...item, collectionName: 'furniture' }))
-        .sort(sortByCreatedAtDesc));
-      setBoardItems((collections.cutting_boards || [])
-        .map((item) => ({ ...item, collectionName: 'cutting_boards' }))
-        .sort(sortByCreatedAtDesc));
-      setAffiliateProducts((collections.affiliate_products || [])
-        .filter((product) => product.status === 'published'));
-    };
-
     const fetchPublicCatalogFallback = (reason) => {
       if (!publicCatalogFallbackRef.current) {
         const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
@@ -509,7 +527,7 @@ const AppContent = () => {
     }
 
     return () => subscriptions.forEach((unsubscribe) => unsubscribe());
-  }, [publicRealtimeReady, activePublicRealtimeCollectionsKey]); // Realtime differe apres preloader/idle et limite a la collection active.
+  }, [publicRealtimeReady, activePublicRealtimeCollectionsKey, applyPublicCatalog]); // Realtime differe apres preloader/idle et limite a la collection active.
 
   // --- LOGIQUE ROUTING & AUTH (Dépend du User) ---
   useEffect(() => {
@@ -574,37 +592,6 @@ const AppContent = () => {
     setLoading(false);
 
   }, [user, isAdmin]); // Re-run when auth state changes
-
-  // --- [NEWSLETTER] Track product detail visits ---
-  useEffect(() => {
-    if (view === 'detail') {
-      hasViewedProduct.current = true;
-    }
-  }, [view]);
-
-  // --- DECLENCHEMENT POPUP V2 (After first product visit) ---
-  // Strategy: Only trigger AFTER the user has viewed at least one product and returned to gallery.
-  // This is much less aggressive - the user has already shown engagement.
-  useEffect(() => {
-    const isNewsletterSubscribed = localStorage.getItem('newsletterSubscribed') === 'true';
-    const isNewsletterDismissed = localStorage.getItem('newsletterDismissed') === 'true';
-
-    if (
-      view === 'gallery' && 
-      hasViewedProduct.current &&  // Must have viewed at least one product
-      (!user || user.isAnonymous) && 
-      !authLoading && 
-      !hasTriggeredPopup.current &&
-      !isNewsletterSubscribed &&
-      !isNewsletterDismissed
-    ) {
-      hasTriggeredPopup.current = true;
-      const timer = setTimeout(() => {
-        setShowNewsletter(true);
-      }, 2000); // 2s delay after return for smooth UX
-      return () => clearTimeout(timer);
-    }
-  }, [view, user, authLoading]);
 
   // --- PERSISTANCE NAVIGATION (HASH & URL) ---
   useEffect(() => {
@@ -861,12 +848,6 @@ const AppContent = () => {
         interacted={cartInteracted}
         darkMode={darkMode}
         activeDesignId={activeDesignId}
-      />
-
-      {/* MODAL NEWSLETTER */}
-      <NewsletterModal
-        showNewsletter={showNewsletter}
-        setShowNewsletter={setShowNewsletter}
       />
 
       {/* MODAL LOGIN (Pour la Marketplace) */}

@@ -608,7 +608,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
             {/* === MODULE : VOUS AIMEREZ AUSSI + TUTO ATELIER === */}
             {recommendedProducts.length > 0 && (
                 <section className="tat-heavy-section w-full px-6 lg:px-12 pb-8">
-                    <div className={`relative max-w-[1920px] mx-auto p-5 lg:p-8 rounded-[28px] backdrop-blur-xl border ${darkMode ? 'bg-[#141414]/90 border-white/5' : 'bg-white/80 border-stone-200/60'}`}>
+                    <div className={`relative max-w-[1920px] mx-auto p-5 lg:p-8 rounded-[28px] md:backdrop-blur-xl border ${darkMode ? 'bg-[#141414]/90 border-white/5' : 'bg-white/80 border-stone-200/60'}`}>
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
 
                             {/* LEFT — Recommended products */}
@@ -617,12 +617,15 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                                     Vous aimerez aussi
                                 </p>
                                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                                    {recommendedProducts.map(product => (
+                                    {recommendedProducts.map((product, index) => (
                                         <ShopProductCard 
                                             key={product.id} 
                                             product={product} 
                                             darkMode={darkMode} 
                                             compact 
+                                            mobileLightweight
+                                            deferImageOnMobile
+                                            imageDelayMs={index * 110}
                                             source="gallery_detail"
                                             parentFurnitureId={item.id}
                                             parentFurnitureName={item.name}
