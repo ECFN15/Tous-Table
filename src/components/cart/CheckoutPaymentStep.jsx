@@ -24,7 +24,7 @@ const CheckoutPaymentStep = ({ total, onPaymentSuccess, onPaymentError, darkMode
             const { error, paymentIntent } = await stripe.confirmPayment({
                 elements,
                 confirmParams: {
-                    return_url: window.location.origin + '/?page=gallery&order_success=true',
+                    return_url: window.location.origin + '/?order_success=true',
                 },
                 redirect: 'if_required'
             });
@@ -51,7 +51,7 @@ const CheckoutPaymentStep = ({ total, onPaymentSuccess, onPaymentError, darkMode
             const { error, paymentIntent } = await stripe.confirmPayment({
                 elements,
                 confirmParams: {
-                    return_url: window.location.origin + '/?page=gallery&order_success=true',
+                    return_url: window.location.origin + '/?order_success=true',
                 },
                 redirect: 'if_required'
             });

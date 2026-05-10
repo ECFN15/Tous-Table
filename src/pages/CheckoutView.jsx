@@ -153,6 +153,7 @@ const PremiumActionBtn = ({ children, isLoading, disabled, onClick, darkMode }) 
  */
 const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlaceOrder }) => {
     const toast = useToast();
+    const cardPaymentsEnabledByBuild = import.meta.env.VITE_STRIPE_CARD_PAYMENTS_ENABLED !== 'false';
     // --- STATE ---
     const [formData, setFormData] = useState({
         fullName: user?.displayName || '',
@@ -165,23 +166,24 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
     });
     
     const [stripeEnabled, setStripeEnabled] = useState(() => {
+        if (!cardPaymentsEnabledByBuild) return false;
         try { const c = localStorage.getItem('paymentSettings'); if (c) return JSON.parse(c).stripeEnabled !== false; } catch { /* ignore error */ }
         return true;
     });
-    const [paymentMethod, setPaymentMethod] = useState('stripe_elements'); // 'stripe_elements' | 'deferred'
+    const [paymentMethod, setPaymentMethod] = useState(cardPaymentsEnabledByBuild ? 'stripe_elements' : 'deferred'); // 'stripe_elements' | 'deferred'
 
     // Écoute en temps réel du flag admin pour carte/wallets
     useEffect(() => {
         const unsub = onSnapshot(doc(db, 'sys_metadata', 'payment_settings'), (snap) => {
             if (snap.exists()) {
-                const enabled = snap.data().stripeEnabled !== false;
+                const enabled = cardPaymentsEnabledByBuild && snap.data().stripeEnabled !== false;
                 localStorage.setItem('paymentSettings', JSON.stringify({ stripeEnabled: enabled }));
                 setStripeEnabled(enabled);
                 if (!enabled) setPaymentMethod('deferred');
             }
         });
         return () => unsub();
-    }, []);
+    }, [cardPaymentsEnabledByBuild]);
 
     // Status global : 'editing' -> 'fetching_stripe' -> 'ready_to_pay' -> 'processing_deferred'
     const [checkoutState, setCheckoutState] = useState('editing'); 

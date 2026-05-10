@@ -296,6 +296,11 @@ Tous les headers sont déployés via `firebase.json` → `hosting.headers` sur l
 **Impact** : Un bot pourrait théoriquement télécharger massivement les images publiques. Mais les Storage Rules bloquent déjà toute écriture non-admin.
 **Recommandation** : Laisser en l'état pour éviter des problèmes de cache d'images.
 
+### ✅ Retrait newsletter client/admin - 8 mai 2026
+**Détail** : le popup newsletter public, le formulaire newsletter du footer et l'écran admin Newsletter ont été retirés du frontend.
+**Rules** : `newsletter_subscribers/{docId}` est maintenant bloqué en lecture, création, modification et suppression côté client (`allow ...: if false`).
+**Impact** : aucune nouvelle inscription newsletter ne peut être créée depuis le site ; les anciens documents restent protégés et ne sont plus exposés via l'admin.
+
 ---
 
 ## 🏆 VERDICT FINAL

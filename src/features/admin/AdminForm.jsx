@@ -4,7 +4,7 @@ import { db, storage, appId } from '../../firebase/config';
 import { doc, addDoc, updateDoc, collection, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getMillis } from '../../utils/time';
-import { compressImage } from '../../utils/imageUtils'; // [NEW] Import compression utility
+import { compressImage, isLikelyHeicImage } from '../../utils/imageUtils'; // [NEW] Import compression utility
 import ImageCropperModal from './components/ImageCropperModal';
 
 const WOOD_TYPES = [
@@ -61,7 +61,7 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
   // [NEW] Metrics
   const totalOriginalSize = galleryItems.reduce((acc, item) => acc + (item.originalSize || (item.file ? item.file.size : 0)), 0);
   // Derived state for compressed size (dynamic)
-  const totalCompressedSize = galleryItems.reduce((acc, item) => acc + (item.file ? item.file.size : 0), 0);
+  const totalCompressedSize = galleryItems.reduce((acc, item) => acc + (!item.uploadError && item.file ? item.file.size : 0), 0);
 
   // [NEW] Cropper State
   const [cropperConfig, setCropperConfig] = useState({ isOpen: false, image: null, itemId: null, aspect: 3 / 4 });
@@ -72,6 +72,19 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const getImageImportErrorMessage = (error) => {
+    if (error?.code === 'heic-conversion-timeout') {
+      return "Conversion HEIC/HEIF trop longue. Essayez une photo moins lourde ou passez l'appareil en JPEG.";
+    }
+    if (error?.code === 'heic-conversion-failed' || error?.code === 'heic-conversion-empty') {
+      return "Conversion HEIC/HEIF impossible. Exportez la photo en JPEG ou desactivez le mode haute efficacite.";
+    }
+    if (error?.code === 'unsupported-type') {
+      return "Ce fichier n'est pas reconnu comme une image.";
+    }
+    return "Image non lisible. Essayez JPEG/PNG, ou desactivez HDR/Ultra HDR sur le telephone.";
   };
 
   useEffect(() => {
@@ -172,9 +185,61 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
     setTimeout(() => setMsg(""), 3000);
   };
 
+  const safeProcessFiles = async (files) => {
+    setMsg("Normalisation automatique des images...");
+
+    const newItems = files.map(file => ({
+      id: `new-${Date.now()}-${Math.random()}`,
+      file,
+      preview: URL.createObjectURL(file),
+      originalSize: file.size,
+      isExisting: false,
+      isCompressed: false,
+      isProcessing: true,
+      uploadError: null
+    }));
+
+    setGalleryItems(prev => [...prev, ...newItems]);
+
+    const optimizedItems = await Promise.all(newItems.map(async (item) => {
+      try {
+        const compressed = await compressImage(item.file, 0.9, 1920);
+        const optimizedPreview = URL.createObjectURL(compressed);
+        if (item.preview) URL.revokeObjectURL(item.preview);
+        return {
+          ...item,
+          file: compressed,
+          preview: optimizedPreview,
+          isCompressed: true,
+          isProcessing: false,
+          uploadError: null
+        };
+      } catch (error) {
+        console.error("Auto-compression failed for", item.file.name, error);
+        return {
+          ...item,
+          isProcessing: false,
+          uploadError: getImageImportErrorMessage(error)
+        };
+      }
+    }));
+
+    setGalleryItems(prev => prev.map(current => {
+      const optimized = optimizedItems.find(opt => opt.id === current.id);
+      return optimized || current;
+    }));
+
+    const failedCount = optimizedItems.filter(item => item.uploadError).length;
+    setMsg(failedCount > 0
+      ? `${failedCount} image(s) incompatible(s). Elles ne seront pas publiees.`
+      : "Images ajoutees et optimisees !");
+    setTimeout(() => setMsg(""), 3000);
+  };
+
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
-    if (files.length > 0) processFiles(files);
+    if (files.length > 0) safeProcessFiles(files);
+    e.target.value = '';
   };
 
   const handleDownloadImages = (e) => {
@@ -205,6 +270,10 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
       setMsg("⚠️ Catégorie requise");
       return;
     }
+    if (galleryItems.some(item => item.uploadError)) {
+      setMsg("Image incompatible detectee : supprimez-la ou importez une version JPEG/PNG avant publication.");
+      return;
+    }
     setUploading(true);
     setMsg("⏳ Préparation des fichiers...");
 
@@ -226,16 +295,20 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
             setMsg(`⏳ ${progressPrefix} Compression WebP...`);
             try {
               // High Quality WebP (0.85 quality, max 1920px width)
-              fileToUpload = await compressImage(item.file, 0.85, 1920);
+              fileToUpload = await compressImage(item.file, 0.9, 1920);
             } catch (err) {
-              console.warn("Compression failed, using original", err);
+              console.warn("Compression failed, upload blocked", err);
+              throw new Error(`${item.file.name}: image incompatible, publication bloquee.`);
             }
           }
 
           setMsg(`⏳ ${progressPrefix} Envoi de l'image...`);
 
           const imageRef = ref(storage, `${collectionName}/${Date.now()}_tat_${fileToUpload.name}`);
-          await uploadBytes(imageRef, fileToUpload, { cacheControl: 'public, max-age=31536000' });
+          await uploadBytes(imageRef, fileToUpload, {
+            cacheControl: 'public, max-age=31536000',
+            contentType: fileToUpload.type || 'image/webp'
+          });
           const fullUrl = await getDownloadURL(imageRef);
           finalImageUrls.push(fullUrl);
         }
@@ -297,8 +370,8 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
   const handleDragOver = (e) => { e.preventDefault(); e.stopPropagation(); };
   const handleDrop = (e) => {
     e.preventDefault(); e.stopPropagation(); setIsDragging(false);
-    const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
-    if (files.length > 0) processFiles(files);
+    const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/') || isLikelyHeicImage(file));
+    if (files.length > 0) safeProcessFiles(files);
   };
 
   const onDragStartItem = (e, index) => {
@@ -343,6 +416,14 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
     setDraggedItemIndex(null);
   };
 
+  const handlePreviewError = (itemId, failedPreview) => {
+    setGalleryItems(prev => prev.map(item => (
+      item.id === itemId && item.preview === failedPreview && item.isCompressed && !item.uploadError
+        ? { ...item, uploadError: "Image non lisible. Importez une version JPEG/PNG standard." }
+        : item
+    )));
+  };
+
   const handleOpenCropper = (item) => {
     setCropperConfig({
       isOpen: true,
@@ -377,6 +458,8 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
     setCropperConfig(prev => ({ ...prev, isOpen: false, image: null }));
   };
 
+  const msgIsPositive = msg.includes('✅') || msg.includes('Images ajoutees') || msg.includes('Normalisation');
+
   return (
     <div className={`p-5 md:p-12 rounded-3xl md:rounded-[3rem] border shadow-2xl space-y-10 animate-in slide-in-from-top-4 transition-all ${darkMode ? 'bg-stone-800 border-stone-700 text-white' : 'bg-white border-stone-200/60 text-stone-900'}`}>
       <div className={`flex justify-between items-center border-b pb-6 ${darkMode ? 'border-stone-700' : 'border-stone-100'}`}>
@@ -404,17 +487,37 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
                 data-index={idx}
                 className={`aspect-square rounded-2xl overflow-hidden relative group shadow-md border cursor-move transition-all duration-300 ${draggedItemIndex === idx ? 'opacity-50 scale-110 border-amber-500 z-10 rotate-2' : (darkMode ? 'border-stone-700 hover:scale-[1.02]' : 'border-stone-50 hover:scale-[1.02]')}`}
               >
-                <img src={item.preview} className="w-full h-full object-cover pointer-events-none" alt="" />
+                <img
+                  src={item.preview}
+                  className={`w-full h-full object-cover pointer-events-none ${item.uploadError ? 'opacity-20' : ''}`}
+                  alt=""
+                  onError={() => handlePreviewError(item.id, item.preview)}
+                />
 
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 transition-all duration-300 backdrop-blur-[2px]">
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); handleOpenCropper(item); }}
-                    className="p-2 bg-amber-500 rounded-full text-white hover:scale-110 transition-transform shadow-lg"
-                    title="Recadrer"
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6.13 1L6 16a2 2 0 0 0 2 2h15" /><path d="M1 6.13L16 6a2 2 0 0 1 2 2v15" /></svg>
-                  </button>
+                {item.isProcessing && (
+                  <div className={`absolute inset-0 z-20 flex items-center justify-center p-3 text-center ${darkMode ? 'bg-stone-950/75 text-amber-200' : 'bg-white/80 text-stone-700'}`}>
+                    <span className="text-[9px] font-black uppercase tracking-widest">Conversion...</span>
+                  </div>
+                )}
+
+                {item.uploadError && (
+                  <div className={`absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 p-3 text-center ${darkMode ? 'bg-stone-950/85 text-red-200' : 'bg-white/90 text-red-600'}`}>
+                    <span className="text-[10px] font-black uppercase tracking-widest">Image incompatible</span>
+                    <span className={`text-[9px] font-bold leading-snug ${darkMode ? 'text-red-100/80' : 'text-red-500/80'}`}>{item.uploadError}</span>
+                  </div>
+                )}
+
+                <div className="absolute inset-0 z-30 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 transition-all duration-300 backdrop-blur-[2px]">
+                  {!item.uploadError && (
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); handleOpenCropper(item); }}
+                      className="p-2 bg-amber-500 rounded-full text-white hover:scale-110 transition-transform shadow-lg"
+                      title="Recadrer"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6.13 1L6 16a2 2 0 0 0 2 2h15" /><path d="M1 6.13L16 6a2 2 0 0 1 2 2v15" /></svg>
+                    </button>
+                  )}
 
                   <button
                     type="button"
@@ -443,7 +546,7 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
               <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Ajouter</span>
             </button>
           </div>
-          <input type="file" id="fileInput" ref={fileInputRef} className="hidden" accept="image/*" multiple onChange={handleImageChange} />
+          <input type="file" id="fileInput" ref={fileInputRef} className="hidden" accept="image/*,.heic,.heif" multiple onChange={handleImageChange} />
         </div>
         <div className="lg:col-span-8 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -621,7 +724,7 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
 
 
       <div className={`flex flex-col items-end gap-3 border-t pt-6 ${darkMode ? 'border-stone-700' : 'border-stone-100'}`}>
-        {msg && <div className={`text-[9px] font-black uppercase px-4 py-2 rounded-full border shadow-sm ${msg.includes('✅') ? (darkMode ? 'bg-emerald-950/40 text-emerald-400 border-emerald-900/40' : 'bg-emerald-50 text-emerald-600 border-emerald-100') : (darkMode ? 'bg-red-950/40 text-red-400 border-red-900/40' : 'bg-red-50 text-red-600 border-red-100')}`}>{msg}</div>}
+        {msg && <div className={`text-[9px] font-black uppercase px-4 py-2 rounded-full border shadow-sm ${msgIsPositive ? (darkMode ? 'bg-emerald-950/40 text-emerald-400 border-emerald-900/40' : 'bg-emerald-50 text-emerald-600 border-emerald-100') : (darkMode ? 'bg-red-950/40 text-red-400 border-red-900/40' : 'bg-red-50 text-red-600 border-red-100')}`}>{msg}</div>}
         <button onClick={addMeuble} disabled={uploading} className={`w-full md:w-auto px-16 py-5 rounded-2xl font-black uppercase text-xs tracking-widest shadow-2xl hover:translate-y-[-2px] active:translate-y-[1px] transition-all disabled:opacity-50 ${darkMode ? 'bg-white text-stone-900 hover:bg-stone-200' : 'bg-stone-900 text-white hover:bg-stone-800'}`}>
           {editData ? "Confirmer les modifications" : "Publier l'ouvrage"}
         </button>

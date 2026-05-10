@@ -1,5 +1,8 @@
 # GEMINI.md — Journal de bord technique & Notes d'Architecture
 
+> Point d'entree prioritaire : lire `AGENTS.md` avant ce fichier.
+> `GEMINI.md` est un journal historique specialise ; `AGENTS.md` decide quel document lire selon la tache.
+
 *Ce journal trace les grandes décisions d'architecture et les explications techniques complexes liées aux interactions avec l'IA Gemini.*
 
 ---

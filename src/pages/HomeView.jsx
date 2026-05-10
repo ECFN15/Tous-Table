@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
+﻿import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import { Hammer, Menu, X, ArrowRight, ArrowDown, Plus } from 'lucide-react';
 import StackedCards from '../components/home/StackedCards'; // New Import
 import ProcessSection from '../components/home/ProcessSection'; // New Component (Hybrid Layout)
@@ -16,7 +16,9 @@ const ThreeBackground = React.lazy(() => import('../components/home/ThreeBackgro
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import SEO from '../components/shared/SEO';
+import { SITE_URL } from '../utils/seoRoutes';
 import { scrollToTarget, scrollToTop } from '../utils/smoothScroll';
+import { isLowPowerMobileDevice } from '../utils/devicePerformance';
 
 // SÉCURITÉ: Sanitize HTML — Autorise uniquement <br> et <br /> (Anti-XSS)
 const sanitizeHtml = (html) => {
@@ -94,6 +96,22 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [menuInteracted, setMenuInteracted] = useState(false); // Prevents initial transition flash
   const [homepageImages, setHomepageImages] = useState({});
+  const [isLowPowerMobile, setIsLowPowerMobile] = useState(() => isLowPowerMobileDevice());
+  const [shouldMountThree, setShouldMountThree] = useState(false);
+  const layerWarmupDoneRef = useRef(false);
+  const warmedHomeImagesRef = useRef(new Set());
+
+  const handleThreeReady = () => {
+    gsap.fromTo('.three-fade-layer',
+      { opacity: 0 },
+      {
+        opacity: 1,
+        duration: 0.85,
+        ease: "power2.out",
+        overwrite: true
+      }
+    );
+  };
 
   // --- FETCH DYNAMIC IMAGES ---
   useEffect(() => {
@@ -105,6 +123,33 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
 
     return () => {
       unsubscribeImages();
+    };
+  }, []);
+
+  useEffect(() => {
+    let raf = 0;
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+
+    const update = () => {
+      raf = 0;
+      setIsLowPowerMobile(isLowPowerMobileDevice());
+    };
+
+    const scheduleUpdate = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener('resize', scheduleUpdate, { passive: true });
+    window.addEventListener('orientationchange', scheduleUpdate);
+    connection?.addEventListener?.('change', scheduleUpdate);
+
+    return () => {
+      window.removeEventListener('resize', scheduleUpdate);
+      window.removeEventListener('orientationchange', scheduleUpdate);
+      connection?.removeEventListener?.('change', scheduleUpdate);
+      if (raf) cancelAnimationFrame(raf);
     };
   }, []);
 
@@ -260,28 +305,38 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
     }, 500);
   };
 
-  // --- PRE-WARM: Force GPU layer creation & position calculation ---
+  // --- PRE-WARM: prime near-fold media; only desktop gets temporary GPU hints.
   useEffect(() => {
     const warmUpAnimations = () => {
+      const lowPower = isLowPowerMobileDevice();
       // 1. Collect ALL dynamic images for preloading
       const dynamicImages = [
         ...Object.values(homepageImages).filter(val => typeof val === 'string' && val.startsWith('http')),
         "https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=1200",
         "https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=1200"
-      ].slice(0, 6);
+      ].slice(0, lowPower ? 3 : 6);
 
       // 2. Warm the most likely near-fold images during idle time only.
       const idle = window.requestIdleCallback || ((cb) => window.setTimeout(cb, 600));
       idle(() => {
         dynamicImages.forEach(src => {
+          if (warmedHomeImagesRef.current.has(src)) return;
+          warmedHomeImagesRef.current.add(src);
+
           const img = new Image();
           img.decoding = 'async';
+          img.loading = lowPower ? 'lazy' : 'eager';
+          if ('fetchPriority' in img) img.fetchPriority = lowPower ? 'low' : 'high';
           img.src = src;
+          if (!lowPower) img.decode?.().catch(() => {});
         });
-      }, { timeout: 2200 });
+      }, { timeout: lowPower ? 1400 : 2200 });
 
-      // 3. Force GPU layers on key animated elements
+      // 3. Force GPU layers on key animated elements, but never on weak mobile.
       // NOTE: .card-visual is EXCLUDED — StackedCards manages its own GPU layers via GSAP force3D:true
+      if (lowPower || layerWarmupDoneRef.current) return;
+      layerWarmupDoneRef.current = true;
+
       const animatedElements = document.querySelectorAll(
         '.process-card, .manifesto-item, .img-parallax img'
       );
@@ -304,9 +359,9 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
     };
 
     // Execute warm-up after a short delay to let DOM stabilize
-    const warmupTimer = setTimeout(warmUpAnimations, 100);
+    const warmupTimer = setTimeout(warmUpAnimations, isLowPowerMobile ? 450 : 100);
     return () => clearTimeout(warmupTimer);
-  }, []);
+  }, [homepageImages, isLowPowerMobile]);
 
   // --- PRELOADER STATE ---
   const [isLoading, setIsLoading] = useState(() => {
@@ -332,6 +387,13 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
   // --- PRELOADER & HERO ENTRANCE ---
   useEffect(() => {
     if (!scriptsLoaded) return;
+    setShouldMountThree(false);
+    let threeMountRequested = false;
+    const requestThreeMount = () => {
+      if (threeMountRequested) return;
+      threeMountRequested = true;
+      setShouldMountThree(true);
+    };
 
     // If preloader already shown, just animate hero immediately
     if (window.hasShownPreloader) {
@@ -347,26 +409,30 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       window._pauseThree = false;
 
       // START HERO ANIMATION (Fast version)
-      const tl = gsap.timeline();
+      const tl = gsap.timeline({
+        onComplete: requestThreeMount,
+      });
       // Ensure visibility is restored before animating
       tl.set('.hero-section .reveal-inner', { opacity: 1 });
+      tl.addLabel("heroTitle");
       tl.to('.hero-section .reveal-inner', {
         y: "0%",
         rotate: 0,
-        duration: 1.2, // Faster
+        duration: 1.2,
         ease: "expo.out",
         stagger: 0.1,
         force3D: true
-      })
+      }, "heroTitle")
+        .add(requestThreeMount, "heroTitle+=0.35")
         .to('.hero-footer-element', {
           opacity: 1,
           y: 0,
           duration: 0.8,
           stagger: 0.1,
           ease: "power3.out"
-        }, "-=0.8");
+        }, "heroTitle+=0.5");
 
-      return;
+      return () => tl.kill();
     }
 
     // Lock scroll during preloader
@@ -396,15 +462,15 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
           scale: 1,
           opacity: 1,
           filter: "blur(0px)",
-          duration: 1.0, // Reduced from 1.5
+          duration: 1.0,
           ease: "expo.out"
         })
         .to('.preloader-char', {
           y: 0,
           opacity: 1,
           filter: "blur(0px)",
-          duration: 1.0, // Reduced from 1.2
-          stagger: 0.06, // Tighter stagger
+          duration: 1.0,
+          stagger: 0.06,
           ease: "expo.out"
         }, "-=0.5")
         .to('.preloader-footer-element', {
@@ -417,12 +483,12 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         .addLabel("exit", "+=0.0") // Départ immédiat (Snappy)
         .to('.preloader-secondary-bg', {
           yPercent: -100,
-          duration: 0.8, // Reduced from 1.2
+          duration: 0.8,
           ease: "expo.inOut"
         }, "exit")
         .to('.preloader-overlay', {
           yPercent: -100,
-          duration: 0.8, // Reduced from 1.2
+          duration: 0.8,
           ease: "expo.inOut"
         }, "exit+=0.05")
 
@@ -432,11 +498,12 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         .to('.hero-section .reveal-inner', {
           y: "0%",
           rotate: 0,
-          duration: 1.2, // Reduced from 1.8
+          duration: 1.2,
           ease: "expo.out",
           stagger: 0.1,
           force3D: true
         }, "exit+=0.3") // Start almost immediately as curtain lifts
+        .add(requestThreeMount, "exit+=0.65")
 
         .to('.hero-footer-element', {
           opacity: 1,
@@ -449,6 +516,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         // 4. Finalisation
         .add(() => {
           setIsLoading(false);
+          requestThreeMount();
           document.body.style.overflow = '';
           setTimeout(() => {
             ScrollTrigger.refresh(true);
@@ -482,9 +550,11 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         onEnter: () => {
           // FORCE PAUSE IMMEDIATE
           window._pauseThree = true;
+          window.__setThreePaused?.(true);
         },
         onLeaveBack: () => {
           window._pauseThree = false;
+          window.__setThreePaused?.(false);
         }
       });
 
@@ -725,7 +795,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       });
 
       // 9. Curseur (Desktop uniquement)
-      if (window.innerWidth >= 1024 && cursorRef.current) {
+      if (window.matchMedia?.('(hover: hover)').matches && window.innerWidth >= 1024 && cursorRef.current) {
         const moveX = gsap.quickTo(cursorRef.current, 'x', { duration: 0.24, ease: "power2.out" });
         const moveY = gsap.quickTo(cursorRef.current, 'y', { duration: 0.24, ease: "power2.out" });
         const moveCursor = (e) => {
@@ -812,6 +882,137 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
     }
   ];
 
+  const aboutSchema = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": `${SITE_URL}/a-propos#webpage`,
+        "url": `${SITE_URL}/a-propos`,
+        "name": "Tous a Table Made in Normandie - Atelier de restauration de meubles",
+        "description": "Atelier de restauration de mobilier a Ifs pres de Caen. Vente de meubles anciens restaures, tables de ferme, buffets, armoires et pieces uniques en bois massif.",
+        "isPartOf": {
+          "@id": `${SITE_URL}/#website`
+        },
+        "about": {
+          "@id": `${SITE_URL}/#atelier`
+        }
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${SITE_URL}/#website`,
+        "url": SITE_URL,
+        "name": "Tous a Table Made in Normandie",
+        "publisher": {
+          "@id": `${SITE_URL}/#atelier`
+        }
+      },
+      {
+        "@type": ["FurnitureStore", "LocalBusiness"],
+        "@id": `${SITE_URL}/#atelier`,
+        "name": "Tous a Table Made in Normandie",
+        "alternateName": "Tous a Table - Atelier Normand",
+        "image": "https://firebasestorage.googleapis.com/v0/b/tousatable-client.appspot.com/o/sys_assets%2Fog_cover.jpg?alt=media",
+        "logo": "https://firebasestorage.googleapis.com/v0/b/tousatable-client.appspot.com/o/sys_assets%2Flogo_hammer.png?alt=media",
+        "url": SITE_URL,
+        "telephone": "+33 7 77 32 41 78",
+        "priceRange": "EUR 500 - EUR 3000",
+        "description": "Atelier de restauration de mobilier a Ifs pres de Caen. Vente de meubles anciens restaures en Normandie avec livraison locale, France entiere et pays frontaliers selon transport.",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "346 Chemin de Fleury",
+          "addressLocality": "Ifs",
+          "addressRegion": "Normandie",
+          "postalCode": "14123",
+          "addressCountry": "FR"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 49.1417,
+          "longitude": -0.3472
+        },
+        "areaServed": [
+          { "@type": "City", "name": "Ifs" },
+          { "@type": "City", "name": "Caen" },
+          { "@type": "City", "name": "Deauville" },
+          { "@type": "City", "name": "Bayeux" },
+          { "@type": "AdministrativeArea", "name": "Normandie" },
+          { "@type": "Country", "name": "France" }
+        ],
+        "knowsAbout": [
+          "restauration de meubles anciens",
+          "tables de ferme anciennes",
+          "buffets anciens",
+          "armoires anciennes",
+          "meubles en bois massif",
+          "livraison de meubles anciens"
+        ],
+        "sameAs": [
+          "https://www.instagram.com/tous.table.made.in/",
+          "https://www.tiktok.com/@tous.table.made.in",
+          "https://www.facebook.com/profile.php?id=61571869498498",
+          "https://www.leboncoin.fr/boutique/tous-a-table-made-in-normandie",
+          "https://www.google.com/maps/dir/?api=1&destination=Tous+a+Table+Atelier+Normand+346+Chem.+de+Fleury+14123+Ifs"
+        ],
+        "hasOfferCatalog": {
+          "@type": "OfferCatalog",
+          "name": "Meubles anciens restaures",
+          "itemListElement": [
+            { "@type": "OfferCatalog", "name": "Tables de ferme anciennes" },
+            { "@type": "OfferCatalog", "name": "Buffets et armoires anciennes" },
+            { "@type": "OfferCatalog", "name": "Commodes, chevets, chaises et bancs anciens" },
+            { "@type": "OfferCatalog", "name": "Planches a decouper anciennes et bois massif" }
+          ]
+        },
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday"
+            ],
+            "opens": "09:00",
+            "closes": "19:00"
+          }
+        ]
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": `${SITE_URL}/a-propos#breadcrumb`,
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Accueil",
+            "item": `${SITE_URL}/`
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "A propos",
+            "item": `${SITE_URL}/a-propos`
+          }
+        ]
+      },
+      {
+        "@type": "FAQPage",
+        "@id": `${SITE_URL}/a-propos#faq`,
+        "mainEntity": faqItems.map((item) => ({
+          "@type": "Question",
+          "name": item.q,
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": item.a
+          }
+        }))
+      }
+    ]
+  };
+
   // SEO component is already imported at the top.
   // We just need to ensure it is used correctly in the return statement.
 
@@ -820,46 +1021,8 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       <SEO
         title="Rénovation d'Anciennes Tables de Ferme et de Meubles"
         description="Atelier de restauration de mobilier à Ifs (14123). Vente de meubles normands authentiques en chêne : tables de ferme, armoires parisiennes et buffets. Livraison Caen, Deauville, toute la France et pays frontaliers. Tel: 07 77 32 41 78."
-        schema={{
-          "@context": "https://schema.org",
-          "@type": "FurnitureStore",
-          "name": "Tous à Table Made in Normandie",
-          "alternateName": "Tous à Table — Ameublement",
-          "image": "https://firebasestorage.googleapis.com/v0/b/tousatable-client.appspot.com/o/sys_assets%2Fog_cover.jpg?alt=media",
-          "@id": "https://tousatable-madeinnormandie.fr",
-          "url": "https://tousatable-madeinnormandie.fr",
-          "telephone": "+33 7 77 32 41 78",
-          "address": {
-            "@type": "PostalAddress",
-            "streetAddress": "346 Chemin de Fleury",
-            "addressLocality": "Ifs",
-            "addressRegion": "Normandie",
-            "postalCode": "14123",
-            "addressCountry": "FR"
-          },
-          "geo": {
-            "@type": "GeoCoordinates",
-            "latitude": 49.1417,
-            "longitude": -0.3472
-          },
-          "priceRange": "€€-€€€",
-          "description": "Atelier de restauration de mobilier à Ifs (14123). Vente de meubles normands authentiques en chêne : tables de ferme, armoires parisiennes et buffets. Livraison sur Caen, Deauville, toute la Normandie, la France et pays frontaliers.",
-          "openingHoursSpecification": [
-            {
-              "@type": "OpeningHoursSpecification",
-              "dayOfWeek": [
-                "Monday",
-                "Tuesday",
-                "Wednesday",
-                "Thursday",
-                "Friday",
-                "Saturday"
-              ],
-              "opens": "09:00",
-              "closes": "19:00"
-            }
-          ]
-        }}
+        url="/a-propos"
+        schema={aboutSchema}
       />
 
 
@@ -900,9 +1063,13 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
 
       <div id="main-cursor" ref={cursorRef} className="hidden lg:block"></div>
       <div className="three-container fixed inset-0 pointer-events-none z-0">
-        <React.Suspense fallback={null}>
-          <ThreeBackground />
-        </React.Suspense>
+        {shouldMountThree && (
+          <div className="three-fade-layer absolute inset-0 opacity-0">
+            <React.Suspense fallback={null}>
+              <ThreeBackground onReady={handleThreeReady} />
+            </React.Suspense>
+          </div>
+        )}
       </div>
 
       {/* NAVIGATION */}
@@ -1214,6 +1381,8 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
                 src={homepageImages['team_main'] || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1600"}
                 alt="Maître Ebéniste"
                 className="w-full h-full object-cover force-color-tablet 2xl:grayscale 2xl:hover:grayscale-0 transition-all duration-1000"
+                loading="lazy"
+                decoding="async"
               />
               <RotatingSymbol className="absolute -bottom-16 -right-16 text-[#9C8268] opacity-20" size={200} />
             </div>
@@ -1256,6 +1425,8 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
                 src={homepageImages['faq_main'] || "https://images.unsplash.com/photo-1610701596007-11502861dcfa?q=80&w=1600"}
                 alt="Détail savoir-faire"
                 className="w-full h-full object-cover scale-110 hover:scale-100 transition-transform duration-[2s] ease-out force-color-tablet 2xl:grayscale 2xl:hover:grayscale-0"
+                loading="lazy"
+                decoding="async"
               />
             </div>
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowRight, ChevronDown, Facebook, Instagram, Mail, MapPin, Phone } from 'lucide-react';
+import { ChevronDown, Facebook, Instagram, Mail, MapPin, Phone } from 'lucide-react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 
@@ -52,11 +52,12 @@ const Footer = ({ darkMode = false }) => {
             <div className="max-w-[1920px] mx-auto px-5 md:px-16 py-12 md:py-16">
                 <div className="md:hidden">
                     <MobileDisclosure title="A propos" darkMode={darkMode}>
-                        <a href="/" className="block hover:text-[#dba45f]">Notre histoire</a>
-                        <a href="/?page=gallery" className="block hover:text-[#dba45f]">La galerie</a>
-                        <a href="/?page=shop" className="block hover:text-[#dba45f]">Le comptoir</a>
+                        <a href="/a-propos" className="block hover:text-[#dba45f]">Notre histoire</a>
+                        <a href="/meubles-anciens" className="block hover:text-[#dba45f]">La galerie</a>
+                        <a href="/comptoir" className="block hover:text-[#dba45f]">Le comptoir</a>
                     </MobileDisclosure>
                     <MobileDisclosure title="Aide" darkMode={darkMode}>
+                        <a href="/livraison-meubles-anciens-france" className="block hover:text-[#dba45f]">Livraison</a>
                         <a href={`tel:${phone.replace(/\s/g, '')}`} className="block hover:text-[#dba45f]">{phone}</a>
                         <a href={`mailto:${email}`} className="block break-all hover:text-[#dba45f]">{email}</a>
                         <a
@@ -103,15 +104,15 @@ const Footer = ({ darkMode = false }) => {
 
                     <div className="hidden md:block">
                         <FooterColumn title="A propos" darkMode={darkMode}>
-                            <a href="/" className="block hover:text-[#dba45f]">Notre histoire</a>
-                            <a href="/?page=gallery" className="block hover:text-[#dba45f]">La galerie</a>
-                            <a href="/?page=shop" className="block hover:text-[#dba45f]">Le comptoir</a>
+                            <a href="/a-propos" className="block hover:text-[#dba45f]">Notre histoire</a>
+                            <a href="/meubles-anciens" className="block hover:text-[#dba45f]">La galerie</a>
+                            <a href="/comptoir" className="block hover:text-[#dba45f]">Le comptoir</a>
                         </FooterColumn>
                     </div>
 
                     <div className="hidden md:block">
                         <FooterColumn title="Aide" darkMode={darkMode}>
-                            <a href={`tel:${phone.replace(/\s/g, '')}`} className="block hover:text-[#dba45f]">Livraison & retours</a>
+                            <a href="/livraison-meubles-anciens-france" className="block hover:text-[#dba45f]">Livraison</a>
                             <a href={`mailto:${email}`} className="block hover:text-[#dba45f]">Contact</a>
                             <span className="block">FAQ</span>
                         </FooterColumn>
@@ -126,21 +127,10 @@ const Footer = ({ darkMode = false }) => {
                     </div>
 
                     <div className="space-y-5">
-                        <h3 className="text-[#dba45f] text-[11px] font-black uppercase tracking-[0.24em]">Recevoir nos nouveautes</h3>
+                        <h3 className="text-[#dba45f] text-[11px] font-black uppercase tracking-[0.24em]">Contact atelier</h3>
                         <p className={`font-serif text-lg leading-snug ${darkMode ? 'text-stone-300' : 'text-stone-700'}`}>
-                            Nouveaux arrivages, pieces uniques et inspirations directement dans votre boite mail.
+                            Une question sur une piece, une livraison ou une restauration ? Contactez directement l'atelier.
                         </p>
-                        <form onSubmit={(event) => event.preventDefault()} className={`flex h-14 overflow-hidden border border-[#8a5b2a]/65 ${darkMode ? '' : 'bg-white/55'}`}>
-                            <input
-                                type="email"
-                                placeholder="Votre adresse email"
-                                className={`min-w-0 flex-1 bg-transparent px-4 font-serif text-lg outline-none placeholder:text-stone-500 ${darkMode ? 'text-white' : 'text-stone-950'}`}
-                                aria-label="Votre adresse email"
-                            />
-                            <button type="submit" className="flex w-14 items-center justify-center text-[#dba45f] transition-colors hover:bg-[#dba45f] hover:text-black" aria-label="S'inscrire a la newsletter">
-                                <ArrowRight size={23} strokeWidth={1.5} />
-                            </button>
-                        </form>
                         <div className={`space-y-3 border-l border-[#8a5b2a]/50 pl-4 ${darkMode ? 'text-stone-300' : 'text-stone-700'}`}>
                             <a href={`mailto:${email}`} className={`flex items-start gap-3 break-all font-serif text-lg italic hover:text-[#dba45f] ${darkMode ? 'text-white' : 'text-stone-950'}`}>
                                 <Mail size={17} className="mt-1 shrink-0 text-[#dba45f]" />
@@ -165,7 +155,7 @@ const Footer = ({ darkMode = false }) => {
                         <a href="tel:0782013155" className="hover:text-[#dba45f]">Contact : 07.82.01.31.55</a>
                     </div>
                     <div className="flex gap-5 text-[10px] font-black uppercase tracking-[0.18em] text-stone-500">
-                        <a href="/?page=gallery" className="hover:text-[#dba45f]">La galerie</a>
+                        <a href="/meubles-anciens" className="hover:text-[#dba45f]">La galerie</a>
                         <span>Privacy policy</span>
                         <span>Legal mentions</span>
                     </div>

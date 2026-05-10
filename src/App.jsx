@@ -7,7 +7,7 @@ import {
 import { httpsCallable } from 'firebase/functions'; // Added for logUserConnection
 // Auth imports removed (handled in Context)
 import {
-  Hammer, LogOut, ShieldCheck, Menu, Eye, EyeOff, ShoppingBag, Sun, Moon, AlertTriangle
+  Hammer, LogOut, ShieldCheck, Menu, Eye, EyeOff, ShoppingBag, Sun, Moon, AlertTriangle, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -17,6 +17,15 @@ import { getMillis } from './utils/time';
 import { lockLenis, scrollToTarget, scrollToTop } from './utils/smoothScroll';
 import { useLiveTheme } from './hooks/useLiveTheme'; // Import hook for forcedMode check
 import { useLenisScroll } from './hooks/useLenisScroll'; // Smooth scroll global (cf. _DOCS/AUDITS/scrolllenis.md)
+import {
+  getFurnitureCategoryPath,
+  getProductPath,
+  getShopProductIdFromPath,
+  getShopProductPath,
+  getRouteFromLocation,
+  pushUrl,
+  replaceUrl,
+} from './utils/seoRoutes';
 
 import AppRouter from './Router';
 import ErrorBoundary from './components/shared/ErrorBoundary';
@@ -28,8 +37,49 @@ import { ToastProvider, useToast } from './components/ui/Toast';
 
 import MarketplaceDiscovery from './components/home/MarketplaceDiscovery';
 import ArchitecturalHeader from './designs/architectural/components/ArchitecturalHeader';
-import NewsletterModal from './components/auth/NewsletterModal';
 import GlobalMenu from './components/layout/GlobalMenu';
+import StartupPreloader from './components/layout/StartupPreloader';
+import {
+  shouldShowStartupPreloader,
+  warmupStartupForRoute,
+  warmupStartupCatalogImagesForRoute,
+} from './utils/startupWarmup';
+import { applyDevicePerformanceClasses, isTouchDevice } from './utils/devicePerformance';
+
+const getInitialDarkMode = () => {
+  if (typeof window === 'undefined') return true;
+
+  try {
+    const cachedThemeSettings = localStorage.getItem('themeSettings');
+    if (cachedThemeSettings) {
+      const forcedMode = JSON.parse(cachedThemeSettings)?.forcedMode;
+      if (forcedMode === 'dark') return true;
+      if (forcedMode === 'light') return false;
+    }
+
+    const storedDarkMode = localStorage.getItem('darkMode');
+    if (storedDarkMode === 'true') return true;
+    if (storedDarkMode === 'false') return false;
+  } catch {
+    // Keep the public site dark on first paint if storage is unavailable.
+  }
+
+  return true;
+};
+
+const scheduleIdleCallback = (callback, timeout = 1200) => {
+  if (typeof window === 'undefined') return () => {};
+
+  if (typeof window.requestIdleCallback === 'function') {
+    const id = window.requestIdleCallback(callback, { timeout });
+    return () => window.cancelIdleCallback?.(id);
+  }
+
+  const id = window.setTimeout(callback, Math.min(timeout, 450));
+  return () => window.clearTimeout(id);
+};
+
+const sortByCreatedAtDesc = (a, b) => getMillis(b.createdAt) - getMillis(a.createdAt);
 
 const AppContent = () => {
   const toast = useToast();
@@ -49,8 +99,8 @@ const AppContent = () => {
 
   const [showMarketplacePopup, setShowMarketplacePopup] = useState(false);
   const footerRef = useRef(null);
-  const hasTriggeredPopup = useRef(false);
-  const hasViewedProduct = useRef(false); // [NEWSLETTER] Track if user visited at least one product detail
+  const publicCatalogFallbackRef = useRef(null);
+  const deferredPublicCatalogRef = useRef(null);
 
 
 
@@ -70,6 +120,33 @@ const AppContent = () => {
     };
   }, []);
 
+  useEffect(() => {
+    let raf = 0;
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+
+    const updateProfile = () => {
+      raf = 0;
+      applyDevicePerformanceClasses();
+    };
+
+    const scheduleUpdate = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(updateProfile);
+    };
+
+    updateProfile();
+    window.addEventListener('resize', scheduleUpdate, { passive: true });
+    window.addEventListener('orientationchange', scheduleUpdate);
+    connection?.addEventListener?.('change', scheduleUpdate);
+
+    return () => {
+      window.removeEventListener('resize', scheduleUpdate);
+      window.removeEventListener('orientationchange', scheduleUpdate);
+      connection?.removeEventListener?.('change', scheduleUpdate);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+
   // Fetch Contact Info for Menu
   useEffect(() => {
     const unsub = onSnapshot(doc(db, 'sys_metadata', 'contact_info'), (snap) => {
@@ -85,19 +162,17 @@ const AppContent = () => {
   const [showOrderSuccess, setShowOrderSuccess] = useState(false);
   const [orderSuccessMethod, setOrderSuccessMethod] = useState(''); // Tracks which payment method was used
   const [stockAlert, setStockAlert] = useState(null); // { currentStock: number }
+  const initialRouteRef = useRef(typeof window !== 'undefined'
+    ? getRouteFromLocation(window.location)
+    : { view: 'gallery', galleryState: { activeCollection: 'furniture', filter: 'fixed', activeCategory: 'all' } });
+  const startupWarmupPayloadRef = useRef({ items: [], boardItems: [], affiliateProducts: [] });
+  const startupCatalogWarmupStartedRef = useRef(false);
 
   // Navigation
-  const [view, setView] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const hash = window.location.hash.replace('#', '');
-      if (['gallery', 'login', 'admin', 'my-orders', 'checkout', 'shop'].includes(hash)) return hash;
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('page') === 'gallery') return 'gallery';
-      if (params.get('page') === 'shop') return 'shop';
-    }
-    return 'home';
-  }); // 'home', 'gallery', 'detail', 'login', 'admin'
+  const [view, setView] = useState(() => initialRouteRef.current.view); // 'about', 'gallery', 'detail', 'login', 'admin'
   const [selectedItemId, setSelectedItemId] = useState(null);
+  const [selectedAffiliateProductId, setSelectedAffiliateProductId] = useState(initialRouteRef.current.shopProductId || null);
+  const [selectedAffiliateProductContext, setSelectedAffiliateProductContext] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isSecretGateOpen, setIsSecretGateOpen] = useState(false);
   const [showFullLogin, setShowFullLogin] = useState(false);
@@ -106,8 +181,9 @@ const AppContent = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showAuthSuccess, setShowAuthSuccess] = useState(false);
-  const [showNewsletter, setShowNewsletter] = useState(false);
   const [pendingItem, setPendingItem] = useState(null);
+  const [showStartupPreloader, setShowStartupPreloader] = useState(() => shouldShowStartupPreloader(initialRouteRef.current));
+  const [publicRealtimeReady, setPublicRealtimeReady] = useState(() => !showStartupPreloader);
   const scrollYRef = useRef(0);
   const modalUnlockRef = useRef(null);
   const wasModalOpenRef = useRef(false);
@@ -169,7 +245,7 @@ const AppContent = () => {
   };
 
   // Deep Linking State
-  const [pendingDeepLink, setPendingDeepLink] = useState(null);
+  const [pendingDeepLink, setPendingDeepLink] = useState(initialRouteRef.current.productId || null);
 
   // Header Props for Architectural Design
   const [headerProps, setHeaderProps] = useState(null);
@@ -177,12 +253,30 @@ const AppContent = () => {
   // [NEW] Persistent Gallery State (To restore collection after detail/checkout)
   const [persistentGalleryState, setPersistentGalleryState] = useState({
     activeCollection: 'furniture',
-    filter: 'fixed'
+    filter: 'fixed',
+    activeCategory: 'all',
+    ...(initialRouteRef.current.galleryState || {}),
   });
 
   const saveGalleryState = React.useCallback((state) => {
     setPersistentGalleryState(prev => ({ ...prev, ...state }));
   }, []);
+
+  const activePublicRealtimeCollectionsKey = React.useMemo(() => {
+    if (view === 'admin') return 'furniture|cutting_boards|affiliate_products';
+    if (view === 'shop' || view === 'shop-detail') return 'affiliate_products';
+    if (view === 'gallery') {
+      return persistentGalleryState.activeCollection === 'cutting_boards' ? 'cutting_boards' : 'furniture';
+    }
+    if (view === 'detail') {
+      if (boardItems.some((item) => item.id === selectedItemId)) return 'cutting_boards|affiliate_products';
+      if (items.some((item) => item.id === selectedItemId)) return 'furniture|affiliate_products';
+      return persistentGalleryState.activeCollection === 'cutting_boards'
+        ? 'cutting_boards|affiliate_products'
+        : 'furniture|affiliate_products';
+    }
+    return '';
+  }, [view, persistentGalleryState.activeCollection, selectedItemId, items, boardItems]);
 
   // --- SCROLL HEADER LOGIC ---
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
@@ -191,12 +285,7 @@ const AppContent = () => {
   const headerScrollRafRef = useRef(0);
 
   // Dark Mode State
-  const [darkMode, setDarkMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('darkMode') === 'true';
-    }
-    return false;
-  });
+  const [darkMode, setDarkMode] = useState(getInitialDarkMode);
 
   const { forcedMode, activeDesignId } = useLiveTheme(darkMode);
 
@@ -216,8 +305,94 @@ const AppContent = () => {
     } else {
       document.documentElement.classList.remove('dark');
     }
+    document.documentElement.style.colorScheme = darkMode ? 'dark' : 'light';
+    document.documentElement.style.backgroundColor = darkMode ? '#0A0A0A' : '#FAFAF9';
+    document.body.style.backgroundColor = darkMode ? '#0A0A0A' : '#FAFAF9';
     localStorage.setItem('darkMode', darkMode);
   }, [darkMode]);
+
+  useEffect(() => {
+    startupWarmupPayloadRef.current = { items, boardItems, affiliateProducts };
+  }, [items, boardItems, affiliateProducts]);
+
+  const applyPublicCatalog = React.useCallback((collections = {}, { deferWhilePreloading = true } = {}) => {
+    if (
+      deferWhilePreloading &&
+      typeof document !== 'undefined' &&
+      document.body.classList.contains('tat-startup-preloading')
+    ) {
+      deferredPublicCatalogRef.current = collections;
+      return;
+    }
+
+    setItems((collections.furniture || [])
+      .map((item) => ({ ...item, collectionName: 'furniture' }))
+      .sort(sortByCreatedAtDesc));
+    setBoardItems((collections.cutting_boards || [])
+      .map((item) => ({ ...item, collectionName: 'cutting_boards' }))
+      .sort(sortByCreatedAtDesc));
+    setAffiliateProducts((collections.affiliate_products || [])
+      .filter((product) => product.status === 'published'));
+  }, []);
+
+  const runStartupWarmup = React.useCallback(() => (
+    warmupStartupForRoute(initialRouteRef.current, startupWarmupPayloadRef.current)
+  ), []);
+
+  const handleStartupPreloaderComplete = React.useCallback(() => {
+    if (typeof window !== 'undefined') {
+      window.__tatStartupPreloaderShown = true;
+      window.hasShownPreloader = true;
+    }
+    setShowStartupPreloader(false);
+  }, []);
+
+  useEffect(() => {
+    if (showStartupPreloader || !deferredPublicCatalogRef.current) return undefined;
+
+    let cleanupIdle = null;
+    const timer = window.setTimeout(() => {
+      const pendingCollections = deferredPublicCatalogRef.current;
+      deferredPublicCatalogRef.current = null;
+      cleanupIdle = scheduleIdleCallback(() => {
+        applyPublicCatalog(pendingCollections, { deferWhilePreloading: false });
+      }, isTouchDevice() ? 1200 : 600);
+    }, isTouchDevice() ? 380 : 80);
+
+    return () => {
+      window.clearTimeout(timer);
+      cleanupIdle?.();
+    };
+  }, [showStartupPreloader, applyPublicCatalog]);
+
+  useEffect(() => {
+    if (publicRealtimeReady || showStartupPreloader) return undefined;
+
+    return scheduleIdleCallback(() => {
+      setPublicRealtimeReady(true);
+    }, 1600);
+  }, [publicRealtimeReady, showStartupPreloader]);
+
+  useEffect(() => {
+    if (showStartupPreloader) return undefined;
+    if (['home', 'about'].includes(initialRouteRef.current.view)) return;
+    if (!items.length && !boardItems.length && !affiliateProducts.length) return;
+    if (startupCatalogWarmupStartedRef.current) return;
+
+    let cleanupIdle = null;
+    const delay = isTouchDevice() ? 1400 : 420;
+    const timer = window.setTimeout(() => {
+      startupCatalogWarmupStartedRef.current = true;
+      cleanupIdle = scheduleIdleCallback(() => {
+        warmupStartupCatalogImagesForRoute(initialRouteRef.current, startupWarmupPayloadRef.current);
+      }, isTouchDevice() ? 2000 : 900);
+    }, delay);
+
+    return () => {
+      window.clearTimeout(timer);
+      cleanupIdle?.();
+    };
+  }, [showStartupPreloader, items, boardItems, affiliateProducts]);
 
   // Marketplace Discovery Trigger (STRICTEMENT sur Accueil - Au Footer)
   useEffect(() => {
@@ -288,35 +463,78 @@ const AppContent = () => {
   // --- CHARGEMENT DONNÉES PUBLIQUES (Stable) ---
   useEffect(() => {
     // 1. Meubles (Données)
-    const unsubData = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'furniture'), (snap) => {
-      setItems(snap.docs.map(d => ({ id: d.id, collectionName: 'furniture', ...d.data() })).sort((a, b) => getMillis(b.createdAt) - getMillis(a.createdAt)));
-    }, (error) => {
-      console.error("Erreur lecture meubles:", error);
-    });
+    const fetchPublicCatalogFallback = (reason) => {
+      if (!publicCatalogFallbackRef.current) {
+        const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
+        const url = `https://us-central1-${projectId}.cloudfunctions.net/publicCatalog`;
+        publicCatalogFallbackRef.current = fetch(url)
+          .then((response) => {
+            if (!response.ok) throw new Error(`publicCatalog ${response.status}`);
+            return response.json();
+          })
+          .then((payload) => {
+            applyPublicCatalog(payload.collections);
+            return payload;
+          })
+          .catch((error) => {
+            publicCatalogFallbackRef.current = null;
+            throw error;
+          });
+      }
 
-    // 2. Planches (Données)
-    const unsubBoards = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'cutting_boards'), (snap) => {
-      setBoardItems(snap.docs.map(d => ({ id: d.id, collectionName: 'cutting_boards', ...d.data() })).sort((a, b) => getMillis(b.createdAt) - getMillis(a.createdAt)));
-    }, (error) => {
-      console.error("Erreur lecture planches:", error);
-    });
+      return publicCatalogFallbackRef.current.catch((error) => {
+        console.error(`Fallback catalogue public impossible apres ${reason}:`, error);
+      });
+    };
 
-    // 3. Produits affiliés (Boutique L'Atelier)
-    const unsubAffiliate = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'affiliate_products'), (snap) => {
-      setAffiliateProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.status === 'published'));
-    }, (error) => {
-      console.error("Erreur lecture produits affiliés:", error);
-    });
+    const handlePublicReadError = (label, error) => {
+      console.error(`Erreur lecture ${label}:`, error);
+      fetchPublicCatalogFallback(label);
+    };
 
-    return () => { unsubData(); unsubBoards(); unsubAffiliate(); };
-  }, []); // Dépendances vides pour éviter le re-subscribe fréquent
+    fetchPublicCatalogFallback('initial catalog bootstrap');
+    if (!publicRealtimeReady) return undefined;
+
+    const activeCollections = activePublicRealtimeCollectionsKey
+      ? activePublicRealtimeCollectionsKey.split('|')
+      : [];
+
+    if (!activeCollections.length) return undefined;
+
+    const subscriptions = [];
+
+    if (activeCollections.includes('furniture')) {
+      subscriptions.push(onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'furniture'), (snap) => {
+        setItems(snap.docs.map(d => ({ id: d.id, collectionName: 'furniture', ...d.data() })).sort(sortByCreatedAtDesc));
+      }, (error) => {
+        handlePublicReadError('meubles', error);
+      }));
+    }
+
+    if (activeCollections.includes('cutting_boards')) {
+      subscriptions.push(onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'cutting_boards'), (snap) => {
+        setBoardItems(snap.docs.map(d => ({ id: d.id, collectionName: 'cutting_boards', ...d.data() })).sort(sortByCreatedAtDesc));
+      }, (error) => {
+        handlePublicReadError('planches', error);
+      }));
+    }
+
+    if (activeCollections.includes('affiliate_products')) {
+      subscriptions.push(onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'affiliate_products'), (snap) => {
+        setAffiliateProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.status === 'published'));
+      }, (error) => {
+        handlePublicReadError('produits affilies', error);
+      }));
+    }
+
+    return () => subscriptions.forEach((unsubscribe) => unsubscribe());
+  }, [publicRealtimeReady, activePublicRealtimeCollectionsKey, applyPublicCatalog]); // Realtime differe apres preloader/idle et limite a la collection active.
 
   // --- LOGIQUE ROUTING & AUTH (Dépend du User) ---
   useEffect(() => {
     // Logic dependent on user/auth state
     const params = new URLSearchParams(window.location.search);
-    const productId = params.get('product');
-    const hash = window.location.hash.replace('#', '');
+    const route = getRouteFromLocation(window.location);
 
     // --- SECURITY LOG (IP CAPTURE) ---
     if (user && !user.isAnonymous) {
@@ -334,7 +552,7 @@ const AppContent = () => {
         setView('gallery');
 
         // 2. Nettoyer l'URL pour éviter de re-déclencher au F5
-        window.history.replaceState({}, document.title, '/?page=gallery#gallery');
+        replaceUrl('/');
 
         // 3. Vider le panier Firestore réellement
         try {
@@ -360,86 +578,92 @@ const AppContent = () => {
     // -------------------------------
 
 
-    if (params.get('admin') === 'true' || window.location.pathname === '/admin' || hash === 'admin') {
+    if (route.adminGate) {
       setIsSecretGateOpen(true);
       if (isAdmin) setView('admin'); else setView('login');
-    } else if (productId) {
-      setPendingDeepLink(productId);
+    } else if (route.productId) {
+      setPendingDeepLink(route.productId);
     } else {
-      if (params.get('page') === 'gallery' || hash === 'gallery') setView('gallery');
-      if (params.get('page') === 'shop' || hash === 'shop') setView('shop');
+      if (route.galleryState) {
+        setPersistentGalleryState(prev => ({ ...prev, ...route.galleryState }));
+      }
+      setView(route.view);
+      setIsSecretGateOpen(false);
     }
     setLoading(false);
 
   }, [user, isAdmin]); // Re-run when auth state changes
 
-  // --- [NEWSLETTER] Track product detail visits ---
-  useEffect(() => {
-    if (view === 'detail') {
-      hasViewedProduct.current = true;
-    }
-  }, [view]);
-
-  // --- DECLENCHEMENT POPUP V2 (After first product visit) ---
-  // Strategy: Only trigger AFTER the user has viewed at least one product and returned to gallery.
-  // This is much less aggressive - the user has already shown engagement.
-  useEffect(() => {
-    const isNewsletterSubscribed = localStorage.getItem('newsletterSubscribed') === 'true';
-    const isNewsletterDismissed = localStorage.getItem('newsletterDismissed') === 'true';
-
-    if (
-      view === 'gallery' && 
-      hasViewedProduct.current &&  // Must have viewed at least one product
-      (!user || user.isAnonymous) && 
-      !authLoading && 
-      !hasTriggeredPopup.current &&
-      !isNewsletterSubscribed &&
-      !isNewsletterDismissed
-    ) {
-      hasTriggeredPopup.current = true;
-      const timer = setTimeout(() => {
-        setShowNewsletter(true);
-      }, 2000); // 2s delay after return for smooth UX
-      return () => clearTimeout(timer);
-    }
-  }, [view, user, authLoading]);
-
   // --- PERSISTANCE NAVIGATION (HASH & URL) ---
   useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.replace('#', '');
-      if (['home', 'gallery', 'shop', 'admin', 'login', 'my-orders'].includes(hash)) {
-        setView(hash);
+    const applyRoute = () => {
+      const route = getRouteFromLocation(window.location);
+      if (route.adminGate) {
+        setIsSecretGateOpen(true);
+        setView(isAdmin ? 'admin' : 'login');
+        return;
       }
+      if (route.productId) {
+        setPendingDeepLink(route.productId);
+        return;
+      }
+      if (route.shopProductId) {
+        setSelectedAffiliateProductId(route.shopProductId);
+        setSelectedAffiliateProductContext(null);
+        setView('shop-detail');
+        return;
+      }
+      if (route.galleryState) {
+        setPersistentGalleryState(prev => ({ ...prev, ...route.galleryState }));
+      }
+      setView(route.view);
     };
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
 
-  // Synchronisation URL <-> View State
+    window.addEventListener('popstate', applyRoute);
+    window.addEventListener('hashchange', applyRoute);
+    return () => {
+      window.removeEventListener('popstate', applyRoute);
+      window.removeEventListener('hashchange', applyRoute);
+    };
+  }, [isAdmin]);
+
+
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const allItems = [...items, ...boardItems];
+    const selectedItem = allItems.find((item) => item.id === selectedItemId);
+    const selectedAffiliateProduct = affiliateProducts.find((product) => product.id === selectedAffiliateProductId);
+
     if (view === 'detail' && selectedItemId) {
-      // Mode Produit : On affiche l'ID dans l'URL pour le partage
-      const newUrl = `/?product=${selectedItemId}`;
-      if (window.location.search !== `?product=${selectedItemId}`) {
-        window.history.pushState({ view: 'detail', itemId: selectedItemId }, '', newUrl);
-      }
-    } else if (view !== 'detail' && view !== 'home') {
-      // Autres vues : On utilise le hash (ex: #gallery)
-      // On nettoie les query params si on sort du détail
-      if (window.location.search.includes('product=')) {
-        const cleanUrl = `${window.location.pathname}#${view}`;
-        window.history.pushState({ view }, '', cleanUrl);
-      } else {
-        window.location.hash = view;
-      }
-    } else if (view === 'home') {
-      // Home : Clean URL
-      if (window.location.hash || window.location.search) {
-        window.history.replaceState(null, null, ' ');
-      }
+      pushUrl(selectedItem ? getProductPath(selectedItem) : `/produit/${selectedItemId}`, { view: 'detail', itemId: selectedItemId });
+    } else if (view === 'shop-detail' && selectedAffiliateProductId) {
+      const currentShopProductId = getShopProductIdFromPath(window.location.pathname);
+      if (currentShopProductId === selectedAffiliateProductId && !selectedAffiliateProduct) return;
+      pushUrl(
+        selectedAffiliateProduct ? getShopProductPath(selectedAffiliateProduct) : `/comptoir/${selectedAffiliateProductId}`,
+        { view: 'shop-detail', itemId: selectedAffiliateProductId }
+      );
+    } else if (view === 'shop') {
+      pushUrl('/comptoir', { view });
+    } else if (view === 'delivery') {
+      pushUrl('/livraison-meubles-anciens-france', { view });
+    } else if (view === 'about' || view === 'home') {
+      pushUrl('/a-propos', { view: 'about' });
+    } else if (view === 'checkout') {
+      pushUrl('/checkout', { view });
+    } else if (view === 'my-orders') {
+      pushUrl('/mes-commandes', { view });
+    } else if (view === 'admin') {
+      pushUrl('/admin', { view });
+    } else if (view === 'gallery') {
+      if (window.location.pathname === '/' && !window.location.search && !window.location.hash) return;
+      const path = persistentGalleryState.activeCollection === 'cutting_boards'
+        ? '/planches-a-decouper-anciennes'
+        : getFurnitureCategoryPath(persistentGalleryState.activeCategory || 'all');
+      pushUrl(path, { view });
     }
-  }, [view, selectedItemId]);
+  }, [view, selectedItemId, selectedAffiliateProductId, items, boardItems, affiliateProducts, persistentGalleryState.activeCollection, persistentGalleryState.activeCategory]);
 
   // --- TRAITEMENT DEEP LINK ---
   useEffect(() => {
@@ -452,8 +676,6 @@ const AppContent = () => {
         setSelectedItemId(pendingDeepLink);
         setView('detail');
         setPendingDeepLink(null); // Lien consommé
-        // Nettoyer l'URL sans recharger
-        window.history.replaceState({}, document.title, window.location.pathname);
       }
     }
   }, [items, boardItems, pendingDeepLink]);
@@ -579,7 +801,7 @@ const AppContent = () => {
     console.log("Order placed restoration:", persistentGalleryState, orderData);
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-transparent"><div className="w-10 h-10 border-[3px] border-stone-200 border-t-stone-900 rounded-full animate-spin"></div></div>;
+  if (loading && !showStartupPreloader) return <div className="min-h-screen flex items-center justify-center bg-transparent"><div className="w-10 h-10 border-[3px] border-stone-200 border-t-stone-900 rounded-full animate-spin"></div></div>;
 
   // Active Admin List
 
@@ -589,16 +811,26 @@ const AppContent = () => {
   const currentAdminItems = adminCollection === 'furniture' ? items : boardItems;
   // Cart Total
   const cartTotal = cartItems.reduce((sum, item) => sum + (item.price || 0), 0);
+  const selectedAffiliateProduct = affiliateProducts.find((product) => product.id === selectedAffiliateProductId);
+  const selectedCatalogItem = items.concat(boardItems).find(i => i.id === selectedItemId);
 
   return (
     <div className={`min-h-screen font-sans selection:bg-stone-300 transition-colors duration-700 ${darkMode ? 'bg-[#0A0A0A] text-stone-200' : 'bg-[#FAFAF9] text-stone-900'}`}>
       <SEO />
       <AnalyticsProvider
         view={view}
-        selectedItemId={selectedItemId}
-        selectedItemName={items.concat(boardItems).find(i => i.id === selectedItemId)?.name}
-        selectedItemPrice={items.concat(boardItems).find(i => i.id === selectedItemId)?.currentPrice || items.concat(boardItems).find(i => i.id === selectedItemId)?.startingPrice}
+        selectedItemId={view === 'shop-detail' ? selectedAffiliateProductId : selectedItemId}
+        selectedItemName={view === 'shop-detail' ? selectedAffiliateProduct?.name : selectedCatalogItem?.name}
+        selectedItemPrice={view === 'shop-detail' ? selectedAffiliateProduct?.price : (selectedCatalogItem?.currentPrice || selectedCatalogItem?.startingPrice)}
+        selectedItemContext={view === 'shop-detail' ? selectedAffiliateProductContext : null}
       />
+
+      {showStartupPreloader && (
+        <StartupPreloader
+          warmup={runStartupWarmup}
+          onComplete={handleStartupPreloaderComplete}
+        />
+      )}
 
       {/* RIDEAU DE TRANSITION GLOBAL (Masque le switch de page) */}
       <div
@@ -606,7 +838,7 @@ const AppContent = () => {
         style={{ backgroundColor: darkMode ? '#0A0A0A' : '#FAFAF9' }}
       ></div>
 
-      {loading && <div className="fixed inset-0 z-[999] flex items-center justify-center bg-transparent"><div className="w-10 h-10 border-[3px] border-stone-200 border-t-stone-900 rounded-full animate-spin"></div></div>}
+      {loading && !showStartupPreloader && <div className="fixed inset-0 z-[999] flex items-center justify-center bg-transparent"><div className="w-10 h-10 border-[3px] border-stone-200 border-t-stone-900 rounded-full animate-spin"></div></div>}
 
       {/* COMPOSANT PANIER - Global (Disponible dès que la navbar est visible) */}
       <CartSidebar
@@ -619,12 +851,6 @@ const AppContent = () => {
         interacted={cartInteracted}
         darkMode={darkMode}
         activeDesignId={activeDesignId}
-      />
-
-      {/* MODAL NEWSLETTER */}
-      <NewsletterModal
-        showNewsletter={showNewsletter}
-        setShowNewsletter={setShowNewsletter}
       />
 
       {/* MODAL LOGIN (Pour la Marketplace) */}
@@ -763,7 +989,7 @@ const AppContent = () => {
 
       {/* --- NAVBAR & MENU GLOBAUX (NE S'AFFICHENT PAS SUR LA PAGE D'ACCUEIL) --- */}
       {/* --- MENU GLOBAL (Toujours disponible sauf Home) --- */}
-      {view !== 'home' && (
+      {!['home', 'about'].includes(view) && (
         <GlobalMenu
           isMenuOpen={isMenuOpen}
           setIsMenuOpen={setIsMenuOpen}
@@ -777,7 +1003,7 @@ const AppContent = () => {
       )}
 
       {/* --- NAVBAR GLOBALE --- */}
-      {view !== 'home' && (
+      {!['home', 'about'].includes(view) && (
         <>
           {activeDesignId === 'architectural' ? (
             <ArchitecturalHeader
@@ -789,11 +1015,11 @@ const AppContent = () => {
               cartCount={cartItems.length}
               toggleTheme={() => setDarkMode(!darkMode)}
               darkMode={darkMode}
-              onBack={view === 'detail' ? () => setView('gallery') : null}
+              onBack={view === 'detail' ? () => setView('gallery') : view === 'shop-detail' ? () => setView('shop') : null}
             />
           ) : (
             <nav className={`fixed top-0 left-0 right-0 z-[110] px-4 md:px-12 pt-[max(4.5rem,env(safe-area-inset-top)+2rem)] pb-4 md:py-8 flex justify-between items-center transition-all duration-500 ease-in-out ${isHeaderVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}>
-              <div className="flex items-center gap-1.5 md:gap-3 cursor-pointer group" onClick={() => { window.hasShownPreloader = true; setView('home'); scrollToTop(); }}>
+              <div className="flex items-center gap-1.5 md:gap-3 cursor-pointer group" onClick={() => { window.hasShownPreloader = true; setView('about'); scrollToTop(); }}>
                 <div className={`w-[28px] h-[28px] md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center backdrop-blur-2xl border transition-all group-hover:rotate-6 shadow-sm ${darkMode ? 'bg-white/10 border-white/20 text-white' : 'bg-white border-stone-300 text-stone-900'}`}>
                   <Hammer size={12} strokeWidth={1.5} className="md:w-4 md:h-4" />
                 </div>
@@ -870,6 +1096,10 @@ const AppContent = () => {
           setShowFullLogin={setShowFullLogin}
           setSelectedItemId={setSelectedItemId}
           selectedItemId={selectedItemId}
+          selectedAffiliateProductId={selectedAffiliateProductId}
+          setSelectedAffiliateProductId={setSelectedAffiliateProductId}
+          selectedAffiliateProductContext={selectedAffiliateProductContext}
+          setSelectedAffiliateProductContext={setSelectedAffiliateProductContext}
           addToCart={addToCart}
           cartItems={cartItems}
           cartTotal={cartTotal}
@@ -892,7 +1122,7 @@ const AppContent = () => {
         />
       </main>
       {
-        ['home', 'gallery', 'detail', 'checkout', 'my-orders', 'shop'].includes(view) && (
+        ['home', 'gallery', 'detail', 'checkout', 'my-orders', 'shop', 'shop-detail'].includes(view) && (
           <div ref={footerRef}>
             <Footer darkMode={darkMode} />
           </div>

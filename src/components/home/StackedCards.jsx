@@ -1,9 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Hammer } from 'lucide-react';
-import EditorialMarquee from '../ui/EditorialMarquee'; // New Editorial Marquee
+import EditorialMarquee from '../ui/EditorialMarquee';
 import { motion, useScroll, useTransform } from 'framer-motion';
 
-// --- COMPOSANT : BOUTON DÉCOUVRIR ---
 const RotatingButton = ({ id }) => {
     const pathId = `btnPath-${id}`;
     return (
@@ -27,38 +26,37 @@ const RotatingButton = ({ id }) => {
     );
 };
 
-// --- SOUS-COMPOSANT : CARTE PARALLAX (Flux Naturel) ---
 const ParallaxCard = ({ item, index, onEnterMarketplace }) => {
     const containerRef = useRef(null);
-
-    // Track scroll progress of this specific card relative to the window
-    // 'start end': When TOP of card enters BOTTOM of viewport
-    // 'end start': When BOTTOM of card leaves TOP of viewport
     const { scrollYProgress } = useScroll({
         target: containerRef,
-        offset: ['start end', 'end start']
+        offset: ['start end', 'end start'],
     });
-
-    // RESPONSIVE LOGIC (UX Best Practice)
-    // Desktop: Needs stability. Animation starts late (0.75).
-    // Mobile: Needs flow. Animation starts early (0.25) to feel "alive" under the thumb.
-
     const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
-        const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+        let raf = 0;
+        const checkMobile = () => {
+            raf = 0;
+            setIsMobile(window.innerWidth < 1024);
+        };
+        const schedule = () => {
+            if (raf) return;
+            raf = requestAnimationFrame(checkMobile);
+        };
+
         checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
+        window.addEventListener('resize', schedule, { passive: true });
+        return () => {
+            window.removeEventListener('resize', schedule);
+            if (raf) cancelAnimationFrame(raf);
+        };
     }, []);
 
-    // 2. EXIT ANIMATION (Conditional)
     const scaleStart = isMobile ? 0.25 : 0.75;
     const opacityStart = isMobile ? 0.85 : 0.95;
-
     const scale = useTransform(scrollYProgress, [scaleStart, 1], [1, isMobile ? 0.88 : 0.92]);
     const opacity = useTransform(scrollYProgress, [opacityStart, 1], [1, 0]);
-    // const blur = useTransform(scrollYProgress, [0.8, 1], ['0px', '5px']); // Optional
 
     return (
         <motion.div
@@ -67,38 +65,28 @@ const ParallaxCard = ({ item, index, onEnterMarketplace }) => {
             style={{
                 scale,
                 opacity,
-                // filter: blur,
-                marginBottom: '-5vh', // Slight overlap for continuity - Stack effect without sticky
-                zIndex: index
+                marginBottom: '-5vh',
+                zIndex: index,
             }}
         >
             <div
                 className="card-visual relative w-[90%] md:w-[97%] max-w-[1800px] h-[80vh] md:h-[88vh] bg-[#FAF9F6] rounded-[2.5rem] md:rounded-[4rem] overflow-hidden shadow-[0_20px_70px_rgba(0,0,0,0.15)] flex flex-col items-center"
-                style={{
-                    backgroundColor: item.bgColor,
-                }}
+                style={{ backgroundColor: item.bgColor }}
             >
-                {/* 1. IMAGE ZONE (STATIC - NO PARALLAX) */}
                 <div className="relative w-full h-[58%] md:h-[55%] bg-gray-200">
-                    <div
-                        className="w-full h-full"
-                    >
-                        <picture className="w-full h-full block">
-                            <source media="(max-width: 767px)" srcSet={item.imgMobile} />
-                            <img
-                                src={item.img}
-                                alt={item.title.join(' ')}
-                                loading={index === 0 ? 'eager' : 'lazy'}
-                                decoding="async"
-                                className="w-full h-full object-cover"
-                            />
-                        </picture>
-                    </div>
+                    <picture className="w-full h-full block">
+                        <source media="(max-width: 767px)" srcSet={item.imgMobile} />
+                        <img
+                            src={item.img}
+                            alt={item.title.join(' ')}
+                            loading={index === 0 ? 'eager' : 'lazy'}
+                            decoding="async"
+                            className="w-full h-full object-cover"
+                        />
+                    </picture>
 
-                    {/* Gradient Overlay - Fixed to the frame bottom */}
-                    <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/40 to-transparent pointer-events-none"></div>
+                    <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
 
-                    {/* Badge - Mobile & Desktop: Straddle the line (match -mt-6 / -mt-12) */}
                     <div className="absolute bottom-6 translate-y-1/2 md:bottom-12 md:translate-y-1/2 left-1/2 -translate-x-1/2 flex items-center justify-center bg-[#1a1a1a] text-white px-5 py-2.5 md:px-6 md:py-3 rounded-full shadow-2xl z-20 whitespace-nowrap overflow-hidden">
                         <span className="text-[10px] md:text-[11px] lg:text-xs uppercase tracking-[0.3em] font-bold leading-none translate-y-[0.5px]">
                             {item.subtitle}
@@ -106,13 +94,10 @@ const ParallaxCard = ({ item, index, onEnterMarketplace }) => {
                     </div>
                 </div>
 
-                {/* 2. TEXT ZONE */}
                 <div
                     className="relative z-10 w-full flex-1 flex flex-col items-center justify-between pt-6 pb-8 px-4 md:px-12 text-center -mt-6 md:-mt-12 transition-colors duration-500"
                     style={{ backgroundColor: item.bgColor || '#FAF9F6' }}
                 >
-
-                    {/* 1. TITLES (Top) */}
                     <div className="w-full">
                         <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-[1.1] text-[#1a1a1a] mix-blend-multiply drop-shadow-sm transition-all duration-300" style={{ color: item.textColor }}>
                             {item.title[0]}
@@ -125,7 +110,6 @@ const ParallaxCard = ({ item, index, onEnterMarketplace }) => {
                         </h2>
                     </div>
 
-                    {/* 2. DESCRIPTION (Center) */}
                     <div className="w-full py-4 md:py-6">
                         <div className="mx-auto max-w-[90%] sm:max-w-md md:max-w-lg">
                             <p className="text-[9px] sm:text-[10px] md:text-xs uppercase tracking-[0.15em] font-light opacity-70 leading-relaxed" style={{ color: item.textColor }}>
@@ -134,7 +118,6 @@ const ParallaxCard = ({ item, index, onEnterMarketplace }) => {
                         </div>
                     </div>
 
-                    {/* 3. ACTION BUTTON (Bottom - Always Visible) */}
                     <div className="w-full flex justify-center pb-2">
                         <button onClick={onEnterMarketplace} className="flex items-center gap-4 md:gap-5 group text-[#1a1a1a]">
                             <RotatingButton id={item.id} />
@@ -145,7 +128,6 @@ const ParallaxCard = ({ item, index, onEnterMarketplace }) => {
                     </div>
                 </div>
 
-                {/* Background Texture */}
                 <div className="hidden md:block absolute inset-0 pointer-events-none opacity-[0.03]"
                     style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/cubes.png")' }}>
                 </div>
@@ -156,18 +138,17 @@ const ParallaxCard = ({ item, index, onEnterMarketplace }) => {
 
 const StackedCards = ({ items, onEnterMarketplace }) => {
     return (
-        <section className="featured-section relative w-full flex flex-col items-center gap-0 pt-20 md:pt-32 pb-[10vh]" 
-                 style={{ 
-                   background: 'linear-gradient(to bottom, #FFFFFF 0%, #FDF4E3 20%, #F8E2C4 50%, #F0C49B 80%, #D9956C 100%)',
-                   overflowX: 'clip' 
-                 }}>
-
-            {/* MARQUEE (Editorial Mode) */}
+        <section
+            className="featured-section relative w-full flex flex-col items-center gap-0 pt-20 md:pt-32 pb-[10vh]"
+            style={{
+                background: 'linear-gradient(to bottom, #FFFFFF 0%, #FDF4E3 20%, #F8E2C4 50%, #F0C49B 80%, #D9956C 100%)',
+                overflowX: 'clip',
+            }}
+        >
             <div className="w-full relative z-20 pb-20 md:pb-32 overflow-hidden">
                 <EditorialMarquee />
             </div>
 
-            {/* FLUX DE CARTES (No Sticky) - Just Gap */}
             <div className="w-full flex flex-col items-center gap-[5vh] md:gap-[10vh] pb-24">
                 {items.map((item, index) => (
                     <ParallaxCard
@@ -178,8 +159,6 @@ const StackedCards = ({ items, onEnterMarketplace }) => {
                     />
                 ))}
             </div>
-
-            {/* No extra spacer needed, flex gap handles it */}
         </section>
     );
 };

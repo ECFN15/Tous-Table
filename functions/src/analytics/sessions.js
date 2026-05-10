@@ -8,13 +8,82 @@
  */
 const functions = require('firebase-functions/v1');
 const admin = require('firebase-admin');
+const crypto = require('crypto');
 const { isAdminIP } = require('./adminIP');
+const { getClientIpInfo, isPrivateOrLocalIp } = require('./ip');
+const {
+    canResumeSession,
+    hashSyncToken,
+    isValidSyncToken,
+    toMillis
+} = require('./sessionSecurity');
 
 const db = admin.firestore();
+const MAX_SESSION_DURATION_SECONDS = 24 * 60 * 60;
+const MAX_JOURNEY_CHUNK = 25;
+
+const createSyncToken = () => crypto.randomBytes(32).toString('base64url');
+
+const clampDuration = (value) => {
+    const duration = Number(value);
+    if (!Number.isFinite(duration)) return 0;
+    return Math.max(0, Math.min(MAX_SESSION_DURATION_SECONDS, Math.round(duration)));
+};
+
+const sanitizeString = (value, maxLength = 160) => {
+    if (value === null || value === undefined) return null;
+    return String(value).slice(0, maxLength);
+};
+
+const tryResumeSession = async ({ sessionId, syncToken, authUid, device, browser, os }) => {
+    const cleanSessionId = sanitizeString(sessionId, 160);
+    if (!cleanSessionId || !syncToken) return null;
+
+    const sessionRef = db.collection('analytics_sessions').doc(cleanSessionId);
+    const sessionSnap = await sessionRef.get();
+    if (!sessionSnap.exists) return null;
+
+    const sessionData = sessionSnap.data();
+    const now = Date.now();
+    if (!canResumeSession(sessionData, { authUid, syncToken, now })) return null;
+
+    await sessionRef.update({
+        lastActivityAt: admin.firestore.FieldValue.serverTimestamp(),
+        sessionActive: true,
+        device: device || sessionData.device || 'Unknown',
+        browser: browser || sessionData.browser || 'Unknown',
+        os: os || sessionData.os || 'Unknown',
+        resumedAt: admin.firestore.FieldValue.serverTimestamp(),
+        analyticsVersion: 3
+    });
+
+    return {
+        success: true,
+        resumed: true,
+        sessionId: sessionSnap.id,
+        syncToken,
+        ipDetected: Boolean(sessionData.ipMeta?.detected || sessionData.ip),
+        startedAtMs: toMillis(sessionData.startedAt) || now
+    };
+};
+
+const sanitizeJourney = (journey) => {
+    if (!Array.isArray(journey)) return [];
+
+    return journey
+        .slice(0, MAX_JOURNEY_CHUNK)
+        .map((step) => ({
+            page: sanitizeString(step?.page, 80) || 'unknown',
+            itemId: sanitizeString(step?.itemId, 255),
+            time: sanitizeString(step?.time, 40),
+            duration: clampDuration(step?.duration)
+        }))
+        .filter(step => step.page);
+};
 
 // Géolocalisation simple via IP (ip-api.com — gratuit, pas de clé API requise)
 const getGeoFromIp = async (ip) => {
-    if (!ip || ip === 'Unknown' || ip === '127.0.0.1' || ip === '::1' || ip.startsWith('192.168.')) return null;
+    if (!ip || isPrivateOrLocalIp(ip)) return null;
     try {
         const response = await fetch(`http://ip-api.com/json/${ip}?fields=country,regionName,city,status`);
         const data = await response.json();
@@ -32,11 +101,30 @@ const getGeoFromIp = async (ip) => {
     }
 };
 
-exports.initLiveSession = functions.https.onCall(async (data, context) => {
-    const rawIp = context.rawRequest.headers['x-forwarded-for'] || context.rawRequest.connection.remoteAddress;
-    const ip = rawIp ? rawIp.split(',')[0].trim() : 'Unknown';
+exports.initLiveSession = functions.https.onCall(async (data = {}, context) => {
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'Auth required');
+    }
+
+    const ipInfo = getClientIpInfo(context.rawRequest);
+    const ip = ipInfo.ip;
     const userAgent = context.rawRequest.headers['user-agent'] || 'Unknown';
-    const { userId, email, type, device, browser, os } = data;
+    const { userId, email, type, device, browser, os, resumeSessionId, resumeSyncToken } = data;
+    const authUid = context.auth.uid || userId || 'unknown';
+    const authEmail = context.auth.token.email || email || null;
+    const authProvider = context.auth.token.firebase?.sign_in_provider || 'unknown';
+
+    const resumedSession = await tryResumeSession({
+        sessionId: resumeSessionId,
+        syncToken: resumeSyncToken,
+        authUid,
+        device,
+        browser,
+        os
+    });
+    if (resumedSession) return resumedSession;
+
+    const syncToken = createSyncToken();
 
     let geo = await getGeoFromIp(ip);
 
@@ -47,10 +135,25 @@ exports.initLiveSession = functions.https.onCall(async (data, context) => {
     const sessionType = (type === 'admin' || isFromAdminIP) ? 'admin' : (type || 'anonymous');
 
     const sessionData = {
-        userId: userId || 'unknown',
-        email: email || null,
+        userId: authUid,
+        email: authEmail,
         type: sessionType,
         ip: ip,
+        ipMeta: {
+            source: ipInfo.source,
+            version: ipInfo.version,
+            detected: ipInfo.detected,
+            usable: ipInfo.usable,
+            public: ipInfo.public
+        },
+        authProvider,
+        visitorIdentity: {
+            source: authUid && authUid !== 'unknown'
+                ? (authProvider === 'anonymous' ? 'anonymous_uid' : 'auth_uid')
+                : (ipInfo.usable ? 'ip' : 'session'),
+            hasAuthUid: Boolean(authUid && authUid !== 'unknown'),
+            hasServerIp: ipInfo.usable
+        },
         startedAt: admin.firestore.FieldValue.serverTimestamp(),
         lastActivityAt: admin.firestore.FieldValue.serverTimestamp(),
         duration: 0,
@@ -61,32 +164,57 @@ exports.initLiveSession = functions.https.onCall(async (data, context) => {
         geo: geo || { country: 'Unknown', city: 'Unknown', region: 'Unknown' },
         journey: [],
         sessionActive: true,
-        adminIPDetected: isFromAdminIP && type !== 'admin'
+        adminIPDetected: isFromAdminIP && type !== 'admin',
+        analyticsVersion: 3,
+        syncTokenHash: hashSyncToken(syncToken)
     };
 
     try {
         const sessionRef = await db.collection('analytics_sessions').add(sessionData);
-        return { success: true, sessionId: sessionRef.id };
+        return {
+            success: true,
+            resumed: false,
+            sessionId: sessionRef.id,
+            syncToken,
+            ipDetected: ipInfo.detected,
+            startedAtMs: Date.now()
+        };
     } catch (error) {
         console.error("Init Error:", error);
         throw new functions.https.HttpsError('internal', 'Init failed');
     }
 });
 
-exports.syncSession = functions.https.onCall(async (data, context) => {
-    const { sessionId, journey, duration, sessionActive } = data;
+exports.syncSession = functions.https.onCall(async (data = {}, context) => {
+    if (!context.auth) return { success: false, unauthenticated: true };
+
+    const { sessionId, journey, duration, sessionActive, syncToken } = data;
     if (!sessionId) return { success: false };
 
     try {
         const sessionRef = db.collection('analytics_sessions').doc(sessionId);
+        const sessionSnap = await sessionRef.get();
+
+        if (!sessionSnap.exists) {
+            console.warn("Sync skipped: session not found", { sessionId });
+            return { success: true, missing: true };
+        }
+
+        const sessionData = sessionSnap.data();
+        if (!isValidSyncToken(sessionData, syncToken)) {
+            console.warn("Sync rejected: invalid token", { sessionId });
+            return { success: false, invalidToken: true };
+        }
+
         const updates = {
             lastActivityAt: admin.firestore.FieldValue.serverTimestamp(),
-            duration: duration || 0,
+            duration: clampDuration(duration),
             sessionActive: sessionActive !== undefined ? sessionActive : true
         };
 
-        if (journey && journey.length > 0) {
-            updates.journey = admin.firestore.FieldValue.arrayUnion(...journey);
+        const cleanJourney = sanitizeJourney(journey);
+        if (cleanJourney.length > 0) {
+            updates.journey = admin.firestore.FieldValue.arrayUnion(...cleanJourney);
         }
 
         await sessionRef.update(updates);
@@ -128,7 +256,8 @@ exports.syncSessionBeacon = functions.https.onRequest(async (req, res) => {
             payload = req.body;
         }
 
-        const { sessionId, journey, duration, sessionActive } = payload;
+        payload = payload || {};
+        const { sessionId, journey, duration, sessionActive, syncToken } = payload;
 
         if (!sessionId) {
             res.status(400).send('Missing session ID');
@@ -136,14 +265,30 @@ exports.syncSessionBeacon = functions.https.onRequest(async (req, res) => {
         }
 
         const sessionRef = db.collection('analytics_sessions').doc(sessionId);
+        const sessionSnap = await sessionRef.get();
+
+        if (!sessionSnap.exists) {
+            console.warn("Beacon sync skipped: session not found", { sessionId });
+            res.status(204).send('');
+            return;
+        }
+
+        const sessionData = sessionSnap.data();
+        if (!isValidSyncToken(sessionData, syncToken)) {
+            console.warn("Beacon sync rejected: invalid token", { sessionId });
+            res.status(403).send('Invalid session token');
+            return;
+        }
+
         const updates = {
             lastActivityAt: admin.firestore.FieldValue.serverTimestamp(),
-            duration: duration || 0,
+            duration: clampDuration(duration),
             sessionActive: sessionActive !== undefined ? sessionActive : false
         };
 
-        if (journey && journey.length > 0) {
-            updates.journey = admin.firestore.FieldValue.arrayUnion(...journey);
+        const cleanJourney = sanitizeJourney(journey);
+        if (cleanJourney.length > 0) {
+            updates.journey = admin.firestore.FieldValue.arrayUnion(...cleanJourney);
         }
 
         await sessionRef.update(updates);

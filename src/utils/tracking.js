@@ -1,6 +1,16 @@
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
+const getAnalyticsSessionId = () => {
+    try {
+        return sessionStorage.getItem('analytics_session_id')
+            || localStorage.getItem('analytics_session_id')
+            || null;
+    } catch {
+        return null;
+    }
+};
+
 export const trackAffiliateClick = async ({
     product,
     source,
@@ -37,8 +47,9 @@ export const trackAffiliateClick = async ({
             category: product.category || 'unknown',
             tier: product.tier || 'essentiel',
             timestamp: serverTimestamp(),
-            sessionId: sessionStorage.getItem('analytics_session_id') || null,
-            source: source
+            sessionId: getAnalyticsSessionId(),
+            source: source,
+            referrer: window.location.pathname || '/'
         };
 
         if (parentFurnitureId) payload.parentFurnitureId = parentFurnitureId;

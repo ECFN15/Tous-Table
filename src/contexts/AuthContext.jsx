@@ -152,7 +152,7 @@ export const AuthProvider = ({ children }) => {
 
     const verifyEmail = (user) => {
         return sendEmailVerification(user, {
-            url: window.location.origin + '?page=gallery',
+            url: window.location.origin + '/',
             handleCodeInApp: true
         });
     };

@@ -88,6 +88,254 @@ body.modal-open {
   font-family: 'Cormorant Garamond', serif;
 }
 
+@media (max-width: 767px) {
+  .marketplace-hero-copy-row {
+    margin-top: auto;
+    padding-top: clamp(3.5rem, 8svh, 4.75rem);
+  }
+}
+
+body.tat-startup-preloading {
+  overflow: hidden !important;
+  touch-action: none;
+  background: #1a1a1a !important;
+}
+
+.tat-startup-preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  pointer-events: auto;
+  isolation: isolate;
+  overflow: hidden;
+  contain: layout paint style;
+  background: transparent;
+}
+
+.tat-startup-preloader-secondary,
+.tat-startup-preloader-panel {
+  position: absolute;
+  inset: 0;
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+}
+
+.tat-startup-preloader-secondary {
+  z-index: 0;
+  background: rgba(156, 130, 104, 0.2);
+}
+
+.tat-startup-preloader-panel {
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  color: #FAF9F6;
+  background: #1a1a1a;
+  backface-visibility: hidden;
+}
+
+.tat-startup-preloader-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.55rem;
+  padding: 2rem;
+  opacity: 0;
+  transform: translateZ(0);
+}
+
+.tat-startup-preloader-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.08rem;
+}
+
+.tat-startup-preloader-icon {
+  color: #9C8268;
+  opacity: 0;
+  transform: scale(0.8);
+  filter: blur(5px);
+}
+
+.tat-startup-preloader-icon svg {
+  width: 2.8rem;
+  height: 2.8rem;
+  filter: drop-shadow(0 0 15px rgba(156, 130, 104, 0.3));
+}
+
+.tat-startup-preloader-title-mask {
+  overflow: visible;
+}
+
+.tat-startup-preloader-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.12em;
+  overflow: hidden;
+  width: min(100%, calc(100vw - 3rem));
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(1.94rem, 8.7vw, 2.34rem);
+  font-style: italic;
+  font-weight: 300;
+  letter-spacing: 0.12em;
+  line-height: 0.95;
+  text-align: center;
+}
+
+.tat-startup-preloader-char {
+  display: inline-block;
+  opacity: 0;
+  transform: translate3d(0, 40px, 0);
+  filter: blur(10px);
+  will-change: transform, opacity, filter;
+}
+
+.tat-startup-preloader--lean .tat-startup-preloader-icon,
+.tat-startup-preloader--lean .tat-startup-preloader-char {
+  filter: none;
+  will-change: transform, opacity;
+}
+
+.tat-startup-preloader--lean .tat-startup-preloader-icon svg {
+  filter: none;
+}
+
+@media (pointer: coarse) and (max-width: 767px) {
+  .tat-startup-preloader--mobile-mask .tat-startup-preloader-title-mask {
+    overflow: hidden;
+  }
+
+  .tat-startup-preloader--mobile-mask .tat-startup-preloader-title {
+    overflow: visible;
+    will-change: transform, opacity;
+  }
+
+  .tat-startup-preloader--mobile-mask .tat-startup-preloader-char {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    will-change: auto;
+  }
+}
+
+.tat-startup-preloader-footer {
+  position: relative;
+  top: 0.42rem;
+  display: flex;
+  align-items: center;
+  gap: 0.74rem;
+  min-height: 0.75rem;
+  margin-top: 0;
+  color: #FAF9F6;
+  font-family: "Cormorant Garamond", serif;
+  font-size: 0.76rem;
+  font-style: italic;
+  font-weight: 300;
+  letter-spacing: 0.155em;
+  text-transform: uppercase;
+  opacity: 0;
+}
+
+.tat-startup-preloader-footer span:first-child,
+.tat-startup-preloader-footer span:last-child {
+  width: 1.68rem;
+  height: 1px;
+  background: rgba(250, 249, 246, 0.34);
+}
+
+@media (min-width: 768px) {
+  .tat-startup-preloader-content {
+    gap: 3.55rem;
+  }
+
+  .tat-startup-preloader-brand {
+    gap: 3.14rem;
+  }
+
+  .tat-startup-preloader-icon svg {
+    width: 3.85rem;
+    height: 3.85rem;
+  }
+
+  .tat-startup-preloader-title {
+    gap: 0.17em;
+    width: auto;
+    padding-inline: 1.5rem;
+    font-size: clamp(3.55rem, 5.6vw, 4.2rem);
+    letter-spacing: 0.17em;
+  }
+
+  .tat-startup-preloader-footer {
+    top: 0;
+    gap: 1.18rem;
+    font-size: 0.98rem;
+    letter-spacing: 0.2em;
+  }
+
+  .tat-startup-preloader-footer span:first-child,
+  .tat-startup-preloader-footer span:last-child {
+    width: 3rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .tat-startup-preloader-content {
+    gap: 4rem;
+  }
+
+  .tat-startup-preloader-brand {
+    gap: 3.55rem;
+  }
+
+  .tat-startup-preloader-icon svg {
+    width: 4.15rem;
+    height: 4.15rem;
+  }
+
+  .tat-startup-preloader-title {
+    font-size: clamp(4rem, 4.8vw, 4.75rem);
+    letter-spacing: 0.165em;
+  }
+
+  .tat-startup-preloader-footer {
+    gap: 1.35rem;
+    font-size: 1.06rem;
+  }
+
+  .tat-startup-preloader-footer span:first-child,
+  .tat-startup-preloader-footer span:last-child {
+    width: 3.45rem;
+  }
+}
+
+@media (min-width: 1440px) {
+  .tat-startup-preloader-content {
+    gap: 4.35rem;
+  }
+
+  .tat-startup-preloader-brand {
+    gap: 3.86rem;
+  }
+
+  .tat-startup-preloader-title {
+    font-size: 4.95rem;
+  }
+
+  .tat-startup-preloader-footer {
+    gap: 1.48rem;
+    font-size: 1.12rem;
+  }
+
+  .tat-startup-preloader-footer span:first-child,
+  .tat-startup-preloader-footer span:last-child {
+    width: 3.8rem;
+  }
+}
+
 /* Custom Utilities from HomeView */
 #main-cursor {
   position: fixed;
@@ -190,6 +438,14 @@ body.modal-open {
   width: max-content;
 }
 
+html.tat-low-power-mobile .img-parallax img,
+html.tat-low-power-mobile .will-change-transform,
+html.tat-low-power-mobile .quote-word,
+html.tat-low-power-mobile .process-card,
+html.tat-low-power-mobile .tat-startup-preloader-char {
+  will-change: auto !important;
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -220,6 +476,28 @@ body.modal-open {
 .tat-heavy-section {
   content-visibility: auto;
   contain-intrinsic-size: auto 1180px;
+  contain: layout paint style;
+}
+
+.tat-shop-card-image--blend,
+.tat-shop-card-image--mobile-light {
+  mix-blend-mode: multiply;
+}
+
+@media (pointer: coarse) {
+  .tat-shop-card-shell {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 520px;
+  }
+
+  .tat-shop-card-shell--mobile-light {
+    contain-intrinsic-size: auto 440px;
+  }
+
+  .tat-heavy-section {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 860px;
+  }
 }
 
 /* Optimized image rendering */

@@ -5,6 +5,10 @@ import { ArrowDown, ArrowRight, ChevronDown, Hammer, ShieldCheck, Tag, Truck } f
 import { FurnitureHeaderIcon, BreadBoardHeaderIcon, CounterHeaderIcon } from './components/ArchitecturalHeader';
 import TextType from '../../components/ui/TextType';
 import { scrollToTarget } from '../../utils/smoothScroll';
+import { warmImage } from '../../utils/startupWarmup';
+import { isLowPowerMobileDevice, isTouchDevice, shouldLimitNetworkWarmup } from '../../utils/devicePerformance';
+import { LEGACY_FURNITURE_CATEGORY_BY_ID } from '../../data/legacyFurnitureCategories';
+import { BOARD_SEO_CONTENT, CATEGORY_SEO_CONTENT } from '../../data/categorySeoContent';
 
 // Nombre de colonnes responsive — aligné sur les breakpoints Tailwind utilisés dans
 // l'ancien `columns-2 md:columns-3 lg:columns-4`.
@@ -36,8 +40,88 @@ const useResponsiveCols = () => {
 // On lit le `RATIO_CACHE` partagé avec `ProductCard` ; à défaut, fallback portrait 4:5
 // (= 1.25), qui est le ratio par défaut posé sur le `<a>` quand l'image n'est pas chargée.
 const FALLBACK_HEIGHT_RATIO = 5 / 4;
+const LOAD_MORE_BATCH_SIZE = 12;
+const FRESH_CARD_ANIMATION_MS = 1150;
+const FRESH_CARD_TOUCH_ANIMATION_MS = 850;
+const FRESH_CARD_CONSTRAINED_ANIMATION_MS = 680;
+const FRESH_CARD_CLEAR_BUFFER_MS = 150;
+const wait = (duration) => new Promise((resolve) => setTimeout(resolve, duration));
+const getCardImage = (item) => item?.images?.[0] || item?.imageUrl || item?.thumbnailUrl || '';
+
+const cacheImageRatio = (src, img) => {
+    if (!src || !img?.naturalWidth || !img?.naturalHeight || RATIO_CACHE.has(src)) return;
+    RATIO_CACHE.set(src, {
+        aspectRatio: `${img.naturalWidth} / ${img.naturalHeight}`,
+        objectPos: 'center',
+    });
+};
+
+const isLoadMoreConstrainedDevice = () => {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
+    if (shouldLimitNetworkWarmup()) return true;
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return true;
+
+    const memory = Number(navigator.deviceMemory || 0);
+    const cores = Number(navigator.hardwareConcurrency || 0);
+
+    if (memory > 0 && memory <= 4) return true;
+    if (cores > 0 && cores <= 4) return true;
+
+    // Galaxy S/Ultra, iPhone Pro récents, etc. : largeur mobile, mais budget CPU/RAM solide.
+    // On évite de les envoyer dans le profil prudent prévu pour Android entrée de gamme.
+    if (memory >= 6 || cores >= 6) return false;
+
+    return isLowPowerMobileDevice();
+};
+
+const getLoadMoreRevealProfile = () => {
+    if (
+        typeof window !== 'undefined' &&
+        window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    ) {
+        return {
+            revealSize: LOAD_MORE_BATCH_SIZE,
+            revealInterval: 0,
+            intraBatchDelay: 0,
+            priorityCount: 2,
+            animationMs: 0,
+        };
+    }
+
+    const touch = isTouchDevice();
+    const constrained = touch && isLoadMoreConstrainedDevice();
+
+    if (constrained) {
+        return {
+            revealSize: 1,
+            revealInterval: 75,
+            intraBatchDelay: 0,
+            priorityCount: 1,
+            animationMs: FRESH_CARD_CONSTRAINED_ANIMATION_MS,
+        };
+    }
+
+    if (touch) {
+        return {
+            revealSize: 2,
+            revealInterval: 95,
+            intraBatchDelay: 45,
+            priorityCount: 2,
+            animationMs: FRESH_CARD_TOUCH_ANIMATION_MS,
+        };
+    }
+
+    return {
+        revealSize: 3,
+        revealInterval: 135,
+        intraBatchDelay: 45,
+        priorityCount: 4,
+        animationMs: FRESH_CARD_ANIMATION_MS,
+    };
+};
+
 const getPredictedHeightRatio = (item) => {
-    const img = item?.images?.[0] || item?.imageUrl || item?.thumbnailUrl;
+    const img = getCardImage(item);
     if (!img) return FALLBACK_HEIGHT_RATIO;
     const cached = RATIO_CACHE.get(img);
     if (!cached?.aspectRatio) return FALLBACK_HEIGHT_RATIO;
@@ -81,6 +165,10 @@ const normalizeText = (value = '') =>
 // (ex. "table à langer" dans la fiche d'une commode → faisait matcher 'table' à tort).
 const getFurnitureCategory = (item) => {
     if (item?.category) return item.category;
+    if (item?.id && LEGACY_FURNITURE_CATEGORY_BY_ID[item.id]) {
+        return LEGACY_FURNITURE_CATEGORY_BY_ID[item.id];
+    }
+
     const name = normalizeText(item?.name || '');
 
     // 1. Cas spéciaux à traiter en priorité (mots qui pourraient matcher plusieurs catégories).
@@ -249,14 +337,16 @@ const AtelierBadge = () => (
 // Trois boutons (Mobilier / Planches / Le Comptoir) à border néon rotative,
 // affichés au-dessus du label "Collection 2026" dans le hero.
 // Réutilise les mêmes icônes que la nav header pour une identité visuelle cohérente.
-const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilter, onOpenShop, darkMode = false }) => {
+const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilter, onOpenShop, onCollectionIntent, onShopIntent, darkMode = false }) => {
     const items = [
         {
             id: 'furniture',
             label: 'Mobilier',
             Icon: FurnitureHeaderIcon,
             isActive: activeCollection === 'furniture',
+            onIntent: () => onCollectionIntent?.('furniture'),
             onClick: () => {
+                onCollectionIntent?.('furniture');
                 if (typeof setActiveCollection === 'function') setActiveCollection('furniture');
                 if (typeof setFilter === 'function') setFilter('fixed');
             },
@@ -266,7 +356,9 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
             label: 'Planches',
             Icon: BreadBoardHeaderIcon,
             isActive: activeCollection === 'cutting_boards',
+            onIntent: () => onCollectionIntent?.('cutting_boards'),
             onClick: () => {
+                onCollectionIntent?.('cutting_boards');
                 if (typeof setActiveCollection === 'function') setActiveCollection('cutting_boards');
             },
         },
@@ -276,7 +368,9 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
             Icon: CounterHeaderIcon,
             isActive: false, // Le Comptoir = page séparée → jamais actif sur MarketplaceLayout
             isShop: true,
+            onIntent: () => onShopIntent?.(),
             onClick: () => {
+                onShopIntent?.();
                 if (typeof onOpenShop === 'function') onOpenShop();
             },
         },
@@ -284,7 +378,7 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
 
     return (
         <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
-            {items.map(({ id, label, Icon, isActive, isShop, onClick }) => (
+            {items.map(({ id, label, Icon, isActive, isShop, onClick, onIntent }) => (
                 <div key={id} className="relative">
                     {isShop ? (
                         /* LE COMPTOIR — border néon rotative (comme en prod) */
@@ -300,6 +394,9 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
                                 />
                                 <motion.button
                                     type="button"
+                                    onMouseEnter={onIntent}
+                                    onFocus={onIntent}
+                                    onPointerDown={onIntent}
                                     onClick={onClick}
                                     whileHover={{ scale: 1.04 }}
                                     whileTap={{ scale: 0.97 }}
@@ -326,6 +423,9 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
                         /* MOBILIER actif — pill blanche pleine, pas de neon */
                         <motion.button
                             type="button"
+                            onMouseEnter={onIntent}
+                            onFocus={onIntent}
+                            onPointerDown={onIntent}
                             onClick={onClick}
                             whileHover={{ scale: 1.04 }}
                             whileTap={{ scale: 0.97 }}
@@ -349,6 +449,9 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
                             />
                             <motion.button
                                 type="button"
+                                onMouseEnter={onIntent}
+                                onFocus={onIntent}
+                                onPointerDown={onIntent}
                                 onClick={onClick}
                                 whileHover={{ scale: 1.04 }}
                                 whileTap={{ scale: 0.97 }}
@@ -367,18 +470,63 @@ const NeonCollectionSwitcher = ({ activeCollection, setActiveCollection, setFilt
     );
 };
 
+const CategorySeoIntro = ({ content, darkMode }) => {
+    if (!content) return null;
+
+    return (
+        <section className={`mt-1 mb-6 md:mb-8 border-y py-5 md:py-6 ${darkMode ? 'border-[#8a5b2a]/20' : 'border-[#c79b5d]/28'}`}>
+            <div className="grid gap-4 md:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] md:gap-10">
+                <div>
+                    <p className={`text-[9px] md:text-[10px] font-black uppercase tracking-[0.28em] ${darkMode ? 'text-[#f0b969]/80' : 'text-[#8a531c]'}`}>
+                        {content.eyebrow}
+                    </p>
+                    <h2 className={`mt-2 font-serif text-2xl md:text-3xl leading-tight ${darkMode ? 'text-stone-100' : 'text-stone-950'}`}>
+                        {content.title}
+                    </h2>
+                </div>
+                <div className="space-y-3">
+                    <p className={`max-w-[72ch] text-sm md:text-[15px] leading-relaxed ${darkMode ? 'text-stone-300/82' : 'text-stone-700'}`}>
+                        {content.body}
+                    </p>
+                    {content.links?.length > 0 && (
+                        <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1">
+                            {content.links.map((link) => (
+                                <a
+                                    key={link.href}
+                                    href={link.href}
+                                    className={`inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.18em] underline-offset-4 hover:underline ${darkMode ? 'text-[#f0b969]' : 'text-[#8a531c]'}`}
+                                >
+                                    {link.label}
+                                    <ArrowRight size={12} strokeWidth={1.7} />
+                                </a>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </section>
+    );
+};
+
 const MarketplaceLayout = ({
     items,
     onSelectItem,
+    onProductIntent,
     headerProps,
     darkMode,
-    setHeaderProps
+    setHeaderProps,
+    initialCategory = 'all',
+    onCategoryChange
 }) => {
-    const { activeCollection, setActiveCollection, setFilter, onOpenShop } = headerProps || {};
-    const [activeCategory, setActiveCategory] = useState('all');
+    const { activeCollection, setActiveCollection, setFilter, onOpenShop, onCollectionIntent, onShopIntent } = headerProps || {};
+    const [activeCategory, setActiveCategory] = useState(initialCategory || 'all');
     const [activeMaterial, setActiveMaterial] = useState('');
     const [activePriceRange, setActivePriceRange] = useState('');
     const [sortMode, setSortMode] = useState('recent');
+
+    useEffect(() => {
+        setActiveCategory(activeCollection === 'cutting_boards' ? 'all' : (initialCategory || 'all'));
+    }, [activeCollection, initialCategory]);
 
     // === ARCHITECTURE MASONRY JS-DRIVEN ===
     // On rend N colonnes flex-col indépendantes (cf. NUM_COLS responsive). Chaque carte est
@@ -395,14 +543,27 @@ const MarketplaceLayout = ({
     // sous les colonnes courtes comme avec l'ancien chunking par batch).
     const NUM_COLS = useResponsiveCols();
     const [visibleCount, setVisibleCount] = useState(24);
-    // Map<itemId, indexDansLeBatchFrais> — uniquement pour les nouveaux items à animer.
+    const [isPreparingMore, setIsPreparingMore] = useState(false);
+    // Map<itemId, delayMs> — uniquement pour les nouveaux items à animer.
     // Vide à l'état initial et après reset des filtres → aucune animation parasite.
     const [freshOrder, setFreshOrder] = useState(() => new Map());
+    const [freshPriorityIds, setFreshPriorityIds] = useState(() => new Set());
     // Map<itemId, ratio h/w> — gelé à la première rencontre pour figer les placements.
     const heightsRef = useRef(new Map());
     // Timer pour clear `freshOrder` après la fin de l'animation (libère le will-change
     // GPU des cartes fraîches). Cf. _DOCS/AUDITS/scrolllenis.md §3.4.B.
     const freshClearTimerRef = useRef(null);
+    const revealTimersRef = useRef([]);
+    const loadMoreRunRef = useRef(0);
+
+    const clearLoadMoreTimers = useCallback(() => {
+        if (freshClearTimerRef.current) {
+            clearTimeout(freshClearTimerRef.current);
+            freshClearTimerRef.current = null;
+        }
+        revealTimersRef.current.forEach((timer) => clearTimeout(timer));
+        revealTimersRef.current = [];
+    }, []);
 
     useEffect(() => {
         if (setHeaderProps && headerProps) setHeaderProps(headerProps);
@@ -422,7 +583,7 @@ const MarketplaceLayout = ({
     const sortedItems = useMemo(() => {
         const filtered = items.filter((item) => {
             // 1. Catégorie (priorité au champ Firestore, fallback regex sur nom/description).
-            if (activeCategory !== 'all' && getFurnitureCategory(item) !== activeCategory) return false;
+            if (activeCollection === 'furniture' && activeCategory !== 'all' && getFurnitureCategory(item) !== activeCategory) return false;
             // 2. Matière exacte.
             if (activeMaterial && item.material !== activeMaterial) return false;
             // 3. Tranche de prix.
@@ -438,67 +599,216 @@ const MarketplaceLayout = ({
             if (sortMode === 'priceDesc') return getPrice(b) - getPrice(a);
             return getMillis(b.createdAt || b.updatedAt) - getMillis(a.createdAt || a.updatedAt);
         });
-    }, [items, activeCategory, activeMaterial, priceRange, sortMode]);
+    }, [items, activeCategory, activeCollection, activeMaterial, priceRange, sortMode]);
 
-    const hasActiveFilters = activeCategory !== 'all' || activeMaterial !== '' || activePriceRange !== '';
+    const isBoardsCollection = activeCollection === 'cutting_boards';
+    const showFurnitureCategories = activeCollection === 'furniture';
+    const hasActiveFilters = (showFurnitureCategories && activeCategory !== 'all') || activeMaterial !== '' || activePriceRange !== '';
 
     // Reset à l'état initial : 24 items visibles, aucun item frais à animer, hauteurs effacées.
     // Appelé sur tout changement de filtre / catégorie / matière / tri (l'ordre des items change
     // → les placements précédents n'ont plus de sens, on repart à zéro).
     const resetView = useCallback(() => {
-        if (freshClearTimerRef.current) {
-            clearTimeout(freshClearTimerRef.current);
-            freshClearTimerRef.current = null;
-        }
+        loadMoreRunRef.current += 1;
+        clearLoadMoreTimers();
         heightsRef.current = new Map();
+        setIsPreparingMore(false);
         setVisibleCount(24);
         setFreshOrder(new Map());
-    }, []);
+        setFreshPriorityIds(new Set());
+    }, [clearLoadMoreTimers]);
 
     const resetAllFilters = useCallback(() => {
         setActiveCategory('all');
         setActiveMaterial('');
         setActivePriceRange('');
+        if (activeCollection === 'furniture') {
+            onCategoryChange?.('all');
+        }
         resetView();
-    }, [resetView]);
+    }, [activeCollection, onCategoryChange, resetView]);
+
+    useEffect(() => {
+        resetView();
+        setActiveMaterial('');
+        setActivePriceRange('');
+        if (activeCollection === 'cutting_boards') {
+            setActiveCategory('all');
+        }
+    }, [activeCollection, resetView]);
 
     const heroConfig = HERO_BY_COLLECTION[activeCollection] || HERO_BY_COLLECTION.furniture;
 
-    // "Voir plus" : on étend simplement la fenêtre visible et on marque les 12 nouveaux items
-    // comme "frais" (avec leur ordre d'apparition dans la salve pour le stagger d'animation).
-    // Le `useMemo` `columnsLayout` ré-exécute l'algo : les 24 premiers retombent à l'identique
-    // grâce aux hauteurs gelées dans `heightsRef`, et les 12 nouveaux s'insèrent dans la
-    // colonne actuellement la plus courte. Aucune carte existante ne bouge.
-    const loadMore = useCallback(() => {
-        const newCount = Math.min(visibleCount + 12, sortedItems.length);
-        const newSlice = sortedItems.slice(visibleCount, newCount);
-        const order = new Map();
-        newSlice.forEach((item, idx) => order.set(item.id, idx));
-        setFreshOrder(order);
-        setVisibleCount(newCount);
-        // Clear le freshOrder 150 ms après la fin de l'animation (1150 ms keyframe + buffer)
-        // → la classe `tat-fresh-card` disparaît → will-change retourne à `auto` → le GPU
-        // libère ses layers dédiés. Sinon ils s'accumulaient à chaque clic "Voir plus".
-        if (freshClearTimerRef.current) clearTimeout(freshClearTimerRef.current);
-        freshClearTimerRef.current = setTimeout(() => {
-            setFreshOrder(new Map());
-            freshClearTimerRef.current = null;
-        }, 1300);
+    // "Voir plus" prépare d'abord les images du prochain lot, puis étend la fenêtre visible.
+    // Les cartes gardent l'animation d'apparition existante, mais elle démarre après le warmup.
+    const warmLoadMoreBatchImages = useCallback((batch, { background = false } = {}) => {
+        const touch = isTouchDevice();
+        const constrained = touch && isLoadMoreConstrainedDevice();
+        const candidates = batch
+            .map((item) => getCardImage(item))
+            .filter(Boolean);
+
+        if (!candidates.length) return Promise.resolve();
+
+        const runWarmers = (urls, {
+            concurrency,
+            decodeCount,
+            imageTimeout,
+            pause = 0,
+        }) => {
+            let cursor = 0;
+            const workers = Array.from({ length: Math.min(concurrency, urls.length) }, async () => {
+                while (cursor < urls.length) {
+                    const index = cursor;
+                    cursor += 1;
+                    const src = urls[index];
+                    const shouldDecode = index < decodeCount;
+                    const img = await warmImage(src, {
+                        priority: shouldDecode ? 'high' : 'low',
+                        decode: shouldDecode,
+                        timeout: imageTimeout,
+                    });
+                    cacheImageRatio(src, img);
+
+                    if (pause > 0) await wait(pause);
+                }
+            });
+
+            return Promise.allSettled(workers);
+        };
+
+        if (background) {
+            const backgroundLimit = touch ? (constrained ? 4 : 6) : 8;
+            return runWarmers(candidates.slice(0, backgroundLimit), {
+                concurrency: touch ? 1 : 2,
+                decodeCount: touch ? 1 : 2,
+                imageTimeout: touch ? 900 : 700,
+                pause: touch ? 45 : 0,
+            });
+        }
+
+        const blockingCount = touch ? 2 : 5;
+        const blockingCandidates = candidates.slice(0, blockingCount);
+        const backgroundCandidates = candidates.slice(blockingCount, touch ? (constrained ? 6 : 9) : candidates.length);
+        const blockingTask = runWarmers(blockingCandidates, {
+            concurrency: touch ? (constrained ? 1 : 2) : 4,
+            decodeCount: touch ? Math.min(2, blockingCandidates.length) : blockingCandidates.length,
+            imageTimeout: touch ? (constrained ? 850 : 520) : 700,
+            pause: touch ? (constrained ? 55 : 10) : 0,
+        });
+
+        if (backgroundCandidates.length > 0) {
+            runWarmers(backgroundCandidates, {
+                concurrency: touch ? (constrained ? 1 : 2) : 3,
+                decodeCount: touch ? 1 : 2,
+                imageTimeout: touch ? 1200 : 900,
+                pause: touch ? 70 : 0,
+            });
+        }
+
+        const totalBudget = touch ? (constrained ? 820 : 300) : 520;
+        return Promise.race([blockingTask, wait(totalBudget)]);
+    }, []);
+    const getNextBatch = useCallback(() => {
+        const newCount = Math.min(visibleCount + LOAD_MORE_BATCH_SIZE, sortedItems.length);
+        return {
+            newSlice: sortedItems.slice(visibleCount, newCount),
+        };
     }, [visibleCount, sortedItems]);
+
+    const warmNextBatchIntent = useCallback(() => {
+        if (isPreparingMore) return;
+        const { newSlice } = getNextBatch();
+        if (!newSlice.length) return;
+        warmLoadMoreBatchImages(newSlice, { background: true });
+    }, [getNextBatch, isPreparingMore, warmLoadMoreBatchImages]);
+
+    const scheduleLoadMoreReveal = useCallback(({ newSlice, startCount, runId, profile }) => {
+        clearLoadMoreTimers();
+        let revealedCount = 0;
+
+        const finishReveal = (lastChunkSize) => {
+            const lastDelay = Math.max(0, (lastChunkSize - 1) * profile.intraBatchDelay);
+            const clearDelay = profile.animationMs + FRESH_CARD_CLEAR_BUFFER_MS + lastDelay;
+            setIsPreparingMore(false);
+            freshClearTimerRef.current = setTimeout(() => {
+                if (loadMoreRunRef.current !== runId) return;
+                setFreshOrder(new Map());
+                setFreshPriorityIds(new Set());
+                freshClearTimerRef.current = null;
+            }, clearDelay);
+        };
+
+        const revealNextChunk = () => {
+            if (loadMoreRunRef.current !== runId) return;
+
+            const nextRevealedCount = Math.min(revealedCount + profile.revealSize, newSlice.length);
+            const chunk = newSlice.slice(revealedCount, nextRevealedCount);
+            revealedCount = nextRevealedCount;
+
+            setFreshOrder((prev) => {
+                const next = new Map(prev);
+                chunk.forEach((item, slot) => {
+                    next.set(item.id, slot * profile.intraBatchDelay);
+                });
+                return next;
+            });
+            setVisibleCount(startCount + revealedCount);
+
+            if (revealedCount < newSlice.length) {
+                const timer = setTimeout(revealNextChunk, profile.revealInterval);
+                revealTimersRef.current.push(timer);
+                return;
+            }
+
+            revealTimersRef.current = [];
+            finishReveal(chunk.length);
+        };
+
+        const firstTimer = setTimeout(revealNextChunk, 0);
+        revealTimersRef.current.push(firstTimer);
+    }, [clearLoadMoreTimers]);
+
+    const loadMore = useCallback(async () => {
+        if (isPreparingMore) return;
+        const { newSlice } = getNextBatch();
+        if (!newSlice.length) return;
+
+        const runId = loadMoreRunRef.current + 1;
+        loadMoreRunRef.current = runId;
+        setIsPreparingMore(true);
+        clearLoadMoreTimers();
+
+        await warmLoadMoreBatchImages(newSlice).catch(() => undefined);
+        if (loadMoreRunRef.current !== runId) return;
+        const profile = getLoadMoreRevealProfile();
+        setFreshPriorityIds(new Set(newSlice.slice(0, profile.priorityCount).map((item) => item.id)));
+        scheduleLoadMoreReveal({
+            newSlice,
+            startCount: visibleCount,
+            runId,
+            profile,
+        });
+    }, [clearLoadMoreTimers, getNextBatch, isPreparingMore, scheduleLoadMoreReveal, visibleCount, warmLoadMoreBatchImages]);
 
     // Cleanup global du timer au unmount du composant.
     useEffect(() => () => {
-        if (freshClearTimerRef.current) clearTimeout(freshClearTimerRef.current);
-    }, []);
+        loadMoreRunRef.current += 1;
+        clearLoadMoreTimers();
+    }, [clearLoadMoreTimers]);
 
     // Quand le nombre de colonnes change (resize fenêtre), les anciens placements ne sont plus
     // pertinents (l'algo va répartir différemment sur N colonnes vs N±1). On efface les
     // hauteurs gelées pour permettre un re-placement propre. Pas de reset de visibleCount —
     // l'utilisateur garde son progrès "Voir plus".
     useEffect(() => {
+        loadMoreRunRef.current += 1;
+        clearLoadMoreTimers();
         heightsRef.current = new Map();
         setFreshOrder(new Map()); // pas d'animation parasite après resize
-    }, [NUM_COLS]);
+        setFreshPriorityIds(new Set());
+        setIsPreparingMore(false);
+    }, [NUM_COLS, clearLoadMoreTimers]);
 
     // Algo masonry "shortest-column-first" — déterministe pour un même `sortedItems` + heightsRef.
     // Retourne un tableau de colonnes, chacune contenant la liste des items qui lui sont assignés.
@@ -525,11 +835,18 @@ const MarketplaceLayout = ({
 
     const totalVisible = Math.min(visibleCount, sortedItems.length);
     const hasMore = totalVisible < sortedItems.length;
+    const categorySeoContent = useMemo(() => {
+        if (activeMaterial || activePriceRange) return null;
+        if (activeCollection === 'cutting_boards') return BOARD_SEO_CONTENT;
+        if (activeCategory === 'all') return null;
+        return CATEGORY_SEO_CONTENT[activeCategory] || null;
+    }, [activeCategory, activeCollection, activeMaterial, activePriceRange]);
 
     // Préchauffe le cache HTTP pour la catégorie survolée (desktop) → ratios déjà calculables
     // au moment où l'utilisateur clique sur la pill. Limité à 8 images pour ne pas saturer.
     const preloadedRef = useRef(new Set());
     const preloadCategory = useCallback((categoryId) => {
+        if (activeCollection !== 'furniture') return;
         const key = `${categoryId}-${activeMaterial}-${activePriceRange}-${sortMode}`;
         if (preloadedRef.current.has(key)) return;
         preloadedRef.current.add(key);
@@ -551,7 +868,7 @@ const MarketplaceLayout = ({
                 img.src = url;
             }
         });
-    }, [items, activeMaterial, activePriceRange, priceRange, sortMode]);
+    }, [activeCollection, items, activeMaterial, activePriceRange, priceRange, sortMode]);
 
     const scrollToCollection = () => {
         const target = document.getElementById('collection-grid');
@@ -577,9 +894,9 @@ const MarketplaceLayout = ({
     const optionClass = darkMode ? 'bg-[#0a0a09] text-white' : 'bg-[#fff7eb] text-stone-950';
 
     return (
-        <div className={`w-full min-h-screen ${pageClass}`}>
+        <div className={`w-full min-h-screen overflow-x-hidden ${pageClass}`}>
             <main className="relative overflow-hidden">
-                <section className="relative min-h-[calc(100svh-4rem)] md:min-h-[560px] lg:min-h-[620px] overflow-hidden">
+                <section className="marketplace-hero relative min-h-[calc(100svh-4rem)] md:min-h-[560px] lg:min-h-[620px] overflow-hidden">
                     {heroConfig.image && (
                         <picture>
                             <source
@@ -620,18 +937,20 @@ const MarketplaceLayout = ({
                                     setActiveCollection={setActiveCollection}
                                     setFilter={setFilter}
                                     onOpenShop={onOpenShop}
+                                    onCollectionIntent={onCollectionIntent}
+                                    onShopIntent={onShopIntent}
                                     darkMode={darkMode}
                                 />
                             </div>
                         </div>
 
                         {/* BAS — Titre + description + CTA */}
-                        <div className="mt-14 md:mt-16 lg:mt-auto flex items-end justify-between">
-                            <div className="max-w-2xl">
+                        <div className="marketplace-hero-copy-row mt-14 flex w-full min-w-0 items-end justify-between md:mt-16 lg:mt-auto">
+                            <div className="w-full min-w-0 max-w-[calc(100vw-3rem)] md:max-w-2xl">
                                 <p className="hidden lg:block text-[#dba45f] text-[11px] md:text-xs font-black uppercase tracking-[0.42em] mb-5 md:mb-7">
                                     Collection 2026
                                 </p>
-                                <h1 className={`font-serif text-[4.6rem] leading-[0.82] md:text-[7.8rem] lg:text-[8.6rem] tracking-tight ${darkMode ? 'text-white drop-shadow-[0_10px_35px_rgba(0,0,0,0.65)]' : 'text-[#fff4df] drop-shadow-[0_12px_34px_rgba(0,0,0,0.72)]'}`}>
+                                <h1 className={`max-w-full font-serif text-[4rem] leading-[0.82] tracking-tight sm:text-[4.6rem] md:text-[7.8rem] lg:text-[8.6rem] ${darkMode ? 'text-white drop-shadow-[0_10px_35px_rgba(0,0,0,0.65)]' : 'text-[#fff4df] drop-shadow-[0_12px_34px_rgba(0,0,0,0.72)]'}`}>
                                     <span className="block h-[1.64em] overflow-hidden">
                                         <TextType
                                             as="span"
@@ -650,12 +969,12 @@ const MarketplaceLayout = ({
                                         />
                                     </span>
                                 </h1>
-                                <p className={`mt-9 md:mt-11 max-w-xl font-serif text-[1.26rem] md:text-[1.7rem] leading-[1.25] ${darkMode ? 'text-[#efc489]' : 'text-[#f2c27e] drop-shadow-[0_8px_22px_rgba(0,0,0,0.72)]'}`}>
+                                <p className={`mt-9 max-w-[20rem] font-serif text-[1.14rem] leading-[1.3] md:mt-11 md:max-w-xl md:text-[1.7rem] md:leading-[1.25] ${darkMode ? 'text-[#efc489]' : 'text-[#f2c27e] drop-shadow-[0_8px_22px_rgba(0,0,0,0.72)]'}`}>
                                     Mobilier ancien restauré et pièces artisanales en bois massif. Chaque meuble raconte une histoire, chaque pièce est unique.
                                 </p>
                                 <button
                                     onClick={scrollToCollection}
-                                    className={`mt-12 md:mt-10 inline-flex h-14 md:h-16 items-center justify-center gap-6 border border-[#dba45f] px-7 md:px-10 text-[11px] md:text-xs font-black uppercase tracking-[0.28em] transition-all hover:bg-[#dba45f] hover:text-black ${darkMode ? 'text-[#f0b969]' : 'bg-black/22 text-[#fff0cf] shadow-[0_16px_36px_rgba(0,0,0,0.24)] backdrop-blur-[2px]'}`}
+                                    className={`mt-12 inline-flex h-14 w-full max-w-[330px] items-center justify-center gap-4 border border-[#dba45f] px-6 text-[10px] font-black uppercase tracking-[0.22em] transition-all hover:bg-[#dba45f] hover:text-black md:mt-10 md:h-16 md:w-auto md:max-w-none md:gap-6 md:px-10 md:text-xs md:tracking-[0.28em] ${darkMode ? 'text-[#f0b969]' : 'bg-black/22 text-[#fff0cf] shadow-[0_16px_36px_rgba(0,0,0,0.24)] backdrop-blur-[2px]'}`}
                                 >
                                     Découvrir la collection
                                     <ArrowRight size={20} strokeWidth={1.5} />
@@ -672,7 +991,9 @@ const MarketplaceLayout = ({
                     {/* === HEADER ROW : sidebar label + pills + filters === */}
                     <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)] lg:items-start lg:gap-10">
                         <aside className="hidden lg:block pt-1">
-                            <p className={`${labelClass} text-[10px] font-black uppercase tracking-[0.32em] mb-3`}>Notre mobilier</p>
+                            <p className={`${labelClass} text-[10px] font-black uppercase tracking-[0.32em] mb-3`}>
+                                {isBoardsCollection ? 'Nos planches' : 'Notre mobilier'}
+                            </p>
                             <p className={`font-serif text-[1.05rem] leading-snug ${sideCopyClass}`}>
                                 Des pièces uniques,<br />sélectionnées avec exigence.
                             </p>
@@ -682,7 +1003,8 @@ const MarketplaceLayout = ({
                             {/* Categories pills (top).
                                   Mobile (< md / 768px) : flex-wrap → toutes visibles sur 2 lignes max.
                                   md+ : flex-nowrap + scroll horizontal de secours si jamais ça déborde. */}
-                            <div className={`flex flex-wrap md:flex-nowrap items-center gap-1 sm:gap-2 md:gap-3 md:overflow-x-auto no-scrollbar pb-3 md:pb-4 border-b ${subtleBorderClass}`}>
+                            {showFurnitureCategories && (
+                                <div className={`flex flex-wrap md:flex-nowrap items-center gap-1 sm:gap-2 md:gap-3 md:overflow-x-auto no-scrollbar pb-3 md:pb-4 border-b ${subtleBorderClass}`}>
                                 {FURNITURE_CATEGORIES.map((category) => {
                                     const active = activeCategory === category.id;
                                     const shortLabel = category.mobileLabel || category.label;
@@ -693,6 +1015,7 @@ const MarketplaceLayout = ({
                                             onFocus={() => preloadCategory(category.id)}
                                             onClick={() => {
                                                 setActiveCategory(category.id);
+                                                onCategoryChange?.(category.id);
                                                 resetView();
                                             }}
                                             className={`shrink-0 rounded-full border px-2.5 py-1.5 sm:px-4 sm:py-2 md:px-5 md:py-2.5 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.12em] sm:tracking-[0.20em] md:tracking-[0.22em] transition-all ${
@@ -708,7 +1031,8 @@ const MarketplaceLayout = ({
                                         </button>
                                     );
                                 })}
-                            </div>
+                                </div>
+                            )}
 
                             {/* Filter bar — Matière + Prix + Tri + Reset (si au moins un filtre actif).
                                   Tailles & paddings calibrés par breakpoint pour garantir 1 seule ligne
@@ -794,6 +1118,8 @@ const MarketplaceLayout = ({
                                     </span>
                                 </label>
                             </div>
+
+                            <CategorySeoIntro content={categorySeoContent} darkMode={darkMode} />
                         </div>
                     </div>
 
@@ -813,8 +1139,8 @@ const MarketplaceLayout = ({
                         @keyframes tatCardEnter {
                             0% {
                                 opacity: 0;
-                                transform: translate3d(0, 56px, 0);
-                                filter: blur(14px);
+                                transform: translate3d(0, var(--tat-card-enter-distance, 56px), 0);
+                                filter: blur(var(--tat-card-enter-blur, 14px));
                             }
                             55% {
                                 filter: blur(0);
@@ -826,7 +1152,10 @@ const MarketplaceLayout = ({
                             }
                         }
                         .tat-fresh-card {
-                            animation: tatCardEnter 1150ms cubic-bezier(0.32, 0.72, 0, 1) both;
+                            --tat-card-enter-distance: 56px;
+                            --tat-card-enter-blur: 14px;
+                            --tat-card-enter-duration: ${FRESH_CARD_ANIMATION_MS}ms;
+                            animation: tatCardEnter var(--tat-card-enter-duration) cubic-bezier(0.32, 0.72, 0, 1) both;
                             will-change: transform, opacity, filter;
                             backface-visibility: hidden;
                         }
@@ -838,6 +1167,40 @@ const MarketplaceLayout = ({
                                 animation: none;
                             }
                         }
+                        @media (pointer: coarse) {
+                            .tat-fresh-card {
+                                --tat-card-enter-distance: 34px;
+                                --tat-card-enter-blur: 8px;
+                                --tat-card-enter-duration: ${FRESH_CARD_TOUCH_ANIMATION_MS}ms;
+                            }
+                            .tat-fresh-card > * {
+                                transform: none;
+                            }
+                        }
+                        html.tat-low-power-mobile .tat-fresh-card {
+                            --tat-card-enter-distance: 24px;
+                            --tat-card-enter-blur: 5px;
+                            --tat-card-enter-duration: ${FRESH_CARD_CONSTRAINED_ANIMATION_MS}ms;
+                            will-change: transform, opacity;
+                        }
+                        .tat-load-more-button {
+                            -webkit-tap-highlight-color: transparent;
+                            background: var(--tat-load-more-bg);
+                            color: var(--tat-load-more-color);
+                        }
+                        @media (hover: hover) and (pointer: fine) {
+                            .tat-load-more-button:hover:not(:disabled) {
+                                background: #dba45f;
+                                color: #000;
+                            }
+                        }
+                        @media (pointer: coarse) {
+                            .tat-load-more-button:hover,
+                            .tat-load-more-button:active {
+                                background: var(--tat-load-more-bg);
+                                color: var(--tat-load-more-color);
+                            }
+                        }
                         /* Skip le paint des cartes hors viewport pendant le scroll.
                            Le browser maintient un placeholder de hauteur via contain-intrinsic-size,
                            puis active layout/paint dès que la carte approche du viewport.
@@ -846,6 +1209,12 @@ const MarketplaceLayout = ({
                         .tat-card-shell {
                             content-visibility: auto;
                             contain-intrinsic-size: auto 480px;
+                        }
+                        @media (pointer: coarse) {
+                            .tat-card-shell {
+                                content-visibility: visible;
+                                contain-intrinsic-size: auto;
+                            }
                         }
                     `}</style>
                     {totalVisible === 0 ? (
@@ -861,12 +1230,8 @@ const MarketplaceLayout = ({
                             {columnsLayout.map((col, colIdx) => (
                                 <div key={colIdx} className="flex-1 min-w-0 flex flex-col gap-3">
                                     {col.items.map((item) => {
-                                        const orderIdx = freshOrder.get(item.id);
-                                        const isFresh = orderIdx !== undefined;
-                                        // Stagger 80ms cap 960ms — basé sur l'ordre d'apparition
-                                        // dans la salve (pas l'ordre dans la colonne) pour un
-                                        // déferlement visuel cohérent à l'écran.
-                                        const delay = isFresh ? Math.min(orderIdx * 80, 960) : 0;
+                                        const delay = freshOrder.get(item.id);
+                                        const isFresh = delay !== undefined;
                                         return (
                                             <div
                                                 key={item.id}
@@ -875,9 +1240,11 @@ const MarketplaceLayout = ({
                                             >
                                                 <ProductCard
                                                     item={item}
+                                                    onIntent={() => onProductIntent?.(item)}
                                                     onClick={() => onSelectItem(item.id)}
                                                     hideStock={activeCollection === 'furniture'}
                                                     darkMode={darkMode}
+                                                    imagePriority={freshPriorityIds.has(item.id)}
                                                 />
                                             </div>
                                         );
@@ -891,11 +1258,20 @@ const MarketplaceLayout = ({
                         <div className="flex justify-center pt-10">
                             <button
                                 type="button"
+                                disabled={isPreparingMore}
+                                aria-busy={isPreparingMore}
+                                onMouseEnter={warmNextBatchIntent}
+                                onFocus={warmNextBatchIntent}
+                                onPointerDown={warmNextBatchIntent}
                                 onClick={loadMore}
-                                className={`inline-flex h-14 min-w-[280px] items-center justify-center gap-6 border border-[#dba45f] px-8 text-[11px] font-black uppercase tracking-[0.26em] transition-all hover:bg-[#dba45f] hover:text-black ${darkMode ? 'text-[#f0b969]' : 'bg-white/45 text-[#8a531c] shadow-[0_14px_32px_rgba(92,57,20,0.1)]'}`}
+                                style={{
+                                    '--tat-load-more-bg': darkMode ? 'transparent' : 'rgba(255,255,255,0.45)',
+                                    '--tat-load-more-color': darkMode ? '#f0b969' : '#8a531c',
+                                }}
+                                className={`tat-load-more-button inline-flex h-14 min-w-[280px] items-center justify-center gap-6 border border-[#dba45f] px-8 text-[11px] font-black uppercase tracking-[0.26em] transition-colors disabled:pointer-events-none disabled:opacity-70 ${darkMode ? '' : 'shadow-[0_14px_32px_rgba(92,57,20,0.1)]'}`}
                             >
                                 Voir plus de produits
-                                <ArrowDown size={18} strokeWidth={1.5} />
+                                <ArrowDown size={18} strokeWidth={1.5} className={isPreparingMore ? 'animate-pulse' : ''} />
                             </button>
                         </div>
                     )}

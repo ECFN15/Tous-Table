@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, limit } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { Package, Clock, CheckCircle, Mail, ChevronDown, ChevronUp, Download, Loader2, Truck, XCircle } from 'lucide-react';
+import { exportRowsToCsv } from '../../utils/csvExport';
 
 const AdminOrders = ({ darkMode = false }) => {
     const [orders, setOrders] = useState([]);
@@ -103,8 +104,7 @@ const AdminOrders = ({ darkMode = false }) => {
         }
     };
 
-    const exportToExcel = async () => {
-        const XLSX = await import('xlsx');
+    const exportToCsv = () => {
         const data = orders.map(order => ({
             'ID Commande': order.id,
             'Date': order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('fr-FR') : 'N/A',
@@ -119,10 +119,7 @@ const AdminOrders = ({ darkMode = false }) => {
             'Articles': order.items?.map(i => `${i.quantity || 1}x ${i.name}`).join(', ') || ''
         }));
 
-        const ws = XLSX.utils.json_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Commandes");
-        XLSX.writeFile(wb, `Commandes_Atelier_Normand_${new Date().toISOString().split('T')[0]}.xlsx`);
+        exportRowsToCsv(data, `Commandes_Atelier_Normand_${new Date().toISOString().split('T')[0]}.csv`);
     };
 
     return (
@@ -131,7 +128,7 @@ const AdminOrders = ({ darkMode = false }) => {
                 <div className="flex items-center gap-4">
                     <h2 className={`text-2xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>Commandes ({orders.length})</h2>
                     <button
-                        onClick={exportToExcel}
+                        onClick={exportToCsv}
                         className={`group flex items-center gap-2.5 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 border-2 shadow-xl ${
                             darkMode 
                                 ? 'bg-white/5 border-white/5 text-white/70 hover:bg-white hover:text-stone-900 shadow-black/20' 
@@ -139,7 +136,7 @@ const AdminOrders = ({ darkMode = false }) => {
                         }`}
                     >
                         <Download size={15} className="group-hover:-translate-y-0.5 transition-transform" /> 
-                        Export Excel
+                        Export CSV
                     </button>
                 </div>
                 <div className="flex gap-2 text-xs font-bold uppercase tracking-widest text-stone-400">

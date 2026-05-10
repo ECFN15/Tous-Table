@@ -3,10 +3,19 @@ import {
     Users, Clock, Activity, Smartphone, Monitor, Globe, Trash2, AlertCircle, ChevronDown, ChevronRight,
     TrendingUp, MousePointerClick, ShoppingBag
 } from 'lucide-react';
-import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { collection, query, orderBy, limit, onSnapshot, where, Timestamp } from 'firebase/firestore';
 import { db, functions, appId } from '../../firebase/config';
 import { httpsCallable } from 'firebase/functions';
 import { getMillis } from '../../utils/time';
+import {
+    ANALYTICS_TIME_FILTERS,
+    MAX_ANALYTICS_SESSIONS,
+    buildVisitorDayGroups,
+    buildAnalyticsStats,
+    getFilteredTrafficSessions,
+    getAnalyticsWindow,
+    getReliableVisitorKey
+} from './analyticsReliability';
 
 // ─── Custom SVG Bar Chart — Premium responsive (remplace Recharts) ──
 const TrafficChart = ({ data, darkMode, valueLabel = 'visite' }) => {
@@ -299,6 +308,16 @@ const TrafficChart = ({ data, darkMode, valueLabel = 'visite' }) => {
                     }}>
                         {tooltipInfo.d.visites} {valueLabel}{tooltipInfo.d.visites > 1 ? 's' : ''}
                     </div>
+                    {tooltipInfo.d.sessions !== undefined && tooltipInfo.d.sessions !== tooltipInfo.d.visites && (
+                        <div style={{
+                            position: 'relative', zIndex: 1,
+                            fontSize: isMobile ? '9px' : '10px',
+                            fontWeight: 800, color: darkMode ? '#a8a29e' : '#78716c',
+                            textTransform: 'uppercase'
+                        }}>
+                            {tooltipInfo.d.sessions} session{tooltipInfo.d.sessions > 1 ? 's' : ''}
+                        </div>
+                    )}
                 </div>
             )}
         </div>
@@ -310,13 +329,276 @@ const PROG_LABELS_B = { amazon: 'Amazon', manomano: 'ManoMano', leroymerlin: 'Le
 const PROG_COLORS_B = { amazon: '#FF9900', manomano: '#2ECC71', leroymerlin: '#006600', rakuten: '#BF0000', castorama: '#FF6600', direct: '#6B7280' };
 const TIER_LABELS_B = { essentiel: 'Essentiel', premium: 'Premium', expert: 'Expert' };
 const TIER_COLORS_B = { essentiel: '#78716c', premium: '#f59e0b', expert: '#e2e8f0' };
-const SOURCE_LABELS_B = { shop_grid: 'Comptoir (Grille)', shop_tutorial: 'Comptoir (Tuto)', gallery_detail: 'Galerie (Meuble)', inconnu: 'Inconnu' };
-const SOURCE_COLORS_B = { shop_grid: '#3B82F6', shop_tutorial: '#F59E0B', gallery_detail: '#8B5CF6', inconnu: '#6B7280' };
+const SOURCE_LABELS_B = { shop_grid: 'Comptoir (Grille)', shop_detail: 'Comptoir (Fiche)', shop_tutorial: 'Comptoir (Tuto)', gallery_detail: 'Galerie (Meuble)', inconnu: 'Inconnu' };
+const SOURCE_COLORS_B = { shop_grid: '#3B82F6', shop_detail: '#14B8A6', shop_tutorial: '#F59E0B', gallery_detail: '#8B5CF6', inconnu: '#6B7280' };
+const BOUTIQUE_TIME_FILTERS = [
+    { id: '1h', label: '1H', duration: 60 * 60 * 1000, step: 5 * 60 * 1000 },
+    { id: '5h', label: '5H', duration: 5 * 60 * 60 * 1000, step: 15 * 60 * 1000 },
+    { id: '1j', label: '1J', duration: 24 * 60 * 60 * 1000, step: 60 * 60 * 1000 },
+    { id: '2sem', label: '2 Sem.', duration: 14 * 24 * 60 * 60 * 1000, step: 24 * 60 * 60 * 1000 },
+    { id: '1mois', label: '1 Mois', duration: 30 * 24 * 60 * 60 * 1000, step: 24 * 60 * 60 * 1000 },
+    { id: '3mois', label: '3 Mois', duration: 90 * 24 * 60 * 60 * 1000, step: 7 * 24 * 60 * 60 * 1000 },
+    { id: '6mois', label: '6 Mois', duration: 180 * 24 * 60 * 60 * 1000, step: 14 * 24 * 60 * 60 * 1000 },
+    { id: '1ans', label: '1 An', duration: 365 * 24 * 60 * 60 * 1000, step: 30 * 24 * 60 * 60 * 1000 },
+];
+
+const PAGE_LABELS = {
+    home: 'A propos',
+    about: 'A propos',
+    gallery: 'Marketplace',
+    detail: 'Fiche produit',
+    shop: 'Le Comptoir',
+    'shop-detail': 'Fiche Comptoir',
+    delivery: 'Livraison',
+    checkout: 'Checkout',
+    'my-orders': 'Mes commandes',
+    login: 'Connexion',
+};
+
+const AFFILIATE_JOURNEY_LABELS = {
+    affiliate_shop_grid: 'Clic Comptoir',
+    affiliate_shop_detail: 'Achat depuis fiche Comptoir',
+    affiliate_shop_tutorial: 'Clic Tutoriel Comptoir',
+    affiliate_gallery_detail: 'Clic depuis fiche meuble',
+    comptoir: 'Clic Comptoir',
+};
+
+const getBoutiqueFilterConfig = (filterId) => BOUTIQUE_TIME_FILTERS.find(f => f.id === filterId) || BOUTIQUE_TIME_FILTERS[2];
+
+const formatBoutiqueSlot = (time, step) => {
+    const d = new Date(time);
+    if (step < 60 * 60 * 1000) return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    if (step < 24 * 60 * 60 * 1000) return `${d.getHours()}h`;
+    if (step < 30 * 24 * 60 * 60 * 1000) return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+    return d.toLocaleDateString('fr-FR', { month: '2-digit', year: 'numeric' });
+};
+
+const isComptoirPageView = (page) => page === 'shop' || page === 'shop-detail' || page === 'comptoir';
+const isComptoirJourneyStep = (step) => {
+    const page = step?.page;
+    return isComptoirPageView(page) || page === 'affiliate_shop_grid' || page === 'affiliate_shop_detail' || page === 'affiliate_shop_tutorial';
+};
+const isAffiliateJourneyStep = (page) => page === 'comptoir' || String(page || '').startsWith('affiliate_');
+
+const getJourneyLabel = (page) => AFFILIATE_JOURNEY_LABELS[page] || PAGE_LABELS[page] || page || 'Inconnu';
+const getJourneyAccent = (page) => {
+    if (page === 'shop') return { dot: 'bg-violet-500 shadow-[0_0_10px_rgba(139,92,246,0.3)]', text: 'text-violet-400/60', label: 'text-violet-400', chip: 'bg-indigo-500/10 text-indigo-400/80 border-indigo-500/10' };
+    if (isAffiliateJourneyStep(page)) return { dot: 'bg-teal-400 shadow-[0_0_10px_rgba(45,212,191,0.4)]', text: 'text-teal-400/60', label: 'text-teal-400', chip: 'bg-teal-500/10 text-teal-400/80 border-teal-500/10' };
+    if (page === 'delivery') return { dot: 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]', text: 'text-emerald-500/60', label: 'text-emerald-500', chip: 'bg-emerald-500/10 text-emerald-400/80 border-emerald-500/10' };
+    return { dot: 'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.3)]', text: 'text-blue-500/60', label: 'text-amber-500', chip: 'bg-indigo-500/10 text-indigo-400/80 border-indigo-500/10' };
+};
+
+const formatDurationLabel = (seconds) => {
+    if (!seconds) return '0s';
+    if (seconds < 60) return `${seconds}s`;
+    const min = Math.floor(seconds / 60);
+    const sec = seconds % 60;
+    return `${min}m ${sec}s`;
+};
+
+const SessionJourneyTrace = ({ session, darkMode, formatDuration }) => (
+    <div className={`p-4 border-t ${darkMode ? 'border-white/5 bg-black/20' : 'border-stone-100 bg-white'} animate-in slide-in-from-top-2 duration-300`}>
+        <div className="space-y-5">
+            <div className="flex items-center justify-between px-1">
+                <h4 className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-500">Parcours Utilisateur</h4>
+                <span className="text-[8px] font-bold text-stone-600 opacity-60 uppercase tracking-tighter">{session.journey?.length || 0} Etapes</span>
+            </div>
+
+            <div className="relative pl-6 space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-px before:bg-stone-800">
+                {!session.journey || session.journey.length === 0 ? (
+                    <p className="text-[10px] italic text-stone-500">Aucune activite enregistree</p>
+                ) : (
+                    session.journey.map((step, idx) => {
+                        const accent = getJourneyAccent(step.page);
+                        const stepLabel = getJourneyLabel(step.page);
+                        const isAffiliateStep = isAffiliateJourneyStep(step.page);
+                        return (
+                            <div key={idx} className="relative group/step">
+                                <div className={`absolute -left-[18.5px] top-1.5 w-[7px] h-[7px] rounded-full ring-4 ${darkMode ? 'ring-stone-900/50' : 'ring-white'} ${accent.dot} transition-all group-hover/step:scale-125`}></div>
+
+                                <div className="flex flex-col gap-1 -translate-y-0.5">
+                                    <span className={`text-[8px] font-black uppercase tracking-widest leading-none ${step.page === 'comptoir' ? 'text-teal-400/60' : step.page === 'shop' ? 'text-violet-400/60' : 'text-blue-500/60'}`}>{step.time} - {formatDuration(step.duration)}</span>
+                                    <p className={`font-black text-[11px] leading-tight ${darkMode ? 'text-stone-300' : 'text-stone-900'}`}>
+                                        {isAffiliateStep ? 'Clic' : 'Vue'} : <span className={`uppercase ${accent.label}`}>{stepLabel}</span>
+                                    </p>
+                                    {step.itemId && (
+                                        <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                                            <span className={`text-[8px] font-bold px-2 py-0.5 rounded-md truncate max-w-full italic border ${accent.chip}`}>
+                                                {!isAffiliateStep && 'ID: '}{step.itemId}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })
+                )}
+            </div>
+        </div>
+    </div>
+);
+
+const VisitorSessionGroup = ({
+    darkMode,
+    visitor,
+    now,
+    isOpen,
+    onToggle,
+    expandedSessionId,
+    setExpandedSessionId,
+    handleDeleteSession,
+    formatDuration
+}) => {
+    const lastTime = visitor.lastActivityAt
+        ? new Date(visitor.lastActivityAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+        : '--:--';
+
+    return (
+        <div className={`rounded-xl border overflow-hidden transition-all ${darkMode ? 'bg-stone-900 border-white/5 hover:border-white/10' : 'bg-stone-50 border-stone-100 shadow-sm'}`}>
+            <button
+                onClick={onToggle}
+                className="w-full p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left transition-colors hover:bg-white/[0.03] active:scale-[0.995]"
+            >
+                <div className="flex items-start gap-3 min-w-0">
+                    <div className={`mt-0.5 p-1.5 rounded-lg shrink-0 ${darkMode ? 'bg-white/5' : 'bg-white border border-stone-200'}`}>
+                        {isOpen ? <ChevronDown size={14} className="text-stone-400" /> : <ChevronRight size={14} className="text-stone-400" />}
+                    </div>
+                    <div className="min-w-0">
+                        <div className="flex items-center gap-2 mb-1 overflow-hidden">
+                            <Globe size={11} className="text-stone-500 shrink-0" />
+                            <span className={`text-[10px] font-black truncate ${darkMode ? 'text-white/80' : 'text-stone-900'}`}>{visitor.locationLabel}</span>
+                            {visitor.isActive ? (
+                                <span className="text-[8px] font-black uppercase text-emerald-500 animate-pulse shrink-0">En ligne</span>
+                            ) : (
+                                <span className="text-[8px] font-black uppercase text-stone-600 shrink-0">Termine</span>
+                            )}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[9px] font-bold text-stone-500 uppercase">
+                            <span className="inline-flex items-center gap-1.5 min-w-0">
+                                {visitor.device === 'Mobile' ? <Smartphone size={10} className="shrink-0" /> : <Monitor size={10} className="shrink-0" />}
+                                <span className="truncate">{visitor.deviceLabel}</span>
+                            </span>
+                            <span className="font-mono normal-case">{visitor.ipLabel}</span>
+                            <span>{visitor.identitySource}</span>
+                        </div>
+                    </div>
+                </div>
+                <div className="grid grid-cols-3 gap-3 sm:min-w-[260px] text-right">
+                    <div>
+                        <p className="text-[8px] font-black uppercase tracking-widest text-stone-500 leading-none">Sessions</p>
+                        <p className={`mt-1 text-xs font-black tabular-nums ${darkMode ? 'text-white' : 'text-stone-900'}`}>{visitor.sessionCount}</p>
+                    </div>
+                    <div>
+                        <p className="text-[8px] font-black uppercase tracking-widest text-stone-500 leading-none">Duree</p>
+                        <p className={`mt-1 text-xs font-black tabular-nums ${darkMode ? 'text-white' : 'text-stone-900'}`}>{formatDuration(visitor.totalDuration)}</p>
+                    </div>
+                    <div>
+                        <p className="text-[8px] font-black uppercase tracking-widest text-stone-500 leading-none">Dernier</p>
+                        <p className={`mt-1 text-xs font-black tabular-nums ${darkMode ? 'text-white' : 'text-stone-900'}`}>{lastTime}</p>
+                    </div>
+                </div>
+            </button>
+
+            {isOpen && (
+                <div className={`border-t ${darkMode ? 'border-white/5 bg-black/10' : 'border-stone-100 bg-white/70'}`}>
+                    {visitor.sessions.map(session => {
+                        const isExpanded = expandedSessionId === session.id;
+                        const lastActiveMs = getMillis(session.lastActivityAt);
+                        const isInactive = (now - lastActiveMs) > 30000;
+                        const isFinished = session.sessionActive === false || isInactive;
+                        const startedTime = session.startedAt ? new Date(getMillis(session.startedAt)).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+
+                        return (
+                            <div key={session.id} className={`border-t first:border-t-0 ${darkMode ? 'border-white/5' : 'border-stone-100'}`}>
+                                <div className="p-3 flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="flex flex-col min-w-[44px] shrink-0">
+                                            <span className="text-[10px] font-black text-stone-500 tabular-nums">{startedTime}</span>
+                                            <span className={`text-[8px] font-black uppercase ${isFinished ? 'text-stone-600' : 'text-emerald-500 animate-pulse'}`}>
+                                                {isFinished ? 'Termine' : 'En ligne'}
+                                            </span>
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className={`text-[10px] font-black truncate ${darkMode ? 'text-stone-300' : 'text-stone-900'}`}>
+                                                Session {session.journey?.length || 0} etape{(session.journey?.length || 0) > 1 ? 's' : ''}
+                                            </p>
+                                            <p className="text-[9px] font-bold text-stone-500 truncate uppercase">
+                                                {session.os || 'Inconnu'} - {session.browser || 'Inconnu'} - {formatDuration(session.duration)}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <button
+                                            onClick={() => setExpandedSessionId(isExpanded ? null : session.id)}
+                                            className={`px-3 py-1.5 h-8 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 ${isExpanded ? 'bg-blue-500 text-white' : (darkMode ? 'bg-white/5 text-white/50 hover:bg-white/10' : 'bg-white border border-stone-200 text-stone-600')}`}
+                                        >
+                                            {isExpanded ? 'Masquer' : 'Tracer'}
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteSession(session.id)}
+                                            className="p-1.5 text-stone-500 hover:text-red-500 transition-colors active:scale-90"
+                                            aria-label="Supprimer la session"
+                                        >
+                                            <Trash2 size={12} />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {isExpanded && (
+                                    <SessionJourneyTrace
+                                        session={session}
+                                        darkMode={darkMode}
+                                        formatDuration={formatDuration}
+                                    />
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+};
+
+const estimateComptoirDuration = (session) => {
+    const journey = Array.isArray(session?.journey) ? session.journey : [];
+    if (journey.length === 0) return { total: 0, segments: 0 };
+
+    const durations = journey.map(step => Number(step?.duration) || 0);
+    const trailingDuration = Math.max(0, (Number(session.duration) || 0) - durations.reduce((sum, value) => sum + value, 0));
+    let total = 0;
+    let segments = 0;
+    let hasPageView = false;
+
+    journey.forEach((step, index) => {
+        if (!isComptoirPageView(step?.page)) return;
+        hasPageView = true;
+        const nextDuration = Number(journey[index + 1]?.duration);
+        const segmentDuration = Number.isFinite(nextDuration) && nextDuration > 0 ? nextDuration : (index === journey.length - 1 ? trailingDuration : 0);
+        if (segmentDuration > 0) {
+            total += segmentDuration;
+            segments += 1;
+        }
+    });
+
+    if (!hasPageView) {
+        const clickDurations = journey
+            .filter(step => isComptoirJourneyStep(step))
+            .map(step => Number(step.duration) || 0)
+            .filter(Boolean);
+        if (clickDurations.length > 0) {
+            total += Math.max(...clickDurations);
+            segments += 1;
+        }
+    }
+
+    return { total, segments };
+};
 
 const BoutiqueAnalytics = ({ darkMode, sessions = [] }) => {
     const [clicks, setClicks] = useState([]);
     const [loadingClicks, setLoadingClicks] = useState(true);
-    const [timeFilter, setTimeFilter] = useState('7j');
+    const [timeFilter, setTimeFilter] = useState('1j');
     const [openDays, setOpenDays] = useState({});
 
     const sessionGeoMap = useMemo(() => {
@@ -345,34 +627,28 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [] }) => {
 
     const filteredClicks = useMemo(() => {
         const now = Date.now();
-        let cutoff = 0;
-        if (timeFilter === '1j') cutoff = now - 24 * 3600 * 1000;
-        else if (timeFilter === '7j') cutoff = now - 7 * 24 * 3600 * 1000;
-        else if (timeFilter === '30j') cutoff = now - 30 * 24 * 3600 * 1000;
+        const { duration } = getBoutiqueFilterConfig(timeFilter);
+        const cutoff = now - duration;
         return clicks.filter(c => getMillis(c.timestamp) >= cutoff);
     }, [clicks, timeFilter]);
 
-    const chartData = useMemo(() => {
+    const comptoirSessions = useMemo(() => {
         const now = Date.now();
-        let cutoff, step, fmt;
-        if (timeFilter === '1j') {
-            cutoff = now - 24 * 3600 * 1000; step = 3600 * 1000;
-            fmt = t => new Date(t).getHours() + 'h';
-        } else if (timeFilter === '7j') {
-            cutoff = now - 7 * 24 * 3600 * 1000; step = 24 * 3600 * 1000;
-            fmt = t => new Date(t).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-        } else if (timeFilter === '30j') {
-            cutoff = now - 30 * 24 * 3600 * 1000; step = 24 * 3600 * 1000;
-            fmt = t => new Date(t).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-        } else {
-            const ts = clicks.map(c => getMillis(c.timestamp)).filter(Boolean);
-            cutoff = ts.length > 0 ? Math.min(...ts) : now - 30 * 24 * 3600 * 1000;
-            const range = now - cutoff;
-            step = range > 60 * 24 * 3600 * 1000 ? 7 * 24 * 3600 * 1000 : 24 * 3600 * 1000;
-            fmt = t => new Date(t).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-        }
+        const { duration } = getBoutiqueFilterConfig(timeFilter);
+        const cutoff = now - duration;
+        return sessions.filter((session) => {
+            const started = getMillis(session.startedAt);
+            if (!started || started < cutoff) return false;
+            return (session.journey || []).some(isComptoirJourneyStep);
+        });
+    }, [sessions, timeFilter]);
+
+    const clickChartData = useMemo(() => {
+        const now = Date.now();
+        const { duration, step } = getBoutiqueFilterConfig(timeFilter);
+        const cutoff = now - duration;
         const timeline = [];
-        for (let t = cutoff; t <= now; t += step) timeline.push({ timestamp: t, name: fmt(t), visites: 0 });
+        for (let t = cutoff; t <= now; t += step) timeline.push({ timestamp: t, name: formatBoutiqueSlot(t, step), visites: 0 });
         filteredClicks.forEach(c => {
             const t = getMillis(c.timestamp);
             if (!t) return;
@@ -380,7 +656,31 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [] }) => {
             if (idx >= 0 && idx < timeline.length) timeline[idx].visites += 1;
         });
         return timeline;
-    }, [clicks, filteredClicks, timeFilter]);
+    }, [filteredClicks, timeFilter]);
+
+    const comptoirVisitChartData = useMemo(() => {
+        const now = Date.now();
+        const { duration, step } = getBoutiqueFilterConfig(timeFilter);
+        const cutoff = now - duration;
+        const timeline = [];
+        for (let t = cutoff; t <= now; t += step) {
+            timeline.push({ timestamp: t, name: formatBoutiqueSlot(t, step), visites: 0, visitors: new Set() });
+        }
+
+        comptoirSessions.forEach(session => {
+            const t = getMillis(session.startedAt);
+            if (!t) return;
+            const idx = Math.floor((t - cutoff) / step);
+            if (idx < 0 || idx >= timeline.length) return;
+            timeline[idx].visitors.add(getReliableVisitorKey(session));
+        });
+
+        return timeline.map(slot => ({
+            timestamp: slot.timestamp,
+            name: slot.name,
+            visites: slot.visitors.size
+        }));
+    }, [comptoirSessions, timeFilter]);
 
     const topProducts = useMemo(() => {
         const counts = {};
@@ -471,9 +771,28 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [] }) => {
     }, [sessionsByDay.length]);
 
     const kpis = useMemo(() => {
-        const peak = chartData.length > 0 ? chartData.reduce((best, d) => d.visites > best.visites ? d : best, chartData[0]) : null;
-        return { total: filteredClicks.length, uniqueProducts: topProducts.length, topProg: byProgram[0] || null, peak };
-    }, [filteredClicks, topProducts, byProgram, chartData]);
+        const peak = clickChartData.length > 0 ? clickChartData.reduce((best, d) => d.visites > best.visites ? d : best, clickChartData[0]) : null;
+        const uniqueComptoirVisitors = new Set(comptoirSessions.map(getReliableVisitorKey).filter(Boolean)).size;
+        const durationEstimate = comptoirSessions.reduce((acc, session) => {
+            const estimate = estimateComptoirDuration(session);
+            return {
+                total: acc.total + estimate.total,
+                segments: acc.segments + estimate.segments
+            };
+        }, { total: 0, segments: 0 });
+        const avgComptoirDuration = durationEstimate.segments > 0 ? Math.round(durationEstimate.total / durationEstimate.segments) : 0;
+        const amazonClicks = filteredClicks.filter(c => c.affiliateProgram === 'amazon').length;
+
+        return {
+            total: filteredClicks.length,
+            uniqueProducts: topProducts.length,
+            topProg: byProgram[0] || null,
+            peak,
+            uniqueComptoirVisitors,
+            avgComptoirDuration,
+            amazonClicks
+        };
+    }, [filteredClicks, topProducts, byProgram, clickChartData, comptoirSessions]);
 
     const handleClearAllAffiliate = async () => {
         if (!window.confirm("☢️ ACTION CRITIQUE : Supprimer TOUS les clics affiliés (boutique) définitivement ?")) return;
@@ -508,10 +827,10 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [] }) => {
                     >
                         Purger Data
                     </button>
-                    <div className={`flex p-1 rounded-xl border ${darkMode ? 'bg-stone-900 border-white/5' : 'bg-stone-100 border-stone-200'}`}>
-                        {[{ id: '1j', label: '24h' }, { id: '7j', label: '7j' }, { id: '30j', label: '30j' }, { id: 'tout', label: 'Tout' }].map(tf => (
+                    <div className={`flex flex-wrap p-1 rounded-xl border ${darkMode ? 'bg-stone-900 border-white/5' : 'bg-stone-100 border-stone-200'}`}>
+                        {BOUTIQUE_TIME_FILTERS.map(tf => (
                             <button key={tf.id} onClick={() => setTimeFilter(tf.id)}
-                                className={`px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${timeFilter === tf.id ? (darkMode ? 'bg-white/10 text-white shadow-sm border border-white/10' : 'bg-white text-stone-900 shadow-sm border border-stone-200') : 'text-stone-500 hover:text-stone-300'}`}>
+                                className={`px-3 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${timeFilter === tf.id ? (darkMode ? 'bg-white/10 text-white shadow-sm border border-white/10' : 'bg-white text-stone-900 shadow-sm border border-stone-200') : 'text-stone-500 hover:text-stone-300'}`}>
                                 {tf.label}
                             </button>
                         ))}
@@ -522,11 +841,17 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [] }) => {
             {/* KPI GRID */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 {[
+                    ...[
+                        { label: 'Visiteurs Comptoir', value: kpis.uniqueComptoirVisitors, sub: 'IPs uniques', accent: 'text-blue-400', icon: Users },
+                        { label: 'Temps Moyen', value: formatDurationLabel(kpis.avgComptoirDuration), sub: 'sur Le Comptoir', accent: 'text-emerald-400', icon: Clock },
+                        { label: 'Clics Amazon', value: kpis.amazonClicks, sub: `${kpis.total} clics totaux`, accent: 'text-orange-400', icon: MousePointerClick },
+                        { label: 'Produits Cliques', value: kpis.uniqueProducts, sub: 'produits distincts', accent: 'text-amber-400', icon: ShoppingBag },
+                    ],
                     { label: 'Clics Totaux', value: kpis.total, sub: 'sur la période', accent: 'text-amber-400', icon: MousePointerClick },
                     { label: 'Produits Cliqués', value: kpis.uniqueProducts, sub: 'produits distincts', accent: 'text-blue-400', icon: ShoppingBag },
                     { label: 'Top Programme', value: kpis.topProg ? (PROG_LABELS_B[kpis.topProg.name] || kpis.topProg.name) : '—', sub: kpis.topProg ? `${kpis.topProg.count} clics` : 'aucun', accent: 'text-orange-400', icon: TrendingUp },
                     { label: 'Pic de Clics', value: kpis.peak?.visites || 0, sub: kpis.peak?.visites > 0 ? kpis.peak.name : '—', accent: 'text-emerald-400', icon: Activity },
-                ].map((kpi, i) => (
+                ].slice(0, 4).map((kpi, i) => (
                     <div key={i} className={`p-4 sm:p-5 rounded-2xl border ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100 shadow-sm'}`}>
                         <div className="flex items-center justify-between mb-3">
                             <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] text-stone-500 truncate">{kpi.label}</p>
@@ -540,14 +865,28 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [] }) => {
                 ))}
             </div>
 
+            {/* COMPTOIR VISITS CHART */}
+            <div className={`p-6 md:p-8 rounded-[2rem] border ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100 shadow-sm'}`}>
+                <div className="flex items-center justify-between mb-8">
+                    <h3 className={`text-[10px] font-black uppercase tracking-[0.3em] ${darkMode ? 'text-white/40' : 'text-stone-400'}`}>Visiteurs sur Le Comptoir</h3>
+                </div>
+                <div className="h-[200px] md:h-[260px] w-full">
+                    {comptoirVisitChartData.some(d => d.visites > 0) ? (
+                        <TrafficChart data={comptoirVisitChartData} darkMode={darkMode} valueLabel="visiteur" />
+                    ) : (
+                        <div className="flex items-center justify-center h-full text-stone-500 font-bold italic text-xs">Aucune visite Comptoir sur cette periode.</div>
+                    )}
+                </div>
+            </div>
+
             {/* CHART */}
             <div className={`p-6 md:p-8 rounded-[2rem] border ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100 shadow-sm'}`}>
                 <div className="flex items-center justify-between mb-8">
                     <h3 className={`text-[10px] font-black uppercase tracking-[0.3em] ${darkMode ? 'text-white/40' : 'text-stone-400'}`}>Évolution des Clics</h3>
                 </div>
                 <div className="h-[200px] md:h-[260px] w-full">
-                    {chartData.some(d => d.visites > 0) ? (
-                        <TrafficChart data={chartData} darkMode={darkMode} valueLabel="clic" />
+                    {clickChartData.some(d => d.visites > 0) ? (
+                        <TrafficChart data={clickChartData} darkMode={darkMode} valueLabel="clic" />
                     ) : (
                         <div className="flex items-center justify-center h-full text-stone-500 font-bold italic text-xs">Aucun clic sur cette période.</div>
                     )}
@@ -785,6 +1124,7 @@ const AdminAnalytics = ({ darkMode = false }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const DAYS_PER_PAGE = 10;
     const [view, setView] = useState('traffic');
+    const [openVisitors, setOpenVisitors] = useState({});
 
     // Refresh "now" every 30s to update "Online" vs "Finished" markers
     useEffect(() => {
@@ -794,41 +1134,31 @@ const AdminAnalytics = ({ darkMode = false }) => {
 
     // Kpis
     const [kpis, setKpis] = useState({
+        totalSessions: 0,
         uniqueVisitors: 0,
+        uniqueIps: 0,
+        ipCoverage: 100,
         avgDuration: 0,
         bounceRate: 0,
         mobilePercentage: 0
+    });
+    const [dataQuality, setDataQuality] = useState({
+        confidence: 'haute',
+        isWindowComplete: true,
+        missingIpSessions: 0,
+        method: 'UID Firebase client/anonyme, puis IP serveur, puis session si IP absente.'
     });
 
     const [chartData, setChartData] = useState([]);
 
     // ─── Groupement des sessions par jour ───
-    const groupedByDay = useMemo(() => {
-        const groups = {};
-        const today = new Date().toLocaleDateString('fr-FR');
-        const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('fr-FR');
+    const filteredTrafficSessions = useMemo(() => (
+        getFilteredTrafficSessions(sessions, timeFilter, { now })
+    ), [sessions, timeFilter, now]);
 
-        sessions.forEach(s => {
-            const dateObj = new Date(getMillis(s.startedAt));
-            const dateKey = dateObj.toLocaleDateString('fr-FR');
-            
-            let label = dateKey;
-            if (dateKey === today) label = "Aujourd'hui";
-            else if (dateKey === yesterday) label = "Hier";
-
-            if (!groups[dateKey]) {
-                groups[dateKey] = {
-                    key: dateKey,
-                    label,
-                    timestamp: dateObj.getTime(),
-                    items: []
-                };
-            }
-            groups[dateKey].items.push(s);
-        });
-
-        return Object.values(groups).sort((a, b) => b.timestamp - a.timestamp);
-    }, [sessions]);
+    const groupedByDay = useMemo(() => (
+        buildVisitorDayGroups(filteredTrafficSessions, { now })
+    ), [filteredTrafficSessions, now]);
 
     const totalPages = Math.ceil(groupedByDay.length / DAYS_PER_PAGE);
     const paginatedGroups = useMemo(() => {
@@ -839,6 +1169,7 @@ const AdminAnalytics = ({ darkMode = false }) => {
     // Reset pagination when data changes significantly
     useEffect(() => {
         setCurrentPage(1);
+        setExpandedSessionId(null);
     }, [timeFilter]);
 
     // ─── Sessions en ligne (Live) ───
@@ -867,11 +1198,13 @@ const AdminAnalytics = ({ darkMode = false }) => {
     }, [groupedByDay.length]);
 
     useEffect(() => {
-        // We only fetch recent 500 sessions to not overload
+        const historyWindow = getAnalyticsWindow('1ans');
+        const historyCutoff = Timestamp.fromMillis(Date.now() - historyWindow.duration);
         const q = query(
             collection(db, 'analytics_sessions'),
+            where('startedAt', '>=', historyCutoff),
             orderBy('startedAt', 'desc'),
-            limit(1000)
+            limit(MAX_ANALYTICS_SESSIONS)
         );
 
         const unsub = onSnapshot(q, (snap) => {
@@ -883,105 +1216,36 @@ const AdminAnalytics = ({ darkMode = false }) => {
             // On filtre les admins pour ne pas polluer l'affichage et les stats
             const cleanData = data.filter(s => s.type !== 'admin');
             setSessions(cleanData);
-            processData(cleanData, timeFilter);
+            setLoading(false);
+        }, (error) => {
+            console.error("Analytics snapshot error:", error);
             setLoading(false);
         });
 
         return () => unsub();
-    }, [timeFilter]);
+    }, []);
 
-    const processData = (allSessions, filter) => {
-        const rawNow = Date.now();
-        let cutoff = 0;
-        let step = 0;
+    const processData = (allSessions, filter, nowMs = Date.now()) => {
+        const oldestStartedAt = allSessions
+            .map(session => getMillis(session.startedAt))
+            .filter(Boolean)
+            .reduce((oldest, value) => Math.min(oldest, value), Infinity);
 
-        // On ancre le temps sur la minute pile pour éviter la vibration des barres au refresh
-        const now = filter === '1h' ? Math.floor(rawNow / 60000) * 60000 : rawNow;
-
-        switch (filter) {
-            case '1h':
-                step = 60 * 1000; // 1 minute exacte
-                cutoff = now - 60 * 60 * 1000; // 1 heure glissante (60 bars)
-                break;
-            case '1j':
-                step = 3600 * 1000; // 1 heure
-                cutoff = now - 24 * 3600 * 1000;
-                break;
-            case '7j':
-                step = 6 * 3600 * 1000; // 6 heures
-                cutoff = now - 7 * 24 * 3600 * 1000;
-                break;
-            case '1mois':
-                step = 24 * 3600 * 1000; // 1 jour
-                cutoff = now - 30 * 24 * 3600 * 1000;
-                break;
-            case '1ans':
-                step = 30 * 24 * 3600 * 1000; // ~1 mois
-                cutoff = now - 365 * 24 * 3600 * 1000;
-                break;
-            default:
-                step = 24 * 3600 * 1000;
-                cutoff = now - 7 * 24 * 3600 * 1000;
-        }
-
-        // Filtre les sessions réelles
-        const realTraffic = allSessions.filter(s => {
-            const time = s.startedAt ? getMillis(s.startedAt) : 0;
-            return time >= cutoff && s.type !== 'admin';
+        const result = buildAnalyticsStats(allSessions, filter, {
+            now: nowMs,
+            coverageStartMs: Number.isFinite(oldestStartedAt) ? oldestStartedAt : null,
+            fetchedCount: allSessions.length,
+            maxFetched: MAX_ANALYTICS_SESSIONS
         });
 
-        // 1. Calcul des KPIs
-        const uniqueIPs = new Set(realTraffic.map(s => s.ip).filter(Boolean));
-        const uniques = uniqueIPs.size;
-        const totalSessions = realTraffic.length;
-        const totalDuration = realTraffic.reduce((acc, s) => acc + (s.duration || 0), 0);
-        // Durée moyenne par session (pas par IP unique)
-        const avgDur = totalSessions > 0 ? Math.round(totalDuration / totalSessions) : 0;
-        // Taux de rebond = sessions à 1 page OU < 10s / total sessions
-        const bounces = realTraffic.filter(s => (s.journey && s.journey.length <= 1) || s.duration < 10).length;
-        const bRate = totalSessions > 0 ? Math.round((bounces / totalSessions) * 100) : 0;
-        const mobiles = realTraffic.filter(s => s.device === 'Mobile').length;
-        const mRate = totalSessions > 0 ? Math.round((mobiles / totalSessions) * 100) : 0;
-
-        setKpis({
-            uniqueVisitors: uniques,
-            avgDuration: avgDur,
-            bounceRate: bRate,
-            mobilePercentage: mRate
-        });
-
-        // 2. Génération du graphique style TRADING (Continu & Stable)
-        const timeline = [];
-        for (let t = cutoff; t <= now; t += step) {
-            const d = new Date(t);
-            const timeLabelStr =
-                filter === '1h' ? d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) :
-                filter === '1j' ? d.getHours() + 'h' :
-                (filter === '7j' || filter === '1mois') ? d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) :
-                d.toLocaleDateString('fr-FR', { month: '2-digit', year: 'numeric' });
-
-            timeline.push({
-                timestamp: t,
-                name: timeLabelStr,
-                visites: 0
-            });
-        }
-
-        // 3. Remplissage précis (Division temporelle)
-        realTraffic.forEach(s => {
-            const time = s.startedAt ? getMillis(s.startedAt) : null;
-            if (!time) return;
-
-            const offset = time - cutoff;
-            const slotIdx = Math.floor(offset / step);
-
-            if (slotIdx >= 0 && slotIdx < timeline.length) {
-                timeline[slotIdx].visites += 1;
-            }
-        });
-
-        setChartData(timeline);
+        setKpis(result.kpis);
+        setDataQuality(result.dataQuality);
+        setChartData(result.chartData);
     };
+
+    useEffect(() => {
+        processData(sessions, timeFilter, now);
+    }, [sessions, timeFilter, now]);
 
     const formatDuration = (seconds) => {
         if (!seconds) return '0s';
@@ -1077,42 +1341,69 @@ const AdminAnalytics = ({ darkMode = false }) => {
                         Purger Data
                     </button>
                     <div className={`flex p-1 rounded-xl border ${darkMode ? 'bg-stone-900 border-white/5' : 'bg-stone-100 border-stone-200'}`}>
-                        {['1h', '1j', '7j', '1mois', '1ans'].map(tf => (
+                        {ANALYTICS_TIME_FILTERS.map(tf => (
                             <button
-                                key={tf}
-                                onClick={() => { setTimeFilter(tf); processData(sessions, tf); }}
-                                className={`px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${timeFilter === tf ? (darkMode ? 'bg-white/10 text-white shadow-sm border border-white/10' : 'bg-white text-stone-900 shadow-sm border border-stone-200') : 'text-stone-500 hover:text-stone-300'}`}
+                                key={tf.id}
+                                onClick={() => setTimeFilter(tf.id)}
+                                className={`px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${timeFilter === tf.id ? (darkMode ? 'bg-white/10 text-white shadow-sm border border-white/10' : 'bg-white text-stone-900 shadow-sm border border-stone-200') : 'text-stone-500 hover:text-stone-300'}`}
                             >
-                                {tf}
+                                {tf.label}
                             </button>
                         ))}
                     </div>
                 </div>
             </div>
 
-            {/* KPI BENTO GRID */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 lg:gap-6">
-                {[
-                    { label: 'Visiteurs Uniques', value: kpis.uniqueVisitors, color: 'text-blue-500' },
-                    { label: 'Durée Moyenne', value: formatDuration(kpis.avgDuration), color: 'text-emerald-500' },
-                    { label: 'Taux de Rebond', value: `${kpis.bounceRate}%`, color: 'text-amber-500' },
-                    { label: 'Trafic Mobile', value: `${kpis.mobilePercentage}%`, color: 'text-indigo-500' }
-                ].map((kpi, i) => (
-                    <div key={i} className={`p-4 sm:p-5 rounded-2xl border transition-all ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100 shadow-sm'}`}>
-                        <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] text-stone-500 mb-1.5 sm:mb-2 truncate">{kpi.label}</p>
-                        <h4 className={`text-xl sm:text-2xl md:text-3xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'}`}>{kpi.value}</h4>
+            {/* KPI PRINCIPAL */}
+            <div className={`p-5 sm:p-6 rounded-2xl border transition-all ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100 shadow-sm'}`}>
+                <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+                    <div>
+                        <p className="text-[9px] font-black uppercase tracking-[0.24em] text-stone-500 mb-2">Utilisateurs uniques</p>
+                        <h4 className={`text-4xl sm:text-5xl font-black tracking-tighter tabular-nums ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                            {kpis.uniqueVisitors}
+                        </h4>
                     </div>
-                ))}
+                    <div className="grid grid-cols-2 sm:flex sm:items-center gap-3 sm:gap-5 text-left sm:text-right">
+                        <div>
+                            <p className="text-[8px] font-black uppercase tracking-widest text-stone-500">IPs uniques</p>
+                            <p className="mt-1 text-sm font-black text-cyan-500 tabular-nums">{kpis.uniqueIps}</p>
+                        </div>
+                        <div>
+                            <p className="text-[8px] font-black uppercase tracking-widest text-stone-500">Sessions brutes</p>
+                            <p className="mt-1 text-sm font-black text-stone-500 tabular-nums">{kpis.totalSessions}</p>
+                        </div>
+                    </div>
+                </div>
+                <p className="mt-4 text-[10px] font-bold text-stone-500 leading-relaxed">
+                    Deduplication par UID Firebase, puis IP serveur. Les sessions brutes restent visibles seulement comme controle.
+                </p>
+            </div>
+
+            <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center gap-3 ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100 shadow-sm'}`}>
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${dataQuality.confidence === 'haute' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'}`}>
+                    <AlertCircle size={16} />
+                </div>
+                <div className="min-w-0">
+                    <p className={`text-[9px] font-black uppercase tracking-[0.22em] ${darkMode ? 'text-white/60' : 'text-stone-500'}`}>
+                        Fiabilite {dataQuality.confidence}
+                    </p>
+                    <p className="text-[10px] font-bold text-stone-500 leading-relaxed">
+                        {dataQuality.method} Fenetre {dataQuality.isWindowComplete ? 'complete' : `plafonnee a ${dataQuality.maxFetched} sessions`}.
+                    </p>
+                </div>
             </div>
 
             {/* CUSTOM SVG CHART BENTO */}
             <div className={`p-6 md:p-8 rounded-[2rem] border transition-all ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100 shadow-sm'}`}>
                 <div className="flex items-center justify-between mb-8">
-                    <h3 className={`text-[10px] font-black uppercase tracking-[0.3em] ${darkMode ? 'text-white/40' : 'text-stone-400'}`}>Évolution du Trafic</h3>
+                    <div>
+                        <h3 className={`text-[10px] font-black uppercase tracking-[0.3em] ${darkMode ? 'text-white/40' : 'text-stone-400'}`}>Evolution des visiteurs</h3>
+                        <p className="mt-1 text-[9px] font-bold text-stone-500">Chaque barre deduplique les visiteurs dans son creneau.</p>
+                    </div>
                 </div>
                 <div className="h-[240px] md:h-[320px] w-full">
                     {chartData.length > 0 ? (
-                        <TrafficChart data={chartData} darkMode={darkMode} />
+                        <TrafficChart data={chartData} darkMode={darkMode} valueLabel="visiteur" />
                     ) : (
                         <div className="flex items-center justify-center h-full text-stone-500 font-bold italic text-xs">Pas assez de données.</div>
                     )}
@@ -1160,7 +1451,9 @@ const AdminAnalytics = ({ darkMode = false }) => {
                                         </div>
                                         <div>
                                             <span className={`text-[11px] font-black uppercase tracking-widest ${darkMode ? 'text-white/70' : 'text-stone-900'}`}>{group.label}</span>
-                                            <span className="ml-3 text-[10px] font-bold text-stone-500">{group.items.length} session{group.items.length > 1 ? 's' : ''}</span>
+                                            <span className="ml-3 text-[10px] font-bold text-stone-500">
+                                                {group.visitors.length} visiteur{group.visitors.length > 1 ? 's' : ''} / {group.sessionCount} session{group.sessionCount > 1 ? 's' : ''}
+                                            </span>
                                         </div>
                                     </div>
                                     <div className="h-px flex-1 bg-gradient-to-r from-transparent via-stone-500/10 to-transparent mx-6"></div>
@@ -1169,132 +1462,21 @@ const AdminAnalytics = ({ darkMode = false }) => {
                                 {isOpen && (
                                     <div className="px-2 sm:px-4 pb-3 sm:pb-4 animate-in slide-in-from-top-1 duration-200">
                                         <div className="space-y-1 sm:space-y-1.5">
-                                            {group.items.map(session => {
-                                                const isExpanded = expandedSessionId === session.id;
-                                                const lastActiveMs = getMillis(session.lastActivityAt);
-                                                const isInactive = (now - lastActiveMs) > 30000;
-                                                const isFinished = session.sessionActive === false || isInactive;
-                                                const startedTime = session.startedAt ? new Date(getMillis(session.startedAt)).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
-                                                const journeyTiming = getJourneyTiming(session);
-
+                                            {group.visitors.map(visitor => {
+                                                const visitorOpen = openVisitors[visitor.key] ?? group.visitors.length === 1;
                                                 return (
-                                                    <div key={session.id} className={`group rounded-xl border transition-all ${darkMode ? 'bg-stone-900 border-white/5 hover:border-white/10' : 'bg-stone-50 border-stone-100 shadow-sm'}`}>
-                                                        <div className="p-3 flex items-center justify-between gap-4">
-                                                            <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
-                                                                <div className="flex flex-col min-w-[40px] shrink-0">
-                                                                    <span className="text-[10px] font-black text-white/40">{startedTime}</span>
-                                                                    {isFinished ? (
-                                                                        <span className="text-[8px] font-black uppercase text-stone-600">Terminé</span>
-                                                                    ) : (
-                                                                        <span className="text-[8px] font-black uppercase text-emerald-500 animate-pulse">En ligne</span>
-                                                                    )}
-                                                                </div>
-
-                                                                <div className="min-w-0">
-                                                                    <div className="flex items-center gap-2 mb-0.5 overflow-hidden">
-                                                                        <Globe size={11} className="text-stone-500 shrink-0" />
-                                                                        <span className={`text-[10px] font-bold truncate ${darkMode ? 'text-white/80' : 'text-stone-900'}`}>{session.geo?.city && session.geo.city !== 'Unknown' ? `${session.geo.city}${session.geo.region && session.geo.region !== 'Unknown' ? `, ${session.geo.region}` : ''}` : 'Inconnu'}</span>
-                                                                        <span className="hidden md:inline text-[8px] text-stone-500 opacity-50 truncate">• {session.ip}</span>
-                                                                    </div>
-                                                                    <div className="flex items-center gap-1.5 overflow-hidden">
-                                                                        {session.device === 'Mobile' ? <Smartphone size={10} className="text-stone-500 shrink-0" /> : <Monitor size={10} className="text-stone-500 shrink-0" />}
-                                                                        <span className="text-[9px] font-bold text-stone-500 truncate uppercase">
-                                                                            {session.os || 'Inconnu'} • {session.browser || 'Inconnu'}
-                                                                        </span>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="flex items-center gap-2 sm:gap-3 md:gap-6 shrink-0">
-                                                                <div className="hidden min-[450px]:block text-right">
-                                                                    <p className="text-[9px] font-black uppercase tracking-widest text-stone-500 mb-0.5 leading-none">Durée</p>
-                                                                    <p className={`text-[11px] sm:text-xs font-black ${darkMode ? 'text-white' : 'text-stone-900'}`}>{formatDuration(session.duration)}</p>
-                                                                </div>
-
-                                                                <div className="flex items-center gap-2">
-                                                                    <button
-                                                                        onClick={() => setExpandedSessionId(isExpanded ? null : session.id)}
-                                                                        className={`px-3 py-1.5 h-8 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${isExpanded ? 'bg-blue-500 text-white' : (darkMode ? 'bg-white/5 text-white/50 hover:bg-white/10' : 'bg-white border border-stone-200 text-stone-600')}`}
-                                                                    >
-                                                                        {isExpanded ? 'Masquer' : 'Tracer'}
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={() => handleDeleteSession(session.id)}
-                                                                        className="p-1.5 text-stone-500 hover:text-red-500 transition-colors"
-                                                                    >
-                                                                        <Trash2 size={12} />
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        {isExpanded && (
-                                                            <div className={`p-4 border-t ${darkMode ? 'border-white/5 bg-black/20' : 'border-stone-100 bg-white'} animate-in slide-in-from-top-2 duration-300`}>
-                                                                <div className="space-y-5">
-                                                                    <div className="flex items-center justify-between px-1">
-                                                                        <h4 className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-500">Parcours Utilisateur</h4>
-                                                                        <span className="text-[8px] font-bold text-stone-600 opacity-60 uppercase tracking-tighter">{session.journey?.length || 0} Étapes</span>
-                                                                    </div>
-
-                                                                    <div className="relative pl-6 space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-px before:bg-stone-800">
-                                                                        {!session.journey || session.journey.length === 0 ? (
-                                                                            <p className="text-[10px] italic text-stone-500">Aucune activité enregistrée</p>
-                                                                        ) : (
-                                                                            journeyTiming.steps.map((step, idx) => (
-                                                                                <div key={idx} className="relative group/step">
-                                                                                    {/* DOT centered on the 11px line */}
-                                                                                    <div className={`absolute -left-[18.5px] top-1.5 w-[7px] h-[7px] rounded-full ring-4 ${darkMode ? 'ring-stone-900/50' : 'ring-white'} ${
-                                                                                        step.page === 'comptoir'
-                                                                                            ? 'bg-teal-400 shadow-[0_0_10px_rgba(45,212,191,0.4)]'
-                                                                                            : step.page === 'shop'
-                                                                                                ? 'bg-violet-500 shadow-[0_0_10px_rgba(139,92,246,0.3)]'
-                                                                                                : 'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.3)]'
-                                                                                    } transition-all group-hover/step:scale-125`}></div>
-
-                                                                                    <div className="flex flex-col gap-1 -translate-y-0.5">
-                                                                                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                                                                                            <span className={`text-[8px] font-black uppercase tracking-widest leading-none ${
-                                                                                                step.page === 'comptoir' ? 'text-teal-400/60' : step.page === 'shop' ? 'text-violet-400/60' : 'text-blue-500/60'
-                                                                                            }`}>{step.time}</span>
-                                                                                            <span className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[8px] font-black uppercase tracking-widest ${
-                                                                                                darkMode ? 'bg-white/5 text-white/60' : 'bg-stone-100 text-stone-500'
-                                                                                            }`}>
-                                                                                                <Clock size={9} />
-                                                                                                {formatDuration(step.dwellDuration)}
-                                                                                            </span>
-                                                                                            {step.entryDelay > 0 && (
-                                                                                                <span className="text-[8px] font-bold uppercase tracking-widest text-stone-600">
-                                                                                                    entrée +{formatDuration(step.entryDelay)}
-                                                                                                </span>
-                                                                                            )}
-                                                                                        </div>
-                                                                                        <p className={`font-black text-[11px] leading-tight ${darkMode ? 'text-stone-300' : 'text-stone-900'}`}>
-                                                                                            {step.page === 'comptoir' ? (
-                                                                                                <>Clic : <span className="uppercase text-teal-400">Comptoir</span></>
-                                                                                            ) : (
-                                                                                                <>Vue : <span className={`uppercase ${step.page === 'shop' ? 'text-violet-400' : 'text-amber-500'}`}>{step.page}</span></>
-                                                                                            )}
-                                                                                        </p>
-                                                                                        {step.itemId && (
-                                                                                            <div className="flex flex-wrap items-center gap-2 mt-0.5">
-                                                                                                <span className={`text-[8px] font-bold px-2 py-0.5 rounded-md truncate max-w-full italic border ${
-                                                                                                    step.page === 'comptoir'
-                                                                                                        ? 'bg-teal-500/10 text-teal-400/80 border-teal-500/10'
-                                                                                                        : 'bg-indigo-500/10 text-indigo-400/80 border-indigo-500/10'
-                                                                                                }`}>
-                                                                                                    {step.page !== 'comptoir' && 'ID: '}{step.itemId}
-                                                                                                </span>
-                                                                                            </div>
-                                                                                        )}
-                                                                                    </div>
-                                                                                </div>
-                                                                            ))
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
+                                                    <VisitorSessionGroup
+                                                        key={visitor.key}
+                                                        darkMode={darkMode}
+                                                        visitor={visitor}
+                                                        now={now}
+                                                        isOpen={visitorOpen}
+                                                        onToggle={() => setOpenVisitors(prev => ({ ...prev, [visitor.key]: !visitorOpen }))}
+                                                        expandedSessionId={expandedSessionId}
+                                                        setExpandedSessionId={setExpandedSessionId}
+                                                        handleDeleteSession={handleDeleteSession}
+                                                        formatDuration={formatDuration}
+                                                    />
                                                 );
                                             })}
                                         </div>
@@ -1364,9 +1546,10 @@ const AdminAnalytics = ({ darkMode = false }) => {
             <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 py-4 border-t border-white/5">
                 {[
                     "Sessions admin auto-exclues",
-                    "IPs blacklistées au login",
-                    "Rétention data: 30 jours",
-                    "Temps réel activé"
+                    "IPs admin exclues au login",
+                    "Uniques: UID puis IP serveur",
+                    "Sync protegee par jeton",
+                    "Fenetre locale: 1 an"
                 ].map((info, i) => (
                     <div key={i} className="flex items-center gap-1.5">
                         <div className="w-1 h-1 rounded-full bg-stone-700"></div>

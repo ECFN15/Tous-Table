@@ -1,5 +1,8 @@
 # CLAUDE.md — Journal de bord technique
 
+> Point d'entree prioritaire : lire `AGENTS.md` avant ce fichier.
+> `CLAUDE.md` est un journal historique specialise ; `AGENTS.md` decide quel document lire selon la tache.
+
 ## 25 mars 2026 (Suite) — Refonte Premium Admin Analytics (Bento Grid & Sessions Groupées)
 
 **Fichier** : `src/features/admin/AdminAnalytics.jsx`

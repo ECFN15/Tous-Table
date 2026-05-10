@@ -159,22 +159,13 @@ const GlobalMenu = ({
     // PERF: mémoïsé — recalculé uniquement si auth/design change
     const menuItems = useMemo(() => [
         {
-            label: activeDesignId === 'architectural' ? 'Accueil' : 'Accueil.',
-            onClick: (e) => {
-                if (!e.ctrlKey && !e.metaKey) {
-                    e.preventDefault(); window.hasShownPreloader = true; setView('home'); setIsMenuOpen(false); scrollToTop();
-                }
-            },
-            href: '/'
-        },
-        {
-            label: activeDesignId === 'architectural' ? 'La Galerie' : 'Marketplace.',
+            label: activeDesignId === 'architectural' ? 'Marketplace' : 'Marketplace.',
             onClick: (e) => {
                 if (!e.ctrlKey && !e.metaKey) {
                     e.preventDefault(); setView('gallery'); setIsMenuOpen(false); scrollToTop();
                 }
             },
-            href: '/?page=gallery'
+            href: '/'
         },
         {
             label: "Le Comptoir",
@@ -183,7 +174,16 @@ const GlobalMenu = ({
                     e.preventDefault(); setView('shop'); setIsMenuOpen(false); scrollToTop();
                 }
             },
-            href: '/?page=shop'
+            href: '/comptoir'
+        },
+        {
+            label: activeDesignId === 'architectural' ? 'A propos' : 'A propos.',
+            onClick: (e) => {
+                if (!e.ctrlKey && !e.metaKey) {
+                    e.preventDefault(); window.hasShownPreloader = true; setView('about'); setIsMenuOpen(false); scrollToTop();
+                }
+            },
+            href: '/a-propos'
         },
         ...(user && !user.isAnonymous ? [{
             label: activeDesignId === 'architectural' ? 'Commandes' : 'Commandes.',

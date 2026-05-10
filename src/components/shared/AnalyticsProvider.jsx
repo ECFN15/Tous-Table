@@ -3,75 +3,166 @@ import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../firebase/config';
 import { useAuth } from '../../contexts/AuthContext';
 
-// Simple Device Parser
 const getDeviceInfo = () => {
     const ua = navigator.userAgent;
-    let device = "Desktop";
-    if (/Mobi|Android|iPhone/i.test(ua)) device = "Mobile";
-    if (/Tablet|iPad/i.test(ua)) device = "Tablet";
 
-    let browser = "Unknown";
-    if (ua.indexOf("Chrome") > -1) browser = "Chrome";
-    else if (ua.indexOf("Safari") > -1) browser = "Safari";
-    else if (ua.indexOf("Firefox") > -1) browser = "Firefox";
-    else if (ua.indexOf("MSIE") > -1 || ua.indexOf("rv:") > -1) browser = "IE/Edge";
+    let device = 'Desktop';
+    if (/Mobi|Android|iPhone/i.test(ua)) device = 'Mobile';
+    if (/Tablet|iPad/i.test(ua)) device = 'Tablet';
 
-    let os = "Unknown";
-    if (ua.indexOf("Win") > -1) os = "Windows";
-    else if (ua.indexOf("Mac") > -1) os = "MacOS";
-    else if (ua.indexOf("Linux") > -1) os = "Linux";
-    else if (ua.indexOf("Android") > -1) os = "Android";
-    else if (ua.indexOf("like Mac") > -1) os = "iOS";
+    let browser = 'Unknown';
+    if (ua.includes('Chrome')) browser = 'Chrome';
+    else if (ua.includes('Safari')) browser = 'Safari';
+    else if (ua.includes('Firefox')) browser = 'Firefox';
+    else if (ua.includes('MSIE') || ua.includes('rv:')) browser = 'IE/Edge';
+
+    let os = 'Unknown';
+    if (ua.includes('Android')) os = 'Android';
+    else if (ua.includes('like Mac')) os = 'iOS';
+    else if (ua.includes('Win')) os = 'Windows';
+    else if (ua.includes('Mac')) os = 'MacOS';
+    else if (ua.includes('Linux')) os = 'Linux';
 
     return { device, browser, os };
 };
 
-const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedItemPrice }) => {
+const ANALYTICS_SESSION_ID_KEY = 'analytics_session_id';
+const ANALYTICS_SESSION_TOKEN_KEY = 'analytics_session_token';
+
+const readStorageValue = (storage, key) => {
+    try {
+        return storage?.getItem(key) || null;
+    } catch {
+        return null;
+    }
+};
+
+const getStoredAnalyticsSession = () => {
+    const sessionId = readStorageValue(sessionStorage, ANALYTICS_SESSION_ID_KEY)
+        || readStorageValue(localStorage, ANALYTICS_SESSION_ID_KEY);
+    const syncToken = readStorageValue(sessionStorage, ANALYTICS_SESSION_TOKEN_KEY)
+        || readStorageValue(localStorage, ANALYTICS_SESSION_TOKEN_KEY);
+    if (!sessionId || !syncToken) return null;
+    return { sessionId, syncToken };
+};
+
+const persistStorageValue = (storage, key, value) => {
+    try {
+        if (value) storage?.setItem(key, value);
+        else storage?.removeItem(key);
+    } catch {
+        // Storage can be unavailable in hardened private browsing modes.
+    }
+};
+
+const persistAnalyticsSession = (sessionId, syncToken) => {
+    persistStorageValue(sessionStorage, ANALYTICS_SESSION_ID_KEY, sessionId);
+    persistStorageValue(sessionStorage, ANALYTICS_SESSION_TOKEN_KEY, syncToken);
+    persistStorageValue(localStorage, ANALYTICS_SESSION_ID_KEY, sessionId);
+    persistStorageValue(localStorage, ANALYTICS_SESSION_TOKEN_KEY, syncToken);
+};
+
+const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedItemPrice, selectedItemContext = null }) => {
     const { user, isAdmin } = useAuth();
     const sessionIdRef = useRef(null);
-    const initCalledRef = useRef(false); // Anti-doublon synchrone
+    const syncTokenRef = useRef(null);
+    const initCalledRef = useRef(false);
     const journeyToSend = useRef([]);
     const startTimeRef = useRef(Date.now());
     const lastActionTimeRef = useRef(Date.now());
+    const latestViewRef = useRef({ view, selectedItemId, selectedItemName, selectedItemPrice, selectedItemContext });
+    const lastRecordedKeyRef = useRef(null);
 
     useEffect(() => {
-        // Initialize Session ONCE
-        let isMounted = true;
-        const initSession = async () => {
-            // Triple guard: session déjà créée, init déjà en cours, ou admin
-            if (sessionIdRef.current || initCalledRef.current || !isMounted || isAdmin) return;
+        latestViewRef.current = { view, selectedItemId, selectedItemName, selectedItemPrice, selectedItemContext };
+    }, [view, selectedItemId, selectedItemName, selectedItemPrice, selectedItemContext]);
 
-            // Ne pas créer de session si l'auth n'est pas encore résolue
-            // Cela évite la session fantôme à 0s quand user passe de null → anonymousUser
+    const recordCurrentView = () => {
+        if (!sessionIdRef.current || isAdmin) return false;
+
+        const current = latestViewRef.current;
+        if (current.view === 'detail' && current.selectedItemId && !current.selectedItemName) return false;
+
+        const actionKey = [
+            current.view || '',
+            current.selectedItemId || '',
+            current.selectedItemName || '',
+            current.selectedItemPrice || '',
+            current.selectedItemContext?.source || '',
+            current.selectedItemContext?.parentFurnitureId || ''
+        ].join('|');
+        if (lastRecordedKeyRef.current === actionKey) return false;
+
+        const actionTime = Date.now();
+        const durationSinceLast = Math.round((actionTime - lastActionTimeRef.current) / 1000);
+
+        let displayId = null;
+        if (current.selectedItemId) {
+            displayId = current.selectedItemName
+                ? `${current.selectedItemId} | ${current.selectedItemName} ${current.selectedItemPrice ? `(${current.selectedItemPrice}EUR)` : ''}`
+                : current.selectedItemId;
+            if (current.selectedItemContext?.parentFurnitureName) {
+                displayId += ` [depuis: ${current.selectedItemContext.parentFurnitureName}]`;
+            } else if (current.selectedItemContext?.source) {
+                displayId += ` [source: ${current.selectedItemContext.source}]`;
+            }
+        }
+
+        journeyToSend.current.push({
+            page: current.view,
+            itemId: displayId,
+            time: new Date().toLocaleTimeString('fr-FR'),
+            duration: durationSinceLast
+        });
+        lastRecordedKeyRef.current = actionKey;
+        lastActionTimeRef.current = actionTime;
+        return true;
+    };
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const initSession = async () => {
+            if (sessionIdRef.current || initCalledRef.current || !isMounted || isAdmin) return;
             if (!user) return;
 
-            // Verrouiller immédiatement (synchrone) avant l'appel async
             initCalledRef.current = true;
 
             const userInfo = {
-                userId: user?.uid || 'anonymous',
-                email: user?.email || null,
+                userId: user.uid || 'anonymous',
+                email: user.email || null,
                 type: isAdmin ? 'admin' : (user && !user.isAnonymous ? 'client' : 'anonymous'),
                 ...getDeviceInfo()
             };
+            const storedSession = getStoredAnalyticsSession();
+            if (storedSession) {
+                userInfo.resumeSessionId = storedSession.sessionId;
+                userInfo.resumeSyncToken = storedSession.syncToken;
+            }
 
             try {
                 const initRes = await httpsCallable(functions, 'initLiveSession')(userInfo);
                 if (initRes.data.success && isMounted) {
                     sessionIdRef.current = initRes.data.sessionId;
-                    sessionStorage.setItem('analytics_session_id', initRes.data.sessionId);
+                    syncTokenRef.current = initRes.data.syncToken || null;
+                    const startedAtMs = Number(initRes.data.startedAtMs);
+                    if (Number.isFinite(startedAtMs) && startedAtMs > 0) {
+                        startTimeRef.current = startedAtMs;
+                    }
+                    persistAnalyticsSession(initRes.data.sessionId, initRes.data.syncToken);
+                    recordCurrentView();
                 } else {
-                    initCalledRef.current = false; // Réouvrir si échec
+                    initCalledRef.current = false;
                 }
             } catch (error) {
-                console.error("Analytics Init Error:", error);
-                initCalledRef.current = false; // Réouvrir si erreur réseau
+                console.error('Analytics Init Error:', error);
+                initCalledRef.current = false;
             }
         };
 
         const timeout = setTimeout(() => {
             if (!sessionIdRef.current && !initCalledRef.current) initSession();
-        }, 2500); // 2.5s pour laisser Firebase Auth se stabiliser
+        }, 2500);
 
         return () => {
             isMounted = false;
@@ -79,37 +170,10 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
         };
     }, [user, isAdmin]);
 
-    // Record Action
     useEffect(() => {
-        if (!sessionIdRef.current || isAdmin) return;
+        recordCurrentView();
+    }, [view, selectedItemId, selectedItemName, selectedItemPrice, selectedItemContext]);
 
-        const actionTime = Date.now();
-        const durationSinceLast = Math.round((actionTime - lastActionTimeRef.current) / 1000);
-
-        // Guard: Wait for item details to populate before recording a DETAIL view
-        if (view === 'detail' && selectedItemId && !selectedItemName) return;
-
-        let displayId = null;
-        if (selectedItemId) {
-            if (selectedItemName) {
-                displayId = `${selectedItemId} | ${selectedItemName} ${selectedItemPrice ? `(${selectedItemPrice}€)` : ''}`;
-            } else {
-                displayId = selectedItemId;
-            }
-        }
-
-        const newAction = {
-            page: view,
-            itemId: displayId,
-            time: new Date().toLocaleTimeString('fr-FR'),
-            duration: durationSinceLast
-        };
-
-        journeyToSend.current.push(newAction);
-        lastActionTimeRef.current = actionTime;
-    }, [view, selectedItemId, selectedItemName, selectedItemPrice]);
-
-    // Heartbeat Sync
     useEffect(() => {
         const interval = setInterval(() => {
             if (!sessionIdRef.current || isAdmin) return;
@@ -120,30 +184,29 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
 
             httpsCallable(functions, 'syncSession')({
                 sessionId: sessionIdRef.current,
+                syncToken: syncTokenRef.current,
                 duration: totalDuration,
                 journey: chunk,
                 sessionActive: document.visibilityState === 'visible'
             }).catch(() => {
                 journeyToSend.current = [...chunk, ...journeyToSend.current];
             });
-
         }, 15000);
 
         return () => clearInterval(interval);
-    }, []);
+    }, [isAdmin]);
 
-    // Record Affiliate Product Clicks (from central tracking utility)
     useEffect(() => {
-        const handleAffiliateClick = (e) => {
+        const handleAffiliateClick = (event) => {
             if (!sessionIdRef.current || isAdmin) return;
 
-            const { productId, productName, productPrice, source, parentFurnitureName } = e.detail;
+            const { productId, productName, productPrice, source, parentFurnitureName } = event.detail;
             const actionTime = Date.now();
             const durationSinceLast = Math.round((actionTime - lastActionTimeRef.current) / 1000);
 
             let displayId = productId || null;
             if (productId && productName) {
-                displayId = `${productId} | ${productName}${productPrice ? ` (${productPrice}€)` : ''}`;
+                displayId = `${productId} | ${productName}${productPrice ? ` (${productPrice}EUR)` : ''}`;
             }
             if (parentFurnitureName) {
                 displayId += ` [depuis: ${parentFurnitureName}]`;
@@ -162,41 +225,38 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
         return () => window.removeEventListener('affiliate_product_click', handleAffiliateClick);
     }, [isAdmin]);
 
-    // Session Closure Detection (Reliable Approach for Mobile & Desktop)
     useEffect(() => {
         const sendSessionUpdate = (isActive = true) => {
             if (!sessionIdRef.current || isAdmin) return;
 
             const totalDuration = Math.round((Date.now() - startTimeRef.current) / 1000);
             const url = `https://us-central1-${functions.app.options.projectId}.cloudfunctions.net/syncSessionBeacon`;
-
-            // If we are closing/hiding, we send current journey and mark inactive
             const chunk = [...journeyToSend.current];
-            if (!isActive) journeyToSend.current = []; // Clear journey if closing
+            if (!isActive) journeyToSend.current = [];
 
-            const payload = JSON.stringify({
+            navigator.sendBeacon(url, JSON.stringify({
                 sessionId: sessionIdRef.current,
+                syncToken: syncTokenRef.current,
                 duration: totalDuration,
                 journey: chunk,
                 sessionActive: isActive
-            });
-
-            // navigator.sendBeacon is highly reliable for tab closures and app switching on mobile
-            // It runs in the background even if the page is being killed/suspended
-            navigator.sendBeacon(url, payload);
+            }));
         };
 
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'hidden') {
                 sendSessionUpdate(false);
-            } else if (document.visibilityState === 'visible') {
-                // Return to active (using standard call is fine here)
+                return;
+            }
+
+            if (document.visibilityState === 'visible' && sessionIdRef.current && !isAdmin) {
                 const totalDuration = Math.round((Date.now() - startTimeRef.current) / 1000);
                 httpsCallable(functions, 'syncSession')({
                     sessionId: sessionIdRef.current,
+                    syncToken: syncTokenRef.current,
                     duration: totalDuration,
                     sessionActive: true
-                }).catch(() => { });
+                }).catch(() => {});
             }
         };
 
@@ -206,7 +266,6 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
 
         window.addEventListener('visibilitychange', handleVisibilityChange);
         window.addEventListener('beforeunload', handleBeforeUnload);
-        // Pagehide is often more reliable than beforeunload on mobile
         window.addEventListener('pagehide', handleBeforeUnload);
 
         return () => {
@@ -214,7 +273,7 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
             window.removeEventListener('beforeunload', handleBeforeUnload);
             window.removeEventListener('pagehide', handleBeforeUnload);
         };
-    }, []);
+    }, [isAdmin]);
 
     return null;
 };

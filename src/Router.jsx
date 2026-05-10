@@ -9,11 +9,13 @@ import { scrollToTop } from './utils/smoothScroll';
 // Optimisation critique pour mobile : on ne télécharge pas tout d'un coup.
 const GalleryView = React.lazy(() => import('./pages/GalleryView'));
 const ShopView = React.lazy(() => import('./pages/ShopView'));
+const ShopProductDetail = React.lazy(() => import('./pages/ShopProductDetail'));
 const ProductDetail = React.lazy(() => import('./pages/ProductDetail'));
 const CheckoutView = React.lazy(() => import('./pages/CheckoutView'));
 const LoginView = React.lazy(() => import('./pages/LoginView'));
+const DeliveryView = React.lazy(() => import('./pages/DeliveryView'));
 import { Palette,
-    CreditCard, Mail, Users, Share2, Globe,
+    CreditCard, Users, Share2, Globe,
     Activity, Home, Package, Layout, LayoutPanelTop, BarChart3, ChevronLeft,
     MoreHorizontal, ChevronDown, ShoppingBag
 } from 'lucide-react';
@@ -27,7 +29,6 @@ const AdminStudio = React.lazy(() => import('./features/admin/AdminStudio'));
 const AdminForm = React.lazy(() => import('./features/admin/AdminForm'));
 const AdminItemList = React.lazy(() => import('./features/admin/AdminItemList'));
 const AdminUsers = React.lazy(() => import('./features/admin/AdminUsers'));
-const AdminNewsletter = React.lazy(() => import('./features/admin/AdminNewsletter'));
 const AdminAnalytics = React.lazy(() => import('./features/admin/AdminAnalytics'));
 
 const AdminSEO = React.lazy(() => import('./features/admin/AdminSEO'));
@@ -56,6 +57,10 @@ const AppRouter = ({
     setShowFullLogin,
     setSelectedItemId,
     selectedItemId,
+    selectedAffiliateProductId,
+    setSelectedAffiliateProductId,
+    selectedAffiliateProductContext,
+    setSelectedAffiliateProductContext,
     addToCart,
     cartItems,
     cartTotal,
@@ -91,7 +96,6 @@ const AppRouter = ({
         { id: 'users', label: 'Admin', icon: Users },
         { id: 'ip_manager', label: 'Session Exclu', icon: Globe },
         { id: 'seo', label: 'SEO', icon: Share2 },
-        { id: 'newsletter', label: 'Newsletter', icon: Mail },
         { id: 'payment_settings', label: 'Paiement', icon: CreditCard },
     ];
 
@@ -138,8 +142,8 @@ const AppRouter = ({
 
     return (
         <main>
-            {(view === 'home' || isPreparingGallery) && (
-                <div className={view === 'home' ? 'contents' : 'hidden'}>
+            {((view === 'home' || view === 'about') || isPreparingGallery) && (
+                <div className={(view === 'home' || view === 'about') ? 'contents' : 'hidden'}>
                     <HomeView
                         onEnterMarketplace={completeGalleryTransition}
                         onStartMarketplaceTransition={startGalleryTransition}
@@ -158,10 +162,11 @@ const AppRouter = ({
                         <GalleryView
                             items={items}
                             boardItems={boardItems}
+                            affiliateProducts={affiliateProducts}
                             isAdmin={isAdmin} isSecretGateOpen={isSecretGateOpen} user={user}
                             onShowLogin={() => setShowFullLogin(true)}
                             onSelectItem={(id) => { setSelectedItemId(id); setView('detail'); scrollToTop(); }}
-                            onOpenShop={() => { setView('shop'); window.location.hash = 'shop'; scrollToTop(); }}
+                            onOpenShop={() => { setView('shop'); scrollToTop(); }}
                             darkMode={darkMode}
                             onOpenMenu={onOpenMenu}
                             onOpenCart={onOpenCart}
@@ -183,7 +188,40 @@ const AppRouter = ({
                         onOpenCart={onOpenCart}
                         toggleTheme={toggleTheme}
                         setHeaderProps={setHeaderProps}
+                        onOpenProductDetail={(product, context = {}) => {
+                            setSelectedAffiliateProductId(product.id);
+                            setSelectedAffiliateProductContext({
+                                source: context.source || 'shop_grid',
+                                parentFurnitureId: context.parentFurnitureId || null,
+                                parentFurnitureName: context.parentFurnitureName || null
+                            });
+                            setView('shop-detail');
+                            scrollToTop();
+                        }}
                     />
+                </Suspense>
+            )}
+
+            {view === 'shop-detail' && selectedAffiliateProductId && (
+                <Suspense fallback={<div className="min-h-screen bg-transparent"></div>}>
+                    <ShopProductDetail
+                        product={affiliateProducts.find(p => p.id === selectedAffiliateProductId)}
+                        isLoading={affiliateProducts.length === 0}
+                        darkMode={darkMode}
+                        affiliateContext={selectedAffiliateProductContext}
+                        onBack={() => {
+                            setView('shop');
+                            setSelectedAffiliateProductId(null);
+                            setSelectedAffiliateProductContext(null);
+                            scrollToTop();
+                        }}
+                    />
+                </Suspense>
+            )}
+
+            {view === 'delivery' && (
+                <Suspense fallback={<div className="min-h-screen bg-transparent"></div>}>
+                    <DeliveryView darkMode={darkMode} />
                 </Suspense>
             )}
 
@@ -214,6 +252,16 @@ const AppRouter = ({
                             toggleTheme={toggleTheme}
                             setHeaderProps={setHeaderProps}
                             affiliateProducts={affiliateProducts}
+                            onOpenProductDetail={(product, context = {}) => {
+                                setSelectedAffiliateProductId(product.id);
+                                setSelectedAffiliateProductContext({
+                                    source: context.source || 'gallery_detail',
+                                    parentFurnitureId: context.parentFurnitureId || selectedItemId || null,
+                                    parentFurnitureName: context.parentFurnitureName || [...items, ...boardItems].find(i => i.id === selectedItemId)?.name || null
+                                });
+                                setView('shop-detail');
+                                scrollToTop();
+                            }}
                         />
                     </div>
                 </Suspense>
@@ -392,8 +440,6 @@ const AppRouter = ({
                             <AdminUsers darkMode={darkMode} />
                         ) : adminCollection === 'ip_manager' ? (
                             <AdminIPManager darkMode={darkMode} />
-                        ) : adminCollection === 'newsletter' ? (
-                            <AdminNewsletter darkMode={darkMode} />
                         ) : adminCollection === 'seo' ? (
                             <AdminSEO darkMode={darkMode} />
                         ) : adminCollection === 'analytics' ? (

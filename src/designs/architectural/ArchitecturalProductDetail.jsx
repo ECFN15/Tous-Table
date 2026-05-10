@@ -6,6 +6,7 @@ import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestor
 import { httpsCallable } from 'firebase/functions';
 import { getMillis } from '../../utils/time';
 import SEO from '../../components/shared/SEO';
+import { getProductPath, getShopProductPath, SITE_URL } from '../../utils/seoRoutes';
 
 
 import { useLiveTheme } from '../../hooks/useLiveTheme';
@@ -30,7 +31,14 @@ const CARE_FEATURES = [
 const placeBidFunction = httpsCallable(functions, 'placeBid');
 const wakeUpFunction = httpsCallable(functions, 'wakeUp');
 
-const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCart, onShowLogin, darkMode, setHeaderProps, cartItems = [], affiliateProducts = [] }) => {
+const getStructuredDataPrice = (item) => {
+    if (!item || item.priceOnRequest) return null;
+    const rawPrice = item.currentPrice ?? item.startingPrice ?? item.price;
+    const price = Number(rawPrice);
+    return Number.isFinite(price) && price > 0 ? price : null;
+};
+
+const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCart, onShowLogin, darkMode, setHeaderProps, cartItems = [], affiliateProducts = [], onOpenProductDetail }) => {
     const { palette } = useLiveTheme();
     const [activeImg, setActiveImg] = useState(0);
     const [bidLoading, setBidLoading] = useState(false);
@@ -147,22 +155,50 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
 
     const productSchema = useMemo(() => {
         if (!item) return null;
-        return {
-            "@context": "https://schema.org/",
+        const productUrl = `${SITE_URL}${getProductPath(item)}`;
+        const price = getStructuredDataPrice(item);
+        const isAvailable = !item.sold && Number(item.stock ?? 1) > 0;
+        const categoryName = collectionName === 'cutting_boards' ? 'Planches a decouper anciennes' : 'Meubles anciens';
+        const categoryUrl = collectionName === 'cutting_boards' ? '/planches-a-decouper-anciennes' : '/meubles-anciens';
+        const graph = [{
+                "@type": "BreadcrumbList",
+                "@id": `${productUrl}#breadcrumb`,
+                "itemListElement": [
+                    { "@type": "ListItem", "position": 1, "name": "Accueil", "item": `${SITE_URL}/` },
+                    { "@type": "ListItem", "position": 2, "name": categoryName, "item": `${SITE_URL}${categoryUrl}` },
+                    { "@type": "ListItem", "position": 3, "name": item.name, "item": productUrl }
+                ]
+            }];
+
+        if (price) {
+            graph.unshift({
             "@type": "Product",
+            "@id": `${productUrl}#product`,
             "name": item.name,
             "image": images,
-            "description": item.description,
+            "description": item.description || `${item.name} selectionne par Tous a Table Made in Normandie.`,
+            "sku": item.reference || item.id,
+            "category": categoryName,
+            "material": item.material || undefined,
             "brand": { "@type": "Brand", "name": "Tous à Table Made in Normandie" },
             "offers": {
                 "@type": "Offer",
-                "url": `${window.location.origin}/?product=${item.id}`,
+                "@id": `${productUrl}#offer`,
+                "url": productUrl,
                 "priceCurrency": "EUR",
-                "price": item.currentPrice || item.startingPrice,
-                "availability": !item.sold ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+                "price": price,
+                "availability": isAvailable ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+                "itemCondition": "https://schema.org/UsedCondition",
+                "seller": { "@type": "FurnitureStore", "name": "Tous a Table Made in Normandie", "url": SITE_URL },
             }
+            });
+        }
+
+        return {
+            "@context": "https://schema.org",
+            "@graph": graph
         };
-    }, [item, images]);
+    }, [item, images, collectionName]);
 
     const handleQuickBid = async (inc) => {
         if (bidLoading) return;
@@ -238,7 +274,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                 title={item.name}
                 description={item.description}
                 image={images[0]}
-                url={window.location.href}
+                url={getProductPath(item)}
                 type="product"
                 schema={productSchema}
             />
@@ -557,6 +593,13 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                                     <div className="absolute bottom-0 left-0 -ml-8 -mb-8 w-24 h-24 blur-3xl opacity-10 rounded-full" style={{ backgroundColor: palette.statusValid }}></div>
                                 </div>
                             )}
+                            <a
+                                href="/livraison-meubles-anciens-france"
+                                className={`mt-5 flex items-center justify-between border-t pt-4 text-[10px] font-black uppercase tracking-[0.2em] transition-colors duration-300 ${darkMode ? 'border-white/10 text-stone-500 hover:text-amber-400' : 'border-stone-200 text-stone-500 hover:text-amber-700'}`}
+                            >
+                                <span>Livraison France et pays frontaliers</span>
+                                <ArrowRight size={14} />
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -565,7 +608,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
             {/* === MODULE : VOUS AIMEREZ AUSSI + TUTO ATELIER === */}
             {recommendedProducts.length > 0 && (
                 <section className="tat-heavy-section w-full px-6 lg:px-12 pb-8">
-                    <div className={`relative max-w-[1920px] mx-auto p-5 lg:p-8 rounded-[28px] backdrop-blur-xl border ${darkMode ? 'bg-[#141414]/90 border-white/5' : 'bg-white/80 border-stone-200/60'}`}>
+                    <div className={`relative max-w-[1920px] mx-auto p-5 lg:p-8 rounded-[28px] md:backdrop-blur-xl border ${darkMode ? 'bg-[#141414]/90 border-white/5' : 'bg-white/80 border-stone-200/60'}`}>
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
 
                             {/* LEFT — Recommended products */}
@@ -574,15 +617,20 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                                     Vous aimerez aussi
                                 </p>
                                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                                    {recommendedProducts.map(product => (
+                                    {recommendedProducts.map((product, index) => (
                                         <ShopProductCard 
                                             key={product.id} 
                                             product={product} 
                                             darkMode={darkMode} 
                                             compact 
+                                            mobileLightweight
+                                            deferImageOnMobile
+                                            imageDelayMs={index * 110}
                                             source="gallery_detail"
                                             parentFurnitureId={item.id}
                                             parentFurnitureName={item.name}
+                                            detailHref={getShopProductPath(product)}
+                                            onOpenProductDetail={onOpenProductDetail}
                                         />
                                     ))}
                                 </div>

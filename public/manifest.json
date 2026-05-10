@@ -1,6 +1,6 @@
 {
-    "short_name": "Tous à Table",
-    "name": "Tous à Table Made in Normandie — Ameublement",
+    "short_name": "Tous a Table",
+    "name": "Tous a Table Made in Normandie - Meubles anciens restaures",
     "icons": [
         {
             "src": "favicon_final.png",
@@ -23,7 +23,7 @@
             "sizes": "512x512"
         }
     ],
-    "start_url": ".",
+    "start_url": "/",
     "display": "standalone",
     "theme_color": "#1a120b",
     "background_color": "#ffffff"

@@ -450,3 +450,340 @@ Mesures synthétiques pendant scroll Lenis programmatique :
 - Mesurer l'accueil en conditions réelles sur mobile Android/iOS, car c'est la seule page qui garde quelques longues frames en test de stress.
 - Envisager un découpage plus profond de certains bundles (`firebase`, `xlsx`, admin) pour réduire la charge initiale.
 - Si le hero 3D de l'accueil reste sensible sur appareils modestes, ajouter une qualité adaptative basée sur `deviceMemory`, `hardwareConcurrency` ou le premier score de frame time.
+
+## 9. Preloader mobile de demarrage - 7 mai 2026
+
+Objectif : reprendre le preloader visuel de la vitrine v50 au lancement mobile, afin de masquer la phase de boot et de lancer les prechargements critiques avant l'interaction utilisateur.
+
+Fichiers modifies :
+- `src/components/layout/StartupPreloader.jsx`
+- `src/utils/startupWarmup.js`
+- `src/App.jsx`
+- `src/index.css`
+
+Changements :
+- ajout d'un preloader global mobile/tactile, avec fond brun sombre et signature Tous a Table inspiree de v50 ;
+- remplacement du spinner initial par ce preloader quand le terminal est mobile/tactile ;
+- warmup pendant le preloader des chunks publics prioritaires (`GalleryView`, `ShopView`, details hors reseau reduit) ;
+- prechargement des images hero marketplace mobiles et des premieres images produits deja recues ;
+- pas de changement du scroll mobile : Lenis reste desktop-only, le tactile reste natif.
+
+Validation :
+- `npm run build` OK.
+
+Risque restant :
+- a verifier sur Xiaomi reel : le preloader deplace la charge initiale avant usage, mais ne corrige pas a lui seul un jank qui viendrait d'un decode image tardif ou d'un rendu Firestore arrive apres la fermeture.
+
+Correction 7 mai 2026 :
+- le `StartupPreloader` reprend le vrai timeline GSAP du preloader v50 pour l'entree et la sortie : fond `#1a1a1a`, voile secondaire `#9C8268` a 20%, entree `expo.out`, sortie rideau `expo.inOut` en 0.8 s avec decalage 0.05 s ;
+- le warmup reste lance pendant le preloader, avec images critiques separees mobile/desktop ;
+- le preloader de demarrage est actif sur les routes publiques marketplace mobile et desktop, en conservant `?skipPreloader=1`, le respect de `prefers-reduced-motion`, et les exclusions admin/login.
+
+Correction 8 mai 2026 :
+- verification des commits v35, v44, v45 et v50 : la sortie historique ne deplacait pas les lettres seules, elle faisait monter tout l'overlay `preloader-overlay` en `yPercent: -100` apres le voile secondaire ;
+- le wrapper React du nouveau `StartupPreloader` garde maintenant un fond transparent, pour que la montee du panneau `#1a1a1a` revele bien la page comme dans l'ancien code, sans couche noire fixe derriere la sortie.
+
+## 10. Optimisation mobile faible puissance de `/a-propos` - 7 mai 2026
+
+Objectif : rendre la page vitrine `/a-propos` fluide sur les telephones avec CPU/GPU modestes, sans changer l'architecture Lenis existante ni supprimer les animations sur les appareils capables.
+
+Cause analyse :
+- la page gardait plusieurs sources de travail continu sur mobile : WebGL hero, marquee editorial avec `gsap.ticker`, `useScroll`/`useVelocity`, cartes Framer Motion liees au scroll, parallax GSAP scrub sur les images manifesto, animations de blur/filter et `will-change` permanents ;
+- les resize mobile lies a la barre d'adresse pouvaient appeler `renderer.setSize(...)` pendant l'inertie native ;
+- le preloader public ne couvrait pas encore `home/about`, donc `/a-propos` ne profitait pas du warmup global de demarrage.
+
+Fichiers modifies :
+- `src/utils/devicePerformance.js`
+- `src/utils/startupWarmup.js`
+- `src/App.jsx`
+- `src/pages/HomeView.jsx`
+- `src/components/home/ThreeBackground.jsx`
+- `src/components/home/StackedCards.jsx`
+- `src/components/ui/EditorialMarquee.jsx`
+- `src/components/home/ProcessSection.jsx`
+- `src/index.css`
+- `src/hooks/useLenisScroll.js`
+
+Changements :
+- ajout d'un profil `tat-low-power-mobile` base sur tactile, `deviceMemory`, `hardwareConcurrency`, `saveData`, reseau lent et largeur mobile ;
+- ajout de `/a-propos`/`home` au `StartupPreloader` global avec warmup cible des images critiques de la page atelier ;
+- WebGL conserve sur mobile faible puissance, mais boucle RAF reellement stoppee quand `.hero-section` sort du viewport, puis relancee au retour vers le haut via `window.__setThreePaused` et un listener scroll RAF-coalesce ;
+- baisse du cout WebGL sur tactile : pas d'antialiasing, pixel ratio 1, geometrie reduite et resize WebGL ignore sur petits changements de hauteur de barre navigateur ;
+- animations conservees sur toutes les sections : marquee editorial, cartes Framer Motion scroll-linked, parallax manifesto, reveals blur/filter, counters, theme transitions et rotations restent actifs ;
+- optimisation du marquee sans changer le rendu : les tickers GSAP sont mis en pause par `IntersectionObserver` quand la section est hors viewport ;
+- les hints `will-change` permanents sont reduits sur profil mobile faible puissance sans supprimer les animations visibles ;
+- ajout de `decoding="async"` / lazy loading sur images tardives de la page.
+
+Validation :
+- `npm run build` OK le 7 mai 2026 ;
+- route locale `http://127.0.0.1:5174/a-propos` repond HTTP 200.
+
+Risques restants :
+- a valider sur un vrai Xiaomi / Android entree de gamme avec le frame sampler, car le gain principal cible le runtime mobile reel ;
+- les gros chunks Vite historiques (`firebase`, `heic2any`, etc.) restent signales par le build, sans regression nouvelle observee.
+
+Correction 8 mai 2026 :
+- demande utilisateur : ne pas supprimer le hero WebGL sur mobile faible puissance ;
+- `ThreeBackground` est a nouveau monte pour tous les profils, mais sa boucle `requestAnimationFrame` est reellement annulee quand `.hero-section` n'est plus visible ;
+- retour en haut : `ScrollTrigger` et le listener scroll RAF-coalesce appellent `window.__setThreePaused(false)` pour relancer la boucle WebGL ;
+- demande utilisateur : ne pas casser les animations des sections ; les versions statiques temporaires du marquee et des cartes ont ete supprimees, le parallax manifesto et les reveals complets ont ete restaures ;
+- validation : `npm run build` OK et `/a-propos` repond HTTP 200 en local.
+
+Correction 8 mai 2026 - demarrage WebGL differe :
+- demande utilisateur : eviter que le WebGL du hero demarre en meme temps que l'animation "Le Geste / & L'Ame" et les descriptions du bas ;
+- `HomeView` ne monte plus `ThreeBackground` au premier paint : `shouldMountThree` passe a `true` pendant la revelation de "Le Geste / & L'Ame" (`heroTitle+=0.35` / `exit+=0.65`), avec un callback final de securite ;
+- `ThreeBackground` signale son premier rendu via `onReady`, puis `.three-fade-layer` passe de `opacity: 0` a `1` en fondu GSAP pour eviter l'effet d'apparition instantanee ;
+- effet attendu : le chunk Three.js, le renderer WebGL et la RAF commencent apres le titre hero sans concurrencer le premier rendu texte, puis gardent le stop/restart hors viewport deja en place.
+
+## 10. Audit Comptoir mobile scroll - 7 mai 2026
+
+Objectif : reduire les risques de lag/freeze pendant le scroll mobile sur `/comptoir`, sans casser l'UI ni les animations visibles.
+
+Constats :
+- Lenis est bien desktop-only dans `src/hooks/useLenisScroll.js` : early return tactile, `syncTouch: false`, `autoRaf: false`, instance unique via `App.jsx`.
+- Le header global utilise deja un scroll listener passif + `requestAnimationFrame` + diff avant `setIsHeaderVisible`, donc pas de setState direct a chaque event scroll.
+- Le Comptoir avait encore une source de travail React hors scroll : le mot "Rituel Bois" mettait a jour l'etat dans `ShopView`, ce qui faisait retraverser la page complete et les grilles produit toutes les 55 a 145 ms pendant toute la visite.
+- Plusieurs surfaces mobiles utilisaient du `backdrop-blur` pendant le scroll : bouton filtre fixed, badges de cartes, CTA, bloc tutoriel. Le blur fixed est le plus risque car il recomposite le contenu en mouvement sous le bouton.
+- Le hero Comptoir charge 6 images produit externes Amazon ; sans `decoding="async"`, le decode pouvait tomber sur les premiers gestes de scroll.
+
+Changements appliques :
+- `src/pages/ShopView.jsx` : extraction de l'animation de mot dans `RitualWordLoop`, afin que les ticks de typing ne rerendent plus toute la page Comptoir.
+- `src/pages/ShopView.jsx` : suppression du `backdrop-blur-xl` du bouton filtre mobile fixed, et passage du blur du bloc tutoriel en `md:backdrop-blur-xl` uniquement.
+- `src/components/shop/ShopProductCard.jsx` : suppression du blur sur mobile pour les badges et le CTA, conserve a partir de `sm`.
+- `src/components/shop/WorkshopHero.jsx` : ajout de `decoding="async"` sur les images hero, `fetchPriority="high"` sur les deux images principales, `loading="lazy"` sur les images secondaires.
+
+Validation :
+- `npm run build` OK le 7 mai 2026.
+- `npm run verify:seo-roadmap` OK le 7 mai 2026, 16 checks passes.
+- Checklist source : une seule instanciation `new Lenis(`, aucun `syncTouch: true`, `autoRaf: false`, scroll handlers Comptoir sans setState par event scroll.
+
+Risques residuels :
+- Playwright n'est pas installe dans le repo, donc aucune mesure frame-time automatisee n'a ete prise dans cette passe.
+- A verifier sur vrai mobile Android/iOS : scroll `/comptoir`, ouverture du drawer categories, passage des blocs tutoriels, decode des images hero au premier chargement.
+- Les classes `.tat-shop-card-shell` et `.tat-heavy-section` desactivent `content-visibility` sur `pointer: coarse` ; c'est un arbitrage a re-mesurer sur appareil reel si les sections longues restent lourdes.
+
+## 11. Warmup oriente parcours marketplace - 8 mai 2026
+
+Objectif : eviter que le preloader de demarrage charge trop de routes/images en parallele, afin de garder l'animation fluide et de concentrer le budget reseau/CPU sur le premier ecran reel : la marketplace mobilier.
+
+Fichiers modifies :
+- `src/utils/startupWarmup.js`
+- `src/App.jsx`
+- `src/Router.jsx`
+- `src/pages/GalleryView.jsx`
+- `src/designs/architectural/MarketplaceLayout.jsx`
+- `src/designs/architectural/components/ArchitecturalHeader.jsx`
+- `src/designs/architectural/components/ProductCard.jsx`
+- `src/pages/ShopView.jsx`
+- `src/components/shop/ShopProductCard.jsx`
+
+Changements :
+- le warmup pendant le preloader marketplace ne charge plus par defaut Planches, Comptoir, `ProductDetail` ni `ShopProductDetail` ;
+- le preloader marketplace charge seulement le chunk `GalleryView`, les images hero mobilier adaptees au viewport et les premieres images mobilier ;
+- le nombre d'images mobilier chauffe pendant le preloader depend du profil appareil : 3 si reseau limite/mobile faible puissance, 5 sur tactile, 8 sur desktop ;
+- le warmup Planches est declenche sur intention utilisateur (`hover`, `focus`, `pointerdown`, puis clic) des boutons Planches dans le header desktop et le switcher mobile ;
+- le warmup Comptoir est declenche sur intention utilisateur du bouton Comptoir ;
+- le warmup detail produit est declenche sur intention/clic d'une carte meuble, et le warmup detail Comptoir sur intention/clic d'une carte produit Comptoir ;
+- les routes directes `/planches-a-decouper-anciennes`, `/comptoir`, `/produit/...` et `/comptoir/...` gardent un warmup cible adapte a leur route initiale.
+
+Validation :
+- `npm run build` OK le 8 mai 2026.
+
+Risques residuels :
+- a valider sur vrai mobile Android/iOS : fluidite de l'animation preloader pendant decode hero mobilier et premier rendu grille ;
+- le prefetch d'intention sur mobile se declenche surtout au `pointerdown`, donc il sert principalement a anticiper le debut de navigation, pas une longue phase de prechargement avant clic.
+
+Correction preloader 8 mai 2026 :
+- l'entree GSAP du preloader garde la priorite : le warmup ne demarre plus sur la premiere frame, il attend la fin de l'intro puis travaille sur un budget court avant la sortie ;
+- les images du warmup sont chargees de maniere cooperative : concurrence limitee pendant le preloader, pauses `requestIdleCallback`/fallback entre images, et `decode()` reserve aux images haute priorite ;
+- le warmup mobilier de demarrage est stage : chunk `GalleryView` + hero mobilier d'abord, puis premieres images produits ;
+- ajustement visuel de la signature : `Atelier Normand` est groupe avec `TOUS A TABLE` pour controler l'ecart sans additionner `gap` et `margin-top`.
+
+Correction marketplace 8 mai 2026 :
+- au clic `Voir plus de produits`, les cartes meubles/planches ne sont plus injectees immediatement : le prochain lot lance d'abord un warmup image/decode limite dans le temps, puis l'animation `tatCardEnter` demarre ;
+- sur mobile, le warmup du lot est sequentiel/concurrentiel limite selon profil appareil, pour eviter de saturer le thread principal pendant l'apparition ;
+- les images critiques du lot remplissent aussi `RATIO_CACHE` quand leurs dimensions sont disponibles, afin de reduire les changements de hauteur pendant le fondu ;
+- les cartes fraiches recoivent `imagePriority` uniquement pendant leur animation, sans supprimer l'animation existante mobile ou desktop.
+
+Ajustement marketplace 8 mai 2026 :
+- sur mobile performant, le clic `Voir plus de produits` ne bloque plus sur un warmup de 8 images : seules les 4 premieres images du lot sont prioritaires, avec budget court, puis le reste continue en arriere-plan pendant le stagger ;
+- sur mobile faible puissance/reseau limite, le warmup reste plus prudent mais le budget bloquant est reduit pour eviter l'impression de bouton fige ;
+- le libelle du bouton reste stable pendant la preparation, afin de reduire la sensation de chargement visible.
+
+Ajustement marketplace S24/iPhone recents - 8 mai 2026 :
+- le profil `Voir plus` ne s'appuie plus directement sur le fallback global `Android largeur mobile`, car il classait des telephones haut de gamme comme faibles puissances ;
+- si le navigateur expose au moins 6 Go de `deviceMemory` ou 6 coeurs CPU, le warmup du clic passe en profil mobile performant : 3 images prioritaires, budget bloquant court (~420 ms), reste du lot en arriere-plan ;
+- les vrais profils limites restent detectes par `saveData`/2G, `prefers-reduced-motion`, RAM <= 4 Go ou CPU <= 4 coeurs.
+
+Ajustement marketplace reveal progressif - 8 mai 2026 :
+- demande utilisateur : conserver l'animation premium `tatCardEnter` avec blur/fondu, mais eviter le freeze au moment ou les nouvelles cartes arrivent apres `Voir plus de produits` ;
+- `MarketplaceLayout` ne monte plus les 12 nouvelles cartes dans le meme frame apres le warmup : le lot est revele par micro-lots adaptes au profil appareil (desktop, tactile performant, tactile contraint), tout en gardant le meme keyframe d'apparition ;
+- `freshOrder` stocke maintenant un delai en millisecondes par carte fraiche, afin que chaque micro-lot puisse lancer l'animation sans recalculer un stagger global trop couteux ;
+- seules les premieres cartes du lot gardent `imagePriority`, le reste profite du warmup et du lazy loading pour reduire la pression decode/reseau pendant l'animation ;
+- le bouton reste occupe jusqu'a la fin de la salve courante pour eviter deux sequences `Voir plus` concurrentes ;
+- validation : `git diff --check -- src/designs/architectural/MarketplaceLayout.jsx` OK et `npm run build` OK le 8 mai 2026.
+
+Correction marketplace planches - 8 mai 2026 :
+- diagnostic utilisateur : le bouton `Voir plus de produits` des planches n'etait pas systematique, car `visibleCount` etait partage par `MarketplaceLayout` entre mobilier et planches ;
+- passage de collection : la fenetre visible repart a 24, les timers de reveal sont annules, `freshOrder`/`freshPriorityIds` et les hauteurs masonry sont remis a zero ;
+- sur la collection `cutting_boards`, les filtres categories mobilier (`buffet`, `table`, `armoire`, etc.) ne sont plus rendus et la categorie interne est forcee a `all` ;
+- la reinitialisation des filtres sur les planches ne rappelle plus `onCategoryChange`, afin de ne pas renvoyer l'utilisateur vers la page mobilier.
+
+Ajustement preloader desktop/laptop - 8 mai 2026 :
+- demande utilisateur : rendre le preloader plus harmonieux sur laptop et desktop, les espacements marteau / `TOUS A TABLE` / `Atelier Normand` etant trop compresses ;
+- application du skill `frontsymmetry` : le preloader est un overlay fixed isole, donc les ajustements sont limites aux gaps internes et tailles des enfants, sans modifier le flux du site ni la timeline GSAP ;
+- breakpoints ajoutes : `768px`, `1024px`, `1440px` avec respiration verticale progressive, titre plus present, tracking reduit pour contenir la largeur, marteau agrandi et signature reequilibree.
+
+Ajustement preloader vertical - 8 mai 2026 :
+- demande utilisateur : ajouter proportionnellement plus de marge entre le marteau et `TOUS A TABLE`, puis entre `TOUS A TABLE` et `Atelier Normand`, sur mobile, laptop et desktop ;
+- `frontsymmetry` : augmentation des deux gaps internes uniquement (`tat-startup-preloader-content` et `tat-startup-preloader-brand`), sans changement de taille, de timeline GSAP ni de layout public ;
+- valeurs finales : mobile `2.55rem / 1.86rem`, 768px `3.55rem / 2.55rem`, 1024px `4rem / 2.85rem`, 1440px `4.35rem / 3.05rem`.
+
+Ajustement signature preloader desktop/laptop - 8 mai 2026 :
+- demande utilisateur : rendre `Atelier Normand` et ses deux traits plus gros sur laptop/desktop, et l'eloigner davantage de `TOUS A TABLE` ;
+- mobile conserve intact ; seuls les breakpoints `768px`, `1024px`, `1440px` changent ;
+- signature agrandie, traits allonges et gap titre/signature augmente pour une hierarchie plus harmonieuse.
+
+Ajustement icone preloader mobile - 8 mai 2026 :
+- demande utilisateur : le marteau mobile etait trop gros par rapport au titre et a la signature ;
+- taille SVG mobile fixee a `2.8rem`, les tailles laptop/desktop validees restent inchangées via les media queries existantes.
+
+Ajustement signature mobile - 8 mai 2026 :
+- demande utilisateur : descendre legerement `Atelier Normand` sur mobile ;
+- `frontsymmetry` : deplacement visuel seul via `top: 0.22rem` sur la signature mobile, reset a `top: 0` des `768px` pour ne pas changer laptop/desktop.
+
+Ajustement titre preloader mobile - 8 mai 2026 :
+- demande utilisateur : agrandir legerement `TOUS A TABLE` sur mobile apres reequilibrage du marteau et de la signature ;
+- taille mobile passee a `clamp(1.94rem, 8.7vw, 2.34rem)` en conservant la limite de largeur existante pour eviter le contact avec les bords de l'ecran.
+
+Ajustement signature mobile preloader - 8 mai 2026 :
+- demande utilisateur : descendre un peu plus `Atelier Normand` et augmenter legerement sa taille de police sur mobile uniquement ;
+- signature mobile passee a `top: 0.34rem` et `font-size: 0.7rem`, avec reset `top: 0` conserve des `768px` pour ne pas modifier laptop/desktop.
+
+Optimisation fluidite preloader mobile - 8 mai 2026 :
+- diagnostic utilisateur : sur mobile moins performant, la fin de l'apparition `TOUS A TABLE` pouvait perdre des FPS, surtout sur `A TABLE` ;
+- cause principale : animation simultanee de plusieurs lettres avec `filter: blur(...)` + `transform` + `opacity`, le blur texte etant couteux en rasterisation sur GPU/CPU mobile ;
+- cause secondaire : le warmup catalogue pouvait se lancer pendant que le preloader etait encore en intro si les donnees arrivaient rapidement ;
+- correction : `StartupPreloader` active une variante `tat-startup-preloader--lean` uniquement pour profils mobiles contraints (RAM <= 4 Go, CPU <= 4 coeurs, reduction motion/reseau limite, fallback bas de gamme), en gardant l'animation `transform/opacity` mais sans blur/drop-shadow ;
+- les mobiles haut de gamme exposes par le navigateur (>= 6 Go RAM ou >= 6 coeurs) gardent l'animation complete ;
+- `App` attend l'evenement `tat-startup-preloader-intro-complete` avant de lancer le warmup catalogue opportuniste, afin de ne pas concurrencer l'apparition du texte.
+
+Ajustement reveal signature preloader - 8 mai 2026 :
+- demande utilisateur : eviter que `Atelier Normand` et ses deux traits apparaissent trop d'un coup ;
+- le footer du preloader demarre maintenant a `y: 8` et passe en `opacity: 1` sur `1.08s` avec `sine.out`, en gardant uniquement `transform/opacity` pour rester fluide sur mobile.
+
+## 12. Comptoir - retrait animations d'apparition ciblees - 8 mai 2026
+
+Objectif : retirer les animations d'apparition des deux premieres cartes de chaque section Comptoir et des six images du hero, sans changer la composition visuelle ni les hover states.
+
+Fichiers modifies :
+- `src/pages/ShopView.jsx`
+- `src/components/shop/ShopProductCard.jsx`
+- `src/components/shop/WorkshopHero.jsx`
+
+Changements :
+- `ShopProductCard` accepte `disableAppearAnimation` et expose `data-shop-card-appear` pour distinguer les cartes animables ;
+- `ShopView` passe `disableAppearAnimation={index < 2}` sur chaque section produit ;
+- l'ancien `gsap.from(grid)` sur le wrapper `.product-grid` a ete retire, sinon les deux premieres cartes continuaient a apparaitre avec le groupe ;
+- une tentative d'animation GSAP carte-par-carte a ete retiree immediatement : elle pouvait laisser les cartes suivantes en `opacity: 0` si le `ScrollTrigger` ne jouait pas au bon moment ;
+- `WorkshopHero` ne monte plus de refs ni de `useGSAP` pour les 6 images : elles sont presentes directement au rendu initial, avec les transitions hover conservees.
+
+Validation :
+- `git diff --check` OK sur les fichiers touches.
+- `npm run build` bloque hors scope : `src/components/home/StackedCards.jsx` importe `../ui/EditorialMarquee`, mais `src/components/ui/EditorialMarquee.jsx` est actuellement supprime dans le worktree.
+
+Risque restant :
+- build complet a relancer apres resolution de la suppression de `EditorialMarquee.jsx`.
+
+## 13. Marketplace - release mobile Voir plus - 8 mai 2026
+
+Objectif : reduire le freeze percu sur mobile apres le clic `Voir plus de produits`, tout en conservant l'animation premium des nouvelles cartes.
+
+Fichier modifie :
+- `src/designs/architectural/MarketplaceLayout.jsx`
+
+Changements :
+- le warmup bloquant mobile du lot suivant chauffe moins d'images en priorite et rend la main plus vite avant de laisser le reste continuer en arriere-plan ;
+- le reveal tactile garde les micro-lots, mais avec une cadence plus courte et moins d'images `fetchPriority="high"` pour reduire la pression decode/reseau ;
+- sur tactile, `tatCardEnter` utilise un blur et une distance plus faibles, avec une duree plus courte ; les profils mobiles contraints descendent encore le blur et evitent le `will-change: filter` ;
+- le bouton `Voir plus de produits` n'attend plus la fin complete de l'animation pour sortir de l'etat occupe : il se libere quand le dernier micro-lot est monte, puis les classes d'animation sont nettoyees apres leur fin ;
+- le hover orange du bouton est maintenant limite aux pointeurs fins desktop, afin d'eviter l'etat orange persistant apres tap mobile.
+
+Validation :
+- `git diff --check -- src/designs/architectural/MarketplaceLayout.jsx` OK.
+
+Risque restant :
+- smoke mobile reel a faire sur `/mobilier` et `/planches-a-decouper-anciennes` pour juger le compromis exact entre flou visuel et fluidite.
+
+## 14. Preloader mobile - signature et warmup Xiaomi - 8 mai 2026
+
+Objectif : descendre legerement `Atelier Normand` sous `TOUS A TABLE` et eviter que le warmup catalogue concurrence la fin de l'animation du titre sur mobile Android/Xiaomi.
+
+Fichiers modifies :
+- `src/components/layout/StartupPreloader.jsx`
+- `src/utils/startupWarmup.js`
+- `src/App.jsx`
+- `src/index.css`
+
+Changements :
+- augmentation legere du gap vertical entre `TOUS A TABLE` et `Atelier Normand` sur mobile, tablette, laptop et desktop ;
+- les mobiles Android tactiles en viewport mobile passent maintenant en variante preloader lean, meme si `hardwareConcurrency` expose beaucoup de coeurs, car le blur texte reste couteux sur certains GPU Android ;
+- le blur initial tactile hors lean descend de `6px` a `3px`, et la distance d'entree des lettres est reduite ;
+- le budget warmup interne du preloader est reduit sur tactile (`260ms` en lean, `420ms` sinon), au lieu de garder un long budget mobile ;
+- pendant `body.tat-startup-preloading`, le warmup image tactile ne force plus `decode()` : il peut amorcer le cache reseau, mais evite la phase la plus bloquante pour l'animation ;
+- le fallback catalogue public ne pousse plus `setItems`/`setBoardItems`/`setAffiliateProducts` pendant le preloader : les donnees recues sont stockees puis appliquees apres la sortie, sur idle court ;
+- le warmup catalogue opportuniste demarre apres la fermeture du preloader, avec un delai plus long sur tactile.
+
+Validation :
+- `git diff --check` OK sur les fichiers touches.
+- `npm run build` OK, avec le warning Vite historique sur les chunks volumineux.
+
+Risque restant :
+- a valider sur le Xiaomi reel : le premier rendu catalogue peut arriver une fraction plus tard, mais la fin de l'animation `A TABLE` doit rester plus stable.
+
+Ajustement signature preloader :
+- apparition `Atelier Normand` acceleree (`0.78s` au lieu de `1.08s`) pour eviter un fondu trop lent ;
+- taille de la signature legerement augmentee sur mobile, tablette, laptop et desktop, sans changer le placement ni le warmup.
+
+Ajustement titre preloader mobile :
+- demande utilisateur : remplacer l'animation `TOUS A TABLE` mobile, encore sujette a des drops FPS en fin d'apparition, par une variante moins couteuse ;
+- sur mobile tactile uniquement (`pointer: coarse` + viewport < 768px), les lettres ne sont plus animees une par une : elles sont rendues directement, sans blur ni stagger ;
+- le titre complet est revele par un seul masque vertical anime en `transform`, avec une couleur initiale beige sourde (`#9C8268`) qui fond vers le blanc casse (`#FAF9F6`) pendant l'arrivee ;
+- `Atelier Normand` demarre sur la fin de l'arrivee du titre mobile (`-=0.14`) pour garder une transition plus dynamique sans superposer trop de travail ;
+- laptop et desktop conservent strictement l'animation existante lettre par lettre.
+
+Validation :
+- `git diff --check` OK sur les fichiers touches.
+- `npm run build` OK, avec le warning Vite historique sur les chunks volumineux.
+
+## 14. Comptoir - recommandations fiche meuble mobile - 8 mai 2026
+
+Objectif : reduire les freezes mobiles dans le bloc "Vous aimerez aussi" d'une fiche meuble, quand les cartes Comptoir chargent leurs images produit.
+
+Diagnostic :
+- le bloc montait 4 cartes Comptoir en meme temps, avec 4 images externes a decodage asynchrone mais posees simultanement ;
+- sur mobile, ces cartes cumulaient aussi plusieurs couts de rendu : `backdrop-blur-xl` sur le conteneur, `mix-blend-mode: multiply` sur les images et `clip-path` mobile, pendant que l'animation d'apparition jouait ;
+- le cout le plus visible pouvait tomber pendant un scroll ou juste apres l'arrivee du module, d'ou la sensation de freeze.
+
+Fichiers modifies :
+- `src/designs/architectural/ArchitecturalProductDetail.jsx`
+- `src/components/shop/ShopProductCard.jsx`
+- `src/index.css`
+
+Changements :
+- le conteneur du module "Vous aimerez aussi" garde le blur seulement a partir de `md` ;
+- `ShopProductCard` expose un mode `mobileLightweight`, `deferImageOnMobile` et `imageDelayMs` ;
+- dans les recommandations de fiche meuble, les 4 images Comptoir sont revelees progressivement sur tactile via `IntersectionObserver` avec un stagger court de 110 ms ;
+- sur tactile et uniquement pour ce mode leger, le clip-path mobile est retire et le blend-mode image reste isole a la frame beige pour eviter le carre blanc des visuels Amazon, tandis que l'animation transform/opacity est conservee ;
+- desktop/laptop et les grilles Comptoir standard gardent le rendu existant.
+
+Ajustement visuel :
+- apres test mobile, le retrait complet du `mix-blend-mode` faisait reapparaitre un carre blanc autour de certains produits Amazon ;
+- le `multiply` est donc conserve sur l'image, mais dans une frame `isolate` et avec le reste des optimisations maintenu : images staggered, pas de blur mobile sur conteneur, pas de clip-path mobile.
+
+Validation :
+- `git diff --check` OK sur les fichiers touches.
+- `npm run build` OK, avec le warning Vite historique sur les chunks volumineux.
+
+Risque restant :
+- verifier sur vrai mobile que le stagger image n'est pas perceptible comme un chargement vide, et qu'il reduit bien le freeze autour du module.

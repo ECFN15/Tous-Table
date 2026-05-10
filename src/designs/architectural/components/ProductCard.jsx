@@ -1,6 +1,7 @@
 import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { Plus } from 'lucide-react';
 import AuctionTimer from '../../../components/ui/AuctionTimer';
+import { getProductPath } from '../../../utils/seoRoutes';
 
 // Cache module-level : survit aux unmount/remount des cartes (changement de filtre/catégorie).
 // Tue le "flash de carrés" quand on switche de catégorie : si on a déjà calculé le ratio
@@ -15,6 +16,31 @@ const getPrice = (item) => item?.currentPrice || item?.startingPrice || item?.pr
 
 const LETTERBOX_QUEUE = [];
 let isLetterboxQueueRunning = false;
+let nativeScrollTrackingReady = false;
+let lastNativeScrollAt = -Infinity;
+
+const isCoarsePointer = () => (
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(pointer: coarse)').matches
+);
+
+const markNativeScroll = () => {
+    lastNativeScrollAt = performance.now();
+};
+
+const ensureNativeScrollTracking = () => {
+    if (nativeScrollTrackingReady || !isCoarsePointer()) return;
+    window.addEventListener('scroll', markNativeScroll, { passive: true });
+    nativeScrollTrackingReady = true;
+};
+
+const shouldDelayExpensiveImageWork = () => {
+    if (typeof window === 'undefined') return false;
+    ensureNativeScrollTracking();
+    const nativeScrollInProgress = nativeScrollTrackingReady && (performance.now() - lastNativeScrollAt < 360);
+    return window.__lenis?.isScrolling || nativeScrollInProgress;
+};
 
 const requestIdle = (callback) => {
     if (typeof window === 'undefined') return;
@@ -33,7 +59,7 @@ const runLetterboxQueue = () => {
             return;
         }
 
-        if (window.__lenis?.isScrolling) {
+        if (shouldDelayExpensiveImageWork()) {
             LETTERBOX_QUEUE.unshift(task);
             window.setTimeout(next, 220);
             return;
@@ -74,9 +100,11 @@ const getTopLabel = (item, hideStock = false) => {
 const ProductCard = ({
     item,
     className = '',
+    onIntent,
     onClick,
     hideStock = false,
-    darkMode = false
+    darkMode = false,
+    imagePriority = false
 }) => {
     const image = getImage(item);
     const price = getPrice(item);
@@ -161,7 +189,10 @@ const ProductCard = ({
 
     return (
         <a
-            href={`/?product=${item.id}`}
+            href={getProductPath(item)}
+            onMouseEnter={onIntent}
+            onFocus={onIntent}
+            onPointerDown={onIntent}
             onClick={(event) => {
                 if (!event.ctrlKey && !event.metaKey) {
                     event.preventDefault();
@@ -184,8 +215,9 @@ const ProductCard = ({
                     onLoad={handleImageLoad}
                     style={{ objectPosition: objectPos }}
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.04]"
-                    loading="lazy"
+                    loading={imagePriority ? 'eager' : 'lazy'}
                     decoding="async"
+                    fetchPriority={imagePriority ? 'high' : 'auto'}
                 />
             )}
 
@@ -199,7 +231,7 @@ const ProductCard = ({
             {/* TOP-LEFT : live auction badge only (material moved bottom-right) */}
             {item.auctionActive && (
                 <div className="absolute left-4 top-4 z-30 flex items-center gap-2 max-w-[calc(100%-4rem)]">
-                    <div className={`inline-flex items-center gap-2 border border-[#dba45f]/60 px-3 py-1.5 text-[8px] font-black uppercase tracking-[0.2em] text-[#f0b969] backdrop-blur-sm ${darkMode ? 'bg-black/55' : 'bg-[#3a2512]/70'}`}>
+                    <div className={`inline-flex items-center gap-2 border border-[#dba45f]/60 px-3 py-1.5 text-[8px] font-black uppercase tracking-[0.2em] text-[#f0b969] sm:backdrop-blur-sm ${darkMode ? 'bg-black/55' : 'bg-[#3a2512]/70'}`}>
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                         <Suspense fallback="Live"><AuctionTimer endDate={item.auctionEnd} /></Suspense>
                     </div>
@@ -207,7 +239,7 @@ const ProductCard = ({
             )}
 
             {/* TOP-RIGHT : + button — taille calibrée par breakpoint pour rester ~15-18% de la carte */}
-            <div className={`absolute right-3 top-3 sm:right-3.5 sm:top-3.5 md:right-4 md:top-4 z-30 flex h-8 w-8 sm:h-9 sm:w-9 md:h-[38px] md:w-[38px] lg:h-[42px] lg:w-[42px] items-center justify-center rounded-full border border-[#dba45f]/80 text-[#f0b969] backdrop-blur-sm transition-all duration-300 group-hover:bg-[#dba45f] group-hover:text-black group-hover:scale-105 ${darkMode ? 'bg-black/30' : 'bg-[#2b1b0c]/35 shadow-[0_8px_20px_rgba(72,45,18,0.18)]'}`}>
+            <div className={`absolute right-3 top-3 sm:right-3.5 sm:top-3.5 md:right-4 md:top-4 z-30 flex h-8 w-8 sm:h-9 sm:w-9 md:h-[38px] md:w-[38px] lg:h-[42px] lg:w-[42px] items-center justify-center rounded-full border border-[#dba45f]/80 text-[#f0b969] sm:backdrop-blur-sm transition-all duration-300 group-hover:bg-[#dba45f] group-hover:text-black group-hover:scale-105 ${darkMode ? 'bg-black/30' : 'bg-[#2b1b0c]/35 shadow-[0_8px_20px_rgba(72,45,18,0.18)]'}`}>
                 <Plus className="w-4 h-4 sm:w-[18px] sm:h-[18px] lg:w-5 lg:h-5" strokeWidth={1.5} />
             </div>
 
@@ -247,5 +279,6 @@ export default React.memo(ProductCard, (prev, next) => {
         prev.item?.updatedAt === next.item?.updatedAt &&
         prev.className === next.className &&
         prev.hideStock === next.hideStock &&
-        prev.darkMode === next.darkMode;
+        prev.darkMode === next.darkMode &&
+        prev.imagePriority === next.imagePriority;
 });

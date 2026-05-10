@@ -4,6 +4,7 @@ import { collection, query, orderBy, onSnapshot, getDocs, where } from 'firebase
 import { db, appId } from '../../firebase/config';
 import { Gavel, History, Download, ChevronDown, ChevronUp, User, Mail, Calendar } from 'lucide-react';
 import { getMillis } from '../../utils/time';
+import { exportRowsToCsv } from '../../utils/csvExport';
 
 const AdminAuctions = ({ darkMode = false }) => {
     const [auctions, setAuctions] = useState([]);
@@ -67,14 +68,13 @@ const AdminAuctions = ({ darkMode = false }) => {
         }
     };
 
-    const exportAuctionBids = async (auction) => {
+    const exportAuctionBids = (auction) => {
         const bids = bidsHistory[auction.id] || [];
         if (bids.length === 0) {
             alert("Aucune enchère à exporter.");
             return;
         }
 
-        const XLSX = await import('xlsx');
         const data = bids.map(bid => ({
             'Date': bid.timestamp?.toDate ? bid.timestamp.toDate().toLocaleDateString('fr-FR') : 'N/A',
             'Heure': bid.timestamp?.toDate ? bid.timestamp.toDate().toLocaleTimeString('fr-FR') : 'N/A',
@@ -85,15 +85,7 @@ const AdminAuctions = ({ darkMode = false }) => {
             'Incrément (€)': bid.increment || 'N/A'
         }));
 
-        const ws = XLSX.utils.json_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Historique Enchères");
-
-        // Auto-width
-        const wscols = Object.keys(data[0] || {}).map(() => ({ wch: 20 }));
-        ws['!cols'] = wscols;
-
-        XLSX.writeFile(wb, `Encheres_${auction.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`);
+        exportRowsToCsv(data, `Encheres_${auction.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`);
     };
 
     const formatDate = (date) => {
@@ -169,7 +161,7 @@ const AdminAuctions = ({ darkMode = false }) => {
                                             onClick={(e) => { e.stopPropagation(); exportAuctionBids(auction); }}
                                             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${darkMode ? 'bg-white text-stone-900 hover:bg-stone-200' : 'bg-stone-900 text-white hover:bg-stone-800'}`}
                                         >
-                                            <Download size={14} /> Exporter (.xlsx)
+                                            <Download size={14} /> Exporter (.csv)
                                         </button>
                                     </div>
 
