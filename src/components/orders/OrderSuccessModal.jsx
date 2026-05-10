@@ -1,12 +1,12 @@
 import React from 'react';
-import { CheckCircle, ArrowRight, ShoppingBag } from 'lucide-react';
+import { CheckCircle, ArrowRight, ShoppingBag, Landmark, ReceiptText } from 'lucide-react';
 
 const OrderSuccessModal = ({ onClose, paymentMethod }) => {
     const isStripe = paymentMethod === 'stripe_elements';
 
     return (
         <div className="fixed inset-0 z-[300] bg-stone-900/80 backdrop-blur-md flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-300">
-            <div className="bg-white rounded-3xl md:rounded-[2.5rem] shadow-2xl max-w-md w-full max-h-[85vh] overflow-y-auto ios-modal-scroll p-6 md:p-10 text-center relative overflow-hidden animate-in zoom-in-95 duration-300 slide-in-from-bottom-4" style={{ maxHeight: 'min(85dvh, 85vh)' }}>
+            <div className="bg-white rounded-3xl md:rounded-[2.5rem] shadow-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto ios-modal-scroll p-5 sm:p-6 md:p-10 text-center relative overflow-hidden animate-in zoom-in-95 duration-300 slide-in-from-bottom-4" style={{ maxHeight: 'min(85dvh, 85vh)' }}>
 
                 {/* Decorative Background */}
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl"></div>
@@ -34,24 +34,55 @@ const OrderSuccessModal = ({ onClose, paymentMethod }) => {
                                     {isStripe ? (
                                         <>Votre paiement sécurisé par carte/wallet a bien été <strong className="font-black text-amber-900">enregistré</strong>.</>
                                     ) : (
-                                        <>Merci d'effectuer le règlement par <strong className="font-black text-amber-900">Virement</strong> ou <strong className="font-black text-amber-900">Wero</strong>.</>
+                                        <>Votre commande est validée. Vous pouvez maintenant retrouver les informations utiles pour régler par <strong className="font-black text-amber-900">Virement</strong> ou <strong className="font-black text-amber-900">Wero</strong>.</>
                                     )}
                                 </p>
                             </div>
 
-                            <div className="bg-white rounded-xl p-3 md:p-4 shadow-sm border border-amber-100">
-                                <p className="text-xs md:text-sm text-stone-600 leading-relaxed">
-                                    Toutes les informations sont disponibles dans votre <br />
-                                    <strong className="text-stone-900 font-black mt-1 inline-block">Espace Client (onglet Mes Commandes)</strong>.
-                                </p>
-                            </div>
+                            {isStripe ? (
+                                <div className="bg-white rounded-xl p-3 md:p-4 shadow-sm border border-amber-100">
+                                    <p className="text-xs md:text-sm text-stone-600 leading-relaxed">
+                                        Toutes les informations sont disponibles dans votre <br />
+                                        <strong className="text-stone-900 font-black mt-1 inline-block">Espace Client (onglet Mes Commandes)</strong>.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div className="bg-white rounded-2xl p-3.5 md:p-4 shadow-sm border border-amber-100">
+                                        <div className="flex items-start gap-3">
+                                            <span className="w-9 h-9 rounded-xl bg-stone-900 text-white flex items-center justify-center shrink-0">
+                                                <Landmark size={16} />
+                                            </span>
+                                            <div>
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-stone-900">IBAN vendeur</p>
+                                                <p className="mt-1 text-xs md:text-sm text-stone-600 leading-relaxed">
+                                                    Les coordonnées bancaires du vendeur sont accessibles dans <strong className="font-black text-stone-900">Mes Commandes</strong> pour effectuer le virement.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="bg-white rounded-2xl p-3.5 md:p-4 shadow-sm border border-amber-100">
+                                        <div className="flex items-start gap-3">
+                                            <span className="w-9 h-9 rounded-xl bg-stone-900 text-white flex items-center justify-center shrink-0">
+                                                <ReceiptText size={16} />
+                                            </span>
+                                            <div>
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-stone-900">Facture</p>
+                                                <p className="mt-1 text-xs md:text-sm text-stone-600 leading-relaxed">
+                                                    Votre facture est disponible sur la page <strong className="font-black text-stone-900">Mes Commandes</strong>, avec le détail de votre commande.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
                     <div className="px-1 md:px-2 pt-2">
                         <p className="text-[10px] md:text-[11px] text-stone-600 font-medium flex items-start md:items-center justify-center gap-2 md:gap-3 bg-stone-50 p-3 md:p-3.5 rounded-xl border border-stone-100 shadow-sm leading-relaxed text-left md:text-center">
-                            <span className="text-base md:text-lg flex-shrink-0 mt-0.5 md:mt-0">💡</span>
-                            <span>{isStripe ? "Un email d'aperçu de confirmation de paiement vous a été envoyé." : "Un email récapitulatif avec les coordonnées bancaires vous a été envoyé."}</span>
+                            <CheckCircle size={15} className="text-emerald-600 flex-shrink-0 mt-0.5 md:mt-0" />
+                            <span>{isStripe ? "Un email d'aperçu de confirmation de paiement vous a été envoyé." : "Un email récapitulatif vous a aussi été envoyé. L'IBAN vendeur et la facture restent disponibles dans Mes Commandes."}</span>
                         </p>
                     </div>
 

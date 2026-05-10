@@ -198,7 +198,7 @@ const MyOrdersView = ({ user, onBack, darkMode }) => {
                                                 {downloadingInvoice === order.id ? (
                                                     <><Loader2 size={12} className="sm:w-3.5 sm:h-3.5 animate-spin" /> Création...</>
                                                 ) : (
-                                                    <><Download size={12} className="sm:w-3.5 sm:h-3.5" /> Facture</>
+                                                    <><Download size={12} className="sm:w-3.5 sm:h-3.5" /> Télécharger la facture</>
                                                 )}
                                             </button>
 
@@ -227,7 +227,10 @@ const MyOrdersView = ({ user, onBack, darkMode }) => {
                                                         <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-lg shadow-amber-200/50">
                                                             <CreditCard size={20} />
                                                         </div>
-                                                        <p className="text-xs font-black uppercase tracking-widest text-amber-600">Instructions de règlement</p>
+                                                        <div className="min-w-0">
+                                                            <p className="text-xs font-black uppercase tracking-widest text-amber-600">IBAN vendeur et virement</p>
+                                                            <p className="mt-1 text-[11px] font-semibold leading-snug text-amber-700/80">Copiez les coordonnées bancaires du vendeur pour effectuer votre virement.</p>
+                                                        </div>
                                                     </div>
 
                                                     <div className="space-y-4">
@@ -236,7 +239,7 @@ const MyOrdersView = ({ user, onBack, darkMode }) => {
                                                             className="group/iban cursor-pointer hover:opacity-80 transition-all relative"
                                                         >
                                                             <div className="flex items-center justify-between mb-1.5">
-                                                                <p className="text-[9px] font-black uppercase tracking-widest opacity-40">IBAN (France)</p>
+                                                                <p className="text-[9px] font-black uppercase tracking-widest opacity-40">IBAN vendeur</p>
                                                                 {copied === 'iban' ? (
                                                                     <span className="text-[9px] font-black text-emerald-500 uppercase tracking-tighter flex items-center gap-1 animate-in fade-in zoom-in duration-300">
                                                                         <Check size={10} /> Copié

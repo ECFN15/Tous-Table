@@ -24,6 +24,25 @@ Decision paiement: les paiements carte ne font pas partie du lancement actuel. `
 
 ## Preuves recentes
 
+Deploiement Hosting du 2026-05-08 - checkout virement/Wero et footer mobile :
+
+- Accord utilisateur explicite : demande "deploy en prod [production_workflow.md](.agent/workflows/production_workflow.md)".
+- Workflow lu : `.agent/workflows/production_workflow.md`.
+- Runbook prod lu : `_DOCS/DEPLOIEMENT_PROD_RUNBOOK.md`.
+- `firebase use` initial : `tatmadeinnormandie`.
+- `firebase use prod` : alias prod actif sur `tousatable-client`.
+- `npm run preflight:prod` : OK.
+- `firebase deploy --only hosting --project tousatable-client` : OK, release Hosting publiee.
+- `firebase use default` : retour sur `tatmadeinnormandie`.
+- Smoke public : `https://tousatable-madeinnormandie.fr/` HTTP 200.
+- Smoke public : `https://tousatable-madeinnormandie.fr/meubles-anciens` HTTP 200.
+- Smoke public : `https://tousatable-madeinnormandie.fr/planches-a-decouper-anciennes` HTTP 200.
+- Smoke public : `https://tousatable-madeinnormandie.fr/comptoir` HTTP 200.
+- Smoke public : `https://tousatable-madeinnormandie.fr/admin` HTTP 200.
+- Smoke public : `https://tousatable-client.web.app/` HTTP 200.
+- `npm run audit:public-seo` : OK, 32 checks passes.
+- Deploiement volontairement limite : Hosting uniquement ; aucune Function, aucune regle Firestore/Storage et aucune ecriture Firestore prod.
+
 Deploiement Functions analytics + Hosting du 2026-05-08 - reprise session 1h et KPI unique :
 
 - Accord utilisateur explicite : demande "deploy en prod ! .agent\workflows\production_workflow.md".

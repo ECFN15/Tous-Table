@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, CreditCard, Truck, AlertCircle, Landmark, Wallet } from 'lucide-react';
+import { ArrowLeft, CreditCard, Truck, AlertCircle, Landmark, Wallet, ReceiptText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { functions, db, appId } from '../firebase/config';
 import { httpsCallable } from 'firebase/functions';
@@ -640,6 +640,7 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                         </div>
 
                         {/* GROUPE 2 : CHOIX DU PAIEMENT */}
+                        <div className="relative">
                         <div className={`${cardClasses} ${!stripeEnabled ? 'w-full md:max-w-[400px]' : ''}`}>
                             <h3 className="text-[10px] md:text-xs font-black uppercase tracking-widest text-stone-400 flex items-center gap-2 mb-4">
                                 <CreditCard size={14} /> Moyen de Paiement
@@ -774,6 +775,9 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                                                 <Landmark size={12} />
                                                 <span className="text-[10px] font-bold uppercase tracking-widest leading-none mt-[1px]">Virement</span>
                                             </div>
+                                            <div className="h-7 px-1 flex items-center justify-center text-[9px] font-black uppercase tracking-[0.18em] text-stone-500">
+                                                ou
+                                            </div>
                                             {/* WERO */}
                                             <div className={`h-7 px-3 flex items-center justify-center rounded-md border overflow-hidden ${darkMode ? 'bg-[#002B5E] border-transparent text-white' : 'bg-gradient-to-tr from-[#002B5E] to-[#0A4795] border-transparent text-white shadow-sm'}`}>
                                                 <span className="text-[12px] font-black lowercase tracking-tight leading-none">wero</span>
@@ -784,6 +788,8 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                             </div>
 
                             {/* BOUTON D'ACTION DÉPLACÉ DANS LA COLONNE DE DROITE */}
+                        </div>
+
                         </div>
 
                     </div>
@@ -835,12 +841,34 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                                     )}
                                 </PremiumActionBtn>
 
-                                {/* TEXTE DE RÉASSURANCE POUR VIREMENT */}
                                 {paymentMethod === 'deferred' && (
-                                    <p className="text-center text-[10px] font-medium leading-relaxed text-stone-400 mt-2">
-                                        En confirmant, vous réservez vos articles.<br />
-                                        Les détails de paiement vous seront envoyés par email.
-                                    </p>
+                                    <div className={`w-full md:mt-8 md:min-h-[216px] rounded-[1.75rem] border p-4 md:p-5 flex flex-col justify-center ${darkMode ? 'bg-stone-900/35 border-stone-800/70' : 'bg-stone-50/90 border-stone-200/80'}`}>
+                                        <p className={`text-center text-[10px] font-black uppercase tracking-[0.24em] ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>Après validation</p>
+                                        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <div className={`rounded-2xl p-4 border ${darkMode ? 'bg-stone-950/40 border-stone-800' : 'bg-white border-stone-200 shadow-sm'}`}>
+                                                <div className="min-h-[92px] flex flex-col justify-center">
+                                                <div className="flex items-center gap-3">
+                                                    <span className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${darkMode ? 'bg-stone-800 text-stone-100' : 'bg-stone-900 text-white'}`}>
+                                                        <Landmark size={17} />
+                                                    </span>
+                                                    <p className={`text-sm font-black uppercase leading-none ${darkMode ? 'text-white' : 'text-stone-900'}`}>IBAN</p>
+                                                </div>
+                                                <p className="mt-4 text-[11px] leading-snug font-semibold text-stone-500">Coordonnées bancaires du vendeur sur votre <span className="font-black text-white">page commande</span> du menu.</p>
+                                                </div>
+                                            </div>
+                                            <div className={`rounded-2xl p-4 border ${darkMode ? 'bg-stone-950/40 border-stone-800' : 'bg-white border-stone-200 shadow-sm'}`}>
+                                                <div className="min-h-[92px] flex flex-col justify-center">
+                                                <div className="flex items-center gap-3">
+                                                    <span className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${darkMode ? 'bg-stone-800 text-stone-100' : 'bg-stone-900 text-white'}`}>
+                                                        <ReceiptText size={17} />
+                                                    </span>
+                                                    <p className={`text-sm font-black uppercase leading-none ${darkMode ? 'text-white' : 'text-stone-900'}`}>Facture</p>
+                                                </div>
+                                                <p className="mt-4 text-[11px] leading-snug font-semibold text-stone-500">Téléchargeable depuis votre <span className="font-black text-white">page commande</span> du menu.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 )}
                             </div>
                         </div>
