@@ -991,6 +991,26 @@ const AdminAnalytics = ({ darkMode = false }) => {
         return `${min}m ${sec}s`;
     };
 
+    const getJourneyTiming = (session) => {
+        const steps = Array.isArray(session.journey) ? session.journey : [];
+        const loggedDuration = steps.reduce((acc, step) => acc + Math.max(0, Number(step.duration) || 0), 0);
+        const totalDuration = Math.max(0, Number(session.duration) || 0);
+        const trailingDuration = Math.max(0, totalDuration - loggedDuration);
+
+        return {
+            loggedDuration,
+            trailingDuration,
+            lastStep: steps[steps.length - 1] || null,
+            steps: steps.map((step, index) => ({
+                ...step,
+                entryDelay: index === 0 ? Math.max(0, Number(step.duration) || 0) : 0,
+                dwellDuration: index < steps.length - 1
+                    ? Math.max(0, Number(steps[index + 1]?.duration) || 0)
+                    : trailingDuration
+            }))
+        };
+    };
+
     const handleDeleteSession = async (id) => {
         if (!window.confirm("Supprimer cette session ? (Action irréversible)")) return;
         try {
@@ -1155,6 +1175,7 @@ const AdminAnalytics = ({ darkMode = false }) => {
                                                 const isInactive = (now - lastActiveMs) > 30000;
                                                 const isFinished = session.sessionActive === false || isInactive;
                                                 const startedTime = session.startedAt ? new Date(getMillis(session.startedAt)).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                                                const journeyTiming = getJourneyTiming(session);
 
                                                 return (
                                                     <div key={session.id} className={`group rounded-xl border transition-all ${darkMode ? 'bg-stone-900 border-white/5 hover:border-white/10' : 'bg-stone-50 border-stone-100 shadow-sm'}`}>
@@ -1214,12 +1235,12 @@ const AdminAnalytics = ({ darkMode = false }) => {
                                                                         <h4 className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-500">Parcours Utilisateur</h4>
                                                                         <span className="text-[8px] font-bold text-stone-600 opacity-60 uppercase tracking-tighter">{session.journey?.length || 0} Étapes</span>
                                                                     </div>
-                                                                    
+
                                                                     <div className="relative pl-6 space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-px before:bg-stone-800">
                                                                         {!session.journey || session.journey.length === 0 ? (
                                                                             <p className="text-[10px] italic text-stone-500">Aucune activité enregistrée</p>
                                                                         ) : (
-                                                                            session.journey.map((step, idx) => (
+                                                                            journeyTiming.steps.map((step, idx) => (
                                                                                 <div key={idx} className="relative group/step">
                                                                                     {/* DOT centered on the 11px line */}
                                                                                     <div className={`absolute -left-[18.5px] top-1.5 w-[7px] h-[7px] rounded-full ring-4 ${darkMode ? 'ring-stone-900/50' : 'ring-white'} ${
@@ -1231,9 +1252,22 @@ const AdminAnalytics = ({ darkMode = false }) => {
                                                                                     } transition-all group-hover/step:scale-125`}></div>
 
                                                                                     <div className="flex flex-col gap-1 -translate-y-0.5">
-                                                                                        <span className={`text-[8px] font-black uppercase tracking-widest leading-none ${
-                                                                                            step.page === 'comptoir' ? 'text-teal-400/60' : step.page === 'shop' ? 'text-violet-400/60' : 'text-blue-500/60'
-                                                                                        }`}>{step.time} • {formatDuration(step.duration)}</span>
+                                                                                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                                                                            <span className={`text-[8px] font-black uppercase tracking-widest leading-none ${
+                                                                                                step.page === 'comptoir' ? 'text-teal-400/60' : step.page === 'shop' ? 'text-violet-400/60' : 'text-blue-500/60'
+                                                                                            }`}>{step.time}</span>
+                                                                                            <span className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[8px] font-black uppercase tracking-widest ${
+                                                                                                darkMode ? 'bg-white/5 text-white/60' : 'bg-stone-100 text-stone-500'
+                                                                                            }`}>
+                                                                                                <Clock size={9} />
+                                                                                                {formatDuration(step.dwellDuration)}
+                                                                                            </span>
+                                                                                            {step.entryDelay > 0 && (
+                                                                                                <span className="text-[8px] font-bold uppercase tracking-widest text-stone-600">
+                                                                                                    entrée +{formatDuration(step.entryDelay)}
+                                                                                                </span>
+                                                                                            )}
+                                                                                        </div>
                                                                                         <p className={`font-black text-[11px] leading-tight ${darkMode ? 'text-stone-300' : 'text-stone-900'}`}>
                                                                                             {step.page === 'comptoir' ? (
                                                                                                 <>Clic : <span className="uppercase text-teal-400">Comptoir</span></>
