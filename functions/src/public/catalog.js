@@ -21,6 +21,11 @@ const PUBLIC_COLLECTIONS = [
     'shop_tutorials',
 ];
 
+const CACHE_TTL_MS = 5 * 60 * 1000;
+let cachedCatalog = null;
+let cachedAt = 0;
+let inflightCatalogRead = null;
+
 const serializeValue = (value) => {
     if (!value) return value;
     if (value instanceof admin.firestore.Timestamp) {
@@ -54,6 +59,36 @@ const readPublicCollection = async (collectionName) => {
     }));
 };
 
+const readPublicCatalog = async () => {
+    const now = Date.now();
+    if (cachedCatalog && now - cachedAt < CACHE_TTL_MS) {
+        return cachedCatalog;
+    }
+
+    if (!inflightCatalogRead) {
+        inflightCatalogRead = Promise.all(
+            PUBLIC_COLLECTIONS.map(async (collectionName) => [
+                collectionName,
+                await readPublicCollection(collectionName),
+            ])
+        )
+            .then((entries) => {
+                cachedCatalog = {
+                    appId: APP_ID,
+                    generatedAt: new Date().toISOString(),
+                    collections: Object.fromEntries(entries),
+                };
+                cachedAt = Date.now();
+                return cachedCatalog;
+            })
+            .finally(() => {
+                inflightCatalogRead = null;
+            });
+    }
+
+    return inflightCatalogRead;
+};
+
 exports.publicCatalog = functions.https.onRequest(async (req, res) => {
     const origin = req.get('origin');
     if (ALLOWED_ORIGINS.has(origin)) {
@@ -62,7 +97,7 @@ exports.publicCatalog = functions.https.onRequest(async (req, res) => {
     }
     res.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.set('Access-Control-Allow-Headers', 'Content-Type');
-    res.set('Cache-Control', 'public, max-age=30, s-maxage=60');
+    res.set('Cache-Control', 'public, max-age=300, s-maxage=600, stale-while-revalidate=300');
 
     if (req.method === 'OPTIONS') {
         res.status(204).send('');
@@ -75,17 +110,7 @@ exports.publicCatalog = functions.https.onRequest(async (req, res) => {
     }
 
     try {
-        const entries = await Promise.all(
-            PUBLIC_COLLECTIONS.map(async (collectionName) => [
-                collectionName,
-                await readPublicCollection(collectionName),
-            ])
-        );
-        res.status(200).json({
-            appId: APP_ID,
-            generatedAt: new Date().toISOString(),
-            collections: Object.fromEntries(entries),
-        });
+        res.status(200).json(await readPublicCatalog());
     } catch (error) {
         console.error('Public catalog fallback failed:', error);
         res.status(500).json({ error: 'catalog_unavailable' });

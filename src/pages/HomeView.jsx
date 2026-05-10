@@ -29,6 +29,20 @@ const sanitizeHtml = (html) => {
   return escaped.replace(/&lt;br\s*\/?&gt;/gi, '<br />');
 };
 
+const isLikelyCrawler = () => {
+  if (typeof navigator === 'undefined') return false;
+  return /bot|crawler|spider|crawling|googlebot|bingbot|slurp|duckduckbot|baiduspider|yandex|facebookexternalhit|whatsapp|telegrambot|linkedinbot|pinterest|preview/i
+    .test(navigator.userAgent || '');
+};
+
+const shouldLoadDecorativeThree = () => {
+  if (typeof navigator === 'undefined') return true;
+  if (isLikelyCrawler()) return false;
+  if (navigator.connection?.saveData) return false;
+  if (isLowPowerMobileDevice()) return false;
+  return true;
+};
+
 // --- COMPOSANT : REVEAL TEXT (CORRIGÉ & ÉLARGI) ---
 const RevealText = ({ text, className, delay = 0 }) => {
   return (
@@ -389,10 +403,25 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
     if (!scriptsLoaded) return;
     setShouldMountThree(false);
     let threeMountRequested = false;
+    let threeIdleId = 0;
+    let threeTimerId = 0;
+
     const requestThreeMount = () => {
       if (threeMountRequested) return;
+      if (!shouldLoadDecorativeThree()) return;
       threeMountRequested = true;
-      setShouldMountThree(true);
+
+      const mount = () => {
+        threeIdleId = 0;
+        threeTimerId = 0;
+        setShouldMountThree(true);
+      };
+
+      if (typeof window.requestIdleCallback === 'function') {
+        threeIdleId = window.requestIdleCallback(mount, { timeout: 6000 });
+      } else {
+        threeTimerId = window.setTimeout(mount, 3500);
+      }
     };
 
     // If preloader already shown, just animate hero immediately
@@ -432,7 +461,11 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
           ease: "power3.out"
         }, "heroTitle+=0.5");
 
-      return () => tl.kill();
+      return () => {
+        tl.kill();
+        if (threeIdleId) window.cancelIdleCallback?.(threeIdleId);
+        if (threeTimerId) window.clearTimeout(threeTimerId);
+      };
     }
 
     // Lock scroll during preloader
@@ -524,7 +557,11 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         });
     });
 
-    return () => ctx.revert();
+    return () => {
+      ctx.revert();
+      if (threeIdleId) window.cancelIdleCallback?.(threeIdleId);
+      if (threeTimerId) window.clearTimeout(threeTimerId);
+    };
   }, [scriptsLoaded]);
 
   // --- LENIS — instance hoisée au niveau App.jsx ---

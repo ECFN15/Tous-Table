@@ -3,6 +3,17 @@ import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../firebase/config';
 import { useAuth } from '../../contexts/AuthContext';
 
+const ANALYTICS_INIT_DELAY_MS = 6000;
+const ANALYTICS_SYNC_INTERVAL_MS = 60000;
+const MIN_SYNC_GAP_MS = 45000;
+const MIN_BEACON_GAP_MS = 3000;
+
+const isLikelyBot = () => {
+    if (typeof navigator === 'undefined') return false;
+    const ua = navigator.userAgent || '';
+    return /bot|crawler|spider|crawling|googlebot|bingbot|slurp|duckduckbot|baiduspider|yandex|facebookexternalhit|whatsapp|telegrambot|linkedinbot|pinterest|preview/i.test(ua);
+};
+
 const getDeviceInfo = () => {
     const ua = navigator.userAgent;
 
@@ -18,7 +29,7 @@ const getDeviceInfo = () => {
 
     let os = 'Unknown';
     if (ua.includes('Android')) os = 'Android';
-    else if (ua.includes('like Mac')) os = 'iOS';
+    else if (ua.includes('iPhone') || ua.includes('iPad') || ua.includes('iPod') || ua.includes('like Mac')) os = 'iOS';
     else if (ua.includes('Win')) os = 'Windows';
     else if (ua.includes('Mac')) os = 'MacOS';
     else if (ua.includes('Linux')) os = 'Linux';
@@ -69,19 +80,42 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
     const initCalledRef = useRef(false);
     const journeyToSend = useRef([]);
     const startTimeRef = useRef(Date.now());
+    const activeStartedAtRef = useRef(typeof document !== 'undefined' && document.visibilityState === 'hidden' ? null : Date.now());
+    const accumulatedActiveMsRef = useRef(0);
     const lastActionTimeRef = useRef(Date.now());
     const latestViewRef = useRef({ view, selectedItemId, selectedItemName, selectedItemPrice, selectedItemContext });
     const lastRecordedKeyRef = useRef(null);
+    const lastSyncAtRef = useRef(0);
+    const lastBeaconAtRef = useRef(0);
+    const hasRecordedJourneyRef = useRef(false);
 
     useEffect(() => {
         latestViewRef.current = { view, selectedItemId, selectedItemName, selectedItemPrice, selectedItemContext };
     }, [view, selectedItemId, selectedItemName, selectedItemPrice, selectedItemContext]);
 
-    const recordCurrentView = () => {
+    const getTrackedDuration = () => {
+        const activeMs = accumulatedActiveMsRef.current
+            + (activeStartedAtRef.current ? Date.now() - activeStartedAtRef.current : 0);
+        return Math.max(0, Math.round(activeMs / 1000));
+    };
+
+    const pauseActiveTimer = () => {
+        if (!activeStartedAtRef.current) return;
+        accumulatedActiveMsRef.current += Date.now() - activeStartedAtRef.current;
+        activeStartedAtRef.current = null;
+    };
+
+    const resumeActiveTimer = () => {
+        if (activeStartedAtRef.current) return;
+        activeStartedAtRef.current = Date.now();
+        lastActionTimeRef.current = Date.now();
+    };
+
+    const recordCurrentView = ({ allowPartialDetail = false } = {}) => {
         if (!sessionIdRef.current || isAdmin) return false;
 
         const current = latestViewRef.current;
-        if (current.view === 'detail' && current.selectedItemId && !current.selectedItemName) return false;
+        if (current.view === 'detail' && current.selectedItemId && !current.selectedItemName && !allowPartialDetail) return false;
 
         const actionKey = [
             current.view || '',
@@ -116,6 +150,7 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
         });
         lastRecordedKeyRef.current = actionKey;
         lastActionTimeRef.current = actionTime;
+        hasRecordedJourneyRef.current = true;
         return true;
     };
 
@@ -125,6 +160,7 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
         const initSession = async () => {
             if (sessionIdRef.current || initCalledRef.current || !isMounted || isAdmin) return;
             if (!user) return;
+            if (isLikelyBot()) return;
 
             initCalledRef.current = true;
 
@@ -149,6 +185,9 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
                     if (Number.isFinite(startedAtMs) && startedAtMs > 0) {
                         startTimeRef.current = startedAtMs;
                     }
+                    accumulatedActiveMsRef.current = 0;
+                    activeStartedAtRef.current = document.visibilityState === 'hidden' ? null : Date.now();
+                    lastActionTimeRef.current = Date.now();
                     persistAnalyticsSession(initRes.data.sessionId, initRes.data.syncToken);
                     recordCurrentView();
                 } else {
@@ -162,7 +201,7 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
 
         const timeout = setTimeout(() => {
             if (!sessionIdRef.current && !initCalledRef.current) initSession();
-        }, 2500);
+        }, ANALYTICS_INIT_DELAY_MS);
 
         return () => {
             isMounted = false;
@@ -178,9 +217,14 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
         const interval = setInterval(() => {
             if (!sessionIdRef.current || isAdmin) return;
 
-            const totalDuration = Math.round((Date.now() - startTimeRef.current) / 1000);
+            if (!hasRecordedJourneyRef.current) {
+                recordCurrentView({ allowPartialDetail: true });
+            }
+
+            const totalDuration = getTrackedDuration();
             const chunk = [...journeyToSend.current];
             journeyToSend.current = [];
+            lastSyncAtRef.current = Date.now();
 
             httpsCallable(functions, 'syncSession')({
                 sessionId: sessionIdRef.current,
@@ -191,7 +235,7 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
             }).catch(() => {
                 journeyToSend.current = [...chunk, ...journeyToSend.current];
             });
-        }, 15000);
+        }, ANALYTICS_SYNC_INTERVAL_MS);
 
         return () => clearInterval(interval);
     }, [isAdmin]);
@@ -218,6 +262,7 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
                 time: new Date().toLocaleTimeString('fr-FR'),
                 duration: durationSinceLast
             });
+            hasRecordedJourneyRef.current = true;
             lastActionTimeRef.current = actionTime;
         };
 
@@ -228,11 +273,18 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
     useEffect(() => {
         const sendSessionUpdate = (isActive = true) => {
             if (!sessionIdRef.current || isAdmin) return;
+            const now = Date.now();
+            if (!isActive && now - lastBeaconAtRef.current < MIN_BEACON_GAP_MS) return;
 
-            const totalDuration = Math.round((Date.now() - startTimeRef.current) / 1000);
+            if (!hasRecordedJourneyRef.current) {
+                recordCurrentView({ allowPartialDetail: true });
+            }
+
+            const totalDuration = getTrackedDuration();
             const url = `https://us-central1-${functions.app.options.projectId}.cloudfunctions.net/syncSessionBeacon`;
             const chunk = [...journeyToSend.current];
             if (!isActive) journeyToSend.current = [];
+            lastBeaconAtRef.current = now;
 
             navigator.sendBeacon(url, JSON.stringify({
                 sessionId: sessionIdRef.current,
@@ -245,12 +297,16 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
 
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'hidden') {
+                pauseActiveTimer();
                 sendSessionUpdate(false);
                 return;
             }
 
             if (document.visibilityState === 'visible' && sessionIdRef.current && !isAdmin) {
-                const totalDuration = Math.round((Date.now() - startTimeRef.current) / 1000);
+                resumeActiveTimer();
+                if (Date.now() - lastSyncAtRef.current < MIN_SYNC_GAP_MS && journeyToSend.current.length === 0) return;
+                const totalDuration = getTrackedDuration();
+                lastSyncAtRef.current = Date.now();
                 httpsCallable(functions, 'syncSession')({
                     sessionId: sessionIdRef.current,
                     syncToken: syncTokenRef.current,
@@ -261,6 +317,7 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
         };
 
         const handleBeforeUnload = () => {
+            pauseActiveTimer();
             sendSessionUpdate(false);
         };
 

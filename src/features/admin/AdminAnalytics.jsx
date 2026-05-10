@@ -396,6 +396,21 @@ const formatDurationLabel = (seconds) => {
     return `${min}m ${sec}s`;
 };
 
+const getJourneyStepPageDuration = (session, index) => {
+    const journey = Array.isArray(session?.journey) ? session.journey : [];
+    const nextDuration = Number(journey[index + 1]?.duration);
+    if (Number.isFinite(nextDuration) && nextDuration > 0) return nextDuration;
+
+    const elapsedBeforeLastStep = journey.reduce((sum, step, stepIndex) => {
+        if (stepIndex === 0 || stepIndex > index) return sum;
+        const value = Number(step?.duration);
+        return sum + (Number.isFinite(value) && value > 0 ? value : 0);
+    }, 0);
+    const sessionDuration = Number(session?.duration);
+    if (!Number.isFinite(sessionDuration) || sessionDuration <= elapsedBeforeLastStep) return 0;
+    return Math.max(0, Math.round(sessionDuration - elapsedBeforeLastStep));
+};
+
 const SessionJourneyTrace = ({ session, darkMode, formatDuration }) => (
     <div className={`p-4 border-t ${darkMode ? 'border-white/5 bg-black/20' : 'border-stone-100 bg-white'} animate-in slide-in-from-top-2 duration-300`}>
         <div className="space-y-5">
@@ -412,12 +427,13 @@ const SessionJourneyTrace = ({ session, darkMode, formatDuration }) => (
                         const accent = getJourneyAccent(step.page);
                         const stepLabel = getJourneyLabel(step.page);
                         const isAffiliateStep = isAffiliateJourneyStep(step.page);
+                        const pageDuration = getJourneyStepPageDuration(session, idx);
                         return (
                             <div key={idx} className="relative group/step">
                                 <div className={`absolute -left-[18.5px] top-1.5 w-[7px] h-[7px] rounded-full ring-4 ${darkMode ? 'ring-stone-900/50' : 'ring-white'} ${accent.dot} transition-all group-hover/step:scale-125`}></div>
 
                                 <div className="flex flex-col gap-1 -translate-y-0.5">
-                                    <span className={`text-[8px] font-black uppercase tracking-widest leading-none ${step.page === 'comptoir' ? 'text-teal-400/60' : step.page === 'shop' ? 'text-violet-400/60' : 'text-blue-500/60'}`}>{step.time} - {formatDuration(step.duration)}</span>
+                                    <span className={`text-[8px] font-black uppercase tracking-widest leading-none ${step.page === 'comptoir' ? 'text-teal-400/60' : step.page === 'shop' ? 'text-violet-400/60' : 'text-blue-500/60'}`}>{step.time} - {formatDuration(pageDuration)} sur cette page</span>
                                     <p className={`font-black text-[11px] leading-tight ${darkMode ? 'text-stone-300' : 'text-stone-900'}`}>
                                         {isAffiliateStep ? 'Clic' : 'Vue'} : <span className={`uppercase ${accent.label}`}>{stepLabel}</span>
                                     </p>

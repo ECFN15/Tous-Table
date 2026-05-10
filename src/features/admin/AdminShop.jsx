@@ -508,7 +508,8 @@ const AdminShop = ({ darkMode }) => {
     // Listener click tracking (source de verite)
     useEffect(() => {
         const clicksRef = collection(db, 'affiliate_clicks');
-        const unsub = onSnapshot(clicksRef, (snap) => {
+        const q = query(clicksRef, orderBy('timestamp', 'desc'), limit(3000));
+        const unsub = onSnapshot(q, (snap) => {
             const counts = {};
             snap.docs.forEach((d) => {
                 const click = d.data();

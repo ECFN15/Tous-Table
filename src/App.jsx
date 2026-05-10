@@ -463,7 +463,7 @@ const AppContent = () => {
   // --- CHARGEMENT DONNÉES PUBLIQUES (Stable) ---
   useEffect(() => {
     // 1. Meubles (Données)
-    const fetchPublicCatalogFallback = (reason) => {
+    const fetchPublicCatalogFallback = (reason, { rethrow = false } = {}) => {
       if (!publicCatalogFallbackRef.current) {
         const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
         const url = `https://us-central1-${projectId}.cloudfunctions.net/publicCatalog`;
@@ -484,6 +484,7 @@ const AppContent = () => {
 
       return publicCatalogFallbackRef.current.catch((error) => {
         console.error(`Fallback catalogue public impossible apres ${reason}:`, error);
+        if (rethrow) throw error;
       });
     };
 
@@ -492,7 +493,6 @@ const AppContent = () => {
       fetchPublicCatalogFallback(label);
     };
 
-    fetchPublicCatalogFallback('initial catalog bootstrap');
     if (!publicRealtimeReady) return undefined;
 
     const activeCollections = activePublicRealtimeCollectionsKey
@@ -501,34 +501,52 @@ const AppContent = () => {
 
     if (!activeCollections.length) return undefined;
 
-    const subscriptions = [];
+    const subscribeToPublicCollections = () => {
+      const subscriptions = [];
 
-    if (activeCollections.includes('furniture')) {
-      subscriptions.push(onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'furniture'), (snap) => {
-        setItems(snap.docs.map(d => ({ id: d.id, collectionName: 'furniture', ...d.data() })).sort(sortByCreatedAtDesc));
-      }, (error) => {
-        handlePublicReadError('meubles', error);
-      }));
+      if (activeCollections.includes('furniture')) {
+        subscriptions.push(onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'furniture'), (snap) => {
+          setItems(snap.docs.map(d => ({ id: d.id, collectionName: 'furniture', ...d.data() })).sort(sortByCreatedAtDesc));
+        }, (error) => {
+          handlePublicReadError('meubles', error);
+        }));
+      }
+
+      if (activeCollections.includes('cutting_boards')) {
+        subscriptions.push(onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'cutting_boards'), (snap) => {
+          setBoardItems(snap.docs.map(d => ({ id: d.id, collectionName: 'cutting_boards', ...d.data() })).sort(sortByCreatedAtDesc));
+        }, (error) => {
+          handlePublicReadError('planches', error);
+        }));
+      }
+
+      if (activeCollections.includes('affiliate_products')) {
+        subscriptions.push(onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'affiliate_products'), (snap) => {
+          setAffiliateProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.status === 'published'));
+        }, (error) => {
+          handlePublicReadError('produits affilies', error);
+        }));
+      }
+
+      return () => subscriptions.forEach((unsubscribe) => unsubscribe());
+    };
+
+    if (!isAdmin) {
+      let cancelled = false;
+      let cleanupRealtimeFallback = null;
+
+      fetchPublicCatalogFallback('lecture publique cachee', { rethrow: true }).catch(() => {
+        if (!cancelled) cleanupRealtimeFallback = subscribeToPublicCollections();
+      });
+
+      return () => {
+        cancelled = true;
+        cleanupRealtimeFallback?.();
+      };
     }
 
-    if (activeCollections.includes('cutting_boards')) {
-      subscriptions.push(onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'cutting_boards'), (snap) => {
-        setBoardItems(snap.docs.map(d => ({ id: d.id, collectionName: 'cutting_boards', ...d.data() })).sort(sortByCreatedAtDesc));
-      }, (error) => {
-        handlePublicReadError('planches', error);
-      }));
-    }
-
-    if (activeCollections.includes('affiliate_products')) {
-      subscriptions.push(onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'affiliate_products'), (snap) => {
-        setAffiliateProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.status === 'published'));
-      }, (error) => {
-        handlePublicReadError('produits affilies', error);
-      }));
-    }
-
-    return () => subscriptions.forEach((unsubscribe) => unsubscribe());
-  }, [publicRealtimeReady, activePublicRealtimeCollectionsKey, applyPublicCatalog]); // Realtime differe apres preloader/idle et limite a la collection active.
+    return subscribeToPublicCollections();
+  }, [publicRealtimeReady, activePublicRealtimeCollectionsKey, applyPublicCatalog, isAdmin]); // Public: catalogue HTTP cache. Admin: temps reel.
 
   // --- LOGIQUE ROUTING & AUTH (Dépend du User) ---
   useEffect(() => {

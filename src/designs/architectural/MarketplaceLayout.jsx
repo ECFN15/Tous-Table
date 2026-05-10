@@ -235,8 +235,12 @@ const HERO_BY_COLLECTION = {
         objectPosition: 'center center',
     },
     cutting_boards: {
-        image: '/images/gallery/hero-planches-2026-exact.png',
-        srcSet: '/images/gallery/hero-planches-2026-exact.png 1672w',
+        image: '/images/gallery/hero-planches-2026-1672.webp',
+        srcSet: [
+            '/images/gallery/hero-planches-2026-960.webp 960w',
+            '/images/gallery/hero-planches-2026-1440.webp 1440w',
+            '/images/gallery/hero-planches-2026-1672.webp 1672w',
+        ].join(', '),
         mobileSrcSet: [
             '/images/gallery/hero-planches-2026-mobile-outpaint-640.webp 640w',
             '/images/gallery/hero-planches-2026-mobile-outpaint-840.webp 840w',

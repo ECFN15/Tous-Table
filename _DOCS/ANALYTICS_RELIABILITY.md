@@ -188,3 +188,46 @@ npm run build
 - Plusieurs personnes derriere la meme box peuvent rester une seule IP unique.
 - Un VPN ou une IP mobile changeante peut augmenter le compteur IP unique.
 - Les sessions historiques creees avant cette mission n'ont pas `syncTokenHash`, `ipMeta` ni `authProvider`; le dashboard conserve une compatibilite de lecture.
+
+## Patch quota 2026-05-10 - Reduction lectures et heartbeats publics
+
+Contexte: apres deploy prod, les quotas Firestore/Hosting ont augmente fortement. Analyse v50 -> v56.5:
+
+- `publicCatalog` n'existait pas en v50 et relisait 4 collections completes a chaque appel.
+- Le frontend appelait `publicCatalog` au demarrage, y compris sur les pages qui n'ont pas besoin du catalogue complet.
+- Le tracking v50 synchronisait deja toutes les 15 secondes, mais la version durcie relit maintenant le document de session pour verifier le `syncToken`, donc chaque heartbeat consomme aussi une lecture.
+
+Changements:
+
+- Cache memoire 5 minutes dans `functions/src/public/catalog.js`, avec cache HTTP plus long.
+- Suppression de l'appel `publicCatalog` initial systematique dans `src/App.jsx`; au 2026-05-10 le fallback restait utilise uniquement si les lectures publiques directes echouaient. Ce point est remplace par le patch 2026-05-11 ci-dessous pour reduire les lectures Firestore publiques.
+- `AnalyticsProvider` demarre apres 6 secondes, ignore les user-agents de bots connus, synchronise toutes les 60 secondes au lieu de 15, et deduplique les beacons de fermeture.
+- Dashboard admin: dans le parcours utilisateur, la duree affichee sur une ligne est maintenant estimee comme le temps passe sur cette page/etape. Techniquement, l'ancien tracking stocke la duree ecoulee avant l'etape suivante; l'admin utilise donc l'etape suivante, puis la duree totale de session pour la derniere ligne.
+- Correction sessions longues sans parcours: avant chaque heartbeat ou beacon, si aucune etape n'a encore ete enregistree, le client force l'enregistrement de la page courante. Cela couvre les cas Safari/iOS ou detail produit non encore resolu, ou la session recevait une duree mais gardait `journey: []`.
+- Correction durees gonflees iOS/Safari: la duree envoyee n'est plus le temps horloge depuis l'ouverture de la session, mais un temps actif approxime. Le chrono est mis en pause quand l'onglet passe cache/arriere-plan, puis repris quand il redevient visible. Les iPhone sont aussi classes `iOS` avant le fallback `MacOS`, car leur user-agent contient `like Mac OS X`.
+
+Tests:
+
+```bash
+npm run verify:analytics-reliability
+npm run verify:functions-syntax
+```
+
+## Patch quota 2026-05-11 - Catalogue public cache et warmup image
+
+Contexte: le releve Firebase du dimanche 10 mai 2026 montre 73 k lectures Firestore sur 50 k incluses/jour et 360,8 MB de downloads Hosting sur 360 MB inclus/jour. Les ecritures, Functions et stockage restent dans les quotas inclus.
+
+Changements:
+
+- Les visiteurs publics utilisent maintenant `publicCatalog` comme source cachee pour les routes catalogue actives, au lieu d'ouvrir directement des listeners Firestore temps reel sur les collections completes.
+- Les listeners Firestore complets restent conserves pour l'admin et comme fallback si `publicCatalog` echoue, afin de ne pas bloquer le catalogue public.
+- `AdminShop` limite le listener `affiliate_clicks` aux 3000 derniers clics, comme `AdminAnalytics`, au lieu de lire toute la collection en live.
+- Le warmup desktop des planches charge maintenant `hero-planches-2026-1672.webp` au lieu de `hero-planches-2026-exact.png`, ce qui evite un prechargement d'environ 2 MB sans changer l'image rendue.
+
+Tests:
+
+```bash
+npm run verify:functions-syntax
+npm run verify:analytics-reliability
+npm run build
+```

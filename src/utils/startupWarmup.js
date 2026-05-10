@@ -24,7 +24,7 @@ const BOARD_HERO_IMAGES = {
     '/images/gallery/hero-planches-2026-mobile-outpaint-1122.webp',
   ],
   desktop: [
-    '/images/gallery/hero-planches-2026-exact.png',
+    '/images/gallery/hero-planches-2026-1672.webp',
   ],
 };
 
