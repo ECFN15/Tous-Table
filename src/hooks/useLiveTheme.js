@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
 const DEFAULT_FORCED_MODE = 'dark';
@@ -22,20 +22,22 @@ export const useLiveTheme = () => {
     const activeDesignId = 'architectural'; // HARDCODED DEFAULT
 
     useEffect(() => {
-        // Listen to global theme settings for Dark Mode forcing
-        const unsub = onSnapshot(doc(db, 'sys_metadata', 'theme_settings'), (docSnap) => {
+        let mounted = true;
+        getDoc(doc(db, 'sys_metadata', 'theme_settings')).then((docSnap) => {
+            if (!mounted) return;
             if (docSnap.exists()) {
                 const data = docSnap.data();
                 localStorage.setItem('themeSettings', JSON.stringify({ ...data, activeDesignId: 'architectural' }));
                 setForcedMode(data.forcedMode || DEFAULT_FORCED_MODE);
             }
             setIsThemeLoading(false);
-        }, (err) => {
+        }).catch((err) => {
+            if (!mounted) return;
             console.error("Theme listener error:", err);
             setIsThemeLoading(false);
         });
 
-        return () => unsub();
+        return () => { mounted = false; };
     }, []);
 
     // Palette is handled by architectural internal CSS/Tailwind usually, 

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import {
-  onSnapshot, collection, doc, deleteDoc, serverTimestamp, addDoc, query, getDocs, writeBatch
+  onSnapshot, collection, doc, deleteDoc, serverTimestamp, addDoc, query, getDocs, getDoc, writeBatch
 } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions'; // Added for logUserConnection
 // Auth imports removed (handled in Context)
@@ -80,6 +80,16 @@ const scheduleIdleCallback = (callback, timeout = 1200) => {
 };
 
 const sortByCreatedAtDesc = (a, b) => getMillis(b.createdAt) - getMillis(a.createdAt);
+const CONTACT_INFO_CACHE_KEY = 'tat_contact_info';
+
+const getCachedContactInfo = () => {
+  if (typeof localStorage === 'undefined') return {};
+  try {
+    return JSON.parse(localStorage.getItem(CONTACT_INFO_CACHE_KEY) || '{}') || {};
+  } catch {
+    return {};
+  }
+};
 
 const AppContent = () => {
   const toast = useToast();
@@ -94,7 +104,7 @@ const AppContent = () => {
   const [items, setItems] = useState([]);
   const [boardItems, setBoardItems] = useState([]); // New: Planches
   const [affiliateProducts, setAffiliateProducts] = useState([]);
-  const [contactInfo, setContactInfo] = useState({});
+  const [contactInfo, setContactInfo] = useState(getCachedContactInfo);
 
 
   const [showMarketplacePopup, setShowMarketplacePopup] = useState(false);
@@ -147,12 +157,22 @@ const AppContent = () => {
     };
   }, []);
 
-  // Fetch Contact Info for Menu
+  // Fetch Contact Info for Menu/Footer (single read, cached locally)
   useEffect(() => {
-    const unsub = onSnapshot(doc(db, 'sys_metadata', 'contact_info'), (snap) => {
-      if (snap.exists()) setContactInfo(snap.data());
+    let mounted = true;
+    getDoc(doc(db, 'sys_metadata', 'contact_info')).then((snap) => {
+      if (!mounted || !snap.exists()) return;
+      const data = snap.data();
+      setContactInfo(data);
+      try {
+        localStorage.setItem(CONTACT_INFO_CACHE_KEY, JSON.stringify(data));
+      } catch {
+        // Cache unavailable; keep in-memory value.
+      }
+    }).catch((error) => {
+      console.error('Contact info load error:', error);
     });
-    return () => unsub();
+    return () => { mounted = false; };
   }, []);
 
   // Cart State
@@ -1142,7 +1162,7 @@ const AppContent = () => {
       {
         ['home', 'gallery', 'detail', 'checkout', 'my-orders', 'shop', 'shop-detail'].includes(view) && (
           <div ref={footerRef}>
-            <Footer darkMode={darkMode} />
+            <Footer darkMode={darkMode} contactInfo={contactInfo} />
           </div>
         )
       }

@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { collection, getDocs } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
-import { db, appId, functions } from '../../firebase/config';
+import { db, functions } from '../../firebase/config';
 import { getMillis } from '../../utils/time';
 import { exportRowsToCsv } from '../../utils/csvExport';
 
@@ -182,7 +182,7 @@ const StatusArc = ({ counts, darkMode }) => {
 
 // ─── ADMIN DASHBOARD ───
 
-const AdminDashboard = ({ user, darkMode = false }) => {
+const AdminDashboard = ({ user, darkMode = false, items = [], boardItems = [] }) => {
     const [stats, setStats] = useState({
         totalRevenue: 0,
         totalOrders: 0,
@@ -321,42 +321,13 @@ const AdminDashboard = ({ user, darkMode = false }) => {
                 const sortedOrders = activeOrders.sort((a, b) => getMillis(b.createdAt) - getMillis(a.createdAt)).slice(0, 5);
                 setRecentOrders(sortedOrders);
 
-                // 2. Fetch Items
-                const furnitureSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'furniture'));
-                const boardSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'cutting_boards'));
-
-                let stockValue = 0;
-                let auctions = [];
-
-                const processItem = (doc, type) => {
-                    const data = doc.data();
-                    const price = data.currentPrice || data.startingPrice || 0;
-                    const stock = data.stock !== undefined ? Number(data.stock) : 1;
-
-                    if (!data.sold && stock > 0) {
-                        stockValue += (price * stock);
-                    }
-                    if (data.auctionActive && !data.sold && stock > 0) {
-                        const endTime = data.auctionEnd ? getMillis(data.auctionEnd) : 0;
-                        const timeLeft = Math.max(0, endTime - Date.now());
-                        auctions.push({ id: doc.id, ...data, type, timeLeft, bidCount: data.bidCount || 0 });
-                    }
-                };
-
-                furnitureSnap.forEach(doc => processItem(doc, 'Mobilier'));
-                boardSnap.forEach(doc => processItem(doc, 'Planche'));
-
-                auctions.sort((a, b) => a.timeLeft - b.timeLeft);
-                setActiveAuctions(auctions);
-
-                setStats({
+                setStats(prev => ({
+                    ...prev,
                     totalRevenue: revenue,
                     totalOrders: orderCount,
                     averageOrderValue: orderCount > 0 ? Math.round(revenue / orderCount) : 0,
-                    totalStockValue: stockValue,
-                    activeAuctionsCount: auctions.length,
                     registeredUsers: 0 
-                });
+                }));
 
                 // 3. Fetch User Stats
                 httpsCallable(functions, 'getUserStats')().then(res => {
@@ -372,6 +343,36 @@ const AdminDashboard = ({ user, darkMode = false }) => {
 
         fetchData();
     }, []);
+
+    useEffect(() => {
+        let stockValue = 0;
+        const auctions = [];
+
+        const processItem = (item, type) => {
+            const price = item.currentPrice || item.startingPrice || 0;
+            const stock = item.stock !== undefined ? Number(item.stock) : 1;
+
+            if (!item.sold && stock > 0) {
+                stockValue += (price * stock);
+            }
+            if (item.auctionActive && !item.sold && stock > 0) {
+                const endTime = item.auctionEnd ? getMillis(item.auctionEnd) : 0;
+                const timeLeft = Math.max(0, endTime - Date.now());
+                auctions.push({ ...item, type, timeLeft, bidCount: item.bidCount || 0 });
+            }
+        };
+
+        items.forEach(item => processItem(item, 'Mobilier'));
+        boardItems.forEach(item => processItem(item, 'Planche'));
+        auctions.sort((a, b) => a.timeLeft - b.timeLeft);
+
+        setActiveAuctions(auctions);
+        setStats(prev => ({
+            ...prev,
+            totalStockValue: stockValue,
+            activeAuctionsCount: auctions.length
+        }));
+    }, [items, boardItems]);
 
     // ─── ACTIONS ───
     const handleResetOrdersClick = () => setIsOrderResetModalOpen(true);

@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
     Users, Clock, Activity, Smartphone, Monitor, Globe, Trash2, AlertCircle, ChevronDown, ChevronRight,
-    TrendingUp, MousePointerClick, ShoppingBag
+    TrendingUp, MousePointerClick, ShoppingBag, RefreshCw
 } from 'lucide-react';
-import { collection, query, orderBy, limit, onSnapshot, where, Timestamp } from 'firebase/firestore';
-import { db, functions, appId } from '../../firebase/config';
+import { collection, query, orderBy, limit, getDocs, where, Timestamp } from 'firebase/firestore';
+import { db, functions } from '../../firebase/config';
 import { httpsCallable } from 'firebase/functions';
 import { getMillis } from '../../utils/time';
 import {
@@ -632,14 +632,22 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [] }) => {
         return null;
     };
 
-    useEffect(() => {
+    const loadClicks = useCallback(async () => {
+        setLoadingClicks(true);
         const q = query(collection(db, 'affiliate_clicks'), orderBy('timestamp', 'desc'), limit(3000));
-        const unsub = onSnapshot(q, snap => {
+        try {
+            const snap = await getDocs(q);
             setClicks(snap.docs.map(d => ({ id: d.id, ...d.data() })));
             setLoadingClicks(false);
-        }, () => setLoadingClicks(false));
-        return () => unsub();
+        } catch (error) {
+            console.error('Affiliate clicks load error:', error);
+            setLoadingClicks(false);
+        }
     }, []);
+
+    useEffect(() => {
+        loadClicks();
+    }, [loadClicks]);
 
     const filteredClicks = useMemo(() => {
         const now = Date.now();
@@ -837,6 +845,14 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [] }) => {
                     <p className="text-[10px] text-stone-500 font-bold uppercase tracking-widest mt-1">Analytics Affiliation</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
+                    <button
+                        onClick={loadClicks}
+                        disabled={loadingClicks}
+                        className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border ${darkMode ? 'border-white/10 text-stone-300 hover:bg-white/10' : 'border-stone-200 text-stone-600 hover:bg-stone-100'} disabled:opacity-50`}
+                    >
+                        <RefreshCw size={13} className={loadingClicks ? 'inline mr-2 animate-spin' : 'inline mr-2'} />
+                        Actualiser
+                    </button>
                     <button
                         onClick={handleClearAllAffiliate}
                         className="px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border border-red-500/20 text-red-500/60 hover:bg-red-500 hover:text-white active:scale-95"
@@ -1227,7 +1243,8 @@ const AdminAnalytics = ({ darkMode = false }) => {
         }
     }, [groupedByDay.length]);
 
-    useEffect(() => {
+    const loadSessions = useCallback(async () => {
+        setLoading(true);
         const historyWindow = getAnalyticsWindow('1ans');
         const historyCutoff = Timestamp.fromMillis(Date.now() - historyWindow.duration);
         const q = query(
@@ -1237,7 +1254,8 @@ const AdminAnalytics = ({ darkMode = false }) => {
             limit(MAX_ANALYTICS_SESSIONS)
         );
 
-        const unsub = onSnapshot(q, (snap) => {
+        try {
+            const snap = await getDocs(q);
             const data = snap.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
@@ -1247,13 +1265,15 @@ const AdminAnalytics = ({ darkMode = false }) => {
             const cleanData = data.filter(s => s.type !== 'admin');
             setSessions(cleanData);
             setLoading(false);
-        }, (error) => {
-            console.error("Analytics snapshot error:", error);
+        } catch (error) {
+            console.error("Analytics load error:", error);
             setLoading(false);
-        });
-
-        return () => unsub();
+        }
     }, []);
+
+    useEffect(() => {
+        loadSessions();
+    }, [loadSessions]);
 
     const processData = (allSessions, filter, nowMs = Date.now()) => {
         const oldestStartedAt = allSessions
@@ -1289,7 +1309,7 @@ const AdminAnalytics = ({ darkMode = false }) => {
         if (!window.confirm("Supprimer cette session ? (Action irréversible)")) return;
         try {
             await httpsCallable(functions, 'deleteSession')({ sessionId: id });
-            // Le snapshot s'occupera de rafraîchir la liste
+            loadSessions();
         } catch (e) {
             console.error("Delete error:", e);
             alert("Erreur lors de la suppression");
@@ -1301,6 +1321,7 @@ const AdminAnalytics = ({ darkMode = false }) => {
         setLoading(true);
         try {
             await httpsCallable(functions, 'clearAllSessions')({});
+            await loadSessions();
             setLoading(false);
         } catch (e) {
             console.error("Clear error:", e);
@@ -1344,6 +1365,14 @@ const AdminAnalytics = ({ darkMode = false }) => {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
+                    <button
+                        onClick={loadSessions}
+                        disabled={loading}
+                        className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border ${darkMode ? 'border-white/10 text-stone-300 hover:bg-white/10' : 'border-stone-200 text-stone-600 hover:bg-stone-100'} disabled:opacity-50`}
+                    >
+                        <RefreshCw size={13} className={loading ? 'inline mr-2 animate-spin' : 'inline mr-2'} />
+                        Actualiser
+                    </button>
                     <button
                         onClick={handleClearAll}
                         className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border border-red-500/20 text-red-500/60 hover:bg-red-500 hover:text-white active:scale-95`}

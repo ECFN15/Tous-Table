@@ -13,7 +13,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 // Lazy Load Three.js to improve initial bundle size
 const ThreeBackground = React.lazy(() => import('../components/home/ThreeBackground'));
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import SEO from '../components/shared/SEO';
 import { SITE_URL } from '../utils/seoRoutes';
@@ -41,6 +41,17 @@ const shouldLoadDecorativeThree = () => {
   if (navigator.connection?.saveData) return false;
   if (isLowPowerMobileDevice()) return false;
   return true;
+};
+
+const HOMEPAGE_IMAGES_CACHE_KEY = 'tat_homepage_images';
+
+const getCachedHomepageImages = () => {
+  if (typeof localStorage === 'undefined') return {};
+  try {
+    return JSON.parse(localStorage.getItem(HOMEPAGE_IMAGES_CACHE_KEY) || '{}') || {};
+  } catch {
+    return {};
+  }
 };
 
 // --- COMPOSANT : REVEAL TEXT (CORRIGÉ & ÉLARGI) ---
@@ -109,7 +120,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
   const componentRef = useRef(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [menuInteracted, setMenuInteracted] = useState(false); // Prevents initial transition flash
-  const [homepageImages, setHomepageImages] = useState({});
+  const [homepageImages, setHomepageImages] = useState(getCachedHomepageImages);
   const [isLowPowerMobile, setIsLowPowerMobile] = useState(() => isLowPowerMobileDevice());
   const [shouldMountThree, setShouldMountThree] = useState(false);
   const layerWarmupDoneRef = useRef(false);
@@ -129,15 +140,23 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
 
   // --- FETCH DYNAMIC IMAGES ---
   useEffect(() => {
-    const unsubscribeImages = onSnapshot(doc(db, 'sys_metadata', 'homepage_images'), (docSnap) => {
+    let mounted = true;
+    getDoc(doc(db, 'sys_metadata', 'homepage_images')).then((docSnap) => {
+      if (!mounted) return;
       if (docSnap.exists()) {
-        setHomepageImages(docSnap.data());
+        const data = docSnap.data();
+        setHomepageImages(data);
+        try {
+          localStorage.setItem(HOMEPAGE_IMAGES_CACHE_KEY, JSON.stringify(data));
+        } catch {
+          // Cache unavailable; keep in-memory value.
+        }
       }
+    }).catch((error) => {
+      console.error('Homepage images load error:', error);
     });
 
-    return () => {
-      unsubscribeImages();
-    };
+    return () => { mounted = false; };
   }, []);
 
   useEffect(() => {

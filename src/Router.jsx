@@ -428,7 +428,7 @@ const AppRouter = ({
 
                     <Suspense fallback={<div className="flex items-center justify-center p-20"><div className="w-10 h-10 border-4 border-stone-200 border-t-stone-800 rounded-full animate-spin"></div></div>}>
                         {adminCollection === 'dashboard' ? (
-                            <AdminDashboard user={user} darkMode={darkMode} />
+                            <AdminDashboard user={user} darkMode={darkMode} items={items} boardItems={boardItems} />
                         ) : adminCollection === 'homepage' ? (
                             <AdminHomepage darkMode={darkMode} />
                         ) : adminCollection === 'orders' ? (

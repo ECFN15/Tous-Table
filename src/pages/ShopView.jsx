@@ -1,5 +1,5 @@
 ﻿import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
-import { collection, onSnapshot, query, orderBy, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, appId } from '../firebase/config';
 import { useAuth } from '../contexts/AuthContext';
 import { Info, SlidersHorizontal, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -19,6 +19,17 @@ import { getShopProductPath } from '../utils/seoRoutes';
 import { warmupShopProductDetailIntent } from '../utils/startupWarmup';
 
 gsap.registerPlugin(ScrollTrigger);
+
+const SHOP_TUTORIALS_CACHE_KEY = 'tat_shop_tutorials';
+
+const getCachedShopTutorials = () => {
+    if (typeof localStorage === 'undefined') return [];
+    try {
+        return JSON.parse(localStorage.getItem(SHOP_TUTORIALS_CACHE_KEY) || '[]') || [];
+    } catch {
+        return [];
+    }
+};
 
 const FAMILIES = [
     {
@@ -237,20 +248,28 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
     const [activeCategory, setActiveCategory] = useState(null);
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
     const [tutorialIndexes, setTutorialIndexes] = useState({});
-    const [firestoreTutorials, setFirestoreTutorials] = useState([]);
+    const [firestoreTutorials, setFirestoreTutorials] = useState(getCachedShopTutorials);
     const isProgrammaticScrollRef = useRef(false);
 
     const getTutorialIndex = (categoryId) => tutorialIndexes[categoryId] || 0;
     const setTutorialIndex = (categoryId, idx) => setTutorialIndexes(prev => ({ ...prev, [categoryId]: idx }));
 
-    // Charger les tutoriels depuis Firestore (temps reel)
+    // Charger les tutoriels depuis Firestore (lecture simple + cache local)
     useEffect(() => {
+        let mounted = true;
         const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'shop_tutorials');
         const q = query(colRef, orderBy('order', 'asc'));
-        const unsub = onSnapshot(q, snap => {
-            setFirestoreTutorials(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-        }, () => {});
-        return () => unsub();
+        getDocs(q).then((snap) => {
+            if (!mounted) return;
+            const tutorials = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            setFirestoreTutorials(tutorials);
+            try {
+                localStorage.setItem(SHOP_TUTORIALS_CACHE_KEY, JSON.stringify(tutorials));
+            } catch {
+                // Cache unavailable; keep in-memory value.
+            }
+        }).catch(() => {});
+        return () => { mounted = false; };
     }, []);
 
     // Fusionner les tutoriels Firestore avec les FAMILIES statiques (fallback)

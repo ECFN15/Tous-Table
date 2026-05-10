@@ -231,3 +231,21 @@ npm run verify:functions-syntax
 npm run verify:analytics-reliability
 npm run build
 ```
+
+## Patch quota 2026-05-11 - Admin manuel et petits contenus caches
+
+Contexte: apres les optimisations catalogue, les surfaces restantes a blinder sans casser le site etaient les gros ecrans admin et les petits documents publics lus en temps reel.
+
+Changements:
+
+- `AdminAnalytics` ne garde plus de listeners live larges sur `analytics_sessions` et `affiliate_clicks`; les donnees sont chargees a l'ouverture puis via le bouton `Actualiser`.
+- `AdminDashboard` ne relit plus `furniture` et `cutting_boards` pour ses stats stock/encheres; il reutilise les donnees catalogue deja chargees par l'app admin.
+- Le footer ne relit plus `contact_info`; il recoit les infos deja chargees par `App.jsx`.
+- `contact_info`, `theme_settings`, `homepage_images` et `shop_tutorials` passent en lecture simple avec cache local cote navigateur.
+- L'ancien ecran `AdminComments.jsx` a ete supprime car les commentaires produits ne sont plus une fonctionnalite active.
+
+Tests:
+
+```bash
+npm run build
+```

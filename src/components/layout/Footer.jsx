@@ -1,7 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { ChevronDown, Facebook, Instagram, Mail, MapPin, Phone } from 'lucide-react';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from '../../firebase/config';
 
 const FooterColumn = ({ title, children, darkMode = true }) => (
     <div>
@@ -24,24 +22,17 @@ const MobileDisclosure = ({ title, children, darkMode = true }) => (
     </details>
 );
 
-const Footer = ({ darkMode = false }) => {
-    const [contactInfo, setContactInfo] = useState({
-        email: 'tousatablemadeinnormandie@gmail.com',
-        phone: '07 77 32 41 78',
-        instagram: '',
-        facebook: '',
-        address: '346 Chem. de Fleury, Ifs, Normandie, France',
-        legacyText: 'Tous a Table made in Normandie livre sur toute la France et pays frontaliers.'
-    });
+const DEFAULT_CONTACT_INFO = {
+    email: 'tousatablemadeinnormandie@gmail.com',
+    phone: '07 77 32 41 78',
+    instagram: '',
+    facebook: '',
+    address: '346 Chem. de Fleury, Ifs, Normandie, France',
+    legacyText: 'Tous a Table made in Normandie livre sur toute la France et pays frontaliers.'
+};
 
-    useEffect(() => {
-        const unsub = onSnapshot(doc(db, 'sys_metadata', 'contact_info'), (docSnap) => {
-            if (docSnap.exists()) {
-                setContactInfo((prev) => ({ ...prev, ...docSnap.data() }));
-            }
-        });
-        return () => unsub();
-    }, []);
+const Footer = ({ darkMode = false, contactInfo: contactInfoProp = {} }) => {
+    const contactInfo = { ...DEFAULT_CONTACT_INFO, ...contactInfoProp };
 
     const email = contactInfo.email || 'tousatablemadeinnormandie@gmail.com';
     const phone = contactInfo.phone || '07 77 32 41 78';

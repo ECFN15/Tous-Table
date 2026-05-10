@@ -45,6 +45,16 @@ Ce gate ne remplace pas :
 - Rich Results Test ;
 - verification publique apres deploy.
 
+## Decisions cout Firebase
+
+- Catalogue public : les visiteurs publics doivent privilegier `publicCatalog` et son cache Function/HTTP au lieu d'ouvrir des listeners Firestore complets sur les collections catalogue. Le temps reel Firestore reste acceptable pour l'admin et comme fallback si `publicCatalog` echoue. Objectif : eviter de relire toute la base catalogue a chaque visiteur.
+- Produits affilies / clics : les ecrans admin ne doivent pas lire toute la collection `affiliate_clicks` en live. Utiliser une limite raisonnable, actuellement les 3000 derniers clics, ou des agregats si le besoin devient historique. Objectif : eviter qu'une page admin devienne de plus en plus couteuse avec les annees.
+- Commentaires produits : ce n'est plus une fonctionnalite active. Ne pas recreer d'ecran admin qui lit tous les meubles/planches pour chercher des commentaires sans demande explicite.
+- Analytics admin : ne pas utiliser de listeners live larges par defaut sur `analytics_sessions` ou `affiliate_clicks`. Charger sur ouverture puis via bouton `Actualiser`, ou ajouter un mode live explicite si necessaire.
+- Dashboard admin : reutiliser les donnees catalogue deja chargees par l'app admin pour les stats meubles/planches. Ne pas rajouter de lectures completes `furniture`/`cutting_boards` dans le dashboard sans justification.
+- Petits contenus publics (`contact_info`, `theme_settings`, `homepage_images`, `shop_tutorials`) : preferer `getDoc`/`getDocs` avec cache local. Le temps reel public n'est pas necessaire sauf demande explicite.
+- Toute modification qui retablit un listener public large, un chargement public non cache, ou une lecture admin non bornee doit etre justifiee et documentee dans `_DOCS/ANALYTICS_RELIABILITY.md`.
+
 ## Avant une modification
 
 1. Lire le document specialise correspondant.
