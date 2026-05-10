@@ -50,7 +50,7 @@ const Footer = ({ darkMode = false }) => {
     return (
         <footer className={`relative z-10 border-t border-[#8a5b2a]/25 ${darkMode ? 'bg-[#050605] text-white' : 'bg-[#fff8ed] text-stone-950 shadow-[0_-24px_70px_rgba(102,74,36,0.08)]'}`}>
             <div className="max-w-[1920px] mx-auto px-5 md:px-16 py-12 md:py-16">
-                <div className="md:hidden">
+                <div className="mb-8 md:hidden">
                     <MobileDisclosure title="A propos" darkMode={darkMode}>
                         <a href="/a-propos" className="block hover:text-[#dba45f]">Notre histoire</a>
                         <a href="/meubles-anciens" className="block hover:text-[#dba45f]">La galerie</a>
@@ -79,8 +79,8 @@ const Footer = ({ darkMode = false }) => {
                 <div className="grid gap-10 md:grid-cols-[1.2fr_0.75fr_0.75fr_0.9fr_1.25fr] md:items-start">
                     <div className="space-y-5">
                         <div>
-                            <p className={`font-serif text-2xl leading-none ${darkMode ? 'text-white' : 'text-stone-950'}`}>Tous à Table</p>
-                            <p className="mt-1 font-serif text-lg italic text-[#dba45f]">Atelier Normand</p>
+                            <p className={`font-serif text-[1.35rem] md:text-2xl leading-none ${darkMode ? 'text-white' : 'text-stone-950'}`}>Tous à Table</p>
+                            <p className="mt-1 font-serif text-base md:text-lg italic text-[#dba45f]">Atelier Normand</p>
                         </div>
                         <p className={`max-w-xs font-serif text-lg leading-snug ${darkMode ? 'text-stone-300' : 'text-stone-700'}`}>
                             {contactInfo.legacyText || 'Tous a Table made in Normandie livre sur toute la France et pays frontaliers.'}
@@ -126,7 +126,7 @@ const Footer = ({ darkMode = false }) => {
                         </FooterColumn>
                     </div>
 
-                    <div className="space-y-5">
+                    <div className="space-y-5 md:pt-0">
                         <h3 className="text-[#dba45f] text-[11px] font-black uppercase tracking-[0.24em]">Contact atelier</h3>
                         <p className={`font-serif text-lg leading-snug ${darkMode ? 'text-stone-300' : 'text-stone-700'}`}>
                             Une question sur une piece, une livraison ou une restauration ? Contactez directement l'atelier.

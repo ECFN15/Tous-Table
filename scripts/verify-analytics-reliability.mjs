@@ -5,6 +5,7 @@ import {
     ANALYTICS_TIME_FILTERS,
     buildVisitorDayGroups,
     buildAnalyticsStats,
+    buildVisitorConfidence,
     getFilteredTrafficSessions,
     getReliableVisitorKey,
     isUsableAnalyticsIp,
@@ -140,7 +141,30 @@ assert.equal(groupedForDashboard.reduce((sum, day) => sum + day.sessionCount, 0)
 assert.equal(groupedVisitorKeys.size, result.kpis.uniqueVisitors, 'unique visitor rectangles match KPI unique visitors');
 assert.equal(result.chartData.reduce((sum, slot) => sum + slot.sessions, 0), result.kpis.totalSessions, 'bar chart session sum matches KPI sessions');
 assert.equal(result.kpis.uniqueVisitors, 2);
+assert.equal(result.kpis.visitorIpRatioLabel, '1.00');
+assert.equal(result.kpis.visitorConfidenceScore, 100);
 assert.equal(result.chartData.reduce((sum, slot) => sum + slot.visites, 0), 3, 'bar chart visitors are deduped per slot, not globally');
+
+const closeUidIpConfidence = buildVisitorConfidence({
+    uniqueVisitors: 59,
+    uniqueIps: 49,
+    ipCoverage: 100,
+    sessionFallbackCount: 0,
+    isWindowComplete: true
+});
+assert.equal(closeUidIpConfidence.ratioLabel, '1.20');
+assert.equal(closeUidIpConfidence.score, 90);
+assert.equal(closeUidIpConfidence.label, 'forte');
+
+const weakUidIpConfidence = buildVisitorConfidence({
+    uniqueVisitors: 200,
+    uniqueIps: 20,
+    ipCoverage: 100,
+    sessionFallbackCount: 0,
+    isWindowComplete: true
+});
+assert.equal(weakUidIpConfidence.score, 0);
+assert.equal(weakUidIpConfidence.label, 'faible');
 
 assert.equal(ipTools.normalizeIp('::ffff:203.0.113.42'), '203.0.113.42');
 assert.equal(ipTools.normalizeIp('203.0.113.42:443'), '203.0.113.42');

@@ -86,3 +86,22 @@ L'effet repose sur trois couches superposées :
 1. **Performance** : Utilisation de `rotate` sur un élément simplifié via GPU (`isolation-auto`).
 2. **Accessibilité** : L'effet néon ne s'affiche que sur mobile et pour les éléments non-actifs, afin de guider l'utilisateur sans le fatiguer.
 3. **Maintien du Thème** : Utilisation exclusive des tons `Stone` et `Zinc` pour rester dans l'esthétique "Musée" du projet Architectural.
+
+---
+
+## 5. Checkout meuble / planche - virement et Wero
+
+Date : 8 mai 2026
+
+Changement UX :
+- Ajout d'un séparateur `ou` entre les badges Virement et Wero dans `src/pages/CheckoutView.jsx`.
+- Ajout d'un rappel lisible et responsive sous le bouton de confirmation : `IBAN` et `Facture` sont mis en valeur et renvoient vers `Mes Commandes`.
+- Mise à jour du pop-up de confirmation `src/components/orders/OrderSuccessModal.jsx` avec deux blocs explicites : `IBAN vendeur` et `Facture`.
+- Mise à jour de `src/pages/MyOrdersView.jsx` : le bloc de règlement annonce clairement l'IBAN vendeur et le bouton facture indique `Télécharger la facture`.
+- Ajustement mobile du footer `src/components/layout/Footer.jsx` : marque `Tous à Table` légèrement réduite et éloignée du liseré de l'accordéon.
+
+Tests :
+- 8 mai 2026 : `npm run build` OK.
+
+Reste à faire :
+- Smoke visuel manuel desktop et mobile sur le checkout et la page `Mes Commandes`.

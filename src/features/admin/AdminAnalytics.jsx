@@ -1137,6 +1137,10 @@ const AdminAnalytics = ({ darkMode = false }) => {
         totalSessions: 0,
         uniqueVisitors: 0,
         uniqueIps: 0,
+        visitorIpRatio: 1,
+        visitorIpRatioLabel: '1.00',
+        visitorConfidenceScore: 100,
+        visitorConfidenceLabel: 'forte',
         ipCoverage: 100,
         avgDuration: 0,
         bounceRate: 0,
@@ -1165,6 +1169,16 @@ const AdminAnalytics = ({ darkMode = false }) => {
         const start = (currentPage - 1) * DAYS_PER_PAGE;
         return groupedByDay.slice(start, start + DAYS_PER_PAGE);
     }, [groupedByDay, currentPage]);
+    const ratioAccent = kpis.visitorConfidenceScore >= 85
+        ? 'text-emerald-500'
+        : kpis.visitorConfidenceScore >= 70
+            ? 'text-amber-500'
+            : 'text-red-500';
+    const ratioBg = kpis.visitorConfidenceScore >= 85
+        ? 'bg-emerald-500/10'
+        : kpis.visitorConfidenceScore >= 70
+            ? 'bg-amber-500/10'
+            : 'bg-red-500/10';
 
     // Reset pagination when data changes significantly
     useEffect(() => {
@@ -1342,11 +1356,23 @@ const AdminAnalytics = ({ darkMode = false }) => {
                         <h4 className={`text-4xl sm:text-5xl font-black tracking-tighter tabular-nums ${darkMode ? 'text-white' : 'text-stone-900'}`}>
                             {kpis.uniqueVisitors}
                         </h4>
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                            <span className={`inline-flex items-center rounded-full px-3 py-1 text-[9px] font-black uppercase tracking-widest ${ratioBg} ${ratioAccent}`}>
+                                Confiance {kpis.visitorConfidenceScore}%
+                            </span>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-stone-500">
+                                {kpis.visitorConfidenceLabel}
+                            </span>
+                        </div>
                     </div>
-                    <div className="grid grid-cols-2 sm:flex sm:items-center gap-3 sm:gap-5 text-left sm:text-right">
+                    <div className="grid grid-cols-3 sm:flex sm:items-center gap-3 sm:gap-5 text-left sm:text-right">
                         <div>
                             <p className="text-[8px] font-black uppercase tracking-widest text-stone-500">IPs uniques</p>
                             <p className="mt-1 text-sm font-black text-cyan-500 tabular-nums">{kpis.uniqueIps}</p>
+                        </div>
+                        <div>
+                            <p className="text-[8px] font-black uppercase tracking-widest text-stone-500">Ratio UID/IP</p>
+                            <p className={`mt-1 text-sm font-black tabular-nums ${ratioAccent}`}>{kpis.visitorIpRatioLabel}</p>
                         </div>
                         <div>
                             <p className="text-[8px] font-black uppercase tracking-widest text-stone-500">Sessions brutes</p>
@@ -1355,7 +1381,9 @@ const AdminAnalytics = ({ darkMode = false }) => {
                     </div>
                 </div>
                 <p className="mt-4 text-[10px] font-bold text-stone-500 leading-relaxed">
-                    Deduplication par UID Firebase, puis IP serveur. Les sessions brutes restent visibles seulement comme controle.
+                    Deduplication par UID Firebase, puis IP serveur. Le compteur utilisateurs uniques est {kpis.visitorIpRatio
+                        ? `${Math.round((kpis.visitorIpRatio - 1) * 100)}% au-dessus`
+                        : 'non comparable'} du compteur IPs uniques.
                 </p>
             </div>
 

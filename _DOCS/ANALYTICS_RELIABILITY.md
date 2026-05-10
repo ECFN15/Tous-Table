@@ -148,6 +148,10 @@ Changements realises:
   - rectangles de visiteurs fiables par jour;
   - dans chaque rectangle, les sessions de ce visiteur;
   - dans chaque session, le tracking/parcours existant via `Tracer`.
+- Le KPI principal affiche aussi:
+  - le ratio `utilisateurs uniques / IPs uniques`;
+  - un score de confiance de 0 a 100 base sur la proximite UID/IP, la couverture IP,
+    l'usage du fallback session et le plafonnement eventuel de la fenetre.
 - Coherence dashboard:
   - les KPIs, le graphique et les rectangles utilisent la meme identite `getVisitorIdentity`;
   - les rectangles visiteurs sont calcules depuis la meme fenetre glissante que les KPIs;

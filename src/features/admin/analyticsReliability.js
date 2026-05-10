@@ -68,6 +68,54 @@ export const normalizeSessionDuration = (duration) => {
     return Math.max(0, Math.min(MAX_ANALYTICS_DURATION_SECONDS, Math.round(value)));
 };
 
+const clampScore = (value) => Math.max(0, Math.min(100, Math.round(value)));
+
+const getVisitorConfidenceLabel = (score) => {
+    if (score >= 85) return 'forte';
+    if (score >= 70) return 'bonne';
+    if (score >= 50) return 'moyenne';
+    return 'faible';
+};
+
+export const buildVisitorConfidence = ({
+    uniqueVisitors = 0,
+    uniqueIps = 0,
+    ipCoverage = 100,
+    sessionFallbackCount = 0,
+    isWindowComplete = true
+} = {}) => {
+    if (uniqueVisitors === 0) {
+        return {
+            score: 100,
+            label: 'forte',
+            ratio: 1,
+            ratioLabel: '1.00',
+            detail: 'Aucune visite sur la periode.'
+        };
+    }
+
+    const ratio = uniqueIps > 0 ? uniqueVisitors / uniqueIps : null;
+    const ratioDistance = ratio === null ? 1 : Math.abs(ratio - 1);
+    let score = 100 - (ratioDistance * 50);
+
+    score *= Math.max(0, Math.min(1, ipCoverage / 100));
+    if (sessionFallbackCount > 0) score -= 12;
+    if (!isWindowComplete) score = Math.min(score, 60);
+    if (uniqueIps === 0) score = Math.min(score, 35);
+
+    const finalScore = clampScore(score);
+    const ratioLabel = ratio === null ? 'sans IP' : ratio.toFixed(2);
+    return {
+        score: finalScore,
+        label: getVisitorConfidenceLabel(finalScore),
+        ratio,
+        ratioLabel,
+        detail: ratio === null
+            ? 'Aucune IP utilisable pour comparer les visiteurs.'
+            : `${ratioLabel} utilisateur technique par IP unique.`
+    };
+};
+
 export const getAnalyticsWindow = (filterId, rawNow = Date.now()) => {
     const config = getAnalyticsFilterConfig(filterId);
     const now = filterId === '1h' ? Math.floor(rawNow / 60000) * 60000 : rawNow;
@@ -305,6 +353,14 @@ export const buildAnalyticsStats = (sessions = [], filterId = '1j', options = {}
     else if (ipCoverage < 50) confidence = 'faible';
     else if (ipCoverage < 80 || identitySourceCounts.session > 0) confidence = 'moyenne';
 
+    const visitorConfidence = buildVisitorConfidence({
+        uniqueVisitors: visitorKeys.size,
+        uniqueIps: ipKeys.size,
+        ipCoverage,
+        sessionFallbackCount: identitySourceCounts.session,
+        isWindowComplete
+    });
+
     return {
         realTraffic,
         chartData,
@@ -312,6 +368,10 @@ export const buildAnalyticsStats = (sessions = [], filterId = '1j', options = {}
             totalSessions,
             uniqueVisitors: visitorKeys.size,
             uniqueIps: ipKeys.size,
+            visitorIpRatio: visitorConfidence.ratio,
+            visitorIpRatioLabel: visitorConfidence.ratioLabel,
+            visitorConfidenceScore: visitorConfidence.score,
+            visitorConfidenceLabel: visitorConfidence.label,
             avgDuration: totalSessions > 0 ? Math.round(totalDuration / totalSessions) : 0,
             bounceRate: totalSessions > 0 ? Math.round((bounces / totalSessions) * 100) : 0,
             mobilePercentage: totalSessions > 0 ? Math.round((mobiles / totalSessions) * 100) : 0,
@@ -326,6 +386,7 @@ export const buildAnalyticsStats = (sessions = [], filterId = '1j', options = {}
             coverageStartMs,
             missingIpSessions,
             identitySourceCounts,
+            visitorConfidence,
             method: 'UID Firebase client/anonyme, puis IP serveur, puis session si IP absente.'
         }
     };
