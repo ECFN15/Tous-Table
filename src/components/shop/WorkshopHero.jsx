@@ -24,10 +24,10 @@ const WorkshopHero = ({ darkMode = false }) => {
             />
 
             {/* Unified Responsive Composition (6 images) */}
-            <div className="relative md:absolute order-2 md:order-none mx-auto md:mx-0 md:top-1/2 md:-translate-y-1/2 md:right-4 lg:right-[2%] w-[88vw] sm:w-[85vw] md:w-[50vw] lg:w-[48vw] xl:w-[42vw] max-w-[420px] sm:max-w-[500px] md:max-w-[550px] lg:max-w-[750px] xl:max-w-[1200px] my-6 md:my-0 flex-shrink-0" style={{ zIndex: 2 }}>
+            <div className="relative md:absolute order-3 md:order-none mx-auto md:mx-0 md:top-1/2 md:-translate-y-1/2 md:right-4 lg:right-[2%] w-[74vw] sm:w-[82vw] md:w-[46vw] lg:w-[44vw] xl:w-[40vw] max-w-[300px] sm:max-w-[480px] md:max-w-[530px] lg:max-w-[700px] xl:max-w-[1080px] my-6 md:my-0 flex-shrink-0" style={{ zIndex: 2 }}>
                 <div className={`rounded-[24px] md:rounded-[30px] border p-2.5 md:p-3 lg:p-4 shadow-2xl ${darkMode ? 'border-white/5 bg-black/10' : 'border-stone-300/60 bg-white/25'}`}>
                     {/* Top Grid: 4 images */}
-                    <div className="grid grid-cols-12 grid-rows-6 gap-x-2 md:gap-x-3 lg:gap-x-4 gap-y-2 md:gap-y-3 lg:gap-y-4 h-[190px] min-[400px]:h-[220px] sm:h-[280px] md:h-[300px] lg:h-[400px]">
+                    <div className="grid grid-cols-12 grid-rows-6 gap-x-2 md:gap-x-3 lg:gap-x-4 gap-y-2 md:gap-y-3 lg:gap-y-4 h-[170px] min-[400px]:h-[190px] sm:h-[260px] md:h-[280px] lg:h-[360px]">
                         <div className="col-span-7 row-span-3 rounded-[12px] md:rounded-[18px] overflow-hidden">
                             <div className="group relative h-full w-full rounded-[12px] md:rounded-[18px] bg-[#e8d9c6] ring-1 ring-inset ring-black/5 shadow-md transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] hover:-translate-y-2 hover:shadow-2xl overflow-hidden cursor-default">
                                 <img
@@ -87,7 +87,7 @@ const WorkshopHero = ({ darkMode = false }) => {
 
                     {/* Bottom Grid: 2 images */}
                     <div className="mt-2 md:mt-3 lg:mt-4 grid grid-cols-12 gap-2 md:gap-3 lg:gap-4">
-                        <div className="col-span-5 h-[65px] min-[400px]:h-[75px] sm:h-[90px] md:h-[100px] lg:h-[140px] rounded-[10px] md:rounded-[16px] overflow-hidden">
+                        <div className="col-span-5 h-[60px] min-[400px]:h-[70px] sm:h-[82px] md:h-[92px] lg:h-[124px] rounded-[10px] md:rounded-[16px] overflow-hidden">
                             <div className="group relative h-full w-full rounded-[10px] md:rounded-[16px] bg-[#e8d9c6] ring-1 ring-inset ring-black/5 shadow-sm transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] hover:-translate-y-2 hover:shadow-xl overflow-hidden cursor-default">
                                 <img
                                     src={WORKSHOP_IMAGES[4]}
@@ -101,7 +101,7 @@ const WorkshopHero = ({ darkMode = false }) => {
                             </div>
                         </div>
 
-                        <div className="col-span-7 h-[65px] min-[400px]:h-[75px] sm:h-[90px] md:h-[100px] lg:h-[140px] rounded-[10px] md:rounded-[16px] overflow-hidden">
+                        <div className="col-span-7 h-[60px] min-[400px]:h-[70px] sm:h-[82px] md:h-[92px] lg:h-[124px] rounded-[10px] md:rounded-[16px] overflow-hidden">
                             <div className="group relative h-full w-full rounded-[10px] md:rounded-[16px] bg-[#e8d9c6] ring-1 ring-inset ring-black/5 shadow-sm transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] hover:-translate-y-2 hover:shadow-xl overflow-hidden cursor-default">
                                 <img
                                     src={WORKSHOP_IMAGES[5]}

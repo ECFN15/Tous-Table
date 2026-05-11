@@ -97,6 +97,14 @@ const FAMILIES = [
 
 const RITUAL_WORDS = ['NOURRIR', 'PROTEGER', 'RESTAURER'];
 
+const PRICE_FILTERS = [
+    { id: 'all', label: 'Tous les prix', shortLabel: 'Tout', min: null, max: null },
+    { id: 'under15', label: 'Moins de 15 EUR', shortLabel: '< 15', min: null, max: 15 },
+    { id: '15to35', label: '15 a 35 EUR', shortLabel: '15-35', min: 15, max: 35 },
+    { id: '35to70', label: '35 a 70 EUR', shortLabel: '35-70', min: 35, max: 70 },
+    { id: 'over70', label: 'Plus de 70 EUR', shortLabel: '70+', min: 70, max: null },
+];
+
 const SHOP_SEO_FAQ = [
     {
         question: "Quels produits utiliser pour entretenir un meuble ancien en bois ?",
@@ -119,6 +127,21 @@ const sortShopProducts = (products) => [...products].sort((a, b) => {
     if (bTier !== aTier) return bTier - aTier;
     return (Number(Boolean(b.featured)) - Number(Boolean(a.featured)));
 });
+
+const getProductPrice = (product) => {
+    const price = Number(product?.price);
+    return Number.isFinite(price) && price > 0 ? price : null;
+};
+
+const matchesPriceFilter = (product, filterId) => {
+    const filter = PRICE_FILTERS.find((item) => item.id === filterId) || PRICE_FILTERS[0];
+    if (filter.id === 'all') return true;
+    const price = getProductPrice(product);
+    if (price === null) return false;
+    if (filter.min !== null && price < filter.min) return false;
+    if (filter.max !== null && price >= filter.max) return false;
+    return true;
+};
 
 const buildShopItemList = (products) => products
     .filter((product) => product?.name)
@@ -181,7 +204,7 @@ const RitualWordLoop = React.memo(({ darkMode = false }) => {
     }, [activeRitualIndex, typedRitualWord, isDeletingRitualWord]);
 
     return (
-        <div className="space-y-4 sm:space-y-5 md:space-y-7">
+            <div className="space-y-3 sm:space-y-4 md:space-y-5">
             <div className="flex items-center gap-3 hero-reveal">
                 <span className={`h-px w-12 ${darkMode ? 'bg-white/15' : 'bg-stone-300/90'}`} />
                 <span className={`text-[10px] uppercase tracking-[0.28em] font-black ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>
@@ -190,7 +213,7 @@ const RitualWordLoop = React.memo(({ darkMode = false }) => {
             </div>
 
             <div className="leading-[0.85]">
-                <div className={`font-serif text-[2rem] sm:text-[2.6rem] xl:text-[4rem] tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                <div className={`font-serif text-[2rem] sm:text-[2.2rem] xl:text-[2.8rem] tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>
                     <span className={`inline-block transition-all duration-300 ${isDeletingRitualWord ? 'blur-[1.8px] opacity-80' : 'blur-0 opacity-100'} ${darkMode ? 'text-amber-300' : 'text-amber-800'}`}>
                         {typedRitualWord.split('').map((char, idx, arr) => (
                             <span
@@ -206,13 +229,13 @@ const RitualWordLoop = React.memo(({ darkMode = false }) => {
                             </span>
                         ))}
                     </span>
-                    <span className={`ml-2 font-black animate-pulse text-[1.7rem] xl:text-[2.4rem] ${darkMode ? 'text-amber-400/90' : 'text-amber-700/90'}`}>
+                    <span className={`ml-2 font-black animate-pulse text-[1.5rem] xl:text-[1.8rem] ${darkMode ? 'text-amber-400/90' : 'text-amber-700/90'}`}>
                         |
                     </span>
                 </div>
             </div>
 
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2.5 md:hidden">
                 {RITUAL_WORDS.map((word, idx) => (
                     <span
                         key={word}
@@ -246,6 +269,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
     };
 
     const [activeCategory, setActiveCategory] = useState(null);
+    const [priceFilter, setPriceFilter] = useState('all');
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
     const [tutorialIndexes, setTutorialIndexes] = useState({});
     const [firestoreTutorials, setFirestoreTutorials] = useState(getCachedShopTutorials);
@@ -297,7 +321,10 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
         return tutorialsByCategory;
     }, [firestoreTutorials]);
 
-    const productsByFamily = useMemo(() => {
+    const totalProductCount = affiliateProducts.length;
+    const activePriceLabel = PRICE_FILTERS.find((filter) => filter.id === priceFilter)?.label || PRICE_FILTERS[0].label;
+
+    const rawProductsByFamily = useMemo(() => {
         const buckets = {};
         FAMILIES.forEach((family) => {
             buckets[family.id] = [];
@@ -313,9 +340,31 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
         return buckets;
     }, [affiliateProducts]);
 
-    const visibleFamilies = useMemo(
-        () => FAMILIES.filter((family) => (productsByFamily[family.id] || []).length > 0),
+    const productsByFamily = useMemo(() => {
+        const buckets = {};
+        Object.entries(rawProductsByFamily).forEach(([familyId, products]) => {
+            buckets[familyId] = products.filter((product) => matchesPriceFilter(product, priceFilter));
+        });
+        return buckets;
+    }, [priceFilter, rawProductsByFamily]);
+
+    const categorySummaries = useMemo(
+        () => FAMILIES.map((family) => ({
+            ...family,
+            count: (productsByFamily[family.id] || []).length,
+            totalCount: (rawProductsByFamily[family.id] || []).length,
+        })),
+        [productsByFamily, rawProductsByFamily]
+    );
+
+    const filteredProductCount = useMemo(
+        () => Object.values(productsByFamily).reduce((total, products) => total + products.length, 0),
         [productsByFamily]
+    );
+
+    const visibleFamilies = useMemo(
+        () => categorySummaries.filter((family) => family.count > 0),
+        [categorySummaries]
     );
 
     const shopSchema = useMemo(() => {
@@ -428,7 +477,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
     useEffect(() => {
         if (affiliateProducts.length === 0) return;
         const observers = [];
-        FAMILIES.forEach(family => {
+        visibleFamilies.forEach(family => {
             const el = document.getElementById(`section-${family.id}`);
             if (!el) return;
             const observer = new IntersectionObserver(
@@ -443,7 +492,13 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
             observers.push(observer);
         });
         return () => observers.forEach(o => o.disconnect());
-    }, [affiliateProducts.length]);
+    }, [affiliateProducts.length, visibleFamilies]);
+
+    useEffect(() => {
+        if (activeCategory && !visibleFamilies.some((family) => family.id === activeCategory)) {
+            setActiveCategory(null);
+        }
+    }, [activeCategory, visibleFamilies]);
 
     const getProductsForFamily = useCallback((familyId) => {
         return productsByFamily[familyId] || [];
@@ -474,7 +529,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
     }, []);
 
     return (
-        <div className={`min-h-screen animate-in fade-in duration-500 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-[linear-gradient(180deg,#f8f2e8_0%,#fffaf2_42%,#f1e3cf_100%)]'}`}>
+        <div className={`min-h-screen w-full max-w-full overflow-x-hidden animate-in fade-in duration-500 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-[linear-gradient(180deg,#f8f2e8_0%,#fffaf2_42%,#f1e3cf_100%)]'}`}>
             <SEO
                 title="Le Comptoir - Boutique Bois & Entretien Meuble Ancien"
                 description="Produits pour entretenir, proteger et restaurer les meubles en bois massif : huiles, cires, savons, accessoires et soins du bois testes en atelier."
@@ -483,10 +538,10 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
             />
 
             {/* HERO SECTION */}
-            <section className="relative min-h-fit sm:min-h-[85vh] flex flex-col justify-start md:justify-end px-6 xl:px-12 pb-8 sm:pb-16 md:pb-24 pt-3 sm:pt-6 md:pt-[250px] overflow-hidden">
+            <section className="relative min-h-fit sm:min-h-[58svh] md:min-h-[62svh] flex flex-col justify-start md:justify-end px-6 xl:px-12 pb-8 sm:pb-12 md:pb-14 lg:pb-16 pt-3 sm:pt-6 md:pt-24 lg:pt-28 overflow-hidden">
                 <WorkshopHero darkMode={darkMode} />
 
-                <div className="relative md:absolute order-1 md:-order-none left-0 md:left-5 sm:left-6 xl:left-12 md:top-[75px] sm:top-24 md:top-32 lg:top-10 z-10 pointer-events-none">
+                <div className="relative md:absolute order-1 md:-order-none left-0 md:left-6 xl:left-12 md:top-0 lg:top-0 z-10 pointer-events-none">
                     <style>{`
                         @keyframes ritualLetterIn {
                             0% { opacity: 0; filter: blur(5px); transform: translateY(7px) scale(0.985); }
@@ -498,11 +553,11 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
 
                 <div className={`absolute top-0 right-0 w-[50vw] h-[50vw] md:w-[30vw] md:h-[30vw] rounded-full blur-[100px] opacity-20 pointer-events-none z-0 ${darkMode ? 'bg-amber-500/20' : 'bg-amber-700/10'}`} />
 
-                <div className="order-3 md:-order-none max-w-[1920px] mx-auto w-full space-y-2 sm:space-y-4 md:space-y-6 lg:space-y-8 relative z-10 sm:mt-0 pointer-events-none">
-                    <h1 className={`hero-reveal font-serif text-[3.6rem] min-[400px]:text-[3.8rem] sm:text-6xl md:text-[3.5rem] lg:text-7xl xl:text-[11.5rem] leading-[0.85] tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'} w-full md:w-[48%] lg:w-[45%] xl:w-auto pointer-events-auto`}>
+                <div className="order-2 md:-order-none max-w-[1760px] mx-auto w-full space-y-2 sm:space-y-4 md:space-y-6 lg:space-y-7 relative z-10 sm:mt-0 pointer-events-none">
+                    <h1 className={`hero-reveal font-serif text-[3.35rem] min-[400px]:text-[3.65rem] sm:text-6xl md:text-[3.5rem] lg:text-7xl xl:text-[8.4rem] leading-[0.86] tracking-tighter ${darkMode ? 'text-white' : 'text-stone-900'} w-full md:w-[50%] lg:w-[46%] xl:w-auto pointer-events-auto`}>
                         Le Soin <br className="hidden md:block" />du Bois.
                     </h1>
-                    <div className="hero-reveal w-[90%] sm:w-[85%] md:w-[45%] lg:w-[40%] xl:w-full xl:max-w-2xl pointer-events-auto">
+                    <div className="hero-reveal w-[90%] sm:w-[85%] md:w-[45%] lg:w-[40%] xl:w-full xl:max-w-xl pointer-events-auto">
                         <p className={`text-sm md:text-base lg:text-lg xl:text-xl leading-relaxed ${darkMode ? 'text-stone-400' : 'text-stone-500'} w-full`}>
                             <span className="block sm:inline">Le bois massif est vivant. Protegez, nourrissez</span>{' '}
                             <span className="block sm:inline">et restaurez vos creations avec notre selection</span>{' '}
@@ -513,8 +568,8 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
                 </div>
             </section>
 
-            <section className={`px-6 xl:px-12 pt-8 pb-5 md:py-14 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-transparent'}`}>
-                <div className={`max-w-[1920px] mx-auto border-y pt-6 pb-5 md:py-10 ${darkMode ? 'border-white/10' : 'border-[#c79b5d]/28'}`}>
+            <section className={`px-6 xl:px-12 pt-7 pb-5 md:py-9 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-transparent'}`}>
+                <div className={`max-w-[1760px] mx-auto border-y pt-5 pb-5 md:py-8 ${darkMode ? 'border-white/10' : 'border-[#c79b5d]/28'}`}>
                     <div className="grid gap-6 lg:gap-8 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">
                         <div>
                             <p className={`text-[10px] font-black uppercase tracking-[0.28em] mb-4 ${darkMode ? 'text-amber-500' : 'text-amber-700'}`}>
@@ -557,9 +612,14 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
             {/* PRODUCTS SECTION */}
             <div className="relative">
                 <ShopSidebar
-                    categories={visibleFamilies}
+                    categories={categorySummaries}
                     activeCategory={activeCategory}
                     onCategoryChange={handleCategoryChange}
+                    priceFilters={PRICE_FILTERS}
+                    activePriceFilter={priceFilter}
+                    onPriceFilterChange={setPriceFilter}
+                    totalProductCount={totalProductCount}
+                    filteredProductCount={filteredProductCount}
                     darkMode={darkMode}
                     isMobileOpen={isMobileSidebarOpen}
                     onMobileClose={() => setIsMobileSidebarOpen(false)}
@@ -569,10 +629,10 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
                     onClick={() => setIsMobileSidebarOpen(true)}
                     className={`
                         lg:hidden fixed bottom-6 right-6 z-40
-                        w-14 h-14 rounded-full
+                        min-w-14 h-14 rounded-full px-4
                         flex items-center justify-center
                         shadow-2xl
-                        transition-all duration-300
+                        gap-2 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
                         ${darkMode
                             ? 'bg-amber-500/90 hover:bg-amber-500 text-white'
                             : 'bg-amber-600/90 hover:bg-amber-600 text-white'
@@ -585,14 +645,34 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
                     transition={{ delay: 0.5 }}
                 >
                     <SlidersHorizontal size={20} />
+                    <span className="text-[10px] font-black uppercase tracking-[0.16em]">
+                        {filteredProductCount}
+                    </span>
                 </motion.button>
 
                 {/* Sectioned content - all families in order */}
                 <section
                     id="products-grid-section"
-                    className={`min-h-screen pt-0 lg:pt-12 pb-20 px-6 xl:px-12 lg:pl-[320px] xl:pl-[360px] ${darkMode ? 'bg-[#0a0a0a]' : 'bg-transparent'}`}
+                    className={`min-h-screen pt-0 lg:pt-10 pb-20 px-4 sm:px-6 xl:px-10 lg:pl-[304px] xl:pl-[352px] ${darkMode ? 'bg-[#0a0a0a]' : 'bg-transparent'}`}
                 >
-                    <div className="max-w-[1920px] mx-auto space-y-0">
+                    <div className="mx-auto max-w-[1760px] space-y-0">
+                        <div className={`mb-8 grid gap-3 rounded-[24px] border p-3 sm:grid-cols-3 sm:p-4 lg:hidden ${darkMode ? 'border-white/10 bg-white/[0.03]' : 'border-[#c79b5d]/24 bg-white/45'}`}>
+                            <div>
+                                <p className={`text-[9px] font-black uppercase tracking-[0.24em] ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>Selection</p>
+                                <p className={`mt-1 text-2xl font-serif leading-none ${darkMode ? 'text-white' : 'text-stone-900'}`}>{filteredProductCount}</p>
+                            </div>
+                            <div>
+                                <p className={`text-[9px] font-black uppercase tracking-[0.24em] ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>Prix</p>
+                                <p className={`mt-1 text-sm font-semibold ${darkMode ? 'text-stone-200' : 'text-stone-800'}`}>{activePriceLabel}</p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setIsMobileSidebarOpen(true)}
+                                className={`inline-flex h-11 items-center justify-center rounded-full text-[10px] font-black uppercase tracking-[0.18em] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${darkMode ? 'bg-white text-stone-950' : 'bg-stone-950 text-white'}`}
+                            >
+                                Affiner
+                            </button>
+                        </div>
                         {visibleFamilies.map((family, familyIndex) => {
                             const products = getProductsForFamily(family.id);
 
@@ -604,36 +684,42 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
                                 <section
                                     key={family.id}
                                     id={`section-${family.id}`}
-                                    className="tat-heavy-section scroll-mt-28 pt-8 lg:pt-20"
+                                    className="tat-heavy-section scroll-mt-28 pt-7 lg:pt-16"
                                 >
                                     {/* Section separator */}
                                     {familyIndex > 0 && (
-                                        <div className={`w-full h-px mb-8 lg:mb-16 ${darkMode ? 'bg-white/5' : 'bg-stone-200'}`} />
+                                        <div className={`h-px w-full mb-8 lg:mb-14 ${darkMode ? 'bg-white/5' : 'bg-[#c79b5d]/22'}`} />
                                     )}
 
                                     {/* Section header */}
-                                    <div className="mb-7 lg:mb-10 max-w-2xl">
-                                        <div className="flex items-center gap-4 mb-3 sm:mb-5">
-                                            <span className={`w-8 h-px ${darkMode ? 'bg-white/20' : 'bg-stone-300'}`} />
-                                            <span className={`text-[10px] md:text-[11px] font-black uppercase tracking-widest ${darkMode ? 'text-amber-500' : 'text-amber-700'}`}>
-                                                {family.subtitle}
-                                            </span>
+                                    <div className="mb-6 grid gap-4 lg:mb-9 lg:grid-cols-[minmax(0,0.74fr)_auto] lg:items-end">
+                                        <div className="max-w-[760px]">
+                                            <div className="mb-3 flex items-center gap-4 sm:mb-4">
+                                                <span className={`h-px w-8 ${darkMode ? 'bg-white/20' : 'bg-stone-300'}`} />
+                                                <span className={`text-[10px] md:text-[11px] font-black uppercase tracking-widest ${darkMode ? 'text-amber-500' : 'text-amber-700'}`}>
+                                                    {family.subtitle}
+                                                </span>
+                                            </div>
+                                            <h2 className={`font-serif text-3xl leading-[0.94] tracking-tighter sm:text-4xl md:text-5xl xl:text-[3.7rem] ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                                                {family.title}
+                                            </h2>
+                                            <p className={`mt-3 max-w-2xl text-sm leading-relaxed md:text-[15px] ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
+                                                {family.description}
+                                            </p>
                                         </div>
-                                        <h2 className={`font-serif text-4xl md:text-5xl xl:text-6xl leading-[0.9] tracking-tighter mb-3 sm:mb-5 ${darkMode ? 'text-white' : 'text-stone-900'}`}>
-                                            {family.title}
-                                        </h2>
-                                        <p className={`text-sm md:text-base leading-relaxed ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
-                                            {family.description}
-                                        </p>
+                                        <div className={`hidden rounded-full border px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] lg:inline-flex ${darkMode ? 'border-white/10 bg-white/5 text-stone-400' : 'border-[#c79b5d]/24 bg-white/55 text-stone-500'}`}>
+                                            {products.length} produit{products.length > 1 ? 's' : ''}
+                                        </div>
                                     </div>
 
                                     {/* Products grid - editorial block inline after 4th card */}
-                                    <div className="product-grid grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6 lg:gap-8">
+                                    <div className="product-grid grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 xl:gap-6">
                                         {products.map((product, index) => (
                                             <React.Fragment key={product.id}>
                                                 <ShopProductCard
                                                     product={product}
                                                     darkMode={darkMode}
+                                                    dense
                                                     detailHref={getShopProductPath(product)}
                                                     onProductIntent={handleProductIntent}
                                                     disableAppearAnimation={index < 2}
@@ -642,7 +728,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
 
                                                 {/* Editorial / Video block inline after 4th product ou apres le dernier si < 4 */}
                                                 {(index === 3 || (products.length <= 3 && index === products.length - 1)) && tutorials.length > 0 && (
-                                                <div className={`col-span-2 sm:col-span-3 lg:col-span-4 p-8 lg:p-12 rounded-[28px] md:backdrop-blur-xl border ${darkMode ? 'bg-gradient-to-br from-amber-500/5 to-stone-800/20 border-white/5' : 'bg-[#fff8ed]/76 border-[#c79b5d]/28 shadow-[0_24px_70px_rgba(102,74,36,0.12)]'}`}>
+                                                <div className={`col-span-2 rounded-[24px] border p-5 sm:col-span-3 sm:p-7 lg:col-span-3 lg:p-9 xl:col-span-4 2xl:col-span-5 ${darkMode ? 'bg-gradient-to-br from-amber-500/5 to-stone-800/20 border-white/5' : 'bg-[#fff8ed]/82 border-[#c79b5d]/28 shadow-[0_24px_70px_rgba(102,74,36,0.10)]'}`}>
                                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-6 sm:gap-y-8 lg:gap-x-12 lg:items-stretch">
 
                                                 {/* Text */}

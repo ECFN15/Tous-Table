@@ -1,9 +1,21 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { X } from 'lucide-react';
+import { SlidersHorizontal, X } from 'lucide-react';
 import { lockLenis } from '../../utils/smoothScroll';
 
-const ShopSidebar = ({ categories, activeCategory, onCategoryChange, darkMode = false, isMobileOpen = false, onMobileClose }) => {
+const ShopSidebar = ({
+    categories,
+    activeCategory,
+    onCategoryChange,
+    priceFilters = [],
+    activePriceFilter = 'all',
+    onPriceFilterChange,
+    totalProductCount = 0,
+    filteredProductCount = 0,
+    darkMode = false,
+    isMobileOpen = false,
+    onMobileClose
+}) => {
     useEffect(() => {
         let unlock = null;
         if (isMobileOpen) {
@@ -18,244 +30,269 @@ const ShopSidebar = ({ categories, activeCategory, onCategoryChange, darkMode = 
         };
     }, [isMobileOpen]);
 
+    const handleMobileCategory = (categoryId) => {
+        onCategoryChange(categoryId);
+        onMobileClose();
+    };
+
     return (
         <>
-            {/* DESKTOP SIDEBAR - Sticky Left */}
             <aside className={`
                 hidden lg:block
-                sticky top-0
+                sticky top-[72px]
+                h-[calc(100dvh-72px)]
                 w-[280px] xl:w-[320px]
-                h-screen
-                border-r
-                ${darkMode ? 'bg-[#0a0a0a] border-white/5' : 'bg-[#FAFAF9] border-stone-200/60'}
-                overflow-y-auto scrollbar-thin
-                z-30
-                float-left
+                float-left z-30 overflow-y-auto border-r scrollbar-thin
+                ${darkMode ? 'bg-[#0a0a0a] border-white/5' : 'bg-[#f8f1e7]/95 border-[#c79b5d]/24'}
             `}>
-                <div className="p-8 xl:p-10 space-y-8">
-                    {/* Header */}
-                    <div className="space-y-3">
-                        <span className={`text-[9px] uppercase tracking-[0.3em] font-black ${darkMode ? 'text-stone-600' : 'text-stone-400'}`}>
-                            Collections
-                        </span>
-                        <div className={`w-12 h-px ${darkMode ? 'bg-white/10' : 'bg-stone-300'}`}></div>
+                <div className="space-y-7 p-6 xl:p-8">
+                    <div className={`rounded-[24px] border p-4 ${darkMode ? 'border-white/10 bg-white/[0.035]' : 'border-[#c79b5d]/24 bg-white/55'}`}>
+                        <div className="flex items-center justify-between gap-4">
+                            <div>
+                                <span className={`text-[9px] font-black uppercase tracking-[0.3em] ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>
+                                    Comptoir
+                                </span>
+                                <p className={`mt-2 font-serif text-3xl leading-none ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                                    {filteredProductCount}
+                                </p>
+                            </div>
+                            <div className={`flex h-11 w-11 items-center justify-center rounded-full ${darkMode ? 'bg-amber-500/15 text-amber-300' : 'bg-amber-700/10 text-amber-800'}`}>
+                                <SlidersHorizontal size={17} strokeWidth={1.8} />
+                            </div>
+                        </div>
+                        <p className={`mt-3 text-[11px] leading-relaxed ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>
+                            {filteredProductCount === totalProductCount
+                                ? 'Toute la selection atelier visible.'
+                                : `${filteredProductCount} sur ${totalProductCount} produits visibles.`}
+                        </p>
                     </div>
 
-                    {/* Bouton "Tout Afficher" */}
                     <button
+                        type="button"
                         onClick={() => onCategoryChange(null)}
-                        className={`
-                            w-full text-left group
-                            transition-all duration-300
-                        `}
+                        className="group w-full text-left transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
                     >
                         <div className={`
-                            flex items-center justify-between
-                            py-3 px-4 rounded-xl
-                            transition-all duration-300
+                            flex items-center justify-between rounded-2xl px-4 py-3
+                            transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
                             ${activeCategory === null
-                                ? `${darkMode ? 'bg-amber-500/10 border-l-2 border-amber-500' : 'bg-amber-500/5 border-l-2 border-amber-600'}`
-                                : `${darkMode ? 'hover:bg-white/5' : 'hover:bg-stone-100/50'}`
+                                ? (darkMode ? 'bg-amber-500/12 ring-1 ring-amber-500/24' : 'bg-white/75 ring-1 ring-[#c79b5d]/35 shadow-[0_14px_34px_rgba(102,74,36,0.08)]')
+                                : (darkMode ? 'hover:bg-white/5' : 'hover:bg-white/55')
                             }
                         `}>
-                            <div className="space-y-1">
-                                <h3 className={`
-                                    text-sm font-bold tracking-tight
-                                    transition-colors duration-300
-                                    ${activeCategory === null
-                                        ? `${darkMode ? 'text-amber-500' : 'text-amber-600'}`
-                                        : `${darkMode ? 'text-white group-hover:text-amber-500' : 'text-stone-900 group-hover:text-amber-600'}`
-                                    }
-                                `}>
-                                    Tout Afficher
-                                </h3>
-                            </div>
+                            <h3 className={`
+                                text-sm font-bold tracking-tight transition-colors duration-500
+                                ${activeCategory === null
+                                    ? (darkMode ? 'text-amber-400' : 'text-amber-800')
+                                    : (darkMode ? 'text-white group-hover:text-amber-500' : 'text-stone-900 group-hover:text-amber-700')
+                                }
+                            `}>
+                                Toute la selection
+                            </h3>
                             {activeCategory === null && (
                                 <motion.div
                                     initial={{ scale: 0 }}
                                     animate={{ scale: 1 }}
-                                    className={`w-1.5 h-1.5 rounded-full ${darkMode ? 'bg-amber-500' : 'bg-amber-600'}`}
+                                    className={`h-1.5 w-1.5 rounded-full ${darkMode ? 'bg-amber-500' : 'bg-amber-700'}`}
                                 />
                             )}
                         </div>
                     </button>
 
-                    {/* Séparateur */}
-                    <div className={`w-full h-px ${darkMode ? 'bg-white/5' : 'bg-stone-200'}`}></div>
+                    <div className={`h-px w-full ${darkMode ? 'bg-white/5' : 'bg-[#c79b5d]/24'}`} />
 
-                    {/* Liste des Catégories */}
                     <nav className="space-y-2">
+                        <p className={`px-4 text-[9px] font-black uppercase tracking-[0.28em] ${darkMode ? 'text-stone-600' : 'text-stone-500'}`}>
+                            Familles
+                        </p>
                         {categories.map((category) => (
                             <button
                                 key={category.id}
+                                type="button"
+                                disabled={category.count === 0}
                                 onClick={() => onCategoryChange(category.id)}
-                                className={`
-                                    w-full text-left group
-                                    transition-all duration-300
-                                `}
+                                className="group w-full text-left transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] disabled:cursor-not-allowed disabled:opacity-35"
                             >
                                 <div className={`
-                                    flex items-center justify-between
-                                    py-3 px-4 rounded-xl
-                                    transition-all duration-300
+                                    flex items-center justify-between rounded-2xl px-4 py-3
+                                    transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
                                     ${activeCategory === category.id
-                                        ? `${darkMode ? 'bg-amber-500/10 border-l-2 border-amber-500' : 'bg-amber-500/5 border-l-2 border-amber-600'}`
-                                        : `${darkMode ? 'hover:bg-white/5' : 'hover:bg-stone-100/50'}`
+                                        ? (darkMode ? 'bg-amber-500/12 ring-1 ring-amber-500/24' : 'bg-white/75 ring-1 ring-[#c79b5d]/35 shadow-[0_14px_34px_rgba(102,74,36,0.08)]')
+                                        : (darkMode ? 'hover:bg-white/5' : 'hover:bg-white/55')
                                     }
                                 `}>
-                                    <div className="space-y-1 flex-1 min-w-0">
+                                    <div className="min-w-0 flex-1 space-y-1">
                                         <h3 className={`
-                                            text-sm font-bold tracking-tight truncate
-                                            transition-colors duration-300
+                                            truncate text-sm font-bold tracking-tight transition-colors duration-500
                                             ${activeCategory === category.id
-                                                ? `${darkMode ? 'text-amber-500' : 'text-amber-600'}`
-                                                : `${darkMode ? 'text-white group-hover:text-amber-500' : 'text-stone-900 group-hover:text-amber-600'}`
+                                                ? (darkMode ? 'text-amber-400' : 'text-amber-800')
+                                                : (darkMode ? 'text-white group-hover:text-amber-500' : 'text-stone-900 group-hover:text-amber-700')
                                             }
                                         `}>
                                             {category.title}
                                         </h3>
                                         <p className={`
-                                            text-[10px] uppercase tracking-wider font-medium truncate
+                                            truncate text-[10px] font-medium uppercase tracking-wider
                                             ${activeCategory === category.id
-                                                ? `${darkMode ? 'text-amber-500/60' : 'text-amber-600/60'}`
-                                                : `${darkMode ? 'text-stone-500' : 'text-stone-400'}`
+                                                ? (darkMode ? 'text-amber-500/60' : 'text-amber-700/70')
+                                                : (darkMode ? 'text-stone-500' : 'text-stone-500')
                                             }
                                         `}>
                                             {category.subtitle}
                                         </p>
                                     </div>
-                                    {activeCategory === category.id && (
-                                        <motion.div
-                                            initial={{ scale: 0 }}
-                                            animate={{ scale: 1 }}
-                                            className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ml-2 ${darkMode ? 'bg-amber-500' : 'bg-amber-600'}`}
-                                        />
-                                    )}
+                                    <span className={`ml-3 flex h-7 min-w-7 items-center justify-center rounded-full px-2 text-[10px] font-black ${activeCategory === category.id
+                                        ? (darkMode ? 'bg-amber-400 text-stone-950' : 'bg-stone-950 text-white')
+                                        : (darkMode ? 'bg-white/5 text-stone-500' : 'bg-stone-900/5 text-stone-500')
+                                    }`}>
+                                        {category.count}
+                                    </span>
                                 </div>
                             </button>
                         ))}
                     </nav>
+
+                    <div className={`h-px w-full ${darkMode ? 'bg-white/5' : 'bg-[#c79b5d]/24'}`} />
+
+                    <div className="space-y-3">
+                        <p className={`px-4 text-[9px] font-black uppercase tracking-[0.28em] ${darkMode ? 'text-stone-600' : 'text-stone-500'}`}>
+                            Prix indicatif
+                        </p>
+                        <div className="grid grid-cols-2 gap-2">
+                            {priceFilters.map((filter) => {
+                                const isActive = activePriceFilter === filter.id;
+                                return (
+                                    <button
+                                        key={filter.id}
+                                        type="button"
+                                        onClick={() => onPriceFilterChange?.(filter.id)}
+                                        className={`rounded-full border px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${isActive
+                                            ? (darkMode ? 'border-amber-400 bg-amber-400 text-stone-950' : 'border-stone-950 bg-stone-950 text-white')
+                                            : (darkMode ? 'border-white/10 bg-white/[0.03] text-stone-400 hover:border-amber-400/30 hover:text-amber-300' : 'border-[#c79b5d]/22 bg-white/45 text-stone-600 hover:border-[#c79b5d]/50 hover:bg-white/80')
+                                        }`}
+                                    >
+                                        {filter.shortLabel}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
                 </div>
             </aside>
 
-            {/* MOBILE DRAWER - Bottom Sheet */}
             {isMobileOpen && (
                 <>
-                    {/* Backdrop */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onMobileClose}
-                        className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+                        className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
                     />
 
-                    {/* Drawer */}
                     <motion.div
                         initial={{ y: '100%' }}
                         animate={{ y: 0 }}
                         exit={{ y: '100%' }}
                         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
                         className={`
-                            lg:hidden fixed bottom-0 left-0 right-0
-                            max-h-[80vh] rounded-t-[28px]
+                            fixed bottom-0 left-0 right-0 z-50 lg:hidden
+                            max-h-[82vh] overflow-y-auto rounded-t-[28px]
                             ${darkMode ? 'bg-[#0a0a0a] border-t border-white/10' : 'bg-white border-t border-stone-200'}
-                            overflow-y-auto ios-modal-scroll
-                            z-50
                         `}
                         data-lenis-prevent
                     >
-                        {/* Handle */}
-                        <div className="sticky top-0 pt-4 pb-2 px-6 flex items-center justify-between">
-                            <div className={`w-12 h-1 rounded-full mx-auto ${darkMode ? 'bg-white/20' : 'bg-stone-300'}`}></div>
+                        <div className="sticky top-0 flex items-center justify-between px-6 pb-2 pt-4">
+                            <div className={`mx-auto h-1 w-12 rounded-full ${darkMode ? 'bg-white/20' : 'bg-stone-300'}`} />
                             <button
+                                type="button"
                                 onClick={onMobileClose}
-                                className={`absolute right-6 top-4 p-2 rounded-full transition-colors ${darkMode ? 'hover:bg-white/10' : 'hover:bg-stone-100'}`}
+                                className={`absolute right-6 top-4 rounded-full p-2 transition-colors ${darkMode ? 'hover:bg-white/10' : 'hover:bg-stone-100'}`}
                             >
                                 <X size={20} className={darkMode ? 'text-stone-400' : 'text-stone-600'} />
                             </button>
                         </div>
 
-                        <div className="px-6 pb-8 space-y-6">
-                            {/* Header */}
+                        <div className="space-y-6 px-6 pb-8">
                             <div className="space-y-2">
-                                <h2 className={`text-2xl font-serif ${darkMode ? 'text-white' : 'text-stone-900'}`}>
-                                    Catégories
+                                <h2 className={`font-serif text-2xl ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                                    Filtres Comptoir
                                 </h2>
                                 <p className={`text-sm ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
-                                    Filtrez par type de produit
+                                    {filteredProductCount} produit{filteredProductCount > 1 ? 's' : ''} visible{filteredProductCount > 1 ? 's' : ''}
                                 </p>
                             </div>
 
-                            {/* Bouton "Tout Afficher" */}
                             <button
-                                onClick={() => {
-                                    onCategoryChange(null);
-                                    onMobileClose();
-                                }}
+                                type="button"
+                                onClick={() => handleMobileCategory(null)}
                                 className={`
-                                    w-full text-left
-                                    py-4 px-5 rounded-2xl
-                                    transition-all duration-300
+                                    w-full rounded-2xl px-5 py-4 text-left
+                                    transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
                                     ${activeCategory === null
-                                        ? `${darkMode ? 'bg-amber-500/15 border-2 border-amber-500/40' : 'bg-amber-500/10 border-2 border-amber-600/40'}`
-                                        : `${darkMode ? 'bg-white/5 border-2 border-transparent hover:border-white/10' : 'bg-stone-50 border-2 border-transparent hover:border-stone-200'}`
+                                        ? (darkMode ? 'bg-amber-500/15 border-2 border-amber-500/40' : 'bg-amber-500/10 border-2 border-amber-600/40')
+                                        : (darkMode ? 'bg-white/5 border-2 border-transparent hover:border-white/10' : 'bg-stone-50 border-2 border-transparent hover:border-stone-200')
                                     }
                                 `}
                             >
-                                <h3 className={`
-                                    text-base font-bold
-                                    ${activeCategory === null
-                                        ? `${darkMode ? 'text-amber-500' : 'text-amber-600'}`
-                                        : `${darkMode ? 'text-white' : 'text-stone-900'}`
-                                    }
-                                `}>
-                                    Tout Afficher
+                                <h3 className={`text-base font-bold ${activeCategory === null ? (darkMode ? 'text-amber-500' : 'text-amber-700') : (darkMode ? 'text-white' : 'text-stone-900')}`}>
+                                    Toute la selection
                                 </h3>
                             </button>
 
-                            {/* Séparateur */}
-                            <div className={`w-full h-px ${darkMode ? 'bg-white/10' : 'bg-stone-200'}`}></div>
+                            <div className={`h-px w-full ${darkMode ? 'bg-white/10' : 'bg-stone-200'}`} />
 
-                            {/* Liste des Catégories */}
                             <div className="space-y-3">
                                 {categories.map((category) => (
                                     <button
                                         key={category.id}
-                                        onClick={() => {
-                                            onCategoryChange(category.id);
-                                            onMobileClose();
-                                        }}
+                                        type="button"
+                                        disabled={category.count === 0}
+                                        onClick={() => handleMobileCategory(category.id)}
                                         className={`
-                                            w-full text-left
-                                            py-4 px-5 rounded-2xl
-                                            transition-all duration-300
+                                            w-full rounded-2xl px-5 py-4 text-left
+                                            transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
+                                            disabled:cursor-not-allowed disabled:opacity-35
                                             ${activeCategory === category.id
-                                                ? `${darkMode ? 'bg-amber-500/15 border-2 border-amber-500/40' : 'bg-amber-500/10 border-2 border-amber-600/40'}`
-                                                : `${darkMode ? 'bg-white/5 border-2 border-transparent hover:border-white/10' : 'bg-stone-50 border-2 border-transparent hover:border-stone-200'}`
+                                                ? (darkMode ? 'bg-amber-500/15 border-2 border-amber-500/40' : 'bg-amber-500/10 border-2 border-amber-600/40')
+                                                : (darkMode ? 'bg-white/5 border-2 border-transparent hover:border-white/10' : 'bg-stone-50 border-2 border-transparent hover:border-stone-200')
                                             }
                                         `}
                                     >
-                                        <h3 className={`
-                                            text-base font-bold mb-1
-                                            ${activeCategory === category.id
-                                                ? `${darkMode ? 'text-amber-500' : 'text-amber-600'}`
-                                                : `${darkMode ? 'text-white' : 'text-stone-900'}`
-                                            }
-                                        `}>
+                                        <h3 className={`mb-1 text-base font-bold ${activeCategory === category.id ? (darkMode ? 'text-amber-500' : 'text-amber-700') : (darkMode ? 'text-white' : 'text-stone-900')}`}>
                                             {category.title}
                                         </h3>
-                                        <p className={`
-                                            text-xs uppercase tracking-wider
-                                            ${activeCategory === category.id
-                                                ? `${darkMode ? 'text-amber-500/60' : 'text-amber-600/60'}`
-                                                : `${darkMode ? 'text-stone-500' : 'text-stone-400'}`
-                                            }
-                                        `}>
-                                            {category.subtitle}
+                                        <p className={`text-xs uppercase tracking-wider ${activeCategory === category.id ? (darkMode ? 'text-amber-500/60' : 'text-amber-600/70') : (darkMode ? 'text-stone-500' : 'text-stone-400')}`}>
+                                            {category.subtitle} - {category.count} produit{category.count > 1 ? 's' : ''}
                                         </p>
                                     </button>
                                 ))}
+                            </div>
+
+                            <div className={`h-px w-full ${darkMode ? 'bg-white/10' : 'bg-stone-200'}`} />
+
+                            <div className="space-y-3">
+                                <p className={`text-[10px] font-black uppercase tracking-[0.24em] ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>
+                                    Prix indicatif
+                                </p>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {priceFilters.map((filter) => {
+                                        const isActive = activePriceFilter === filter.id;
+                                        return (
+                                            <button
+                                                key={filter.id}
+                                                type="button"
+                                                onClick={() => onPriceFilterChange?.(filter.id)}
+                                                className={`rounded-2xl border px-4 py-3 text-left text-xs font-black uppercase tracking-[0.14em] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${isActive
+                                                    ? (darkMode ? 'border-amber-400 bg-amber-400 text-stone-950' : 'border-stone-950 bg-stone-950 text-white')
+                                                    : (darkMode ? 'border-white/10 bg-white/5 text-stone-300' : 'border-stone-200 bg-stone-50 text-stone-700')
+                                                }`}
+                                            >
+                                                {filter.label}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
                         </div>
                     </motion.div>

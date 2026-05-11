@@ -521,3 +521,39 @@ npm run build
 ```
 
 Resultat : build Vite OK. Warning historique de taille de chunks, sans lien avec cette refonte.
+
+---
+
+## Revamp UI listing Comptoir du 2026-05-11
+
+Objectif : polir la page publique `/comptoir` pour absorber le futur lot de 36 nouveaux produits sans effet catalogue zoome, avec une grille plus dense, une sidebar plus premium, des filtres prix et une meilleure incitation au clic produit.
+
+Actions realisees :
+
+- `src/pages/ShopView.jsx` : ajout de filtres prix locaux derives de `affiliateProducts`, sans nouvelle lecture Firestore.
+- `src/pages/ShopView.jsx` : recalibrage du hero pour que la grille produits arrive plus tot sur laptop/mobile, reduction du collage visuel et de la typo XL.
+- `src/pages/ShopView.jsx` : grille densifiee en `2 / 3 / 4 / 5` colonnes selon breakpoint, largeur max reduite et gutters sidebar/contenu recalibres.
+- `src/components/shop/ShopSidebar.jsx` : refonte premium de la sidebar desktop avec compteur visible, familles, compteurs par section, paliers de prix et etat des categories vides.
+- `src/components/shop/ShopSidebar.jsx` : drawer mobile enrichi avec categories + prix, en conservant le lock Lenis existant.
+- `src/components/shop/ShopProductCard.jsx` : carte produit rendue entierement cliquable vers la fiche Comptoir, image moins haute en mode listing, CTA plus lisible et prix manquant affiche sans `0,00 EUR`.
+- `src/components/shop/WorkshopHero.jsx` : collage hero plus contenu pour eviter de pousser le catalogue trop bas.
+- Tracking conserve : les cartes appellent toujours `onOpenProductDetail` avec `source: 'shop_grid'`; aucun libelle analytics public n'a ete change.
+
+Audit FrontSymmetry :
+
+- Hero, bloc editorial, zone produits, FAQ et disclosure restent des siblings en flux normal.
+- Sidebar : ancrage sticky desktop `top-[72px]`, hauteur `calc(100dvh - 72px)`, toujours isolee du contenu par le padding gauche de la section produits.
+- Grille : modification limitee au wrapper `.product-grid` et aux cartes, sans toucher aux sections FAQ/footer.
+- Mobile : pas de sidebar sticky, controle via bouton flottant + recap filtre en haut de la zone produits.
+
+Validation :
+
+```bash
+npm run build
+git diff --check -- src/pages/ShopView.jsx src/components/shop/ShopProductCard.jsx src/components/shop/ShopSidebar.jsx src/components/shop/WorkshopHero.jsx src/index.css _DOCS/COMPTOIR_PRODUCT_DETAIL_AUDIT.md
+Chrome headless screenshots : desktop 1440x1000, mobile 390x900
+```
+
+Resultat : build Vite OK. Warning historique de taille de chunks, sans lien avec cette refonte. Smoke HTTP local `/comptoir` OK sur Vite. Captures desktop/mobile controlees apres correction du chevauchement hero et du debordement mobile.
+
+Reste a faire : controle manuel sur vrai mobile avant deploy si possible, en particulier les paliers de prix et les categories a zero produit avec un catalogue plus grand.

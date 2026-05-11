@@ -17,6 +17,15 @@ const TIER_LABELS = {
     expert: 'Expert'
 };
 
+const CATEGORY_LABELS = {
+    huiles: 'Huile & protection',
+    cires: 'Patine & finition',
+    savons: 'Nettoyage doux',
+    accessoires: 'Accessoire atelier',
+    renovation: 'Renovation',
+    outils: 'Outil pro'
+};
+
 const getTierBadgeClass = (tier, darkMode) => {
     if (tier === 'premium') return 'bg-amber-500/20 text-amber-700 border-amber-500/30 font-black';
     if (tier === 'expert') return 'bg-stone-600/80 text-white border-white/20 font-bold';
@@ -38,7 +47,8 @@ const ShopProductCard = ({
     onOpenProductDetail = null,
     mobileLightweight = false,
     deferImageOnMobile = false,
-    imageDelayMs = 0
+    imageDelayMs = 0,
+    dense = false
 }) => {
     const { isAdmin } = useAuth();
     const imageFrameRef = useRef(null);
@@ -103,10 +113,17 @@ const ShopProductCard = ({
     };
 
     const ctaLabel = onOpenProductDetail ? 'Voir la fiche' : 'Acheter';
+    const productTitle = product.detailDraft?.shortTitle || product.name || 'Produit de renovation';
+    const productType = product.detailDraft?.productType || CATEGORY_LABELS[product.category] || 'Selection atelier';
+    const price = Number(product.price);
+    const hasPrice = Number.isFinite(price) && price > 0;
+    const priceLabel = hasPrice
+        ? `${price.toFixed(2).replace('.', ',')} EUR`
+        : 'Prix indicatif';
     const imageFrameClass = mobileLightweight
         ? "relative isolate mb-4 aspect-[3/4] overflow-hidden rounded-[16px] bg-[#e8d9c6] md:[clip-path:inset(1.5px_round_16px)] lg:rounded-[28px] lg:[clip-path:inset(1.5px_round_28px)]"
-        : "relative mb-4 aspect-[3/4] overflow-hidden rounded-[16px] bg-[#e8d9c6] [clip-path:inset(1.5px_round_16px)] lg:rounded-[28px] lg:[clip-path:inset(1.5px_round_28px)]";
-    const imageClassName = `tat-shop-card-image relative z-10 h-full w-full object-contain ${compact ? 'p-4' : 'p-5'} ${mobileLightweight ? 'tat-shop-card-image--mobile-light' : 'tat-shop-card-image--blend'}`;
+        : `relative ${dense ? 'mb-3 aspect-[5/6] sm:aspect-[4/5]' : 'mb-4 aspect-[3/4]'} overflow-hidden rounded-[16px] bg-[#e8d9c6] [clip-path:inset(1.5px_round_16px)] lg:rounded-[22px] lg:[clip-path:inset(1.5px_round_22px)]`;
+    const imageClassName = `tat-shop-card-image relative z-10 h-full w-full object-contain ${compact || dense ? 'p-4' : 'p-5'} transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover/card:scale-[1.018] ${mobileLightweight ? 'tat-shop-card-image--mobile-light' : 'tat-shop-card-image--blend'}`;
     const imageFrameContent = (
         <>
             {shouldLoadImage ? (
@@ -138,68 +155,59 @@ const ShopProductCard = ({
 
     return (
         <article
-            className={`tat-shop-card-shell ${mobileLightweight ? 'tat-shop-card-shell--mobile-light' : ''} relative flex h-full flex-col ${disableAppearAnimation ? '' : 'animate-in fade-in slide-in-from-bottom-4 duration-500'}`}
+            className={`tat-shop-card-shell ${mobileLightweight ? 'tat-shop-card-shell--mobile-light' : ''} group/card relative flex h-full flex-col rounded-[24px] p-1.5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 ${darkMode ? 'hover:bg-white/[0.035]' : 'hover:bg-white/35'} ${disableAppearAnimation ? '' : 'animate-in fade-in slide-in-from-bottom-4 duration-500'}`}
             data-shop-card-appear={disableAppearAnimation ? 'false' : 'true'}
         >
-            {onOpenProductDetail ? (
-                <a
-                    ref={imageFrameRef}
-                    href={detailHref || '#'}
-                    onMouseEnter={() => onProductIntent?.(product)}
-                    onFocus={() => onProductIntent?.(product)}
-                    onPointerDown={() => onProductIntent?.(product)}
-                    onClick={handleAffiliateClick}
-                    aria-label={`Voir la fiche ${product.name || 'produit'}`}
-                    className={`${imageFrameClass} block cursor-pointer transition-transform duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-4 focus-visible:ring-offset-stone-950 active:scale-[0.99]`}
-                >
-                    {imageFrameContent}
-                </a>
-            ) : (
-                <div ref={imageFrameRef} className={imageFrameClass}>
+            <a
+                ref={imageFrameRef}
+                href={detailHref || product.affiliateUrl || '#'}
+                target={onOpenProductDetail ? undefined : '_blank'}
+                rel={onOpenProductDetail ? undefined : 'noopener noreferrer sponsored'}
+                onMouseEnter={() => onProductIntent?.(product)}
+                onFocus={() => onProductIntent?.(product)}
+                onPointerDown={() => onProductIntent?.(product)}
+                onClick={handleAffiliateClick}
+                aria-label={`Voir la fiche ${product.name || 'produit'}`}
+                className={`flex h-full flex-col rounded-[20px] p-1 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-4 focus-visible:ring-offset-stone-950 active:scale-[0.99] ${darkMode ? 'bg-white/[0.015]' : 'bg-white/20'}`}
+            >
+                <div className={`${imageFrameClass} block cursor-pointer transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]`}>
                     {imageFrameContent}
                 </div>
-            )}
 
-            <div className="mt-4 flex flex-1 flex-col px-1 pb-2">
-                <p className={`mb-1.5 text-[9px] font-black uppercase tracking-[0.3em] ${darkMode ? 'text-amber-500/80' : 'text-amber-600/80'}`}>
+                <div className="mt-2 flex flex-1 flex-col px-1 pb-2">
+                <p className={`mb-1.5 truncate text-[8.5px] font-black uppercase tracking-[0.24em] sm:text-[9px] ${darkMode ? 'text-amber-500/80' : 'text-amber-700/80'}`}>
                     {product.brand || 'ATELIER'}
                 </p>
 
-                <h3 className={`mb-1.5 line-clamp-2 font-serif text-[18px] leading-tight md:text-[21px] ${darkMode ? 'text-stone-50' : 'text-stone-900'}`}>
-                    {product.name || 'Produit de renovation'}
+                <h3 className={`mb-1.5 line-clamp-2 font-serif ${dense ? 'text-[16px] sm:text-[18px] md:text-[19px]' : 'text-[18px] md:text-[21px]'} leading-[1.04] ${darkMode ? 'text-stone-50' : 'text-stone-900'}`}>
+                    {productTitle}
                 </h3>
 
-                <div className="mt-auto flex flex-col pt-4">
-                    <p className={`mb-3.5 text-[12px] font-medium tracking-wide ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
-                        Prix : {(Number(product.price) || 0).toFixed(2).replace('.', ',')} EUR
+                <p className={`line-clamp-1 text-[11px] font-semibold ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>
+                    {productType}
+                </p>
+
+                <div className="mt-auto flex flex-col pt-3">
+                    <p className={`mb-3 text-[12px] font-semibold tracking-wide ${hasPrice ? (darkMode ? 'text-stone-300' : 'text-stone-700') : (darkMode ? 'text-stone-600' : 'text-stone-400')}`}>
+                        {priceLabel}
                     </p>
 
-                    <div className="flex items-start">
-                        <a
-                            href={detailHref || product.affiliateUrl || '#'}
-                            target={onOpenProductDetail ? undefined : '_blank'}
-                            rel={onOpenProductDetail ? undefined : 'noopener noreferrer sponsored'}
-                            onMouseEnter={() => onProductIntent?.(product)}
-                            onFocus={() => onProductIntent?.(product)}
-                            onPointerDown={() => onProductIntent?.(product)}
-                            onClick={handleAffiliateClick}
-                            className={`
-                                group/cta inline-flex items-center gap-2 rounded-full border px-4 py-2
-                                text-[11px] font-medium transition-all duration-300 sm:backdrop-blur-sm
-                                ${darkMode
-                                    ? 'bg-white/5 border-white/10 text-stone-300 hover:bg-amber-500/10 hover:border-amber-500/30 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)]'
-                                    : 'bg-stone-900/5 border-stone-200/50 text-stone-700 hover:bg-amber-500/10 hover:border-amber-500/30 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)]'
-                                }
-                            `}
-                        >
-                            <span>{ctaLabel}</span>
-                            <span className="transition-transform duration-300 group-hover/cta:translate-x-1">
-                                &rarr;
-                            </span>
-                        </a>
+                    <div className={`
+                        inline-flex w-full items-center justify-between rounded-full border px-3.5 py-2
+                        text-[10.5px] font-bold transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
+                        ${darkMode
+                            ? 'bg-white/5 border-white/10 text-stone-300 group-hover/card:bg-amber-500/12 group-hover/card:border-amber-500/30 group-hover/card:text-amber-300'
+                            : 'bg-stone-950/[0.035] border-stone-900/10 text-stone-700 group-hover/card:bg-stone-950 group-hover/card:text-white group-hover/card:border-stone-950'
+                        }
+                    `}>
+                        <span>{ctaLabel}</span>
+                        <span className={`flex h-6 w-6 items-center justify-center rounded-full transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover/card:translate-x-0.5 ${darkMode ? 'bg-white/10' : 'bg-white/70 group-hover/card:bg-white/12'}`}>
+                            -&gt;
+                        </span>
                     </div>
                 </div>
-            </div>
+                </div>
+            </a>
         </article>
     );
 };
@@ -217,5 +225,6 @@ export default React.memo(ShopProductCard, (prev, next) => (
     prev.mobileLightweight === next.mobileLightweight &&
     prev.deferImageOnMobile === next.deferImageOnMobile &&
     prev.imageDelayMs === next.imageDelayMs &&
+    prev.dense === next.dense &&
     prev.onOpenProductDetail === next.onOpenProductDetail
 ));
