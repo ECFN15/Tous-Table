@@ -17,8 +17,13 @@ import {
     getReliableVisitorKey
 } from './analyticsReliability';
 
+let cachedAnalyticsSessions = null;
+let cachedAnalyticsSessionsLoadedAt = null;
+let cachedAffiliateClicks = null;
+let cachedAffiliateClicksLoadedAt = null;
+
 // ─── Custom SVG Bar Chart — Premium responsive (remplace Recharts) ──
-const TrafficChart = ({ data, darkMode, valueLabel = 'visite' }) => {
+const TrafficChart = ({ data, darkMode, valueLabel = 'visite', animationKey = 0 }) => {
     const containerRef = useRef(null);
     const [dims, setDims] = useState({ w: 600, h: 280 });
     const [activeIdx, setActiveIdx] = useState(null);
@@ -199,7 +204,7 @@ const TrafficChart = ({ data, darkMode, valueLabel = 'visite' }) => {
                         const radius = Math.min(3, bw / 2);
 
                         return (
-                            <g key={i}>
+                            <g key={`${animationKey}-${i}`}>
                                 {/* Barre active : glow + agrandissement */}
                                 {isActive && d.visites > 0 && (
                                     <rect
@@ -220,7 +225,10 @@ const TrafficChart = ({ data, darkMode, valueLabel = 'visite' }) => {
                                         width={bw} height={h}
                                         rx={radius} ry={radius}
                                         fill="url(#svgBarGrad)"
-                                    />
+                                    >
+                                        <animate attributeName="height" from="0" to={h} dur="520ms" begin={`${Math.min(i * 18, 260)}ms`} fill="freeze" />
+                                        <animate attributeName="y" from={chartH} to={y} dur="520ms" begin={`${Math.min(i * 18, 260)}ms`} fill="freeze" />
+                                    </rect>
                                 )}
 
                                 {/* Indicateur slot vide (dot subtil) */}
@@ -611,11 +619,14 @@ const estimateComptoirDuration = (session) => {
     return { total, segments };
 };
 
-const BoutiqueAnalytics = ({ darkMode, sessions = [] }) => {
-    const [clicks, setClicks] = useState([]);
-    const [loadingClicks, setLoadingClicks] = useState(true);
+const BoutiqueAnalytics = ({ darkMode, sessions = [], onRefreshSessions, sessionsRefreshKey = 0, loadingSessions = false }) => {
+    const [clicks, setClicks] = useState(() => cachedAffiliateClicks || []);
+    const [loadingClicks, setLoadingClicks] = useState(false);
     const [timeFilter, setTimeFilter] = useState('1j');
     const [openDays, setOpenDays] = useState({});
+    const [clicksRefreshKey, setClicksRefreshKey] = useState(() => cachedAffiliateClicksLoadedAt || 0);
+    const animationKey = `${sessionsRefreshKey}-${clicksRefreshKey}`;
+    const refreshing = loadingClicks || loadingSessions;
 
     const sessionGeoMap = useMemo(() => {
         const m = new Map();
@@ -637,7 +648,11 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [] }) => {
         const q = query(collection(db, 'affiliate_clicks'), orderBy('timestamp', 'desc'), limit(3000));
         try {
             const snap = await getDocs(q);
-            setClicks(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+            const nextClicks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            cachedAffiliateClicks = nextClicks;
+            cachedAffiliateClicksLoadedAt = Date.now();
+            setClicks(nextClicks);
+            setClicksRefreshKey(cachedAffiliateClicksLoadedAt);
             setLoadingClicks(false);
         } catch (error) {
             console.error('Affiliate clicks load error:', error);
@@ -645,9 +660,12 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [] }) => {
         }
     }, []);
 
-    useEffect(() => {
-        loadClicks();
-    }, [loadClicks]);
+    const handleRefreshBoutique = useCallback(async () => {
+        await Promise.all([
+            loadClicks(),
+            onRefreshSessions ? onRefreshSessions() : Promise.resolve()
+        ]);
+    }, [loadClicks, onRefreshSessions]);
 
     const filteredClicks = useMemo(() => {
         const now = Date.now();
@@ -828,7 +846,7 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [] }) => {
         }
     };
 
-    if (loadingClicks) return <div className="p-12 text-center text-stone-400 font-bold animate-pulse">Chargement Boutique Data...</div>;
+    if (refreshing && clicks.length === 0) return <div className="p-12 text-center text-stone-400 font-bold animate-pulse">Chargement Boutique Data...</div>;
 
     const maxTop = topProducts[0]?.count || 1;
     const maxProg = byProgram[0]?.count || 1;
@@ -846,13 +864,18 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [] }) => {
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                     <button
-                        onClick={loadClicks}
-                        disabled={loadingClicks}
+                        onClick={handleRefreshBoutique}
+                        disabled={refreshing}
                         className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border ${darkMode ? 'border-white/10 text-stone-300 hover:bg-white/10' : 'border-stone-200 text-stone-600 hover:bg-stone-100'} disabled:opacity-50`}
                     >
-                        <RefreshCw size={13} className={loadingClicks ? 'inline mr-2 animate-spin' : 'inline mr-2'} />
+                        <RefreshCw size={13} className={refreshing ? 'inline mr-2 animate-spin' : 'inline mr-2'} />
                         Actualiser
                     </button>
+                    {cachedAffiliateClicksLoadedAt && (
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-stone-500">
+                            Maj {new Date(cachedAffiliateClicksLoadedAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                    )}
                     <button
                         onClick={handleClearAllAffiliate}
                         className="px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border border-red-500/20 text-red-500/60 hover:bg-red-500 hover:text-white active:scale-95"
@@ -871,7 +894,7 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [] }) => {
             </div>
 
             {/* KPI GRID */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div key={`boutique-kpis-${animationKey}`} className="grid grid-cols-2 lg:grid-cols-4 gap-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
                 {[
                     ...[
                         { label: 'Visiteurs Comptoir', value: kpis.uniqueComptoirVisitors, sub: 'IPs uniques', accent: 'text-blue-400', icon: Users },
@@ -904,7 +927,7 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [] }) => {
                 </div>
                 <div className="h-[200px] md:h-[260px] w-full">
                     {comptoirVisitChartData.some(d => d.visites > 0) ? (
-                        <TrafficChart data={comptoirVisitChartData} darkMode={darkMode} valueLabel="visiteur" />
+                        <TrafficChart data={comptoirVisitChartData} darkMode={darkMode} valueLabel="visiteur" animationKey={`comptoir-${animationKey}`} />
                     ) : (
                         <div className="flex items-center justify-center h-full text-stone-500 font-bold italic text-xs">Aucune visite Comptoir sur cette periode.</div>
                     )}
@@ -918,7 +941,7 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [] }) => {
                 </div>
                 <div className="h-[200px] md:h-[260px] w-full">
                     {clickChartData.some(d => d.visites > 0) ? (
-                        <TrafficChart data={clickChartData} darkMode={darkMode} valueLabel="clic" />
+                        <TrafficChart data={clickChartData} darkMode={darkMode} valueLabel="clic" animationKey={`clicks-${animationKey}`} />
                     ) : (
                         <div className="flex items-center justify-center h-full text-stone-500 font-bold italic text-xs">Aucun clic sur cette période.</div>
                     )}
@@ -1148,8 +1171,8 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [] }) => {
 
 // ─── Analytics Principal ───────────────────────────────────────────────────────
 const AdminAnalytics = ({ darkMode = false }) => {
-    const [sessions, setSessions] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [sessions, setSessions] = useState(() => cachedAnalyticsSessions || []);
+    const [loading, setLoading] = useState(false);
     const [timeFilter, setTimeFilter] = useState('1j'); // Default to 24h // '1h', '1j', '7j', '1mois', '1ans'
     const [expandedSessionId, setExpandedSessionId] = useState(null);
     const [now, setNow] = useState(Date.now());
@@ -1157,6 +1180,7 @@ const AdminAnalytics = ({ darkMode = false }) => {
     const DAYS_PER_PAGE = 10;
     const [view, setView] = useState('traffic');
     const [openVisitors, setOpenVisitors] = useState({});
+    const [sessionsRefreshKey, setSessionsRefreshKey] = useState(() => cachedAnalyticsSessionsLoadedAt || 0);
 
     // Refresh "now" every 30s to update "Online" vs "Finished" markers
     useEffect(() => {
@@ -1263,17 +1287,16 @@ const AdminAnalytics = ({ darkMode = false }) => {
 
             // On filtre les admins pour ne pas polluer l'affichage et les stats
             const cleanData = data.filter(s => s.type !== 'admin');
+            cachedAnalyticsSessions = cleanData;
+            cachedAnalyticsSessionsLoadedAt = Date.now();
             setSessions(cleanData);
+            setSessionsRefreshKey(cachedAnalyticsSessionsLoadedAt);
             setLoading(false);
         } catch (error) {
             console.error("Analytics load error:", error);
             setLoading(false);
         }
     }, []);
-
-    useEffect(() => {
-        loadSessions();
-    }, [loadSessions]);
 
     const processData = (allSessions, filter, nowMs = Date.now()) => {
         const oldestStartedAt = allSessions
@@ -1352,8 +1375,14 @@ const AdminAnalytics = ({ darkMode = false }) => {
             </div>
 
             {view === 'boutique' ? (
-                <BoutiqueAnalytics darkMode={darkMode} sessions={sessions} />
-            ) : loading ? (
+                <BoutiqueAnalytics
+                    darkMode={darkMode}
+                    sessions={sessions}
+                    onRefreshSessions={loadSessions}
+                    sessionsRefreshKey={sessionsRefreshKey}
+                    loadingSessions={loading}
+                />
+            ) : loading && sessions.length === 0 ? (
                 <div className="p-12 text-center text-stone-400 font-bold animate-pulse">Chargement Data...</div>
             ) : (<>
 
@@ -1373,6 +1402,11 @@ const AdminAnalytics = ({ darkMode = false }) => {
                         <RefreshCw size={13} className={loading ? 'inline mr-2 animate-spin' : 'inline mr-2'} />
                         Actualiser
                     </button>
+                    {cachedAnalyticsSessionsLoadedAt && (
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-stone-500">
+                            Maj {new Date(cachedAnalyticsSessionsLoadedAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                    )}
                     <button
                         onClick={handleClearAll}
                         className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border border-red-500/20 text-red-500/60 hover:bg-red-500 hover:text-white active:scale-95`}
@@ -1394,7 +1428,7 @@ const AdminAnalytics = ({ darkMode = false }) => {
             </div>
 
             {/* KPI PRINCIPAL */}
-            <div className={`p-5 sm:p-6 rounded-2xl border transition-all ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100 shadow-sm'}`}>
+            <div key={`traffic-kpis-${sessionsRefreshKey}`} className={`p-5 sm:p-6 rounded-2xl border transition-all animate-in fade-in slide-in-from-bottom-2 duration-500 ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100 shadow-sm'}`}>
                 <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
                     <div>
                         <p className="text-[9px] font-black uppercase tracking-[0.24em] text-stone-500 mb-2">Utilisateurs uniques</p>
@@ -1456,7 +1490,7 @@ const AdminAnalytics = ({ darkMode = false }) => {
                 </div>
                 <div className="h-[240px] md:h-[320px] w-full">
                     {chartData.length > 0 ? (
-                        <TrafficChart data={chartData} darkMode={darkMode} valueLabel="visiteur" />
+                        <TrafficChart data={chartData} darkMode={darkMode} valueLabel="visiteur" animationKey={`traffic-${sessionsRefreshKey}`} />
                     ) : (
                         <div className="flex items-center justify-center h-full text-stone-500 font-bold italic text-xs">Pas assez de données.</div>
                     )}

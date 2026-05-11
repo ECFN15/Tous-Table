@@ -249,3 +249,22 @@ Tests:
 ```bash
 npm run build
 ```
+
+## Patch UX/cout 2026-05-11 - Bouton Actualiser data admin
+
+Contexte: l'onglet admin `Data` rechargeait `analytics_sessions` a chaque retour sur l'onglet, car `AdminAnalytics` est demonte/remonte par le routeur admin. Le bouton `Actualiser` faisait bien un vrai `getDocs`, mais son interet etait peu visible puisque l'arrivee sur la page relisait deja Firestore.
+
+Changements:
+
+- `AdminAnalytics` garde maintenant en cache memoire les sessions analytics deja chargees pendant la session admin courante.
+- `BoutiqueAnalytics` garde aussi en cache memoire les 3000 derniers `affiliate_clicks`.
+- L'onglet `Data` ne lance plus de lecture Firestore automatique au montage; il affiche les donnees deja gardees en memoire pendant la session admin.
+- Le bouton `Actualiser` devient le seul declencheur d'une nouvelle lecture Firestore et met a jour l'heure de derniere MAJ.
+- Pendant un refresh manuel, les donnees deja affichees restent visibles; seul le bouton passe en etat de chargement.
+- Apres un refresh manuel, les KPIs et les barres des graphiques rejouent une animation d'apparition.
+
+Tests:
+
+```bash
+npm run build
+```
