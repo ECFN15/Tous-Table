@@ -55,6 +55,54 @@ Ce gate ne remplace pas :
 - Petits contenus publics (`contact_info`, `theme_settings`, `homepage_images`, `shop_tutorials`) : preferer `getDoc`/`getDocs` avec cache local. Le temps reel public n'est pas necessaire sauf demande explicite.
 - Toute modification qui retablit un listener public large, un chargement public non cache, ou une lecture admin non bornee doit etre justifiee et documentee dans `_DOCS/ANALYTICS_RELIABILITY.md`.
 
+## Playbook optimisation Firebase reutilisable
+
+Objectif: reduire la facture Firebase sans degrader le site. Toujours commencer par les surfaces qui peuvent grossir avec le trafic ou le temps.
+
+### 1. Firestore public
+
+- Chercher dans le front public les `onSnapshot` sur des collections completes.
+- Remplacer par une source cachee quand la donnee n'a pas besoin d'etre en direct: Function HTTP cachee, `getDocs`, pagination, ou document resume.
+- Garder le temps reel seulement pour ce qui change sous les yeux du visiteur: panier, checkout, stock critique, encheres.
+- Pour un catalogue public, preferer un endpoint cache comme `publicCatalog` plutot qu'une lecture directe de toutes les collections a chaque visiteur.
+
+### 2. Firestore admin
+
+- Ne jamais laisser une page admin lire une collection historique complete sans limite.
+- Pour les historiques (`analytics_sessions`, `affiliate_clicks`, commandes anciennes), utiliser `orderBy` + `limit`, filtre de date, bouton `Actualiser`, ou agregats par jour/mois/produit.
+- Eviter les listeners live sur de gros historiques. Le mode live doit etre explicite et borne.
+- Reutiliser les donnees deja chargees par l'app admin avant de relire les memes collections.
+
+### 3. Analytics et tracking
+
+- Les heartbeats visiteurs coutent souvent deux fois: appel Function + lecture/ecriture Firestore.
+- Allonger l'intervalle, ignorer les bots, dedupliquer les beacons, et ne synchroniser que les changements utiles.
+- L'admin analytics doit charger a la demande; ne pas rester branche en live sur toutes les sessions.
+
+### 4. Petits documents publics
+
+- Les documents comme contact, theme, images d'accueil, tutoriels ou reglages changent rarement.
+- Utiliser `getDoc`/`getDocs` + cache local navigateur au lieu de `onSnapshot`.
+- Accepter que le visiteur voie l'ancienne valeur jusqu'au prochain chargement; l'admin garde ses ecrans de gestion pour modifier.
+
+### 5. Storage et Hosting
+
+- Chercher les images de plus de 500 KB dans `public/` et `dist/`.
+- Remplacer les PNG/JPEG lourds par WebP/AVIF quand le rendu ne change pas.
+- Ne pas precharger de grosses images avant intention claire de l'utilisateur.
+- Servir les assets hashes avec cache long, garder seulement HTML en no-cache.
+
+### 6. Code mort
+
+- Supprimer les anciennes features non utilisees qui contiennent encore des lectures Firestore.
+- Documenter les features abandonnees pour eviter qu'un agent les reactive.
+
+### 7. Verification avant deploy
+
+- Lancer les verifications projet (`npm run build`, gates dedies, preflight prod si prod).
+- Relire les diffs pour confirmer qu'une optimisation ne change pas le comportement attendu.
+- Apres deploy, comparer les courbes Firebase: lectures Firestore, downloads Hosting/Storage, appels Functions.
+
 ## Avant une modification
 
 1. Lire le document specialise correspondant.
