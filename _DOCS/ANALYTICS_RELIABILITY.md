@@ -268,3 +268,21 @@ Tests:
 ```bash
 npm run build
 ```
+
+## Correctif coherence Data admin 2026-05-11
+
+Contexte: apres le passage au bouton `Actualiser` manuel, les KPI et le graphique pouvaient afficher temporairement 0 ou une valeur decalee par rapport aux rectangles de tracking, car ils etaient stockes dans des `useState` recalcules apres le rendu alors que les rectangles etaient calcules directement depuis les sessions filtrees.
+
+Changements:
+
+- `AdminAnalytics` derive maintenant KPI, qualite de donnees, graphique et rectangles depuis le meme `analyticsStats` synchrone.
+- Les rectangles utilisent `analyticsStats.realTraffic`, la meme source filtree que `kpis.totalSessions` et `chartData`.
+- Le cache memoire des sessions chargees par `Actualiser` reste la source affichee quand on quitte puis revient sur l'onglet `Data`.
+- Aucune lecture Firestore automatique n'a ete rajoutee au montage.
+
+Tests:
+
+```bash
+npm run verify:analytics-reliability
+npm run build
+```

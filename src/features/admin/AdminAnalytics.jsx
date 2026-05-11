@@ -12,7 +12,6 @@ import {
     MAX_ANALYTICS_SESSIONS,
     buildVisitorDayGroups,
     buildAnalyticsStats,
-    getFilteredTrafficSessions,
     getAnalyticsWindow,
     getReliableVisitorKey
 } from './analyticsReliability';
@@ -1189,32 +1188,26 @@ const AdminAnalytics = ({ darkMode = false }) => {
     }, []);
 
     // Kpis
-    const [kpis, setKpis] = useState({
-        totalSessions: 0,
-        uniqueVisitors: 0,
-        uniqueIps: 0,
-        visitorIpRatio: 1,
-        visitorIpRatioLabel: '1.00',
-        visitorConfidenceScore: 100,
-        visitorConfidenceLabel: 'forte',
-        ipCoverage: 100,
-        avgDuration: 0,
-        bounceRate: 0,
-        mobilePercentage: 0
-    });
-    const [dataQuality, setDataQuality] = useState({
-        confidence: 'haute',
-        isWindowComplete: true,
-        missingIpSessions: 0,
-        method: 'UID Firebase client/anonyme, puis IP serveur, puis session si IP absente.'
-    });
+    const analyticsStats = useMemo(() => {
+        const oldestStartedAt = sessions
+            .map(session => getMillis(session.startedAt))
+            .filter(Boolean)
+            .reduce((oldest, value) => Math.min(oldest, value), Infinity);
 
-    const [chartData, setChartData] = useState([]);
+        return buildAnalyticsStats(sessions, timeFilter, {
+            now,
+            coverageStartMs: Number.isFinite(oldestStartedAt) ? oldestStartedAt : null,
+            fetchedCount: sessions.length,
+            maxFetched: MAX_ANALYTICS_SESSIONS
+        });
+    }, [sessions, timeFilter, now]);
+
+    const kpis = analyticsStats.kpis;
+    const dataQuality = analyticsStats.dataQuality;
+    const chartData = analyticsStats.chartData;
 
     // ─── Groupement des sessions par jour ───
-    const filteredTrafficSessions = useMemo(() => (
-        getFilteredTrafficSessions(sessions, timeFilter, { now })
-    ), [sessions, timeFilter, now]);
+    const filteredTrafficSessions = analyticsStats.realTraffic;
 
     const groupedByDay = useMemo(() => (
         buildVisitorDayGroups(filteredTrafficSessions, { now })
@@ -1297,28 +1290,6 @@ const AdminAnalytics = ({ darkMode = false }) => {
             setLoading(false);
         }
     }, []);
-
-    const processData = (allSessions, filter, nowMs = Date.now()) => {
-        const oldestStartedAt = allSessions
-            .map(session => getMillis(session.startedAt))
-            .filter(Boolean)
-            .reduce((oldest, value) => Math.min(oldest, value), Infinity);
-
-        const result = buildAnalyticsStats(allSessions, filter, {
-            now: nowMs,
-            coverageStartMs: Number.isFinite(oldestStartedAt) ? oldestStartedAt : null,
-            fetchedCount: allSessions.length,
-            maxFetched: MAX_ANALYTICS_SESSIONS
-        });
-
-        setKpis(result.kpis);
-        setDataQuality(result.dataQuality);
-        setChartData(result.chartData);
-    };
-
-    useEffect(() => {
-        processData(sessions, timeFilter, now);
-    }, [sessions, timeFilter, now]);
 
     const formatDuration = (seconds) => {
         if (!seconds) return '0s';

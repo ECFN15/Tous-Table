@@ -29,5 +29,6 @@ export const LEGACY_FURNITURE_CATEGORY_BY_ID = {
   r83lH92ySnmgu9xUj3O2: 'table', // Table d'atelier ancienne
   HsJ4Gs0mtClfK54GvTaS: 'table', // Table de ferme
   GhpesY9osftcuMmaD1lw: 'table', // Table monastere
+  O9nOJSI5v7CGVxsWMpWJ: 'table', // No40 table de ferme ancienne
   orANR1BDdCQQTQOXT3iJ: 'armoire', // Vestiaire chene
 };

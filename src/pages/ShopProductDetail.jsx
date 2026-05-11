@@ -1,7 +1,8 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ArrowLeft, ArrowUpRight, Check, ShieldCheck } from 'lucide-react';
 import SEO from '../components/shared/SEO';
 import { useAuth } from '../contexts/AuthContext';
 import { trackAffiliateClick } from '../utils/tracking';
@@ -22,6 +23,15 @@ const TIER_LABELS = {
     essentiel: 'Essentiel',
     premium: 'Premium',
     expert: 'Expert'
+};
+
+const PROGRAM_LABELS = {
+    amazon: 'Amazon',
+    manomano: 'ManoMano',
+    leroymerlin: 'Leroy Merlin',
+    rakuten: 'Rakuten',
+    castorama: 'Castorama',
+    direct: 'Lien partenaire'
 };
 
 const fallbackDraft = (product) => ({
@@ -54,6 +64,15 @@ const formatPrice = (price) => {
     return `${value.toFixed(2).replace('.', ',')} EUR`;
 };
 
+const formatProductType = (value) => {
+    if (!value) return 'Selection atelier';
+    return String(value).replace(/[-_]/g, ' ');
+};
+
+const safeItems = (items = []) => (
+    Array.isArray(items) ? items.filter(Boolean).map(String) : []
+);
+
 const buildSchema = (product, draft, path) => {
     const price = Number(product?.price);
     return {
@@ -73,17 +92,77 @@ const buildSchema = (product, draft, path) => {
     };
 };
 
-const InfoList = ({ title, items = [], darkMode, className = '' }) => (
-    <div className={`shop-detail-reveal ${className} rounded-[1.5rem] p-5 md:p-8 border ${darkMode ? 'bg-white/[0.035] border-white/10' : 'bg-white/72 border-[#d8c2a2]/60 shadow-[0_20px_70px_rgba(91,64,38,0.08)]'}`}>
-        <p className={`text-[10px] uppercase tracking-[0.24em] font-black mb-4 md:mb-5 ${darkMode ? 'text-amber-300/80' : 'text-amber-800/80'}`}>
-            {title}
-        </p>
-        <div className="space-y-3 md:space-y-4">
-            {items.map((item) => (
-                <div key={item} className="flex gap-4">
-                    <span className={`mt-2 h-1.5 w-1.5 rounded-full flex-none ${darkMode ? 'bg-amber-300' : 'bg-amber-700'}`} />
-                    <p className={`text-sm md:text-[15px] leading-relaxed ${darkMode ? 'text-stone-300' : 'text-stone-700'}`}>
-                        {item}
+const ProductSkeleton = ({ darkMode }) => (
+    <main className={`min-h-[100dvh] px-4 pt-28 pb-16 ${darkMode ? 'bg-[#090806]' : 'bg-[#f8f2e8]'}`}>
+        <div className="mx-auto grid max-w-[1480px] grid-cols-1 gap-6 lg:grid-cols-12">
+            <div className="lg:col-span-7 space-y-5">
+                <div className={`h-10 w-40 rounded-full ${darkMode ? 'bg-white/8' : 'bg-stone-900/10'} animate-pulse`} />
+                <div className={`h-20 max-w-3xl rounded-3xl ${darkMode ? 'bg-white/8' : 'bg-stone-900/10'} animate-pulse`} />
+                <div className={`h-28 max-w-2xl rounded-3xl ${darkMode ? 'bg-white/6' : 'bg-stone-900/8'} animate-pulse`} />
+            </div>
+            <div className={`lg:col-span-5 aspect-[4/5] rounded-[2rem] ${darkMode ? 'bg-white/8' : 'bg-white/70'} animate-pulse`} />
+        </div>
+    </main>
+);
+
+const Disclosure = ({ darkMode, className = '' }) => (
+    <p className={`text-[11px] leading-relaxed ${darkMode ? 'text-stone-400' : 'text-stone-500'} ${className}`}>
+        Lien partenaire Amazon. Tous a Table peut percevoir une commission, sans cout supplementaire pour vous.
+    </p>
+);
+
+const AmazonButton = ({ product, onClick, darkMode, className = '' }) => (
+    <a
+        href={product.affiliateUrl}
+        onClick={onClick}
+        target="_blank"
+        rel="noopener noreferrer sponsored"
+        className={`group inline-flex w-full items-center justify-between gap-4 rounded-full px-5 py-3.5 text-sm font-black transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] sm:w-auto sm:px-6 sm:py-4 ${darkMode ? 'bg-amber-300 text-stone-950 hover:bg-amber-200' : 'bg-stone-950 text-white hover:bg-stone-800'} ${className}`}
+    >
+        <span>Acheter sur Amazon</span>
+        <span className={`flex h-9 w-9 items-center justify-center rounded-full transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-1 group-hover:-translate-y-[1px] ${darkMode ? 'bg-stone-950 text-amber-200' : 'bg-white/12 text-white'}`}>
+            <ArrowUpRight size={16} strokeWidth={1.6} />
+        </span>
+    </a>
+);
+
+const AdviceCard = ({ title, items = [], darkMode, className = '', tone = 'default' }) => {
+    const cleanItems = safeItems(items);
+    if (cleanItems.length === 0) return null;
+
+    const toneClass = tone === 'warm'
+        ? darkMode ? 'bg-amber-300/8 border-amber-300/15' : 'bg-[#fbf0dc] border-[#d4ae75]/45'
+        : darkMode ? 'bg-white/[0.035] border-white/10' : 'bg-white/80 border-[#d8c2a2]/60 shadow-[0_20px_70px_rgba(91,64,38,0.07)]';
+
+    return (
+        <div className={`shop-detail-reveal rounded-[1.5rem] border p-5 md:p-7 ${toneClass} ${className}`}>
+            <p className={`mb-4 text-[10px] font-black uppercase tracking-[0.22em] ${darkMode ? 'text-amber-200/80' : 'text-amber-900/70'}`}>
+                {title}
+            </p>
+            <div className="space-y-3">
+                {cleanItems.map((item) => (
+                    <div key={item} className="flex gap-3">
+                        <Check size={14} strokeWidth={1.7} className={`mt-1 shrink-0 ${darkMode ? 'text-amber-200' : 'text-amber-800'}`} />
+                        <p className={`text-sm leading-relaxed md:text-[15px] ${darkMode ? 'text-stone-300' : 'text-stone-700'}`}>
+                            {item}
+                        </p>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+const Passport = ({ rows, darkMode }) => (
+    <div className={`shop-detail-reveal rounded-[1.5rem] border p-4 md:p-5 ${darkMode ? 'bg-white/[0.035] border-white/10' : 'bg-white/70 border-[#d8c2a2]/60'}`}>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
+            {rows.map(({ label, value }) => (
+                <div key={label} className="min-w-0">
+                    <p className={`text-[8px] font-black uppercase tracking-[0.2em] ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>
+                        {label}
+                    </p>
+                    <p className={`mt-1 truncate text-[12px] font-black capitalize ${darkMode ? 'text-stone-100' : 'text-stone-900'}`}>
+                        {value}
                     </p>
                 </div>
             ))}
@@ -91,49 +170,122 @@ const InfoList = ({ title, items = [], darkMode, className = '' }) => (
     </div>
 );
 
+const PurchasePanel = ({ product, draft, brand, sourceLabels, darkMode, onBuy }) => {
+    const program = PROGRAM_LABELS[product.affiliateProgram] || product.affiliateProgram || 'Lien partenaire';
+
+    return (
+        <aside className="shop-detail-media lg:sticky lg:top-28">
+            <div className={`rounded-[2rem] p-1.5 ${darkMode ? 'bg-white/7 ring-1 ring-white/10' : 'bg-white/75 ring-1 ring-[#d8c2a2]/70 shadow-[0_30px_100px_rgba(91,64,38,0.14)]'}`}>
+                <div className={`overflow-hidden rounded-[calc(2rem-0.375rem)] ${darkMode ? 'bg-[#14110d]' : 'bg-[#eadcc8]'}`}>
+                    <div className="relative aspect-[4/5]">
+                        <div className={`absolute inset-x-8 bottom-8 top-10 rounded-[999px] ${darkMode ? 'bg-white/5' : 'bg-white/38'}`} />
+                        <img
+                            src={product.imageUrl || 'https://picsum.photos/seed/atelier-wood-finish/1200/1500'}
+                            alt={product.name}
+                            className="relative z-10 h-full w-full object-contain p-7 transition-transform duration-1000 ease-[cubic-bezier(0.32,0.72,0,1)] hover:scale-[1.025] md:p-12"
+                            loading="eager"
+                            decoding="async"
+                            fetchPriority="high"
+                        />
+                        <div className={`absolute left-4 top-4 z-20 rounded-full px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.18em] ${darkMode ? 'bg-black/55 text-amber-100' : 'bg-white/85 text-stone-800'}`}>
+                            Selection atelier
+                        </div>
+                    </div>
+                    <div className={`border-t p-5 md:p-6 ${darkMode ? 'border-white/10 bg-black/18' : 'border-[#d8c2a2]/55 bg-white/72'}`}>
+                        <div className="flex items-start justify-between gap-5">
+                            <div>
+                                <p className={`text-[9px] font-black uppercase tracking-[0.22em] ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>Prix indicatif</p>
+                                <p className={`mt-1 font-serif text-2xl leading-none ${darkMode ? 'text-white' : 'text-stone-950'}`}>
+                                    {formatPrice(product.price)}
+                                </p>
+                            </div>
+                            <div className={`rounded-full px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.16em] ${darkMode ? 'bg-white/7 text-stone-300' : 'bg-stone-950/6 text-stone-700'}`}>
+                                {program}
+                            </div>
+                        </div>
+
+                        <div className="mt-5">
+                            <AmazonButton product={product} onClick={onBuy} darkMode={darkMode} />
+                        </div>
+
+                        <Disclosure darkMode={darkMode} className="mt-4" />
+
+                        <div className={`mt-5 rounded-[1.1rem] border p-4 ${darkMode ? 'border-white/10 bg-white/[0.025]' : 'border-[#d8c2a2]/55 bg-[#fbf5ea]'}`}>
+                            <p className={`text-[9px] font-black uppercase tracking-[0.2em] ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>Repere produit</p>
+                            <p className={`mt-2 text-sm font-bold leading-relaxed ${darkMode ? 'text-stone-300' : 'text-stone-700'}`}>
+                                {brand} - {formatProductType(draft.productType)}
+                            </p>
+                            {sourceLabels.length > 0 && (
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                    {sourceLabels.slice(0, 3).map((item) => (
+                                        <span key={item} className={`rounded-full px-2.5 py-1 text-[9px] font-bold ${darkMode ? 'bg-white/7 text-stone-400' : 'bg-white text-stone-500'}`}>
+                                            {item}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    );
+};
+
 const ShopProductDetail = ({ product, isLoading = false, darkMode = false, onBack, affiliateContext = null }) => {
+    const rootRef = useRef(null);
     const { isAdmin } = useAuth();
     const draft = useMemo(() => product?.detailDraft || fallbackDraft(product), [product]);
     const pagePath = useMemo(() => product ? getShopProductPath(product) : '/comptoir', [product]);
-    const sourceLabels = (draft.sourceUrls || []).map(hostLabel);
+    const sourceLabels = useMemo(() => safeItems(draft.sourceUrls).map(hostLabel), [draft.sourceUrls]);
 
     useGSAP(() => {
-        gsap.fromTo('.shop-detail-reveal',
-            { y: 42, opacity: 0 },
-            {
-                y: 0,
-                opacity: 1,
-                duration: 0.9,
-                stagger: 0.08,
-                ease: 'power3.out',
-                scrollTrigger: {
-                    trigger: '.shop-detail-root',
-                    start: 'top 80%'
-                }
-            }
-        );
+        const root = rootRef.current;
+        if (!root) return undefined;
 
-        gsap.utils.toArray('.shop-detail-media').forEach((el) => {
-            gsap.fromTo(el,
-                { scale: 0.92, opacity: 0.75 },
+        const prefersReduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+        if (prefersReduced) return undefined;
+
+        const ctx = gsap.context(() => {
+            gsap.fromTo('.shop-detail-reveal',
+                { y: 34, opacity: 0 },
                 {
-                    scale: 1,
+                    y: 0,
                     opacity: 1,
-                    ease: 'none',
+                    duration: 0.85,
+                    stagger: 0.06,
+                    ease: 'power3.out',
                     scrollTrigger: {
-                        trigger: el,
-                        start: 'top 85%',
-                        end: 'bottom 30%',
-                        scrub: true
+                        trigger: root,
+                        start: 'top 82%',
+                        once: true
                     }
                 }
             );
-        });
 
-        return () => ScrollTrigger.getAll().forEach((trigger) => {
-            if (trigger.trigger?.closest?.('.shop-detail-root')) trigger.kill();
-        });
-    }, [product?.id]);
+            const isTouch = window.matchMedia?.('(pointer: coarse)').matches;
+            if (!isTouch) {
+                gsap.utils.toArray('.shop-detail-media').forEach((el) => {
+                    gsap.fromTo(el,
+                        { scale: 0.96, opacity: 0.86 },
+                        {
+                            scale: 1,
+                            opacity: 1,
+                            duration: 0.95,
+                            ease: 'power3.out',
+                            scrollTrigger: {
+                                trigger: el,
+                                start: 'top 86%',
+                                once: true
+                            }
+                        }
+                    );
+                });
+            }
+        }, root);
+
+        return () => ctx.revert();
+    }, { dependencies: [product?.id], scope: rootRef });
 
     const handleBuy = (event) => {
         event.preventDefault();
@@ -147,29 +299,29 @@ const ShopProductDetail = ({ product, isLoading = false, darkMode = false, onBac
     };
 
     if (isLoading) {
-        return (
-            <main className={`min-h-[100dvh] flex items-center justify-center px-6 ${darkMode ? 'bg-[#090806]' : 'bg-[#f8f2e8]'}`}>
-                <div className={`h-10 w-10 rounded-full border-[3px] ${darkMode ? 'border-white/10 border-t-amber-300' : 'border-stone-200 border-t-stone-950'} animate-spin`} />
-            </main>
-        );
+        return <ProductSkeleton darkMode={darkMode} />;
     }
 
     if (!product) {
         return (
-            <main className={`min-h-[100dvh] px-6 pt-36 pb-24 ${darkMode ? 'bg-[#090806] text-white' : 'bg-[#f8f2e8] text-stone-950'}`}>
+            <main className={`min-h-[100dvh] px-6 pt-32 pb-20 ${darkMode ? 'bg-[#090806] text-white' : 'bg-[#f8f2e8] text-stone-950'}`}>
                 <SEO
                     title="Produit Comptoir introuvable"
                     description="Ce produit du Comptoir n'est pas disponible."
                     url="/comptoir"
                 />
-                <div className="mx-auto max-w-3xl text-center space-y-8">
+                <div className="mx-auto max-w-3xl text-center">
                     <p className="text-[10px] uppercase tracking-[0.28em] font-black text-amber-700">Le Comptoir</p>
-                    <h1 className="font-serif text-4xl md:text-6xl leading-tight">Produit introuvable</h1>
+                    <h1 className="mt-5 font-serif text-4xl leading-tight md:text-6xl">Produit introuvable</h1>
+                    <p className={`mx-auto mt-5 max-w-xl text-sm leading-relaxed ${darkMode ? 'text-stone-400' : 'text-stone-600'}`}>
+                        La fiche demandee n'est plus disponible ou n'a pas encore ete chargee.
+                    </p>
                     <button
                         type="button"
                         onClick={onBack}
-                        className={`inline-flex items-center gap-3 rounded-full px-7 py-4 text-sm font-black transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] ${darkMode ? 'bg-white text-stone-950' : 'bg-stone-950 text-white'}`}
+                        className={`mt-8 inline-flex items-center gap-3 rounded-full px-6 py-3.5 text-sm font-black transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] ${darkMode ? 'bg-white text-stone-950' : 'bg-stone-950 text-white'}`}
                     >
+                        <ArrowLeft size={15} strokeWidth={1.7} />
                         Retour au Comptoir
                     </button>
                 </div>
@@ -180,9 +332,18 @@ const ShopProductDetail = ({ product, isLoading = false, darkMode = false, onBac
     const schema = buildSchema(product, draft, pagePath);
     const title = draft.shortTitle || product.name;
     const brand = draft.correctedBrand || product.brand || 'Atelier';
+    const family = CATEGORY_LABELS[product.category] || product.category || 'Comptoir';
+    const tier = TIER_LABELS[product.tier] || product.tier || 'Essentiel';
+    const intro = draft.detailIntro || draft.customerDescription;
+    const passportRows = [
+        { label: 'Marque', value: brand },
+        { label: 'Famille', value: family },
+        { label: 'Geste', value: formatProductType(draft.productType) },
+        { label: 'Niveau', value: tier }
+    ];
 
     return (
-        <main className={`shop-detail-root overflow-x-hidden w-full max-w-full ${darkMode ? 'bg-[#090806] text-stone-100' : 'bg-[linear-gradient(180deg,#f7efe4_0%,#fffaf2_44%,#eadcc8_100%)] text-stone-950'}`}>
+        <main ref={rootRef} className={`shop-detail-root overflow-x-hidden w-full max-w-full ${darkMode ? 'bg-[#090806] text-stone-100' : 'bg-[linear-gradient(180deg,#f7efe4_0%,#fffaf2_46%,#eadcc8_100%)] text-stone-950'}`}>
             <SEO
                 title={`${title} - Le Comptoir`}
                 description={draft.customerDescription || draft.detailIntro}
@@ -192,133 +353,127 @@ const ShopProductDetail = ({ product, isLoading = false, darkMode = false, onBac
                 schema={schema}
             />
 
-            <section className="relative px-4 md:px-10 xl:px-14 pt-28 md:pt-40 pb-8 md:pb-36 lg:min-h-[100dvh] overflow-hidden">
-                <div className={`absolute inset-x-0 top-0 h-[38rem] pointer-events-none ${darkMode ? 'bg-[radial-gradient(circle_at_72%_20%,rgba(217,151,63,0.22),transparent_34%),radial-gradient(circle_at_18%_12%,rgba(255,255,255,0.08),transparent_28%)]' : 'bg-[radial-gradient(circle_at_72%_20%,rgba(177,111,45,0.18),transparent_34%),radial-gradient(circle_at_18%_12%,rgba(255,255,255,0.85),transparent_28%)]'}`} />
+            <section className="relative overflow-hidden px-4 pb-8 pt-24 md:px-10 md:pb-24 md:pt-36 xl:px-14">
+                <div className={`absolute inset-x-0 top-0 h-[34rem] pointer-events-none ${darkMode ? 'bg-[radial-gradient(circle_at_78%_16%,rgba(217,151,63,0.18),transparent_33%),radial-gradient(circle_at_18%_10%,rgba(255,255,255,0.07),transparent_24%)]' : 'bg-[radial-gradient(circle_at_78%_16%,rgba(177,111,45,0.16),transparent_33%),radial-gradient(circle_at_18%_10%,rgba(255,255,255,0.82),transparent_24%)]'}`} />
 
-                <div className="relative mx-auto max-w-[1920px] grid grid-cols-1 lg:grid-cols-12 gap-7 lg:gap-14 items-center">
-                    <div className="lg:col-span-7 shop-detail-reveal">
+                <div className="relative mx-auto grid max-w-[1480px] grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-12 lg:items-start">
+                    <div className="shop-detail-reveal lg:col-span-7">
                         <button
                             type="button"
                             onClick={onBack}
-                            className={`mb-7 md:mb-10 inline-flex items-center gap-3 rounded-full px-5 py-3 text-[10px] uppercase tracking-[0.2em] font-black transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] ${darkMode ? 'bg-white/8 text-stone-300 hover:bg-white/12' : 'bg-white/72 text-stone-700 hover:bg-white'}`}
+                            className={`mb-6 inline-flex items-center gap-3 rounded-full px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] md:mb-8 ${darkMode ? 'bg-white/8 text-stone-300 hover:bg-white/12' : 'bg-white/78 text-stone-700 hover:bg-white'}`}
                         >
-                            <span className={`flex h-7 w-7 items-center justify-center rounded-full ${darkMode ? 'bg-white/10' : 'bg-stone-950 text-white'}`}>&lt;</span>
+                            <span className={`flex h-7 w-7 items-center justify-center rounded-full ${darkMode ? 'bg-white/10' : 'bg-stone-950 text-white'}`}>
+                                <ArrowLeft size={14} strokeWidth={1.7} />
+                            </span>
                             Comptoir
                         </button>
 
-                        <div className="flex flex-wrap items-center gap-3 mb-5 md:mb-7">
-                            {[brand, CATEGORY_LABELS[product.category] || product.category, TIER_LABELS[product.tier] || product.tier].filter(Boolean).map((item) => (
-                                <span key={item} className={`rounded-full px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] font-black ${darkMode ? 'bg-white/7 text-amber-200/80' : 'bg-white/76 text-amber-900/80'}`}>
-                                    {item}
-                                </span>
-                            ))}
+                        <div className="mb-4 flex flex-wrap items-center gap-2.5 md:mb-5">
+                            <span className={`rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.18em] ${darkMode ? 'bg-amber-300/10 text-amber-100' : 'bg-white/80 text-amber-900/80'}`}>
+                                {brand}
+                            </span>
+                            <span className={`rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.18em] ${darkMode ? 'bg-white/7 text-stone-300' : 'bg-stone-950/6 text-stone-700'}`}>
+                                {family}
+                            </span>
                         </div>
 
-                        <h1 className={`max-w-5xl font-serif text-[clamp(3rem,6.2vw,7.75rem)] leading-[0.9] tracking-tight ${darkMode ? 'text-white' : 'text-stone-950'}`}>
+                        <h1 className={`max-w-5xl font-serif text-[clamp(2.65rem,5.9vw,6.9rem)] leading-[0.92] tracking-tight ${darkMode ? 'text-white' : 'text-stone-950'}`}>
                             {title}
                         </h1>
 
-                        <p className={`mt-6 md:mt-8 max-w-3xl text-lg md:text-2xl leading-relaxed ${darkMode ? 'text-stone-300' : 'text-stone-700'}`}>
+                        <p className={`mt-6 max-w-3xl text-base leading-relaxed md:text-xl md:leading-relaxed ${darkMode ? 'text-stone-300' : 'text-stone-700'}`}>
                             {draft.customerDescription || draft.detailIntro}
                         </p>
 
-                        <div className="mt-7 md:mt-10 flex flex-col sm:flex-row gap-4 sm:items-center">
-                            <a
-                                href={product.affiliateUrl}
-                                onClick={handleBuy}
-                                target="_blank"
-                                rel="noopener noreferrer sponsored"
-                                className={`group inline-flex items-center justify-center gap-5 rounded-full px-7 py-4 text-sm font-black transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] ${darkMode ? 'bg-amber-300 text-stone-950 hover:bg-amber-200' : 'bg-stone-950 text-white hover:bg-stone-800'}`}
-                            >
-                                Acheter sur Amazon
-                                <span className={`flex h-9 w-9 items-center justify-center rounded-full transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-1 group-hover:-translate-y-[1px] ${darkMode ? 'bg-stone-950 text-amber-200' : 'bg-white/12 text-white'}`}>
-                                    &gt;
-                                </span>
-                            </a>
-                            <div className={`${darkMode ? 'text-stone-500' : 'text-stone-500'} text-xs leading-relaxed max-w-sm`}>
-                                Lien partenaire Amazon. Prix indicatif : <span className={darkMode ? 'text-stone-300' : 'text-stone-800'}>{formatPrice(product.price)}</span>.
-                            </div>
+                        <div className="mt-6 md:mt-8">
+                            <Passport rows={passportRows} darkMode={darkMode} />
+                        </div>
+
+                        <div className="mt-6 grid gap-3 sm:grid-cols-[auto_1fr] sm:items-center md:mt-8">
+                            <AmazonButton product={product} onClick={handleBuy} darkMode={darkMode} />
+                            <Disclosure darkMode={darkMode} />
                         </div>
                     </div>
 
-                    <div className="lg:col-span-5 shop-detail-media">
-                        <div className={`rounded-[2rem] p-2 ${darkMode ? 'bg-white/7 ring-1 ring-white/10' : 'bg-white/70 ring-1 ring-[#d8c2a2]/70 shadow-[0_30px_100px_rgba(91,64,38,0.14)]'}`}>
-                            <div className={`relative aspect-[4/5] rounded-[1.5rem] overflow-hidden ${darkMode ? 'bg-[#14110d]' : 'bg-[#eadcc8]'}`}>
-                                <img
-                                    src={product.imageUrl || 'https://picsum.photos/seed/atelier-wood-finish/1200/1500'}
-                                    alt={product.name}
-                                    className="h-full w-full object-contain p-6 md:p-12 transition-transform duration-1000 ease-[cubic-bezier(0.32,0.72,0,1)] hover:scale-[1.035]"
-                                />
-                                <div className={`absolute bottom-5 left-5 right-5 rounded-[1.25rem] px-5 py-4 ${darkMode ? 'bg-black/55 text-stone-200' : 'bg-white/82 text-stone-800'}`}>
-                                    <p className="text-[10px] uppercase tracking-[0.2em] font-black opacity-60">Source produit</p>
-                                    <p className="mt-1 font-serif text-xl">{product.affiliateProgram === 'amazon' ? 'Amazon' : product.affiliateProgram || 'Lien partenaire'}</p>
-                                </div>
-                            </div>
-                        </div>
+                    <div className="lg:col-span-5">
+                        <PurchasePanel
+                            product={product}
+                            draft={draft}
+                            brand={brand}
+                            sourceLabels={sourceLabels}
+                            darkMode={darkMode}
+                            onBuy={handleBuy}
+                        />
                     </div>
                 </div>
             </section>
 
-            <section className="px-4 md:px-10 xl:px-14 pt-8 pb-10 md:py-36">
-                <div className="mx-auto max-w-[1500px] grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 grid-flow-dense">
-                    <div className={`shop-detail-reveal lg:col-span-7 rounded-[1.75rem] p-6 md:p-10 ${darkMode ? 'bg-white/[0.035] border border-white/10' : 'bg-white/78 border border-[#d8c2a2]/60 shadow-[0_22px_80px_rgba(91,64,38,0.08)]'}`}>
-                        <p className={`text-[10px] uppercase tracking-[0.24em] font-black mb-4 md:mb-5 ${darkMode ? 'text-amber-300/80' : 'text-amber-800/80'}`}>A quoi ca sert</p>
-                        <p className={`font-serif text-3xl md:text-5xl leading-tight ${darkMode ? 'text-white' : 'text-stone-950'}`}>
-                            {draft.detailIntro}
+            <section className="px-4 pt-6 pb-10 md:px-10 md:py-28 xl:px-14">
+                <div className="mx-auto grid max-w-[1480px] grid-flow-dense grid-cols-1 gap-5 lg:grid-cols-12 lg:gap-6">
+                    <div className={`shop-detail-reveal rounded-[1.75rem] border p-6 md:p-10 lg:col-span-7 ${darkMode ? 'bg-white/[0.035] border-white/10' : 'bg-white/82 border-[#d8c2a2]/60 shadow-[0_22px_80px_rgba(91,64,38,0.08)]'}`}>
+                        <p className={`mb-4 text-[10px] font-black uppercase tracking-[0.24em] ${darkMode ? 'text-amber-200/80' : 'text-amber-900/75'}`}>Le bon usage</p>
+                        <p className={`font-serif text-3xl leading-tight md:text-5xl ${darkMode ? 'text-white' : 'text-stone-950'}`}>
+                            {intro}
                         </p>
                     </div>
-                    <InfoList className="lg:col-span-5" title="Usages concrets" items={draft.useCases} darkMode={darkMode} />
-                    <InfoList className="lg:col-span-4" title="Points forts" items={draft.strengths} darkMode={darkMode} />
-                    <InfoList className="lg:col-span-4" title="Conseil atelier" items={draft.atelierTips} darkMode={darkMode} />
-                    <InfoList className="lg:col-span-4" title="A verifier" items={draft.avoidIf} darkMode={darkMode} />
+
+                    <AdviceCard className="lg:col-span-5" title="Quand l'utiliser" items={draft.useCases} darkMode={darkMode} tone="warm" />
+                    <AdviceCard className="lg:col-span-4" title="Pourquoi ce choix" items={draft.strengths} darkMode={darkMode} />
+                    <AdviceCard className="lg:col-span-4" title="Geste d'atelier" items={draft.atelierTips} darkMode={darkMode} />
+                    <AdviceCard className="lg:col-span-4" title="A eviter si" items={draft.avoidIf} darkMode={darkMode} />
                 </div>
             </section>
 
-            <section className="px-4 md:px-10 xl:px-14 pb-10 md:pb-40">
-                <div className={`shop-detail-reveal mx-auto max-w-[1500px] rounded-[2rem] p-6 md:p-12 grid gap-5 md:gap-8 lg:grid-cols-[0.85fr_1.15fr] ${darkMode ? 'bg-[#120f0a] border border-amber-300/10' : 'bg-[#24170d] text-white shadow-[0_30px_110px_rgba(67,39,18,0.22)]'}`}>
+            <section className="px-4 pt-2 pb-10 md:px-10 md:pb-28 xl:px-14">
+                <div className={`shop-detail-reveal mx-auto grid max-w-[1480px] gap-6 rounded-[2rem] p-6 md:grid-cols-[0.85fr_1.15fr] md:gap-10 md:p-12 ${darkMode ? 'bg-[#120f0a] border border-amber-300/10' : 'bg-[#24170d] text-white shadow-[0_30px_110px_rgba(67,39,18,0.22)]'}`}>
                     <div>
-                        <p className="text-[10px] uppercase tracking-[0.26em] font-black text-amber-200/70">Precautions</p>
-                        <h2 className="mt-4 md:mt-5 font-serif text-4xl md:text-6xl leading-[0.95]">Avant d'ouvrir le pot.</h2>
+                        <div className="flex items-center gap-3 text-amber-200/75">
+                            <ShieldCheck size={18} strokeWidth={1.5} />
+                            <p className="text-[10px] font-black uppercase tracking-[0.26em]">Avant utilisation</p>
+                        </div>
+                        <h2 className="mt-4 font-serif text-4xl leading-[0.98] md:text-6xl">Verifier avant d'appliquer.</h2>
                     </div>
-                    <div className="space-y-5">
-                        {(draft.safetyNotes || []).map((item) => (
+                    <div className="space-y-4">
+                        {safeItems(draft.safetyNotes).map((item) => (
                             <div key={item} className="flex gap-4">
-                                <span className="mt-2 h-1.5 w-1.5 rounded-full bg-amber-200 flex-none" />
-                                <p className="text-sm md:text-base leading-relaxed text-stone-200">{item}</p>
+                                <span className="mt-2 h-1.5 w-1.5 flex-none rounded-full bg-amber-200" />
+                                <p className="text-sm leading-relaxed text-stone-200 md:text-base">{item}</p>
                             </div>
                         ))}
                         {sourceLabels.length > 0 && (
-                            <div className="pt-6 flex flex-wrap gap-2">
-                                {sourceLabels.map((item) => (
-                                    <span key={item} className="rounded-full bg-white/8 px-3 py-1.5 text-[10px] uppercase tracking-[0.16em] font-black text-stone-300">
-                                        {item}
-                                    </span>
-                                ))}
+                            <div className="pt-4">
+                                <p className="mb-2 text-[9px] font-black uppercase tracking-[0.2em] text-stone-400">Sources consultees</p>
+                                <div className="flex flex-wrap gap-2">
+                                    {sourceLabels.map((item) => (
+                                        <span key={item} className="rounded-full bg-white/8 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.16em] text-stone-300">
+                                            {item}
+                                        </span>
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>
                 </div>
             </section>
 
-            <section className="px-4 md:px-10 xl:px-14 pb-16 md:pb-40">
-                <div className="mx-auto max-w-[1500px] text-center">
-                    <p className={`shop-detail-reveal mx-auto max-w-3xl text-base md:text-xl leading-relaxed ${darkMode ? 'text-stone-400' : 'text-stone-600'}`}>
-                        Le bouton ci-dessous ouvre Amazon dans un nouvel onglet. La fiche reste ici pour garder les conseils, les precautions et le contexte d'usage sous la main.
+            <section className="px-4 pb-16 md:px-10 md:pb-36 xl:px-14">
+                <div className={`shop-detail-reveal mx-auto max-w-[980px] rounded-[2rem] border p-6 text-center md:p-10 ${darkMode ? 'bg-white/[0.035] border-white/10' : 'bg-white/82 border-[#d8c2a2]/60 shadow-[0_22px_80px_rgba(91,64,38,0.08)]'}`}>
+                    <p className={`mx-auto max-w-2xl text-base leading-relaxed md:text-xl ${darkMode ? 'text-stone-300' : 'text-stone-700'}`}>
+                        La fiche reste ici pour garder les conseils, les precautions et le contexte d'usage sous la main. Le bouton ouvre Amazon dans un nouvel onglet.
                     </p>
-                    <div className="shop-detail-reveal mt-7 md:mt-10 flex justify-center">
-                        <a
-                            href={product.affiliateUrl}
-                            onClick={handleBuy}
-                            target="_blank"
-                            rel="noopener noreferrer sponsored"
-                            className={`group inline-flex items-center justify-center gap-5 rounded-full px-8 py-5 text-sm font-black transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] ${darkMode ? 'bg-white text-stone-950 hover:bg-amber-200' : 'bg-stone-950 text-white hover:bg-stone-800'}`}
+                    <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row md:mt-8">
+                        <AmazonButton product={product} onClick={handleBuy} darkMode={darkMode} />
+                        <button
+                            type="button"
+                            onClick={onBack}
+                            className={`inline-flex w-full items-center justify-center gap-3 rounded-full px-5 py-3.5 text-sm font-black transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] sm:w-auto ${darkMode ? 'bg-white/7 text-stone-200 hover:bg-white/12' : 'bg-stone-950/6 text-stone-700 hover:bg-stone-950/10'}`}
                         >
-                            Acheter sur Amazon
-                            <span className={`flex h-9 w-9 items-center justify-center rounded-full transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-1 group-hover:-translate-y-[1px] ${darkMode ? 'bg-stone-950 text-white' : 'bg-white/12 text-white'}`}>
-                                &gt;
-                            </span>
-                        </a>
+                            <ArrowLeft size={15} strokeWidth={1.7} />
+                            Retour au Comptoir
+                        </button>
                     </div>
+                    <Disclosure darkMode={darkMode} className="mx-auto mt-5 max-w-xl" />
                 </div>
             </section>
         </main>

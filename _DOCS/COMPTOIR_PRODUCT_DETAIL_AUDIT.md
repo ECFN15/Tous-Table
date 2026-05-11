@@ -460,3 +460,64 @@ npm run build
 Resultat : `git diff --check` OK. `npm run build` OK, avec le warning Vite historique sur les chunks volumineux.
 
 Reste a faire : smoke sur vrai mobile Android/iOS, en particulier ouverture d'une fiche meuble avec le bloc "Vous aimerez aussi" visible et scroll autour du module.
+
+---
+
+## Nouveau lot produits Comptoir du 2026-05-11
+
+Objectif : preparer un enrichissement qualitatif du Comptoir avec au moins 30 nouveaux produits Amazon, repartis sur toutes les sections, sans ecriture Firestore prod ni publication directe.
+
+Actions realisees :
+
+- ajout de `_DOCS/COMPTOIR_NEW_PRODUCT_CANDIDATES_2026-05.json` avec 36 nouveaux candidats, soit 6 par section : huiles, cires, savons, accessoires, renovation, outils ;
+- chaque candidat contient les champs coeur importables en brouillon, un `detailDraft` complet pour la fiche produit, des conseils d'utilisation, points forts, precautions et sources fabricant ;
+- les URLs Amazon sont des recherches affiliees avec le tag `tousatable-21`, pas des ASIN definitifs ;
+- ajout de `scripts/validate-comptoir-new-products.mjs` et du script npm `verify:comptoir-new-products` ;
+- ajout de `scripts/import-comptoir-new-products.cjs`, dry-run par defaut, import sandbox/prod garde, statut force en `draft` ;
+- ajout du rapport lisible `_DOCS/COMPTOIR_NEW_PRODUCT_REPORT_2026-05.md`.
+
+Validation locale :
+
+```bash
+npm run verify:comptoir-new-products
+node scripts/import-comptoir-new-products.cjs
+git diff --check -- _DOCS/COMPTOIR_NEW_PRODUCT_CANDIDATES_2026-05.json scripts/validate-comptoir-new-products.mjs scripts/import-comptoir-new-products.cjs package.json
+```
+
+Resultats :
+
+- `JSON valid: 36 new products`
+- `Category counts: {"accessoires":6,"cires":6,"huiles":6,"outils":6,"renovation":6,"savons":6}`
+- dry-run sandbox : `Would write 36 draft documents`
+- `git diff --check` OK, avec warning CRLF attendu sur `package.json`.
+
+Reste a faire avant publication :
+
+- remplacer les recherches Amazon par les liens ASIN exacts ;
+- verifier image, prix, vendeur, disponibilite Amazon.fr et conformité affiliation ;
+- importer d'abord en sandbox, controler visuellement `/comptoir` et les fiches detail ;
+- obtenir accord explicite avant toute ecriture prod.
+
+---
+
+## Revamp UI fiches produit Comptoir du 2026-05-11
+
+Objectif : rendre les fiches detail du Comptoir plus premium, plus lisibles et mieux calibrees mobile, sans modifier les routes, le tracking, les donnees Firestore ni les liens d'affiliation.
+
+Actions realisees :
+
+- `src/pages/ShopProductDetail.jsx` : refonte du hero en layout editorial produit avec retour Comptoir, marque/famille, titre plus tenu, passeport produit et CTA Amazon lisible.
+- Ajout d'un panneau achat/image en double-bezel avec image produit, prix indicatif, programme partenaire, disclosure affiliation et sources courtes.
+- Remplacement des cartes conseils repetitives par un bento plus hierarchise : `Le bon usage`, `Quand l'utiliser`, `Pourquoi ce choix`, `Geste d'atelier`, `A eviter si`.
+- Bloc securite renforce en section sombre `Avant utilisation`, avec sources consultees quand elles existent.
+- Spacing mobile resserre et plus symetrique : hero `pt-24`, sections mobiles en `pt/pb` explicites, largeur commune `max-w-[1480px]`.
+- Motion GSAP rescopee au `rootRef`, animation media desactivee sur pointeur tactile, respect de `prefers-reduced-motion`.
+- Loading state remplace par un skeleton de fiche produit.
+
+Validation :
+
+```bash
+npm run build
+```
+
+Resultat : build Vite OK. Warning historique de taille de chunks, sans lien avec cette refonte.
