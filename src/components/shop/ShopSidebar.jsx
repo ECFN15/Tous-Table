@@ -71,7 +71,7 @@ const ShopSidebar = ({
                 shadow-[0_16px_42px_rgba(74,54,32,0.075)]
                 ${darkMode ? 'bg-[#0a0a0a]/96 border-white/8' : 'bg-[#f8f1e7]/96 border-[#c79b5d]/28'}
             `}>
-                <div className="space-y-3 p-3.5 xl:p-4">
+                <div className="space-y-3.5 p-4 [@media(max-height:720px)]:space-y-3 [@media(max-height:720px)]:p-3.5 xl:p-4">
                     <div className={`rounded-[18px] border p-3 ${darkMode ? 'border-white/10 bg-white/[0.035]' : 'border-[#c79b5d]/24 bg-white/55'}`}>
                         <div className="flex items-center justify-between gap-4">
                             <div>
@@ -99,7 +99,7 @@ const ShopSidebar = ({
                         className="group w-full text-left transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
                     >
                         <div className={`
-                            flex items-center justify-between rounded-[14px] px-3 py-2
+                            flex items-center justify-between rounded-[14px] px-3 py-2.5 [@media(max-height:720px)]:py-2
                             transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
                             ${activeCategory === null
                                 ? (darkMode ? 'bg-amber-500/12 ring-1 ring-amber-500/24' : 'bg-white/75 ring-1 ring-[#c79b5d]/35 shadow-[0_14px_34px_rgba(102,74,36,0.08)]')
@@ -127,7 +127,7 @@ const ShopSidebar = ({
 
                     <div className={`h-px w-full ${darkMode ? 'bg-white/5' : 'bg-[#c79b5d]/24'}`} />
 
-                    <nav className="space-y-1">
+                    <nav className="space-y-1.5 [@media(max-height:720px)]:space-y-1">
                         <p className={`px-3 text-[8.5px] font-black uppercase tracking-[0.26em] ${darkMode ? 'text-stone-600' : 'text-stone-500'}`}>
                             Familles
                         </p>
@@ -140,7 +140,7 @@ const ShopSidebar = ({
                                 className="group w-full text-left transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] disabled:cursor-not-allowed disabled:opacity-35"
                             >
                                 <div className={`
-                                    flex items-center justify-between rounded-[14px] px-3 py-2
+                                    flex items-center justify-between rounded-[14px] px-3 py-2.5 [@media(max-height:720px)]:py-2
                                     transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
                                     ${activeCategory === category.id
                                         ? (darkMode ? 'bg-amber-500/12 ring-1 ring-amber-500/24' : 'bg-white/75 ring-1 ring-[#c79b5d]/35 shadow-[0_14px_34px_rgba(102,74,36,0.08)]')
