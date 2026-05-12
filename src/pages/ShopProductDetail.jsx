@@ -45,6 +45,7 @@ const fallbackDraft = (product) => ({
     useCases: product?.category ? [`Usage ${CATEGORY_LABELS[product.category] || product.category}`] : ['Entretien du bois'],
     strengths: [product?.whyWeRecommend || 'Selection utile pour l atelier'],
     atelierTips: [product?.proTips || product?.proTip || 'Faire un essai discret avant application sur une zone visible.'],
+    safetyTitle: "Verifier avant d'appliquer.",
     safetyNotes: ['Lire les consignes du fabricant avant utilisation.'],
     avoidIf: ['Ne pas utiliser sur un support incompatible sans essai prealable.'],
     sourceUrls: []
@@ -432,7 +433,7 @@ const ShopProductDetail = ({ product, isLoading = false, darkMode = false, onBac
                             <ShieldCheck size={18} strokeWidth={1.5} />
                             <p className="text-[10px] font-black uppercase tracking-[0.26em]">Avant utilisation</p>
                         </div>
-                        <h2 className="mt-4 font-serif text-4xl leading-[0.98] md:text-6xl">Verifier avant d'appliquer.</h2>
+                        <h2 className="mt-4 font-serif text-4xl leading-[0.98] md:text-6xl">{draft.safetyTitle || "Verifier avant d'appliquer."}</h2>
                     </div>
                     <div className="space-y-4">
                         {safeItems(draft.safetyNotes).map((item) => (

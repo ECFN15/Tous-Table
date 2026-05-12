@@ -61,6 +61,14 @@ assert.equal(activeSlots.length, 1);
 assert.equal(activeSlots[0].sessions, 2);
 assert.equal(activeSlots[0].visites, 1);
 
+const misalignedNow = Date.UTC(2026, 4, 7, 20, 32, 0);
+const comptoirSessionAt = Date.UTC(2026, 4, 7, 20, 12, 0);
+result = buildAnalyticsStats([
+    { id: 'aligned-hour', startedAt: { seconds: Math.floor(comptoirSessionAt / 1000) }, type: 'anonymous', ip: '203.0.113.31', duration: 30 }
+], '1j', { now: misalignedNow });
+const misalignedActiveSlot = result.chartData.find(slot => slot.sessions > 0);
+assert.equal(misalignedActiveSlot.name, `${new Date(comptoirSessionAt).getHours()}h`, '1j chart labels use the real hour bucket, not the sliding-window cutoff hour');
+
 const metricSessions = [
     { id: 'm1', startedAt: ts(-50 * 60 * 1000), type: 'anonymous', ip: '203.0.113.50', duration: 20, journey: [], device: 'Mobile' },
     { id: 'm2', startedAt: ts(-40 * 60 * 1000), type: 'anonymous', ip: '203.0.113.51', duration: 40, journey: [{ page: 'home' }, { page: 'gallery' }], device: 'Desktop' },
@@ -103,7 +111,11 @@ for (const filter of ANALYTICS_TIME_FILTERS) {
 
     result = buildAnalyticsStats([inside, outside, exactlyNow], filter.id, { now: baseNow });
     assert.equal(result.kpis.totalSessions, 1, `${filter.id} keeps only the in-window session`);
-    assert.equal(result.chartData.length, Math.ceil(filter.duration / filter.step), `${filter.id} has stable slot count`);
+    const expectedSlotCount = Math.ceil(filter.duration / filter.step);
+    assert.ok(
+        result.chartData.length >= expectedSlotCount && result.chartData.length <= expectedSlotCount + 1,
+        `${filter.id} has stable slot count with at most one partial aligned edge slot`
+    );
     assert.equal(result.chartData.reduce((sum, slot) => sum + slot.sessions, 0), 1, `${filter.id} chart sessions match KPI`);
 }
 

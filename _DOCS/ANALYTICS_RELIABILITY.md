@@ -330,6 +330,10 @@ Changements:
   IndexedDB pendant 6h, puis le met a jour uniquement apres clic `Actualiser`.
 - `BoutiqueAnalytics` restaure aussi le dernier snapshot `affiliate_clicks` depuis
   IndexedDB pendant 6h.
+- Si un nouveau navigateur n'a aucun cache local valide, l'admin effectue une seule
+  lecture initiale bornee pour reconstruire l'affichage, puis repasse au mode cache +
+  bouton `Actualiser`. Cela retrouve le comportement cross-navigateur de v56 sans
+  remettre les listeners live permanents.
 - Les snapshots caches omettent `email`, `syncTokenHash` et `userAgent`; ils restent
   locaux au navigateur admin et expirent automatiquement.
 - La fenetre de calcul admin reste ancree sur l'heure de derniere MAJ, au lieu de
@@ -343,6 +347,9 @@ Changements:
 - Le graphique Boutique aligne ses creneaux sur les heures rondes. Une visite a
   20:14 est donc affichee dans le slot `20h`, et non dans le slot precedent cree par
   une fenetre glissante non alignee.
+- Le graphique Traffic admin applique le meme alignement de creneaux: les barres sont
+  bucketees sur les minutes/heures/jours reels au lieu d'heriter du decalage de
+  l'heure de derniere MAJ.
 - L'onglet Boutique affiche maintenant un bloc `Tracking Comptoir` par jour/session:
   passages sur la grille, fiches Comptoir vues, produits concernes, clics affiliés,
   source/origine quand disponible, et fallback depuis `affiliate_clicks` si un clic

@@ -898,6 +898,11 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [], onRefreshSessions, session
         }
     }, []);
 
+    useEffect(() => {
+        if (restoringClicks || loadingClicks || clicks.length > 0 || clicksRefreshKey > 0) return;
+        loadClicks();
+    }, [restoringClicks, loadingClicks, clicks.length, clicksRefreshKey, loadClicks]);
+
     const handleRefreshBoutique = useCallback(async () => {
         await Promise.all([
             loadClicks(),
@@ -1793,6 +1798,11 @@ const AdminAnalytics = ({ darkMode = false }) => {
             setLoading(false);
         }
     }, []);
+
+    useEffect(() => {
+        if (restoringSessions || loading || sessions.length > 0 || sessionsRefreshKey > 0) return;
+        loadSessions();
+    }, [restoringSessions, loading, sessions.length, sessionsRefreshKey, loadSessions]);
 
     const formatDuration = (seconds) => {
         if (!seconds) return '0s';

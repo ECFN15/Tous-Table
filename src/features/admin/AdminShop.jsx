@@ -63,6 +63,62 @@ const validateAffiliateUrl = (url, program) => {
     return null; // Tout est bon
 };
 
+const toMultilineText = (items) => (
+    Array.isArray(items) ? items.filter(Boolean).map(String).join('\n') : ''
+);
+
+const parseMultilineList = (value, fallback = []) => {
+    const lines = String(value || '')
+        .split(/\r?\n/)
+        .map(line => line.trim())
+        .filter(Boolean);
+    return lines.length ? lines : fallback;
+};
+
+const cleanString = (value, fallback = '') => {
+    const text = String(value || '').trim();
+    return text || fallback;
+};
+
+const buildDetailFallback = (form = {}) => {
+    const description = cleanString(form.description, cleanString(form.whyWeRecommend, 'Produit selectionne pour le soin et la restauration du bois.'));
+    return {
+        shortTitle: cleanString(form.name, 'Produit du Comptoir'),
+        correctedBrand: cleanString(form.brand, 'Atelier'),
+        productType: cleanString(form.category, 'selection-atelier'),
+        detailStatus: 'needs-source-check',
+        confidence: 'medium',
+        detailIntro: description,
+        customerDescription: description,
+        useCases: form.category ? [`Usage ${CATEGORIES.find(c => c.id === form.category)?.label || form.category}`] : ['Entretien du bois'],
+        strengths: form.whyWeRecommend ? [form.whyWeRecommend.trim()] : ['Selection utile pour l atelier'],
+        atelierTips: form.proTip ? [form.proTip.trim()] : ['Faire un essai discret avant application sur une zone visible.'],
+        safetyTitle: "Verifier avant d'appliquer.",
+        safetyNotes: ['Lire les consignes du fabricant avant utilisation.'],
+        avoidIf: ['Ne pas utiliser sur un support incompatible sans essai prealable.'],
+        sourceUrls: []
+    };
+};
+
+const detailFieldsFromProduct = (product = {}) => {
+    const fallback = buildDetailFallback(product);
+    const draft = product.detailDraft && typeof product.detailDraft === 'object' ? product.detailDraft : {};
+    return {
+        detailShortTitle: draft.shortTitle || fallback.shortTitle,
+        detailCorrectedBrand: draft.correctedBrand || fallback.correctedBrand,
+        detailProductType: draft.productType || fallback.productType,
+        detailIntro: draft.detailIntro || fallback.detailIntro,
+        detailCustomerDescription: draft.customerDescription || fallback.customerDescription,
+        detailUseCases: toMultilineText(draft.useCases || fallback.useCases),
+        detailStrengths: toMultilineText(draft.strengths || fallback.strengths),
+        detailAtelierTips: toMultilineText(draft.atelierTips || fallback.atelierTips),
+        detailAvoidIf: toMultilineText(draft.avoidIf || fallback.avoidIf),
+        detailSafetyTitle: draft.safetyTitle || fallback.safetyTitle,
+        detailSafetyNotes: toMultilineText(draft.safetyNotes || fallback.safetyNotes),
+        detailSourceUrls: toMultilineText(draft.sourceUrls || fallback.sourceUrls)
+    };
+};
+
 const EMPTY_FORM = {
     name: '',
     brand: '',
@@ -77,6 +133,18 @@ const EMPTY_FORM = {
     proTip: '',
     featured: false,
     status: 'draft',
+    detailShortTitle: '',
+    detailCorrectedBrand: '',
+    detailProductType: '',
+    detailIntro: '',
+    detailCustomerDescription: '',
+    detailUseCases: '',
+    detailStrengths: '',
+    detailAtelierTips: '',
+    detailAvoidIf: '',
+    detailSafetyTitle: '',
+    detailSafetyNotes: '',
+    detailSourceUrls: '',
 };
 
 // ─── COMPOSANTS UTILITAIRES ───────────────────────────────────────────────────
@@ -105,6 +173,33 @@ const KpiCard = ({ label, value, icon: Icon, darkMode, accent, subtitle }) => (
 
 // ─── FORMULAIRE PRODUIT ───────────────────────────────────────────────────────
 
+const AffiliateTagBadge = ({ warning, darkMode, compact = false }) => {
+    if (!warning) return null;
+
+    const label = warning.type === 'wrong_tag' ? 'Tag incorrect' : 'Tag absent';
+    const title = warning.type === 'wrong_tag'
+        ? `Tag Amazon incorrect: ${warning.foundTag || 'inconnu'} au lieu de ${AFFILIATE_TAG}.`
+        : `Tag Amazon ${AFFILIATE_TAG} absent du lien.`;
+
+    return (
+        <span
+            title={title}
+            className={`inline-flex shrink-0 items-center gap-1 rounded-full border font-black uppercase leading-none ${
+                compact
+                    ? 'px-1.5 py-1 text-[7px] tracking-[0.16em]'
+                    : 'px-2 py-1 text-[8px] tracking-[0.18em]'
+            } ${
+                darkMode
+                    ? 'border-red-500/35 bg-red-500/10 text-red-300'
+                    : 'border-red-300 bg-red-50 text-red-700'
+            }`}
+        >
+            <AlertTriangle size={compact ? 10 : 11} strokeWidth={2.4} />
+            {label}
+        </span>
+    );
+};
+
 const ProductForm = ({ editData, onSave, onCancel, darkMode }) => {
     const [form, setForm] = useState(EMPTY_FORM);
     const [saving, setSaving] = useState(false);
@@ -112,7 +207,7 @@ const ProductForm = ({ editData, onSave, onCancel, darkMode }) => {
 
     useEffect(() => {
         if (editData) {
-            setForm({ ...EMPTY_FORM, ...editData });
+            setForm({ ...EMPTY_FORM, ...editData, ...detailFieldsFromProduct(editData) });
         } else {
             setForm(EMPTY_FORM);
         }
@@ -139,6 +234,25 @@ const ProductForm = ({ editData, onSave, onCancel, darkMode }) => {
         setSaving(true);
         setError('');
         try {
+            const detailFallback = buildDetailFallback(form);
+            const previousDetailDraft = editData?.detailDraft && typeof editData.detailDraft === 'object' ? editData.detailDraft : {};
+            const detailDraft = {
+                ...previousDetailDraft,
+                shortTitle: cleanString(form.detailShortTitle, detailFallback.shortTitle),
+                correctedBrand: cleanString(form.detailCorrectedBrand, detailFallback.correctedBrand),
+                productType: cleanString(form.detailProductType, detailFallback.productType),
+                detailStatus: previousDetailDraft.detailStatus || detailFallback.detailStatus,
+                confidence: previousDetailDraft.confidence || detailFallback.confidence,
+                detailIntro: cleanString(form.detailIntro, detailFallback.detailIntro),
+                customerDescription: cleanString(form.detailCustomerDescription, detailFallback.customerDescription),
+                useCases: parseMultilineList(form.detailUseCases, detailFallback.useCases),
+                strengths: parseMultilineList(form.detailStrengths, detailFallback.strengths),
+                atelierTips: parseMultilineList(form.detailAtelierTips, detailFallback.atelierTips),
+                avoidIf: parseMultilineList(form.detailAvoidIf, detailFallback.avoidIf),
+                safetyTitle: cleanString(form.detailSafetyTitle, detailFallback.safetyTitle),
+                safetyNotes: parseMultilineList(form.detailSafetyNotes, detailFallback.safetyNotes),
+                sourceUrls: parseMultilineList(form.detailSourceUrls, detailFallback.sourceUrls),
+            };
             const payload = {
                 name: form.name.trim(),
                 brand: form.brand.trim(),
@@ -153,6 +267,7 @@ const ProductForm = ({ editData, onSave, onCancel, darkMode }) => {
                 proTip: form.proTip.trim(),
                 featured: form.featured,
                 status: form.status,
+                detailDraft,
                 updatedAt: serverTimestamp(),
             };
             const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'affiliate_products');
@@ -279,6 +394,76 @@ const ProductForm = ({ editData, onSave, onCancel, darkMode }) => {
                 </div>
             </div>
 
+            <div className={`rounded-2xl border p-4 md:p-5 space-y-5 ${darkMode ? 'bg-white/[0.025] border-white/10' : 'bg-stone-50/80 border-stone-200'}`}>
+                <div className="flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
+                    <div>
+                        <p className={`text-[10px] font-black uppercase tracking-widest ${darkMode ? 'text-amber-400' : 'text-amber-700'}`}>Fiche detail Comptoir</p>
+                        <p className={`mt-1 text-xs ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>Ces champs remplissent les modules visibles sur la page produit. Une ligne = une puce.</p>
+                    </div>
+                    <span className={`text-[10px] font-bold ${darkMode ? 'text-stone-600' : 'text-stone-400'}`}>Pre-rempli depuis la fiche existante</span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label className={labelCls}>Titre court fiche</label>
+                        <input className={inputCls} value={form.detailShortTitle} onChange={e => set('detailShortTitle', e.target.value)} placeholder={form.name || 'Titre affiche sur la fiche'} />
+                    </div>
+                    <div>
+                        <label className={labelCls}>Marque corrigee</label>
+                        <input className={inputCls} value={form.detailCorrectedBrand} onChange={e => set('detailCorrectedBrand', e.target.value)} placeholder={form.brand || 'Marque affichee'} />
+                    </div>
+                    <div>
+                        <label className={labelCls}>Type de produit</label>
+                        <input className={inputCls} value={form.detailProductType} onChange={e => set('detailProductType', e.target.value)} placeholder="huile-cire, outil, nettoyant..." />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className={labelCls}>Le bon usage</label>
+                        <textarea className={`${inputCls} resize-y min-h-[116px]`} rows={4} value={form.detailIntro} onChange={e => set('detailIntro', e.target.value)} placeholder="Texte principal du grand module Le bon usage..." />
+                    </div>
+                    <div>
+                        <label className={labelCls}>Description fiche</label>
+                        <textarea className={`${inputCls} resize-y min-h-[116px]`} rows={4} value={form.detailCustomerDescription} onChange={e => set('detailCustomerDescription', e.target.value)} placeholder="Texte de presentation en haut de la fiche..." />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className={labelCls}>Quand l'utiliser</label>
+                        <textarea className={`${inputCls} resize-y min-h-[104px]`} rows={4} value={form.detailUseCases} onChange={e => set('detailUseCases', e.target.value)} placeholder={"Meubles en bois brut\nPlans et tables"} />
+                    </div>
+                    <div>
+                        <label className={labelCls}>Pourquoi ce choix</label>
+                        <textarea className={`${inputCls} resize-y min-h-[104px]`} rows={4} value={form.detailStrengths} onChange={e => set('detailStrengths', e.target.value)} placeholder={"Protection durable\nBon rendu atelier"} />
+                    </div>
+                    <div>
+                        <label className={labelCls}>Geste d'atelier</label>
+                        <textarea className={`${inputCls} resize-y min-h-[104px]`} rows={4} value={form.detailAtelierTips} onChange={e => set('detailAtelierTips', e.target.value)} placeholder={"Appliquer en couche fine\nEssuyer l'excedent"} />
+                    </div>
+                    <div>
+                        <label className={labelCls}>A eviter si</label>
+                        <textarea className={`${inputCls} resize-y min-h-[104px]`} rows={4} value={form.detailAvoidIf} onChange={e => set('detailAvoidIf', e.target.value)} placeholder={"Support deja verni\nUsage exterieur non compatible"} />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className={labelCls}>Titre Avant utilisation</label>
+                        <input className={inputCls} value={form.detailSafetyTitle} onChange={e => set('detailSafetyTitle', e.target.value)} placeholder="Verifier avant d'appliquer." />
+                    </div>
+                    <div>
+                        <label className={labelCls}>Avant utilisation</label>
+                        <textarea className={`${inputCls} resize-y min-h-[104px]`} rows={4} value={form.detailSafetyNotes} onChange={e => set('detailSafetyNotes', e.target.value)} placeholder={"Porter des gants\nLire les consignes fabricant"} />
+                    </div>
+                    <div>
+                        <label className={labelCls}>Sources consultees</label>
+                        <textarea className={`${inputCls} resize-y min-h-[104px]`} rows={4} value={form.detailSourceUrls} onChange={e => set('detailSourceUrls', e.target.value)} placeholder={"https://...\nhttps://..."} />
+                    </div>
+                </div>
+            </div>
+
             {/* Toggles */}
             <div className="flex items-center gap-6">
                 <ToggleSwitch label="Mis en avant" checked={form.featured} onChange={v => set('featured', v)} darkMode={darkMode} />
@@ -378,10 +563,15 @@ const ProductList = ({ products, onEdit, onDelete, onToggleStatus, onToggleFeatu
                             {filtered.map((p, i) => {
                                 const cat = CATEGORIES.find(c => c.id === p.category);
                                 const prog = PROGRAMS.find(pr => pr.id === p.affiliateProgram);
+                                const affiliateWarning = validateAffiliateUrl(p.affiliateUrl, p.affiliateProgram);
                                 return (
                                     <tr
                                         key={p.id}
-                                        className={`transition-colors ${i < filtered.length - 1 ? (darkMode ? 'border-b border-white/5' : 'border-b border-stone-50') : ''} ${darkMode ? 'hover:bg-white/[0.02]' : 'hover:bg-stone-50/50'}`}
+                                        className={`transition-colors ${i < filtered.length - 1 ? (darkMode ? 'border-b border-white/5' : 'border-b border-stone-50') : ''} ${
+                                            affiliateWarning
+                                                ? (darkMode ? 'border-l-2 border-l-red-500/70 bg-red-950/[0.08] hover:bg-red-950/[0.14]' : 'border-l-2 border-l-red-500 bg-red-50/45 hover:bg-red-50/75')
+                                                : (darkMode ? 'hover:bg-white/[0.02]' : 'hover:bg-stone-50/50')
+                                        }`}
                                     >
                                         {/* Produit */}
                                         <td className="px-5 py-4">
@@ -399,6 +589,7 @@ const ProductList = ({ products, onEdit, onDelete, onToggleStatus, onToggleFeatu
                                                     <div className="flex items-center gap-2 flex-wrap">
                                                         <span className={`text-sm font-bold truncate max-w-[180px] ${darkMode ? 'text-white' : 'text-stone-900'}`}>{p.name}</span>
                                                         <TierBadge tier={p.tier} />
+                                                        <AffiliateTagBadge warning={affiliateWarning} darkMode={darkMode} />
                                                         {p.featured && <span className="text-amber-400"><Star size={12} fill="currentColor" /></span>}
                                                     </div>
                                                     <span className={`text-[10px] ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>{p.brand}</span>
@@ -414,7 +605,10 @@ const ProductList = ({ products, onEdit, onDelete, onToggleStatus, onToggleFeatu
 
                                         {/* Programme */}
                                         <td className="px-5 py-4 hidden md:table-cell">
-                                            <span className={`text-[10px] font-medium ${darkMode ? 'text-stone-400' : 'text-stone-600'}`}>{prog?.label || p.affiliateProgram}</span>
+                                            <div className="flex flex-col items-start gap-1.5">
+                                                <span className={`text-[10px] font-medium ${darkMode ? 'text-stone-400' : 'text-stone-600'}`}>{prog?.label || p.affiliateProgram}</span>
+                                                <AffiliateTagBadge warning={affiliateWarning} darkMode={darkMode} compact />
+                                            </div>
                                         </td>
 
                                         {/* Clics */}

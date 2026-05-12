@@ -263,6 +263,22 @@ const formatSlotLabel = (time, filterId) => {
     return d.toLocaleDateString('fr-FR', { month: '2-digit', year: 'numeric' });
 };
 
+const alignChartSlotStart = (time, step) => {
+    const d = new Date(time);
+    if (step < 60 * 60 * 1000) {
+        const minutesStep = Math.max(1, Math.round(step / 60000));
+        d.setMinutes(Math.floor(d.getMinutes() / minutesStep) * minutesStep, 0, 0);
+        return d.getTime();
+    }
+    if (step < 24 * 60 * 60 * 1000) {
+        const hoursStep = Math.max(1, Math.round(step / 3600000));
+        d.setHours(Math.floor(d.getHours() / hoursStep) * hoursStep, 0, 0, 0);
+        return d.getTime();
+    }
+    d.setHours(0, 0, 0, 0);
+    return d.getTime();
+};
+
 const getOldestStartedAt = (sessions) => {
     const values = sessions.map(session => toAnalyticsMillis(session.startedAt)).filter(Boolean);
     return values.length > 0 ? Math.min(...values) : null;
@@ -308,9 +324,12 @@ export const buildAnalyticsStats = (sessions = [], filterId = '1j', options = {}
         if (session.device === 'Mobile') mobiles += 1;
     });
 
+    const slotStart = alignChartSlotStart(cutoff, step);
+    const slotEnd = alignChartSlotStart(now - 1, step);
     const timeline = [];
-    for (let t = cutoff; t < now; t += step) {
-        timeline.push({
+    const slotMap = new Map();
+    for (let t = slotStart; t <= slotEnd; t += step) {
+        const slot = {
             timestamp: t,
             name: formatSlotLabel(t, filterId),
             visites: 0,
@@ -318,15 +337,16 @@ export const buildAnalyticsStats = (sessions = [], filterId = '1j', options = {}
             ips: 0,
             visitorKeys: new Set(),
             ipKeys: new Set()
-        });
+        };
+        timeline.push(slot);
+        slotMap.set(t, slot);
     }
 
     realTraffic.forEach((session) => {
         const started = toAnalyticsMillis(session.startedAt);
         if (!started) return;
 
-        const slotIdx = Math.floor((started - cutoff) / step);
-        const slot = timeline[slotIdx];
+        const slot = slotMap.get(alignChartSlotStart(started, step));
         if (!slot) return;
 
         slot.sessions += 1;

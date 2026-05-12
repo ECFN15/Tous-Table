@@ -604,6 +604,45 @@ Reste a faire avant apparition publique sandbox :
 
 ---
 
+## Indicateur admin tag Amazon du 2026-05-13
+
+Objectif : rendre visibles directement dans la liste admin Comptoir les produits Amazon dont le lien ne contient pas le tag affilie `tousatable-21`, sans devoir ouvrir le formulaire de modification.
+
+Actions realisees :
+
+- `src/features/admin/AdminShop.jsx` : ajout d'un badge rouge `Tag absent` ou `Tag incorrect` sur la ligne produit ;
+- rappel du badge dans la colonne `Programme` ;
+- accent visuel rouge discret sur la ligne concernee ;
+- reutilisation de la validation existante `validateAffiliateUrl`, sans modifier les donnees Firestore ni les liens.
+
+Validation :
+
+```bash
+npm run build
+```
+
+---
+
+## Edition admin textes fiches Comptoir du 2026-05-13
+
+Objectif : permettre d'ajouter ou modifier depuis l'admin Comptoir les textes des modules visibles sur les fiches produit, sans devoir recopier les contenus deja presents.
+
+Actions realisees :
+
+- `src/features/admin/AdminShop.jsx` : ajout d'un bloc `Fiche detail Comptoir` dans le formulaire produit ;
+- pre-remplissage en edition depuis `detailDraft` existant : titre court, marque corrigee, type produit, bon usage, description fiche, cas d'usage, arguments, geste atelier, a eviter, titre securite, precautions et sources ;
+- sauvegarde de `detailDraft` avec conservation des champs deja presents non exposes dans le formulaire ;
+- pour un nouveau produit, generation de valeurs de repli depuis le nom, la marque, la description, la categorie, `whyWeRecommend` et `proTip` si les champs detail sont laisses vides ;
+- `src/pages/ShopProductDetail.jsx` : le titre du module `Avant utilisation` peut maintenant venir de `detailDraft.safetyTitle`.
+
+Validation :
+
+```bash
+npm run build
+```
+
+---
+
 ## Correctif UX filtres Comptoir du 2026-05-12
 
 Objectif : rendre le menu/filtres de `/comptoir` accessible pendant le scroll sur desktop, laptop trackpad, tablette et mobile, sans changer les donnees, le tracking ni les liens d'affiliation.
