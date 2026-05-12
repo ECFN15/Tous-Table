@@ -1262,8 +1262,9 @@ const AdminAnalytics = ({ darkMode = false }) => {
 
     const loadSessions = useCallback(async () => {
         setLoading(true);
+        const refreshStartedAt = Date.now();
         const historyWindow = getAnalyticsWindow('1ans');
-        const historyCutoff = Timestamp.fromMillis(Date.now() - historyWindow.duration);
+        const historyCutoff = Timestamp.fromMillis(refreshStartedAt - historyWindow.duration);
         const q = query(
             collection(db, 'analytics_sessions'),
             where('startedAt', '>=', historyCutoff),
@@ -1280,8 +1281,10 @@ const AdminAnalytics = ({ darkMode = false }) => {
 
             // On filtre les admins pour ne pas polluer l'affichage et les stats
             const cleanData = data.filter(s => s.type !== 'admin');
+            const loadedAt = Date.now();
             cachedAnalyticsSessions = cleanData;
-            cachedAnalyticsSessionsLoadedAt = Date.now();
+            cachedAnalyticsSessionsLoadedAt = loadedAt;
+            setNow(loadedAt);
             setSessions(cleanData);
             setSessionsRefreshKey(cachedAnalyticsSessionsLoadedAt);
             setLoading(false);

@@ -13,7 +13,7 @@ import { useLiveTheme } from '../../hooks/useLiveTheme';
 import AnimatedPrice from '../../components/ui/AnimatedPrice';
 import ShopProductCard from '../../components/shop/ShopProductCard';
 import LazyYouTubeEmbed from '../../components/ui/LazyYouTubeEmbed';
-import { lockLenis } from '../../utils/smoothScroll';
+import { lockPageScroll } from '../../utils/smoothScroll';
 
 const RECOMMENDED_TUTORIALS = [
     { videoId: "ictKhF92-pY", label: "Comment appliquer Rubio Monocoat Oil Plus 2C sur un meuble", productMatch: "Rubio Monocoat" },
@@ -53,7 +53,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
 
     useEffect(() => {
         if (!isLightboxOpen) return undefined;
-        return lockLenis();
+        return lockPageScroll();
     }, [isLightboxOpen]);
 
     // TOUCH SWIPE STATE (Mobile)

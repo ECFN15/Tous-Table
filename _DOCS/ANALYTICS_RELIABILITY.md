@@ -286,3 +286,26 @@ Tests:
 npm run verify:analytics-reliability
 npm run build
 ```
+
+## Verification Data admin 2026-05-12
+
+Objectif: verifier que le bouton `Actualiser` de l'onglet Data admin recharge bien la source affichee et que les KPI au-dessus du graphique, le graphique et les rectangles de tracking utilisent tous la meme data datee du dernier refresh.
+
+Constat code:
+
+- `AdminAnalytics` ne contient pas de listener live `onSnapshot`; la lecture `analytics_sessions` passe par `getDocs` dans `loadSessions`.
+- L'heure `Maj` est `cachedAnalyticsSessionsLoadedAt`, mise a jour uniquement apres succes du refresh manuel.
+- Les KPI, la qualite data, le graphique et les rectangles de visiteurs sont derives du meme `analyticsStats`.
+- Les rectangles utilisent `analyticsStats.realTraffic`, la meme fenetre filtree que `kpis.totalSessions` et `chartData`.
+- `BoutiqueAnalytics` garde aussi un refresh manuel: clics affiliés via `getDocs(limit(3000))` et sessions via `onRefreshSessions`.
+
+Correctif ajoute:
+
+- `loadSessions` synchronise maintenant `now` avec l'heure reelle de fin du refresh. Le clic `Actualiser` recalcule donc immediatement la fenetre, les KPI, le graphique et les rectangles avec la meme horloge que la derniere MAJ affichee, sans attendre le tick automatique suivant.
+
+Tests:
+
+```bash
+npm run verify:analytics-reliability
+npm run build
+```

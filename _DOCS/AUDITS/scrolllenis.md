@@ -787,3 +787,71 @@ Validation :
 
 Risque restant :
 - verifier sur vrai mobile que le stagger image n'est pas perceptible comme un chargement vide, et qu'il reduit bien le freeze autour du module.
+
+## 15. Retrait du moteur Lenis desktop/laptop - 12 mai 2026
+
+Objectif utilisateur : supprimer Lenis sur laptop et desktop, revenir a un scroll navigateur natif plus leger, compatible navigateurs, et conserver un comportement fluide sans RAF global permanent dans un site charge en images.
+
+Fichiers modifies :
+- `package.json`
+- `package-lock.json`
+- `src/App.jsx`
+- `src/utils/smoothScroll.js`
+- `src/index.css`
+- `src/components/cart/CartSidebar.jsx`
+- `src/components/layout/GlobalMenu.jsx`
+- `src/components/shop/ShopSidebar.jsx`
+- `src/pages/CheckoutView.jsx`
+- `src/pages/GalleryView.jsx`
+- `src/pages/HomeView.jsx`
+- `src/pages/ShopView.jsx`
+- `src/designs/architectural/ArchitecturalProductDetail.jsx`
+- `src/designs/architectural/MarketplaceLayout.jsx`
+- `src/designs/architectural/components/ProductCard.jsx`
+- suppression de `src/hooks/useLenisScroll.js`
+
+Changements :
+- retrait du montage global `useLenisScroll()` dans `App.jsx` ;
+- suppression de la dependance `@studio-freight/lenis` du package et du lockfile ;
+- `scrollToTarget` / `scrollToTop` utilisent maintenant le scroll natif (`window.scrollTo({ behavior: 'smooth' })`) avec fallback RAF uniquement pour les anciens navigateurs sans support `scroll-behavior` ;
+- ajout d'un `lockPageScroll()` natif ref-counted pour les modales/drawers/lightbox/menu, afin de remplacer le verrouillage auparavant delegue a Lenis ;
+- remplacement des zones internes `data-lenis-prevent` par `data-scroll-region` avec `overscroll-behavior: contain` independant de Lenis ;
+- ajout du lock natif au menu global, qui n'etait pas verrouille avant ;
+- la dropdown d'adresse checkout est maintenant RAF-coalesced sur scroll/visualViewport pendant les suggestions ;
+- retrait de `ScrollTrigger` inutilise dans `ShopView`.
+
+Validation :
+- checklist source : aucune occurrence Lenis restante dans `src`, `package.json` ou `package-lock.json` ;
+- `npm uninstall @studio-freight/lenis` a necessite `--legacy-peer-deps` a cause du conflit peer existant `@eslint/js@10` / `eslint@9`, puis a retire la dependance ;
+- `git diff --check` OK ;
+- `npm run build` OK, avec le warning Vite historique sur les chunks volumineux ;
+- aucun deploy production effectue.
+
+Risques residuels :
+- le scroll molette desktop est maintenant celui du navigateur/OS : moins couteux, mais sans easing artificiel permanent ;
+- les animations GSAP de Home restent les elements scroll les plus chers, mais elles ne pilotent plus le scroll global du site ;
+- a valider sur vrai laptop/desktop et mobile : menu, panier, drawer Comptoir, lightbox produit et modal Stripe apres le nouveau lock natif.
+
+## 16. Passe laptop trackpad - 12 mai 2026
+
+Objectif : verifier l'adaptation laptop/trackpad apres retrait de Lenis, puis corriger les couts visibles sur les routes longues.
+
+Diagnostic :
+- aucune interception `wheel` / `mousewheel` dans `src` ;
+- aucun `preventDefault` sur le scroll trackpad ;
+- les listeners `scroll` publics restants sont passifs, RAF-coalesced ou one-shot ;
+- `window.__lenis` est absent en browser, y compris apres build ;
+- `/a-propos` restait le parcours le plus sensible, car le fond Three.js pouvait continuer a rendre pendant le scroll natif du hero.
+
+Changement :
+- `src/components/home/ThreeBackground.jsx` met maintenant le rendu WebGL en pause pendant une sequence de scroll, puis le reprend apres accalmie seulement si le hero est encore visible. Cela reduit la concurrence GPU/RAF pendant un scroll trackpad sans supprimer le visuel au repos.
+
+Validation desktop Chromium headless 1440x900, `?skipPreloader=1`, impulsions wheel courtes type trackpad :
+- `/` : Lenis absent, 24 cartes, avg 18.23 ms, p95 33.3 ms, max 66.7 ms, 1 long frame.
+- `/comptoir` : Lenis absent, 44 cartes, avg 17.82 ms, p95 33.3 ms, max 50 ms, 0 long frame.
+- `/a-propos` : Lenis absent, avg 17.63 ms, p95 33.3 ms, max 49.9 ms, 0 long frame apres pause WebGL au scroll.
+- `npm run build` OK, warning Vite historique sur chunks volumineux.
+
+Notes :
+- mesures prises en headless 60 Hz, donc a interpreter comme un smoke technique plutot qu'une sensation exacte de trackpad Mac/Windows ;
+- erreurs locales CORS `publicCatalog` et warning Stripe HTTP vus en preview, sans lien avec le scroll ni presents comme regression de cette passe.

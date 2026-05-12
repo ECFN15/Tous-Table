@@ -12,13 +12,10 @@ import LazyYouTubeEmbed from '../components/ui/LazyYouTubeEmbed';
 import { scrollToTarget } from '../utils/smoothScroll';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import SplitType from 'split-type';
 import { trackAffiliateClick } from '../utils/tracking';
 import { getShopProductPath } from '../utils/seoRoutes';
 import { warmupShopProductDetailIntent } from '../utils/startupWarmup';
-
-gsap.registerPlugin(ScrollTrigger);
 
 const SHOP_TUTORIALS_CACHE_KEY = 'tat_shop_tutorials';
 
@@ -367,6 +364,11 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
         [categorySummaries]
     );
 
+    const activeCategoryLabel = useMemo(() => {
+        if (!activeCategory) return 'Toute la selection';
+        return categorySummaries.find((family) => family.id === activeCategory)?.title || 'Famille active';
+    }, [activeCategory, categorySummaries]);
+
     const shopSchema = useMemo(() => {
         const shopItemList = buildShopItemList(affiliateProducts);
         const graph = [
@@ -528,8 +530,12 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
         warmupShopProductDetailIntent(product);
     }, []);
 
+    const handleMobileSidebarClose = useCallback(() => {
+        setIsMobileSidebarOpen(false);
+    }, []);
+
     return (
-        <div className={`min-h-screen w-full max-w-full overflow-x-hidden animate-in fade-in duration-500 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-[linear-gradient(180deg,#f8f2e8_0%,#fffaf2_42%,#f1e3cf_100%)]'}`}>
+        <div className={`min-h-screen w-full max-w-full overflow-x-clip animate-in fade-in duration-500 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-[linear-gradient(180deg,#f8f2e8_0%,#fffaf2_42%,#f1e3cf_100%)]'}`}>
             <SEO
                 title="Le Comptoir - Boutique Bois & Entretien Meuble Ancien"
                 description="Produits pour entretenir, proteger et restaurer les meubles en bois massif : huiles, cires, savons, accessoires et soins du bois testes en atelier."
@@ -610,69 +616,110 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
             </section>
 
             {/* PRODUCTS SECTION */}
-            <div className="relative">
-                <ShopSidebar
-                    categories={categorySummaries}
-                    activeCategory={activeCategory}
-                    onCategoryChange={handleCategoryChange}
-                    priceFilters={PRICE_FILTERS}
-                    activePriceFilter={priceFilter}
-                    onPriceFilterChange={setPriceFilter}
-                    totalProductCount={totalProductCount}
-                    filteredProductCount={filteredProductCount}
-                    darkMode={darkMode}
-                    isMobileOpen={isMobileSidebarOpen}
-                    onMobileClose={() => setIsMobileSidebarOpen(false)}
-                />
-
-                <motion.button
-                    onClick={() => setIsMobileSidebarOpen(true)}
-                    className={`
-                        lg:hidden fixed bottom-6 right-6 z-40
-                        min-w-14 h-14 rounded-full px-4
-                        flex items-center justify-center
-                        shadow-2xl
-                        gap-2 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
-                        ${darkMode
-                            ? 'bg-amber-500/90 hover:bg-amber-500 text-white'
-                            : 'bg-amber-600/90 hover:bg-amber-600 text-white'
-                        }
-                    `}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ delay: 0.5 }}
-                >
-                    <SlidersHorizontal size={20} />
-                    <span className="text-[10px] font-black uppercase tracking-[0.16em]">
-                        {filteredProductCount}
-                    </span>
-                </motion.button>
+            <div className={`relative ${darkMode ? 'bg-[#0a0a0a]' : 'bg-transparent'}`}>
+                {!isMobileSidebarOpen && (
+                    <motion.button
+                        onClick={() => setIsMobileSidebarOpen(true)}
+                        className={`
+                            lg:hidden fixed bottom-[calc(0.75rem+env(safe-area-inset-bottom))] left-3 right-3 z-[120]
+                            min-h-14 rounded-full px-4
+                            flex items-center justify-between
+                            shadow-[0_18px_45px_rgba(55,40,24,0.28)]
+                            gap-3 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
+                            ${darkMode
+                                ? 'bg-stone-950/94 text-white ring-1 ring-white/12'
+                                : 'bg-stone-950/94 text-white ring-1 ring-white/18'
+                            }
+                        `}
+                        data-shop-filter-trigger="floating"
+                        aria-controls="shop-filter-drawer"
+                        aria-expanded={isMobileSidebarOpen}
+                        aria-label="Ouvrir les filtres du Comptoir"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ delay: 0.5 }}
+                    >
+                        <span className="flex min-w-0 items-center gap-3">
+                            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/12">
+                                <SlidersHorizontal size={18} strokeWidth={1.8} />
+                            </span>
+                            <span className="min-w-0 text-left">
+                                <span className="block truncate text-[11px] font-black uppercase tracking-[0.16em]">
+                                    Filtres Comptoir
+                                </span>
+                                <span className="mt-0.5 block truncate text-[10px] font-semibold text-white/62">
+                                    {activeCategoryLabel} - {activePriceLabel}
+                                </span>
+                            </span>
+                        </span>
+                        <span className="shrink-0 rounded-full bg-white px-3 py-1 text-[10px] font-black text-stone-950">
+                            {filteredProductCount}
+                        </span>
+                    </motion.button>
+                )}
 
                 {/* Sectioned content - all families in order */}
                 <section
                     id="products-grid-section"
-                    className={`min-h-screen pt-0 lg:pt-10 pb-20 px-4 sm:px-6 xl:px-10 lg:pl-[304px] xl:pl-[352px] ${darkMode ? 'bg-[#0a0a0a]' : 'bg-transparent'}`}
+                    className={`min-h-screen pt-0 lg:pt-10 pb-[calc(7rem+env(safe-area-inset-bottom))] lg:pb-20 px-4 sm:px-6 xl:px-10 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-transparent'}`}
                 >
-                    <div className="mx-auto max-w-[1760px] space-y-0">
-                        <div className={`mb-8 grid gap-3 rounded-[24px] border p-3 sm:grid-cols-3 sm:p-4 lg:hidden ${darkMode ? 'border-white/10 bg-white/[0.03]' : 'border-[#c79b5d]/24 bg-white/45'}`}>
-                            <div>
-                                <p className={`text-[9px] font-black uppercase tracking-[0.24em] ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>Selection</p>
-                                <p className={`mt-1 text-2xl font-serif leading-none ${darkMode ? 'text-white' : 'text-stone-900'}`}>{filteredProductCount}</p>
+                    <div className="mx-auto grid max-w-[1760px] gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:gap-8 xl:grid-cols-[320px_minmax(0,1fr)]">
+                        <ShopSidebar
+                            categories={categorySummaries}
+                            activeCategory={activeCategory}
+                            onCategoryChange={handleCategoryChange}
+                            priceFilters={PRICE_FILTERS}
+                            activePriceFilter={priceFilter}
+                            onPriceFilterChange={setPriceFilter}
+                            totalProductCount={totalProductCount}
+                            filteredProductCount={filteredProductCount}
+                            darkMode={darkMode}
+                            isMobileOpen={isMobileSidebarOpen}
+                            onMobileClose={handleMobileSidebarClose}
+                        />
+
+                        <div className="min-w-0 space-y-0">
+                        <div className={`
+                            sticky top-[72px] z-30 -mx-4 mb-8 px-4 py-3 sm:-mx-6 sm:px-6 lg:hidden
+                            border-y
+                            ${darkMode ? 'border-white/10 bg-[#0a0a0a]/96' : 'border-[#c79b5d]/24 bg-[#fff8ed]/96'}
+                        `}>
+                            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsMobileSidebarOpen(true)}
+                                    data-shop-filter-trigger="sticky-summary"
+                                    aria-controls="shop-filter-drawer"
+                                    aria-expanded={isMobileSidebarOpen}
+                                    className={`min-w-0 rounded-2xl border px-4 py-3 text-left transition-all duration-300 ${darkMode ? 'border-white/10 bg-white/[0.04]' : 'border-[#c79b5d]/26 bg-white/58 shadow-[0_10px_28px_rgba(102,74,36,0.08)]'}`}
+                                >
+                                    <span className={`block text-[9px] font-black uppercase tracking-[0.22em] ${darkMode ? 'text-amber-400' : 'text-amber-800'}`}>
+                                        Menu Comptoir
+                                    </span>
+                                    <span className={`mt-1 block truncate text-sm font-bold ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                                        {activeCategoryLabel}
+                                    </span>
+                                    <span className={`mt-0.5 block truncate text-[11px] font-semibold ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>
+                                        {activePriceLabel}
+                                    </span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsMobileSidebarOpen(true)}
+                                    data-shop-filter-trigger="sticky-action"
+                                    className={`inline-flex h-14 items-center justify-center gap-2 rounded-full px-4 text-[10px] font-black uppercase tracking-[0.16em] transition-all duration-300 active:scale-[0.98] ${darkMode ? 'bg-white text-stone-950' : 'bg-stone-950 text-white'}`}
+                                    aria-controls="shop-filter-drawer"
+                                    aria-expanded={isMobileSidebarOpen}
+                                    aria-label="Ouvrir les filtres du Comptoir"
+                                >
+                                    <SlidersHorizontal size={17} strokeWidth={1.8} />
+                                    <span className="hidden min-[390px]:inline">Affiner</span>
+                                </button>
                             </div>
-                            <div>
-                                <p className={`text-[9px] font-black uppercase tracking-[0.24em] ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>Prix</p>
-                                <p className={`mt-1 text-sm font-semibold ${darkMode ? 'text-stone-200' : 'text-stone-800'}`}>{activePriceLabel}</p>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => setIsMobileSidebarOpen(true)}
-                                className={`inline-flex h-11 items-center justify-center rounded-full text-[10px] font-black uppercase tracking-[0.18em] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${darkMode ? 'bg-white text-stone-950' : 'bg-stone-950 text-white'}`}
-                            >
-                                Affiner
-                            </button>
                         </div>
+
                         {visibleFamilies.map((family, familyIndex) => {
                             const products = getProductsForFamily(family.id);
 
@@ -713,7 +760,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
                                     </div>
 
                                     {/* Products grid - editorial block inline after 4th card */}
-                                    <div className="product-grid grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 xl:gap-6">
+                                    <div className="product-grid grid grid-flow-dense grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 xl:gap-6">
                                         {products.map((product, index) => (
                                             <React.Fragment key={product.id}>
                                                 <ShopProductCard
@@ -902,6 +949,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
                                 </section>
                             );
                         })}
+                        </div>
                     </div>
                 </section>
             </div>

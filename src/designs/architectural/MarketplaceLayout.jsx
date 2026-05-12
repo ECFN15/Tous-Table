@@ -555,7 +555,7 @@ const MarketplaceLayout = ({
     // Map<itemId, ratio h/w> — gelé à la première rencontre pour figer les placements.
     const heightsRef = useRef(new Map());
     // Timer pour clear `freshOrder` après la fin de l'animation (libère le will-change
-    // GPU des cartes fraîches). Cf. _DOCS/AUDITS/scrolllenis.md §3.4.B.
+    // GPU des cartes fraîches).
     const freshClearTimerRef = useRef(null);
     const revealTimersRef = useRef([]);
     const loadMoreRunRef = useRef(0);
@@ -1209,7 +1209,7 @@ const MarketplaceLayout = ({
                            Le browser maintient un placeholder de hauteur via contain-intrinsic-size,
                            puis active layout/paint dès que la carte approche du viewport.
                            Gain mesuré : ~5× sur le frame-time scroll d'une grille de 100 cartes.
-                           Cf. _DOCS/AUDITS/scrolllenis.md §3.4.A. */
+                           Les cartes hors viewport restent hors paint jusqu'à approche du viewport. */
                         .tat-card-shell {
                             content-visibility: auto;
                             contain-intrinsic-size: auto 480px;

@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { SlidersHorizontal, X } from 'lucide-react';
-import { lockLenis } from '../../utils/smoothScroll';
+import { lockPageScroll } from '../../utils/smoothScroll';
 
 const ShopSidebar = ({
     categories,
@@ -16,36 +16,63 @@ const ShopSidebar = ({
     isMobileOpen = false,
     onMobileClose
 }) => {
+    const closeButtonRef = useRef(null);
+    const sheetRef = useRef(null);
+
     useEffect(() => {
         let unlock = null;
-        if (isMobileOpen) {
-            unlock = lockLenis();
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
-        }
-        return () => {
-            unlock?.();
-            document.body.style.overflow = '';
+        const handleKeyDown = (event) => {
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                onMobileClose?.();
+                return;
+            }
+
+            if (event.key !== 'Tab' || !sheetRef.current) return;
+            const focusable = sheetRef.current.querySelectorAll(
+                'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+            );
+            if (focusable.length === 0) return;
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
         };
-    }, [isMobileOpen]);
+
+        if (isMobileOpen) {
+            unlock = lockPageScroll();
+            requestAnimationFrame(() => closeButtonRef.current?.focus());
+            window.addEventListener('keydown', handleKeyDown);
+        }
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            unlock?.();
+        };
+    }, [isMobileOpen, onMobileClose]);
 
     const handleMobileCategory = (categoryId) => {
         onCategoryChange(categoryId);
-        onMobileClose();
     };
 
     return (
         <>
             <aside className={`
                 hidden lg:block
-                sticky top-[72px]
-                h-[calc(100dvh-72px)]
+                sticky top-[84px]
+                h-[calc(100dvh-96px)]
                 w-[280px] xl:w-[320px]
-                float-left z-30 overflow-y-auto border-r scrollbar-thin
-                ${darkMode ? 'bg-[#0a0a0a] border-white/5' : 'bg-[#f8f1e7]/95 border-[#c79b5d]/24'}
+                self-start overflow-y-auto rounded-[28px] border tat-shop-sidebar-scroll
+                shadow-[0_18px_50px_rgba(74,54,32,0.08)]
+                ${darkMode ? 'bg-[#0a0a0a]/96 border-white/8' : 'bg-[#f8f1e7]/96 border-[#c79b5d]/28'}
             `}>
-                <div className="space-y-7 p-6 xl:p-8">
+                <div className="space-y-6 p-5 xl:p-6">
                     <div className={`rounded-[24px] border p-4 ${darkMode ? 'border-white/10 bg-white/[0.035]' : 'border-[#c79b5d]/24 bg-white/55'}`}>
                         <div className="flex items-center justify-between gap-4">
                             <div>
@@ -187,26 +214,33 @@ const ShopSidebar = ({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onMobileClose}
-                        className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+                        className="fixed inset-0 z-[1200] bg-black/62 lg:hidden"
                     />
 
                     <motion.div
+                        ref={sheetRef}
+                        id="shop-filter-drawer"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="shop-filter-title"
                         initial={{ y: '100%' }}
                         animate={{ y: 0 }}
                         exit={{ y: '100%' }}
                         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
                         className={`
-                            fixed bottom-0 left-0 right-0 z-50 lg:hidden
-                            max-h-[82vh] overflow-y-auto rounded-t-[28px]
+                            ios-modal-scroll fixed bottom-0 left-0 right-0 z-[1210] lg:hidden
+                            max-h-[min(82dvh,720px)] overflow-y-auto rounded-t-[28px]
                             ${darkMode ? 'bg-[#0a0a0a] border-t border-white/10' : 'bg-white border-t border-stone-200'}
                         `}
-                        data-lenis-prevent
+                        data-scroll-region
                     >
-                        <div className="sticky top-0 flex items-center justify-between px-6 pb-2 pt-4">
+                        <div className={`sticky top-0 z-10 flex items-center justify-between px-6 pb-2 pt-4 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-white'}`}>
                             <div className={`mx-auto h-1 w-12 rounded-full ${darkMode ? 'bg-white/20' : 'bg-stone-300'}`} />
                             <button
+                                ref={closeButtonRef}
                                 type="button"
                                 onClick={onMobileClose}
+                                aria-label="Fermer les filtres du Comptoir"
                                 className={`absolute right-6 top-4 rounded-full p-2 transition-colors ${darkMode ? 'hover:bg-white/10' : 'hover:bg-stone-100'}`}
                             >
                                 <X size={20} className={darkMode ? 'text-stone-400' : 'text-stone-600'} />
@@ -215,7 +249,7 @@ const ShopSidebar = ({
 
                         <div className="space-y-6 px-6 pb-8">
                             <div className="space-y-2">
-                                <h2 className={`font-serif text-2xl ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                                <h2 id="shop-filter-title" className={`font-serif text-2xl ${darkMode ? 'text-white' : 'text-stone-900'}`}>
                                     Filtres Comptoir
                                 </h2>
                                 <p className={`text-sm ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
@@ -294,6 +328,16 @@ const ShopSidebar = ({
                                     })}
                                 </div>
                             </div>
+                        </div>
+
+                        <div className={`sticky bottom-0 px-6 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-white'}`}>
+                            <button
+                                type="button"
+                                onClick={onMobileClose}
+                                className={`flex min-h-12 w-full items-center justify-center rounded-full px-5 text-[11px] font-black uppercase tracking-[0.16em] transition-all duration-300 active:scale-[0.98] ${darkMode ? 'bg-amber-400 text-stone-950' : 'bg-stone-950 text-white'}`}
+                            >
+                                Voir {filteredProductCount} produit{filteredProductCount > 1 ? 's' : ''}
+                            </button>
                         </div>
                     </motion.div>
                 </>

@@ -9,7 +9,7 @@ import { Elements } from '@stripe/react-stripe-js';
 import { stripePromise } from '../main';
 import CheckoutPaymentStep from '../components/cart/CheckoutPaymentStep';
 import { useToast } from '../components/ui/Toast';
-import { lockLenis, scrollToTarget } from '../utils/smoothScroll';
+import { lockPageScroll, scrollToTarget } from '../utils/smoothScroll';
 
 /**
  * PremiumActionBtn — Bouton Ultra-Premium (Mouse Tracking + Morphing Loading)
@@ -193,7 +193,7 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
     const [unavailableItems, setUnavailableItems] = useState([]);
     const [isCleaningUp, setIsCleaningUp] = useState(false);
     const scrollYRef = useRef(0);
-    const unlockLenisRef = useRef(null);
+    const unlockPageScrollRef = useRef(null);
     const wasPaymentModalOpenRef = useRef(false);
 
     // iOS Safari scroll lock — empêche le body de scroller derrière la modale Stripe
@@ -201,7 +201,7 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
         if (checkoutState === 'ready_to_pay') {
             if (!wasPaymentModalOpenRef.current) {
                 scrollYRef.current = window.scrollY;
-                unlockLenisRef.current = lockLenis();
+                unlockPageScrollRef.current = lockPageScroll();
             }
             wasPaymentModalOpenRef.current = true;
             document.body.classList.add('modal-open');
@@ -210,8 +210,8 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
             document.body.classList.remove('modal-open');
             document.body.style.top = '';
             if (wasPaymentModalOpenRef.current) {
-                unlockLenisRef.current?.();
-                unlockLenisRef.current = null;
+                unlockPageScrollRef.current?.();
+                unlockPageScrollRef.current = null;
                 scrollToTarget(scrollYRef.current, { immediate: true, duration: 0 });
             }
             wasPaymentModalOpenRef.current = false;
@@ -219,8 +219,8 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
         return () => {
             document.body.classList.remove('modal-open');
             document.body.style.top = '';
-            unlockLenisRef.current?.();
-            unlockLenisRef.current = null;
+            unlockPageScrollRef.current?.();
+            unlockPageScrollRef.current = null;
             wasPaymentModalOpenRef.current = false;
         };
     }, [checkoutState]);
@@ -298,12 +298,19 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
 
     useEffect(() => {
         if (!showSuggestions) return;
-        const update = () => updateDropdownPosition();
-        window.addEventListener('scroll', update, true);
-        window.addEventListener('resize', update);
+        let raf = 0;
+        const update = () => {
+            if (raf) return;
+            raf = requestAnimationFrame(() => {
+                raf = 0;
+                updateDropdownPosition();
+            });
+        };
+        window.addEventListener('scroll', update, { capture: true, passive: true });
+        window.addEventListener('resize', update, { passive: true });
         if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', update);
-            window.visualViewport.addEventListener('scroll', update);
+            window.visualViewport.addEventListener('resize', update, { passive: true });
+            window.visualViewport.addEventListener('scroll', update, { passive: true });
         }
         return () => {
             window.removeEventListener('scroll', update, true);
@@ -312,6 +319,7 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                 window.visualViewport.removeEventListener('resize', update);
                 window.visualViewport.removeEventListener('scroll', update);
             }
+            if (raf) cancelAnimationFrame(raf);
         };
     }, [showSuggestions]);
 

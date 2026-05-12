@@ -14,9 +14,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 // --- IMPORTS CONFIG & UTILS ---
 import { db, appId, functions, googleProvider } from './firebase/config';
 import { getMillis } from './utils/time';
-import { lockLenis, scrollToTarget, scrollToTop } from './utils/smoothScroll';
+import { lockPageScroll, scrollToTarget, scrollToTop } from './utils/smoothScroll';
 import { useLiveTheme } from './hooks/useLiveTheme'; // Import hook for forcedMode check
-import { useLenisScroll } from './hooks/useLenisScroll'; // Smooth scroll global (cf. _DOCS/AUDITS/scrolllenis.md)
 import {
   getFurnitureCategoryPath,
   getProductPath,
@@ -93,10 +92,6 @@ const getCachedContactInfo = () => {
 
 const AppContent = () => {
   const toast = useToast();
-
-  // Smooth scroll global — instance Lenis UNIQUE pour toute l'app, drivée par gsap.ticker
-  // pour rester en lockstep avec ScrollTrigger (cf. _DOCS/AUDITS/scrolllenis.md).
-  useLenisScroll();
 
   // Use Auth Context
   const { user, isAdmin, loading: authLoading, loginWithGoogle, loginWithEmail, signupWithEmail, logout, verifyEmail } = useAuth();
@@ -214,7 +209,7 @@ const AppContent = () => {
     if (anyModalOpen) {
       if (!wasModalOpenRef.current) {
         scrollYRef.current = window.scrollY;
-        modalUnlockRef.current = lockLenis();
+        modalUnlockRef.current = lockPageScroll();
       }
       wasModalOpenRef.current = true;
       document.body.classList.add('modal-open');

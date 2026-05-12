@@ -1,7 +1,7 @@
 ﻿import React, { useEffect, useState, useMemo } from 'react';
 import { useLiveTheme } from '../hooks/useLiveTheme';
 import { useCallback } from 'react';
-// Note : le smooth scroll Lenis est montÃ© globalement dans App.jsx (cf. _DOCS/AUDITS/scrolllenis.md).
+// Note : la marketplace repose sur le scroll natif pour limiter le coût CPU/GPU.
 
 // DESIGNS (Layouts)
 import ArchitecturalLayout from '../designs/architectural/MarketplaceLayout';

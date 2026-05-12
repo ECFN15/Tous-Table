@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { X, Menu, Instagram, Facebook, Mail, Plus } from 'lucide-react';
-import { scrollToTop } from '../../utils/smoothScroll';
+import { lockPageScroll, scrollToTop } from '../../utils/smoothScroll';
 
 // ── Courbes d'easing (approximation fidèle des springs Framer Motion) ──
 // Open spring (stiffness:250, damping:35, mass:0.8) → ζ≈1.24 overdamped → pas d'oscillation
@@ -150,6 +150,11 @@ const GlobalMenu = ({
     const [transitionsReady, setTransitionsReady] = useState(false);
 
     useEffect(() => { setTransitionsReady(true); }, []);
+    useEffect(() => {
+        if (!isMenuOpen) return undefined;
+        return lockPageScroll();
+    }, [isMenuOpen]);
+
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 1024);
         window.addEventListener('resize', handleResize);

@@ -39,7 +39,7 @@ const shouldDelayExpensiveImageWork = () => {
     if (typeof window === 'undefined') return false;
     ensureNativeScrollTracking();
     const nativeScrollInProgress = nativeScrollTrackingReady && (performance.now() - lastNativeScrollAt < 360);
-    return window.__lenis?.isScrolling || nativeScrollInProgress;
+    return nativeScrollInProgress;
 };
 
 const requestIdle = (callback) => {

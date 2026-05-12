@@ -4,9 +4,8 @@ import StackedCards from '../components/home/StackedCards'; // New Import
 import ProcessSection from '../components/home/ProcessSection'; // New Component (Hybrid Layout)
 
 // --- NPM IMPORTS (remplace les anciens CDN) ---
-// NOTE : Lenis n'est plus importé ici. L'instance unique vit au niveau App.jsx via
-// useLenisScroll() (cf. _DOCS/AUDITS/scrolllenis.md). ScrollTrigger reste lockstep avec
-// Lenis grâce à gsap.ticker.add(lenis.raf) dans le hook global.
+// NOTE : le site utilise désormais le scroll natif. ScrollTrigger reste limité aux
+// animations de la page d'accueil et écoute le scroll navigateur standard.
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 gsap.registerPlugin(ScrollTrigger);
@@ -583,11 +582,9 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
     };
   }, [scriptsLoaded]);
 
-  // --- LENIS — instance hoisée au niveau App.jsx ---
-  // Le smooth-scroll de cette page utilise l'instance unique exposée sur window.__lenis
-  // (cf. src/hooks/useLenisScroll.js). Plus de RAF/Lenis local : ScrollTrigger reste en
-  // lockstep avec Lenis grâce à gsap.ticker.add(lenis.raf) dans le hook global.
-  // Cf. _DOCS/AUDITS/scrolllenis.md pour le contexte de cet audit.
+  // --- SCROLL NATIF ---
+  // Aucun moteur de smooth-scroll global n'est monté ici. Les animations GSAP de Home
+  // suivent le scroll navigateur standard pour éviter un RAF permanent sur tout le site.
 
   // --- GSAP ORCHESTRATION ---
   useLayoutEffect(() => {

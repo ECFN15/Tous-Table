@@ -54,6 +54,7 @@ const ThreeBackground = ({ onReady }) => {
     let animationId = 0;
     let resizeRaf = 0;
     let scrollRaf = 0;
+    let scrollResumeTimer = 0;
     let lastWidth = window.innerWidth;
     let lastHeight = window.innerHeight;
     let isRendering = false;
@@ -98,10 +99,17 @@ const ThreeBackground = ({ onReady }) => {
 
     const updatePauseFromScroll = () => {
       scrollRaf = 0;
-      setPaused(shouldPauseForScroll());
+      if (shouldPauseForScroll()) setPaused(true);
     };
 
     const schedulePauseUpdate = () => {
+      stopRendering();
+      if (scrollResumeTimer) window.clearTimeout(scrollResumeTimer);
+      scrollResumeTimer = window.setTimeout(() => {
+        scrollResumeTimer = 0;
+        setPaused(shouldPauseForScroll());
+      }, touchDevice ? 260 : 180);
+
       if (scrollRaf) return;
       scrollRaf = requestAnimationFrame(updatePauseFromScroll);
     };
@@ -160,6 +168,7 @@ const ThreeBackground = ({ onReady }) => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       if (resizeRaf) cancelAnimationFrame(resizeRaf);
       if (scrollRaf) cancelAnimationFrame(scrollRaf);
+      if (scrollResumeTimer) window.clearTimeout(scrollResumeTimer);
       stopRendering();
       if (window.__setThreePaused === setPaused) delete window.__setThreePaused;
       if (mountRef.current?.contains(renderer.domElement)) {

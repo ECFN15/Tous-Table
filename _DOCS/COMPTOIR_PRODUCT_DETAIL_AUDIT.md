@@ -557,3 +557,70 @@ Chrome headless screenshots : desktop 1440x1000, mobile 390x900
 Resultat : build Vite OK. Warning historique de taille de chunks, sans lien avec cette refonte. Smoke HTTP local `/comptoir` OK sur Vite. Captures desktop/mobile controlees apres correction du chevauchement hero et du debordement mobile.
 
 Reste a faire : controle manuel sur vrai mobile avant deploy si possible, en particulier les paliers de prix et les categories a zero produit avec un catalogue plus grand.
+
+---
+
+## Correctif UI listing Comptoir du 2026-05-12
+
+Objectif : corriger deux regressions visuelles signalees sur desktop dans `/comptoir`, sans toucher aux routes, au tracking, aux donnees Firestore ni aux liens d'affiliation.
+
+Actions realisees :
+
+- `src/components/shop/ShopSidebar.jsx` et `src/index.css` : remplacement du scrollbar desktop gris de la sidebar par un scrollbar theme Comptoir, avec rail sombre discret et thumb ambre.
+- `src/pages/ShopView.jsx` : ajout d'un placement dense sur la grille produits pour eviter qu'un trou reste a droite quand le bloc tutoriel pleine largeur est insere apres les premieres cartes.
+
+Validation :
+
+- `npm run build` OK, avec le warning Vite historique sur les chunks volumineux.
+- Smoke visuel Chrome headless `1920x900` sur `/comptoir` : scrollbar sidebar ambre visible, premiere rangee `Protection Profonde` complete avec 5 produits avant le bloc tutoriel.
+
+---
+
+## Import sandbox brouillons nouveau lot Comptoir du 2026-05-12
+
+Objectif : placer le lot de 36 nouveaux candidats Comptoir en sandbox pour revue admin, sans publication publique et sans ecriture prod.
+
+Actions realisees :
+
+- validation locale du fichier `_DOCS/COMPTOIR_NEW_PRODUCT_CANDIDATES_2026-05.json` ;
+- dry-run sandbox : 36 documents a creer, 0 collision d'ID ;
+- import sandbox applique via `scripts/import-comptoir-new-products.cjs --target=sandbox --apply` ;
+- controle post-import : 36 documents trouves, 36 en `draft`, 0 en `published`, 0 `imageUrl`, repartition 6 produits par categorie.
+
+Validation :
+
+```bash
+npm run verify:comptoir-new-products
+node scripts/import-comptoir-new-products.cjs
+node scripts/import-comptoir-new-products.cjs --target=sandbox --apply
+```
+
+Reste a faire avant apparition publique sandbox :
+
+- remplacer les liens Amazon de recherche par les liens produit exacts avec tag `tousatable-21` ;
+- renseigner les images produit, prix indicatifs et verifier vendeur/disponibilite ;
+- publier seulement les fiches validees en passant `status` de `draft` a `published` ;
+- controler visuellement `/comptoir` et une fiche detail par categorie apres publication sandbox.
+
+---
+
+## Correctif UX filtres Comptoir du 2026-05-12
+
+Objectif : rendre le menu/filtres de `/comptoir` accessible pendant le scroll sur desktop, laptop trackpad, tablette et mobile, sans changer les donnees, le tracking ni les liens d'affiliation.
+
+Actions realisees :
+
+- `src/pages/ShopView.jsx` : passage de la zone produits en vraie grille responsive avec colonne sidebar desktop/laptop, suppression du padding gauche manuel et remplacement de `overflow-x-hidden` par `overflow-x-clip` sur la vue Comptoir.
+- `src/components/shop/ShopSidebar.jsx` : suppression du modele `float-left`, sidebar desktop sticky dans son conteneur avec scroll interne et top stable a `84px`.
+- Mobile/tablette : remplacement du petit FAB par une barre fixe explicite en bas, ajout d'un recap sticky en haut de la zone produits, padding bas safe-area pour ne pas masquer les dernieres cartes.
+- Drawer mobile : z-index au-dessus du header global, scroll lock via `lockPageScroll` uniquement, role dialog, `aria-modal`, focus initial sur fermeture, fermeture Escape, trap focus et CTA sticky `Voir les produits`.
+
+Validation :
+
+```bash
+npm run build
+git diff --check
+Playwright local via Vite 5176 : 1024x768, 1280x800, 390x844
+```
+
+Resultat : build Vite OK. Sur 1024 et 1280, la sidebar reste visible a `top:84px` apres scroll long. Sur mobile 390, la barre fixe reste visible en bas, le drawer s'ouvre en dialog `z-index:1210`, le CTA est visible et Escape ferme correctement. Les erreurs console observees en local viennent du fallback `publicCatalog` bloque par CORS sur `127.0.0.1`, sans lien avec ce correctif UI.

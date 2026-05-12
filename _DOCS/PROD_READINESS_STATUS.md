@@ -205,6 +205,26 @@ Deploiement Hosting du 2026-05-08 :
 - Secrets attaches: 11.
 - Aucune valeur sensible affichee par le script.
 
+Deploiement Hosting du 2026-05-12 :
+
+- Accord utilisateur explicite recu pour deployer en prod avec `.agent\workflows\production_workflow.md`.
+- Runbook prod relu : `_DOCS/DEPLOIEMENT_PROD_RUNBOOK.md`.
+- `firebase use` initial : `tatmadeinnormandie`.
+- `firebase use prod` : alias prod actif sur `tousatable-client`.
+- `npm run preflight:prod` : OK.
+- Mapping meubles prod valide : 30 meubles prod, mapping 30, aucun manquant, aucun extra, aucune categorie invalide.
+- SEO roadmap : 16 checks passes.
+- Analytics reliability : OK.
+- Syntaxe Functions : OK.
+- Build prod : OK. Avertissement Vite conserve sur certains chunks > 500 kB.
+- Bundle prod : OK, aucune config sandbox ni loader Stripe actif.
+- Audit Functions prod : 30 Functions, 30 avec legacy env vars, 90 legacy env vars au total, 11 secrets attaches ; aucune valeur sensible affichee.
+- `firebase deploy --only hosting --project tousatable-client` : OK, release Hosting publiee.
+- `firebase use default` : retour sur `tatmadeinnormandie`.
+- Smokes publics : `/`, `/meubles-anciens`, `/planches-a-decouper-anciennes`, `/comptoir`, `/admin`, `https://tousatable-client.web.app/` et `publicCatalog` HTTP 200.
+- `npm run audit:public-seo` : OK, 32 checks passes.
+- Aucune ecriture Firestore prod, aucune modification rules, aucun deploiement Functions.
+
 ## Reste a suivre
 
 1. Decider le traitement des legacy env vars Functions: nettoyage + rotation recommandes.
