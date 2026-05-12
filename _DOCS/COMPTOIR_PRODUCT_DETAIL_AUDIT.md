@@ -614,6 +614,7 @@ Actions realisees :
 - `src/components/shop/ShopSidebar.jsx` : suppression du modele `float-left`, sidebar desktop sticky dans son conteneur avec scroll interne et top stable a `84px`.
 - Mobile/tablette : remplacement du petit FAB par une barre fixe explicite en bas, ajout d'un recap sticky en haut de la zone produits, padding bas safe-area pour ne pas masquer les dernieres cartes.
 - Drawer mobile : z-index au-dessus du header global, scroll lock via `lockPageScroll` uniquement, role dialog, `aria-modal`, focus initial sur fermeture, fermeture Escape, trap focus et CTA sticky `Voir les produits`.
+- Passe FrontSymmetry : sidebar desktop/laptop remontee a `top:64px`, suppression de la scrollbar visible, densification des espacements internes et variante compacte sous `720px` de hauteur pour conserver tous les filtres visibles sans scroll interne.
 
 Validation :
 
@@ -623,4 +624,4 @@ git diff --check
 Playwright local via Vite 5176 : 1024x768, 1280x800, 390x844
 ```
 
-Resultat : build Vite OK. Sur 1024 et 1280, la sidebar reste visible a `top:84px` apres scroll long. Sur mobile 390, la barre fixe reste visible en bas, le drawer s'ouvre en dialog `z-index:1210`, le CTA est visible et Escape ferme correctement. Les erreurs console observees en local viennent du fallback `publicCatalog` bloque par CORS sur `127.0.0.1`, sans lien avec ce correctif UI.
+Resultat : build Vite OK. Sur 1024 et 1280, la sidebar reste visible apres scroll long. Apres passe FrontSymmetry : `top:64px`, `overflow-y: visible`, hauteur 677px en 1024x768, 681px en 1280x800, 581px en 1024x700. Sur mobile 390, la barre fixe reste visible en bas, le drawer s'ouvre en dialog `z-index:1210`, le CTA est visible et Escape ferme correctement. Les erreurs console observees en local viennent du fallback `publicCatalog` bloque par CORS sur `127.0.0.1`, sans lien avec ce correctif UI.
