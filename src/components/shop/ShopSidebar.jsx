@@ -71,7 +71,7 @@ const ShopSidebar = ({
                 shadow-[0_16px_42px_rgba(74,54,32,0.075)]
                 ${darkMode ? 'bg-[#0a0a0a]/96 border-white/8' : 'bg-[#f8f1e7]/96 border-[#c79b5d]/28'}
             `}>
-                <div className="space-y-3.5 p-4 [@media(max-height:720px)]:space-y-3 [@media(max-height:720px)]:p-3.5 xl:p-4">
+                <div className="space-y-3.5 p-4 pb-6 [@media(max-height:720px)]:space-y-3 [@media(max-height:720px)]:p-3.5 [@media(max-height:720px)]:pb-4 xl:p-4 xl:pb-6">
                     <div className={`rounded-[18px] border p-3 ${darkMode ? 'border-white/10 bg-white/[0.035]' : 'border-[#c79b5d]/24 bg-white/55'}`}>
                         <div className="flex items-center justify-between gap-4">
                             <div>
