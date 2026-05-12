@@ -21,6 +21,125 @@ let cachedAnalyticsSessionsLoadedAt = null;
 let cachedAffiliateClicks = null;
 let cachedAffiliateClicksLoadedAt = null;
 
+const ADMIN_ANALYTICS_CACHE_DB = 'tat-admin-analytics-cache-v1';
+const ADMIN_ANALYTICS_CACHE_STORE = 'snapshots';
+const ADMIN_ANALYTICS_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
+const ADMIN_SESSIONS_CACHE_KEY = 'traffic-sessions';
+const ADMIN_AFFILIATE_CACHE_KEY = 'affiliate-clicks';
+const OMIT_CACHE_FIELDS = new Set(['email', 'syncTokenHash', 'userAgent']);
+
+const openAdminAnalyticsCache = () => new Promise((resolve, reject) => {
+    if (typeof window === 'undefined' || !window.indexedDB) {
+        reject(new Error('IndexedDB unavailable'));
+        return;
+    }
+
+    const request = window.indexedDB.open(ADMIN_ANALYTICS_CACHE_DB, 1);
+    request.onupgradeneeded = () => {
+        const database = request.result;
+        if (!database.objectStoreNames.contains(ADMIN_ANALYTICS_CACHE_STORE)) {
+            database.createObjectStore(ADMIN_ANALYTICS_CACHE_STORE, { keyPath: 'key' });
+        }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error('IndexedDB open failed'));
+});
+
+const serializeAnalyticsCacheValue = (value) => {
+    if (value === null || value === undefined) return value;
+    if (typeof value === 'number' || typeof value === 'string' || typeof value === 'boolean') return value;
+    if (value instanceof Date) return { __tatType: 'timestamp', seconds: Math.floor(value.getTime() / 1000), nanoseconds: (value.getTime() % 1000) * 1000000 };
+    if (typeof value.toMillis === 'function') {
+        const ms = value.toMillis();
+        return { __tatType: 'timestamp', seconds: Math.floor(ms / 1000), nanoseconds: (ms % 1000) * 1000000 };
+    }
+    if (Array.isArray(value)) return value.map(serializeAnalyticsCacheValue);
+    if (typeof value === 'object') {
+        return Object.entries(value).reduce((acc, [key, item]) => {
+            if (!OMIT_CACHE_FIELDS.has(key) && typeof item !== 'function') {
+                acc[key] = serializeAnalyticsCacheValue(item);
+            }
+            return acc;
+        }, {});
+    }
+    return null;
+};
+
+const deserializeAnalyticsCacheValue = (value) => {
+    if (value === null || value === undefined) return value;
+    if (Array.isArray(value)) return value.map(deserializeAnalyticsCacheValue);
+    if (typeof value === 'object') {
+        if (value.__tatType === 'timestamp' && typeof value.seconds === 'number') {
+            return Timestamp.fromMillis((value.seconds * 1000) + Math.round((value.nanoseconds || 0) / 1000000));
+        }
+        return Object.entries(value).reduce((acc, [key, item]) => {
+            acc[key] = deserializeAnalyticsCacheValue(item);
+            return acc;
+        }, {});
+    }
+    return value;
+};
+
+const readAdminAnalyticsCache = async (key) => {
+    try {
+        const database = await openAdminAnalyticsCache();
+        return await new Promise((resolve, reject) => {
+            const tx = database.transaction(ADMIN_ANALYTICS_CACHE_STORE, 'readwrite');
+            const store = tx.objectStore(ADMIN_ANALYTICS_CACHE_STORE);
+            const request = store.get(key);
+            request.onsuccess = () => {
+                const snapshot = request.result;
+                if (!snapshot || snapshot.version !== 1 || snapshot.expiresAt < Date.now()) {
+                    if (snapshot) store.delete(key);
+                    resolve(null);
+                    return;
+                }
+                resolve({
+                    loadedAt: snapshot.loadedAt,
+                    data: deserializeAnalyticsCacheValue(snapshot.data)
+                });
+            };
+            request.onerror = () => reject(request.error || new Error('IndexedDB read failed'));
+        });
+    } catch {
+        return null;
+    }
+};
+
+const writeAdminAnalyticsCache = async (key, data, loadedAt) => {
+    try {
+        const database = await openAdminAnalyticsCache();
+        await new Promise((resolve, reject) => {
+            const tx = database.transaction(ADMIN_ANALYTICS_CACHE_STORE, 'readwrite');
+            tx.objectStore(ADMIN_ANALYTICS_CACHE_STORE).put({
+                key,
+                version: 1,
+                loadedAt,
+                expiresAt: loadedAt + ADMIN_ANALYTICS_CACHE_TTL_MS,
+                data: serializeAnalyticsCacheValue(data)
+            });
+            tx.oncomplete = resolve;
+            tx.onerror = () => reject(tx.error || new Error('IndexedDB write failed'));
+        });
+    } catch {
+        // Le cache local ne doit jamais bloquer l'analytics admin.
+    }
+};
+
+const clearAdminAnalyticsCache = async (key) => {
+    try {
+        const database = await openAdminAnalyticsCache();
+        await new Promise((resolve, reject) => {
+            const tx = database.transaction(ADMIN_ANALYTICS_CACHE_STORE, 'readwrite');
+            tx.objectStore(ADMIN_ANALYTICS_CACHE_STORE).delete(key);
+            tx.oncomplete = resolve;
+            tx.onerror = () => reject(tx.error || new Error('IndexedDB delete failed'));
+        });
+    } catch {
+        // Ignorer si le cache navigateur n'est pas disponible.
+    }
+};
+
 // ─── Custom SVG Bar Chart — Premium responsive (remplace Recharts) ──
 const TrafficChart = ({ data, darkMode, valueLabel = 'visite', animationKey = 0 }) => {
     const containerRef = useRef(null);
@@ -380,12 +499,107 @@ const formatBoutiqueSlot = (time, step) => {
     return d.toLocaleDateString('fr-FR', { month: '2-digit', year: 'numeric' });
 };
 
+const alignBoutiqueSlotStart = (time, step) => {
+    const d = new Date(time);
+    if (step < 60 * 60 * 1000) {
+        const minutes = Math.floor(d.getMinutes() / Math.max(1, step / 60000)) * Math.max(1, step / 60000);
+        d.setMinutes(minutes, 0, 0);
+        return d.getTime();
+    }
+    if (step < 24 * 60 * 60 * 1000) {
+        const hours = Math.floor(d.getHours() / Math.max(1, step / 3600000)) * Math.max(1, step / 3600000);
+        d.setHours(hours, 0, 0, 0);
+        return d.getTime();
+    }
+    d.setHours(0, 0, 0, 0);
+    return d.getTime();
+};
+
+const buildBoutiqueTimeline = (now, duration, step, withVisitors = false) => {
+    const cutoff = now - duration;
+    const start = alignBoutiqueSlotStart(cutoff, step);
+    const end = alignBoutiqueSlotStart(now, step);
+    const timeline = [];
+    const slotMap = new Map();
+    for (let t = start; t <= end; t += step) {
+        const slot = { timestamp: t, name: formatBoutiqueSlot(t, step), visites: 0 };
+        if (withVisitors) slot.visitors = new Set();
+        timeline.push(slot);
+        slotMap.set(t, slot);
+    }
+    return { cutoff, timeline, slotMap };
+};
+
 const isComptoirPageView = (page) => page === 'shop' || page === 'shop-detail' || page === 'comptoir';
 const isComptoirJourneyStep = (step) => {
     const page = step?.page;
-    return isComptoirPageView(page) || page === 'affiliate_shop_grid' || page === 'affiliate_shop_detail' || page === 'affiliate_shop_tutorial';
+    return isComptoirPageView(page) || String(page || '').startsWith('affiliate_');
 };
 const isAffiliateJourneyStep = (page) => page === 'comptoir' || String(page || '').startsWith('affiliate_');
+
+const parseJourneyClockTime = (sessionStartedAt, timeLabel) => {
+    const started = getMillis(sessionStartedAt);
+    const match = String(timeLabel || '').match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+    if (!started || !match) return 0;
+
+    const date = new Date(started);
+    date.setHours(Number(match[1]), Number(match[2]), Number(match[3] || 0), 0);
+    let candidate = date.getTime();
+    if (candidate < started - 12 * 60 * 60 * 1000) candidate += 24 * 60 * 60 * 1000;
+    if (candidate > started + 12 * 60 * 60 * 1000) candidate -= 24 * 60 * 60 * 1000;
+    return candidate;
+};
+
+const getJourneyStepMillis = (session, step) => {
+    const exact = getMillis(step?.timestampMs || step?.clientAtMs || step?.at);
+    if (exact) return exact;
+    return parseJourneyClockTime(session?.startedAt, step?.time) || getMillis(session?.startedAt);
+};
+
+const getFirstComptoirStepMillis = (session) => {
+    const step = (session?.journey || []).find(isComptoirJourneyStep);
+    return step ? getJourneyStepMillis(session, step) : 0;
+};
+
+const formatJourneyStepTime = (session, step) => {
+    const exact = getMillis(step?.timestampMs || step?.clientAtMs || step?.at);
+    if (exact) return new Date(exact).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    return step?.time || '--:--';
+};
+
+const getTrackingItemParts = (rawItemId) => {
+    const raw = String(rawItemId || '').trim();
+    if (!raw) return { id: null, label: null, context: null, source: null };
+
+    const contextMatch = raw.match(/\[(depuis|source):\s*([^\]]+)\]/i);
+    const clean = raw.replace(/\s*\[(depuis|source):\s*[^\]]+\]\s*$/i, '').trim();
+    const [rawId, ...labelParts] = clean.split('|');
+    const label = (labelParts.join('|') || rawId || '').trim();
+    const id = labelParts.length > 0 ? rawId.trim() : null;
+
+    return {
+        id,
+        label: label || null,
+        context: contextMatch ? contextMatch[2].trim() : null,
+        source: contextMatch && contextMatch[1].toLowerCase() === 'source' ? contextMatch[2].trim() : null
+    };
+};
+
+const getComptoirEventMeta = (event) => {
+    if (event.kind === 'click') return { label: 'Clic produit', accent: 'text-amber-400', dot: 'bg-amber-400', chip: 'bg-amber-500/10 border-amber-500/10 text-amber-300' };
+    if (event.page === 'shop-detail') return { label: 'Fiche Comptoir', accent: 'text-teal-400', dot: 'bg-teal-400', chip: 'bg-teal-500/10 border-teal-500/10 text-teal-300' };
+    return { label: 'Vue Comptoir', accent: 'text-blue-400', dot: 'bg-blue-400', chip: 'bg-blue-500/10 border-blue-500/10 text-blue-300' };
+};
+
+const getDayLabelFromMs = (ms, now) => {
+    const dateObj = new Date(ms);
+    const dateKey = dateObj.toLocaleDateString('fr-FR');
+    const today = new Date(now).toLocaleDateString('fr-FR');
+    const yesterday = new Date(now - 86400000).toLocaleDateString('fr-FR');
+    if (dateKey === today) return "Aujourd'hui";
+    if (dateKey === yesterday) return 'Hier';
+    return dateKey;
+};
 
 const getJourneyLabel = (page) => AFFILIATE_JOURNEY_LABELS[page] || PAGE_LABELS[page] || page || 'Inconnu';
 const getJourneyAccent = (page) => {
@@ -440,7 +654,7 @@ const SessionJourneyTrace = ({ session, darkMode, formatDuration }) => (
                                 <div className={`absolute -left-[18.5px] top-1.5 w-[7px] h-[7px] rounded-full ring-4 ${darkMode ? 'ring-stone-900/50' : 'ring-white'} ${accent.dot} transition-all group-hover/step:scale-125`}></div>
 
                                 <div className="flex flex-col gap-1 -translate-y-0.5">
-                                    <span className={`text-[8px] font-black uppercase tracking-widest leading-none ${step.page === 'comptoir' ? 'text-teal-400/60' : step.page === 'shop' ? 'text-violet-400/60' : 'text-blue-500/60'}`}>{step.time} - {formatDuration(pageDuration)} sur cette page</span>
+                                    <span className={`text-[8px] font-black uppercase tracking-widest leading-none ${step.page === 'comptoir' ? 'text-teal-400/60' : step.page === 'shop' ? 'text-violet-400/60' : 'text-blue-500/60'}`}>{formatJourneyStepTime(session, step)} - {formatDuration(pageDuration)} sur cette page</span>
                                     <p className={`font-black text-[11px] leading-tight ${darkMode ? 'text-stone-300' : 'text-stone-900'}`}>
                                         {isAffiliateStep ? 'Clic' : 'Vue'} : <span className={`uppercase ${accent.label}`}>{stepLabel}</span>
                                     </p>
@@ -621,11 +835,34 @@ const estimateComptoirDuration = (session) => {
 const BoutiqueAnalytics = ({ darkMode, sessions = [], onRefreshSessions, sessionsRefreshKey = 0, loadingSessions = false }) => {
     const [clicks, setClicks] = useState(() => cachedAffiliateClicks || []);
     const [loadingClicks, setLoadingClicks] = useState(false);
+    const [restoringClicks, setRestoringClicks] = useState(() => !cachedAffiliateClicks);
     const [timeFilter, setTimeFilter] = useState('1j');
     const [openDays, setOpenDays] = useState({});
+    const [openJourneyDays, setOpenJourneyDays] = useState({});
     const [clicksRefreshKey, setClicksRefreshKey] = useState(() => cachedAffiliateClicksLoadedAt || 0);
     const animationKey = `${sessionsRefreshKey}-${clicksRefreshKey}`;
-    const refreshing = loadingClicks || loadingSessions;
+    const refreshing = loadingClicks || loadingSessions || restoringClicks;
+    const boutiqueNow = Math.max(clicksRefreshKey || 0, sessionsRefreshKey || 0) || Date.now();
+
+    useEffect(() => {
+        let cancelled = false;
+        if (cachedAffiliateClicks) {
+            setRestoringClicks(false);
+            return () => { cancelled = true; };
+        }
+
+        readAdminAnalyticsCache(ADMIN_AFFILIATE_CACHE_KEY).then((snapshot) => {
+            if (cancelled || !snapshot) return;
+            cachedAffiliateClicks = snapshot.data || [];
+            cachedAffiliateClicksLoadedAt = snapshot.loadedAt || 0;
+            setClicks(cachedAffiliateClicks);
+            setClicksRefreshKey(cachedAffiliateClicksLoadedAt);
+        }).finally(() => {
+            if (!cancelled) setRestoringClicks(false);
+        });
+
+        return () => { cancelled = true; };
+    }, []);
 
     const sessionGeoMap = useMemo(() => {
         const m = new Map();
@@ -648,10 +885,12 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [], onRefreshSessions, session
         try {
             const snap = await getDocs(q);
             const nextClicks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            const loadedAt = Date.now();
             cachedAffiliateClicks = nextClicks;
-            cachedAffiliateClicksLoadedAt = Date.now();
+            cachedAffiliateClicksLoadedAt = loadedAt;
             setClicks(nextClicks);
-            setClicksRefreshKey(cachedAffiliateClicksLoadedAt);
+            setClicksRefreshKey(loadedAt);
+            writeAdminAnalyticsCache(ADMIN_AFFILIATE_CACHE_KEY, nextClicks, loadedAt);
             setLoadingClicks(false);
         } catch (error) {
             console.error('Affiliate clicks load error:', error);
@@ -667,53 +906,42 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [], onRefreshSessions, session
     }, [loadClicks, onRefreshSessions]);
 
     const filteredClicks = useMemo(() => {
-        const now = Date.now();
         const { duration } = getBoutiqueFilterConfig(timeFilter);
-        const cutoff = now - duration;
+        const cutoff = boutiqueNow - duration;
         return clicks.filter(c => getMillis(c.timestamp) >= cutoff);
-    }, [clicks, timeFilter]);
+    }, [clicks, timeFilter, boutiqueNow]);
 
     const comptoirSessions = useMemo(() => {
-        const now = Date.now();
         const { duration } = getBoutiqueFilterConfig(timeFilter);
-        const cutoff = now - duration;
+        const cutoff = boutiqueNow - duration;
         return sessions.filter((session) => {
-            const started = getMillis(session.startedAt);
-            if (!started || started < cutoff) return false;
-            return (session.journey || []).some(isComptoirJourneyStep);
+            const comptoirStarted = getFirstComptoirStepMillis(session);
+            return comptoirStarted && comptoirStarted >= cutoff;
         });
-    }, [sessions, timeFilter]);
+    }, [sessions, timeFilter, boutiqueNow]);
 
     const clickChartData = useMemo(() => {
-        const now = Date.now();
         const { duration, step } = getBoutiqueFilterConfig(timeFilter);
-        const cutoff = now - duration;
-        const timeline = [];
-        for (let t = cutoff; t <= now; t += step) timeline.push({ timestamp: t, name: formatBoutiqueSlot(t, step), visites: 0 });
+        const { timeline, slotMap } = buildBoutiqueTimeline(boutiqueNow, duration, step);
         filteredClicks.forEach(c => {
             const t = getMillis(c.timestamp);
             if (!t) return;
-            const idx = Math.floor((t - cutoff) / step);
-            if (idx >= 0 && idx < timeline.length) timeline[idx].visites += 1;
+            const slot = slotMap.get(alignBoutiqueSlotStart(t, step));
+            if (slot) slot.visites += 1;
         });
         return timeline;
-    }, [filteredClicks, timeFilter]);
+    }, [filteredClicks, timeFilter, boutiqueNow]);
 
     const comptoirVisitChartData = useMemo(() => {
-        const now = Date.now();
         const { duration, step } = getBoutiqueFilterConfig(timeFilter);
-        const cutoff = now - duration;
-        const timeline = [];
-        for (let t = cutoff; t <= now; t += step) {
-            timeline.push({ timestamp: t, name: formatBoutiqueSlot(t, step), visites: 0, visitors: new Set() });
-        }
+        const { timeline, slotMap } = buildBoutiqueTimeline(boutiqueNow, duration, step, true);
 
         comptoirSessions.forEach(session => {
-            const t = getMillis(session.startedAt);
+            const t = getFirstComptoirStepMillis(session);
             if (!t) return;
-            const idx = Math.floor((t - cutoff) / step);
-            if (idx < 0 || idx >= timeline.length) return;
-            timeline[idx].visitors.add(getReliableVisitorKey(session));
+            const slot = slotMap.get(alignBoutiqueSlotStart(t, step));
+            if (!slot) return;
+            slot.visitors.add(getReliableVisitorKey(session));
         });
 
         return timeline.map(slot => ({
@@ -721,7 +949,109 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [], onRefreshSessions, session
             name: slot.name,
             visites: slot.visitors.size
         }));
-    }, [comptoirSessions, timeFilter]);
+    }, [comptoirSessions, timeFilter, boutiqueNow]);
+
+    const clicksBySession = useMemo(() => {
+        const m = new Map();
+        filteredClicks.forEach((click) => {
+            if (!click.sessionId) return;
+            if (!m.has(click.sessionId)) m.set(click.sessionId, []);
+            m.get(click.sessionId).push(click);
+        });
+        return m;
+    }, [filteredClicks]);
+
+    const comptoirJourneyGroups = useMemo(() => {
+        const groups = new Map();
+
+        comptoirSessions.forEach((session) => {
+            const journeyEvents = (session.journey || [])
+                .map((step, index) => {
+                    if (!isComptoirJourneyStep(step)) return null;
+                    const item = getTrackingItemParts(step.itemId);
+                    const at = getJourneyStepMillis(session, step);
+                    return {
+                        id: `${session.id}-journey-${index}`,
+                        at,
+                        page: step.page,
+                        kind: isAffiliateJourneyStep(step.page) ? 'click' : 'visit',
+                        label: getJourneyLabel(step.page),
+                        product: item.label,
+                        productId: item.id,
+                        context: item.context,
+                        source: item.source,
+                        duration: getJourneyStepPageDuration(session, index),
+                        from: 'journey'
+                    };
+                })
+                .filter(Boolean);
+
+            const journeyClickKeys = new Set(
+                journeyEvents
+                    .filter(event => event.kind === 'click')
+                    .map(event => `${event.productId || event.product || ''}-${Math.floor(event.at / 60000)}`)
+            );
+
+            const serverClickEvents = (clicksBySession.get(session.id) || [])
+                .map((click) => {
+                    const at = getMillis(click.timestamp);
+                    const key = `${click.productId || click.productName || ''}-${Math.floor(at / 60000)}`;
+                    if (journeyClickKeys.has(key)) return null;
+                    return {
+                        id: `${session.id}-click-${click.id}`,
+                        at,
+                        page: `affiliate_${click.source || 'inconnu'}`,
+                        kind: 'click',
+                        label: SOURCE_LABELS_B[click.source] || 'Clic affilié',
+                        product: click.productName || click.productId || 'Produit inconnu',
+                        productId: click.productId || null,
+                        context: click.parentFurnitureName || click.referrer || null,
+                        source: click.source || null,
+                        duration: 0,
+                        from: 'affiliate_clicks'
+                    };
+                })
+                .filter(Boolean);
+
+            const events = [...journeyEvents, ...serverClickEvents]
+                .filter(event => event.at)
+                .sort((a, b) => a.at - b.at);
+            if (events.length === 0) return;
+
+            const firstAt = events[0].at;
+            const dayKey = new Date(firstAt).toLocaleDateString('fr-FR');
+            if (!groups.has(dayKey)) {
+                groups.set(dayKey, {
+                    key: dayKey,
+                    label: getDayLabelFromMs(firstAt, boutiqueNow),
+                    timestamp: new Date(firstAt).setHours(0, 0, 0, 0),
+                    sessions: []
+                });
+            }
+
+            const products = [...new Set(events.map(event => event.product).filter(Boolean))];
+            groups.get(dayKey).sessions.push({
+                id: session.id,
+                shortId: session.id.slice(0, 8),
+                location: formatSessionLocation(session.id),
+                visitorKey: getReliableVisitorKey(session),
+                device: [session.os, session.browser].filter(Boolean).join(' - ') || session.device || 'Device inconnu',
+                firstAt,
+                lastAt: events[events.length - 1].at,
+                events,
+                products,
+                visits: events.filter(event => event.kind === 'visit').length,
+                clicks: events.filter(event => event.kind === 'click').length
+            });
+        });
+
+        return Array.from(groups.values())
+            .map(group => ({
+                ...group,
+                sessions: group.sessions.sort((a, b) => b.firstAt - a.firstAt)
+            }))
+            .sort((a, b) => b.timestamp - a.timestamp);
+    }, [comptoirSessions, clicksBySession, boutiqueNow]);
 
     const topProducts = useMemo(() => {
         const counts = {};
@@ -764,8 +1094,8 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [], onRefreshSessions, session
 
     const sessionsByDay = useMemo(() => {
         const groups = {};
-        const today = new Date().toLocaleDateString('fr-FR');
-        const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('fr-FR');
+        const today = new Date(boutiqueNow).toLocaleDateString('fr-FR');
+        const yesterday = new Date(boutiqueNow - 86400000).toLocaleDateString('fr-FR');
 
         filteredClicks.forEach(c => {
             const t = getMillis(c.timestamp);
@@ -799,7 +1129,7 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [], onRefreshSessions, session
                 clicks: clicksList.sort((a, b) => getMillis(b.timestamp) - getMillis(a.timestamp))
             })).sort((a, b) => getMillis(b.clicks[0].timestamp) - getMillis(a.clicks[0].timestamp))
         })).sort((a, b) => b.timestamp - a.timestamp);
-    }, [filteredClicks]);
+    }, [filteredClicks, boutiqueNow]);
 
     useEffect(() => {
         if (sessionsByDay.length > 0) {
@@ -810,6 +1140,16 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [], onRefreshSessions, session
             });
         }
     }, [sessionsByDay.length]);
+
+    useEffect(() => {
+        if (comptoirJourneyGroups.length > 0) {
+            const firstKey = comptoirJourneyGroups[0].key;
+            setOpenJourneyDays(prev => {
+                if (Object.keys(prev).length === 0) return { [firstKey]: true };
+                return prev;
+            });
+        }
+    }, [comptoirJourneyGroups.length]);
 
     const kpis = useMemo(() => {
         const peak = clickChartData.length > 0 ? clickChartData.reduce((best, d) => d.visites > best.visites ? d : best, clickChartData[0]) : null;
@@ -839,6 +1179,11 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [], onRefreshSessions, session
         if (!window.confirm("☢️ ACTION CRITIQUE : Supprimer TOUS les clics affiliés (boutique) définitivement ?")) return;
         try {
             await httpsCallable(functions, 'clearAllAffiliateClicks')({});
+            cachedAffiliateClicks = [];
+            cachedAffiliateClicksLoadedAt = Date.now();
+            setClicks([]);
+            setClicksRefreshKey(cachedAffiliateClicksLoadedAt);
+            clearAdminAnalyticsCache(ADMIN_AFFILIATE_CACHE_KEY);
         } catch (e) {
             console.error("Clear affiliate error:", e);
             alert("Erreur lors du nettoyage des clics affiliés");
@@ -870,9 +1215,9 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [], onRefreshSessions, session
                         <RefreshCw size={13} className={refreshing ? 'inline mr-2 animate-spin' : 'inline mr-2'} />
                         Actualiser
                     </button>
-                    {cachedAffiliateClicksLoadedAt && (
+                    {clicksRefreshKey > 0 && (
                         <span className="text-[9px] font-bold uppercase tracking-widest text-stone-500">
-                            Maj {new Date(cachedAffiliateClicksLoadedAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                            Maj {new Date(clicksRefreshKey).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                         </span>
                     )}
                     <button
@@ -917,6 +1262,137 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [], onRefreshSessions, session
                         <p className={`text-[9px] mt-1 font-bold ${kpi.accent}`}>{kpi.sub}</p>
                     </div>
                 ))}
+            </div>
+
+            {/* TRACKING COMPTOIR DETAILLE */}
+            <div className={`rounded-[2rem] border overflow-hidden ${darkMode ? 'bg-[#161616] border-white/5' : 'bg-white border-stone-100 shadow-sm'}`}>
+                <div className={`p-4 sm:p-5 border-b ${darkMode ? 'border-white/5' : 'border-stone-100'}`}>
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
+                        <div>
+                            <h3 className={`text-[10px] font-black uppercase tracking-[0.3em] ${darkMode ? 'text-white/50' : 'text-stone-400'}`}>Tracking Comptoir</h3>
+                            <p className="mt-1 text-[10px] font-bold text-stone-500">Passages reels sur la boutique, fiches vues et clics produits par session.</p>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 text-right">
+                            <div>
+                                <p className="text-[8px] font-black uppercase tracking-widest text-stone-500">Sessions</p>
+                                <p className={`text-sm font-black tabular-nums ${darkMode ? 'text-white' : 'text-stone-900'}`}>{comptoirJourneyGroups.reduce((sum, group) => sum + group.sessions.length, 0)}</p>
+                            </div>
+                            <div>
+                                <p className="text-[8px] font-black uppercase tracking-widest text-stone-500">Etapes</p>
+                                <p className="text-sm font-black tabular-nums text-blue-400">{comptoirJourneyGroups.reduce((sum, group) => sum + group.sessions.reduce((acc, session) => acc + session.events.length, 0), 0)}</p>
+                            </div>
+                            <div>
+                                <p className="text-[8px] font-black uppercase tracking-widest text-stone-500">Clics</p>
+                                <p className="text-sm font-black tabular-nums text-amber-400">{comptoirJourneyGroups.reduce((sum, group) => sum + group.sessions.reduce((acc, session) => acc + session.clicks, 0), 0)}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {comptoirJourneyGroups.length > 0 ? (
+                    <div className="divide-y divide-white/5">
+                        {comptoirJourneyGroups.map((group) => {
+                            const isOpen = openJourneyDays[group.key] ?? false;
+                            return (
+                                <div key={group.key}>
+                                    <button
+                                        onClick={() => setOpenJourneyDays(prev => ({ ...prev, [group.key]: !isOpen }))}
+                                        className={`w-full p-3 sm:p-4 flex items-center justify-between gap-4 text-left transition-colors ${darkMode ? 'hover:bg-white/[0.02]' : 'hover:bg-stone-50'}`}
+                                    >
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className={`p-1.5 rounded-lg ${darkMode ? 'bg-stone-800' : 'bg-stone-50'}`}>
+                                                {isOpen ? <ChevronDown size={14} className="text-stone-400" /> : <ChevronRight size={14} className="text-stone-400" />}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <span className={`text-[11px] font-black uppercase tracking-widest ${darkMode ? 'text-white/80' : 'text-stone-900'}`}>{group.label}</span>
+                                                <span className="ml-3 text-[10px] font-bold text-stone-500">{group.sessions.length} session{group.sessions.length > 1 ? 's' : ''}</span>
+                                            </div>
+                                        </div>
+                                        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-stone-500/10 to-transparent hidden sm:block"></div>
+                                    </button>
+
+                                    {isOpen && (
+                                        <div className="px-2 sm:px-4 pb-4 space-y-3 animate-in slide-in-from-top-1 duration-200">
+                                            {group.sessions.map((session) => (
+                                                <div key={session.id} className={`rounded-2xl border overflow-hidden ${darkMode ? 'bg-stone-900 border-white/5' : 'bg-stone-50 border-stone-100'}`}>
+                                                    <div className={`p-3 sm:p-4 border-b ${darkMode ? 'border-white/5' : 'border-stone-100'}`}>
+                                                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                                                            <div className="min-w-0">
+                                                                <div className="flex flex-wrap items-center gap-2">
+                                                                    <Globe size={12} className="text-stone-500 shrink-0" />
+                                                                    <span className={`text-[10px] font-black uppercase tracking-[0.2em] truncate ${darkMode ? 'text-white/80' : 'text-stone-900'}`}>
+                                                                        {session.location || 'Localisation inconnue'}
+                                                                    </span>
+                                                                    <span className="text-[8px] font-mono text-stone-600">#{session.shortId}</span>
+                                                                </div>
+                                                                <p className="mt-1 text-[9px] font-bold uppercase text-stone-500 truncate">{session.device}</p>
+                                                            </div>
+                                                            <div className="grid grid-cols-3 gap-3 sm:min-w-[300px] text-left lg:text-right">
+                                                                <div>
+                                                                    <p className="text-[8px] font-black uppercase tracking-widest text-stone-500">Premier</p>
+                                                                    <p className={`text-[11px] font-black tabular-nums ${darkMode ? 'text-white' : 'text-stone-900'}`}>{new Date(session.firstAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</p>
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-[8px] font-black uppercase tracking-widest text-stone-500">Vues</p>
+                                                                    <p className="text-[11px] font-black tabular-nums text-blue-400">{session.visits}</p>
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-[8px] font-black uppercase tracking-widest text-stone-500">Clics</p>
+                                                                    <p className="text-[11px] font-black tabular-nums text-amber-400">{session.clicks}</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        {session.products.length > 0 && (
+                                                            <div className="mt-3 flex flex-wrap gap-1.5">
+                                                                {session.products.slice(0, 5).map((product) => (
+                                                                    <span key={product} className={`max-w-full truncate rounded-lg border px-2 py-1 text-[8px] font-bold ${darkMode ? 'bg-white/5 border-white/5 text-stone-300' : 'bg-white border-stone-200 text-stone-600'}`}>
+                                                                        {product}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="p-3 sm:p-4">
+                                                        <div className="relative pl-6 space-y-4 before:absolute before:left-[10px] before:top-2 before:bottom-2 before:w-px before:bg-stone-700/50">
+                                                            {session.events.map((event) => {
+                                                                const meta = getComptoirEventMeta(event);
+                                                                return (
+                                                                    <div key={event.id} className="relative">
+                                                                        <div className={`absolute -left-[18px] top-1.5 h-2 w-2 rounded-full ring-4 ${darkMode ? 'ring-stone-900' : 'ring-stone-50'} ${meta.dot}`} />
+                                                                        <div className="min-w-0">
+                                                                            <div className="flex flex-wrap items-center gap-2">
+                                                                                <span className={`text-[8px] font-black uppercase tracking-widest ${meta.accent}`}>{new Date(event.at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                                                                                <span className={`rounded-md border px-1.5 py-0.5 text-[8px] font-black uppercase tracking-widest ${meta.chip}`}>{meta.label}</span>
+                                                                                {event.duration > 0 && <span className="text-[8px] font-bold text-stone-600">{formatDurationLabel(event.duration)}</span>}
+                                                                            </div>
+                                                                            <p className={`mt-1 text-[11px] font-black leading-snug ${darkMode ? 'text-stone-200' : 'text-stone-900'}`}>
+                                                                                {event.label}{event.product ? <span className={meta.accent}> - {event.product}</span> : null}
+                                                                            </p>
+                                                                            {(event.context || event.source || event.productId) && (
+                                                                                <div className="mt-1 flex flex-wrap gap-1.5">
+                                                                                    {event.source && <span className="rounded-md border border-white/5 bg-white/5 px-2 py-0.5 text-[8px] font-bold text-stone-500">Source: {SOURCE_LABELS_B[event.source] || event.source}</span>}
+                                                                                    {event.context && <span className="rounded-md border border-white/5 bg-white/5 px-2 py-0.5 text-[8px] font-bold text-stone-500">Origine: {event.context}</span>}
+                                                                                    {event.productId && <span className="rounded-md border border-white/5 bg-white/5 px-2 py-0.5 text-[8px] font-mono text-stone-600">{event.productId}</span>}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <div className="p-10 text-center text-stone-500 font-bold italic text-xs">Aucun parcours Comptoir detaille sur cette periode.</div>
+                )}
             </div>
 
             {/* COMPTOIR VISITS CHART */}
@@ -1172,18 +1648,41 @@ const BoutiqueAnalytics = ({ darkMode, sessions = [], onRefreshSessions, session
 const AdminAnalytics = ({ darkMode = false }) => {
     const [sessions, setSessions] = useState(() => cachedAnalyticsSessions || []);
     const [loading, setLoading] = useState(false);
+    const [restoringSessions, setRestoringSessions] = useState(() => !cachedAnalyticsSessions);
     const [timeFilter, setTimeFilter] = useState('1j'); // Default to 24h // '1h', '1j', '7j', '1mois', '1ans'
     const [expandedSessionId, setExpandedSessionId] = useState(null);
     const [now, setNow] = useState(Date.now());
+    const [liveNow, setLiveNow] = useState(Date.now());
     const [currentPage, setCurrentPage] = useState(1);
     const DAYS_PER_PAGE = 10;
     const [view, setView] = useState('traffic');
     const [openVisitors, setOpenVisitors] = useState({});
     const [sessionsRefreshKey, setSessionsRefreshKey] = useState(() => cachedAnalyticsSessionsLoadedAt || 0);
 
-    // Refresh "now" every 30s to update "Online" vs "Finished" markers
     useEffect(() => {
-        const i = setInterval(() => setNow(Date.now()), 10000);
+        let cancelled = false;
+        if (cachedAnalyticsSessions) {
+            setRestoringSessions(false);
+            return () => { cancelled = true; };
+        }
+
+        readAdminAnalyticsCache(ADMIN_SESSIONS_CACHE_KEY).then((snapshot) => {
+            if (cancelled || !snapshot) return;
+            cachedAnalyticsSessions = snapshot.data || [];
+            cachedAnalyticsSessionsLoadedAt = snapshot.loadedAt || 0;
+            setSessions(cachedAnalyticsSessions);
+            setSessionsRefreshKey(cachedAnalyticsSessionsLoadedAt);
+            if (cachedAnalyticsSessionsLoadedAt) setNow(cachedAnalyticsSessionsLoadedAt);
+        }).finally(() => {
+            if (!cancelled) setRestoringSessions(false);
+        });
+
+        return () => { cancelled = true; };
+    }, []);
+
+    // Refresh live status without moving the analytics window away from the last refresh.
+    useEffect(() => {
+        const i = setInterval(() => setLiveNow(Date.now()), 10000);
         return () => clearInterval(i);
     }, []);
 
@@ -1239,10 +1738,10 @@ const AdminAnalytics = ({ darkMode = false }) => {
     const liveSessions = useMemo(() => {
         return sessions.filter(s => {
             const lastActiveMs = getMillis(s.lastActivityAt);
-            const isInactive = (now - lastActiveMs) > 30000;
+            const isInactive = (liveNow - lastActiveMs) > 30000;
             return s.sessionActive !== false && !isInactive;
         });
-    }, [sessions, now]);
+    }, [sessions, liveNow]);
 
     const [openDays, setOpenDays] = useState({});
     
@@ -1286,7 +1785,8 @@ const AdminAnalytics = ({ darkMode = false }) => {
             cachedAnalyticsSessionsLoadedAt = loadedAt;
             setNow(loadedAt);
             setSessions(cleanData);
-            setSessionsRefreshKey(cachedAnalyticsSessionsLoadedAt);
+            setSessionsRefreshKey(loadedAt);
+            writeAdminAnalyticsCache(ADMIN_SESSIONS_CACHE_KEY, cleanData, loadedAt);
             setLoading(false);
         } catch (error) {
             console.error("Analytics load error:", error);
@@ -1318,6 +1818,7 @@ const AdminAnalytics = ({ darkMode = false }) => {
         setLoading(true);
         try {
             await httpsCallable(functions, 'clearAllSessions')({});
+            clearAdminAnalyticsCache(ADMIN_SESSIONS_CACHE_KEY);
             await loadSessions();
             setLoading(false);
         } catch (e) {
@@ -1356,7 +1857,7 @@ const AdminAnalytics = ({ darkMode = false }) => {
                     sessionsRefreshKey={sessionsRefreshKey}
                     loadingSessions={loading}
                 />
-            ) : loading && sessions.length === 0 ? (
+            ) : (loading || restoringSessions) && sessions.length === 0 ? (
                 <div className="p-12 text-center text-stone-400 font-bold animate-pulse">Chargement Data...</div>
             ) : (<>
 
@@ -1376,9 +1877,9 @@ const AdminAnalytics = ({ darkMode = false }) => {
                         <RefreshCw size={13} className={loading ? 'inline mr-2 animate-spin' : 'inline mr-2'} />
                         Actualiser
                     </button>
-                    {cachedAnalyticsSessionsLoadedAt && (
+                    {sessionsRefreshKey > 0 && (
                         <span className="text-[9px] font-bold uppercase tracking-widest text-stone-500">
-                            Maj {new Date(cachedAnalyticsSessionsLoadedAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                            Maj {new Date(sessionsRefreshKey).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                         </span>
                     )}
                     <button
@@ -1530,7 +2031,7 @@ const AdminAnalytics = ({ darkMode = false }) => {
                                                         key={visitor.key}
                                                         darkMode={darkMode}
                                                         visitor={visitor}
-                                                        now={now}
+                                                        now={liveNow}
                                                         isOpen={visitorOpen}
                                                         onToggle={() => setOpenVisitors(prev => ({ ...prev, [visitor.key]: !visitorOpen }))}
                                                         expandedSessionId={expandedSessionId}

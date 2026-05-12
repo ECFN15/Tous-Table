@@ -84,6 +84,12 @@ const AppRouter = ({
     const { user, isAdmin, logout } = useAuth();
     const [isMoreMenuOpen, setIsMoreMenuOpen] = React.useState(false);
 
+    React.useLayoutEffect(() => {
+        if (view === 'detail' || view === 'shop-detail') {
+            scrollToTop({ immediate: true, duration: 0 });
+        }
+    }, [view, selectedItemId, selectedAffiliateProductId]);
+
     const adminTabs = [
         { id: 'dashboard', label: 'Stats', icon: Activity },
         { id: 'analytics', label: 'Data', icon: BarChart3 },

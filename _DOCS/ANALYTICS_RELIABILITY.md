@@ -309,3 +309,49 @@ Tests:
 npm run verify:analytics-reliability
 npm run build
 ```
+
+## Correctif Data admin 2026-05-12 - Cache navigateur et heures Comptoir
+
+Contexte: apres fermeture/reouverture complete de l'admin, les variables de cache module
+etaient perdues. Comme la page Data ne relit plus Firestore automatiquement pour limiter les
+couts, l'affichage repartait a 0 jusqu'au prochain clic `Actualiser`.
+
+Constat prod en lecture seule:
+
+- `affiliate_clicks` ne contient actuellement aucun document lu dans l'audit borne.
+- Des sessions recentes contiennent bien des etapes Comptoir.
+- Exemple anonymise: une session demarre a 20:12:23, mais sa premiere etape `shop`
+  est a 20:14:29. Le graphique Boutique utilisait jusque-la `session.startedAt`, ce
+  qui pouvait bucketter la visite Comptoir au mauvais creneau par rapport au tracing.
+
+Changements:
+
+- `AdminAnalytics` restaure maintenant le dernier snapshot `analytics_sessions` depuis
+  IndexedDB pendant 6h, puis le met a jour uniquement apres clic `Actualiser`.
+- `BoutiqueAnalytics` restaure aussi le dernier snapshot `affiliate_clicks` depuis
+  IndexedDB pendant 6h.
+- Les snapshots caches omettent `email`, `syncTokenHash` et `userAgent`; ils restent
+  locaux au navigateur admin et expirent automatiquement.
+- La fenetre de calcul admin reste ancree sur l'heure de derniere MAJ, au lieu de
+  glisser vers l'heure courante apres reouverture. Le statut live garde une horloge
+  separee.
+- Les nouvelles etapes `journey` envoient `timestampMs` et `timeZone`; la Function
+  les valide et les stocke si la valeur est bornee.
+- Les visites Comptoir Boutique utilisent maintenant la premiere etape Comptoir
+  horodatee. Les anciennes sessions sans `timestampMs` utilisent un fallback base sur
+  `journey[*].time` et la date de debut de session.
+- Le graphique Boutique aligne ses creneaux sur les heures rondes. Une visite a
+  20:14 est donc affichee dans le slot `20h`, et non dans le slot precedent cree par
+  une fenetre glissante non alignee.
+- L'onglet Boutique affiche maintenant un bloc `Tracking Comptoir` par jour/session:
+  passages sur la grille, fiches Comptoir vues, produits concernes, clics affiliés,
+  source/origine quand disponible, et fallback depuis `affiliate_clicks` si un clic
+  serveur existe sans etape `journey` equivalente.
+
+Tests:
+
+```bash
+npm run verify:analytics-reliability
+npm run verify:functions-syntax
+npm run build
+```

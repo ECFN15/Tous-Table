@@ -40,7 +40,13 @@ const animateScrollFallback = (top, { duration = 0.75, easing = DEFAULT_EASING }
 
 const performScroll = (top, { immediate = false, duration = 0.75, easing = DEFAULT_EASING } = {}) => {
     if (immediate || prefersReducedMotion()) {
+        const previousHtmlScrollBehavior = document.documentElement.style.scrollBehavior;
+        const previousBodyScrollBehavior = document.body.style.scrollBehavior;
+        document.documentElement.style.scrollBehavior = 'auto';
+        document.body.style.scrollBehavior = 'auto';
         window.scrollTo({ top, behavior: 'auto' });
+        document.documentElement.style.scrollBehavior = previousHtmlScrollBehavior;
+        document.body.style.scrollBehavior = previousBodyScrollBehavior;
         return;
     }
 

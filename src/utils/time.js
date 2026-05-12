@@ -1,7 +1,10 @@
 // --- HELPERS ---
 export const getMillis = (ts) => {
     if (!ts) return 0;
-    return typeof ts.toMillis === 'function' ? ts.toMillis() : (ts.seconds * 1000 || 0);
+    if (typeof ts === 'number') return Number.isFinite(ts) ? ts : 0;
+    if (ts instanceof Date) return ts.getTime();
+    if (typeof ts.toMillis === 'function') return ts.toMillis();
+    return ts.seconds * 1000 || 0;
 };
 
 export const formatTime = (ts) => {

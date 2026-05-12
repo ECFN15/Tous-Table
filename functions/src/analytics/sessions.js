@@ -30,6 +30,18 @@ const clampDuration = (value) => {
     return Math.max(0, Math.min(MAX_SESSION_DURATION_SECONDS, Math.round(duration)));
 };
 
+const clampJourneyTimestampMs = (value) => {
+    const ms = Number(value);
+    if (!Number.isFinite(ms) || ms <= 0) return null;
+
+    const now = Date.now();
+    const min = now - (366 * 24 * 60 * 60 * 1000);
+    const max = now + (5 * 60 * 1000);
+    if (ms < min || ms > max) return null;
+
+    return Math.round(ms);
+};
+
 const sanitizeString = (value, maxLength = 160) => {
     if (value === null || value === undefined) return null;
     return String(value).slice(0, maxLength);
@@ -72,12 +84,17 @@ const sanitizeJourney = (journey) => {
 
     return journey
         .slice(0, MAX_JOURNEY_CHUNK)
-        .map((step) => ({
-            page: sanitizeString(step?.page, 80) || 'unknown',
-            itemId: sanitizeString(step?.itemId, 255),
-            time: sanitizeString(step?.time, 40),
-            duration: clampDuration(step?.duration)
-        }))
+        .map((step) => {
+            const timestampMs = clampJourneyTimestampMs(step?.timestampMs);
+            return {
+                page: sanitizeString(step?.page, 80) || 'unknown',
+                itemId: sanitizeString(step?.itemId, 255),
+                time: sanitizeString(step?.time, 40),
+                timeZone: sanitizeString(step?.timeZone, 80),
+                duration: clampDuration(step?.duration),
+                ...(timestampMs ? { timestampMs } : {})
+            };
+        })
         .filter(step => step.page);
 };
 

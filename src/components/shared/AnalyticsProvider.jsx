@@ -146,6 +146,8 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
             page: current.view,
             itemId: displayId,
             time: new Date().toLocaleTimeString('fr-FR'),
+            timestampMs: actionTime,
+            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             duration: durationSinceLast
         });
         lastRecordedKeyRef.current = actionKey;
@@ -260,6 +262,8 @@ const AnalyticsProvider = ({ view, selectedItemId, selectedItemName, selectedIte
                 page: `affiliate_${source}`,
                 itemId: displayId,
                 time: new Date().toLocaleTimeString('fr-FR'),
+                timestampMs: actionTime,
+                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                 duration: durationSinceLast
             });
             hasRecordedJourneyRef.current = true;
