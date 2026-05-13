@@ -114,3 +114,14 @@ Quand tu voudras finaliser la migration complète vers le compte du détenteur d
    ```bash
    firebase deploy --only functions
    ```
+
+---
+
+## Mise a jour 14 mai 2026 - Emails commande et expedition
+
+- Email de confirmation client refondu : le numero de commande court n'est plus mis en avant, le mail affiche le nom du meuble/produit principal et le prix.
+- Les informations saisies au checkout sont reprises dans le mail : nom, email, telephone, adresse, code postal, ville et pays.
+- Correction du champ code postal : le checkout sauvegarde `shipping.zip`; les emails acceptent maintenant `zip` et l'ancien `postalCode`.
+- Les commandes differees sauvegardent les articles avec nom/prix recalcules cote Firestore avant envoi email.
+- Email d'expedition refondu : message transporteur, delai estime 7 a 14 jours selon transporteur, et lien avis Google Maps.
+- Email "livree/completed" supprime cote trigger. L'admin ne dispose plus du bouton "Livree" dans la fiche commande; le flux client garde seulement le mail de confirmation puis le mail d'expedition.

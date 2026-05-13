@@ -306,7 +306,16 @@ const AppRouter = ({
                 </Suspense>
             )}
 
-            {showOrderSuccess && <OrderSuccessModal onClose={() => setShowOrderSuccess(false)} paymentMethod={orderSuccessMethod} />}
+            {showOrderSuccess && (
+                <OrderSuccessModal
+                    onClose={() => {
+                        setShowOrderSuccess(false);
+                        setView('my-orders');
+                        scrollToTop({ immediate: true, duration: 0 });
+                    }}
+                    paymentMethod={orderSuccessMethod}
+                />
+            )}
 
 
 

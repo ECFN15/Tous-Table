@@ -265,6 +265,30 @@ Deploiement Hosting du 2026-05-12 - ouverture directe fiches produit :
 - `npm run audit:public-seo` : OK, 32 checks passes.
 - Aucune ecriture Firestore prod, aucune modification rules, aucun deploiement Functions.
 
+Changement local non deploye du 2026-05-13 - verrouillage stock meubles :
+
+- Formulaire admin catalogue : le stock des meubles (`furniture`) est verrouille automatiquement a 1 pour une piece disponible, sans champ modifiable par l'admin ; les planches (`cutting_boards`) gardent un stock editable.
+- Commandes serveur : les meubles sont traites comme pieces uniques meme si un ancien document a encore `stock > 1`; une commande force alors `stock: 0` et `sold: true`. Les planches conservent la logique de decrement.
+- Annulations/restaurations : un meuble restaure revient a `stock: 1`, pas a `stock + quantite`; les planches conservent l'increment.
+- Firestore rules locales : les ecritures admin sur `furniture` refusent un meuble disponible avec un stock different de 1, ou un meuble vendu avec un stock different de 0.
+- Verifications locales : `npm run verify:functions-syntax`, `node --check` sur les fichiers commerce modifies, `npm run build`, et `firebase deploy --only firestore:rules --project tousatable-client --dry-run` OK.
+- Non deploye et aucune ecriture Firestore prod effectuee pendant cette correction locale.
+
+Deploiement Functions sandbox du 2026-05-13 - email test sans copie Tous a Table :
+
+- `GMAIL_EMAIL` et `GMAIL_PASSWORD` sandbox mis a jour en Secret Manager version 2.
+- `onOrderCreated`, `onOrderUpdated`, `createOrder` et `resetAllStats` sandbox redeployes pour prendre les secrets version 2.
+- `orderEmails.js` ajuste : la copie fixe `tousatablemadeinnormandie@gmail.com` est ajoutee uniquement quand `GCLOUD_PROJECT`/`GCP_PROJECT` vaut `tousatable-client`.
+- `firebase deploy --only "functions:onOrderCreated,functions:onOrderUpdated" --project tatmadeinnormandie` : OK. En sandbox, les emails admin partent seulement vers `GMAIL_EMAIL`; en prod, ils partiront vers `GMAIL_EMAIL` + `tousatablemadeinnormandie@gmail.com` apres deploiement prod de ce changement.
+
+Changement local non deploye du 2026-05-14 - presentation emails commande et Mes commandes :
+
+- Email de confirmation client : les montants HTML utilisent un espace insecable avant le symbole euro et la ligne Total reste alignee gauche/droite sans retour de ligne sur le symbole.
+- Email d'expedition : suppression du bloc recapitulatif produit deja present dans le premier email, mise en avant du delai 7 a 14 jours, bouton avis Google remonte, suppression du lien texte Mes commandes.
+- Page Mes commandes : cartes paiement IBAN et expedition rendues plus robustes sur mobile et colonne desktop et lien avis Google harmonise.
+- Verifications locales : `node --check functions/src/email/orderEmails.js` et `npm run build` OK.
+- Non deploye pendant cette correction locale.
+
 ## Reste a suivre
 
 1. Decider le traitement des legacy env vars Functions: nettoyage + rotation recommandes.

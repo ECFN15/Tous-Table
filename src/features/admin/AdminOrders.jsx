@@ -64,7 +64,7 @@ const AdminOrders = ({ darkMode = false }) => {
 
                     if (itemSnap.exists()) {
                         await updateDoc(itemRef, {
-                            stock: increment(item.quantity || 1),
+                            stock: finalCol === 'furniture' ? 1 : increment(item.quantity || 1),
                             sold: false, // Mark as available again
                             soldAt: null,
                             buyerId: null
@@ -112,7 +112,7 @@ const AdminOrders = ({ darkMode = false }) => {
             'Client': order.shipping?.fullName || 'N/A',
             'Email': order.shipping?.email || 'N/A',
             'Téléphone': order.shipping?.phone || 'N/A',
-            'Adresse': `${order.shipping?.address || ''}, ${order.shipping?.postalCode || ''} ${order.shipping?.city || ''}`,
+            'Adresse': `${order.shipping?.address || ''}, ${order.shipping?.zip || order.shipping?.postalCode || ''} ${order.shipping?.city || ''}`,
             'Méthode Paiement': order.paymentMethod === 'deferred' ? 'Différé' : 'Carte (Stripe)',
             'Statut': order.status,
             'Total (€)': order.total,
@@ -212,42 +212,26 @@ const AdminOrders = ({ darkMode = false }) => {
                                                 <div className="flex flex-col xl:flex-row gap-3">
                                                     {/* Status Actions */}
                                                     {(order.status === 'pending_payment' || order.status === 'paid' || !order.status) ? (
-                                                        <>
-                                                            <button
-                                                                onClick={(e) => { e.stopPropagation(); updateOrderStatus(order, 'shipped'); }}
-                                                                className={`group flex-1 py-4 xl:py-3.5 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all duration-300 shadow-xl flex items-center justify-center gap-2 ${
-                                                                    darkMode 
-                                                                        ? 'bg-white text-stone-900 hover:bg-stone-200' 
-                                                                        : 'bg-stone-900 text-white hover:bg-black'
-                                                                }`}
-                                                            >
-                                                                <Truck size={16} className="group-hover:translate-x-1 transition-transform" />
-                                                                Expédiée
-                                                            </button>
-                                                            <button
-                                                                onClick={(e) => { e.stopPropagation(); updateOrderStatus(order, 'completed'); }}
-                                                                className={`group flex-1 py-4 xl:py-3.5 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all duration-300 shadow-xl flex items-center justify-center gap-2 ${
-                                                                    darkMode 
-                                                                        ? 'bg-emerald-500/10 text-emerald-500 border-2 border-emerald-500/20 hover:bg-emerald-500 hover:text-white' 
-                                                                        : 'bg-emerald-50 text-emerald-600 border-2 border-emerald-100 hover:bg-emerald-600 hover:text-white'
-                                                                }`}
-                                                            >
-                                                                <CheckCircle size={16} className="group-hover:scale-110 transition-transform" />
-                                                                Livrée
-                                                            </button>
-                                                        </>
-                                                    ) : order.status === 'shipped' ? (
                                                         <button
-                                                            onClick={(e) => { e.stopPropagation(); updateOrderStatus(order, 'completed'); }}
+                                                            onClick={(e) => { e.stopPropagation(); updateOrderStatus(order, 'shipped'); }}
                                                             className={`group flex-1 py-4 xl:py-3.5 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all duration-300 shadow-xl flex items-center justify-center gap-2 ${
                                                                 darkMode 
                                                                     ? 'bg-white text-stone-900 hover:bg-stone-200' 
                                                                     : 'bg-stone-900 text-white hover:bg-black'
                                                             }`}
                                                         >
-                                                            <CheckCircle size={16} className="group-hover:scale-110 transition-transform" />
-                                                            Livrée
+                                                            <Truck size={16} className="group-hover:translate-x-1 transition-transform" />
+                                                            Expédiée
                                                         </button>
+                                                    ) : order.status === 'shipped' ? (
+                                                        <div className={`flex-1 py-4 xl:py-3.5 rounded-2xl font-black uppercase text-[10px] tracking-widest border-2 flex items-center justify-center gap-2 ${
+                                                            darkMode 
+                                                                ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-300' 
+                                                                : 'bg-indigo-50 border-indigo-100 text-indigo-700'
+                                                        }`}>
+                                                            <Truck size={16} />
+                                                            En cours de livraison
+                                                        </div>
                                                     ) : order.status === 'completed' ? (
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); updateOrderStatus(order, 'pending_payment'); }}

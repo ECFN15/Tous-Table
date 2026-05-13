@@ -582,10 +582,10 @@ const AppContent = () => {
         // 1. Déclencher l'UI succès immédiatement
         setOrderSuccessMethod('stripe_elements');
         setShowOrderSuccess(true);
-        setView('gallery');
+        setView('my-orders');
 
         // 2. Nettoyer l'URL pour éviter de re-déclencher au F5
-        replaceUrl('/');
+        replaceUrl('/mes-commandes');
 
         // 3. Vider le panier Firestore réellement
         try {
@@ -828,7 +828,8 @@ const AppContent = () => {
       }));
     }
 
-    setView('gallery'); // Go to Marketplace (behind the modal)
+    setView('my-orders'); // Prepare Mes commandes behind the modal
+    scrollToTop({ immediate: true, duration: 0 });
 
     // Email simulation log
     console.log("Order placed restoration:", persistentGalleryState, orderData);

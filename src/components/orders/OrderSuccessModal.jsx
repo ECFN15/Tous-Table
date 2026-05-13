@@ -1,102 +1,61 @@
 import React from 'react';
-import { CheckCircle, ArrowRight, ShoppingBag, Landmark, ReceiptText } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Landmark } from 'lucide-react';
 
 const OrderSuccessModal = ({ onClose, paymentMethod }) => {
     const isStripe = paymentMethod === 'stripe_elements';
 
     return (
-        <div className="fixed inset-0 z-[300] bg-stone-900/80 backdrop-blur-md flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-300">
-            <div className="bg-white rounded-3xl md:rounded-[2.5rem] shadow-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto ios-modal-scroll p-5 sm:p-6 md:p-10 text-center relative overflow-hidden animate-in zoom-in-95 duration-300 slide-in-from-bottom-4" style={{ maxHeight: 'min(85dvh, 85vh)' }}>
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-stone-950/75 px-3 py-5 backdrop-blur-[14px] animate-in fade-in duration-300">
+            <div className="w-full max-w-[440px] rounded-[1.75rem] border border-white/20 bg-white/85 p-1.5 shadow-[0_28px_90px_rgba(28,25,23,0.32)] backdrop-blur-xl animate-in zoom-in-95 slide-in-from-bottom-3 duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]">
+                <div className="relative overflow-hidden rounded-[1.35rem] border border-stone-200/80 bg-[#fbfaf7] px-5 py-6 text-center sm:px-7 sm:py-7">
+                    <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent" />
 
-                {/* Decorative Background */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl"></div>
-
-                <div className="relative z-10 space-y-4 md:space-y-6">
-                    <div className="w-16 h-16 md:w-20 md:h-20 bg-emerald-100 text-emerald-600 rounded-2xl md:rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 shadow-inner">
-                        <CheckCircle size={32} strokeWidth={2.5} className="md:w-10 md:h-10" />
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-stone-900 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.16)]">
+                        <CheckCircle2 size={26} strokeWidth={2.2} />
                     </div>
 
-                    <div className="w-full">
-                        <h2 className="text-2xl md:text-3xl font-black tracking-tighter text-stone-900 mb-2">
-                            {isStripe ? "Paiement validé !" : "Presque terminé !"}
+                    <div className="mt-5 space-y-2">
+                        <p className="text-[10px] font-black uppercase tracking-[0.24em] text-stone-500">
+                            {isStripe ? 'Commande confirmée' : 'Commande prise en compte'}
+                        </p>
+                        <h2 className="text-2xl font-black leading-tight tracking-tight text-stone-950 sm:text-[1.7rem]">
+                            {isStripe ? 'Votre commande est confirmée.' : 'Votre commande est bien réservée.'}
                         </h2>
-                        <h3 className="text-base md:text-lg font-bold text-stone-900 mb-4 md:mb-6">
-                            {isStripe ? "Votre commande est confirmée." : "Commande réservée."}
-                        </h3>
-
-                        <div className="bg-amber-50 border border-amber-200/50 rounded-2xl md:rounded-[1.5rem] p-4 md:p-6 text-left space-y-4 shadow-sm">
-                            <div>
-                                <h4 className="text-sm md:text-base text-amber-900 font-black mb-1.5 flex items-center gap-2">
-                                    <ShoppingBag size={16} className="text-amber-600" />
-                                    <span>{isStripe ? "Récapitulatif" : "Finaliser la commande"}</span>
-                                </h4>
-                                <p className="text-xs md:text-sm text-amber-800 leading-relaxed">
-                                    {isStripe ? (
-                                        <>Votre paiement sécurisé par carte/wallet a bien été <strong className="font-black text-amber-900">enregistré</strong>.</>
-                                    ) : (
-                                        <>Votre commande est validée. Vous pouvez maintenant retrouver les informations utiles pour régler par <strong className="font-black text-amber-900">Virement</strong> ou <strong className="font-black text-amber-900">Wero</strong>.</>
-                                    )}
-                                </p>
-                            </div>
-
-                            {isStripe ? (
-                                <div className="bg-white rounded-xl p-3 md:p-4 shadow-sm border border-amber-100">
-                                    <p className="text-xs md:text-sm text-stone-600 leading-relaxed">
-                                        Toutes les informations sont disponibles dans votre <br />
-                                        <strong className="text-stone-900 font-black mt-1 inline-block">Espace Client (onglet Mes Commandes)</strong>.
-                                    </p>
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div className="bg-white rounded-2xl p-3.5 md:p-4 shadow-sm border border-amber-100">
-                                        <div className="flex items-start gap-3">
-                                            <span className="w-9 h-9 rounded-xl bg-stone-900 text-white flex items-center justify-center shrink-0">
-                                                <Landmark size={16} />
-                                            </span>
-                                            <div>
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-stone-900">IBAN vendeur</p>
-                                                <p className="mt-1 text-xs md:text-sm text-stone-600 leading-relaxed">
-                                                    Les coordonnées bancaires du vendeur sont accessibles dans <strong className="font-black text-stone-900">Mes Commandes</strong> pour effectuer le virement.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="bg-white rounded-2xl p-3.5 md:p-4 shadow-sm border border-amber-100">
-                                        <div className="flex items-start gap-3">
-                                            <span className="w-9 h-9 rounded-xl bg-stone-900 text-white flex items-center justify-center shrink-0">
-                                                <ReceiptText size={16} />
-                                            </span>
-                                            <div>
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-stone-900">Facture</p>
-                                                <p className="mt-1 text-xs md:text-sm text-stone-600 leading-relaxed">
-                                                    Votre facture est disponible sur la page <strong className="font-black text-stone-900">Mes Commandes</strong>, avec le détail de votre commande.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="px-1 md:px-2 pt-2">
-                        <p className="text-[10px] md:text-[11px] text-stone-600 font-medium flex items-start md:items-center justify-center gap-2 md:gap-3 bg-stone-50 p-3 md:p-3.5 rounded-xl border border-stone-100 shadow-sm leading-relaxed text-left md:text-center">
-                            <CheckCircle size={15} className="text-emerald-600 flex-shrink-0 mt-0.5 md:mt-0" />
-                            <span>{isStripe ? "Un email d'aperçu de confirmation de paiement vous a été envoyé." : "Un email récapitulatif vous a aussi été envoyé. L'IBAN vendeur et la facture restent disponibles dans Mes Commandes."}</span>
+                        <p className="mx-auto max-w-[330px] text-sm font-medium leading-6 text-stone-600">
+                            {isStripe
+                                ? 'Vous allez être redirigé vers Mes commandes pour retrouver le récapitulatif et le suivi.'
+                                : 'Vous allez être redirigé vers Mes commandes pour retrouver le meuble, puis régler par virement IBAN ou Wero.'}
                         </p>
                     </div>
 
-                    <div className="pt-4 md:pt-6">
+                    <div className="mt-5 rounded-2xl border border-stone-200 bg-white/80 p-3.5 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+                        <div className="flex items-start gap-3">
+                            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#f2eee7] text-stone-900">
+                                <Landmark size={18} strokeWidth={2.1} />
+                            </span>
+                            <div>
+                                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-stone-900">
+                                    {isStripe ? 'Espace commande' : 'Coordonnées de paiement'}
+                                </p>
+                                <p className="mt-1 text-sm leading-6 text-stone-600">
+                                    {isStripe
+                                        ? 'La page Mes commandes contient les détails de votre achat.'
+                                        : 'IBAN, Wero, montant et détails de la commande sont regroupés au même endroit.'}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-5">
                         <button
                             onClick={onClose}
-                            className="w-full py-3.5 md:py-4 bg-stone-900 text-white rounded-xl font-black text-[11px] md:text-xs uppercase tracking-widest hover:bg-stone-800 shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2 group"
+                            className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-stone-950 px-5 py-4 text-[11px] font-black uppercase tracking-[0.18em] text-white shadow-[0_16px_34px_rgba(28,25,23,0.24)] transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-stone-800 active:scale-[0.985]"
                         >
-                            <span>Retour à la boutique</span>
-                            <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                            <span>Voir mes commandes</span>
+                            <ArrowRight size={15} className="transition-transform duration-300 group-hover:translate-x-1" />
                         </button>
                     </div>
                 </div>
-
             </div>
         </div>
     );

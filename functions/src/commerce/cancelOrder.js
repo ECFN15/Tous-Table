@@ -61,8 +61,9 @@ exports.cancelOrderClient = functions.https.onCall(async (data, context) => {
                         if (itemData.sold || orderData.stockReserved) {
                             const currentStock = itemData.stock !== undefined ? Number(itemData.stock) : 0;
                             const qtyToRestore = item.quantity || 1;
+                            const restoredStock = col === 'furniture' ? 1 : currentStock + qtyToRestore;
                             transaction.update(itemRef, {
-                                stock: currentStock + qtyToRestore,
+                                stock: restoredStock,
                                 sold: false,
                                 soldAt: admin.firestore.FieldValue.delete(),
                                 buyerId: admin.firestore.FieldValue.delete()

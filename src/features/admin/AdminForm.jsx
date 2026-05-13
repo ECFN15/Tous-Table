@@ -39,7 +39,7 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
     width: '',
     depth: '',
     height: '',
-    stock: '', // [NEW] Stock management (empty by default)
+    stock: isFurniture ? 1 : '', // Furniture is a unique item; boards keep editable stock.
     priceOnRequest: false,
     auctionActive: false,
     durationMinutes: 0
@@ -100,7 +100,7 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
         description: editData.description || '',
         startingPrice: editData.startingPrice || 0,
         category: editData.category || '', // [NEW] Load catégorie (vide si ancien meuble)
-        stock: editData.stock !== undefined ? editData.stock : '', // [NEW] Load stock
+        stock: isFurniture ? (editData.sold ? 0 : 1) : (editData.stock !== undefined ? editData.stock : ''), // [NEW] Load stock
         material: material,
         dimensions: editData.dimensions || '',
         width: editData.width || '',
@@ -130,7 +130,7 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
       description: '',
       startingPrice: 0,
       category: '', // [NEW] Reset catégorie
-      stock: '', // [NEW] Reset stock
+      stock: isFurniture ? 1 : '', // Furniture stock is locked to a single item
       material: '',
       dimensions: '',
       width: '',
@@ -315,6 +315,12 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
       }
 
       setMsg("⏳ Finalisation...");
+      const parsedStock = parseInt(formData.stock, 10);
+      const stockValue = isFurniture
+        ? (editData?.sold ? 0 : 1)
+        : (Number.isFinite(parsedStock) && parsedStock >= 0 ? parsedStock : 1);
+      const soldValue = stockValue <= 0;
+
       const data = {
         ...formData,
         images: finalImageUrls,
@@ -323,9 +329,9 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
         thumbnailUrl: "", // No separate thumbnail URL
         currentPrice: Number(formData.startingPrice),
         startingPrice: Number(formData.startingPrice),
-        stock: parseInt(formData.stock) || 1,
-        sold: (parseInt(formData.stock) || 1) <= 0,
-        soldAt: (parseInt(formData.stock) || 1) <= 0 ? (editData?.soldAt || Timestamp.now()) : null,
+        stock: stockValue,
+        sold: soldValue,
+        soldAt: soldValue ? (editData?.soldAt || Timestamp.now()) : null,
         durationMinutes: Number(formData.durationMinutes),
         priceOnRequest: formData.priceOnRequest || false,
         auctionEnd: formData.auctionActive ? Timestamp.fromMillis(Date.now() + (Number(formData.durationMinutes) * 60000)) : null,
@@ -574,15 +580,22 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
                 <input type="number" disabled={formData.priceOnRequest} placeholder={formData.priceOnRequest ? "Demande" : "0"} className={`w-full p-4 rounded-xl border-none font-bold outline-none focus:ring-4 transition-all shadow-inner disabled:opacity-50 ${darkMode ? 'bg-stone-900 text-white ring-stone-700 placeholder:text-stone-600' : 'bg-stone-50 text-stone-900 ring-stone-100'}`} value={formData.priceOnRequest ? "" : (formData.startingPrice === 0 ? "" : formData.startingPrice)} onChange={e => setFormData({ ...formData, startingPrice: e.target.value === "" ? 0 : Number(e.target.value) })} />
               </div>
               <div className="space-y-1.5">
-                <label className="text-[9px] font-black uppercase text-stone-400 ml-2">Stock Initial</label>
+                <label className="text-[9px] font-black uppercase text-stone-400 ml-2">{isFurniture ? 'Stock meuble' : 'Stock Initial'}</label>
                 <input
                   type="number"
-                  disabled={formData.auctionActive}
+                  disabled={isFurniture || formData.auctionActive}
                   placeholder="1"
                   className={`w-full p-4 rounded-xl border-none font-bold outline-none focus:ring-4 transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed ${darkMode ? 'bg-stone-900 text-white ring-stone-700 placeholder:text-stone-600' : 'bg-stone-50 text-stone-900 ring-stone-100'}`}
-                  value={formData.stock}
-                  onChange={e => setFormData({ ...formData, stock: e.target.value })}
+                  value={isFurniture ? (editData?.sold ? 0 : 1) : formData.stock}
+                  onChange={e => {
+                    if (!isFurniture) setFormData({ ...formData, stock: e.target.value });
+                  }}
                 />
+                {isFurniture && (
+                  <p className={`text-[9px] font-medium ml-2 mt-1 ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>
+                    Les meubles sont des pieces uniques : stock verrouille automatiquement.
+                  </p>
+                )}
               </div>
             </div>
           </div>

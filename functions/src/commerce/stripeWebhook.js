@@ -94,10 +94,11 @@ exports.stripeWebhook = functions.runWith({ secrets: [STRIPE_SECRET_KEY, STRIPE_
 
                         const currentStock = itemDoc.data().stock !== undefined ? Number(itemDoc.data().stock) : 1;
                         const qtyPurchased = item.quantity || 1;
-                        const newStock = Math.max(0, currentStock - qtyPurchased);
+                        const isUniqueFurniture = col === 'furniture';
+                        const newStock = isUniqueFurniture ? 0 : Math.max(0, currentStock - qtyPurchased);
 
                         const updates = { stock: newStock, buyerId: userId };
-                        if (newStock === 0) {
+                        if (isUniqueFurniture || newStock === 0) {
                             updates.sold = true;
                             updates.soldAt = admin.firestore.FieldValue.serverTimestamp();
                             console.log(`🔒 Item SOLD OUT: ${itemId}`);
@@ -186,10 +187,11 @@ exports.stripeWebhook = functions.runWith({ secrets: [STRIPE_SECRET_KEY, STRIPE_
                         const currentStock = itemDb.stock !== undefined ? itemDb.stock : 1;
 
                         const updates = {};
-                        if (currentStock <= 1) {
+                        if (colName === 'furniture' || currentStock <= 1) {
                             updates.sold = true;
                             updates.buyerId = userId;
                             updates.soldAt = admin.firestore.FieldValue.serverTimestamp();
+                            updates.stock = 0;
                             console.log(`🔒 Item SOLD OUT: ${item.id}`);
                         } else {
                             updates.stock = currentStock - 1;
@@ -239,8 +241,9 @@ exports.stripeWebhook = functions.runWith({ secrets: [STRIPE_SECRET_KEY, STRIPE_
 
                             const currentStock = itemDoc.data().stock !== undefined ? Number(itemDoc.data().stock) : 0;
                             const qtyToRestore = item.quantity || 1;
+                            const restoredStock = col === 'furniture' ? 1 : currentStock + qtyToRestore;
                             transaction.update(itemRef, {
-                                stock: currentStock + qtyToRestore,
+                                stock: restoredStock,
                                 sold: false,
                                 soldAt: admin.firestore.FieldValue.delete(),
                                 buyerId: admin.firestore.FieldValue.delete()
@@ -297,8 +300,9 @@ exports.stripeWebhook = functions.runWith({ secrets: [STRIPE_SECRET_KEY, STRIPE_
 
                             const currentStock = itemDoc.data().stock !== undefined ? Number(itemDoc.data().stock) : 0;
                             const qtyToRestore = item.quantity || 1;
+                            const restoredStock = col === 'furniture' ? 1 : currentStock + qtyToRestore;
                             transaction.update(itemRef, {
-                                stock: currentStock + qtyToRestore,
+                                stock: restoredStock,
                                 sold: false,
                                 soldAt: admin.firestore.FieldValue.delete(),
                                 buyerId: admin.firestore.FieldValue.delete()

@@ -57,6 +57,18 @@ service cloud.firestore {
         (!("auctionActive" in data) || data.auctionActive is bool);
     }
 
+    function isValidProductStockForCollection(collectionName) {
+      let data = request.resource.data;
+      return collectionName != 'furniture'
+        || (
+          data.stock is number
+          && (
+            (data.sold == true && data.stock == 0)
+            || ((!("sold" in data) || data.sold == false) && data.stock == 1)
+          )
+        );
+    }
+
     function isOptionalString(data, field, maxSize) {
       return !(field in data)
         || data[field] == null
@@ -124,7 +136,7 @@ service cloud.firestore {
       allow read: if true;
       
       // ADMIN : Création et Modification avec VALIDATION STRICTE
-      allow create, update: if isArtisan() && isValidProduct();
+      allow create, update: if isArtisan() && isValidProduct() && isValidProductStockForCollection(collectionName);
       
       // ADMIN : Suppression sans validation de payload
       allow delete: if isArtisan();

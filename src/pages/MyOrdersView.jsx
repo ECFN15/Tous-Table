@@ -217,19 +217,19 @@ const MyOrdersView = ({ user, onBack, darkMode }) => {
                                     <div className="md:col-span-5 flex flex-col justify-between border-t md:border-t-0 md:border-l pt-6 mt-6 md:pt-0 md:mt-0 pl-0 md:pl-12 border-stone-100 dark:border-stone-700/50">
                                         <div className="space-y-2 mb-6 md:mb-8">
                                             <p className="text-[10px] font-black uppercase tracking-widest opacity-30">Total de la commande</p>
-                                            <p className="text-4xl sm:text-5xl font-serif italic tracking-tighter shrink-0">{formatPrice(order.total)}</p>
+                                            <p className="text-4xl sm:text-5xl font-serif italic tracking-tighter shrink-0 whitespace-nowrap">{formatPrice(order.total)}</p>
                                         </div>
 
                                         <div className="space-y-4">
                                             {(order.status === 'pending_payment' || order.status === 'pending') && (
-                                                <div className={`p-6 rounded-[2.5rem] border-2 border-dashed ${darkMode ? 'bg-amber-500/5 border-amber-500/20' : 'bg-amber-50 border-amber-200'} space-y-6 shadow-sm`}>
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-lg shadow-amber-200/50">
-                                                            <CreditCard size={20} />
+                                                <div className={`p-5 sm:p-6 rounded-[2rem] sm:rounded-[2.5rem] border-2 border-dashed ${darkMode ? 'bg-amber-500/5 border-amber-500/20' : 'bg-amber-50 border-amber-200'} space-y-6 shadow-sm`}>
+                                                    <div className="flex items-start gap-4">
+                                                        <div className="h-12 w-12 shrink-0 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-lg shadow-amber-200/50">
+                                                            <CreditCard size={22} strokeWidth={2.4} />
                                                         </div>
-                                                        <div className="min-w-0">
-                                                            <p className="text-xs font-black uppercase tracking-widest text-amber-600">IBAN vendeur et virement</p>
-                                                            <p className="mt-1 text-[11px] font-semibold leading-snug text-amber-700/80">Copiez les coordonnées bancaires du vendeur pour effectuer votre virement.</p>
+                                                        <div className="min-w-0 flex-1 pt-0.5">
+                                                            <p className="text-[11px] sm:text-xs font-black uppercase tracking-[0.16em] leading-tight text-amber-600 break-words">IBAN vendeur et virement</p>
+                                                            <p className="mt-2 text-[11px] sm:text-xs font-semibold leading-relaxed text-amber-700/80">Copiez les coordonnées bancaires du vendeur pour effectuer votre virement.</p>
                                                         </div>
                                                     </div>
 
@@ -248,7 +248,7 @@ const MyOrdersView = ({ user, onBack, darkMode }) => {
                                                                     <Copy size={12} className="opacity-30 group-hover/iban:opacity-60 transition-opacity" />
                                                                 )}
                                                             </div>
-                                                            <p className="text-[14px] font-mono font-bold tracking-tight text-stone-900 dark:text-white">FR76 3002 7160 8000 0506 2940 303</p>
+                                                            <p className="text-[12px] sm:text-[14px] font-mono font-bold tracking-tight leading-relaxed break-all text-stone-900 dark:text-white">FR76 3002 7160 8000 0506 2940 303</p>
                                                         </div>
 
                                                         <div
@@ -268,13 +268,13 @@ const MyOrdersView = ({ user, onBack, darkMode }) => {
                                                             <p className="text-[14px] font-mono font-bold text-stone-900 dark:text-white">CMCIFRPP</p>
                                                         </div>
 
-                                                        <div className="border-t border-stone-200/60 dark:border-stone-700/50 pt-5 flex justify-between items-end gap-4">
+                                                        <div className="border-t border-stone-200/60 dark:border-stone-700/50 pt-5 grid grid-cols-1 xl:grid-cols-2 gap-4">
                                                             <div className="flex-1 min-w-0">
                                                                 <p className="text-[9px] font-black uppercase tracking-widest opacity-40 mb-1.5">Titulaire du compte</p>
-                                                                <p className="text-[11px] font-bold leading-tight uppercase tracking-tight">M O. PEGOIX / MME E. PEGOIX</p>
+                                                                <p className="text-[11px] font-bold leading-snug uppercase tracking-tight break-words">M O. PEGOIX / MME E. PEGOIX</p>
                                                             </div>
-                                                            <div className="text-right shrink-0">
-                                                                <p className="text-[9px] font-black uppercase tracking-widest text-amber-600 mb-1.5 font-black">WERO / MOBILE</p>
+                                                            <div className="text-left xl:text-right min-w-0">
+                                                                <p className="text-[9px] font-black uppercase tracking-widest text-amber-600 mb-1.5">WERO / MOBILE</p>
                                                                 <p className="text-sm font-black whitespace-nowrap tracking-tighter">07 77 32 41 78</p>
                                                             </div>
                                                         </div>
@@ -283,12 +283,15 @@ const MyOrdersView = ({ user, onBack, darkMode }) => {
                                             )}
 
                                             {order.status === 'shipped' && (
-                                                <div className={`p-6 md:p-8 rounded-[2.5rem] border-2 border-dashed ${darkMode ? 'bg-indigo-500/5 border-indigo-500/20' : 'bg-indigo-50/50 border-indigo-200'} space-y-6 shadow-sm`}>
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-xl bg-indigo-500 text-white flex items-center justify-center shadow-lg shadow-indigo-200/50">
-                                                            <Truck size={20} />
+                                                <div className={`p-5 sm:p-6 md:p-8 rounded-[2rem] sm:rounded-[2.5rem] border-2 border-dashed ${darkMode ? 'bg-indigo-500/5 border-indigo-500/20' : 'bg-indigo-50/50 border-indigo-200'} space-y-6 shadow-sm`}>
+                                                    <div className="flex items-start gap-4">
+                                                        <div className="h-12 w-12 shrink-0 rounded-2xl bg-indigo-500 text-white flex items-center justify-center shadow-lg shadow-indigo-200/50">
+                                                            <Truck size={22} strokeWidth={2.4} />
                                                         </div>
-                                                        <p className="text-xs font-black uppercase tracking-widest text-indigo-600">En cours de livraison</p>
+                                                        <div className="min-w-0 flex-1 pt-1">
+                                                            <p className="text-[11px] sm:text-xs font-black uppercase tracking-[0.16em] leading-tight text-indigo-600 break-words">En cours de livraison</p>
+                                                            <p className={`mt-2 text-[11px] sm:text-xs font-semibold leading-relaxed ${darkMode ? 'text-indigo-200/80' : 'text-indigo-700/70'}`}>Votre email d'expédition a été envoyé avec les informations transporteur.</p>
+                                                        </div>
                                                     </div>
 
                                                     <div className={`p-4 rounded-xl ${darkMode ? 'bg-stone-900/40' : 'bg-white'} ring-1 ring-inset ${darkMode ? 'ring-stone-700' : 'ring-indigo-100'} shadow-sm`}>
@@ -323,7 +326,7 @@ const MyOrdersView = ({ user, onBack, darkMode }) => {
                                                             <span className="text-sm">👋</span> À très vite ! - L'équipe Tous à Table
                                                         </p>
                                                         <a
-                                                            href="https://g.page/r/CepCisGcSHS2EBM/review"
+                                                            href="https://g.page/r/CepCisGcSHS2EAE/review"
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg hover:-translate-y-0.5 active:translate-y-0 ${darkMode ? 'bg-emerald-500 text-stone-900 shadow-emerald-500/20 hover:bg-emerald-400' : 'bg-emerald-600 text-white shadow-emerald-600/20 hover:bg-emerald-500'}`}
