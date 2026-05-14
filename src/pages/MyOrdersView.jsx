@@ -157,7 +157,7 @@ const MyOrdersView = ({ user, onBack, darkMode }) => {
                                 </div>
 
                                 {/* CONTENT */}
-                                <div className="grid md:grid-cols-12 gap-6 md:gap-12">
+                                <div className="grid md:grid-cols-12 gap-4 md:gap-12">
                                     {/* ITEMS */}
                                     <div className="md:col-span-7 space-y-8">
                                         {order.items?.map((item, i) => {
@@ -214,7 +214,7 @@ const MyOrdersView = ({ user, onBack, darkMode }) => {
                                     </div>
 
                                     {/* ACTIONS / INFO */}
-                                    <div className="md:col-span-5 flex flex-col justify-between border-t md:border-t-0 md:border-l pt-6 mt-6 md:pt-0 md:mt-0 pl-0 md:pl-12 border-stone-100 dark:border-stone-700/50">
+                                    <div className="md:col-span-5 flex flex-col justify-between md:border-l pt-1 mt-0 md:pt-0 md:mt-0 pl-0 md:pl-12 border-stone-100 dark:border-stone-700/50">
                                         <div className="space-y-2 mb-6 md:mb-8">
                                             <p className="text-[10px] font-black uppercase tracking-widest opacity-30">Total de la commande</p>
                                             <p className="text-4xl sm:text-5xl font-serif italic tracking-tighter shrink-0 whitespace-nowrap">{formatPrice(order.total)}</p>
@@ -224,8 +224,8 @@ const MyOrdersView = ({ user, onBack, darkMode }) => {
                                             {(order.status === 'pending_payment' || order.status === 'pending') && (
                                                 <div className={`p-5 sm:p-6 rounded-[2rem] sm:rounded-[2.5rem] border-2 border-dashed ${darkMode ? 'bg-amber-500/5 border-amber-500/20' : 'bg-amber-50 border-amber-200'} space-y-6 shadow-sm`}>
                                                     <div className="flex items-start gap-4">
-                                                        <div className="h-12 w-12 shrink-0 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-lg shadow-amber-200/50">
-                                                            <CreditCard size={22} strokeWidth={2.4} />
+                                                        <div className="h-11 w-11 min-h-11 min-w-11 sm:h-12 sm:w-12 sm:min-h-12 sm:min-w-12 aspect-square flex-none rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-lg shadow-amber-200/50">
+                                                            <CreditCard size={20} className="sm:w-[22px] sm:h-[22px]" strokeWidth={2.4} />
                                                         </div>
                                                         <div className="min-w-0 flex-1 pt-0.5">
                                                             <p className="text-[11px] sm:text-xs font-black uppercase tracking-[0.16em] leading-tight text-amber-600 break-words">IBAN vendeur et virement</p>

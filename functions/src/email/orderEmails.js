@@ -273,30 +273,34 @@ function renderShippingEmail(order) {
         children: `
             <p style="margin:0 0 18px; color:#44403c; font-family:Arial,sans-serif; font-size:15px; line-height:24px;">Bonjour ${escapeHtml(shipping.fullName || '')}, votre meuble quitte l'atelier et entre dans la phase transport.</p>
 
-            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:18px; background:#fff7ed; border:1px solid #fed7aa; border-radius:22px; padding:20px;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:18px; background:#ecfdf5; border:1px solid #bbf7d0; border-radius:22px; padding:20px;">
                 <tr>
                     <td>
-                        <div style="font-family:Arial,sans-serif; font-size:16px; line-height:22px; font-weight:800; color:#1c1917;">Information transporteur</div>
-                        <div style="margin:14px 0 8px; display:inline-block; background:#1c1917; color:#fffaf2; border-radius:999px; padding:10px 16px; font-family:Arial,sans-serif; font-size:20px; line-height:24px; font-weight:800; white-space:nowrap;">7 à 14 jours</div>
-                        <p style="margin:8px 0 0; color:#57534e; font-family:Arial,sans-serif; font-size:14px; line-height:22px;">Veuillez compter ce délai selon le transporteur, sa tournée et les conditions d'accès au lieu de livraison. Le transporteur peut vous contacter pour confirmer le créneau de passage.</p>
-                        ${order.trackingNumber ? `<p style="margin:14px 0 0; color:#1c1917; font-family:Arial,sans-serif; font-size:14px; line-height:22px;">Numéro de suivi : <b>${escapeHtml(order.trackingNumber)}</b></p>` : ''}
+                        <div style="font-family:Arial,sans-serif; font-size:16px; line-height:22px; font-weight:800; color:#065f46;">Information transporteur</div>
+                        <div style="margin:14px 0 8px; display:inline-block; background:#047857; color:#ffffff; border-radius:999px; padding:9px 14px; font-family:Arial,sans-serif; font-size:18px; line-height:22px; font-weight:800; white-space:nowrap;">7 à 14 jours</div>
+                        <p style="margin:8px 0 0; color:#047857; font-family:Arial,sans-serif; font-size:14px; line-height:22px;">Veuillez compter ce délai selon le transporteur, sa tournée et les conditions d'accès au lieu de livraison. Le transporteur peut vous contacter pour confirmer le créneau de passage.</p>
+                        ${order.trackingNumber ? `<p style="margin:14px 0 0; color:#065f46; font-family:Arial,sans-serif; font-size:14px; line-height:22px;">Numéro de suivi : <b>${escapeHtml(order.trackingNumber)}</b></p>` : ''}
                     </td>
                 </tr>
             </table>
 
-            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:18px;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:22px;">
+                <tr>
+                    <td align="center" style="font-family:Arial,sans-serif; font-size:16px; line-height:22px; font-weight:800; color:#1c1917;">
+                        Votre retour compte !
+                    </td>
+                </tr>
+                <tr>
+                    <td align="center" style="padding-top:8px; font-family:Arial,sans-serif; font-size:24px; line-height:26px;">
+                        👇
+                    </td>
+                </tr>
+            </table>
+
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:10px;">
                 <tr>
                     <td align="center">
                         <a href="${escapeHtml(GOOGLE_REVIEW_URL)}" style="display:inline-block; background:#1c1917; color:#fffaf2; text-decoration:none; font-family:Arial,sans-serif; font-size:12px; font-weight:800; letter-spacing:0.16em; text-transform:uppercase; padding:15px 22px; border-radius:999px;">Laisser un avis Google</a>
-                    </td>
-                </tr>
-            </table>
-
-            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:18px; background:#f8f5ef; border:1px solid #e7dfd2; border-radius:22px; padding:18px;">
-                <tr>
-                    <td>
-                        <div style="font-family:Arial,sans-serif; font-size:14px; line-height:20px; font-weight:800; color:#1c1917;">Votre retour compte</div>
-                        <p style="margin:8px 0 0; color:#57534e; font-family:Arial,sans-serif; font-size:14px; line-height:22px;">Si l'expérience vous a plu, vous pouvez laisser un avis sur la page Google. Cela aide beaucoup l'atelier et rassure les prochains clients.</p>
                     </td>
                 </tr>
             </table>

@@ -281,13 +281,45 @@ Deploiement Functions sandbox du 2026-05-13 - email test sans copie Tous a Table
 - `orderEmails.js` ajuste : la copie fixe `tousatablemadeinnormandie@gmail.com` est ajoutee uniquement quand `GCLOUD_PROJECT`/`GCP_PROJECT` vaut `tousatable-client`.
 - `firebase deploy --only "functions:onOrderCreated,functions:onOrderUpdated" --project tatmadeinnormandie` : OK. En sandbox, les emails admin partent seulement vers `GMAIL_EMAIL`; en prod, ils partiront vers `GMAIL_EMAIL` + `tousatablemadeinnormandie@gmail.com` apres deploiement prod de ce changement.
 
-Changement local non deploye du 2026-05-14 - presentation emails commande et Mes commandes :
+Deploiement sandbox et prod du 2026-05-14 - presentation emails commande et Mes commandes :
 
 - Email de confirmation client : les montants HTML utilisent un espace insecable avant le symbole euro et la ligne Total reste alignee gauche/droite sans retour de ligne sur le symbole.
 - Email d'expedition : suppression du bloc recapitulatif produit deja present dans le premier email, mise en avant du delai 7 a 14 jours, bouton avis Google remonte, suppression du lien texte Mes commandes.
 - Page Mes commandes : cartes paiement IBAN et expedition rendues plus robustes sur mobile et colonne desktop et lien avis Google harmonise.
 - Verifications locales : `node --check functions/src/email/orderEmails.js` et `npm run build` OK.
-- Non deploye pendant cette correction locale.
+- Sandbox : `firebase use default`, `npm run build`, puis `firebase deploy --project tatmadeinnormandie` OK.
+- Prod : premier `npm run preflight:prod` bloque a cause d'anciens assets sandbox restes dans `dist`; nettoyage de `dist`, second `npm run preflight:prod` OK, puis `firebase deploy --project tousatable-client` OK.
+- Post-deploy prod : `npm run audit:functions-env -- --project=tousatable-client` OK, `https://tousatable-client.web.app/` HTTP 200, `publicCatalog` HTTP 200.
+- CLI Firebase remis sur `default (tatmadeinnormandie)`.
+
+Deploiement sandbox et prod du 2026-05-14 - ajustement email expedition :
+
+- Bloc transport remis en style violet/indigo, badge `7 a 14 jours` legerement reduit.
+- Zone avis simplifiee : titre `Votre retour compte !` au-dessus du bouton `Laisser un avis Google`, suppression du paragraphe long.
+- Verifications locales : `node --check functions/src/email/orderEmails.js` et `npm run build` OK.
+- Sandbox : `firebase use default`, `npm run build`, puis `firebase deploy --project tatmadeinnormandie` OK.
+- Prod : nettoyage de `dist`, `npm run preflight:prod` OK, puis `firebase deploy --project tousatable-client` OK.
+- Post-deploy prod : `npm run audit:functions-env -- --project=tousatable-client` OK, `https://tousatable-client.web.app/` HTTP 200, `publicCatalog` HTTP 200.
+- CLI Firebase remis sur `default (tatmadeinnormandie)`.
+
+Deploiement sandbox et prod du 2026-05-14 - couleur transport email expedition :
+
+- Bloc `Information transporteur` passe du violet au vert, avec badge `7 a 14 jours` en vert.
+- Titre `Votre retour compte !` ajoute un emoji doigt vers le bouton avis Google.
+- Verification locale : `node --check functions/src/email/orderEmails.js` OK.
+- Sandbox : `firebase use default`, `npm run build`, puis `firebase deploy --project tatmadeinnormandie` OK.
+- Prod : nettoyage de `dist`, `npm run preflight:prod` OK, puis `firebase deploy --project tousatable-client` OK.
+- Post-deploy prod : `npm run audit:functions-env -- --project=tousatable-client` OK, `https://tousatable-client.web.app/` HTTP 200, `publicCatalog` HTTP 200.
+- CLI Firebase remis sur `default (tatmadeinnormandie)`.
+
+Deploiement sandbox et prod du 2026-05-14 - emoji avis email expedition :
+
+- Emoji avis remplace par une main vers le bas sous `Votre retour compte !`, centree au-dessus du bouton `Laisser un avis Google`.
+- Verification locale : `node --check functions/src/email/orderEmails.js` OK.
+- Sandbox : `firebase use default`, `npm run build`, `firebase deploy --project tatmadeinnormandie` OK, puis deploy cible force `firebase deploy --only "functions:onOrderCreated,functions:onOrderUpdated" --project tatmadeinnormandie --force` OK.
+- Prod : nettoyage de `dist`, `npm run preflight:prod` OK, puis `firebase deploy --project tousatable-client` OK.
+- Post-deploy prod : `npm run audit:functions-env -- --project=tousatable-client` OK, `https://tousatable-client.web.app/` HTTP 200, `publicCatalog` HTTP 200.
+- CLI Firebase remis sur `default (tatmadeinnormandie)`.
 
 ## Reste a suivre
 

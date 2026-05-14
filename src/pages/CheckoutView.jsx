@@ -370,6 +370,32 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
         setShowSuggestions(false);
     };
 
+    const renderAddressSuggestions = ({ mobile = false } = {}) => (
+        <div
+            ref={mobile ? null : dropdownRef}
+            className={mobile
+                ? `rounded-2xl border shadow-xl overflow-hidden ${darkMode ? 'bg-stone-950 border-stone-800' : 'bg-white border-stone-100'}`
+                : `p-2 rounded-2xl border shadow-2xl max-h-64 overflow-y-auto ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`
+            }
+        >
+            <div className={mobile ? 'max-h-[min(34svh,260px)] overflow-y-auto ios-modal-scroll' : ''}>
+                {suggestions.map((s, i) => (
+                    <div
+                        key={i}
+                        onPointerDown={(e) => { e.preventDefault(); handleSelectSuggestion(s); }}
+                        className={mobile
+                            ? `px-4 py-3.5 flex flex-col gap-0.5 ${i < suggestions.length - 1 ? (darkMode ? 'border-b border-stone-800' : 'border-b border-stone-100') : ''} ${darkMode ? 'active:bg-stone-800' : 'active:bg-stone-50'}`
+                            : `p-3 rounded-xl cursor-pointer transition-colors flex flex-col gap-0.5 ${darkMode ? 'hover:bg-stone-700 active:bg-stone-600' : 'hover:bg-stone-50 active:bg-stone-100'}`
+                        }
+                    >
+                        <span className={`font-bold leading-tight ${mobile ? 'text-sm' : 'text-sm'} ${darkMode ? 'text-white' : 'text-stone-900'}`}>{s.properties.name}</span>
+                        <span className={`text-[11px] font-medium uppercase tracking-wider ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>{s.properties.postcode} {s.properties.city}</span>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+
     // --- TEMPS RÉEL : SURVEILLANCE STOCK ---
     useEffect(() => {
         if (cartItems.length === 0) return;
@@ -606,6 +632,12 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                                         autoComplete="off"
                                     />
                                 </div>
+
+                                {showSuggestions && suggestions.length > 0 && dropdownPos.mobile && (
+                                    <div ref={dropdownRef} className="-mt-1 mb-1 md:hidden">
+                                        {renderAddressSuggestions({ mobile: true })}
+                                    </div>
+                                )}
 
                                 <div className="grid grid-cols-2 gap-3 md:gap-4">
                                     <div>
@@ -944,52 +976,13 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
         )}
 
         {/* PORTAL — dropdown suggestions rendu à la racine du body */}
-        {showSuggestions && suggestions.length > 0 && createPortal(
-            dropdownPos.mobile ? (
-                /* ── MOBILE : bottom sheet ancré au-dessus du clavier ── */
-                <div
-                    ref={dropdownRef}
-                    style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999, borderRadius: '20px 20px 0 0' }}
-                    className={`shadow-2xl overflow-hidden ${darkMode ? 'bg-stone-900 border-t border-stone-700' : 'bg-white border-t border-stone-100'}`}
-                >
-                    {/* Handle bar */}
-                    <div className="flex justify-center pt-3 pb-1">
-                        <div className={`w-10 h-1 rounded-full ${darkMode ? 'bg-stone-600' : 'bg-stone-200'}`} />
-                    </div>
-                    <div className="overflow-y-auto" style={{ maxHeight: '42vh' }}>
-                        {suggestions.map((s, i) => (
-                            <div
-                                key={i}
-                                onPointerDown={(e) => { e.preventDefault(); handleSelectSuggestion(s); }}
-                                className={`px-5 py-4 flex flex-col gap-0.5 ${i < suggestions.length - 1 ? (darkMode ? 'border-b border-stone-800' : 'border-b border-stone-50') : ''} ${darkMode ? 'active:bg-stone-800' : 'active:bg-stone-50'}`}
-                            >
-                                <span className={`font-bold text-base leading-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>{s.properties.name}</span>
-                                <span className={`text-xs font-medium uppercase tracking-wider ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>{s.properties.postcode} {s.properties.city}</span>
-                            </div>
-                        ))}
-                        {/* safe-area iOS home indicator */}
-                        <div style={{ height: 'env(safe-area-inset-bottom, 8px)' }} />
-                    </div>
-                </div>
-            ) : (
-                /* ── DESKTOP : dropdown positionné sous l'input ── */
-                <div
-                    ref={dropdownRef}
-                    style={{ position: 'fixed', top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width, zIndex: 9999 }}
-                    className={`p-2 rounded-2xl border shadow-2xl max-h-64 overflow-y-auto ${darkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}
-                >
-                    {suggestions.map((s, i) => (
-                        <div
-                            key={i}
-                            onPointerDown={(e) => { e.preventDefault(); handleSelectSuggestion(s); }}
-                            className={`p-3 rounded-xl cursor-pointer transition-colors flex flex-col gap-0.5 ${darkMode ? 'hover:bg-stone-700 active:bg-stone-600' : 'hover:bg-stone-50 active:bg-stone-100'}`}
-                        >
-                            <span className={`font-bold text-sm leading-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>{s.properties.name}</span>
-                            <span className={`text-[11px] font-medium uppercase tracking-wider ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>{s.properties.postcode} {s.properties.city}</span>
-                        </div>
-                    ))}
-                </div>
-            ),
+        {showSuggestions && suggestions.length > 0 && !dropdownPos.mobile && createPortal(
+            /* ── DESKTOP : dropdown positionné sous l'input ── */
+            <div
+                style={{ position: 'fixed', top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width, zIndex: 9999 }}
+            >
+                {renderAddressSuggestions()}
+            </div>,
             document.body
         )}
         </>
