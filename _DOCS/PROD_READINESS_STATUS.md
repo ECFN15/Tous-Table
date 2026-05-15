@@ -330,6 +330,15 @@ Deploiement Hosting sandbox et prod du 2026-05-14 - ajustements mobile Comptoir 
 - Post-deploy prod : `https://tousatable-client.web.app/` HTTP 200, `/comptoir` HTTP 200, `publicCatalog` HTTP 200.
 - CLI Firebase remis sur `default (tatmadeinnormandie)`.
 
+Deploiement Hosting prod du 2026-05-15 - preload images catalogue mobilier/planches :
+
+- Routes catalogue publiques : lancement de `publicCatalog` pendant le preloader et prechauffe bornee des premieres images via `warmupStartupCatalogImagesForRoute`, sans attendre que la grille entre dans le viewport.
+- Documentation d'orchestration ajoutee dans `AGENTS.md` pour conserver cette methode sur les pages mobilier et planches.
+- Prod : premier `npm run preflight:prod` bloque a cause d'anciens assets sandbox restes dans `dist`; nettoyage de `dist`, second `npm run preflight:prod` OK, puis `firebase deploy --only hosting --project tousatable-client` OK.
+- Post-deploy prod : `npm run audit:public-seo` OK avec 32 checks, domaine public et `web.app` HTTP 200, `publicCatalog` HTTP 200.
+- Verification reseau sans scroll via Playwright HAR : page `/` et `/planches-a-decouper-anciennes` declenchent chacune `publicCatalog` et 16 requetes Storage images pendant le hero.
+- CLI Firebase remis sur `default (tatmadeinnormandie)`.
+
 ## Reste a suivre
 
 1. Decider le traitement des legacy env vars Functions: nettoyage + rotation recommandes.
