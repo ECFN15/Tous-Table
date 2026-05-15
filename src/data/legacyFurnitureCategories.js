@@ -33,4 +33,12 @@ export const LEGACY_FURNITURE_CATEGORY_BY_ID = {
   O9nOJSI5v7CGVxsWMpWJ: 'table', // No40 table de ferme ancienne
   i6NBt9fdWxSPp4SOxxqM: 'chaise', // Paire de nourrice
   orANR1BDdCQQTQOXT3iJ: 'armoire', // Vestiaire chene
+  '6ZJImkl8ehbbnJDYCOvk': 'autre', // Porte manteaux  vintage
+  '9Rvxf72ouFn9OJ3UCagT': 'autre', // Grand tapis iranien
+  SsQWcujiS7vnFSXai4Zo: 'commode', // Commode en chêne style Louis XV
+  iZ892KoIIgYThZ2Vjlpo: 'autre', // Boite en marqueterie ancienne avec sa clé
+  lJnaCJL8gSRBwsnWWAkI: 'autre', // Lot de 2 miroirs bambou ancien
+  nC1fdj8PSkXH8orZXzVK: 'chaise', // Paire de bancs chêne 
+  rj7R4HQelgi8ZPTSoUsC: 'autre', // Lot de  7 flacons d'apothicaire couleur ambrée
+  yKyvXLZ2mwh2yAzb0ujq: 'autre', // Lampe Monix 1930
 };
