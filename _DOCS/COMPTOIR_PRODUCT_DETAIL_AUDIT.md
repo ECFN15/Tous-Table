@@ -664,3 +664,25 @@ Playwright local via Vite 5176 : 1024x768, 1280x800, 390x844
 ```
 
 Resultat : build Vite OK. Sur 1024 et 1280, la sidebar reste visible apres scroll long. Apres passe FrontSymmetry : `top:64px`, `overflow-y: visible`, hauteur 677px en 1024x768, 681px en 1280x800, 581px en 1024x700. Sur mobile 390, la barre fixe reste visible en bas, le drawer s'ouvre en dialog `z-index:1210`, le CTA est visible et Escape ferme correctement. Les erreurs console observees en local viennent du fallback `publicCatalog` bloque par CORS sur `127.0.0.1`, sans lien avec ce correctif UI.
+
+---
+
+## Correctif chevauchement filtres Comptoir mobile du 2026-05-14
+
+Objectif : empecher les controles de filtre mobile de masquer les cartes produits pendant le scroll sur `/comptoir`, sans changer les donnees, le tracking, les routes ni les liens d'affiliation.
+
+Actions realisees :
+
+- `src/pages/ShopView.jsx` : le recap mobile `Menu Comptoir / Affiner` est retire du flux, pour supprimer le bloc, son liseret et l'espace vertical associe.
+- `src/pages/ShopView.jsx` : le controle flottant mobile devient un bouton rond compact avec compteur, positionne en bas a droite, au lieu d'une barre pleine largeur.
+- `src/pages/ShopView.jsx` : le padding bas mobile de la section produits reserve seulement l'espace necessaire au bouton rond.
+- `src/components/shop/ShopSidebar.jsx` : au clic sur une famille dans le drawer mobile, le panneau se ferme avant de lancer le scroll vers la section, pour eviter que le scroll lock bloque la navigation.
+
+Validation :
+
+```bash
+npm run build
+git diff --check
+```
+
+Reste a verifier sur vrai mobile : scroll long de `/comptoir` sur Chrome Android et Safari iOS, avec ouverture/fermeture du drawer filtres.

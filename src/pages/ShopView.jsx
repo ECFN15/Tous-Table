@@ -544,7 +544,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
             />
 
             {/* HERO SECTION */}
-            <section className="relative min-h-fit sm:min-h-[58svh] md:min-h-[62svh] flex flex-col justify-start md:justify-end px-6 xl:px-12 pb-8 sm:pb-12 md:pb-14 lg:pb-16 pt-3 sm:pt-6 md:pt-24 lg:pt-28 overflow-hidden">
+            <section className="relative min-h-fit sm:min-h-[58svh] md:min-h-[62svh] flex flex-col justify-start md:justify-end px-6 xl:px-12 pb-1 sm:pb-12 md:pb-14 lg:pb-16 pt-3 sm:pt-6 md:pt-24 lg:pt-28 overflow-hidden">
                 <WorkshopHero darkMode={darkMode} />
 
                 <div className="relative md:absolute order-1 md:-order-none left-0 md:left-6 xl:left-12 md:top-0 lg:top-0 z-10 pointer-events-none">
@@ -574,8 +574,8 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
                 </div>
             </section>
 
-            <section className={`px-6 xl:px-12 pt-7 pb-5 md:py-9 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-transparent'}`}>
-                <div className={`max-w-[1760px] mx-auto border-y pt-5 pb-5 md:py-8 ${darkMode ? 'border-white/10' : 'border-[#c79b5d]/28'}`}>
+            <section className={`px-6 xl:px-12 pt-1 pb-2 md:py-9 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-transparent'}`}>
+                <div className={`max-w-[1760px] mx-auto border-t pt-3 pb-2 md:py-8 ${darkMode ? 'border-white/10' : 'border-[#c79b5d]/28'}`}>
                     <div className="grid gap-6 lg:gap-8 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">
                         <div>
                             <p className={`text-[10px] font-black uppercase tracking-[0.28em] mb-4 ${darkMode ? 'text-amber-500' : 'text-amber-700'}`}>
@@ -592,12 +592,9 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
                             <p>
                                 Chaque famille repond a un geste concret : nourrir une table de ferme, proteger un buffet, raviver une commode ou nettoyer une planche en bois.
                             </p>
-                            <p>
-                                La selection reste volontairement courte pour aider a choisir les bons produits d'entretien, sans multiplier les references inutiles.
-                            </p>
                         </div>
                     </div>
-                    <nav className={`mt-6 md:mt-8 flex flex-wrap gap-3 text-[10px] font-black uppercase tracking-[0.22em] ${darkMode ? 'text-stone-500' : 'text-stone-500'}`} aria-label="Liens Comptoir">
+                    <nav className={`mt-5 md:mt-8 flex flex-wrap gap-3 text-[10px] font-black uppercase tracking-[0.22em] ${darkMode ? 'text-stone-500' : 'text-stone-500'}`} aria-label="Liens Comptoir">
                         {[
                             { href: '/meubles-anciens', label: 'Voir les meubles anciens' },
                             { href: '/livraison-meubles-anciens-france', label: 'Livraison meubles' },
@@ -619,42 +616,29 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
             <div className={`relative ${darkMode ? 'bg-[#0a0a0a]' : 'bg-transparent'}`}>
                 {!isMobileSidebarOpen && (
                     <motion.button
+                        type="button"
                         onClick={() => setIsMobileSidebarOpen(true)}
                         className={`
-                            lg:hidden fixed bottom-[calc(0.75rem+env(safe-area-inset-bottom))] left-3 right-3 z-[120]
-                            min-h-14 rounded-full px-4
-                            flex items-center justify-between
-                            shadow-[0_18px_45px_rgba(55,40,24,0.28)]
-                            gap-3 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
+                            lg:hidden fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-4 z-[120]
+                            flex h-14 w-14 items-center justify-center rounded-full
+                            shadow-[0_18px_42px_rgba(0,0,0,0.32)]
+                            transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
                             ${darkMode
-                                ? 'bg-stone-950/94 text-white ring-1 ring-white/12'
-                                : 'bg-stone-950/94 text-white ring-1 ring-white/18'
+                                ? 'bg-stone-950/92 text-white ring-1 ring-white/14'
+                                : 'bg-stone-950/92 text-white ring-1 ring-white/18'
                             }
                         `}
                         data-shop-filter-trigger="floating"
                         aria-controls="shop-filter-drawer"
                         aria-expanded={isMobileSidebarOpen}
                         aria-label="Ouvrir les filtres du Comptoir"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        initial={{ scale: 0, opacity: 0 }}
+                        whileTap={{ scale: 0.94 }}
+                        initial={{ scale: 0.86, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        transition={{ delay: 0.5 }}
+                        transition={{ delay: 0.35 }}
                     >
-                        <span className="flex min-w-0 items-center gap-3">
-                            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/12">
-                                <SlidersHorizontal size={18} strokeWidth={1.8} />
-                            </span>
-                            <span className="min-w-0 text-left">
-                                <span className="block truncate text-[11px] font-black uppercase tracking-[0.16em]">
-                                    Filtres Comptoir
-                                </span>
-                                <span className="mt-0.5 block truncate text-[10px] font-semibold text-white/62">
-                                    {activeCategoryLabel} - {activePriceLabel}
-                                </span>
-                            </span>
-                        </span>
-                        <span className="shrink-0 rounded-full bg-white px-3 py-1 text-[10px] font-black text-stone-950">
+                        <SlidersHorizontal size={22} strokeWidth={1.8} />
+                        <span className="absolute -right-1 -top-1 flex h-7 min-w-7 items-center justify-center rounded-full bg-white px-1.5 text-[9px] font-black text-stone-950 ring-2 ring-stone-950">
                             {filteredProductCount}
                         </span>
                     </motion.button>
@@ -663,7 +647,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
                 {/* Sectioned content - all families in order */}
                 <section
                     id="products-grid-section"
-                    className={`min-h-screen pt-0 lg:pt-10 pb-[calc(7rem+env(safe-area-inset-bottom))] lg:pb-20 px-4 sm:px-6 xl:px-10 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-transparent'}`}
+                    className={`min-h-screen pt-0 lg:pt-10 pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:pb-20 px-4 sm:px-6 xl:px-10 ${darkMode ? 'bg-[#0a0a0a]' : 'bg-transparent'}`}
                 >
                     <div className="mx-auto grid max-w-[1760px] gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:gap-8 xl:grid-cols-[320px_minmax(0,1fr)]">
                         <ShopSidebar
@@ -681,44 +665,6 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
                         />
 
                         <div className="min-w-0 space-y-0">
-                        <div className={`
-                            sticky top-[72px] z-30 -mx-4 mb-8 px-4 py-3 sm:-mx-6 sm:px-6 lg:hidden
-                            border-y
-                            ${darkMode ? 'border-white/10 bg-[#0a0a0a]/96' : 'border-[#c79b5d]/24 bg-[#fff8ed]/96'}
-                        `}>
-                            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsMobileSidebarOpen(true)}
-                                    data-shop-filter-trigger="sticky-summary"
-                                    aria-controls="shop-filter-drawer"
-                                    aria-expanded={isMobileSidebarOpen}
-                                    className={`min-w-0 rounded-2xl border px-4 py-3 text-left transition-all duration-300 ${darkMode ? 'border-white/10 bg-white/[0.04]' : 'border-[#c79b5d]/26 bg-white/58 shadow-[0_10px_28px_rgba(102,74,36,0.08)]'}`}
-                                >
-                                    <span className={`block text-[9px] font-black uppercase tracking-[0.22em] ${darkMode ? 'text-amber-400' : 'text-amber-800'}`}>
-                                        Menu Comptoir
-                                    </span>
-                                    <span className={`mt-1 block truncate text-sm font-bold ${darkMode ? 'text-white' : 'text-stone-900'}`}>
-                                        {activeCategoryLabel}
-                                    </span>
-                                    <span className={`mt-0.5 block truncate text-[11px] font-semibold ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>
-                                        {activePriceLabel}
-                                    </span>
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setIsMobileSidebarOpen(true)}
-                                    data-shop-filter-trigger="sticky-action"
-                                    className={`inline-flex h-14 items-center justify-center gap-2 rounded-full px-4 text-[10px] font-black uppercase tracking-[0.16em] transition-all duration-300 active:scale-[0.98] ${darkMode ? 'bg-white text-stone-950' : 'bg-stone-950 text-white'}`}
-                                    aria-controls="shop-filter-drawer"
-                                    aria-expanded={isMobileSidebarOpen}
-                                    aria-label="Ouvrir les filtres du Comptoir"
-                                >
-                                    <SlidersHorizontal size={17} strokeWidth={1.8} />
-                                    <span className="hidden min-[390px]:inline">Affiner</span>
-                                </button>
-                            </div>
-                        </div>
 
                         {visibleFamilies.map((family, familyIndex) => {
                             const products = getProductsForFamily(family.id);
@@ -731,7 +677,7 @@ const ShopView = ({ affiliateProducts = [], darkMode = false, setHeaderProps, on
                                 <section
                                     key={family.id}
                                     id={`section-${family.id}`}
-                                    className="tat-heavy-section scroll-mt-28 pt-7 lg:pt-16"
+                                    className="tat-heavy-section scroll-mt-28 pt-4 lg:pt-16"
                                 >
                                     {/* Section separator */}
                                     {familyIndex > 0 && (

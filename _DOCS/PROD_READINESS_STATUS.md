@@ -321,6 +321,15 @@ Deploiement sandbox et prod du 2026-05-14 - emoji avis email expedition :
 - Post-deploy prod : `npm run audit:functions-env -- --project=tousatable-client` OK, `https://tousatable-client.web.app/` HTTP 200, `publicCatalog` HTTP 200.
 - CLI Firebase remis sur `default (tatmadeinnormandie)`.
 
+Deploiement Hosting sandbox et prod du 2026-05-14 - ajustements mobile Comptoir :
+
+- Page `/comptoir` mobile : suppression du bloc `Menu Comptoir / Affiner`, conservation d'un bouton filtre rond en bas a droite, retrait du paragraphe editorial court et reduction des marges entre le hero, le bloc `Boutique bois` et la premiere section produits.
+- Mapping legacy prod : ajout des deux documents prod `IvIngpikD1u276Qiv1zo` et `i6NBt9fdWxSPp4SOxxqM` en categorie `chaise`, sans ecriture Firestore prod.
+- Sandbox : `firebase use default`, `npm run build`, puis `firebase deploy --only hosting --project tatmadeinnormandie` OK.
+- Prod : premier `npm run preflight:prod` bloque sur le mapping legacy, correction du mapping, second preflight bloque sur anciens assets sandbox dans `dist`, nettoyage de `dist`, troisieme `npm run preflight:prod` OK, puis `firebase deploy --only hosting --project tousatable-client` OK.
+- Post-deploy prod : `https://tousatable-client.web.app/` HTTP 200, `/comptoir` HTTP 200, `publicCatalog` HTTP 200.
+- CLI Firebase remis sur `default (tatmadeinnormandie)`.
+
 ## Reste a suivre
 
 1. Decider le traitement des legacy env vars Functions: nettoyage + rotation recommandes.

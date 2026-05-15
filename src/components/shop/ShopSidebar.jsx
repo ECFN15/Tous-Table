@@ -58,7 +58,10 @@ const ShopSidebar = ({
     }, [isMobileOpen, onMobileClose]);
 
     const handleMobileCategory = (categoryId) => {
-        onCategoryChange(categoryId);
+        onMobileClose?.();
+        window.setTimeout(() => {
+            onCategoryChange(categoryId);
+        }, 80);
     };
 
     return (

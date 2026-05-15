@@ -8,6 +8,7 @@ export const LEGACY_FURNITURE_CATEGORY_BY_ID = {
   zHwnm17ybqkWCmr0Kz2a: 'buffet', // Buffet
   '3lBbbS6HhM69lfX8N57b': 'buffet', // Buffet parisien
   sGY303K3aNHW4dhAU5ke: 'table', // Bureau
+  IvIngpikD1u276Qiv1zo: 'chaise', // Tabouret industriel
   nLQDH4f3utiRka9ALmTO: 'commode', // Commode
   gkkb3yTggloFmz70HYay: 'commode', // Commode vintage renovee
   oluSHrCWltBEUbGtu6Nf: 'armoire', // L'armoire de basile
@@ -30,5 +31,6 @@ export const LEGACY_FURNITURE_CATEGORY_BY_ID = {
   HsJ4Gs0mtClfK54GvTaS: 'table', // Table de ferme
   GhpesY9osftcuMmaD1lw: 'table', // Table monastere
   O9nOJSI5v7CGVxsWMpWJ: 'table', // No40 table de ferme ancienne
+  i6NBt9fdWxSPp4SOxxqM: 'chaise', // Paire de nourrice
   orANR1BDdCQQTQOXT3iJ: 'armoire', // Vestiaire chene
 };
