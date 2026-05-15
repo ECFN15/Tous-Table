@@ -81,6 +81,22 @@ const scheduleIdleCallback = (callback, timeout = 1200) => {
 const sortByCreatedAtDesc = (a, b) => getMillis(b.createdAt) - getMillis(a.createdAt);
 const CONTACT_INFO_CACHE_KEY = 'tat_contact_info';
 
+const isCatalogStartupRoute = (route = {}) => (
+  route.view === 'gallery' &&
+  ['furniture', 'cutting_boards'].includes(route.galleryState?.activeCollection || 'furniture')
+);
+
+const normalizePublicCatalogPayload = (collections = {}) => ({
+  items: (collections.furniture || [])
+    .map((item) => ({ ...item, collectionName: 'furniture' }))
+    .sort(sortByCreatedAtDesc),
+  boardItems: (collections.cutting_boards || [])
+    .map((item) => ({ ...item, collectionName: 'cutting_boards' }))
+    .sort(sortByCreatedAtDesc),
+  affiliateProducts: (collections.affiliate_products || [])
+    .filter((product) => product.status === 'published'),
+});
+
 const getCachedContactInfo = () => {
   if (typeof localStorage === 'undefined') return {};
   try {
@@ -198,7 +214,9 @@ const AppContent = () => {
   const [showAuthSuccess, setShowAuthSuccess] = useState(false);
   const [pendingItem, setPendingItem] = useState(null);
   const [showStartupPreloader, setShowStartupPreloader] = useState(() => shouldShowStartupPreloader(initialRouteRef.current));
-  const [publicRealtimeReady, setPublicRealtimeReady] = useState(() => !showStartupPreloader);
+  const [publicRealtimeReady, setPublicRealtimeReady] = useState(() => (
+    !showStartupPreloader || isCatalogStartupRoute(initialRouteRef.current)
+  ));
   const scrollYRef = useRef(0);
   const modalUnlockRef = useRef(null);
   const wasModalOpenRef = useRef(false);
@@ -340,14 +358,10 @@ const AppContent = () => {
       return;
     }
 
-    setItems((collections.furniture || [])
-      .map((item) => ({ ...item, collectionName: 'furniture' }))
-      .sort(sortByCreatedAtDesc));
-    setBoardItems((collections.cutting_boards || [])
-      .map((item) => ({ ...item, collectionName: 'cutting_boards' }))
-      .sort(sortByCreatedAtDesc));
-    setAffiliateProducts((collections.affiliate_products || [])
-      .filter((product) => product.status === 'published'));
+    const catalogPayload = normalizePublicCatalogPayload(collections);
+    setItems(catalogPayload.items);
+    setBoardItems(catalogPayload.boardItems);
+    setAffiliateProducts(catalogPayload.affiliateProducts);
   }, []);
 
   const runStartupWarmup = React.useCallback(() => (
@@ -364,6 +378,13 @@ const AppContent = () => {
 
   useEffect(() => {
     if (showStartupPreloader || !deferredPublicCatalogRef.current) return undefined;
+
+    if (isCatalogStartupRoute(initialRouteRef.current)) {
+      const pendingCollections = deferredPublicCatalogRef.current;
+      deferredPublicCatalogRef.current = null;
+      applyPublicCatalog(pendingCollections, { deferWhilePreloading: false });
+      return undefined;
+    }
 
     let cleanupIdle = null;
     const timer = window.setTimeout(() => {
@@ -395,12 +416,17 @@ const AppContent = () => {
     if (startupCatalogWarmupStartedRef.current) return;
 
     let cleanupIdle = null;
-    const delay = isTouchDevice() ? 1400 : 420;
+    const delay = isCatalogStartupRoute(initialRouteRef.current) ? 0 : (isTouchDevice() ? 1400 : 420);
     const timer = window.setTimeout(() => {
       startupCatalogWarmupStartedRef.current = true;
-      cleanupIdle = scheduleIdleCallback(() => {
+      const warmup = () => {
         warmupStartupCatalogImagesForRoute(initialRouteRef.current, startupWarmupPayloadRef.current);
-      }, isTouchDevice() ? 2000 : 900);
+      };
+      if (isCatalogStartupRoute(initialRouteRef.current)) {
+        warmup();
+      } else {
+        cleanupIdle = scheduleIdleCallback(warmup, isTouchDevice() ? 2000 : 900);
+      }
     }, delay);
 
     return () => {
@@ -488,6 +514,12 @@ const AppContent = () => {
             return response.json();
           })
           .then((payload) => {
+            if (isCatalogStartupRoute(initialRouteRef.current)) {
+              warmupStartupCatalogImagesForRoute(
+                initialRouteRef.current,
+                normalizePublicCatalogPayload(payload.collections),
+              );
+            }
             applyPublicCatalog(payload.collections);
             return payload;
           })

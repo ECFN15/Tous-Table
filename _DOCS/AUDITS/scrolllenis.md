@@ -855,3 +855,28 @@ Validation desktop Chromium headless 1440x900, `?skipPreloader=1`, impulsions wh
 Notes :
 - mesures prises en headless 60 Hz, donc a interpreter comme un smoke technique plutot qu'une sensation exacte de trackpad Mac/Windows ;
 - erreurs locales CORS `publicCatalog` et warning Stripe HTTP vus en preview, sans lien avec le scroll ni presents comme regression de cette passe.
+
+## 17. Preload catalogue en sortie de preloader - 15 mai 2026
+
+Objectif utilisateur : sur les pages mobilier/planches, lancer les images catalogue depuis le hero/preloader, pas seulement quand la zone des cartes approche du viewport.
+
+Diagnostic :
+- sur une entree `/` ou `/planches-a-decouper-anciennes`, `publicRealtimeReady` restait bloque pendant le preloader ;
+- le fetch `publicCatalog` ne pouvait donc partir qu'apres la fin du preloader, puis apres un delai idle ;
+- le warmup `warmupStartupCatalogImagesForRoute` recevait un payload vide pendant le preloader, donc aucune image produit ne pouvait etre prechargee a ce moment.
+
+Changement :
+- les routes catalogue de demarrage (`gallery` mobilier/planches) autorisent maintenant `publicCatalog` a partir pendant le preloader ;
+- des que `publicCatalog` repond, le payload est normalise et transmis a `warmupStartupCatalogImagesForRoute` pour precharger les premieres images Firebase Storage ;
+- les donnees catalogue restent deferees pendant le preloader, mais sont appliquees immediatement a sa sortie pour eviter le trou avant la grille ;
+- les autres routes gardent le comportement idle existant.
+
+Validation :
+- `npm run build` OK, avec warning Vite historique sur les chunks volumineux ;
+- `git diff --check` OK ;
+- smoke Playwright CLI avec HAR sans scroll :
+  - `http://localhost:5174/` : `publicCatalog` appele 1 fois, 16 URLs Firebase Storage vues ;
+  - `http://localhost:5174/planches-a-decouper-anciennes` : `publicCatalog` appele 1 fois, 16 URLs Firebase Storage vues.
+
+Risque restant :
+- a verifier dans Chrome utilisateur apres hard refresh, car le cache et le service worker local peuvent masquer l'ancien bundle pendant un moment.
