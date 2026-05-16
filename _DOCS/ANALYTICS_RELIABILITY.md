@@ -2,6 +2,29 @@
 
 Date: 2026-05-07
 
+## Patch contact 2026-05-16 - Bouton WhatsApp public
+
+Contexte: ajout d'un point de contact WhatsApp flottant sur le site public, sans recreer de lecture Firestore ni ajouter de SDK tiers.
+
+Changements:
+
+- `WhatsAppFloatingButton` reutilise le `contactInfo` deja charge par `App.jsx` via `sys_metadata/contact_info`.
+- Le lien utilise le format `wa.me` avec numero normalise en format international et message pre-rempli encode.
+- `AdminSEO` ajoute un champ optionnel `whatsapp`; s'il est vide, le bouton garde le telephone public existant comme fallback.
+- `MyOrdersView` remplace le message "WhatsApp en cours d'integration" par un lien WhatsApp direct, en reutilisant les memes donnees de contact.
+- Le panneau WhatsApp propose maintenant des intentions contextuelles, un message editable, un CTA WhatsApp et un CTA telephone fixes en bas du panneau mobile.
+- Le fond d'ouverture reste transparent, le logo utilise une marque WhatsApp SVG, et les messages suppriment les formulations avec `(e)` ainsi que les URLs locales.
+
+Tests:
+
+```bash
+node --input-type=module # verification normalizeWhatsAppPhone/buildWhatsAppUrl
+node --input-type=module # verification wording getWhatsAppContext
+npm run build
+Chrome headless CDP # verification bouton visible et lien wa.me sur /meubles-anciens
+Chrome headless CDP # verification mobile 390x844 et desktop 1366x768: CTA visibles, fond transparent, lien sans localhost
+```
+
 ## Mission
 
 Clarifier si les chiffres du dashboard admin representent vraiment des utilisateurs uniques, notamment quand 39 sessions donnent environ 20 visiteurs uniques sur la periode "1 jour".

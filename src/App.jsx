@@ -30,6 +30,7 @@ import AppRouter from './Router';
 import ErrorBoundary from './components/shared/ErrorBoundary';
 import CartSidebar from './components/cart/CartSidebar';
 import Footer from './components/layout/Footer';
+import WhatsAppFloatingButton from './components/layout/WhatsAppFloatingButton';
 import SEO from './components/shared/SEO';
 import AnalyticsProvider from './components/shared/AnalyticsProvider';
 import { ToastProvider, useToast } from './components/ui/Toast';
@@ -214,6 +215,7 @@ const AppContent = () => {
   const [showAuthSuccess, setShowAuthSuccess] = useState(false);
   const [pendingItem, setPendingItem] = useState(null);
   const [showStartupPreloader, setShowStartupPreloader] = useState(() => shouldShowStartupPreloader(initialRouteRef.current));
+  const [isFooterVisible, setIsFooterVisible] = useState(false);
   const [publicRealtimeReady, setPublicRealtimeReady] = useState(() => (
     !showStartupPreloader || isCatalogStartupRoute(initialRouteRef.current)
   ));
@@ -466,6 +468,21 @@ const AppContent = () => {
       clearTimeout(timer);
       if (scrollHandler) window.removeEventListener('scroll', scrollHandler);
     };
+  }, [view]);
+
+  useEffect(() => {
+    const footer = footerRef.current;
+    if (!footer || typeof IntersectionObserver === 'undefined') {
+      setIsFooterVisible(false);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(([entry]) => {
+      setIsFooterVisible(entry.isIntersecting);
+    }, { threshold: 0.08 });
+
+    observer.observe(footer);
+    return () => observer.disconnect();
   }, [view]);
 
 
@@ -1185,8 +1202,18 @@ const AppContent = () => {
           persistentGalleryState={persistentGalleryState}
           saveGalleryState={saveGalleryState}
           affiliateProducts={affiliateProducts}
+          contactInfo={contactInfo}
         />
       </main>
+      <WhatsAppFloatingButton
+        contactInfo={contactInfo}
+        darkMode={darkMode}
+        view={view}
+        item={view === 'shop-detail' ? selectedAffiliateProduct : selectedCatalogItem}
+        cartCount={cartItems.length}
+        cartTotal={cartTotal}
+        hidden={['admin', 'login'].includes(view) || isCartOpen || showFullLogin || showStartupPreloader || isMenuOpen || showMarketplacePopup || showOrderSuccess || stockAlert || isFooterVisible}
+      />
       {
         ['home', 'gallery', 'detail', 'checkout', 'my-orders', 'shop', 'shop-detail'].includes(view) && (
           <div ref={footerRef}>

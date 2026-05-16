@@ -211,7 +211,7 @@ const AdminOrders = ({ darkMode = false }) => {
                                             <div className="flex flex-col gap-3 pt-6">
                                                 <div className="flex flex-col xl:flex-row gap-3">
                                                     {/* Status Actions */}
-                                                    {(order.status === 'pending_payment' || order.status === 'paid' || !order.status) ? (
+                                                    {(order.status === 'pending_payment' || order.status === 'pending' || order.status === 'paid' || !order.status) ? (
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); updateOrderStatus(order, 'shipped'); }}
                                                             className={`group flex-1 py-4 xl:py-3.5 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all duration-300 shadow-xl flex items-center justify-center gap-2 ${

@@ -24,6 +24,7 @@ const AdminShop = React.lazy(() => import('./features/admin/AdminShop'));
 const AdminDashboard = React.lazy(() => import('./features/admin/AdminDashboard'));
 const AdminHomepage = React.lazy(() => import('./features/admin/AdminHomepage'));
 const AdminOrders = React.lazy(() => import('./features/admin/AdminOrders'));
+const AdminShippingReminder = React.lazy(() => import('./features/admin/AdminShippingReminder'));
 
 const AdminStudio = React.lazy(() => import('./features/admin/AdminStudio'));
 const AdminForm = React.lazy(() => import('./features/admin/AdminForm'));
@@ -79,7 +80,8 @@ const AppRouter = ({
     setHeaderProps,
     persistentGalleryState,
     saveGalleryState,
-    affiliateProducts
+    affiliateProducts,
+    contactInfo
 }) => {
     const { user, isAdmin, logout } = useAuth();
     const [isMoreMenuOpen, setIsMoreMenuOpen] = React.useState(false);
@@ -302,6 +304,7 @@ const AppRouter = ({
                         onBack={() => setView('gallery')}
                         darkMode={darkMode}
                         activeDesignId={activeDesignId}
+                        contactInfo={contactInfo}
                     />
                 </Suspense>
             )}
@@ -325,6 +328,15 @@ const AppRouter = ({
                 <div className={`max-w-6xl mx-auto px-4 py-24 md:py-32 space-y-12 md:space-y-16 animate-in fade-in ${darkMode ? 'text-white' : 'text-stone-900'}`}>
                     <Suspense fallback={null}>
                         <AdminIPTracker />
+                    </Suspense>
+                    <Suspense fallback={null}>
+                        <AdminShippingReminder
+                            darkMode={darkMode}
+                            onOpenOrders={() => {
+                                setAdminCollection('orders');
+                                setEditingItem(null);
+                            }}
+                        />
                     </Suspense>
                     {/* GESTION ATELIER HEADER */}
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">

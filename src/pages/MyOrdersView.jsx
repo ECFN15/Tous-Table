@@ -5,12 +5,13 @@ import { functions } from '../firebase/config';
 import { httpsCallable } from 'firebase/functions';
 import { Package, Truck, XCircle, MessageCircle, ArrowLeft, CheckCircle, Download, CreditCard, Copy, Check, Loader2, Star, AlertTriangle } from 'lucide-react';
 import { generateInvoice } from '../utils/generateInvoice';
+import { buildWhatsAppUrl, getWhatsAppPhoneFromContactInfo, normalizeWhatsAppPhone } from '../utils/whatsapp';
 
 const formatPrice = (price) => {
     return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(price);
 };
 
-const MyOrdersView = ({ user, onBack, darkMode }) => {
+const MyOrdersView = ({ user, onBack, darkMode, contactInfo }) => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [copied, setCopied] = useState(null);
@@ -19,6 +20,12 @@ const MyOrdersView = ({ user, onBack, darkMode }) => {
     const [showContactPopup, setShowContactPopup] = useState(false);
     const [orderToCancelId, setOrderToCancelId] = useState(null);
     const [isCancelling, setIsCancelling] = useState(false);
+    const whatsappPhone = getWhatsAppPhoneFromContactInfo(contactInfo);
+    const whatsappUrl = buildWhatsAppUrl(
+        whatsappPhone,
+        'Bonjour, je vous contacte depuis le site Tous a Table au sujet de ma commande.'
+    );
+    const whatsappTelHref = `tel:+${normalizeWhatsAppPhone(whatsappPhone)}`;
 
     const handleDownloadInvoice = async (order) => {
         setDownloadingInvoice(order.id);
@@ -428,14 +435,18 @@ const MyOrdersView = ({ user, onBack, darkMode }) => {
                                 <h3 className="text-xl md:text-3xl font-black tracking-tighter">Contact Vendeur</h3>
                                 <div className={`p-4 md:p-6 rounded-2xl ${darkMode ? 'bg-stone-900/50' : 'bg-stone-50'}`}>
                                     <p className={`text-xs md:text-sm font-medium leading-relaxed ${darkMode ? 'text-stone-300' : 'text-stone-600'}`}>
-                                        Notre messagerie instantanée (WhatsApp) est en cours d'intégration pour vous offrir une meilleure expérience.
+                                        Vous pouvez ecrire directement a l'atelier sur WhatsApp pour une question de commande, livraison ou suivi.
                                     </p>
                                     <div className="w-10 h-1 bg-stone-200 dark:bg-stone-700 mx-auto my-4 md:my-6 rounded-full"></div>
                                     <p className={`text-xs md:text-sm font-medium ${darkMode ? 'text-stone-300' : 'text-stone-600'}`}>
-                                        En attendant, pour toute question sur votre commande, veuillez contacter <strong className={darkMode ? 'text-white' : 'text-stone-900'}>Olivier</strong> directement :
+                                        Pour toute question sur votre commande, contactez <strong className={darkMode ? 'text-white' : 'text-stone-900'}>Olivier</strong> directement :
                                     </p>
-                                    <a href="tel:+33777324178" className="mt-4 md:mt-6 block px-4 py-3 md:py-4 bg-stone-900 text-white dark:bg-white dark:text-stone-900 rounded-xl font-black text-base md:text-lg tracking-wider hover:scale-[1.02] transition-transform shadow-lg">
-                                        07 77 32 41 78
+                                    <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="mt-4 md:mt-6 flex items-center justify-center gap-2 px-4 py-3 md:py-4 bg-emerald-600 text-white rounded-xl font-black text-xs md:text-sm uppercase tracking-widest hover:scale-[1.02] transition-transform shadow-lg shadow-emerald-900/20">
+                                        <MessageCircle size={18} />
+                                        Ouvrir WhatsApp
+                                    </a>
+                                    <a href={whatsappTelHref} className={`mt-3 block px-4 py-3 rounded-xl font-black text-base md:text-lg tracking-wider hover:scale-[1.02] transition-transform ${darkMode ? 'bg-white text-stone-900' : 'bg-stone-900 text-white'}`}>
+                                        {whatsappPhone}
                                     </a>
                                 </div>
                             </div>

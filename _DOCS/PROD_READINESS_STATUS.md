@@ -339,6 +339,15 @@ Deploiement Hosting prod du 2026-05-15 - preload images catalogue mobilier/planc
 - Verification reseau sans scroll via Playwright HAR : page `/` et `/planches-a-decouper-anciennes` declenchent chacune `publicCatalog` et 16 requetes Storage images pendant le hero.
 - CLI Firebase remis sur `default (tatmadeinnormandie)`.
 
+Changement local du 2026-05-16 - rappel admin commandes non expediees :
+
+- Ajout de `src/features/admin/AdminShippingReminder.jsx`, monte dans la vue admin globale via `src/Router.jsx`.
+- Le rappel surveille les commandes bornees aux statuts `paid`, `pending_payment` et `pending`, puis affiche un popup tant qu'elles ne sont pas marquees `shipped` ou sorties de ces statuts.
+- Le bouton `Me le rappeler dans 2 jours` enregistre un snooze par admin dans `orders/{orderId}.shippingReminderSnoozes.{uid}`, afin que chaque admin garde son propre rappel.
+- Le popup permet aussi de marquer directement la commande affichee comme `shipped`, avec la meme mutation que le bouton `Expediee` de l'onglet Commandes.
+- Verification locale : `npm run build` OK.
+- Non fait : aucun deploy, aucune ecriture Firestore prod.
+
 ## Reste a suivre
 
 1. Decider le traitement des legacy env vars Functions: nettoyage + rotation recommandes.

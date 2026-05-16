@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
-import { Globe, Mail, Phone, Facebook, Instagram, Save, Search, Share2, RefreshCw } from 'lucide-react';
+import { Globe, Mail, Phone, Facebook, Instagram, Save, Search, Share2, RefreshCw, MessageCircle } from 'lucide-react';
 
 const AdminSEO = ({ darkMode }) => {
     const [loading, setLoading] = useState(true);
@@ -11,6 +11,7 @@ const AdminSEO = ({ darkMode }) => {
     const [formData, setFormData] = useState({
         email: 'atelier@tousatable.fr',
         phone: '07 77 32 41 78',
+        whatsapp: '07 77 32 41 78',
         address: 'France, Normandie',
         instagram: '',
         facebook: '',
@@ -116,6 +117,22 @@ const AdminSEO = ({ darkMode }) => {
                                 />
                             </div>
                             <p className="text-[10px] opacity-40 ml-1">Format recommandé : XX XX XX XX XX</p>
+                        </div>
+                        {/* WhatsApp */}
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold uppercase tracking-widest opacity-60 ml-1">Numéro WhatsApp</label>
+                            <div className={`flex items-center px-4 py-3 rounded-xl border ${darkMode ? 'bg-stone-950 border-stone-800 focus-within:border-emerald-500' : 'bg-stone-50 border-stone-200 focus-within:border-emerald-500'}`}>
+                                <MessageCircle size={16} className="opacity-40 mr-3 text-emerald-500" />
+                                <input
+                                    type="tel"
+                                    name="whatsapp"
+                                    value={formData.whatsapp ?? ''}
+                                    onChange={handleChange}
+                                    placeholder="Laisser vide pour utiliser le téléphone public"
+                                    className="bg-transparent border-none outline-none w-full text-sm font-medium placeholder-opacity-30"
+                                />
+                            </div>
+                            <p className="text-[10px] opacity-40 ml-1">Utilisé par le bouton flottant WhatsApp du site.</p>
                         </div>
                     </div>
                 </div>
