@@ -10,6 +10,7 @@ Objectif: deployer les corrections frontend/functions sans importer la sandbox e
 - Toujours passer `--project tousatable-client` dans les commandes prod.
 - Ne pas utiliser `npm --prefix functions run deploy` pour la prod: ce script n'a pas de `--project` explicite.
 - Les anciens meubles prod sont ranges cote frontend via `src/data/legacyFurnitureCategories.js`.
+- La dette et la migration future du mapping categories sont documentees dans `_DOCS/LEGACY_FURNITURE_CATEGORY_MAPPING.md`.
 - Les nouveaux meubles publies par l'admin doivent utiliser le champ Firestore `category`.
 - Ne pas lancer Hosting prod si `npm run preflight:prod` ne passe pas.
 - Ne pas activer les paiements carte en production avec une cle Stripe test.

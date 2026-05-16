@@ -107,6 +107,20 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
         if (!item) return 'furniture';
         return item.collectionName || ((item.id && item.id.includes('board')) ? 'cutting_boards' : 'furniture');
     }, [item]);
+    const isCuttingBoard = collectionName === 'cutting_boards';
+    const deliveryEstimateMessage = isCuttingBoard
+        ? 'Frais de livraison estimés entre 0,99 et 5 euros par Mondial Relay, à prévoir en plus du prix catalogue.'
+        : 'Frais de livraison indicatifs selon le meuble et le trajet : à partir de 20 euros pour un très petit meuble, petite commode ou meuble de taille moyenne entre 60 et 80 euros, table Ifs-Paris autour de 150 euros, table Ifs-Marseille à partir de 250 euros.';
+    const priceDeliveryNote = isCuttingBoard
+        ? 'Frais de port à prévoir : 0,99 à 5 € par Mondial Relay.'
+        : (
+            <>
+                Frais de port : dès 20 € très petit meuble, 60-80 € meuble moyen, 150 € table Ifs-Paris,
+                <br className="hidden sm:block" />
+                <span className="sm:hidden"> </span>
+                250 € table Ifs-Marseille.
+            </>
+        );
 
     // Preload
     useEffect(() => {
@@ -448,7 +462,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                         {/* Price & Actions */}
                         <div className="px-6 pb-6 pt-0 bg-transparent">
                             {/* NEW COMPACT LAYOUT: PRICE (Left) + SPECS HORIZONTAL (Right) */}
-                            <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-12 pt-8 gap-6 sm:gap-0">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-8 md:mb-9 pt-8 gap-6 sm:gap-0">
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Prix Actuel</p>
                                     <p className={`${item.priceOnRequest ? 'text-3xl md:text-4xl' : 'text-5xl md:text-6xl'} font-black tracking-tighter font-serif italic font-normal leading-none`}>
@@ -458,8 +472,11 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                                             <><AnimatedPrice amount={item.currentPrice || item.startingPrice || 0} /> €</>
                                         )}
                                     </p>
+                                    <p className={`relative top-[9px] md:top-[10px] mt-3 max-w-[300px] text-[10px] sm:text-[11px] font-medium leading-snug opacity-55 ${darkMode ? 'text-stone-400' : 'text-stone-600'}`}>
+                                        {priceDeliveryNote}
+                                    </p>
                                 </div>
-                                <div className="flex items-end gap-8 md:gap-12 text-right opacity-60 pb-1 md:pb-2">
+                                <div className={`grid w-full grid-cols-2 gap-4 border-t pt-4 text-left opacity-60 sm:w-auto sm:flex sm:items-end sm:gap-8 sm:border-0 sm:pt-0 sm:text-right md:gap-12 sm:pb-1 md:pb-2 ${darkMode ? 'border-white/10' : 'border-stone-200'}`}>
                                     <div>
                                         <p className="text-[9px] font-black uppercase tracking-widest mb-1 opacity-50">Matières</p>
                                         <p className="text-xs font-bold">{item.material || "Non spécifié"}</p>
@@ -593,13 +610,18 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                                     <div className="absolute bottom-0 left-0 -ml-8 -mb-8 w-24 h-24 blur-3xl opacity-10 rounded-full" style={{ backgroundColor: palette.statusValid }}></div>
                                 </div>
                             )}
-                            <a
-                                href="/livraison-meubles-anciens-france"
-                                className={`mt-5 flex items-center justify-between border-t pt-4 text-[10px] font-black uppercase tracking-[0.2em] transition-colors duration-300 ${darkMode ? 'border-white/10 text-stone-500 hover:text-amber-400' : 'border-stone-200 text-stone-500 hover:text-amber-700'}`}
-                            >
-                                <span>Livraison France et pays frontaliers</span>
-                                <ArrowRight size={14} />
-                            </a>
+                            <div className={`mt-5 border-t pt-4 ${darkMode ? 'border-white/10' : 'border-stone-200'}`}>
+                                <a
+                                    href="/livraison-meubles-anciens-france"
+                                    className={`flex items-center justify-between gap-4 text-[10px] font-black uppercase tracking-[0.2em] transition-colors duration-300 ${darkMode ? 'text-stone-500 hover:text-amber-400' : 'text-stone-500 hover:text-amber-700'}`}
+                                >
+                                    <span>Livraison France et pays frontaliers</span>
+                                    <ArrowRight size={14} className="shrink-0" />
+                                </a>
+                                <p className={`mt-3 max-w-[560px] text-[11px] sm:text-xs leading-relaxed ${darkMode ? 'text-stone-400' : 'text-stone-600'}`}>
+                                    {deliveryEstimateMessage}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>

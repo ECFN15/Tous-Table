@@ -939,38 +939,75 @@ const AppContent = () => {
       {/* MODAL LOGIN (Pour la Marketplace) */}
       {showFullLogin && (
         <div
-          className="fixed inset-0 z-[200] bg-stone-900/60 backdrop-blur-md flex items-center justify-center p-4 md:p-6"
+          className="fixed inset-0 z-[200] bg-[#050505]/55 backdrop-blur-md flex items-center justify-center p-2 sm:p-3 md:p-6"
           onClick={(e) => { if (e.target === e.currentTarget) setShowFullLogin(false); }}
         >
-          <div className="bg-white p-6 md:p-10 rounded-3xl md:rounded-[2.5rem] shadow-2xl max-w-sm w-full text-center space-y-4 md:space-y-6 animate-in zoom-in-95 relative overflow-hidden max-h-[85vh] overflow-y-auto ios-modal-scroll" style={{ maxHeight: 'min(85dvh, 85vh)' }}>
+          <div className="relative w-full max-w-[430px] overflow-hidden rounded-[1.35rem] border border-white/10 bg-[#0b0d0f]/95 text-stone-100 shadow-[0_30px_90px_rgba(0,0,0,0.55)] animate-in zoom-in-95 max-h-[calc(100dvh-16px)] overflow-y-auto ios-modal-scroll [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden md:rounded-[1.65rem] md:max-h-[88vh]">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(245,174,80,0.16),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.07),transparent_36%)]"></div>
+            <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-amber-300/45 to-transparent"></div>
 
             {showAuthSuccess ? (
-              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-                <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-500 border border-emerald-100 shadow-sm">
-                  <ShieldCheck size={40} />
+              <div className="relative p-5 md:p-8 space-y-5 md:space-y-6 text-center animate-in fade-in slide-in-from-bottom-4">
+                <div className="mx-auto inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-300/10 text-amber-200 ring-1 ring-amber-200/20">
+                    <Hammer size={15} />
+                  </span>
+                  <span className="text-left">
+                    <span className="block text-[11px] font-black uppercase tracking-[0.18em] text-white">Tous à Table</span>
+                    <span className="block font-serif text-[11px] italic text-stone-400">Atelier Normand</span>
+                  </span>
+                </div>
+                <div className="w-16 h-16 bg-emerald-400/10 rounded-2xl flex items-center justify-center mx-auto text-emerald-300 border border-emerald-300/20 shadow-[0_0_35px_rgba(52,211,153,0.14)]">
+                  <ShieldCheck size={34} />
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-2xl font-black tracking-tight text-stone-900">Vérifiez vos emails !</h3>
-                  <p className="text-sm text-stone-500 font-medium px-2 leading-relaxed">
+                  <h3 className="text-2xl font-black tracking-tight text-white">Vérifiez vos emails</h3>
+                  <p className="text-sm text-stone-300 font-medium px-2 leading-relaxed">
                     Un lien de confirmation vient d'être envoyé. <br />
-                    <span className="text-amber-600 font-bold">Pensez à regarder dans vos spams.</span>
+                    <span className="text-amber-200 font-bold">Pensez à regarder dans vos spams.</span>
                   </p>
                 </div>
-                <button onClick={() => { setShowFullLogin(false); setShowAuthSuccess(false); }} className="w-full py-4 bg-stone-900 text-white rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-stone-800 transition-all shadow-lg">
+                <button onClick={() => { setShowFullLogin(false); setShowAuthSuccess(false); }} className="w-full py-4 rounded-2xl bg-white text-stone-950 font-black uppercase text-[10px] tracking-[0.2em] transition-all hover:bg-amber-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200">
                   C'est compris
                 </button>
               </div>
             ) : (
-              <>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowFullLogin(false)}
+                  className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-stone-400 transition-all hover:bg-white/[0.08] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200 md:h-10 md:w-10"
+                  aria-label="Fermer la connexion"
+                >
+                  <X size={18} />
+                </button>
+
                 {/* HEADER */}
-                <div className="space-y-4">
-                  <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto text-amber-500 border border-amber-100 shadow-sm">
-                    <ShieldCheck size={32} />
+                <div className="px-5 pb-4 pt-5 border-b border-white/10 md:px-8 md:pb-5 md:pt-8">
+                  <div className="mb-4 flex items-center justify-between gap-4 pr-10 md:mb-7 md:pr-11">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-2xl border border-amber-200/20 bg-amber-300/10 text-amber-200 shadow-[0_0_30px_rgba(245,174,80,0.10)] md:h-10 md:w-10">
+                        <Hammer size={17} />
+                      </div>
+                      <div className="text-left leading-none">
+                        <p className="text-[13px] font-black uppercase tracking-[0.18em] text-white">Tous à Table</p>
+                        <p className="mt-1 font-serif text-xs italic text-stone-400">Atelier Normand</p>
+                      </div>
+                    </div>
+                    <span className="hidden rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-emerald-200 md:inline-flex">Sécurisé</span>
                   </div>
-                  <h3 className="text-2xl font-black tracking-tight text-stone-900">Vérification</h3>
-                  <p className="text-xs text-stone-400 font-medium px-4">Identifiez-vous pour accéder à la vente.</p>
+
+                  <div className="space-y-2 text-left md:space-y-3">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-amber-200 md:py-1.5">
+                      <ShieldCheck size={12} />
+                      Accès vente
+                    </div>
+                    <h3 className="text-[1.7rem] font-black leading-none tracking-tight text-white md:text-[2rem]">Connexion</h3>
+                    <p className="max-w-[31ch] text-[13px] font-medium leading-snug text-stone-400 md:text-sm md:leading-relaxed">Identifiez-vous pour accéder à la vente et retrouver vos pièces sélectionnées.</p>
+                  </div>
                 </div>
 
+                <div className="space-y-4 px-5 py-4 md:space-y-5 md:px-8 md:py-7">
                 {/* FORMULAIRE EMAIL */}
                 <form onSubmit={async (e) => {
                   e.preventDefault();
@@ -998,48 +1035,48 @@ const AppContent = () => {
 
                     toast(msg, { type: 'error' });
                   }
-                }} className="space-y-3 pt-2" data-signup="false">
+                }} className="space-y-2.5 md:space-y-3" data-signup="false" data-auth-form="marketplace">
 
-                  <input name="email" type="email" placeholder="Adresse email" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-base outline-none focus:ring-2 ring-stone-900 transition-all text-stone-900 placeholder:text-stone-300" required autoComplete="email" />
+                  <input name="email" type="email" placeholder="Adresse email" className="w-full rounded-2xl bg-white/[0.055] border border-white/10 px-4 py-3.5 font-bold text-sm outline-none transition-all text-white placeholder:text-stone-500 hover:bg-white/[0.075] focus:border-amber-200/60 focus:ring-2 focus:ring-amber-200/20 md:p-4 md:text-base" required autoComplete="email" />
 
                   <div className="relative">
-                    <input name="password" type={showPassword ? "text" : "password"} placeholder="Mot de passe" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-base outline-none focus:ring-2 ring-stone-900 transition-all text-stone-900 placeholder:text-stone-300" required autoComplete="current-password" />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-900">
+                    <input name="password" type={showPassword ? "text" : "password"} placeholder="Mot de passe" className="w-full rounded-2xl bg-white/[0.055] border border-white/10 px-4 py-3.5 pr-12 font-bold text-sm outline-none transition-all text-white placeholder:text-stone-500 hover:bg-white/[0.075] focus:border-amber-200/60 focus:ring-2 focus:ring-amber-200/20 md:p-4 md:pr-12 md:text-base" required autoComplete="current-password" />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-500 transition-colors hover:text-amber-100 focus-visible:outline-none focus-visible:text-amber-100">
                       {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
                   </div>
 
                   <div id="confirm-pass-container" className="hidden transition-all duration-300 overflow-hidden" style={{ maxHeight: '0px' }}>
-                    <div className="relative mb-3">
-                      <input name="confirmPassword" type={showConfirmPassword ? "text" : "password"} placeholder="Confirmer mot de passe" className="w-full p-4 rounded-xl bg-stone-50 border border-stone-200 font-bold text-base outline-none focus:ring-2 ring-stone-900 transition-all text-stone-900 placeholder:text-stone-300" autoComplete="new-password" />
-                      <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-900">
+                    <div className="relative mb-2.5 md:mb-3">
+                      <input name="confirmPassword" type={showConfirmPassword ? "text" : "password"} placeholder="Confirmer mot de passe" className="w-full rounded-2xl bg-white/[0.055] border border-white/10 px-4 py-3.5 pr-12 font-bold text-sm outline-none transition-all text-white placeholder:text-stone-500 hover:bg-white/[0.075] focus:border-amber-200/60 focus:ring-2 focus:ring-amber-200/20 md:p-4 md:pr-12 md:text-base" autoComplete="new-password" />
+                      <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-500 transition-colors hover:text-amber-100 focus-visible:outline-none focus-visible:text-amber-100">
                         {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                       </button>
                     </div>
                   </div>
 
-                  <button type="submit" className="w-full py-4 bg-stone-100 text-stone-900 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-stone-200 transition-all">
+                  <button type="submit" className="w-full rounded-2xl bg-white py-3.5 text-stone-950 font-black uppercase text-[10px] tracking-[0.22em] transition-all hover:bg-amber-100 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200 md:py-4">
                     <span id="btn-text">Continuer</span>
                   </button>
                 </form>
 
                 {/* DIVIDER */}
-                <div className="flex items-center gap-4 opacity-50">
-                  <div className="h-px bg-stone-200 flex-1"></div>
-                  <span className="text-[9px] font-black uppercase text-stone-300">OU</span>
-                  <div className="h-px bg-stone-200 flex-1"></div>
+                <div className="flex items-center gap-4">
+                  <div className="h-px bg-white/10 flex-1"></div>
+                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-stone-600">OU</span>
+                  <div className="h-px bg-white/10 flex-1"></div>
                 </div>
 
                 {/* GOOGLE */}
-                <button onClick={() => handleSocialLogin(googleProvider)} className="w-full flex items-center justify-center gap-3 bg-[#1a1a1a] text-white p-4 rounded-xl font-bold hover:scale-[1.02] transition-all shadow-xl group">
-                  <div className="bg-white rounded-full p-1"><img src="https://www.google.com/favicon.ico" className="w-3 h-3" alt="G" /></div>
+                <button onClick={() => handleSocialLogin(googleProvider)} className="group w-full flex items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/[0.07] px-4 py-3.5 font-bold text-white transition-all hover:border-white/20 hover:bg-white/[0.11] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200/70 md:p-4">
+                  <div className="bg-white rounded-full p-1 shadow-sm"><img src="https://www.google.com/favicon.ico" className="w-3 h-3" alt="G" /></div>
                   <span>Continuer avec Google</span>
                 </button>
 
                 {/* FOOTER ACTIONS */}
-                <div className="pt-2 flex justify-between items-center px-1">
+                <div className="flex justify-between items-center px-1 pt-1">
                   <button onClick={() => {
-                    const form = document.querySelector('form');
+                    const form = document.querySelector('[data-auth-form="marketplace"]');
                     const container = document.getElementById('confirm-pass-container');
                     const isSignUp = form.getAttribute('data-signup') === 'true';
 
@@ -1060,11 +1097,12 @@ const AppContent = () => {
 
                     document.getElementById('btn-text').innerText = !isSignUp ? "S'inscrire" : "Continuer";
                     document.getElementById('toggle-text').innerText = !isSignUp ? "J'ai déjà un compte" : "Pas de compte ?";
-                  }} className="text-[10px] font-bold text-stone-400 hover:text-stone-900 transition-colors" id="toggle-text">Pas de compte ?</button>
+                  }} className="text-[10px] font-bold text-stone-500 transition-colors hover:text-amber-100 focus-visible:outline-none focus-visible:text-amber-100" id="toggle-text">Pas de compte ?</button>
 
-                  <button onClick={() => setShowFullLogin(false)} className="text-[10px] font-black uppercase text-stone-300 hover:text-red-400 transition-colors">Annuler</button>
+                  <button onClick={() => setShowFullLogin(false)} className="text-[10px] font-black uppercase tracking-[0.16em] text-stone-500 transition-colors hover:text-red-300 focus-visible:outline-none focus-visible:text-red-300">Annuler</button>
                 </div>
-              </>
+                </div>
+              </div>
             )}
           </div>
         </div>

@@ -4,7 +4,6 @@ export const LEGACY_FURNITURE_CATEGORY_BY_ID = {
   KUcsgN77eifQOSzapOLs: 'table', // Ancien Bureau de notaire
   adHBwlKyiudEjP9ChKaG: 'autre', // Ancienne credence
   nBoTk05Dl3Bl4rfe9PvE: 'armoire', // Armoire asymetrique art deco
-  '1pQz94KA7DVwHVSNzeSk': 'buffet', // Bahut coffre
   zHwnm17ybqkWCmr0Kz2a: 'buffet', // Buffet
   '3lBbbS6HhM69lfX8N57b': 'buffet', // Buffet parisien
   sGY303K3aNHW4dhAU5ke: 'table', // Bureau
@@ -32,6 +31,16 @@ export const LEGACY_FURNITURE_CATEGORY_BY_ID = {
   GhpesY9osftcuMmaD1lw: 'table', // Table monastere
   O9nOJSI5v7CGVxsWMpWJ: 'table', // No40 table de ferme ancienne
   i6NBt9fdWxSPp4SOxxqM: 'chaise', // Paire de nourrice
+  Evv6w9dEUuxkOlxuYEM8: 'chaise', // Tabouret vintage
+  Giu5B8oAIRfN3udOj1VT: 'chaise', // Tabouret chene
+  MRzaIUujODF5vN3CMX3v: 'chaise', // Tabouret bois
+  Sbi5LHe6v3SjtUbY2eqx: 'chaise', // Tabouret demi-lune bicolore
+  TUfnDGIKwTIoYrr1bSxI: 'chaise', // Tabouret pied tourne
+  X6SzHhFrA9xHp7RWXDL2: 'chaise', // Tabouret annees 70 en hetre
+  eZIFTz7uIWCbEUpkGuuk: 'chaise', // Tabouret demi-lune couleur beige
+  kfdBLP7IaATSia7emTWX: 'chaise', // Tabouret demi-lune
+  pvSFfz4aCY14Nv1IaVuo: 'chaise', // Tabouret repose plante
+  xTE8A4vZ7NiPdcSrHQoU: 'chaise', // Tabouret demi-lune pied boule
   orANR1BDdCQQTQOXT3iJ: 'armoire', // Vestiaire chene
   '6ZJImkl8ehbbnJDYCOvk': 'autre', // Porte manteaux  vintage
   '9Rvxf72ouFn9OJ3UCagT': 'autre', // Grand tapis iranien
@@ -41,4 +50,6 @@ export const LEGACY_FURNITURE_CATEGORY_BY_ID = {
   nC1fdj8PSkXH8orZXzVK: 'chaise', // Paire de bancs chêne 
   rj7R4HQelgi8ZPTSoUsC: 'autre', // Lot de  7 flacons d'apothicaire couleur ambrée
   yKyvXLZ2mwh2yAzb0ujq: 'autre', // Lampe Monix 1930
+  A89ATxl7ULCgYpRIHZcI: 'autre', // Console en rotin
+  vnEaQJ75pTTYwglvCll0: 'table', // Table exterieur sur mesures
 };

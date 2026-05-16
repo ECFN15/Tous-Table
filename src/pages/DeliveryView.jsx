@@ -22,7 +22,7 @@ const DELIVERY_FAQ = [
     },
     {
         question: 'Comment connaitre le prix du transport ?',
-        answer: 'Le prix se fixe directement avec le vendeur selon le meuble choisi, puis selon les conditions du transporteur retenu. Chaque meuble, trajet et acces peut changer l organisation.',
+        answer: 'Reperes indicatifs : a partir de 20 euros pour un tres petit meuble, petite commode ou meuble moyen entre 60 et 80 euros, table Ifs-Paris autour de 150 euros, table Ifs-Marseille a partir de 250 euros. Le prix final depend toujours du meuble, du trajet, de l acces et du transporteur retenu.',
     },
 ];
 
@@ -66,7 +66,7 @@ const DELIVERY_ZONES = [
         kicker: 'Transport France',
         title: 'France entiere',
         body: 'Transporteur specialise pour les meubles volumineux ou fragiles, avec une organisation adaptee a la destination.',
-        detail: 'Paris, Bretagne, Hauts-de-France, Pays de la Loire, Centre, Sud-Ouest, Sud-Est et autres regions.',
+        detail: 'Reperes : a partir de 20 euros pour un tres petit meuble, meuble moyen 60 a 80 euros, table Ifs-Paris autour de 150 euros, table Ifs-Marseille a partir de 250 euros.',
     },
     {
         kicker: 'Sur devis',

@@ -42,6 +42,13 @@ Comme l'objectif est de rapprocher les modules entre eux, la correction se fait 
 - Animation des deux cercles autour de Ifs remplacee : plus de `scale` SVG, les anneaux pulsent maintenant par variation de rayon `r` avec `cx/cy` fixes.
 - Ajout de `vectorEffect="non-scaling-stroke"` sur les anneaux pour garder une epaisseur propre pendant l animation.
 
+## Tarifs indicatifs mobilier du 2026-05-16
+
+- Fiche produit mobilier : remplacement de l'ancien repere `40 a 90 euros` par une grille indicative plus precise.
+- Page livraison : FAQ `Comment connaitre le prix du transport ?` et carte `France entiere` mises a jour.
+- Reperes affiches : a partir de 20 euros pour un tres petit meuble, petite commode ou meuble moyen 60 a 80 euros, table Ifs-Paris autour de 150 euros, table Ifs-Marseille a partir de 250 euros.
+- Le checkout n'applique toujours pas ces frais automatiquement : ce sont des indications client avant devis/confirmation transporteur.
+
 ## Validation
 
 A lancer apres modification :
