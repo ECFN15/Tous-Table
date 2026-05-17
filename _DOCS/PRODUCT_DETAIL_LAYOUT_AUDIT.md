@@ -94,3 +94,9 @@ Verification:
 - `git diff --check -- src/designs/architectural/ArchitecturalProductDetail.jsx _DOCS/PRODUCT_DETAIL_LAYOUT_AUDIT.md` : OK.
 - `npm run build` : OK after rerun outside the sandbox because the first attempt hit the known esbuild `spawn EPERM` sandbox failure. Existing generated CSS and large chunk warnings remain.
 - Browser smoke attempted on `/produit/no-37-table-de-ferme-DMlKgOf0EWtV8JZwWnuA` at 1920 x 1032, but the isolated in-app browser did not load the product catalogue in that session, so final visual confirmation should be done in the already-running local Chrome page.
+
+Follow-up responsive correction:
+
+- Replaced the fixed Tailwind media-row transform with `.tat-product-media-row` in `src/index.css`, preserving the 28px visual descent.
+- Added `.tat-product-hero-shell` height overrides for shorter desktop-responsive windows: below 860px viewport height the hero reserves more vertical flow space, and below 760px it reserves a larger buffer.
+- Reason: `transform` is visual-only and does not reserve flow space, so the next `tat-heavy-section` could appear to eat the bottom of the product hero on shorter desktop-responsive windows. The correction now adjusts the hero's flow height instead of lifting the media/ad row.

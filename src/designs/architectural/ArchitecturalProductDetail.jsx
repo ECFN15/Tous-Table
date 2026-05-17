@@ -467,7 +467,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
             />
             {/* ArchitecturalHeader removed here, handled globally in App.jsx */}
 
-            <div className="w-full min-h-screen lg:min-h-0 lg:h-[calc(100vh-78px)] flex flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(360px,31vw)] xl:grid-cols-[minmax(0,1fr)_minmax(400px,29vw)] 2xl:grid-cols-[minmax(0,1fr)_minmax(440px,28vw)] relative pt-4 lg:pt-0 lg:overflow-hidden">
+            <div className="tat-product-hero-shell w-full min-h-screen lg:min-h-0 lg:h-[calc(100vh-78px)] flex flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(360px,31vw)] xl:grid-cols-[minmax(0,1fr)_minmax(400px,29vw)] 2xl:grid-cols-[minmax(0,1fr)_minmax(440px,28vw)] relative pt-4 lg:pt-0 lg:overflow-hidden">
                 {/* LEFT COLUMN: IMAGE GALLERY (Natural Scroll) */}
                 <div className="w-full flex flex-col p-6 sm:px-8 sm:pt-16 sm:pb-8 md:pt-20 lg:px-8 lg:pt-2 lg:pb-6 h-auto lg:h-full lg:min-w-0 lg:gap-2 xl:px-10">
                     {/* BACK BUTTON (Desktop & Mobile - Above Image) */}
@@ -482,7 +482,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                     </div>
 
                     {/* ROUNDED IMAGE CONTAINER (Gallery Style - Full Bleed) */}
-                    <div className="lg:flex lg:min-h-0 lg:flex-1 lg:max-h-[min(620px,calc(100vh-166px))] lg:translate-y-5 lg:items-stretch lg:justify-center lg:gap-3 xl:gap-4">
+                    <div className="tat-product-media-row lg:flex lg:min-h-0 lg:flex-1 lg:max-h-[min(620px,calc(100vh-166px))] lg:items-stretch lg:justify-center lg:gap-3 xl:gap-4">
                     <ProductDetailAdSlot className="hidden h-full w-[72px] lg:flex xl:w-[88px] 2xl:w-[96px]" orientation="left" darkMode={darkMode} />
                     <div className="group relative flex h-full min-w-0 flex-1 items-center justify-center">
                         {images.length > 1 && (
