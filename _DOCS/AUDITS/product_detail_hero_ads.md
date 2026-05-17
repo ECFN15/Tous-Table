@@ -80,6 +80,22 @@ Revamper uniquement le premier ecran desktop de la fiche produit afin de :
 - Le leaderboard reste centre et borne a `728 x 90`; le deplacement du bouton n'affecte pas le slot publicitaire.
 - Verification relancee : `git diff --check` OK. Build non relance car commande annulee manuellement.
 
+## Ajout slot mobile du 17 mai 2026 17:19
+
+- Ajout d'un container publicitaire mobile uniquement (`lg:hidden`) dans le bloc informations produit.
+- Position : apres le bloc description/prix/specs, avant les actions d'achat ou d'enchere.
+- Dimension retenue : zone fluide `max-w-[320px]` avec hauteur `100px`, correspondant au format mobile `320 x 100`.
+- Raison : Google AdSense recommande le `320 x 100` sur mobile, car il peut aussi laisser concourir des annonces `320 x 50`, tout en restant moins intrusif qu'un rectangle `300 x 250` dans cette zone.
+- Verification relancee : `git diff --check` OK et `npm run build` OK.
+
+## Ajout slot inter-sections du 17 mai 2026 17:22
+
+- Ajout d'un container publicitaire entre le module `Vous aimerez aussi / Tuto Atelier` et le module `Quatre piliers`.
+- Le slot est visible mobile et desktop.
+- Dimensions : `320 x 100` sur mobile (`max-w-[320px]`, `h-[100px]`) et `970 x 90` sur desktop (`lg:max-w-[970px]`, `lg:h-[90px]`), format `large leaderboard` plus large que le `728 x 90`.
+- Le bloc est independant dans sa propre section `tat-heavy-section`, afin de ne pas modifier le layout interne des deux containers adjacents.
+- Verification relancee : `git diff --check` OK et `npm run build` OK.
+
 ## Reste a valider visuellement
 
 - Calibrage exact sur le produit long vu en capture, en 1920x1080.

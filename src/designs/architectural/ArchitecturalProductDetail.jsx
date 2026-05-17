@@ -531,6 +531,12 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                                 </div>
                             </div>
 
+                            <ProductDetailAdSlot
+                                className="mx-auto mb-6 mt-1 h-[100px] w-full max-w-[320px] rounded-sm lg:hidden"
+                                orientation="mobile"
+                                darkMode={darkMode}
+                            />
+
                             {item.auctionActive && !isAuctionOver ? (
                                 <div className="space-y-8">
                                     {/* Action Buttons */}
@@ -784,6 +790,14 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                     </div>
                 </section>
             )}
+
+            <section className="tat-heavy-section w-full px-6 lg:px-12 pb-8">
+                <ProductDetailAdSlot
+                    className="mx-auto h-[100px] w-full max-w-[320px] rounded-[18px] lg:h-[90px] lg:max-w-[970px]"
+                    orientation="between-sections"
+                    darkMode={darkMode}
+                />
+            </section>
 
             {/* === MODULE : QUATRE PILIERS DE LA MAISON === */}
             <section className="tat-heavy-section w-full px-6 lg:px-12 pb-16">
