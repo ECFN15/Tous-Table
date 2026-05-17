@@ -28,17 +28,23 @@ const CARE_FEATURES = [
     { icon: Heart, title: "Livraison Soignée", description: "Emballage sécurisé et livraison partout en France et pays frontaliers." }
 ];
 
-const ProductDetailAdSlot = ({ className = "", orientation = "horizontal", darkMode = false }) => (
-    <div
-        className={`flex shrink-0 items-center justify-center border border-dashed ${darkMode ? 'border-white/15 bg-white/[0.015] text-stone-500' : 'border-stone-300/70 bg-white/30 text-stone-500'} ${className}`}
-        data-google-ad-slot={`product-detail-${orientation}`}
-    >
-        <div className="text-center">
-            <p className="text-[7px] font-black uppercase tracking-[0.3em] opacity-45 lg:text-[8px]">Annonce</p>
-            <p className="mt-1 font-serif text-xs italic opacity-80 lg:text-[13px]">Google Ads</p>
+const SHOW_AD_PLACEHOLDERS = import.meta.env.DEV || import.meta.env.VITE_SHOW_AD_PLACEHOLDERS === 'true';
+
+const ProductDetailAdSlot = ({ className = "", orientation = "horizontal", darkMode = false }) => {
+    if (!SHOW_AD_PLACEHOLDERS) return null;
+
+    return (
+        <div
+            className={`flex shrink-0 items-center justify-center border border-dashed ${darkMode ? 'border-white/15 bg-white/[0.015] text-stone-500' : 'border-stone-300/70 bg-white/30 text-stone-500'} ${className}`}
+            data-google-ad-slot={`product-detail-${orientation}`}
+        >
+            <div className="text-center">
+                <p className="text-[7px] font-black uppercase tracking-[0.3em] opacity-45 lg:text-[8px]">Annonce</p>
+                <p className="mt-1 font-serif text-xs italic opacity-80 lg:text-[13px]">Google Ads</p>
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 const ProductImagePager = ({ count, activeIndex, className = "", darkMode = false, variant = "image" }) => {
     if (count <= 1) return null;
@@ -143,6 +149,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
     const [displayedImageSrc, setDisplayedImageSrc] = useState(activeImageSrc);
     const [isImageDecoding, setIsImageDecoding] = useState(false);
     const displayedImageRef = useRef(null);
+    const imagePointerStartRef = useRef(null);
     const rememberImageSize = (src, naturalWidth, naturalHeight, aliasSrc = src) => {
         if (!src || !naturalWidth || !naturalHeight) return;
         setImageSizes(prev => {
@@ -166,8 +173,8 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
     const isActivePortrait = frameImageSize ? frameImageSize.height > frameImageSize.width * 1.08 : false;
     const activeImageAspectRatio = frameImageSize ? `${frameImageSize.width} / ${frameImageSize.height}` : (isActivePortrait ? "4 / 5" : "4 / 3");
     const imageFrameClassName = isActivePortrait
-        ? "relative w-full mx-auto rounded-[0.875rem] md:rounded-[1.125rem] overflow-hidden shadow-2xl shadow-black/20 group bg-transparent aspect-[3/4] sm:max-w-[560px] md:max-w-[680px] lg:h-full lg:max-h-[min(560px,calc(100vh-178px))] lg:w-auto lg:max-w-full lg:aspect-auto xl:max-h-[min(600px,calc(100vh-178px))]"
-        : "relative w-full mx-auto rounded-[0.875rem] md:rounded-[1.125rem] overflow-hidden shadow-2xl shadow-black/20 group bg-transparent aspect-[3/4] sm:max-w-[640px] md:max-w-[760px] lg:h-auto lg:max-h-[min(560px,calc(100vh-178px))] lg:max-w-[min(620px,100%)] lg:aspect-auto xl:max-h-[min(600px,calc(100vh-178px))] xl:max-w-[min(680px,100%)]";
+        ? "relative w-full mx-auto rounded-[0.875rem] md:rounded-[1.125rem] overflow-hidden shadow-2xl shadow-black/20 group bg-transparent aspect-[3/4] sm:max-w-[560px] md:max-w-[680px] lg:h-full lg:max-h-[min(590px,calc(100vh-158px))] lg:w-auto lg:max-w-full lg:aspect-auto xl:max-h-[min(620px,calc(100vh-158px))]"
+        : "relative w-full mx-auto rounded-[0.875rem] md:rounded-[1.125rem] overflow-hidden shadow-2xl shadow-black/20 group bg-transparent aspect-[3/4] sm:max-w-[640px] md:max-w-[760px] lg:h-auto lg:max-h-[min(590px,calc(100vh-158px))] lg:max-w-[min(640px,100%)] lg:aspect-auto xl:max-h-[min(620px,calc(100vh-158px))] xl:max-w-[min(700px,100%)]";
     const imageObjectClassName = isActivePortrait
         ? "w-full h-full object-cover transition-[opacity,transform] duration-700 ease-in-out"
         : "w-full h-full object-cover transition-[opacity,transform] duration-700 ease-in-out";
@@ -175,6 +182,24 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
         const { naturalWidth, naturalHeight, currentSrc, src } = event.currentTarget;
         const loadedSrc = currentSrc || src;
         rememberImageSize(loadedSrc, naturalWidth, naturalHeight, displayedImageSrc || activeImageSrc);
+    };
+    const handleImagePointerDown = (event) => {
+        if (event.pointerType === 'touch') return;
+        imagePointerStartRef.current = {
+            x: event.clientX,
+            y: event.clientY,
+            scrollY: window.scrollY
+        };
+    };
+
+    const shouldIgnoreImageClick = (event) => {
+        const start = imagePointerStartRef.current;
+        imagePointerStartRef.current = null;
+        if (!start) return false;
+
+        const pointerMoved = Math.hypot(event.clientX - start.x, event.clientY - start.y) > 8;
+        const pageScrolled = Math.abs(window.scrollY - start.scrollY) > 2;
+        return pointerMoved || pageScrolled;
     };
 
     useEffect(() => {
@@ -482,7 +507,9 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                         onTouchStart={onTouchStart}
                         onTouchMove={onTouchMove}
                         onTouchEnd={onTouchEnd}
+                        onPointerDown={handleImagePointerDown}
                         onClick={(e) => {
+                            if (shouldIgnoreImageClick(e)) return;
                             // Standard Navigation on Click (Left/Right zones)
                             const rect = e.currentTarget.getBoundingClientRect();
                             const x = e.clientX - rect.left;
@@ -499,7 +526,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                             ref={displayedImageRef}
                             key={displayedImageSrc}
                             src={displayedImageSrc}
-                            className={`${imageObjectClassName} ${isImageDecoding ? 'opacity-95' : 'opacity-100'}`}
+                            className={`${imageObjectClassName} opacity-100 select-none`}
                             alt={item.name}
                             onLoad={handleMainImageLoad}
                             draggable={false}
@@ -582,7 +609,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                                 key={displayedImageSrc}
                                 src={displayedImageSrc}
                                 alt="Detail"
-                                className={`max-w-[95%] max-h-[92vh] object-contain transition-all duration-300 animate-in zoom-in-95 pointer-events-none ${isImageDecoding ? 'opacity-90' : 'opacity-100'}`}
+                                className="max-w-[95%] max-h-[92vh] object-contain transition-transform duration-300 animate-in zoom-in-95 pointer-events-none opacity-100 select-none"
                                 draggable={false}
                             />
                         </div>
@@ -604,7 +631,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
 
 
                         {/* Description (Matched to Red Brace ~260px) */}
-                        <div className="p-0 border-l pl-6 border-stone-200 dark:border-stone-800 max-h-[clamp(120px,20vh,190px)] overflow-y-auto custom-scrollbar pr-4 mb-0 md:max-h-none md:overflow-visible lg:max-h-[clamp(120px,20vh,190px)] lg:overflow-y-auto lg:pl-5">
+                        <div className="p-0 border-l pl-6 border-stone-200 dark:border-stone-800 max-h-[clamp(120px,20vh,190px)] overflow-y-auto custom-scrollbar pr-4 mb-0 md:max-h-none md:overflow-visible lg:max-h-[clamp(150px,24vh,238px)] lg:overflow-y-auto lg:pl-5">
                             <p className="whitespace-pre-wrap font-serif text-base lg:text-sm xl:text-base font-medium leading-relaxed xl:leading-relaxed" style={{ color: darkMode ? '#d6d3d1' : '#000000', opacity: 1 }}>
                                 {item.description}
                             </p>
@@ -613,7 +640,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                         {/* Price & Actions */}
                         <div className="px-0 pb-0 pt-0 bg-transparent">
                             {/* NEW COMPACT LAYOUT: PRICE (Left) + SPECS HORIZONTAL (Right) */}
-                            <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-5 md:mb-6 pt-5 gap-5 sm:gap-6 lg:mb-5 lg:pt-4">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-5 md:mb-6 pt-5 gap-5 sm:gap-6 lg:mb-4 lg:pt-4">
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Prix Actuel</p>
                                     <p className={`${item.priceOnRequest ? 'text-3xl md:text-4xl lg:text-3xl xl:text-4xl' : 'text-5xl md:text-6xl lg:text-[44px] xl:text-[50px]'} font-black tracking-tighter font-serif italic font-normal leading-none`}>
@@ -899,13 +926,15 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                 </section>
             )}
 
-            <section className="tat-heavy-section w-full px-6 sm:px-8 md:px-10 lg:px-12 pb-8">
-                <ProductDetailAdSlot
-                    className="mx-auto h-[88px] w-full max-w-[300px] rounded-[14px] sm:h-[92px] sm:max-w-[560px] md:max-w-[640px] lg:h-[76px] lg:max-w-[820px] xl:h-[84px] xl:max-w-[900px]"
-                    orientation="between-sections"
-                    darkMode={darkMode}
-                />
-            </section>
+            {SHOW_AD_PLACEHOLDERS && (
+                <section className="tat-heavy-section w-full px-6 sm:px-8 md:px-10 lg:px-12 pb-8">
+                    <ProductDetailAdSlot
+                        className="mx-auto h-[88px] w-full max-w-[300px] rounded-[14px] sm:h-[92px] sm:max-w-[560px] md:max-w-[640px] lg:h-[76px] lg:max-w-[820px] xl:h-[84px] xl:max-w-[900px]"
+                        orientation="between-sections"
+                        darkMode={darkMode}
+                    />
+                </section>
+            )}
 
             {/* === MODULE : QUATRE PILIERS DE LA MAISON === */}
             <section className="tat-heavy-section w-full px-6 sm:px-8 md:px-10 lg:px-12 pb-16">

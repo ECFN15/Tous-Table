@@ -426,3 +426,4 @@ Apres deploy :
 - `index.html` contient le script global AdSense depuis le 17 mai 2026, avec le client `ca-pub-6343923026027394`, pour la validation de propriete du site.
 - Le site possede deja une verification Google dans `public/google72f08140b6217ed3.html`, probablement liee a Search Console.
 - Les placeholders UI sont prets, mais ne chargent pas encore de vraies pubs.
+- Les placeholders de detail produit sont visibles uniquement en local/dev, ou avec `VITE_SHOW_AD_PLACEHOLDERS=true`, afin de ne pas afficher des blocs "Annonce / Google Ads" vides aux visiteurs en production.

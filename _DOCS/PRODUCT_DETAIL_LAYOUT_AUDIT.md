@@ -69,3 +69,28 @@ Changes applied:
 Follow-up correction:
 
 - Removed the forced `sm`/`md` image heights because they broke the adaptive image container and cropped portrait furniture photos into a horizontal frame. The image frame is back to natural ratio sizing below `lg`, with only max-width constraints.
+
+## 2026-05-17 - Desktop bottom breathing pass
+
+Scope: desktop first viewport only, same component.
+
+Context: on a 1920px desktop viewport, the central product image and the right product sheet left too much unused space near the bottom of the screen, while the Google Ads containers and the back button needed to stay untouched.
+
+FrontSymmetry audit:
+
+- Back button and top ad: siblings inside the gallery header; no change applied.
+- Side ads: siblings of the central image stage; no `ProductDetailAdSlot` class or ad container class changed.
+- Central image frame: independent class computed from image orientation; safe place to increase the image's own max-height without changing the ad slot declarations.
+- Right product sheet: separate grid column, with the description scroll box and price/action block in normal flow.
+
+Changes applied:
+
+- Increased only the desktop image frame caps from 560/600px to 590/620px, still bounded by viewport-aware `calc(100vh - 158px)`.
+- Increased the desktop description scroll allowance from `clamp(120px,20vh,190px)` to `clamp(150px,24vh,238px)`.
+- Reduced the desktop margin under the price/spec row by one step so the CTA/livraison block keeps a small bottom margin instead of touching the viewport.
+
+Verification:
+
+- `git diff --check -- src/designs/architectural/ArchitecturalProductDetail.jsx _DOCS/PRODUCT_DETAIL_LAYOUT_AUDIT.md` : OK.
+- `npm run build` : OK after rerun outside the sandbox because the first attempt hit the known esbuild `spawn EPERM` sandbox failure. Existing generated CSS and large chunk warnings remain.
+- Browser smoke attempted on `/produit/no-37-table-de-ferme-DMlKgOf0EWtV8JZwWnuA` at 1920 x 1032, but the isolated in-app browser did not load the product catalogue in that session, so final visual confirmation should be done in the already-running local Chrome page.
