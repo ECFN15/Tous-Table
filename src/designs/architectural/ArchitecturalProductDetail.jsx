@@ -332,14 +332,14 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                 {/* LEFT COLUMN: IMAGE GALLERY (Natural Scroll) */}
                 <div className="w-full flex flex-col p-6 lg:px-12 lg:pt-3 lg:pb-10 h-auto lg:h-full lg:min-w-0 lg:gap-3">
                     {/* BACK BUTTON (Desktop & Mobile - Above Image) */}
-                    <div className="lg:grid lg:grid-cols-[120px_minmax(320px,728px)_120px] lg:items-center lg:justify-center lg:gap-0">
-                        <button onClick={onBack} className={`flex w-max min-w-[176px] items-center justify-self-start gap-3 whitespace-nowrap font-black text-[10px] uppercase tracking-widest transition-all hover:opacity-100 mb-6 lg:mb-0 group ${darkMode ? 'text-white/80' : 'text-stone-900/80'}`}>
+                    <div className="relative lg:flex lg:h-[90px] lg:items-center lg:justify-center">
+                        <button onClick={onBack} className={`flex w-max min-w-[176px] items-center gap-3 whitespace-nowrap font-black text-[10px] uppercase tracking-widest transition-all hover:opacity-100 mb-6 lg:absolute lg:left-0 lg:top-1/2 lg:mb-0 lg:-translate-y-1/2 group ${darkMode ? 'text-white/80' : 'text-stone-900/80'}`}>
                             <div className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all ${darkMode ? 'border-white/10 group-hover:bg-white/10' : 'border-stone-200 group-hover:bg-stone-100'}`}>
                                 <ChevronLeft size={16} />
                             </div>
                             <span>Retour Collection</span>
                         </button>
-                        <ProductDetailAdSlot className="hidden h-[90px] w-full lg:flex" orientation="top" darkMode={darkMode} />
+                        <ProductDetailAdSlot className="hidden h-[90px] w-full lg:w-[728px] lg:max-w-[728px] lg:flex" orientation="top" darkMode={darkMode} />
                     </div>
 
                     {/* ROUNDED IMAGE CONTAINER (Gallery Style - Full Bleed) */}
