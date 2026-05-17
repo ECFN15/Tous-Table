@@ -73,6 +73,13 @@ Revamper uniquement le premier ecran desktop de la fiche produit afin de :
 - Le bouton `Retour Collection` est aligne a droite dans sa colonne gauche, sur la marge du stage publicitaire.
 - Verification relancee : `git diff --check` OK et `npm run build` OK.
 
+## Micro-ajustement bouton retour du 17 mai 2026 17:16
+
+- Le bouton `Retour Collection` est sorti du flux de la ligne haute en desktop via un ancrage `absolute`.
+- Il est cale sur `lg:left-0` dans le meme parent que le leaderboard, afin d'aligner son bord gauche avec la verticale du container d'annonce lateral gauche.
+- Le leaderboard reste centre et borne a `728 x 90`; le deplacement du bouton n'affecte pas le slot publicitaire.
+- Verification relancee : `git diff --check` OK. Build non relance car commande annulee manuellement.
+
 ## Reste a valider visuellement
 
 - Calibrage exact sur le produit long vu en capture, en 1920x1080.
