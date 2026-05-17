@@ -534,9 +534,14 @@ html.tat-low-power-mobile .tat-startup-preloader-char {
 }
 
 @media (max-width: 1023px) {
+  .tat-product-media-row {
+    height: clamp(390px, 48dvh, 470px);
+    min-height: clamp(390px, 48dvh, 470px);
+  }
+
   .tat-product-gallery-stage {
-    height: clamp(340px, 58dvh, 500px);
-    min-height: clamp(340px, 58dvh, 500px);
+    height: 100%;
+    min-height: 100%;
   }
 
   .tat-product-image-frame {
@@ -545,22 +550,26 @@ html.tat-low-power-mobile .tat-startup-preloader-char {
   }
 
   .tat-product-image-frame--landscape {
-    width: min(100%, calc(100dvw - 64px), calc(min(52dvh, 430px) * var(--tat-active-image-ratio, 1.333)));
+    width: min(78vw, 330px, calc(min(36dvh, 330px) * var(--tat-active-image-ratio, 1.333)));
   }
 
   .tat-product-image-frame--portrait {
-    width: min(74vw, 360px, calc(min(55dvh, 460px) * var(--tat-active-image-ratio, 0.75)));
+    width: min(66vw, 300px, calc(min(43dvh, 390px) * var(--tat-active-image-ratio, 0.75)));
   }
 }
 
 @media (max-width: 380px) {
-  .tat-product-gallery-stage {
-    height: clamp(320px, 56dvh, 460px);
-    min-height: clamp(320px, 56dvh, 460px);
+  .tat-product-media-row {
+    height: clamp(360px, 47dvh, 430px);
+    min-height: clamp(360px, 47dvh, 430px);
+  }
+
+  .tat-product-image-frame--landscape {
+    width: min(76vw, 300px, calc(min(34dvh, 300px) * var(--tat-active-image-ratio, 1.333)));
   }
 
   .tat-product-image-frame--portrait {
-    width: min(72vw, 330px);
+    width: min(64vw, 270px, calc(min(41dvh, 360px) * var(--tat-active-image-ratio, 0.75)));
   }
 }
 

@@ -11,6 +11,8 @@ Changes applied:
 - Added stable mobile/tablet gallery stage sizing in `src/index.css`, so the lower product content keeps the same vertical anchor while the active image changes orientation.
 - Added `tat-product-image-frame--portrait` and `tat-product-image-frame--landscape` sizing caps in `src/designs/architectural/ArchitecturalProductDetail.jsx` and `src/index.css`.
 - Kept the real image aspect ratio through a CSS ratio variable, while reducing the inline gallery image below the fullscreen lightbox size.
+- Follow-up after screenshot review: locked the mobile `.tat-product-media-row` parent height itself and removed the mobile `h-full` override from the stage, so the product description no longer follows the active image height.
+- Reduced the inline mobile image caps further so the page image is visibly smaller than the fullscreen zoom view.
 - Left desktop `lg+` product detail proportions unchanged.
 
 Verification:

@@ -106,12 +106,6 @@ const ProductSkeleton = ({ darkMode }) => (
     </main>
 );
 
-const Disclosure = ({ darkMode, className = '' }) => (
-    <p className={`text-[11px] leading-relaxed ${darkMode ? 'text-stone-400' : 'text-stone-500'} ${className}`}>
-        Lien partenaire Amazon. Tous a Table peut percevoir une commission, sans cout supplementaire pour vous.
-    </p>
-);
-
 const AmazonButton = ({ product, onClick, darkMode, className = '' }) => (
     <a
         href={product.affiliateUrl}
@@ -120,7 +114,7 @@ const AmazonButton = ({ product, onClick, darkMode, className = '' }) => (
         rel="noopener noreferrer sponsored"
         className={`group inline-flex w-full items-center justify-between gap-4 rounded-full px-5 py-3.5 text-sm font-black transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] sm:w-auto sm:px-6 sm:py-4 ${darkMode ? 'bg-amber-300 text-stone-950 hover:bg-amber-200' : 'bg-stone-950 text-white hover:bg-stone-800'} ${className}`}
     >
-        <span>Acheter sur Amazon</span>
+        <span>Acheter</span>
         <span className={`flex h-9 w-9 items-center justify-center rounded-full transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-1 group-hover:-translate-y-[1px] ${darkMode ? 'bg-stone-950 text-amber-200' : 'bg-white/12 text-white'}`}>
             <ArrowUpRight size={16} strokeWidth={1.6} />
         </span>
@@ -223,8 +217,6 @@ const PurchasePanel = ({ product, draft, brand, sourceLabels, darkMode, onBuy })
                         <div className="mt-5">
                             <AmazonButton product={product} onClick={onBuy} darkMode={darkMode} />
                         </div>
-
-                        <Disclosure darkMode={darkMode} className="mt-4" />
 
                         <div className={`mt-5 rounded-[1.1rem] border p-4 ${darkMode ? 'border-white/10 bg-white/[0.025]' : 'border-[#d8c2a2]/55 bg-[#fbf5ea]'}`}>
                             <p className={`text-[9px] font-black uppercase tracking-[0.2em] ${darkMode ? 'text-stone-500' : 'text-stone-500'}`}>Repere produit</p>
@@ -406,10 +398,6 @@ const ShopProductDetail = ({ product, isLoading = false, darkMode = false, onBac
                             <Passport rows={passportRows} darkMode={darkMode} />
                         </div>
 
-                        <div className="mt-6 grid gap-3 sm:grid-cols-[auto_1fr] sm:items-center md:mt-8">
-                            <AmazonButton product={product} onClick={handleBuy} darkMode={darkMode} />
-                            <Disclosure darkMode={darkMode} />
-                        </div>
                     </div>
 
                     <div className="lg:col-span-5">
@@ -489,7 +477,6 @@ const ShopProductDetail = ({ product, isLoading = false, darkMode = false, onBac
                             Retour au Comptoir
                         </button>
                     </div>
-                    <Disclosure darkMode={darkMode} className="mx-auto mt-5 max-w-xl" />
                 </div>
             </section>
         </main>

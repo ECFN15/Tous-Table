@@ -686,3 +686,21 @@ git diff --check
 ```
 
 Reste a verifier sur vrai mobile : scroll long de `/comptoir` sur Chrome Android et Safari iOS, avec ouverture/fermeture du drawer filtres.
+
+---
+
+## Ajustement CTA fiche Comptoir du 2026-05-17
+
+Objectif : simplifier l'appel a l'achat sur les fiches detail Comptoir pour reduire la friction avant le depart Amazon, sans modifier les routes, les donnees Firestore, le tracking ni les URLs d'affiliation.
+
+Actions realisees :
+
+- `src/pages/ShopProductDetail.jsx` : le libelle des CTA d'achat passe de `Acheter sur Amazon` a `Acheter`.
+- `src/pages/ShopProductDetail.jsx` : suppression du CTA d'achat du bloc editorial gauche sous la description, pour eviter le doublon avec le panneau achat.
+- `src/pages/ShopProductDetail.jsx` : suppression de la phrase de disclosure visible a cote ou sous les CTA.
+
+Validation :
+
+```bash
+npm run build
+```
