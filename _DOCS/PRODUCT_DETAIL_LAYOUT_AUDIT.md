@@ -1,0 +1,71 @@
+# Product detail layout audit
+
+## 2026-05-17 - Google Ads and product sheet proportion pass
+
+Scope: `src/designs/architectural/ArchitecturalProductDetail.jsx`.
+
+Context: after adding Google Ads containers, the desktop product page felt oversized on compact browser widths. The visible issues were the "Retour Collection" control, the top and side ad slots, the central image frame, and the right purchase panel.
+
+FrontSymmetry audit:
+
+- Main shell: flow grid on desktop, `lg:grid`, with the gallery column and purchase column as siblings.
+- Gallery header: flow child of the gallery column; the back button is absolute inside that header on desktop, while the top ad remains centered in flow.
+- Image row: flex row on desktop; left ad, image wrapper, and right ad are siblings, so ad width directly affects image breathing room.
+- Purchase panel: flow content inside the right grid column; text, price, specs and CTA share vertical space inside a fixed viewport-height column.
+
+Changes applied:
+
+- Reduced desktop right column from `minmax(420px,34vw)` / `minmax(500px,34vw)` to smaller `lg`, `xl`, and `2xl` tracks.
+- Reduced desktop gallery padding and top header height.
+- Reduced top ad from 90px high and 728px wide to responsive clamp widths and 64/72px height.
+- Reduced side ads from 120px to 72/88/96px depending on breakpoint.
+- Capped image frame height with viewport-aware `max-height` values so compact desktop formats do not overfill the first view.
+- Reduced product title, price, description height, mobile ad placeholder, and purchase CTA proportions.
+- Removed the desktop minimum width on the back button and reduced its text/icon sizing.
+- Reduced the between-sections Google Ads slot so lower-page ad rhythm matches the first viewport.
+- Shortened the desktop back control label from "Retour Collection" to "Retour" to avoid overlap with the top Google Ads container.
+
+Verification:
+
+- `npm run build` passed on 2026-05-17 after rerun outside the sandbox because the first attempt hit `spawn EPERM` from esbuild.
+- Vite still reports existing bundle-size warnings and one generated CSS optimizer warning unrelated to this product detail change.
+
+Remaining visual check:
+
+- Confirm in browser at compact desktop widths around the screenshot format that the side ads, main image, and right purchase panel feel balanced.
+
+## 2026-05-17 - Tablet breakpoint pass
+
+Scope: tablet widths between the mobile layout and the desktop `lg` grid.
+
+FrontSymmetry audit:
+
+- Below `lg`, the page remains in a vertical flow: gallery first, then product information.
+- The image frame and right product panel are siblings in the outer flow, so tablet fixes must use `md:` sizing on each sibling instead of changing the desktop grid.
+- The description block used the compact desktop scroll box on tablet, which created an awkward internal scrollbar while the whole page was already scrollable.
+
+Changes applied:
+
+- Added `md` image max widths so tablet does not use a full-width oversized mobile image while preserving the real image ratio.
+- Added `md` gallery padding to separate the tablet image from the fixed header.
+- Centered the product information panel on tablet with a wider `md:max-w-[640px]`, then restored the desktop right alignment at `lg`.
+- Reduced the tablet title size from the inherited `md:text-5xl` to `md:text-[42px]`.
+- Let the description scroll naturally on tablet, while keeping the compact scroll box on desktop.
+- Widened the mobile/tablet ad slot slightly at `md` so it aligns with the tablet content rhythm.
+
+## 2026-05-17 - Small tablet anti-offset pass
+
+Scope: narrow tablet widths just below Tailwind `md`, around 640-767px.
+
+Issue: the viewport in the in-app browser can sit just under `md`, so the page still used the mobile/sm flow. The product panel was right-aligned by the base `ml-auto mr-0`, while the following sections used wider page padding, creating a visible horizontal offset.
+
+Changes applied:
+
+- Added `sm` image max widths so small tablet stays centered without forcing a fake horizontal frame.
+- Added `sm:mx-auto sm:max-w-[560px]` to the product panel, then kept the larger `md:max-w-[640px]` above it.
+- Aligned the in-product ad slot to the same small-tablet width as the CTA.
+- Constrained "Vous aimerez aussi", the between-sections ad, and the care-feature block to the same `sm`/`md` content axis, restoring the wide layout only at `lg`.
+
+Follow-up correction:
+
+- Removed the forced `sm`/`md` image heights because they broke the adaptive image container and cropped portrait furniture photos into a horizontal frame. The image frame is back to natural ratio sizing below `lg`, with only max-width constraints.

@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -171,8 +171,30 @@ const Passport = ({ rows, darkMode }) => (
     </div>
 );
 
+const SmoothProductMedia = ({ src, alt }) => {
+    const [isLoaded, setIsLoaded] = useState(false);
+
+    useEffect(() => {
+        setIsLoaded(false);
+    }, [src]);
+
+    return (
+        <img
+            src={src}
+            alt={alt}
+            className={`relative z-10 h-full w-full object-contain p-7 transition-[opacity,transform] duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:scale-[1.025] md:p-12 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+            loading="eager"
+            decoding="async"
+            fetchPriority="high"
+            onLoad={() => setIsLoaded(true)}
+            onError={() => setIsLoaded(true)}
+        />
+    );
+};
+
 const PurchasePanel = ({ product, draft, brand, sourceLabels, darkMode, onBuy }) => {
     const program = PROGRAM_LABELS[product.affiliateProgram] || product.affiliateProgram || 'Lien partenaire';
+    const imageSrc = product.imageUrl || 'https://picsum.photos/seed/atelier-wood-finish/1200/1500';
 
     return (
         <aside className="shop-detail-media lg:sticky lg:top-28">
@@ -180,14 +202,7 @@ const PurchasePanel = ({ product, draft, brand, sourceLabels, darkMode, onBuy })
                 <div className={`overflow-hidden rounded-[calc(2rem-0.375rem)] ${darkMode ? 'bg-[#14110d]' : 'bg-[#eadcc8]'}`}>
                     <div className="relative aspect-[4/5]">
                         <div className={`absolute inset-x-8 bottom-8 top-10 rounded-[999px] ${darkMode ? 'bg-white/5' : 'bg-white/38'}`} />
-                        <img
-                            src={product.imageUrl || 'https://picsum.photos/seed/atelier-wood-finish/1200/1500'}
-                            alt={product.name}
-                            className="relative z-10 h-full w-full object-contain p-7 transition-transform duration-1000 ease-[cubic-bezier(0.32,0.72,0,1)] hover:scale-[1.025] md:p-12"
-                            loading="eager"
-                            decoding="async"
-                            fetchPriority="high"
-                        />
+                        <SmoothProductMedia src={imageSrc} alt={product.name} />
                         <div className={`absolute left-4 top-4 z-20 rounded-full px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.18em] ${darkMode ? 'bg-black/55 text-amber-100' : 'bg-white/85 text-stone-800'}`}>
                             Selection atelier
                         </div>

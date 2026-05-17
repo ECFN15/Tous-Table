@@ -423,6 +423,6 @@ Apres deploy :
 ## 17. Notes projet
 
 - Le fichier `public/ads.txt` n'existe pas encore au moment de cette doc.
-- `index.html` ne contient pas encore de script AdSense au moment de cette doc.
+- `index.html` contient le script global AdSense depuis le 17 mai 2026, avec le client `ca-pub-6343923026027394`, pour la validation de propriete du site.
 - Le site possede deja une verification Google dans `public/google72f08140b6217ed3.html`, probablement liee a Search Console.
 - Les placeholders UI sont prets, mais ne chargent pas encore de vraies pubs.

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Box, ArrowRight, Trophy, Clock, X, Maximize2, ShoppingBag, TreePine, Sparkles, ShieldCheck, Heart } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { db, appId, functions } from '../../firebase/config';
@@ -34,47 +34,31 @@ const ProductDetailAdSlot = ({ className = "", orientation = "horizontal", darkM
         data-google-ad-slot={`product-detail-${orientation}`}
     >
         <div className="text-center">
-            <p className="text-[8px] font-black uppercase tracking-[0.34em] opacity-45">Annonce</p>
-            <p className="mt-1 font-serif text-sm italic opacity-80">Google Ads</p>
+            <p className="text-[7px] font-black uppercase tracking-[0.3em] opacity-45 lg:text-[8px]">Annonce</p>
+            <p className="mt-1 font-serif text-xs italic opacity-80 lg:text-[13px]">Google Ads</p>
         </div>
     </div>
 );
 
-const ProductImagePager = ({ count, activeIndex, onSelect, className = "", darkMode = false, variant = "image", compactAfter = 10 }) => {
+const ProductImagePager = ({ count, activeIndex, className = "", darkMode = false, variant = "image" }) => {
     if (count <= 1) return null;
     const progress = `${((activeIndex + 1) / count) * 100}%`;
     const isSurface = variant === "surface";
-    const activeDotClass = isSurface ? (darkMode ? "bg-white" : "bg-stone-900") : "bg-white";
-    const inactiveDotClass = isSurface ? (darkMode ? "bg-white/20 hover:bg-white/40" : "bg-stone-900/20 hover:bg-stone-900/40") : "bg-white/40 hover:bg-white/80";
     const compactShellClass = isSurface
         ? (darkMode ? "bg-black/45 text-white border-white/10" : "bg-white/80 text-stone-900 border-stone-200")
         : "bg-black/35 text-white border-white/10";
     const compactTrackClass = isSurface ? (darkMode ? "bg-white/20" : "bg-stone-900/15") : "bg-white/25";
     const compactFillClass = isSurface ? (darkMode ? "bg-white" : "bg-stone-900") : "bg-white";
 
-    if (count > compactAfter) {
-        return (
-            <div
-                className={`flex items-center gap-3 rounded-full border px-3 py-2 text-[10px] font-black tabular-nums shadow-xl backdrop-blur-md ${compactShellClass} ${className}`}
-                onClick={(e) => e.stopPropagation()}
-            >
-                <span>{activeIndex + 1} / {count}</span>
-                <div className={`h-1 w-24 overflow-hidden rounded-full ${compactTrackClass}`}>
-                    <div className={`h-full rounded-full transition-all duration-300 ${compactFillClass}`} style={{ width: progress }} />
-                </div>
-            </div>
-        );
-    }
-
     return (
-        <div className={`flex gap-3 ${className}`}>
-            {Array.from({ length: count }, (_, idx) => (
-                <button
-                    key={idx}
-                    onClick={(e) => { e.stopPropagation(); onSelect(idx); }}
-                    className={`h-1.5 rounded-full transition-all duration-300 shadow-sm backdrop-blur-sm ${activeIndex === idx ? `w-8 ${activeDotClass}` : `w-2 ${inactiveDotClass}`}`}
-                />
-            ))}
+        <div
+            className={`flex items-center gap-2.5 rounded-full border px-3 py-1.5 text-[10px] font-black tabular-nums leading-none shadow-xl backdrop-blur-md ${compactShellClass} ${className}`}
+            onClick={(e) => e.stopPropagation()}
+        >
+            <span className="whitespace-nowrap">{activeIndex + 1}/{count}</span>
+            <div className={`h-1 w-20 overflow-hidden rounded-full ${compactTrackClass}`}>
+                <div className={`h-full rounded-full transition-all duration-300 ${compactFillClass}`} style={{ width: progress }} />
+            </div>
         </div>
     );
 };
@@ -156,32 +140,94 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
         return Array.isArray(imgs) ? imgs : [item.imageUrl || ""];
     }, [item]);
     const activeImageSrc = images[activeImg] || images[0] || "";
-    const activeImageSize = imageSizes[activeImageSrc];
-    const isActivePortrait = activeImageSize ? activeImageSize.height > activeImageSize.width * 1.08 : false;
-    const activeImageAspectRatio = activeImageSize ? `${activeImageSize.width} / ${activeImageSize.height}` : (isActivePortrait ? "4 / 5" : "4 / 3");
-    const imageFrameClassName = isActivePortrait
-        ? "relative w-full mx-auto rounded-[0.875rem] md:rounded-[1.125rem] overflow-hidden shadow-2xl shadow-black/20 group bg-transparent aspect-[3/4] md:aspect-[4/5] lg:h-full lg:max-h-[620px] lg:w-auto lg:max-w-full lg:aspect-auto"
-        : "relative w-full mx-auto rounded-[0.875rem] md:rounded-[1.125rem] overflow-hidden shadow-2xl shadow-black/20 group bg-transparent aspect-[3/4] md:aspect-[4/3] lg:h-auto lg:max-h-full lg:max-w-[728px] lg:aspect-auto";
-    const imageObjectClassName = isActivePortrait
-        ? "w-full h-full object-cover transition-transform duration-700 ease-in-out"
-        : "w-full h-full object-cover transition-transform duration-700 ease-in-out";
-    const handleMainImageLoad = (event) => {
-        const { naturalWidth, naturalHeight, currentSrc, src } = event.currentTarget;
-        const loadedSrc = currentSrc || src;
-        if (!loadedSrc || !naturalWidth || !naturalHeight) return;
+    const [displayedImageSrc, setDisplayedImageSrc] = useState(activeImageSrc);
+    const [isImageDecoding, setIsImageDecoding] = useState(false);
+    const displayedImageRef = useRef(null);
+    const rememberImageSize = (src, naturalWidth, naturalHeight, aliasSrc = src) => {
+        if (!src || !naturalWidth || !naturalHeight) return;
         setImageSizes(prev => {
             const nextSize = { width: naturalWidth, height: naturalHeight };
             if (
-                prev[loadedSrc]?.width === naturalWidth &&
-                prev[loadedSrc]?.height === naturalHeight &&
-                prev[activeImageSrc]?.width === naturalWidth &&
-                prev[activeImageSrc]?.height === naturalHeight
+                prev[src]?.width === naturalWidth &&
+                prev[src]?.height === naturalHeight &&
+                prev[aliasSrc]?.width === naturalWidth &&
+                prev[aliasSrc]?.height === naturalHeight
             ) {
                 return prev;
             }
-            return { ...prev, [loadedSrc]: nextSize, [activeImageSrc]: nextSize };
+            return { ...prev, [src]: nextSize, [aliasSrc]: nextSize };
         });
     };
+    const activeImageSize = imageSizes[activeImageSrc];
+    const displayedImageSize = imageSizes[displayedImageSrc];
+    const frameImageSize = isImageDecoding
+        ? (displayedImageSize || activeImageSize)
+        : (activeImageSize || displayedImageSize);
+    const isActivePortrait = frameImageSize ? frameImageSize.height > frameImageSize.width * 1.08 : false;
+    const activeImageAspectRatio = frameImageSize ? `${frameImageSize.width} / ${frameImageSize.height}` : (isActivePortrait ? "4 / 5" : "4 / 3");
+    const imageFrameClassName = isActivePortrait
+        ? "relative w-full mx-auto rounded-[0.875rem] md:rounded-[1.125rem] overflow-hidden shadow-2xl shadow-black/20 group bg-transparent aspect-[3/4] sm:max-w-[560px] md:max-w-[680px] lg:h-full lg:max-h-[min(560px,calc(100vh-178px))] lg:w-auto lg:max-w-full lg:aspect-auto xl:max-h-[min(600px,calc(100vh-178px))]"
+        : "relative w-full mx-auto rounded-[0.875rem] md:rounded-[1.125rem] overflow-hidden shadow-2xl shadow-black/20 group bg-transparent aspect-[3/4] sm:max-w-[640px] md:max-w-[760px] lg:h-auto lg:max-h-[min(560px,calc(100vh-178px))] lg:max-w-[min(620px,100%)] lg:aspect-auto xl:max-h-[min(600px,calc(100vh-178px))] xl:max-w-[min(680px,100%)]";
+    const imageObjectClassName = isActivePortrait
+        ? "w-full h-full object-cover transition-[opacity,transform] duration-700 ease-in-out"
+        : "w-full h-full object-cover transition-[opacity,transform] duration-700 ease-in-out";
+    const handleMainImageLoad = (event) => {
+        const { naturalWidth, naturalHeight, currentSrc, src } = event.currentTarget;
+        const loadedSrc = currentSrc || src;
+        rememberImageSize(loadedSrc, naturalWidth, naturalHeight, displayedImageSrc || activeImageSrc);
+    };
+
+    useEffect(() => {
+        if (!activeImageSrc) {
+            setDisplayedImageSrc("");
+            setIsImageDecoding(false);
+            return undefined;
+        }
+
+        if (activeImageSrc === displayedImageSrc) {
+            setIsImageDecoding(false);
+            return undefined;
+        }
+
+        let cancelled = false;
+        const nextImage = new Image();
+        nextImage.decoding = 'async';
+
+        const reveal = () => {
+            if (cancelled) return;
+            rememberImageSize(
+                nextImage.currentSrc || activeImageSrc,
+                nextImage.naturalWidth,
+                nextImage.naturalHeight,
+                activeImageSrc
+            );
+            requestAnimationFrame(() => {
+                if (cancelled) return;
+                setDisplayedImageSrc(activeImageSrc);
+                setIsImageDecoding(false);
+            });
+        };
+
+        setIsImageDecoding(true);
+        nextImage.src = activeImageSrc;
+
+        if (nextImage.decode) {
+            nextImage.decode().then(reveal).catch(() => {
+                if (nextImage.complete) reveal();
+            });
+        } else {
+            nextImage.onload = reveal;
+            nextImage.onerror = reveal;
+        }
+
+        if (nextImage.complete && nextImage.naturalWidth > 0) {
+            reveal();
+        }
+
+        return () => {
+            cancelled = true;
+        };
+    }, [activeImageSrc, displayedImageSrc]);
 
     const collectionName = useMemo(() => {
         if (!item) return 'furniture';
@@ -396,23 +442,23 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
             />
             {/* ArchitecturalHeader removed here, handled globally in App.jsx */}
 
-            <div className="w-full min-h-screen lg:min-h-0 lg:h-[calc(100vh-78px)] flex flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(420px,34vw)] xl:grid-cols-[minmax(0,1fr)_minmax(500px,34vw)] relative pt-4 lg:pt-0 lg:overflow-hidden">
+            <div className="w-full min-h-screen lg:min-h-0 lg:h-[calc(100vh-78px)] flex flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(360px,31vw)] xl:grid-cols-[minmax(0,1fr)_minmax(400px,29vw)] 2xl:grid-cols-[minmax(0,1fr)_minmax(440px,28vw)] relative pt-4 lg:pt-0 lg:overflow-hidden">
                 {/* LEFT COLUMN: IMAGE GALLERY (Natural Scroll) */}
-                <div className="w-full flex flex-col p-6 lg:px-12 lg:pt-3 lg:pb-10 h-auto lg:h-full lg:min-w-0 lg:gap-3">
+                <div className="w-full flex flex-col p-6 sm:px-8 sm:pt-16 sm:pb-8 md:pt-20 lg:px-8 lg:pt-2 lg:pb-6 h-auto lg:h-full lg:min-w-0 lg:gap-2 xl:px-10">
                     {/* BACK BUTTON (Desktop & Mobile - Above Image) */}
-                    <div className="relative lg:flex lg:h-[90px] lg:items-center lg:justify-center">
-                        <button onClick={onBack} className={`flex w-max min-w-[176px] items-center gap-3 whitespace-nowrap font-black text-[10px] uppercase tracking-widest transition-all hover:opacity-100 mb-6 lg:absolute lg:left-0 lg:top-1/2 lg:mb-0 lg:-translate-y-1/2 group ${darkMode ? 'text-white/80' : 'text-stone-900/80'}`}>
-                            <div className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all ${darkMode ? 'border-white/10 group-hover:bg-white/10' : 'border-stone-200 group-hover:bg-stone-100'}`}>
-                                <ChevronLeft size={16} />
+                    <div className="relative lg:flex lg:h-[72px] lg:items-center lg:justify-center xl:h-[78px]">
+                        <button onClick={onBack} className={`flex w-max items-center gap-2 whitespace-nowrap font-black text-[9px] uppercase tracking-[0.16em] transition-all hover:opacity-100 mb-6 lg:absolute lg:left-0 lg:top-1/2 lg:mb-0 lg:-translate-y-1/2 lg:text-[8px] xl:text-[9px] group ${darkMode ? 'text-white/75' : 'text-stone-900/75'}`}>
+                            <div className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all lg:h-7 lg:w-7 ${darkMode ? 'border-white/10 group-hover:bg-white/10' : 'border-stone-200 group-hover:bg-stone-100'}`}>
+                                <ChevronLeft size={14} />
                             </div>
-                            <span>Retour Collection</span>
+                            <span>Retour</span>
                         </button>
-                        <ProductDetailAdSlot className="hidden h-[90px] w-full lg:w-[728px] lg:max-w-[728px] lg:flex" orientation="top" darkMode={darkMode} />
+                        <ProductDetailAdSlot className="hidden h-[64px] w-full lg:flex lg:w-[clamp(360px,42vw,560px)] lg:max-w-[560px] xl:h-[72px] xl:w-[clamp(460px,43vw,640px)] xl:max-w-[640px]" orientation="top" darkMode={darkMode} />
                     </div>
 
                     {/* ROUNDED IMAGE CONTAINER (Gallery Style - Full Bleed) */}
-                    <div className="lg:flex lg:min-h-0 lg:flex-1 lg:max-h-[720px] lg:items-stretch lg:justify-center lg:gap-0">
-                    <ProductDetailAdSlot className="hidden h-full w-[120px] lg:flex" orientation="left" darkMode={darkMode} />
+                    <div className="lg:flex lg:min-h-0 lg:flex-1 lg:max-h-[min(620px,calc(100vh-166px))] lg:items-stretch lg:justify-center lg:gap-3 xl:gap-4">
+                    <ProductDetailAdSlot className="hidden h-full w-[72px] lg:flex xl:w-[88px] 2xl:w-[96px]" orientation="left" darkMode={darkMode} />
                     <div className="group relative flex h-full min-w-0 flex-1 items-center justify-center">
                         {images.length > 1 && (
                             <>
@@ -450,9 +496,10 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
 
                         {/* Main Picture (Object Cover - No Margins) */}
                         <img
-                            key={activeImageSrc}
-                            src={activeImageSrc}
-                            className={imageObjectClassName}
+                            ref={displayedImageRef}
+                            key={displayedImageSrc}
+                            src={displayedImageSrc}
+                            className={`${imageObjectClassName} ${isImageDecoding ? 'opacity-95' : 'opacity-100'}`}
                             alt={item.name}
                             onLoad={handleMainImageLoad}
                             draggable={false}
@@ -481,7 +528,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                         </div>
                     </div>
                     </div>
-                    <ProductDetailAdSlot className="hidden h-full w-[120px] lg:flex" orientation="right" darkMode={darkMode} />
+                    <ProductDetailAdSlot className="hidden h-full w-[72px] lg:flex xl:w-[88px] 2xl:w-[96px]" orientation="right" darkMode={darkMode} />
                     </div>
                 </div>
 
@@ -532,10 +579,10 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                             onTouchEnd={onTouchEnd}
                         >
                             <img
-                                key={activeImageSrc}
-                                src={images[activeImg]}
+                                key={displayedImageSrc}
+                                src={displayedImageSrc}
                                 alt="Detail"
-                                className="max-w-[95%] max-h-[92vh] object-contain transition-all duration-300 animate-in zoom-in-95 pointer-events-none"
+                                className={`max-w-[95%] max-h-[92vh] object-contain transition-all duration-300 animate-in zoom-in-95 pointer-events-none ${isImageDecoding ? 'opacity-90' : 'opacity-100'}`}
                                 draggable={false}
                             />
                         </div>
@@ -543,22 +590,22 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                 )}
 
                 {/* RIGHT COLUMN: NATURAL SCROLL (Fix Overflow) */}
-                <div className="w-full px-6 lg:pl-10 lg:pr-12 xl:pl-12 xl:pr-16 py-12 lg:py-6 flex flex-col justify-center min-h-[50vh] lg:h-full lg:min-w-0 lg:overflow-hidden">
-                    <div className="max-w-[560px] ml-auto mr-0 w-full h-full flex flex-col justify-center lg:min-h-0">
+                <div className="w-full px-6 py-12 sm:px-8 sm:py-10 md:px-10 lg:pl-6 lg:pr-8 xl:pl-8 xl:pr-10 lg:py-5 flex flex-col justify-center min-h-[50vh] lg:h-full lg:min-w-0 lg:overflow-hidden">
+                    <div className="max-w-[560px] ml-auto mr-0 w-full h-full flex flex-col justify-center sm:mx-auto sm:max-w-[560px] md:max-w-[640px] lg:ml-auto lg:mr-0 lg:max-w-[420px] lg:min-h-0 xl:max-w-[460px]">
 
                         {/* Header */}
-                        <div className="space-y-4 mb-5 lg:space-y-5 lg:mb-6">
+                        <div className="space-y-4 mb-5 lg:space-y-4 lg:mb-5">
                             <div className="flex gap-2">
                                 <span className="px-3 py-1 text-[9px] font-black uppercase tracking-widest border border-stone-200 dark:border-stone-800 bg-transparent text-stone-500">Lot n°{item.id.substring(0, 4)}</span>
                             </div>
-                            <h1 className="text-4xl md:text-5xl lg:text-[42px] xl:text-5xl font-black tracking-tighter leading-none font-serif font-normal italic">{item.name}</h1>
+                            <h1 className="text-4xl md:text-[42px] lg:text-[38px] xl:text-[44px] font-black tracking-tighter leading-none font-serif font-normal italic">{item.name}</h1>
 
                         </div>
 
 
                         {/* Description (Matched to Red Brace ~260px) */}
-                        <div className="p-0 border-l pl-6 border-stone-200 dark:border-stone-800 max-h-[clamp(132px,22vh,215px)] overflow-y-auto custom-scrollbar pr-4 mb-0">
-                            <p className="whitespace-pre-wrap font-serif text-base lg:text-[15px] xl:text-[17px] font-medium leading-relaxed xl:leading-loose" style={{ color: darkMode ? '#d6d3d1' : '#000000', opacity: 1 }}>
+                        <div className="p-0 border-l pl-6 border-stone-200 dark:border-stone-800 max-h-[clamp(120px,20vh,190px)] overflow-y-auto custom-scrollbar pr-4 mb-0 md:max-h-none md:overflow-visible lg:max-h-[clamp(120px,20vh,190px)] lg:overflow-y-auto lg:pl-5">
+                            <p className="whitespace-pre-wrap font-serif text-base lg:text-sm xl:text-base font-medium leading-relaxed xl:leading-relaxed" style={{ color: darkMode ? '#d6d3d1' : '#000000', opacity: 1 }}>
                                 {item.description}
                             </p>
                         </div>
@@ -566,10 +613,10 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                         {/* Price & Actions */}
                         <div className="px-0 pb-0 pt-0 bg-transparent">
                             {/* NEW COMPACT LAYOUT: PRICE (Left) + SPECS HORIZONTAL (Right) */}
-                            <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-5 md:mb-6 pt-5 gap-5 sm:gap-6">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-5 md:mb-6 pt-5 gap-5 sm:gap-6 lg:mb-5 lg:pt-4">
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Prix Actuel</p>
-                                    <p className={`${item.priceOnRequest ? 'text-3xl md:text-4xl' : 'text-5xl md:text-6xl lg:text-[52px]'} font-black tracking-tighter font-serif italic font-normal leading-none`}>
+                                    <p className={`${item.priceOnRequest ? 'text-3xl md:text-4xl lg:text-3xl xl:text-4xl' : 'text-5xl md:text-6xl lg:text-[44px] xl:text-[50px]'} font-black tracking-tighter font-serif italic font-normal leading-none`}>
                                         {item.priceOnRequest ? (
                                             "Prix sur demande"
                                         ) : (
@@ -580,7 +627,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                                         {priceDeliveryNote}
                                     </p>
                                 </div>
-                                <div className={`grid w-full grid-cols-2 gap-4 border-t pt-4 text-left opacity-60 sm:w-auto sm:flex sm:items-end sm:gap-6 sm:border-0 sm:pt-0 sm:text-right md:gap-8 sm:pb-1 ${darkMode ? 'border-white/10' : 'border-stone-200'}`}>
+                                <div className={`grid w-full grid-cols-2 gap-4 border-t pt-4 text-left opacity-60 sm:w-auto sm:flex sm:items-end sm:gap-6 sm:border-0 sm:pt-0 sm:text-right md:gap-8 sm:pb-1 lg:gap-5 ${darkMode ? 'border-white/10' : 'border-stone-200'}`}>
                                     <div>
                                         <p className="text-[9px] font-black uppercase tracking-widest mb-1 opacity-50">Matières</p>
                                         <p className="text-xs font-bold">{item.material || "Non spécifié"}</p>
@@ -593,7 +640,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                             </div>
 
                             <ProductDetailAdSlot
-                                className="mx-auto mb-6 mt-1 h-[100px] w-full max-w-[320px] rounded-sm lg:hidden"
+                                className="mx-auto mb-6 mt-1 h-[88px] w-full max-w-[300px] rounded-sm sm:h-[92px] sm:max-w-[560px] md:max-w-[640px] lg:hidden"
                                 orientation="mobile"
                                 darkMode={darkMode}
                             />
@@ -673,12 +720,12 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                                 </div>
                             ) : !item.auctionActive ? (
                                 isInCart ? (
-                                    <button onClick={onOpenCart} className="w-full py-6 text-white font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-4 bg-emerald-600 hover:bg-emerald-700 shadow-lg" style={{ borderRadius: palette.borderRadius }}>
+                                    <button onClick={onOpenCart} className="w-full py-5 text-white font-black text-[11px] uppercase tracking-[0.18em] transition-all flex items-center justify-center gap-4 bg-emerald-600 hover:bg-emerald-700 shadow-lg lg:py-4 lg:text-[10px]" style={{ borderRadius: palette.borderRadius }}>
                                         <span>Voir ma sélection</span>
                                         <ShoppingBag size={16} />
                                     </button>
                                 ) : (
-                                    <button onClick={() => { onAddToCart(item); }} className="w-full py-6 text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-emerald-600 transition-all flex items-center justify-center gap-4 bg-black dark:bg-white dark:text-black rounded-none shadow-lg">
+                                    <button onClick={() => { onAddToCart(item); }} className="w-full py-5 text-white font-black text-[11px] uppercase tracking-[0.18em] hover:bg-emerald-600 transition-all flex items-center justify-center gap-4 bg-black dark:bg-white dark:text-black rounded-none shadow-lg lg:py-4 lg:text-[10px]">
                                         <span>Acquérir cette pièce</span>
                                         <ArrowRight size={16} />
                                     </button>
@@ -739,8 +786,8 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
 
             {/* === MODULE : VOUS AIMEREZ AUSSI + TUTO ATELIER === */}
             {recommendedProducts.length > 0 && (
-                <section className="tat-heavy-section w-full px-6 lg:px-12 pb-8">
-                    <div className={`relative max-w-[1920px] mx-auto p-5 lg:p-8 rounded-[28px] md:backdrop-blur-xl border ${darkMode ? 'bg-[#141414]/90 border-white/5' : 'bg-white/80 border-stone-200/60'}`}>
+                <section className="tat-heavy-section w-full px-6 sm:px-8 md:px-10 lg:px-12 pb-8">
+                    <div className={`relative max-w-[1920px] sm:max-w-[560px] md:max-w-[640px] lg:max-w-[1920px] mx-auto p-5 lg:p-8 rounded-[28px] md:backdrop-blur-xl border ${darkMode ? 'bg-[#141414]/90 border-white/5' : 'bg-white/80 border-stone-200/60'}`}>
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
 
                             {/* LEFT — Recommended products */}
@@ -852,17 +899,17 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                 </section>
             )}
 
-            <section className="tat-heavy-section w-full px-6 lg:px-12 pb-8">
+            <section className="tat-heavy-section w-full px-6 sm:px-8 md:px-10 lg:px-12 pb-8">
                 <ProductDetailAdSlot
-                    className="mx-auto h-[100px] w-full max-w-[320px] rounded-[18px] lg:h-[90px] lg:max-w-[970px]"
+                    className="mx-auto h-[88px] w-full max-w-[300px] rounded-[14px] sm:h-[92px] sm:max-w-[560px] md:max-w-[640px] lg:h-[76px] lg:max-w-[820px] xl:h-[84px] xl:max-w-[900px]"
                     orientation="between-sections"
                     darkMode={darkMode}
                 />
             </section>
 
             {/* === MODULE : QUATRE PILIERS DE LA MAISON === */}
-            <section className="tat-heavy-section w-full px-6 lg:px-12 pb-16">
-                <div className={`max-w-[1920px] mx-auto p-8 lg:p-12 rounded-[28px] backdrop-blur-xl border ${darkMode ? 'bg-[#141414]/90 border-white/5' : 'bg-white/80 border-stone-200/60'}`}>
+            <section className="tat-heavy-section w-full px-6 sm:px-8 md:px-10 lg:px-12 pb-16">
+                <div className={`max-w-[1920px] sm:max-w-[560px] md:max-w-[640px] lg:max-w-[1920px] mx-auto p-8 lg:p-12 rounded-[28px] backdrop-blur-xl border ${darkMode ? 'bg-[#141414]/90 border-white/5' : 'bg-white/80 border-stone-200/60'}`}>
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-6">
                         {CARE_FEATURES.map(({ icon: Icon, title, description }) => (
                             <div key={title} className="flex flex-col items-center text-center">
