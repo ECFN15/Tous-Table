@@ -98,5 +98,16 @@ Verification:
 Follow-up responsive correction:
 
 - Replaced the fixed Tailwind media-row transform with `.tat-product-media-row` in `src/index.css`, preserving the 28px visual descent.
-- Added `.tat-product-hero-shell` height overrides for shorter desktop-responsive windows: below 860px viewport height the hero reserves more vertical flow space, and below 760px it reserves a larger buffer.
+- Added `.tat-product-hero-shell` height overrides for shorter desktop-responsive windows: below 860px viewport height the hero reserves more vertical flow space, and below 760px it reserves a larger buffer. Follow-up visual pass increased those buffers slightly to keep the recommendations module from sitting too close to the image bottom.
 - Reason: `transform` is visual-only and does not reserve flow space, so the next `tat-heavy-section` could appear to eat the bottom of the product hero on shorter desktop-responsive windows. The correction now adjusts the hero's flow height instead of lifting the media/ad row.
+
+Follow-up portrait navigation correction:
+
+- Removed the conditional active-image offsets because mixed-format galleries made the arrows jump position when switching between portrait and landscape photos.
+- Added stable `.tat-product-gallery-nav--prev` / `--next` desktop offsets in `src/index.css`, using `calc(50% - min(38vw, 420px))`. The arrows sit closer to portrait images than the old edge-of-stage placement while keeping one fixed position for the whole publication and staying outside horizontal images.
+
+Follow-up top Google Ads correction:
+
+- Enlarged the first-viewport top horizontal Google Ads placeholder toward the larger recommended leaderboard rhythm already used lower on the page.
+- The top slot now reaches 728px on desktop and 900px on wider screens, while reserving side breathing room so it does not collide with the `Retour` control.
+- Increased only the gallery header row height to contain the taller top slot.

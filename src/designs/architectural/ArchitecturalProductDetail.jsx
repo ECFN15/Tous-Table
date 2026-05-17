@@ -471,14 +471,14 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                 {/* LEFT COLUMN: IMAGE GALLERY (Natural Scroll) */}
                 <div className="w-full flex flex-col p-6 sm:px-8 sm:pt-16 sm:pb-8 md:pt-20 lg:px-8 lg:pt-2 lg:pb-6 h-auto lg:h-full lg:min-w-0 lg:gap-2 xl:px-10">
                     {/* BACK BUTTON (Desktop & Mobile - Above Image) */}
-                    <div className="relative lg:flex lg:h-[72px] lg:items-center lg:justify-center xl:h-[78px]">
+                    <div className="relative lg:flex lg:h-[92px] lg:items-center lg:justify-center xl:h-[98px]">
                         <button onClick={onBack} className={`flex w-max items-center gap-2 whitespace-nowrap font-black text-[9px] uppercase tracking-[0.16em] transition-all hover:opacity-100 mb-6 lg:absolute lg:left-0 lg:top-1/2 lg:mb-0 lg:-translate-y-1/2 lg:text-[8px] xl:text-[9px] group ${darkMode ? 'text-white/75' : 'text-stone-900/75'}`}>
                             <div className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all lg:h-7 lg:w-7 ${darkMode ? 'border-white/10 group-hover:bg-white/10' : 'border-stone-200 group-hover:bg-stone-100'}`}>
                                 <ChevronLeft size={14} />
                             </div>
                             <span>Retour</span>
                         </button>
-                        <ProductDetailAdSlot className="hidden h-[64px] w-full lg:flex lg:w-[clamp(360px,42vw,560px)] lg:max-w-[560px] xl:h-[72px] xl:w-[clamp(460px,43vw,640px)] xl:max-w-[640px]" orientation="top" darkMode={darkMode} />
+                        <ProductDetailAdSlot className="hidden w-full lg:flex lg:h-[76px] lg:w-[min(728px,calc(100%-170px))] lg:max-w-[728px] xl:h-[84px] xl:w-[min(900px,calc(100%-190px))] xl:max-w-[900px]" orientation="top" darkMode={darkMode} />
                     </div>
 
                     {/* ROUNDED IMAGE CONTAINER (Gallery Style - Full Bleed) */}
@@ -489,13 +489,13 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                             <>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === 0 ? images.length - 1 : prev - 1); }}
-                                    className="hidden md:flex absolute top-1/2 left-3 xl:left-5 -translate-y-1/2 w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer drop-shadow-md bg-black/20 backdrop-blur-md rounded-full hover:bg-black/50 items-center justify-center outline-none ring-0 focus:outline-none focus:ring-0 z-30"
+                                    className="tat-product-gallery-nav tat-product-gallery-nav--prev hidden md:flex absolute top-1/2 left-3 xl:left-5 -translate-y-1/2 w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer drop-shadow-md bg-black/20 backdrop-blur-md rounded-full hover:bg-black/50 items-center justify-center outline-none ring-0 focus:outline-none focus:ring-0 z-30"
                                 >
                                     <ChevronLeft size={24} strokeWidth={2} />
                                 </button>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === images.length - 1 ? 0 : prev + 1); }}
-                                    className="hidden md:flex absolute top-1/2 right-3 xl:right-5 -translate-y-1/2 w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer drop-shadow-md bg-black/20 backdrop-blur-md rounded-full hover:bg-black/50 items-center justify-center outline-none ring-0 focus:outline-none focus:ring-0 z-30"
+                                    className="tat-product-gallery-nav tat-product-gallery-nav--next hidden md:flex absolute top-1/2 right-3 xl:right-5 -translate-y-1/2 w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer drop-shadow-md bg-black/20 backdrop-blur-md rounded-full hover:bg-black/50 items-center justify-center outline-none ring-0 focus:outline-none focus:ring-0 z-30"
                                 >
                                     <ChevronRight size={24} strokeWidth={2} />
                                 </button>
