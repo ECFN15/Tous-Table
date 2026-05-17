@@ -63,6 +63,16 @@ Revamper uniquement le premier ecran desktop de la fiche produit afin de :
 - La taille des images est plafonnee (`lg:max-w-[760px]` pour les paysages, `lg:max-h-[660px]` pour les portraits) pour eviter les images trop grandes et les superpositions avec les annonces.
 - Verification relancee : `git diff --check` OK et `npm run build` OK.
 
+## Ajustement formats Google Ads du 17 mai 2026 17:07
+
+- Verification des recommandations Google : les formats performants/supportes incluent notamment le `leaderboard` 728 x 90 et les formats verticaux type `skyscraper` 120 x 600 / `wide skyscraper` 160 x 600.
+- Les contraintes AdSense fixed-size indiquent notamment : largeur minimale 120 px, hauteur minimale 50 px, une seule dimension peut depasser 450 px, aucune dimension ne doit depasser 1200 px.
+- Le slot haut est cale sur une zone max `728 x 90`, proportionnee pour un emplacement leaderboard.
+- Les slots lateraux passent a `120px` de large pour respecter le minimum Google tout en gardant la place image.
+- Les images sont legerement reduites : paysage `lg:max-w-[728px]`, portrait `lg:max-h-[620px]`.
+- Le bouton `Retour Collection` est aligne a droite dans sa colonne gauche, sur la marge du stage publicitaire.
+- Verification relancee : `git diff --check` OK et `npm run build` OK.
+
 ## Reste a valider visuellement
 
 - Calibrage exact sur le produit long vu en capture, en 1920x1080.

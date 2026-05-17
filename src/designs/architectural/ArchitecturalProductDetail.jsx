@@ -121,8 +121,8 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
     const isActivePortrait = activeImageSize ? activeImageSize.height > activeImageSize.width * 1.08 : false;
     const activeImageAspectRatio = activeImageSize ? `${activeImageSize.width} / ${activeImageSize.height}` : (isActivePortrait ? "4 / 5" : "4 / 3");
     const imageFrameClassName = isActivePortrait
-        ? "relative w-full mx-auto rounded-[0.875rem] md:rounded-[1.125rem] overflow-hidden shadow-2xl shadow-black/20 group bg-transparent aspect-[3/4] md:aspect-[4/5] lg:h-full lg:max-h-[660px] lg:w-auto lg:max-w-full lg:aspect-auto"
-        : "relative w-full mx-auto rounded-[0.875rem] md:rounded-[1.125rem] overflow-hidden shadow-2xl shadow-black/20 group bg-transparent aspect-[3/4] md:aspect-[4/3] lg:h-auto lg:max-h-full lg:max-w-[760px] lg:aspect-auto";
+        ? "relative w-full mx-auto rounded-[0.875rem] md:rounded-[1.125rem] overflow-hidden shadow-2xl shadow-black/20 group bg-transparent aspect-[3/4] md:aspect-[4/5] lg:h-full lg:max-h-[620px] lg:w-auto lg:max-w-full lg:aspect-auto"
+        : "relative w-full mx-auto rounded-[0.875rem] md:rounded-[1.125rem] overflow-hidden shadow-2xl shadow-black/20 group bg-transparent aspect-[3/4] md:aspect-[4/3] lg:h-auto lg:max-h-full lg:max-w-[728px] lg:aspect-auto";
     const imageObjectClassName = isActivePortrait
         ? "w-full h-full object-cover transition-transform duration-700 ease-in-out"
         : "w-full h-full object-cover transition-transform duration-700 ease-in-out";
@@ -332,19 +332,19 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                 {/* LEFT COLUMN: IMAGE GALLERY (Natural Scroll) */}
                 <div className="w-full flex flex-col p-6 lg:px-12 lg:pt-3 lg:pb-10 h-auto lg:h-full lg:min-w-0 lg:gap-3">
                     {/* BACK BUTTON (Desktop & Mobile - Above Image) */}
-                    <div className="lg:grid lg:grid-cols-[158px_minmax(280px,620px)_158px] xl:grid-cols-[174px_minmax(320px,640px)_174px] lg:items-center lg:justify-center lg:gap-5">
-                        <button onClick={onBack} className={`flex items-center gap-3 font-black text-[10px] uppercase tracking-widest transition-all hover:opacity-100 mb-6 lg:mb-0 group ${darkMode ? 'text-white/80' : 'text-stone-900/80'}`}>
+                    <div className="lg:grid lg:grid-cols-[120px_minmax(320px,728px)_120px] lg:items-center lg:justify-center lg:gap-0">
+                        <button onClick={onBack} className={`flex w-max min-w-[176px] items-center justify-self-start gap-3 whitespace-nowrap font-black text-[10px] uppercase tracking-widest transition-all hover:opacity-100 mb-6 lg:mb-0 group ${darkMode ? 'text-white/80' : 'text-stone-900/80'}`}>
                             <div className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all ${darkMode ? 'border-white/10 group-hover:bg-white/10' : 'border-stone-200 group-hover:bg-stone-100'}`}>
                                 <ChevronLeft size={16} />
                             </div>
                             <span>Retour Collection</span>
                         </button>
-                        <ProductDetailAdSlot className="hidden h-[38px] w-full lg:flex" orientation="top" darkMode={darkMode} />
+                        <ProductDetailAdSlot className="hidden h-[90px] w-full lg:flex" orientation="top" darkMode={darkMode} />
                     </div>
 
                     {/* ROUNDED IMAGE CONTAINER (Gallery Style - Full Bleed) */}
-                    <div className="lg:flex lg:min-h-0 lg:h-[calc(100%_-_50px)] lg:max-h-[760px] lg:items-stretch lg:justify-center lg:gap-0">
-                    <ProductDetailAdSlot className="hidden h-full w-[74px] xl:w-[92px] lg:flex" orientation="left" darkMode={darkMode} />
+                    <div className="lg:flex lg:min-h-0 lg:flex-1 lg:max-h-[720px] lg:items-stretch lg:justify-center lg:gap-0">
+                    <ProductDetailAdSlot className="hidden h-full w-[120px] lg:flex" orientation="left" darkMode={darkMode} />
                     <div className="group relative flex h-full min-w-0 flex-1 items-center justify-center">
                         {images.length > 1 && (
                             <>
@@ -417,7 +417,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                         </div>
                     </div>
                     </div>
-                    <ProductDetailAdSlot className="hidden h-full w-[74px] xl:w-[92px] lg:flex" orientation="right" darkMode={darkMode} />
+                    <ProductDetailAdSlot className="hidden h-full w-[120px] lg:flex" orientation="right" darkMode={darkMode} />
                     </div>
                 </div>
 
