@@ -482,7 +482,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                     </div>
 
                     {/* ROUNDED IMAGE CONTAINER (Gallery Style - Full Bleed) */}
-                    <div className="lg:flex lg:min-h-0 lg:flex-1 lg:max-h-[min(620px,calc(100vh-166px))] lg:items-stretch lg:justify-center lg:gap-3 xl:gap-4">
+                    <div className="lg:flex lg:min-h-0 lg:flex-1 lg:max-h-[min(620px,calc(100vh-166px))] lg:translate-y-5 lg:items-stretch lg:justify-center lg:gap-3 xl:gap-4">
                     <ProductDetailAdSlot className="hidden h-full w-[72px] lg:flex xl:w-[88px] 2xl:w-[96px]" orientation="left" darkMode={darkMode} />
                     <div className="group relative flex h-full min-w-0 flex-1 items-center justify-center">
                         {images.length > 1 && (
