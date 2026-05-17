@@ -172,9 +172,10 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
         : (activeImageSize || displayedImageSize);
     const isActivePortrait = frameImageSize ? frameImageSize.height > frameImageSize.width * 1.08 : false;
     const activeImageAspectRatio = frameImageSize ? `${frameImageSize.width} / ${frameImageSize.height}` : (isActivePortrait ? "4 / 5" : "4 / 3");
+    const activeImageRatio = frameImageSize ? frameImageSize.width / frameImageSize.height : (isActivePortrait ? 3 / 4 : 4 / 3);
     const imageFrameClassName = isActivePortrait
-        ? "relative w-full mx-auto rounded-[0.875rem] md:rounded-[1.125rem] overflow-hidden shadow-2xl shadow-black/20 group bg-transparent aspect-[3/4] sm:max-w-[560px] md:max-w-[680px] lg:h-full lg:max-h-[min(590px,calc(100vh-158px))] lg:w-auto lg:max-w-full lg:aspect-auto xl:max-h-[min(620px,calc(100vh-158px))]"
-        : "relative w-full mx-auto rounded-[0.875rem] md:rounded-[1.125rem] overflow-hidden shadow-2xl shadow-black/20 group bg-transparent aspect-[3/4] sm:max-w-[640px] md:max-w-[760px] lg:h-auto lg:max-h-[min(590px,calc(100vh-158px))] lg:max-w-[min(640px,100%)] lg:aspect-auto xl:max-h-[min(620px,calc(100vh-158px))] xl:max-w-[min(700px,100%)]";
+        ? "tat-product-image-frame tat-product-image-frame--portrait relative w-full mx-auto rounded-[0.875rem] md:rounded-[1.125rem] overflow-hidden shadow-2xl shadow-black/20 group bg-transparent aspect-[3/4] sm:max-w-[560px] md:max-w-[680px] lg:h-full lg:max-h-[min(590px,calc(100vh-158px))] lg:w-auto lg:max-w-full lg:aspect-auto xl:max-h-[min(620px,calc(100vh-158px))]"
+        : "tat-product-image-frame tat-product-image-frame--landscape relative w-full mx-auto rounded-[0.875rem] md:rounded-[1.125rem] overflow-hidden shadow-2xl shadow-black/20 group bg-transparent aspect-[3/4] sm:max-w-[640px] md:max-w-[760px] lg:h-auto lg:max-h-[min(590px,calc(100vh-158px))] lg:max-w-[min(640px,100%)] lg:aspect-auto xl:max-h-[min(620px,calc(100vh-158px))] xl:max-w-[min(700px,100%)]";
     const imageObjectClassName = isActivePortrait
         ? "w-full h-full object-cover transition-[opacity,transform] duration-700 ease-in-out"
         : "w-full h-full object-cover transition-[opacity,transform] duration-700 ease-in-out";
@@ -484,7 +485,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                     {/* ROUNDED IMAGE CONTAINER (Gallery Style - Full Bleed) */}
                     <div className="tat-product-media-row lg:flex lg:min-h-0 lg:flex-1 lg:max-h-[min(620px,calc(100vh-166px))] lg:items-stretch lg:justify-center lg:gap-3 xl:gap-4">
                     <ProductDetailAdSlot className="hidden h-full w-[72px] lg:flex xl:w-[88px] 2xl:w-[96px]" orientation="left" darkMode={darkMode} />
-                    <div className="group relative flex h-full min-w-0 flex-1 items-center justify-center">
+                    <div className="tat-product-gallery-stage group relative flex h-full min-w-0 flex-1 items-center justify-center">
                         {images.length > 1 && (
                             <>
                                 <button
@@ -503,7 +504,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                         )}
                     <div
                         className={imageFrameClassName}
-                        style={{ aspectRatio: activeImageAspectRatio }}
+                        style={{ aspectRatio: activeImageAspectRatio, '--tat-active-image-ratio': activeImageRatio }}
                         onTouchStart={onTouchStart}
                         onTouchMove={onTouchMove}
                         onTouchEnd={onTouchEnd}

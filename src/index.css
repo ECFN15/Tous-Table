@@ -475,6 +475,10 @@ html.tat-low-power-mobile .tat-startup-preloader-char {
   transform: translateY(0);
 }
 
+.tat-product-gallery-stage {
+  transform: translateZ(0);
+}
+
 .tat-shop-card-image--blend,
 .tat-shop-card-image--mobile-light {
   mix-blend-mode: multiply;
@@ -526,6 +530,37 @@ html.tat-low-power-mobile .tat-startup-preloader-char {
   .tat-heavy-section {
     content-visibility: auto;
     contain-intrinsic-size: auto 860px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .tat-product-gallery-stage {
+    height: clamp(340px, 58dvh, 500px);
+    min-height: clamp(340px, 58dvh, 500px);
+  }
+
+  .tat-product-image-frame {
+    flex: 0 0 auto;
+    align-self: center;
+  }
+
+  .tat-product-image-frame--landscape {
+    width: min(100%, calc(100dvw - 64px), calc(min(52dvh, 430px) * var(--tat-active-image-ratio, 1.333)));
+  }
+
+  .tat-product-image-frame--portrait {
+    width: min(74vw, 360px, calc(min(55dvh, 460px) * var(--tat-active-image-ratio, 0.75)));
+  }
+}
+
+@media (max-width: 380px) {
+  .tat-product-gallery-stage {
+    height: clamp(320px, 56dvh, 460px);
+    min-height: clamp(320px, 56dvh, 460px);
+  }
+
+  .tat-product-image-frame--portrait {
+    width: min(72vw, 330px);
   }
 }
 

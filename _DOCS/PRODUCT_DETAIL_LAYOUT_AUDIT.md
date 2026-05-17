@@ -1,5 +1,23 @@
 # Product detail layout audit
 
+## 2026-05-17 - Mobile mixed-ratio gallery pass
+
+Scope: mobile and tablet flow below the desktop `lg` grid.
+
+Context: product publications can mix portrait and landscape photos. On mobile, the main gallery used the active image's natural ratio directly in normal flow, so switching between landscape and portrait photos resized the whole hero and made the content below jump. The main image also felt too close to the fullscreen zoom size.
+
+Changes applied:
+
+- Added stable mobile/tablet gallery stage sizing in `src/index.css`, so the lower product content keeps the same vertical anchor while the active image changes orientation.
+- Added `tat-product-image-frame--portrait` and `tat-product-image-frame--landscape` sizing caps in `src/designs/architectural/ArchitecturalProductDetail.jsx` and `src/index.css`.
+- Kept the real image aspect ratio through a CSS ratio variable, while reducing the inline gallery image below the fullscreen lightbox size.
+- Left desktop `lg+` product detail proportions unchanged.
+
+Verification:
+
+- `git diff --check -- src/designs/architectural/ArchitecturalProductDetail.jsx src/index.css _DOCS/PRODUCT_DETAIL_LAYOUT_AUDIT.md` : OK, with CRLF working-copy warnings only.
+- `npm run build` : OK after rerun outside the sandbox because the first attempt hit the known esbuild `spawn EPERM` sandbox failure. Existing generated CSS and large chunk warnings remain.
+
 ## 2026-05-17 - Google Ads and product sheet proportion pass
 
 Scope: `src/designs/architectural/ArchitecturalProductDetail.jsx`.

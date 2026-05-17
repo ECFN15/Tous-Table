@@ -427,3 +427,4 @@ Apres deploy :
 - Le site possede deja une verification Google dans `public/google72f08140b6217ed3.html`, probablement liee a Search Console.
 - Les placeholders UI sont prets, mais ne chargent pas encore de vraies pubs.
 - Les placeholders de detail produit sont visibles uniquement en local/dev, ou avec `VITE_SHOW_AD_PLACEHOLDERS=true`, afin de ne pas afficher des blocs "Annonce / Google Ads" vides aux visiteurs en production.
+- La CSP Hosting autorise les domaines AdSense essentiels (`pagead2.googlesyndication.com`, `googleads.g.doubleclick.net`, `tpc.googlesyndication.com`) depuis le 17 mai 2026, sinon le navigateur bloque le script AdSense meme si le HTML le contient.
