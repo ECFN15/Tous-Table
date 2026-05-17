@@ -28,6 +28,18 @@ const CARE_FEATURES = [
     { icon: Heart, title: "Livraison Soignée", description: "Emballage sécurisé et livraison partout en France et pays frontaliers." }
 ];
 
+const ProductDetailAdSlot = ({ className = "", orientation = "horizontal", darkMode = false }) => (
+    <div
+        className={`flex shrink-0 items-center justify-center border border-dashed ${darkMode ? 'border-white/15 bg-white/[0.015] text-stone-500' : 'border-stone-300/70 bg-white/30 text-stone-500'} ${className}`}
+        data-google-ad-slot={`product-detail-${orientation}`}
+    >
+        <div className="text-center">
+            <p className="text-[8px] font-black uppercase tracking-[0.34em] opacity-45">Annonce</p>
+            <p className="mt-1 font-serif text-sm italic opacity-80">Google Ads</p>
+        </div>
+    </div>
+);
+
 const placeBidFunction = httpsCallable(functions, 'placeBid');
 const wakeUpFunction = httpsCallable(functions, 'wakeUp');
 
@@ -41,7 +53,9 @@ const getStructuredDataPrice = (item) => {
 const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCart, onShowLogin, darkMode, setHeaderProps, cartItems = [], affiliateProducts = [], onOpenProductDetail }) => {
     const { palette } = useLiveTheme();
     const [activeImg, setActiveImg] = useState(0);
+    const [imageSizes, setImageSizes] = useState({});
     const [bidLoading, setBidLoading] = useState(false);
+
     const [, setMsg] = useState(null);
     const [bidsHistory, setBidsHistory] = useState([]);
     const [activeBidInc, setActiveBidInc] = useState(null);
@@ -102,6 +116,26 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
         const imgs = item.images || (item.imageUrl ? [item.imageUrl] : []);
         return Array.isArray(imgs) ? imgs : [item.imageUrl || ""];
     }, [item]);
+    const activeImageSrc = images[activeImg] || images[0] || "";
+    const activeImageSize = imageSizes[activeImageSrc];
+    const isActivePortrait = activeImageSize ? activeImageSize.height > activeImageSize.width * 1.08 : false;
+    const activeImageAspectRatio = activeImageSize ? `${activeImageSize.width} / ${activeImageSize.height}` : (isActivePortrait ? "4 / 5" : "4 / 3");
+    const imageFrameClassName = isActivePortrait
+        ? "relative w-full mx-auto rounded-[0.875rem] md:rounded-[1.125rem] overflow-hidden shadow-2xl shadow-black/20 group bg-transparent aspect-[3/4] md:aspect-[4/5] lg:h-full lg:max-h-[660px] lg:w-auto lg:max-w-full lg:aspect-auto"
+        : "relative w-full mx-auto rounded-[0.875rem] md:rounded-[1.125rem] overflow-hidden shadow-2xl shadow-black/20 group bg-transparent aspect-[3/4] md:aspect-[4/3] lg:h-auto lg:max-h-full lg:max-w-[760px] lg:aspect-auto";
+    const imageObjectClassName = isActivePortrait
+        ? "w-full h-full object-cover transition-transform duration-700 ease-in-out"
+        : "w-full h-full object-cover transition-transform duration-700 ease-in-out";
+    const handleMainImageLoad = (event) => {
+        const { naturalWidth, naturalHeight, currentSrc, src } = event.currentTarget;
+        const loadedSrc = currentSrc || src;
+        if (!loadedSrc || !naturalWidth || !naturalHeight) return;
+        setImageSizes(prev => (
+            prev[loadedSrc]?.width === naturalWidth && prev[loadedSrc]?.height === naturalHeight
+                ? prev
+                : { ...prev, [loadedSrc]: { width: naturalWidth, height: naturalHeight } }
+        ));
+    };
 
     const collectionName = useMemo(() => {
         if (!item) return 'furniture';
@@ -294,20 +328,43 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
             />
             {/* ArchitecturalHeader removed here, handled globally in App.jsx */}
 
-            <div className={`w-full min-h-screen flex flex-col lg:flex-row relative pt-4 lg:pt-0`}>
+            <div className="w-full min-h-screen lg:min-h-0 lg:h-[calc(100vh-78px)] flex flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(420px,34vw)] xl:grid-cols-[minmax(0,1fr)_minmax(500px,34vw)] relative pt-4 lg:pt-0 lg:overflow-hidden">
                 {/* LEFT COLUMN: IMAGE GALLERY (Natural Scroll) */}
-                <div className="w-full lg:w-1/2 flex flex-col p-6 lg:p-12 h-auto lg:h-[calc(100vh-6rem)] justify-center">
+                <div className="w-full flex flex-col p-6 lg:px-12 lg:pt-3 lg:pb-10 h-auto lg:h-full lg:min-w-0 lg:gap-3">
                     {/* BACK BUTTON (Desktop & Mobile - Above Image) */}
-                    <button onClick={onBack} className={`flex items-center gap-3 font-black text-[10px] uppercase tracking-widest transition-all hover:opacity-100 mb-6 group ${darkMode ? 'text-white/80' : 'text-stone-900/80'}`}>
-                        <div className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all ${darkMode ? 'border-white/10 group-hover:bg-white/10' : 'border-stone-200 group-hover:bg-stone-100'}`}>
-                            <ChevronLeft size={16} />
-                        </div>
-                        <span>Retour Collection</span>
-                    </button>
+                    <div className="lg:grid lg:grid-cols-[158px_minmax(280px,620px)_158px] xl:grid-cols-[174px_minmax(320px,640px)_174px] lg:items-center lg:justify-center lg:gap-5">
+                        <button onClick={onBack} className={`flex items-center gap-3 font-black text-[10px] uppercase tracking-widest transition-all hover:opacity-100 mb-6 lg:mb-0 group ${darkMode ? 'text-white/80' : 'text-stone-900/80'}`}>
+                            <div className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all ${darkMode ? 'border-white/10 group-hover:bg-white/10' : 'border-stone-200 group-hover:bg-stone-100'}`}>
+                                <ChevronLeft size={16} />
+                            </div>
+                            <span>Retour Collection</span>
+                        </button>
+                        <ProductDetailAdSlot className="hidden h-[38px] w-full lg:flex" orientation="top" darkMode={darkMode} />
+                    </div>
 
                     {/* ROUNDED IMAGE CONTAINER (Gallery Style - Full Bleed) */}
+                    <div className="lg:flex lg:min-h-0 lg:h-[calc(100%_-_50px)] lg:max-h-[760px] lg:items-stretch lg:justify-center lg:gap-0">
+                    <ProductDetailAdSlot className="hidden h-full w-[74px] xl:w-[92px] lg:flex" orientation="left" darkMode={darkMode} />
+                    <div className="group relative flex h-full min-w-0 flex-1 items-center justify-center">
+                        {images.length > 1 && (
+                            <>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === 0 ? images.length - 1 : prev - 1); }}
+                                    className="hidden md:flex absolute top-1/2 left-3 xl:left-5 -translate-y-1/2 w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer drop-shadow-md bg-black/20 backdrop-blur-md rounded-full hover:bg-black/50 items-center justify-center outline-none ring-0 focus:outline-none focus:ring-0 z-30"
+                                >
+                                    <ChevronLeft size={24} strokeWidth={2} />
+                                </button>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === images.length - 1 ? 0 : prev + 1); }}
+                                    className="hidden md:flex absolute top-1/2 right-3 xl:right-5 -translate-y-1/2 w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer drop-shadow-md bg-black/20 backdrop-blur-md rounded-full hover:bg-black/50 items-center justify-center outline-none ring-0 focus:outline-none focus:ring-0 z-30"
+                                >
+                                    <ChevronRight size={24} strokeWidth={2} />
+                                </button>
+                            </>
+                        )}
                     <div
-                        className="relative w-full md:max-w-2xl mx-auto rounded-[0.875rem] md:rounded-[1.125rem] overflow-hidden shadow-2xl shadow-black/20 group bg-stone-100 dark:bg-[#151515] aspect-[3/4] md:aspect-[4/3] lg:aspect-auto lg:h-full lg:max-w-none"
+                        className={imageFrameClassName}
+                        style={{ aspectRatio: activeImageAspectRatio }}
                         onTouchStart={onTouchStart}
                         onTouchMove={onTouchMove}
                         onTouchEnd={onTouchEnd}
@@ -325,28 +382,11 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
 
                         {/* Main Picture (Object Cover - No Margins) */}
                         <img
-                            src={images[activeImg]}
-                            className="w-full h-full object-cover transition-transform duration-700 ease-in-out"
+                            src={activeImageSrc}
+                            className={imageObjectClassName}
                             alt={item.name}
+                            onLoad={handleMainImageLoad}
                         />
-
-                        {/* Arrows (Visible on hover) */}
-                        {images.length > 1 && (
-                            <>
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === 0 ? images.length - 1 : prev - 1); }}
-                                    className="hidden md:flex absolute top-1/2 left-6 -translate-y-1/2 w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer drop-shadow-md bg-black/20 backdrop-blur-md rounded-full hover:bg-black/50 items-center justify-center outline-none ring-0 focus:outline-none focus:ring-0 z-20"
-                                >
-                                    <ChevronLeft size={24} strokeWidth={2} />
-                                </button>
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === images.length - 1 ? 0 : prev + 1); }}
-                                    className="hidden md:flex absolute top-1/2 right-6 -translate-y-1/2 w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer drop-shadow-md bg-black/20 backdrop-blur-md rounded-full hover:bg-black/50 items-center justify-center outline-none ring-0 focus:outline-none focus:ring-0 z-20"
-                                >
-                                    <ChevronRight size={24} strokeWidth={2} />
-                                </button>
-                            </>
-                        )}
 
                         {/* Pager (Bottom Overlay) */}
                         {images.length > 1 && (
@@ -375,6 +415,9 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                                 <Maximize2 className="relative z-10 w-4 h-4 md:w-5 md:h-5" />
                             </button>
                         </div>
+                    </div>
+                    </div>
+                    <ProductDetailAdSlot className="hidden h-full w-[74px] xl:w-[92px] lg:flex" orientation="right" darkMode={darkMode} />
                     </div>
                 </div>
 
@@ -439,44 +482,44 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                 )}
 
                 {/* RIGHT COLUMN: NATURAL SCROLL (Fix Overflow) */}
-                <div className="w-full lg:w-1/2 px-6 lg:px-16 py-12 flex flex-col justify-center min-h-[50vh] lg:h-[calc(100vh-6rem)]">
-                    <div className="max-w-xl mx-auto w-full h-full flex flex-col justify-center">
+                <div className="w-full px-6 lg:pl-10 lg:pr-12 xl:pl-12 xl:pr-16 py-12 lg:py-6 flex flex-col justify-center min-h-[50vh] lg:h-full lg:min-w-0 lg:overflow-hidden">
+                    <div className="max-w-[560px] ml-auto mr-0 w-full h-full flex flex-col justify-center lg:min-h-0">
 
                         {/* Header */}
-                        <div className="space-y-8 mb-12">
+                        <div className="space-y-4 mb-5 lg:space-y-5 lg:mb-6">
                             <div className="flex gap-2">
                                 <span className="px-3 py-1 text-[9px] font-black uppercase tracking-widest border border-stone-200 dark:border-stone-800 bg-transparent text-stone-500">Lot n°{item.id.substring(0, 4)}</span>
                             </div>
-                            <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-none font-serif font-normal italic">{item.name}</h1>
+                            <h1 className="text-4xl md:text-5xl lg:text-[42px] xl:text-5xl font-black tracking-tighter leading-none font-serif font-normal italic">{item.name}</h1>
 
                         </div>
 
 
                         {/* Description (Matched to Red Brace ~260px) */}
-                        <div className="p-0 border-l pl-8 border-stone-200 dark:border-stone-800 max-h-[260px] overflow-y-auto custom-scrollbar pr-4 mb-2">
-                            <p className="whitespace-pre-wrap font-serif text-lg font-medium leading-loose" style={{ color: darkMode ? '#d6d3d1' : '#000000', opacity: 1 }}>
+                        <div className="p-0 border-l pl-6 border-stone-200 dark:border-stone-800 max-h-[clamp(132px,22vh,215px)] overflow-y-auto custom-scrollbar pr-4 mb-0">
+                            <p className="whitespace-pre-wrap font-serif text-base lg:text-[15px] xl:text-[17px] font-medium leading-relaxed xl:leading-loose" style={{ color: darkMode ? '#d6d3d1' : '#000000', opacity: 1 }}>
                                 {item.description}
                             </p>
                         </div>
 
                         {/* Price & Actions */}
-                        <div className="px-6 pb-6 pt-0 bg-transparent">
+                        <div className="px-0 pb-0 pt-0 bg-transparent">
                             {/* NEW COMPACT LAYOUT: PRICE (Left) + SPECS HORIZONTAL (Right) */}
-                            <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-8 md:mb-9 pt-8 gap-6 sm:gap-0">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-5 md:mb-6 pt-5 gap-5 sm:gap-6">
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Prix Actuel</p>
-                                    <p className={`${item.priceOnRequest ? 'text-3xl md:text-4xl' : 'text-5xl md:text-6xl'} font-black tracking-tighter font-serif italic font-normal leading-none`}>
+                                    <p className={`${item.priceOnRequest ? 'text-3xl md:text-4xl' : 'text-5xl md:text-6xl lg:text-[52px]'} font-black tracking-tighter font-serif italic font-normal leading-none`}>
                                         {item.priceOnRequest ? (
                                             "Prix sur demande"
                                         ) : (
                                             <><AnimatedPrice amount={item.currentPrice || item.startingPrice || 0} /> €</>
                                         )}
                                     </p>
-                                    <p className={`relative top-[9px] md:top-[10px] mt-3 max-w-[300px] text-[10px] sm:text-[11px] font-medium leading-snug opacity-55 ${darkMode ? 'text-stone-400' : 'text-stone-600'}`}>
+                                    <p className={`mt-3 max-w-[300px] text-[10px] sm:text-[11px] font-medium leading-snug opacity-55 ${darkMode ? 'text-stone-400' : 'text-stone-600'}`}>
                                         {priceDeliveryNote}
                                     </p>
                                 </div>
-                                <div className={`grid w-full grid-cols-2 gap-4 border-t pt-4 text-left opacity-60 sm:w-auto sm:flex sm:items-end sm:gap-8 sm:border-0 sm:pt-0 sm:text-right md:gap-12 sm:pb-1 md:pb-2 ${darkMode ? 'border-white/10' : 'border-stone-200'}`}>
+                                <div className={`grid w-full grid-cols-2 gap-4 border-t pt-4 text-left opacity-60 sm:w-auto sm:flex sm:items-end sm:gap-6 sm:border-0 sm:pt-0 sm:text-right md:gap-8 sm:pb-1 ${darkMode ? 'border-white/10' : 'border-stone-200'}`}>
                                     <div>
                                         <p className="text-[9px] font-black uppercase tracking-widest mb-1 opacity-50">Matières</p>
                                         <p className="text-xs font-bold">{item.material || "Non spécifié"}</p>
