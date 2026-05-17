@@ -96,6 +96,18 @@ Revamper uniquement le premier ecran desktop de la fiche produit afin de :
 - Le bloc est independant dans sa propre section `tat-heavy-section`, afin de ne pas modifier le layout interne des deux containers adjacents.
 - Verification relancee : `git diff --check` OK et `npm run build` OK.
 
+## Audit images et indicateurs du 17 mai 2026 17:31
+
+- Probleme observe : au premier passage dans certaines galeries, les images pouvaient changer de ratio apres chargement, donnant une impression de torsion ou de comportement moins fluide.
+- Cause probable : le preload chargeait les fichiers image mais ne stockait pas leurs dimensions naturelles. Le cadre utilisait donc un ratio fallback avant de recevoir `naturalWidth / naturalHeight` via `onLoad`.
+- Correction : le preload mesure maintenant chaque image avec `new Image()`, stocke `naturalWidth` et `naturalHeight` dans `imageSizes`, et mappe a la fois la source d'origine et `currentSrc`.
+- Correction complementaire : le handler `onLoad` de l'image active stocke aussi les dimensions sous les deux cles pour eviter les ecarts entre `src` et `currentSrc`.
+- Stabilisation : l'image principale et l'image lightbox ont une cle `key={activeImageSrc}` pour forcer un remontage propre quand la source change.
+- Probleme observe : les pagers a points devenaient illisibles avec beaucoup d'images.
+- Correction : ajout de `ProductImagePager`, qui garde les points pour les petites galeries et bascule automatiquement en indicateur compact `index / total` + barre de progression au-dela de 10 images.
+- Le meme indicateur adaptatif est utilise sur l'image principale et dans le lightbox.
+- Verification relancee : `git diff --check` OK et `npm run build` OK.
+
 ## Reste a valider visuellement
 
 - Calibrage exact sur le produit long vu en capture, en 1920x1080.

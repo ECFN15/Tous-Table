@@ -40,6 +40,45 @@ const ProductDetailAdSlot = ({ className = "", orientation = "horizontal", darkM
     </div>
 );
 
+const ProductImagePager = ({ count, activeIndex, onSelect, className = "", darkMode = false, variant = "image", compactAfter = 10 }) => {
+    if (count <= 1) return null;
+    const progress = `${((activeIndex + 1) / count) * 100}%`;
+    const isSurface = variant === "surface";
+    const activeDotClass = isSurface ? (darkMode ? "bg-white" : "bg-stone-900") : "bg-white";
+    const inactiveDotClass = isSurface ? (darkMode ? "bg-white/20 hover:bg-white/40" : "bg-stone-900/20 hover:bg-stone-900/40") : "bg-white/40 hover:bg-white/80";
+    const compactShellClass = isSurface
+        ? (darkMode ? "bg-black/45 text-white border-white/10" : "bg-white/80 text-stone-900 border-stone-200")
+        : "bg-black/35 text-white border-white/10";
+    const compactTrackClass = isSurface ? (darkMode ? "bg-white/20" : "bg-stone-900/15") : "bg-white/25";
+    const compactFillClass = isSurface ? (darkMode ? "bg-white" : "bg-stone-900") : "bg-white";
+
+    if (count > compactAfter) {
+        return (
+            <div
+                className={`flex items-center gap-3 rounded-full border px-3 py-2 text-[10px] font-black tabular-nums shadow-xl backdrop-blur-md ${compactShellClass} ${className}`}
+                onClick={(e) => e.stopPropagation()}
+            >
+                <span>{activeIndex + 1} / {count}</span>
+                <div className={`h-1 w-24 overflow-hidden rounded-full ${compactTrackClass}`}>
+                    <div className={`h-full rounded-full transition-all duration-300 ${compactFillClass}`} style={{ width: progress }} />
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className={`flex gap-3 ${className}`}>
+            {Array.from({ length: count }, (_, idx) => (
+                <button
+                    key={idx}
+                    onClick={(e) => { e.stopPropagation(); onSelect(idx); }}
+                    className={`h-1.5 rounded-full transition-all duration-300 shadow-sm backdrop-blur-sm ${activeIndex === idx ? `w-8 ${activeDotClass}` : `w-2 ${inactiveDotClass}`}`}
+                />
+            ))}
+        </div>
+    );
+};
+
 const placeBidFunction = httpsCallable(functions, 'placeBid');
 const wakeUpFunction = httpsCallable(functions, 'wakeUp');
 
@@ -130,11 +169,18 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
         const { naturalWidth, naturalHeight, currentSrc, src } = event.currentTarget;
         const loadedSrc = currentSrc || src;
         if (!loadedSrc || !naturalWidth || !naturalHeight) return;
-        setImageSizes(prev => (
-            prev[loadedSrc]?.width === naturalWidth && prev[loadedSrc]?.height === naturalHeight
-                ? prev
-                : { ...prev, [loadedSrc]: { width: naturalWidth, height: naturalHeight } }
-        ));
+        setImageSizes(prev => {
+            const nextSize = { width: naturalWidth, height: naturalHeight };
+            if (
+                prev[loadedSrc]?.width === naturalWidth &&
+                prev[loadedSrc]?.height === naturalHeight &&
+                prev[activeImageSrc]?.width === naturalWidth &&
+                prev[activeImageSrc]?.height === naturalHeight
+            ) {
+                return prev;
+            }
+            return { ...prev, [loadedSrc]: nextSize, [activeImageSrc]: nextSize };
+        });
     };
 
     const collectionName = useMemo(() => {
@@ -159,10 +205,32 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
     // Preload
     useEffect(() => {
         if (!images || images.length === 0) return;
+        let cancelled = false;
         images.forEach((src) => {
+            if (!src) return;
             const img = new Image();
+            img.decoding = 'async';
+            img.onload = () => {
+                if (cancelled || !img.naturalWidth || !img.naturalHeight) return;
+                const loadedSrc = img.currentSrc || src;
+                setImageSizes(prev => {
+                    const nextSize = { width: img.naturalWidth, height: img.naturalHeight };
+                    if (
+                        prev[src]?.width === nextSize.width &&
+                        prev[src]?.height === nextSize.height &&
+                        prev[loadedSrc]?.width === nextSize.width &&
+                        prev[loadedSrc]?.height === nextSize.height
+                    ) {
+                        return prev;
+                    }
+                    return { ...prev, [src]: nextSize, [loadedSrc]: nextSize };
+                });
+            };
             img.src = src;
         });
+        return () => {
+            cancelled = true;
+        };
     }, [images]);
 
     // Auction Logic
@@ -382,24 +450,20 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
 
                         {/* Main Picture (Object Cover - No Margins) */}
                         <img
+                            key={activeImageSrc}
                             src={activeImageSrc}
                             className={imageObjectClassName}
                             alt={item.name}
                             onLoad={handleMainImageLoad}
+                            draggable={false}
                         />
 
-                        {/* Pager (Bottom Overlay) */}
-                        {images.length > 1 && (
-                            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 z-20">
-                                {images.map((_, idx) => (
-                                    <button
-                                        key={idx}
-                                        onClick={(e) => { e.stopPropagation(); setActiveImg(idx) }}
-                                        className={`h-1.5 rounded-full transition-all duration-300 shadow-sm backdrop-blur-sm ${activeImg === idx ? 'w-8 bg-white' : 'w-2 bg-white/40 hover:bg-white/80'}`}
-                                    />
-                                ))}
-                            </div>
-                        )}
+                        <ProductImagePager
+                            count={images.length}
+                            activeIndex={activeImg}
+                            onSelect={setActiveImg}
+                            className="absolute bottom-8 left-1/2 z-20 -translate-x-1/2"
+                        />
 
                         {/* HINT: Click to Expand (With Luminous Ripple) */}
                         <div className="absolute top-4 right-4 md:top-6 md:right-6 z-30 transition-all duration-500">
@@ -450,18 +514,14 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                             </>
                         )}
 
-                        {/* PAGER INDICATOR (Bottom) */}
-                        {images.length > 1 && (
-                            <div className="absolute bottom-12 md:bottom-20 left-1/2 -translate-x-1/2 flex gap-3 z-[3100]">
-                                {images.map((_, idx) => (
-                                    <button
-                                        key={idx}
-                                        onClick={(e) => { e.stopPropagation(); setActiveImg(idx) }}
-                                        className={`h-1 rounded-full transition-all duration-300 ${activeImg === idx ? (darkMode ? 'w-8 bg-white' : 'w-8 bg-stone-900') : (darkMode ? 'w-2 bg-white/20 hover:bg-white/40' : 'w-2 bg-stone-900/20 hover:bg-stone-900/40')}`}
-                                    />
-                                ))}
-                            </div>
-                        )}
+                        <ProductImagePager
+                            count={images.length}
+                            activeIndex={activeImg}
+                            onSelect={setActiveImg}
+                            className="absolute bottom-12 left-1/2 z-[3100] -translate-x-1/2 md:bottom-20"
+                            darkMode={darkMode}
+                            variant="surface"
+                        />
 
 
                         {/* MAIN IMAGE CONTAINER */}
@@ -472,6 +532,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
                             onTouchEnd={onTouchEnd}
                         >
                             <img
+                                key={activeImageSrc}
                                 src={images[activeImg]}
                                 alt="Detail"
                                 className="max-w-[95%] max-h-[92vh] object-contain transition-all duration-300 animate-in zoom-in-95 pointer-events-none"
