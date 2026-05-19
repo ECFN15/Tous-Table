@@ -8,6 +8,7 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { Elements } from '@stripe/react-stripe-js';
 import { stripePromise } from '../main';
 import CheckoutPaymentStep from '../components/cart/CheckoutPaymentStep';
+import SEO from '../components/shared/SEO';
 import { useToast } from '../components/ui/Toast';
 import { lockPageScroll, scrollToTarget } from '../utils/smoothScroll';
 
@@ -544,6 +545,13 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
     // pour laisser le temps au serveur de remettre sold=false sans déclencher l'alerte !
     if (unavailableItems.length > 0 && checkoutState !== 'processing_deferred' && checkoutState !== 'fetching_stripe' && checkoutState !== 'ready_to_pay' && !isCleaningUp) {
         return (
+            <>
+            <SEO
+                title="Paiement securise"
+                description="Page de paiement privee Tous a Table."
+                url="/checkout"
+                robots="noindex,nofollow,noarchive"
+            />
             <div className={`min-h-screen pt-12 px-6 flex items-center justify-center bg-transparent`}>
                 <div className={`p-8 rounded-3xl shadow-xl max-w-md text-center space-y-6 border ${darkMode ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-100'}`}>
                     <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto">
@@ -560,6 +568,7 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                     </button>
                 </div>
             </div>
+            </>
         );
     }
 
@@ -572,6 +581,12 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
 
     return (
         <>
+        <SEO
+            title="Paiement securise"
+            description="Page de paiement privee Tous a Table."
+            url="/checkout"
+            robots="noindex,nofollow,noarchive"
+        />
         <div
             className={`min-h-screen pt-10 px-4 md:px-6 animate-in fade-in transition-colors duration-700 bg-transparent`}
             style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 6rem)' }}

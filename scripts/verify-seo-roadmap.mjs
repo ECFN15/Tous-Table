@@ -67,12 +67,71 @@ includesAll('client routing maps required views', routeUtils, [
   "view: 'gallery'",
 ]);
 
+const appContent = read('src/App.jsx');
+addCheck('App does not emit a competing global canonical', !/<SEO\s*\/>/.test(appContent));
+
+const firebaseConfig = read('firebase.json');
+includesAll('hosting redirects canonical duplicate SEO routes', firebaseConfig, [
+  '"/index.html"',
+  '"/atelier"',
+  '"/meubles-anciens/"',
+  '"/planches-a-decouper-anciennes/"',
+  '"/comptoir/"',
+  '"/a-propos/"',
+  '"/livraison-meubles-anciens-france/"',
+]);
+
+includesAll('production builds clean stale dist assets first', read('package.json'), [
+  'node scripts/clean-dist.mjs && vite build',
+  'node scripts/clean-dist.mjs && vite build --mode prod',
+]);
+
 const seoComponent = read('src/components/shared/SEO.jsx');
 includesAll('SEO component emits canonical and JSON-LD', seoComponent, [
   '<link rel="canonical"',
+  'name="robots"',
   'application/ld+json',
   'og:title',
   'twitter:card',
+]);
+
+includesAll('private transactional pages are noindex', [
+  read('src/pages/CheckoutView.jsx'),
+  read('src/pages/MyOrdersView.jsx'),
+  read('src/pages/LoginView.jsx'),
+  read('src/Router.jsx'),
+].join('\n'), [
+  'robots="noindex,nofollow,noarchive"',
+  'url="/checkout"',
+  'url="/mes-commandes"',
+  'url="/admin"',
+]);
+
+includesAll('Comptoir affiliate detail pages stay out of the index', read('src/pages/ShopProductDetail.jsx'), [
+  'robots="noindex,follow,max-image-preview:large"',
+]);
+
+includesAll('meubles collection has distinct visible SEO intro', read('src/data/categorySeoContent.js'), [
+  'Meubles anciens restaures en Normandie',
+  'Livraison meubles anciens',
+]);
+
+includesAll('root and meubles collection have distinct meta copy', read('src/pages/GalleryView.jsx'), [
+  'title: \'Meubles Anciens Restaures en Normandie\'',
+  'title: \'Meubles Anciens a Vendre\'',
+  'seoUrl === \'/\'',
+]);
+
+includesAll('product deep-link loading does not emit noindex', [
+  read('src/App.jsx'),
+  read('src/Router.jsx'),
+  read('src/designs/architectural/ArchitecturalProductDetail.jsx'),
+].join('\n'), [
+  'return \'furniture|cutting_boards|affiliate_products\';',
+  'const isProductCatalogResolved = resolvedPublicCollections.furniture && resolvedPublicCollections.cutting_boards;',
+  'isCatalogResolving={!isProductCatalogResolved}',
+  'if (!item && isCatalogResolving)',
+  'title="Meuble ancien"',
 ]);
 
 const schemaChecks = [

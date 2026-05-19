@@ -317,6 +317,7 @@ const ShopProductDetail = ({ product, isLoading = false, darkMode = false, onBac
                     title="Produit Comptoir introuvable"
                     description="Ce produit du Comptoir n'est pas disponible."
                     url="/comptoir"
+                    robots="noindex,follow,noarchive"
                 />
                 <div className="mx-auto max-w-3xl text-center">
                     <p className="text-[10px] uppercase tracking-[0.28em] font-black text-amber-700">Le Comptoir</p>
@@ -359,6 +360,7 @@ const ShopProductDetail = ({ product, isLoading = false, darkMode = false, onBac
                 url={pagePath}
                 type="product"
                 schema={schema}
+                robots="noindex,follow,max-image-preview:large"
             />
 
             <section className="relative overflow-hidden px-4 pb-8 pt-24 md:px-10 md:pb-24 md:pt-36 xl:px-14">

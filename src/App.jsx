@@ -31,7 +31,6 @@ import ErrorBoundary from './components/shared/ErrorBoundary';
 import CartSidebar from './components/cart/CartSidebar';
 import Footer from './components/layout/Footer';
 import WhatsAppFloatingButton from './components/layout/WhatsAppFloatingButton';
-import SEO from './components/shared/SEO';
 import AnalyticsProvider from './components/shared/AnalyticsProvider';
 import { ToastProvider, useToast } from './components/ui/Toast';
 
@@ -116,6 +115,11 @@ const AppContent = () => {
   const [items, setItems] = useState([]);
   const [boardItems, setBoardItems] = useState([]); // New: Planches
   const [affiliateProducts, setAffiliateProducts] = useState([]);
+  const [resolvedPublicCollections, setResolvedPublicCollections] = useState({
+    furniture: false,
+    cutting_boards: false,
+    affiliate_products: false,
+  });
   const [contactInfo, setContactInfo] = useState(getCachedContactInfo);
 
 
@@ -202,7 +206,7 @@ const AppContent = () => {
 
   // Navigation
   const [view, setView] = useState(() => initialRouteRef.current.view); // 'about', 'gallery', 'detail', 'login', 'admin'
-  const [selectedItemId, setSelectedItemId] = useState(null);
+  const [selectedItemId, setSelectedItemId] = useState(initialRouteRef.current.productId || null);
   const [selectedAffiliateProductId, setSelectedAffiliateProductId] = useState(initialRouteRef.current.shopProductId || null);
   const [selectedAffiliateProductContext, setSelectedAffiliateProductContext] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -306,9 +310,7 @@ const AppContent = () => {
     if (view === 'detail') {
       if (boardItems.some((item) => item.id === selectedItemId)) return 'cutting_boards|affiliate_products';
       if (items.some((item) => item.id === selectedItemId)) return 'furniture|affiliate_products';
-      return persistentGalleryState.activeCollection === 'cutting_boards'
-        ? 'cutting_boards|affiliate_products'
-        : 'furniture|affiliate_products';
+      return 'furniture|cutting_boards|affiliate_products';
     }
     return '';
   }, [view, persistentGalleryState.activeCollection, selectedItemId, items, boardItems]);
@@ -364,6 +366,11 @@ const AppContent = () => {
     setItems(catalogPayload.items);
     setBoardItems(catalogPayload.boardItems);
     setAffiliateProducts(catalogPayload.affiliateProducts);
+    setResolvedPublicCollections({
+      furniture: true,
+      cutting_boards: true,
+      affiliate_products: true,
+    });
   }, []);
 
   const runStartupWarmup = React.useCallback(() => (
@@ -571,6 +578,7 @@ const AppContent = () => {
       if (activeCollections.includes('furniture')) {
         subscriptions.push(onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'furniture'), (snap) => {
           setItems(snap.docs.map(d => ({ id: d.id, collectionName: 'furniture', ...d.data() })).sort(sortByCreatedAtDesc));
+          setResolvedPublicCollections(prev => ({ ...prev, furniture: true }));
         }, (error) => {
           handlePublicReadError('meubles', error);
         }));
@@ -579,6 +587,7 @@ const AppContent = () => {
       if (activeCollections.includes('cutting_boards')) {
         subscriptions.push(onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'cutting_boards'), (snap) => {
           setBoardItems(snap.docs.map(d => ({ id: d.id, collectionName: 'cutting_boards', ...d.data() })).sort(sortByCreatedAtDesc));
+          setResolvedPublicCollections(prev => ({ ...prev, cutting_boards: true }));
         }, (error) => {
           handlePublicReadError('planches', error);
         }));
@@ -587,6 +596,7 @@ const AppContent = () => {
       if (activeCollections.includes('affiliate_products')) {
         subscriptions.push(onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'affiliate_products'), (snap) => {
           setAffiliateProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.status === 'published'));
+          setResolvedPublicCollections(prev => ({ ...prev, affiliate_products: true }));
         }, (error) => {
           handlePublicReadError('produits affilies', error);
         }));
@@ -896,10 +906,10 @@ const AppContent = () => {
   const cartTotal = cartItems.reduce((sum, item) => sum + (item.price || 0), 0);
   const selectedAffiliateProduct = affiliateProducts.find((product) => product.id === selectedAffiliateProductId);
   const selectedCatalogItem = items.concat(boardItems).find(i => i.id === selectedItemId);
+  const isProductCatalogResolved = resolvedPublicCollections.furniture && resolvedPublicCollections.cutting_boards;
 
   return (
     <div className={`min-h-screen font-sans selection:bg-stone-300 transition-colors duration-700 ${darkMode ? 'bg-[#0A0A0A] text-stone-200' : 'bg-[#FAFAF9] text-stone-900'}`}>
-      <SEO />
       <AnalyticsProvider
         view={view}
         selectedItemId={view === 'shop-detail' ? selectedAffiliateProductId : selectedItemId}
@@ -1240,6 +1250,7 @@ const AppContent = () => {
           persistentGalleryState={persistentGalleryState}
           saveGalleryState={saveGalleryState}
           affiliateProducts={affiliateProducts}
+          isProductCatalogResolved={isProductCatalogResolved}
           contactInfo={contactInfo}
         />
       </main>

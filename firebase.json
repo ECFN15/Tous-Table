@@ -18,6 +18,73 @@
       "**/.env*",
       "**/node_modules/**"
     ],
+    "redirects": [
+      {
+        "source": "/index.html",
+        "destination": "/",
+        "type": 301
+      },
+      {
+        "source": "/atelier",
+        "destination": "/a-propos",
+        "type": 301
+      },
+      {
+        "source": "/meubles-anciens/",
+        "destination": "/meubles-anciens",
+        "type": 301
+      },
+      {
+        "source": "/meubles-anciens/buffets/",
+        "destination": "/meubles-anciens/buffets",
+        "type": 301
+      },
+      {
+        "source": "/meubles-anciens/tables-de-ferme/",
+        "destination": "/meubles-anciens/tables-de-ferme",
+        "type": 301
+      },
+      {
+        "source": "/meubles-anciens/armoires/",
+        "destination": "/meubles-anciens/armoires",
+        "type": 301
+      },
+      {
+        "source": "/meubles-anciens/commodes-chevets/",
+        "destination": "/meubles-anciens/commodes-chevets",
+        "type": 301
+      },
+      {
+        "source": "/meubles-anciens/chaises-bancs/",
+        "destination": "/meubles-anciens/chaises-bancs",
+        "type": 301
+      },
+      {
+        "source": "/meubles-anciens/autres/",
+        "destination": "/meubles-anciens/autres",
+        "type": 301
+      },
+      {
+        "source": "/planches-a-decouper-anciennes/",
+        "destination": "/planches-a-decouper-anciennes",
+        "type": 301
+      },
+      {
+        "source": "/comptoir/",
+        "destination": "/comptoir",
+        "type": 301
+      },
+      {
+        "source": "/a-propos/",
+        "destination": "/a-propos",
+        "type": 301
+      },
+      {
+        "source": "/livraison-meubles-anciens-france/",
+        "destination": "/livraison-meubles-anciens-france",
+        "type": 301
+      }
+    ],
     "rewrites": [
       {
         "source": "/sitemap.xml",

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Lock } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import SEO from '../components/shared/SEO';
 
 function LoginView({ onSuccess }) {
   const { loginWithGoogle, loginWithEmail } = useAuth();
@@ -13,6 +14,13 @@ function LoginView({ onSuccess }) {
     catch { setErrorMsg("Identifiants incorrects."); }
   };
   return (
+    <>
+    <SEO
+      title="Administration"
+      description="Acces restreint a l'administration Tous a Table."
+      url="/admin"
+      robots="noindex,nofollow,noarchive"
+    />
     <div className="max-w-xs mx-auto py-40 text-center space-y-6 animate-in zoom-in-95 text-stone-900">
       <div className="w-16 h-16 bg-stone-900 text-white rounded-2xl flex items-center justify-center mx-auto shadow-xl transition-transform hover:scale-105 hover:rotate-3"><Lock size={32} /></div>
       <div className="space-y-2 text-stone-900">
@@ -50,6 +58,7 @@ function LoginView({ onSuccess }) {
         </form>
       </div>
     </div>
+    </>
   );
 }
 

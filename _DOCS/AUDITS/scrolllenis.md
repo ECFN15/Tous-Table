@@ -6,6 +6,25 @@
 
 ---
 
+## Patch 2026-05-17 - Suppression du preloader parasite Home
+
+Cause : la page `HomeView` gardait encore son ancien overlay preloader local (`preloader-overlay`, texte d'intro type Galerie / Tous a Table) alors que l'application utilise maintenant le preloader global `StartupPreloader`. Sur certains démarrages locaux, cet ancien overlay apparaissait avant le vrai preloader et pouvait laisser un `body.style.overflow = hidden`, supprimant le scroll.
+
+Solution :
+
+- `src/pages/HomeView.jsx` ne rend plus l'ancien preloader local.
+- `HomeView` ne verrouille plus le scroll pendant le démarrage.
+- Le hero Home conserve son animation d'entrée et le montage différé de Three.js.
+- Le seul preloader de démarrage attendu est désormais `src/components/layout/StartupPreloader.jsx`.
+
+Validation :
+
+- `git diff --check -- src/pages/HomeView.jsx _DOCS/AUDITS/scrolllenis.md` : OK, avec warnings CRLF uniquement.
+- `npm run build` : OK après relance hors sandbox à cause du blocage esbuild `spawn EPERM`.
+- Smoke local Vite `http://127.0.0.1:5179` : `.preloader-overlay` / `.preloader-secondary-bg` absents, `tat-startup-preloader` terminé après attente, `body.style.overflow` vide, scroll natif OK (`scrollY` passe de 0 à 900).
+
+---
+
 ## 1. État des lieux (avant)
 
 ### 1.1 Deux instances Lenis qui coexistent

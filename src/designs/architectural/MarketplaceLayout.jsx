@@ -520,7 +520,8 @@ const MarketplaceLayout = ({
     darkMode,
     setHeaderProps,
     initialCategory = 'all',
-    onCategoryChange
+    onCategoryChange,
+    seoUrl = '/meubles-anciens',
 }) => {
     const { activeCollection, setActiveCollection, setFilter, onOpenShop, onCollectionIntent, onShopIntent } = headerProps || {};
     const [activeCategory, setActiveCategory] = useState(initialCategory || 'all');
@@ -842,9 +843,11 @@ const MarketplaceLayout = ({
     const categorySeoContent = useMemo(() => {
         if (activeMaterial || activePriceRange) return null;
         if (activeCollection === 'cutting_boards') return BOARD_SEO_CONTENT;
-        if (activeCategory === 'all') return null;
+        if (activeCategory === 'all') {
+            return seoUrl === '/meubles-anciens' ? CATEGORY_SEO_CONTENT.all : null;
+        }
         return CATEGORY_SEO_CONTENT[activeCategory] || null;
-    }, [activeCategory, activeCollection, activeMaterial, activePriceRange]);
+    }, [activeCategory, activeCollection, activeMaterial, activePriceRange, seoUrl]);
 
     // Préchauffe le cache HTTP pour la catégorie survolée (desktop) → ratios déjà calculables
     // au moment où l'utilisateur clique sur la pill. Limité à 8 images pour ne pas saturer.

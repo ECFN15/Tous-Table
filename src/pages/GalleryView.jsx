@@ -18,9 +18,13 @@ import {
 // SEO component is imported at the top.
 
 const CATEGORY_SEO = {
+    home: {
+        title: 'Meubles Anciens Restaures en Normandie',
+        description: 'Tous a Table Made in Normandie restaure et propose des meubles anciens en bois massif, planches anciennes et pieces uniques selectionnees pres de Caen.',
+    },
     all: {
-        title: 'Marketplace - Meubles Anciens Restaures',
-        description: 'Marketplace Tous a Table : meubles anciens restaures en Normandie, tables de ferme, buffets, armoires, commodes, chaises et bancs. Livraison France entiere.',
+        title: 'Meubles Anciens a Vendre',
+        description: 'Collection de meubles anciens restaures a vendre : tables de ferme, buffets, armoires, commodes, chaises et bancs prepares en Normandie.',
     },
     buffet: {
         title: 'Buffets Anciens Restaures',
@@ -167,7 +171,9 @@ const GalleryView = ({
     const seoUrl = typeof window !== 'undefined' && window.location.pathname === '/'
         ? '/'
         : activeCollection === 'cutting_boards' ? '/planches-a-decouper-anciennes' : getFurnitureCategoryPath(activeCategory);
-    const seoCopy = activeCollection === 'cutting_boards'
+    const seoCopy = seoUrl === '/'
+        ? CATEGORY_SEO.home
+        : activeCollection === 'cutting_boards'
         ? BOARD_SEO
         : (CATEGORY_SEO[activeCategory] || CATEGORY_SEO.all);
     const breadcrumbName = activeCollection === 'cutting_boards'
@@ -290,6 +296,7 @@ const GalleryView = ({
                     viewMode
                 }), [activeCollection, activeCategory, filter, viewMode, saveGalleryState, onOpenShop, handleCollectionIntent, handleShopIntent])}
                 initialCategory={activeCategory}
+                seoUrl={seoUrl}
                 onCategoryChange={(category) => {
                     setActiveCategory(category);
                     if (saveGalleryState) saveGalleryState({ activeCollection: 'furniture', activeCategory: category });

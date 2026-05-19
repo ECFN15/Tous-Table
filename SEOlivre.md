@@ -2223,3 +2223,235 @@ Conclusion Search Console :
   - pages decouvertes affichees : 69 ;
   - sitemap renvoye manuellement via `sitemap.xml`.
 - Note : l audit public local voit 70 URLs apres ajout de `Malle ancienne 1920`; l ecart avec les 69 URLs GSC peut venir du delai de relecture Google.
+
+---
+
+## Chapitre 29 - Correction canonicals concurrents et doublons Search Console
+
+Date : 18 mai 2026
+Statut : implemente localement, aucun deploy
+
+Contexte Search Console :
+
+- Captures utilisateur du 18 mai 2026 :
+  - pages indexees : 3 ;
+  - exemples indexees : `/comptoir`, `/a-propos`, `/` ;
+  - pages non indexees : 77 ;
+  - motifs visibles :
+    - `Page en double sans URL canonique selectionnee par l'utilisateur` : 3 ;
+    - `Detectee, actuellement non indexee` : 61 ;
+    - `Autre page avec balise canonique correcte` : 13.
+- Audit public lance localement :
+  - `npm run audit:public-seo` OK ;
+  - sitemap public HTTP 200 ;
+  - `loc_count = 91` ;
+  - `query_url_count = 0` ;
+  - `product_path_url_count = 79` ;
+  - routes SEO propres en HTTP 200 ;
+  - `shareMeta` retourne les canonicals attendus.
+
+Diagnostic :
+
+- Le sitemap public est sain et contient les routes propres.
+- Les 61 pages `Detectee, actuellement non indexee` correspondent surtout a des URLs connues de Google mais non encore explorees/indexees ; ce motif n'indique pas a lui seul une erreur bloquante de code.
+- Un risque reel a ete trouve dans le code :
+  - `src/App.jsx` rendait un `<SEO />` global par defaut ;
+  - les pages publiques rendaient ensuite leur propre `<SEO url="...">` ;
+  - `react-helmet-async` peut conserver plusieurs `<link rel="canonical">` si les `href` sont differents ;
+  - cela pouvait exposer une canonical racine et une canonical page en meme temps, signal coherent avec les doublons Search Console.
+- Des variantes d URL propres mais doublons restaient aussi possibles :
+  - `/index.html` ;
+  - `/atelier` ;
+  - trailing slash sur les routes SEO publiques.
+
+Fichiers touches :
+
+- `src/App.jsx`
+- `firebase.json`
+- `scripts/verify-seo-roadmap.mjs`
+- `SEOlivre.md`
+
+Changements :
+
+- Suppression du `<SEO />` global dans `src/App.jsx`.
+  - Les pages publiques gardent leur `<SEO>` specifique : galerie, categories, planches, Comptoir, A propos, livraison, fiches produit.
+  - Objectif : une seule canonical claire par page rendue.
+- Ajout de redirections Hosting 301 explicites :
+  - `/index.html` vers `/` ;
+  - `/atelier` vers `/a-propos` ;
+  - trailing slash des routes SEO vers leur version sans slash.
+- Renforcement du gate `verify:seo-roadmap` :
+  - verifie que `App.jsx` ne remet pas un `<SEO />` global concurrent ;
+  - verifie la presence des redirections canonicales principales dans `firebase.json`.
+
+Impact SEO attendu :
+
+- Reduction du risque `Page en double sans URL canonique selectionnee par l'utilisateur`.
+- Nettoyage des variantes canonicals autour des routes publiques.
+- Pas d impact direct sur les 61 pages `Detectee, actuellement non indexee` : pour celles-ci, la suite est surtout Search Console, demandes d indexation et delai Google.
+
+Risque UI :
+
+- Nul attendu :
+  - changement invisible dans le head HTML rendu ;
+  - redirections uniquement sur variantes d URL ;
+  - aucune modification de grille, filtres, cartes, donnees ou Firestore.
+
+Tests :
+
+- `npm run audit:public-seo` avant correction locale : OK, 32 checks passes, prod actuelle saine.
+- `npm run verify:seo-roadmap` apres correction : OK, 18 checks passes.
+- Validation JSON `firebase.json` : OK.
+- `npm run build` :
+  - premier essai bloque par sandbox Windows `spawn EPERM` sur esbuild ;
+  - relance hors sandbox approuvee : OK ;
+  - warnings Vite existants : gros chunks et warning CSS Tailwind `text-[length:var(--...)]`.
+
+Reste a faire :
+
+- Ne pas deployer sans accord explicite.
+- Apres deploy Hosting, relancer :
+  - `npm run audit:public-seo` ;
+  - inspections Search Console sur `/meubles-anciens`, categories, `/planches-a-decouper-anciennes`, `/livraison-meubles-anciens-france` et quelques fiches produit.
+- Dans Search Console :
+  - cliquer `Valider la correction` pour les motifs de doublon apres deploy ;
+  - demander l indexation des pages fortes non encore explorees ;
+  - attendre plusieurs jours/semaines pour les fiches produit, surtout celles avec contenu proche ou faible demande.
+
+---
+
+## Chapitre 30 - Passe SEO globale base stable Google
+
+Date : 18 mai 2026
+Statut : implemente localement, aucun deploy
+
+Objectif :
+
+- Refaire une passe large sur toutes les familles de pages publiques et privees apres les alertes Search Console.
+- Aligner les signaux techniques sur les recommandations Google Search Central :
+  - canonicalisation : https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls
+  - sitemaps : https://developers.google.com/search/docs/crawling-indexing/sitemaps/overview
+  - robots meta : https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag
+  - JavaScript SEO : https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics
+  - donnees structurees Product : https://developers.google.com/search/docs/appearance/structured-data/product
+  - donnees structurees BreadcrumbList : https://developers.google.com/search/docs/appearance/structured-data/breadcrumb
+
+Constats Google utilises :
+
+- Google recommande d empiler des signaux coherents pour les canonicals : redirections, `rel="canonical"` et inclusion sitemap.
+- Google deconseille d envoyer des canonicals contradictoires entre sitemap et balise canonical.
+- Pour les SPA, Google doit pouvoir decouvrir des URLs propres via des liens `href` et l History API, pas via des fragments `#`.
+- Le sitemap aide Google a decouvrir les URLs importantes mais ne garantit pas leur indexation.
+- Les pages privees ou transactionnelles doivent exposer un `robots` clair si elles ne doivent pas entrer dans l index.
+- Les donnees structurees produit et fil d Ariane doivent rester coherentes avec le contenu visible.
+
+Audit effectue :
+
+- Routes publiques SEO :
+  - `/`
+  - `/meubles-anciens`
+  - categories mobilier
+  - `/planches-a-decouper-anciennes`
+  - `/comptoir`
+  - `/a-propos`
+  - `/livraison-meubles-anciens-france`
+  - fiches produits `/produit/...`
+- Routes privees/transactionnelles :
+  - `/checkout`
+  - `/mes-commandes`
+  - `/admin`
+- Routes Comptoir detail :
+  - pages utiles pour l utilisateur, mais trop fines/affiliees pour etre poussees comme pages indexables autonomes.
+
+Changements :
+
+- `src/components/shared/SEO.jsx`
+  - Ajout d une prop `robots`.
+  - Valeur publique par defaut : `index,follow,max-image-preview:large`.
+  - Chaque page peut maintenant declarer proprement son intention d indexation.
+- `src/pages/CheckoutView.jsx`
+  - Ajout `SEO` en `noindex,nofollow,noarchive`.
+  - Couvre le rendu normal et le rendu "stock indisponible".
+- `src/pages/MyOrdersView.jsx`
+  - Ajout `SEO` en `noindex,nofollow,noarchive`.
+  - Couvre le rendu chargement et le rendu principal.
+- `src/pages/LoginView.jsx` et `src/Router.jsx`
+  - Ajout `SEO` admin en `noindex,nofollow,noarchive`.
+- `src/pages/ShopProductDetail.jsx`
+  - Les fiches detail Comptoir restent visibles pour l experience utilisateur mais passent en `noindex,follow,max-image-preview:large`.
+  - Le cas produit introuvable reste en `noindex,follow,noarchive`.
+- `src/designs/architectural/ArchitecturalProductDetail.jsx`
+  - Le cas fiche produit introuvable expose un `noindex,follow,noarchive` au lieu d une page sans consigne robots.
+- `src/App.jsx`
+  - Les deep links produit initialisent maintenant `selectedItemId` depuis la route.
+  - Objectif : eviter qu une URL produit chargee directement affiche un etat vide avant que la page detail puisse emettre ses metas.
+- `src/Router.jsx`, `src/designs/architectural/ArchitecturalProductDetail.jsx`
+  - Ajout d un etat `isCatalogResolving` pour les deep links produit.
+  - Tant que le catalogue charge, la fiche transitoire ne renvoie pas `noindex`.
+  - `noindex,follow,noarchive` est reserve au vrai cas produit introuvable apres resolution du catalogue.
+- `src/App.jsx`
+  - Resolution explicite des deux collections catalogue (`furniture` et `cutting_boards`) pour les deep links produit.
+  - Si un produit n est pas encore trouve, le fallback charge meubles + planches avant de conclure qu il est introuvable.
+  - Objectif : eviter de marquer par erreur une planche ancienne en `noindex` si seul le mobilier a deja repondu.
+- `src/data/categorySeoContent.js`, `src/designs/architectural/MarketplaceLayout.jsx`, `src/pages/GalleryView.jsx`
+  - Ajout d un bloc editorial distinct pour `/meubles-anciens`.
+  - La racine `/` et la collection `/meubles-anciens` ne s appuient plus exactement sur le meme bloc SEO visible.
+  - Separation des metas entre `/` et `/meubles-anciens` :
+    - `/` : marque/atelier et promesse generale ;
+    - `/meubles-anciens` : collection de meubles anciens a vendre.
+- `scripts/verify-seo-roadmap.mjs`
+  - Gate renforce pour couvrir :
+    - balise robots dans le composant SEO ;
+    - pages privees en noindex ;
+    - fiches detail Comptoir en noindex ;
+    - intro visible dediee a `/meubles-anciens` ;
+    - metas distinctes entre `/` et `/meubles-anciens` ;
+    - absence de `noindex` pendant le chargement d un deep link produit ;
+    - nettoyage `dist/` avant les builds pour eviter de deployer des chunks perimes.
+- `scripts/clean-dist.mjs`, `package.json`
+  - Ajout d un nettoyage borne au dossier `dist` du workspace avant `npm run build` et `npm run build:prod`.
+  - Contexte : le preflight a detecte d anciens chunks encore presents dans `dist/assets`, contenant une ancienne config sandbox/test.
+  - Objectif : empecher Firebase Hosting de deployer des assets obsoletes si le dossier de build n est pas propre.
+
+Positionnement par type de page :
+
+- Indexables fortes :
+  - `/`
+  - `/meubles-anciens`
+  - categories mobilier
+  - `/planches-a-decouper-anciennes`
+  - `/comptoir`
+  - `/a-propos`
+  - `/livraison-meubles-anciens-france`
+  - fiches meubles/planches vendues par Tous a Table si elles ont contenu, image, offre et canonical coherents.
+- Non indexables volontaires :
+  - checkout ;
+  - commandes client ;
+  - admin/login ;
+  - fiches Comptoir affiliees detaillees ;
+  - etats produit introuvable.
+
+Tests :
+
+- `npm run verify:seo-roadmap` : OK, 21 checks.
+- `node --check functions/src/seo/seoTools.js` : OK.
+- Validation JSON `firebase.json` : OK.
+- `npm run build` :
+  - OK apres relance hors sandbox Windows approuvee ;
+  - warnings connus Vite/Tailwind uniquement.
+- `git diff --check` :
+  - OK ;
+  - warnings CRLF Windows uniquement.
+
+Reste a faire apres accord deploy :
+
+- Deployer Hosting uniquement apres validation explicite.
+- Relancer `npm run audit:public-seo` contre la prod deployee.
+- Dans Search Console :
+  - inspecter en live `/meubles-anciens`, 2 categories, `/planches-a-decouper-anciennes`, `/livraison-meubles-anciens-france` et 3 fiches produit ;
+  - demander l indexation des pages fortes ;
+  - lancer `Valider la correction` sur les motifs de doublon apres que la prod serve les nouveaux head/redirections.
+- Surveiller pendant plusieurs jours :
+  - baisse des doublons canonical ;
+  - progression des pages explorees ;
+  - maintien des 3 pages deja indexees.

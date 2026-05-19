@@ -395,11 +395,6 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
     return () => clearTimeout(warmupTimer);
   }, [homepageImages, isLowPowerMobile]);
 
-  // --- PRELOADER STATE ---
-  const [isLoading, setIsLoading] = useState(() => {
-    return typeof window !== 'undefined' ? !window.hasShownPreloader : true;
-  });
-
   // --- GSAP ORCHESTRATION (SIMPLIFIED & ROBUST) ---
 
   // Force hidden state BEFORE any painting happens to avoid "flash"
@@ -442,34 +437,33 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
       }
     };
 
-    // If preloader already shown, just animate hero immediately
-    if (window.hasShownPreloader) {
-      document.body.style.overflow = '';
-      setIsLoading(false);
+    document.body.style.overflow = '';
+    window._pauseThree = false;
 
-      // Reset background state for instant landing
-      gsap.set(document.body, {
-        backgroundColor: darkMode ? '#1a1a1a' : '#FAF9F6',
-        color: darkMode ? '#FAF9F6' : '#1a1a1a'
-      });
-      gsap.set('.three-container', { opacity: 1, y: 0 });
-      window._pauseThree = false;
+    gsap.set(document.body, {
+      backgroundColor: darkMode ? '#1a1a1a' : '#FAF9F6',
+      color: darkMode ? '#FAF9F6' : '#1a1a1a'
+    });
+    gsap.set('.three-container', { opacity: 1, y: 0 });
 
-      // START HERO ANIMATION (Fast version)
+    const ctx = gsap.context(() => {
       const tl = gsap.timeline({
-        onComplete: requestThreeMount,
+        onComplete: () => {
+          requestThreeMount();
+          ScrollTrigger.refresh();
+        },
       });
-      // Ensure visibility is restored before animating
-      tl.set('.hero-section .reveal-inner', { opacity: 1 });
-      tl.addLabel("heroTitle");
-      tl.to('.hero-section .reveal-inner', {
-        y: "0%",
-        rotate: 0,
-        duration: 1.2,
-        ease: "expo.out",
-        stagger: 0.1,
-        force3D: true
-      }, "heroTitle")
+
+      tl.set('.hero-section .reveal-inner', { opacity: 1 })
+        .addLabel("heroTitle")
+        .to('.hero-section .reveal-inner', {
+          y: "0%",
+          rotate: 0,
+          duration: 1.2,
+          ease: "expo.out",
+          stagger: 0.1,
+          force3D: true
+        }, "heroTitle")
         .add(requestThreeMount, "heroTitle+=0.35")
         .to('.hero-footer-element', {
           opacity: 1,
@@ -478,102 +472,7 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
           stagger: 0.1,
           ease: "power3.out"
         }, "heroTitle+=0.5");
-
-      return () => {
-        tl.kill();
-        if (threeIdleId) window.cancelIdleCallback?.(threeIdleId);
-        if (threeTimerId) window.clearTimeout(threeTimerId);
-      };
-    }
-
-    // Lock scroll during preloader
-    document.body.style.overflow = 'hidden';
-
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline({
-        onComplete: () => {
-          setIsLoading(false);
-          window.hasShownPreloader = true; // Mark as shown
-          document.body.style.overflow = '';
-          // Ensure ScrollTrigger is refreshed after layout settles
-          ScrollTrigger.refresh();
-        }
-      });
-
-      // 0. Initial Setup
-      gsap.set('.preloader-content', { opacity: 0 }); // Redundant with class but safe
-      gsap.set('.preloader-char', { y: 40, opacity: 0, filter: "blur(10px)" });
-      gsap.set('.preloader-icon', { scale: 0.8, opacity: 0, filter: "blur(5px)" });
-      // Ensure hero is hidden but ready (opacity 1 will be set in timeline if needed, or we rely on y)
-      // Actually we set opacity 0 in useLayoutEffect, so we need to set it back to 1 just before reveal
-
-      // 1. Intro Sequence - Plus Rapide (Snappy)
-      tl.to('.preloader-content', { opacity: 1, duration: 0.1 }) // Instant container visibility so children can act
-        .to('.preloader-icon', {
-          scale: 1,
-          opacity: 1,
-          filter: "blur(0px)",
-          duration: 1.0,
-          ease: "expo.out"
-        })
-        .to('.preloader-char', {
-          y: 0,
-          opacity: 1,
-          filter: "blur(0px)",
-          duration: 1.0,
-          stagger: 0.06,
-          ease: "expo.out"
-        }, "-=0.5")
-        .to('.preloader-footer-element', {
-          opacity: 1,
-          duration: 0.8,
-          ease: "power2.out"
-        }, "-=0.8") // Start slightly before chars finish
-
-        // 2. Curtain Exit - Rapide et Tranchant
-        .addLabel("exit", "+=0.0") // Départ immédiat (Snappy)
-        .to('.preloader-secondary-bg', {
-          yPercent: -100,
-          duration: 0.8,
-          ease: "expo.inOut"
-        }, "exit")
-        .to('.preloader-overlay', {
-          yPercent: -100,
-          duration: 0.8,
-          ease: "expo.inOut"
-        }, "exit+=0.05")
-
-        // 3. Hero Content Reveal - SYNCHRO RAPIDE
-        // We set opacity back to 1 right before animating y
-        .set('.hero-section .reveal-inner', { opacity: 1 }, "exit+=0.2")
-        .to('.hero-section .reveal-inner', {
-          y: "0%",
-          rotate: 0,
-          duration: 1.2,
-          ease: "expo.out",
-          stagger: 0.1,
-          force3D: true
-        }, "exit+=0.3") // Start almost immediately as curtain lifts
-        .add(requestThreeMount, "exit+=0.65")
-
-        .to('.hero-footer-element', {
-          opacity: 1,
-          y: 0,
-          duration: 1.0,
-          stagger: 0.1,
-          ease: "power3.out"
-        }, "exit+=0.6")
-
-        // 4. Finalisation
-        .add(() => {
-          setIsLoading(false);
-          requestThreeMount();
-          document.body.style.overflow = '';
-          setTimeout(() => {
-            ScrollTrigger.refresh(true);
-          }, 400);
-        });
-    });
+    }, componentRef);
 
     return () => {
       ctx.revert();
@@ -1077,42 +976,6 @@ const App = ({ onEnterMarketplace, onStartMarketplaceTransition, darkMode }) => 
         url="/a-propos"
         schema={aboutSchema}
       />
-
-
-
-
-
-      {/* --- PREMIUM PRELOADER (LUMOSINE STYLE) --- */}
-      {
-        isLoading && (
-          <>
-            {/* Secondary background for depth */}
-            <div className="preloader-secondary-bg fixed inset-0 z-[9998] bg-[#9C8268]/20 pointer-events-none"></div>
-
-            <div className="preloader-overlay fixed inset-0 z-[9999] bg-[#1a1a1a] flex flex-col items-center justify-center text-[#FAF9F6]">
-              {/* Content Container */}
-              <div className="preloader-content flex flex-col items-center gap-8 opacity-0">
-                <div className="preloader-icon opacity-0">
-                  <Hammer size={56} strokeWidth={1} className="text-[#9C8268] drop-shadow-[0_0_15px_rgba(156,130,104,0.3)]" />
-                </div>
-                <div className="overflow-hidden flex gap-[0.2em] px-4">
-                  {"TOUS À TABLE".split("").map((char, i) => (
-                    <span
-                      key={i}
-                      className="preloader-char font-serif text-4xl md:text-6xl italic font-light tracking-[0.2em] inline-block will-change-transform opacity-0"
-                    >
-                      {char === " " ? "\u00A0" : char}
-                    </span>
-                  ))}
-                </div>
-                <div className="mt-8 flex items-center gap-4 opacity-0 preloader-footer-element">
-
-                </div>
-              </div>
-            </div>
-          </>
-        )
-      }
 
       <div id="main-cursor" ref={cursorRef} className="hidden lg:block"></div>
       <div className="three-container fixed inset-0 pointer-events-none z-0">

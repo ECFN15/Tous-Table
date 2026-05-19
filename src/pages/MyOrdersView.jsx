@@ -4,6 +4,7 @@ import { db } from '../firebase/config';
 import { functions } from '../firebase/config';
 import { httpsCallable } from 'firebase/functions';
 import { Package, Truck, XCircle, MessageCircle, ArrowLeft, CheckCircle, Download, CreditCard, Copy, Check, Loader2, Star, AlertTriangle } from 'lucide-react';
+import SEO from '../components/shared/SEO';
 import { generateInvoice } from '../utils/generateInvoice';
 import { buildWhatsAppUrl, getWhatsAppPhoneFromContactInfo, normalizeWhatsAppPhone } from '../utils/whatsapp';
 
@@ -120,13 +121,27 @@ const MyOrdersView = ({ user, onBack, darkMode, contactInfo }) => {
     };
 
     if (loading) return (
+        <>
+        <SEO
+            title="Mes commandes"
+            description="Espace client prive Tous a Table."
+            url="/mes-commandes"
+            robots="noindex,nofollow,noarchive"
+        />
         <div className={`min-h-screen flex items-center justify-center bg-transparent`}>
             <div className="w-10 h-10 border-[3px] border-stone-200 border-t-stone-900 rounded-full animate-spin"></div>
         </div>
+        </>
     );
 
     return (
         <div className={`min-h-screen animate-in fade-in transition-colors duration-700 bg-transparent`}>
+            <SEO
+                title="Mes commandes"
+                description="Espace client prive Tous a Table."
+                url="/mes-commandes"
+                robots="noindex,nofollow,noarchive"
+            />
             <div className="max-w-6xl mx-auto px-6 pt-10 pb-20 md:py-32 space-y-12">
 
                 {/* HEAD */}

@@ -1,4 +1,13 @@
 export const CATEGORY_SEO_CONTENT = {
+    all: {
+        eyebrow: 'Collection mobilier',
+        title: 'Meubles anciens restaures en Normandie',
+        body: 'Cette galerie rassemble les meubles anciens actuellement disponibles : tables de ferme, buffets, armoires, commodes, assises et pieces singulieres. Chaque meuble est choisi pour son bois, ses proportions et son usage possible dans une maison d aujourd hui, puis prepare dans l atelier Tous a Table pres de Caen.',
+        links: [
+            { label: 'Livraison meubles anciens', href: '/livraison-meubles-anciens-france' },
+            { label: 'A propos de l atelier', href: '/a-propos' },
+        ],
+    },
     buffet: {
         eyebrow: 'Rangement ancien',
         title: 'Buffets anciens restaures pour maisons de caractere',

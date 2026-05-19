@@ -2,6 +2,7 @@
 import React, { Suspense } from 'react';
 import HomeView from './pages/HomeView';
 import OrderSuccessModal from './components/orders/OrderSuccessModal';
+import SEO from './components/shared/SEO';
 import { motion, AnimatePresence } from 'framer-motion';
 import { scrollToTop } from './utils/smoothScroll';
 
@@ -81,7 +82,8 @@ const AppRouter = ({
     persistentGalleryState,
     saveGalleryState,
     affiliateProducts,
-    contactInfo
+    contactInfo,
+    isProductCatalogResolved = false
 }) => {
     const { user, isAdmin, logout } = useAuth();
     const [isMoreMenuOpen, setIsMoreMenuOpen] = React.useState(false);
@@ -238,6 +240,8 @@ const AppRouter = ({
                     <div className="contents">
                         <ProductDetail
                             item={[...items, ...boardItems].find(i => i.id === selectedItemId)}
+                            itemId={selectedItemId}
+                            isCatalogResolving={!isProductCatalogResolved}
                             user={user}
                             onBack={() => { 
                                 // Restore sub-view before returning
@@ -326,6 +330,12 @@ const AppRouter = ({
 
             {view === 'admin' && isAdmin && (
                 <div className={`max-w-6xl mx-auto px-4 py-24 md:py-32 space-y-12 md:space-y-16 animate-in fade-in ${darkMode ? 'text-white' : 'text-stone-900'}`}>
+                    <SEO
+                        title="Administration"
+                        description="Administration privee Tous a Table."
+                        url="/admin"
+                        robots="noindex,nofollow,noarchive"
+                    />
                     <Suspense fallback={null}>
                         <AdminIPTracker />
                     </Suspense>

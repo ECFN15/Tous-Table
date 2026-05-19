@@ -79,7 +79,7 @@ const getStructuredDataPrice = (item) => {
     return Number.isFinite(price) && price > 0 ? price : null;
 };
 
-const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCart, onShowLogin, darkMode, setHeaderProps, cartItems = [], affiliateProducts = [], onOpenProductDetail }) => {
+const ArchitecturalProductDetail = ({ item, itemId, isCatalogResolving = false, user, onBack, onAddToCart, onOpenCart, onShowLogin, darkMode, setHeaderProps, cartItems = [], affiliateProducts = [], onOpenProductDetail }) => {
     const { palette } = useLiveTheme();
     const [activeImg, setActiveImg] = useState(0);
     const [imageSizes, setImageSizes] = useState({});
@@ -439,11 +439,38 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
     };
 
 
+    if (!item && isCatalogResolving) {
+        const requestedPath = typeof window !== 'undefined'
+            ? window.location.pathname
+            : (itemId ? `/produit/${itemId}` : '/meubles-anciens');
 
-
-
+        return (
+            <>
+            <SEO
+                title="Meuble ancien"
+                description="Chargement de la fiche meuble ancien Tous a Table."
+                url={requestedPath}
+            />
+            <div className="min-h-[60vh] flex flex-col items-center justify-center gap-6 pt-32 text-center animate-in fade-in duration-500">
+                <div className="p-6 rounded-full bg-stone-100 mb-4 animate-pulse">
+                    <Box size={40} className="text-stone-400" />
+                </div>
+                <div className="space-y-2">
+                    <h2 className="text-xl md:text-2xl font-black uppercase tracking-widest">Chargement</h2>
+                </div>
+            </div>
+            </>
+        );
+    }
 
     if (!item) return (
+        <>
+        <SEO
+            title="Produit introuvable"
+            description="Cette fiche produit n'est plus disponible."
+            url="/meubles-anciens"
+            robots="noindex,follow,noarchive"
+        />
         <div className="min-h-[60vh] flex flex-col items-center justify-center gap-6 pt-32 text-center animate-in fade-in duration-500">
             <div className="p-6 rounded-full bg-stone-100 mb-4 animate-pulse">
                 <Box size={40} className="text-stone-400" />
@@ -453,6 +480,7 @@ const ArchitecturalProductDetail = ({ item, user, onBack, onAddToCart, onOpenCar
             </div>
             <button onClick={onBack} className="px-8 py-3 bg-stone-900 text-white uppercase tracking-widest text-xs font-bold">Retour</button>
         </div>
+        </>
     );
 
     // --- RENDER ARCHITECTURAL ---

@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "build:prod": "vite build --mode prod",
+    "build": "node scripts/clean-dist.mjs && vite build",
+    "build:prod": "node scripts/clean-dist.mjs && vite build --mode prod",
     "audit:public-seo": "node scripts/audit-public-seo.mjs",
     "audit:functions-env": "node scripts/audit-functions-env.mjs",
     "preflight:prod": "node scripts/preflight-prod.mjs",
