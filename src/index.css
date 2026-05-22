@@ -535,8 +535,8 @@ html.tat-low-power-mobile .tat-startup-preloader-char {
 
 @media (max-width: 1023px) {
   .tat-product-media-row {
-    height: clamp(390px, 48dvh, 470px);
-    min-height: clamp(390px, 48dvh, 470px);
+    height: clamp(390px, 48svh, 470px);
+    min-height: clamp(390px, 48svh, 470px);
   }
 
   .tat-product-gallery-stage {
@@ -550,26 +550,34 @@ html.tat-low-power-mobile .tat-startup-preloader-char {
   }
 
   .tat-product-image-frame--landscape {
-    width: min(78vw, 330px, calc(min(36dvh, 330px) * var(--tat-active-image-ratio, 1.333)));
+    width: min(78vw, 330px, calc(min(36svh, 330px) * var(--tat-active-image-ratio, 1.333)));
   }
 
   .tat-product-image-frame--portrait {
-    width: min(66vw, 300px, calc(min(43dvh, 390px) * var(--tat-active-image-ratio, 0.75)));
+    width: min(66vw, 300px, calc(min(43svh, 390px) * var(--tat-active-image-ratio, 0.75)));
+  }
+
+  .tat-product-image-frame--ultra-portrait {
+    width: min(74vw, 340px, calc(min(46svh, 430px) * var(--tat-active-image-ratio, 0.68)));
   }
 }
 
 @media (max-width: 380px) {
   .tat-product-media-row {
-    height: clamp(360px, 47dvh, 430px);
-    min-height: clamp(360px, 47dvh, 430px);
+    height: clamp(360px, 47svh, 430px);
+    min-height: clamp(360px, 47svh, 430px);
   }
 
   .tat-product-image-frame--landscape {
-    width: min(76vw, 300px, calc(min(34dvh, 300px) * var(--tat-active-image-ratio, 1.333)));
+    width: min(76vw, 300px, calc(min(34svh, 300px) * var(--tat-active-image-ratio, 1.333)));
   }
 
   .tat-product-image-frame--portrait {
-    width: min(64vw, 270px, calc(min(41dvh, 360px) * var(--tat-active-image-ratio, 0.75)));
+    width: min(64vw, 270px, calc(min(41svh, 360px) * var(--tat-active-image-ratio, 0.75)));
+  }
+
+  .tat-product-image-frame--ultra-portrait {
+    width: min(72vw, 290px, calc(min(44svh, 390px) * var(--tat-active-image-ratio, 0.68)));
   }
 }
 

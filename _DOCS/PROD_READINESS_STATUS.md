@@ -348,6 +348,22 @@ Changement local du 2026-05-16 - rappel admin commandes non expediees :
 - Verification locale : `npm run build` OK.
 - Non fait : aucun deploy, aucune ecriture Firestore prod.
 
+Deploiement Hosting prod du 2026-05-20 - stabilisation image fiche produit mobile Android :
+
+- Accord utilisateur explicite recu pour deployer en prod avec `.agent/workflows/production_workflow.md`.
+- Workflow prod relu : `.agent/workflows/production_workflow.md`.
+- Runbook prod relu : `_DOCS/DEPLOIEMENT_PROD_RUNBOOK.md`.
+- Correctif deploye : remplacement des contraintes mobiles `dvh` par `svh` pour l'image centrale des fiches produit, afin d'eviter le grossissement au premier scroll sur Chrome Android.
+- `firebase use` initial : `default (tatmadeinnormandie)`.
+- `.firebaserc` verifie : alias `prod` pointe vers `tousatable-client`.
+- `firebase use prod` : alias prod actif sur `tousatable-client`.
+- `npm run preflight:prod` : OK, aucune valeur sensible affichee.
+- `firebase deploy --only hosting --project tousatable-client` : OK, release Hosting publiee.
+- `firebase use default` : retour sur `tatmadeinnormandie`.
+- `npm run audit:public-seo` : OK, 32 checks passes.
+- Smokes publics : `/`, `/meubles-anciens`, `/planches-a-decouper-anciennes`, `/comptoir`, `/admin`, `https://tousatable-client.web.app/` et `publicCatalog` HTTP 200.
+- Aucune ecriture Firestore prod, aucune modification rules, aucun deploiement Functions.
+
 ## Reste a suivre
 
 1. Decider le traitement des legacy env vars Functions: nettoyage + rotation recommandes.

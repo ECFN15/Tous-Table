@@ -113,3 +113,27 @@ Revamper uniquement le premier ecran desktop de la fiche produit afin de :
 - Calibrage exact sur le produit long vu en capture, en 1920x1080.
 - Rendu des images tres verticales et tres horizontales avec les vrais assets du catalogue.
 - Dimensions finales des emplacements Google Ads avant integration d'un script publicitaire reel.
+
+## Ajustement portraits tres verticaux du 19 mai 2026
+
+- Probleme observe : les images 9:16 et les formats encore plus etroits etaient affichees trop serrees en largeur dans la fiche produit, surtout avec la hauteur bornee du hero desktop et du bloc mobile.
+- Cause : le cadre image utilisait le ratio naturel exact, donc plus l'image etait verticale, plus la largeur calculee diminuait.
+- Correction : ajout d'un mode `ultra-portrait` pour les ratios inferieurs a `0.68`, avec un ratio de cadre minimum `0.68`.
+- Effet attendu : les formats 3:4 et 16:9 restent inchanges, tandis que les images tres verticales gardent une presence plus large sans deformation, via recadrage `object-cover`.
+- Verification relancee : `git diff --check -- src/designs/architectural/ArchitecturalProductDetail.jsx src/index.css _DOCS/AUDITS/product_detail_hero_ads.md` OK et `npm run build` OK, avec warnings CSS/chunks Vite existants non bloquants.
+
+## Stabilisation du premier ratio mobile du 19 mai 2026
+
+- Probleme observe : sur mobile, l'image pouvait apparaitre un instant dans un ratio de fallback avant de basculer vers son ratio final.
+- Cause : le composant affichait le cadre avant que `imageSizes[activeImageSrc]` soit disponible.
+- Correction : le cadre visible attend maintenant que les dimensions naturelles soient connues ; si le preload a deja mesure l'image active, la source affichee est synchronisee directement.
+- Effet attendu : disparition du flash de format intermediaire, avec apparition directe du cadre final.
+- Verification relancee : `git diff --check -- src/designs/architectural/ArchitecturalProductDetail.jsx src/index.css _DOCS/AUDITS/product_detail_hero_ads.md` OK et `npm run build` OK, avec warnings CSS/chunks Vite existants non bloquants.
+
+## Stabilisation viewport Android mobile du 20 mai 2026
+
+- Probleme rapporte : sur Chrome Android, l'image centrale de fiche produit pouvait grandir legerement d'un coup au premier scroll.
+- Cause probable : les contraintes mobiles du bloc image utilisaient `dvh`; Chrome Android met cette unite a jour quand la barre d'adresse se masque, ce qui recalculait la hauteur du bloc et la largeur du cadre image.
+- Correction : remplacement des `dvh` mobiles propres a `.tat-product-media-row` et aux cadres `.tat-product-image-frame` par `svh`, afin de conserver une taille stable pendant le scroll.
+- Effet attendu : plus de grossissement au scroll sur Android, sans modifier le comportement desktop ni la logique de ratio naturel des images.
+- Verification relancee : `git diff --check -- src/index.css _DOCS/AUDITS/product_detail_hero_ads.md` OK et `npm run build` OK, avec warnings CSS/chunks Vite existants non bloquants.

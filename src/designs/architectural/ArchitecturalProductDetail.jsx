@@ -167,14 +167,19 @@ const ArchitecturalProductDetail = ({ item, itemId, isCatalogResolving = false, 
     };
     const activeImageSize = imageSizes[activeImageSrc];
     const displayedImageSize = imageSizes[displayedImageSrc];
+    const renderedImageSrc = displayedImageSrc || (activeImageSize ? activeImageSrc : "");
     const frameImageSize = isImageDecoding
         ? (displayedImageSize || activeImageSize)
         : (activeImageSize || displayedImageSize);
+    const isImageFrameReady = Boolean(frameImageSize);
+    const activeImageNaturalRatio = frameImageSize ? frameImageSize.width / frameImageSize.height : 4 / 3;
     const isActivePortrait = frameImageSize ? frameImageSize.height > frameImageSize.width * 1.08 : false;
-    const activeImageAspectRatio = frameImageSize ? `${frameImageSize.width} / ${frameImageSize.height}` : (isActivePortrait ? "4 / 5" : "4 / 3");
-    const activeImageRatio = frameImageSize ? frameImageSize.width / frameImageSize.height : (isActivePortrait ? 3 / 4 : 4 / 3);
+    const isActiveUltraPortrait = isActivePortrait && activeImageNaturalRatio < 0.68;
+    const activeImageFrameRatio = isActiveUltraPortrait ? 0.68 : activeImageNaturalRatio;
+    const activeImageAspectRatio = frameImageSize ? `${activeImageFrameRatio} / 1` : (isActivePortrait ? "4 / 5" : "4 / 3");
+    const activeImageRatio = frameImageSize ? activeImageFrameRatio : (isActivePortrait ? 3 / 4 : 4 / 3);
     const imageFrameClassName = isActivePortrait
-        ? "tat-product-image-frame tat-product-image-frame--portrait relative w-full mx-auto rounded-[0.875rem] md:rounded-[1.125rem] overflow-hidden shadow-2xl shadow-black/20 group bg-transparent aspect-[3/4] sm:max-w-[560px] md:max-w-[680px] lg:h-full lg:max-h-[min(590px,calc(100vh-158px))] lg:w-auto lg:max-w-full lg:aspect-auto xl:max-h-[min(620px,calc(100vh-158px))]"
+        ? `tat-product-image-frame tat-product-image-frame--portrait ${isActiveUltraPortrait ? 'tat-product-image-frame--ultra-portrait ' : ''}relative w-full mx-auto rounded-[0.875rem] md:rounded-[1.125rem] overflow-hidden shadow-2xl shadow-black/20 group bg-transparent aspect-[3/4] sm:max-w-[560px] md:max-w-[680px] lg:h-full lg:max-h-[min(590px,calc(100vh-158px))] lg:w-auto lg:max-w-full lg:aspect-auto xl:max-h-[min(620px,calc(100vh-158px))]`
         : "tat-product-image-frame tat-product-image-frame--landscape relative w-full mx-auto rounded-[0.875rem] md:rounded-[1.125rem] overflow-hidden shadow-2xl shadow-black/20 group bg-transparent aspect-[3/4] sm:max-w-[640px] md:max-w-[760px] lg:h-auto lg:max-h-[min(590px,calc(100vh-158px))] lg:max-w-[min(640px,100%)] lg:aspect-auto xl:max-h-[min(620px,calc(100vh-158px))] xl:max-w-[min(700px,100%)]";
     const imageObjectClassName = isActivePortrait
         ? "w-full h-full object-cover transition-[opacity,transform] duration-700 ease-in-out"
@@ -210,7 +215,13 @@ const ArchitecturalProductDetail = ({ item, itemId, isCatalogResolving = false, 
             return undefined;
         }
 
-        if (activeImageSrc === displayedImageSrc) {
+        if (activeImageSrc === displayedImageSrc && activeImageSize) {
+            setIsImageDecoding(false);
+            return undefined;
+        }
+
+        if (activeImageSrc !== displayedImageSrc && activeImageSize) {
+            setDisplayedImageSrc(activeImageSrc);
             setIsImageDecoding(false);
             return undefined;
         }
@@ -219,6 +230,7 @@ const ArchitecturalProductDetail = ({ item, itemId, isCatalogResolving = false, 
         const nextImage = new Image();
         nextImage.decoding = 'async';
 
+        const shouldSwapDisplayedImage = activeImageSrc !== displayedImageSrc;
         const reveal = () => {
             if (cancelled) return;
             rememberImageSize(
@@ -229,7 +241,9 @@ const ArchitecturalProductDetail = ({ item, itemId, isCatalogResolving = false, 
             );
             requestAnimationFrame(() => {
                 if (cancelled) return;
-                setDisplayedImageSrc(activeImageSrc);
+                if (shouldSwapDisplayedImage) {
+                    setDisplayedImageSrc(activeImageSrc);
+                }
                 setIsImageDecoding(false);
             });
         };
@@ -253,7 +267,7 @@ const ArchitecturalProductDetail = ({ item, itemId, isCatalogResolving = false, 
         return () => {
             cancelled = true;
         };
-    }, [activeImageSrc, displayedImageSrc]);
+    }, [activeImageSrc, displayedImageSrc, activeImageSize]);
 
     const collectionName = useMemo(() => {
         if (!item) return 'furniture';
@@ -532,7 +546,12 @@ const ArchitecturalProductDetail = ({ item, itemId, isCatalogResolving = false, 
                         )}
                     <div
                         className={imageFrameClassName}
-                        style={{ aspectRatio: activeImageAspectRatio, '--tat-active-image-ratio': activeImageRatio }}
+                        style={{
+                            aspectRatio: activeImageAspectRatio,
+                            '--tat-active-image-ratio': activeImageRatio,
+                            opacity: isImageFrameReady ? 1 : 0,
+                            pointerEvents: isImageFrameReady ? undefined : 'none'
+                        }}
                         onTouchStart={onTouchStart}
                         onTouchMove={onTouchMove}
                         onTouchEnd={onTouchEnd}
@@ -551,15 +570,17 @@ const ArchitecturalProductDetail = ({ item, itemId, isCatalogResolving = false, 
                     >
 
                         {/* Main Picture (Object Cover - No Margins) */}
-                        <img
-                            ref={displayedImageRef}
-                            key={displayedImageSrc}
-                            src={displayedImageSrc}
-                            className={`${imageObjectClassName} opacity-100 select-none`}
-                            alt={item.name}
-                            onLoad={handleMainImageLoad}
-                            draggable={false}
-                        />
+                        {renderedImageSrc && (
+                            <img
+                                ref={displayedImageRef}
+                                key={renderedImageSrc}
+                                src={renderedImageSrc}
+                                className={`${imageObjectClassName} ${isImageFrameReady ? 'opacity-100' : 'opacity-0'} select-none`}
+                                alt={item.name}
+                                onLoad={handleMainImageLoad}
+                                draggable={false}
+                            />
+                        )}
 
                         <ProductImagePager
                             count={images.length}
