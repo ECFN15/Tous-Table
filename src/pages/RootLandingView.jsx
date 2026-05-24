@@ -318,18 +318,18 @@ const RootLandingView = ({
                     scale: 1,
                     duration: 0.75,
                     ease: 'power3.out',
-                    scrollTrigger: { trigger: '.tat-root-local-grid', start: 'top 112%' },
+                    scrollTrigger: { trigger: '.tat-root-local-grid', start: 'top 88%' },
                 });
             gsap.fromTo('.tat-root-local-grid .tat-root-focus-card',
-                { y: 26, opacity: 0, scale: 0.975 },
+                { y: 32, opacity: 0, scale: 0.95 },
                 {
                     y: 0,
                     opacity: 1,
                     scale: 1,
-                    duration: 0.58,
-                    stagger: 0.055,
-                    ease: 'power3.out',
-                    scrollTrigger: { trigger: '.tat-root-local-grid', start: 'top 108%' },
+                    duration: 0.85,
+                    stagger: 0.1,
+                    ease: 'back.out(1.2)',
+                    scrollTrigger: { trigger: '.tat-root-local-grid', start: 'top 86%' },
                 });
             gsap.fromTo('.tat-root-delivery-card',
                 { y: 26, opacity: 0 },
@@ -338,7 +338,7 @@ const RootLandingView = ({
                     opacity: 1,
                     duration: 0.62,
                     ease: 'power3.out',
-                    scrollTrigger: { trigger: '.tat-root-delivery-card', start: 'top 104%' },
+                    scrollTrigger: { trigger: '.tat-root-delivery-card', start: 'top 90%' },
                 });
             gsap.utils.toArray('.tat-root-product-card').forEach((element, index) => {
                 gsap.fromTo(element, { y: 34 + (index * 12), rotate: index % 2 === 0 ? -1.2 : 1.2 }, {
