@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -171,6 +171,32 @@ const splitWords = (text) => text.split(' ').map((word, index) => (
     </span>
 ));
 
+const useScrollDirection = () => {
+    const [scrollDirection, setScrollDirection] = useState("up");
+    const [prevOffset, setPrevOffset] = useState(0);
+
+    useEffect(() => {
+        const toggleScrollDirection = () => {
+            let scrollY = window.pageYOffset;
+            if (scrollY === 0) {
+                setScrollDirection("up");
+            }
+            if (scrollY > prevOffset && scrollY > 50) {
+                setScrollDirection("down");
+            } else if (scrollY < prevOffset) {
+                setScrollDirection("up");
+            }
+            setPrevOffset(scrollY);
+        };
+        window.addEventListener("scroll", toggleScrollDirection);
+        return () => {
+            window.removeEventListener("scroll", toggleScrollDirection);
+        };
+    }, [prevOffset]);
+
+    return scrollDirection === "up";
+};
+
 const RootLandingView = ({
     items = [],
     affiliateProducts = [],
@@ -182,6 +208,7 @@ const RootLandingView = ({
     onSelectItem,
 }) => {
     const rootRef = useRef(null);
+    const showHeader = useScrollDirection();
     const comptoirScrollRef = useRef(null);
     const handleComptoirScroll = (direction) => {
         if (comptoirScrollRef.current) {
@@ -440,29 +467,32 @@ const RootLandingView = ({
                 schema={rootSchema}
             />
 
-            <nav className="tat-root-nav fixed left-1/2 top-4 z-[120] w-[calc(100%-2rem)] max-w-6xl -translate-x-1/2 rounded-full border border-white/10 bg-black/55 px-4 py-3 text-white shadow-[0_24px_80px_rgba(0,0,0,0.38)] backdrop-blur-2xl md:top-6 md:px-6">
-                <div className="flex items-center justify-between gap-4">
-                    <a href="/" className="flex min-w-0 items-center gap-3">
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#dba45f]/45 bg-[#dba45f]/10 text-[#f0c987]"><Hammer size={16} strokeWidth={1.6} /></span>
-                        <span className="min-w-0">
-                            <span className="block truncate font-serif text-lg leading-none tracking-wide">Tous à Table</span>
-                            <span className="block truncate text-[9px] font-black uppercase tracking-[0.24em] text-[#dba45f]">Atelier à Ifs</span>
-                        </span>
-                    </a>
-                    <div className="hidden items-center gap-5 text-[10px] font-black uppercase tracking-[0.18em] text-white/66 md:flex lg:gap-7 lg:tracking-[0.22em]">
-                        <a href="/meubles-anciens" onClick={(event) => handleInternalNav(event, onOpenGallery)} className="transition-colors hover:text-[#f0c987]">Galerie</a>
-                        <a href="/comptoir" onClick={(event) => handleInternalNav(event, onOpenShop)} className="transition-colors hover:text-[#f0c987]">Comptoir</a>
-                        <a href="/a-propos" onClick={(event) => handleInternalNav(event, onOpenAbout)} className="transition-colors hover:text-[#f0c987]">Atelier</a>
-                        <a href="/livraison-meubles-anciens-france" onClick={(event) => handleInternalNav(event, onOpenDelivery)} className="transition-colors hover:text-[#f0c987]">Livraison</a>
-                    </div>
-                    <a href="/meubles-anciens" onClick={(event) => handleInternalNav(event, onOpenGallery)} className="group hidden h-10 shrink-0 items-center justify-between gap-3 rounded-full bg-[#f0c987] pl-5 pr-1.5 text-[10px] font-black uppercase tracking-[0.22em] text-stone-950 transition-all duration-300 hover:bg-[#f6d8a3] hover:shadow-[0_0_20px_rgba(240,201,135,0.22)] active:scale-[0.98] sm:inline-flex">
-                        Découvrir
-                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-stone-950/10 text-stone-950 transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-0.5 group-hover:scale-105">
-                            <ArrowRight size={13} strokeWidth={2.5} />
-                        </span>
-                    </a>
+                        <div className="fixed left-1/2 top-4 z-[120] w-[calc(100%-2rem)] max-w-6xl -translate-x-1/2 md:top-6" style={{ pointerEvents: 'none' }}>
+                {/* Premium Double Bezel Floating Navigation Bar */}
+                <div className={`w-full p-1.5 bg-white/[0.02] border border-white/5 rounded-full shadow-[0_24px_80px_rgba(0,0,0,0.38)] backdrop-blur-2xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${showHeader ? 'translate-y-0 opacity-100' : '-translate-y-28 opacity-0'}`} style={{ pointerEvents: 'auto' }}>
+                    <nav className="tat-root-nav w-full rounded-full bg-black/75 px-4 py-3 text-white border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] flex items-center justify-between gap-4 md:px-6">
+                        <a href="/" className="flex min-w-0 items-center gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#dba45f]/45 bg-[#dba45f]/10 text-[#f0c987]"><Hammer size={16} strokeWidth={1.6} /></span>
+                            <span className="min-w-0">
+                                <span className="block truncate font-serif text-lg leading-none tracking-wide">Tous à Table</span>
+                                <span className="block truncate text-[9px] font-black uppercase tracking-[0.24em] text-[#dba45f]">Atelier à Ifs</span>
+                            </span>
+                        </a>
+                        <div className="hidden items-center gap-5 text-[10px] font-black uppercase tracking-[0.18em] text-white/66 md:flex lg:gap-7 lg:tracking-[0.22em]">
+                            <a href="/meubles-anciens" onClick={(event) => handleInternalNav(event, onOpenGallery)} className="transition-colors hover:text-[#f0c987]">Galerie</a>
+                            <a href="/comptoir" onClick={(event) => handleInternalNav(event, onOpenShop)} className="transition-colors hover:text-[#f0c987]">Comptoir</a>
+                            <a href="/a-propos" onClick={(event) => handleInternalNav(event, onOpenAbout)} className="transition-colors hover:text-[#f0c987]">Atelier</a>
+                            <a href="/livraison-meubles-anciens-france" onClick={(event) => handleInternalNav(event, onOpenDelivery)} className="transition-colors hover:text-[#f0c987]">Livraison</a>
+                        </div>
+                        <a href="/meubles-anciens" onClick={(event) => handleInternalNav(event, onOpenGallery)} className="group hidden h-10 shrink-0 items-center justify-between gap-3 rounded-full bg-[#f0c987] pl-5 pr-1.5 text-[10px] font-black uppercase tracking-[0.22em] text-stone-950 transition-all duration-300 hover:bg-[#f6d8a3] hover:shadow-[0_0_20px_rgba(240,201,135,0.22)] active:scale-[0.98] sm:inline-flex">
+                            Découvrir
+                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-stone-950/10 text-stone-950 transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-0.5 group-hover:scale-105">
+                                <ArrowRight size={13} strokeWidth={2.5} />
+                            </span>
+                        </a>
+                    </nav>
                 </div>
-            </nav>
+            </div>
 
             <section className="relative min-h-[80svh] overflow-hidden px-5 pb-10 pt-28 md:px-10 md:pb-12 md:pt-32 xl:px-16">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_76%_18%,rgba(219,164,95,0.28),transparent_32%),radial-gradient(circle_at_14%_18%,rgba(255,255,255,0.08),transparent_24%),linear-gradient(180deg,#090806_0%,#17100a_54%,#090806_100%)]" />
