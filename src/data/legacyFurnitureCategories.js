@@ -52,4 +52,8 @@ export const LEGACY_FURNITURE_CATEGORY_BY_ID = {
   yKyvXLZ2mwh2yAzb0ujq: 'autre', // Lampe Monix 1930
   A89ATxl7ULCgYpRIHZcI: 'autre', // Console en rotin
   vnEaQJ75pTTYwglvCll0: 'table', // Table exterieur sur mesures
+  '2IhQRs5jXEUcdeFwy6rH': 'chaise', // Tabouret trépied torsadé
+  'JDbJQhkNecoNmRaqsTyU': 'chaise', // Tabouret carré
+  'MntNMErybmt47SgfNlJi': 'chaise', // Tabouret de berger rond-pied démontable
+  'qniJDh7WsUriKBx4ayyd': 'buffet', // Bibliothèque 3 modules en pin
 };
