@@ -1,6 +1,7 @@
 
 import React, { Suspense } from 'react';
 import HomeView from './pages/HomeView';
+import RootLandingView from './pages/RootLandingView';
 import OrderSuccessModal from './components/orders/OrderSuccessModal';
 import SEO from './components/shared/SEO';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -152,8 +153,24 @@ const AppRouter = ({
 
     return (
         <main>
-            {((view === 'home' || view === 'about') || isPreparingGallery) && (
-                <div className={(view === 'home' || view === 'about') ? 'contents' : 'hidden'}>
+            {view === 'home' && (
+                <RootLandingView
+                    items={items}
+                    affiliateProducts={affiliateProducts}
+                    darkMode={darkMode}
+                    onOpenGallery={() => {
+                        startGalleryTransition();
+                        setTimeout(() => completeGalleryTransition(), 640);
+                    }}
+                    onOpenShop={() => { setView('shop'); scrollToTop(); }}
+                    onOpenAbout={() => { setView('about'); scrollToTop(); }}
+                    onOpenDelivery={() => { setView('delivery'); scrollToTop(); }}
+                    onSelectItem={(id) => { setSelectedItemId(id); setView('detail'); scrollToTop(); }}
+                />
+            )}
+
+            {(view === 'about' || isPreparingGallery) && (
+                <div className={view === 'about' ? 'contents' : 'hidden'}>
                     <HomeView
                         onEnterMarketplace={completeGalleryTransition}
                         onStartMarketplaceTransition={startGalleryTransition}

@@ -168,12 +168,8 @@ const GalleryView = ({
 
     // Always use Architectural
     const LayoutComponent = ArchitecturalLayout;
-    const seoUrl = typeof window !== 'undefined' && window.location.pathname === '/'
-        ? '/'
-        : activeCollection === 'cutting_boards' ? '/planches-a-decouper-anciennes' : getFurnitureCategoryPath(activeCategory);
-    const seoCopy = seoUrl === '/'
-        ? CATEGORY_SEO.home
-        : activeCollection === 'cutting_boards'
+    const seoUrl = activeCollection === 'cutting_boards' ? '/planches-a-decouper-anciennes' : getFurnitureCategoryPath(activeCategory);
+    const seoCopy = activeCollection === 'cutting_boards'
         ? BOARD_SEO
         : (CATEGORY_SEO[activeCategory] || CATEGORY_SEO.all);
     const breadcrumbName = activeCollection === 'cutting_boards'

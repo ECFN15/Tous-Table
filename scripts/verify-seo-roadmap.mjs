@@ -116,10 +116,13 @@ includesAll('meubles collection has distinct visible SEO intro', read('src/data/
   'Livraison meubles anciens',
 ]);
 
-includesAll('root and meubles collection have distinct meta copy', read('src/pages/GalleryView.jsx'), [
-  'title: \'Meubles Anciens Restaures en Normandie\'',
+includesAll('root landing and meubles collection have distinct meta copy', [
+  read('src/pages/RootLandingView.jsx'),
+  read('src/pages/GalleryView.jsx'),
+].join('\n'), [
+  'title="Meubles anciens à Caen - Showroom à Ifs"',
   'title: \'Meubles Anciens a Vendre\'',
-  'seoUrl === \'/\'',
+  'url="/"',
 ]);
 
 includesAll('product deep-link loading does not emit noindex', [
@@ -156,6 +159,11 @@ const schemaChecks = [
     tokens: ['FurnitureStore', 'LocalBusiness', 'hasOfferCatalog', 'FAQPage', 'BreadcrumbList'],
   },
   {
+    file: 'src/pages/RootLandingView.jsx',
+    label: 'root landing local SEO schemas',
+    tokens: ['WebPage', 'WebSite', 'FurnitureStore', 'LocalBusiness', 'OfferCatalog', 'FAQPage', 'ItemList'],
+  },
+  {
     file: 'src/designs/architectural/ArchitecturalProductDetail.jsx',
     label: 'product detail schemas',
     tokens: ['Product', 'Offer', 'UsedCondition', 'FurnitureStore', 'BreadcrumbList'],
@@ -168,8 +176,9 @@ for (const { file, label, tokens } of schemaChecks) {
 
 const adminAnalytics = read('src/features/admin/AdminAnalytics.jsx');
 includesAll('admin analytics labels cover SEO views', adminAnalytics, [
+  "home: 'Accueil SEO'",
   "about: 'A propos'",
-  "gallery: 'Marketplace'",
+  "gallery: 'Galerie mobilier'",
   "shop: 'Le Comptoir'",
   "delivery: 'Livraison'",
   "detail: 'Fiche produit'",

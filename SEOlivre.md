@@ -2455,3 +2455,118 @@ Reste a faire apres accord deploy :
   - baisse des doublons canonical ;
   - progression des pages explorees ;
   - maintien des 3 pages deja indexees.
+
+---
+
+## Chapitre 28 - Landing SEO racine Ifs Caen Calvados
+
+Date : 22 mai 2026
+Statut : fait localement, aucun deploy
+
+Objectif :
+
+- Transformer `/` en page d arrivee SEO locale et premium autour du showroom a Ifs, Caen, Calvados et Normandie.
+- Garder la galerie marketplace definitive sur `/meubles-anciens` et les categories mobilier existantes.
+- Mettre en avant la galerie, 4 meubles, Le Comptoir, une carte locale et une FAQ sans casser la grille principale.
+
+Fichiers touches :
+
+- `src/pages/RootLandingView.jsx`
+- `src/Router.jsx`
+- `src/App.jsx`
+- `src/utils/seoRoutes.js`
+- `src/utils/startupWarmup.js`
+- `src/pages/GalleryView.jsx`
+- `src/components/layout/GlobalMenu.jsx`
+- `src/components/layout/Footer.jsx`
+- `src/features/admin/AdminAnalytics.jsx`
+- `src/index.css`
+- `functions/src/seo/seoTools.js`
+- `index.html`
+- `scripts/verify-seo-roadmap.mjs`
+- `SEOlivre.md`
+
+Changements :
+
+- `/` rend maintenant `RootLandingView` avec :
+  - hero "Meubles anciens a Caen, restaures en Normandie" ;
+  - CTA principal vers `/meubles-anciens` ;
+  - bloc showroom local a Ifs ;
+  - carte Calvados avec villes locales ;
+  - meubles en vedette issus du catalogue public ;
+  - mise en avant Comptoir ;
+  - FAQ visible et schema `FAQPage`.
+- `/a-propos` conserve l ancienne page atelier `HomeView`.
+- `/meubles-anciens` reste l entree galerie mobilier.
+- Les categories `/meubles-anciens/...` restent routees vers la galerie avec leurs filtres existants.
+- Les CTA "Galerie" et "Marketplace" ne pointent plus vers `/`, mais vers `/meubles-anciens`.
+- `GalleryView` ne produit plus de canonical temporaire `/` quand la galerie est montee pendant une transition.
+- `publicCatalog` est utilise pour nourrir la landing ; aucun nouveau listener public large n est ajoute comme source normale.
+- Le preloader reste actif sur `/` et le warmup cible maintenant les images de la landing, les premiers meubles et Le Comptoir.
+- `AdminAnalytics` distingue `home: Accueil SEO` de `about: A propos` et `gallery: Galerie mobilier`.
+- `shareMeta` et le head statique `index.html` sont alignes sur la nouvelle intention de `/`.
+- Le gate `verify:seo-roadmap` verifie maintenant la landing racine et ses schemas.
+
+Impact SEO :
+
+- `/` devient une vraie page locale Ifs / Caen / Calvados, avec contenu visible, schema local, FAQ et maillage interne vers galerie, Comptoir, atelier et livraison.
+- `/meubles-anciens` reste la page collection mobilier a vendre, sans conflit de canonical avec `/`.
+- Le sitemap continue d inclure `/` et `/meubles-anciens` comme URLs propres distinctes.
+
+Risque UI :
+
+- Moyen sur le root uniquement.
+- Mesures prises :
+  - grille marketplace non modifiee ;
+  - routing galerie/categories conserve ;
+  - captures desktop et mobile sur `/` ;
+  - capture desktop et mobile sur `/meubles-anciens` ;
+  - correctif mobile pour eviter le debordement de la nav et du hero.
+
+Tests :
+
+- `npm run verify:seo-roadmap` : OK, 25 checks.
+- `npm run verify:analytics-reliability` : OK.
+- `npm run verify:functions-syntax` : OK.
+- `npm run build` : OK apres relance hors sandbox Windows approuvee.
+- `git diff --check` : OK ; avertissements CRLF Windows uniquement.
+- Preview locale `http://127.0.0.1:4173/` : HTTP 200.
+- Preview locale `http://127.0.0.1:4173/meubles-anciens` : HTTP 200.
+- Captures Edge headless :
+  - `/` avec preloader ;
+  - `/` desktop sans preloader ;
+  - `/` mobile sans preloader ;
+  - `/meubles-anciens` desktop et mobile sans preloader.
+
+Reste a faire :
+
+- Smoke manuel dans un navigateur interactif avant deploy.
+- Ne pas deployer sans accord explicite.
+- Apres deploy approuve : lancer `npm run audit:public-seo`, verifier `/sitemap.xml`, `shareMeta?path=/`, Search Console et Rich Results Test sur `/`, `/meubles-anciens` et 2 categories.
+
+### Polissage landing racine - 22 mai 2026
+
+Objectif :
+
+- Ameliorer la landing `/` apres revue visuelle : image hero plus nette, header complet, carte Calvados plus credible, sections plus vivantes et meilleure densite mobile.
+
+Changements :
+
+- Hero : remplacement de l image unique par un carousel de 2 visuels existants, mobilier et planches, avec sources desktop/mobile dediees.
+- Hero : suppression du zoom au scroll sur le container image, reduction de la hauteur desktop et transition carousel adoucie par crossfade.
+- Header : ajout de l entree `Livraison` dans la navigation flottante de la landing.
+- Showroom : carte Calvados remplacee par une image generee via `imagegen`, compressee en WebP et enrichie de labels HTML exacts.
+- Bento local : ajout de cartes symetriques pour tables de ferme, buffets, armoires/commodes, planches/entretien et livraison.
+- Bento local : animation ajustee pour que les cartes atteignent leur position finale avant que la section soit pleinement sous les yeux.
+- Galerie : grille mobile en 2x2 sur la section meubles en vedette, avec cartes plus compactes.
+- Comptoir : cartes produits densifiees, sans grands vides bas, avec CTA interne.
+- Motion : animations GSAP et CSS etendues aux cartes locales, produits et CTA final, uniquement via transform/opacity.
+
+Tests :
+
+- `npm run verify:seo-roadmap` : OK.
+- `npm run verify:analytics-reliability` : OK.
+- `npm run verify:functions-syntax` : OK.
+- `npm run build` : OK apres relance hors sandbox Windows approuvee.
+- `git diff --check` : OK ; avertissements CRLF Windows uniquement.
+- Captures Edge headless sur `/` desktop/mobile et `/meubles-anciens` mobile.

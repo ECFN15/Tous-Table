@@ -117,7 +117,11 @@ export const getRouteFromLocation = (location = window.location) => {
     };
   }
 
-  if (pathname === '/' || pathname === '/meubles-anciens' || params.get('page') === 'gallery' || hash === 'gallery') {
+  if (pathname === '/') {
+    return { view: 'home' };
+  }
+
+  if (pathname === '/meubles-anciens' || params.get('page') === 'gallery' || hash === 'gallery') {
     return {
       view: 'gallery',
       galleryState: { activeCollection: 'furniture', filter: 'fixed', activeCategory: 'all' },

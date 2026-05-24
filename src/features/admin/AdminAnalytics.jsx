@@ -469,9 +469,9 @@ const BOUTIQUE_TIME_FILTERS = [
 ];
 
 const PAGE_LABELS = {
-    home: 'A propos',
+    home: 'Accueil SEO',
     about: 'A propos',
-    gallery: 'Marketplace',
+    gallery: 'Galerie mobilier',
     detail: 'Fiche produit',
     shop: 'Le Comptoir',
     'shop-detail': 'Fiche Comptoir',

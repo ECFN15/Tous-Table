@@ -87,6 +87,89 @@ body.modal-open {
   }
 }
 
+@media (max-width: 639px) {
+  .tat-root-hero-copy,
+  .tat-root-media {
+    width: min(350px, calc(100dvw - 2.5rem));
+    max-width: min(350px, calc(100dvw - 2.5rem));
+  }
+
+  .tat-root-hero-copy h1 {
+    font-size: 3.05rem;
+    line-height: 0.88;
+  }
+}
+
+.tat-root-hero-carousel {
+  transform: translateZ(0);
+}
+
+.tat-root-hero-slide {
+  opacity: 0;
+  animation: tat-root-hero-fade 10s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+  will-change: opacity;
+}
+
+.tat-root-hero-slide-2 {
+  animation-delay: 5s;
+}
+
+.tat-root-hero-slide img {
+  image-rendering: auto;
+  transform: translateZ(0);
+}
+
+.tat-root-map-frame svg text {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  paint-order: stroke;
+  stroke: rgba(22, 15, 9, 0.82);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+.tat-root-shimmer-line {
+  animation: shimmer-sweep 3.8s cubic-bezier(0.32, 0.72, 0, 1) infinite;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+@keyframes tat-root-hero-fade {
+  0%,
+  40% {
+    opacity: 1;
+  }
+
+  50%,
+  90% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tat-root-hero-slide {
+    animation: none;
+    opacity: 0;
+    transform: none;
+  }
+
+  .tat-root-hero-slide-1 {
+    opacity: 1;
+  }
+
+  .tat-root-shimmer-line {
+    animation: none;
+  }
+}
+
 body.tat-startup-preloading {
   overflow: hidden !important;
   touch-action: none;

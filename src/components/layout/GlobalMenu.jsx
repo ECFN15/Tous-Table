@@ -164,13 +164,22 @@ const GlobalMenu = ({
     // PERF: mémoïsé — recalculé uniquement si auth/design change
     const menuItems = useMemo(() => [
         {
-            label: activeDesignId === 'architectural' ? 'Marketplace' : 'Marketplace.',
+            label: activeDesignId === 'architectural' ? 'Accueil' : 'Accueil.',
+            onClick: (e) => {
+                if (!e.ctrlKey && !e.metaKey) {
+                    e.preventDefault(); setView('home'); setIsMenuOpen(false); scrollToTop();
+                }
+            },
+            href: '/'
+        },
+        {
+            label: activeDesignId === 'architectural' ? 'Galerie' : 'Galerie.',
             onClick: (e) => {
                 if (!e.ctrlKey && !e.metaKey) {
                     e.preventDefault(); setView('gallery'); setIsMenuOpen(false); scrollToTop();
                 }
             },
-            href: '/'
+            href: '/meubles-anciens'
         },
         {
             label: "Le Comptoir",

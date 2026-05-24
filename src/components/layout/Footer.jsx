@@ -43,6 +43,7 @@ const Footer = ({ darkMode = false, contactInfo: contactInfoProp = {} }) => {
             <div className="max-w-[1920px] mx-auto px-5 md:px-16 py-12 md:py-16">
                 <div className="mb-8 md:hidden">
                     <MobileDisclosure title="A propos" darkMode={darkMode}>
+                        <a href="/" className="block hover:text-[#dba45f]">Accueil</a>
                         <a href="/a-propos" className="block hover:text-[#dba45f]">Notre histoire</a>
                         <a href="/meubles-anciens" className="block hover:text-[#dba45f]">La galerie</a>
                         <a href="/comptoir" className="block hover:text-[#dba45f]">Le comptoir</a>
@@ -95,6 +96,7 @@ const Footer = ({ darkMode = false, contactInfo: contactInfoProp = {} }) => {
 
                     <div className="hidden md:block">
                         <FooterColumn title="A propos" darkMode={darkMode}>
+                            <a href="/" className="block hover:text-[#dba45f]">Accueil</a>
                             <a href="/a-propos" className="block hover:text-[#dba45f]">Notre histoire</a>
                             <a href="/meubles-anciens" className="block hover:text-[#dba45f]">La galerie</a>
                             <a href="/comptoir" className="block hover:text-[#dba45f]">Le comptoir</a>
@@ -146,6 +148,7 @@ const Footer = ({ darkMode = false, contactInfo: contactInfoProp = {} }) => {
                         <a href="tel:0782013155" className="hover:text-[#dba45f]">Contact : 07.82.01.31.55</a>
                     </div>
                     <div className="flex gap-5 text-[10px] font-black uppercase tracking-[0.18em] text-stone-500">
+                        <a href="/" className="hover:text-[#dba45f]">Accueil</a>
                         <a href="/meubles-anciens" className="hover:text-[#dba45f]">La galerie</a>
                         <span>Privacy policy</span>
                         <span>Legal mentions</span>

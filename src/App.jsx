@@ -221,7 +221,7 @@ const AppContent = () => {
   const [showStartupPreloader, setShowStartupPreloader] = useState(() => shouldShowStartupPreloader(initialRouteRef.current));
   const [isFooterVisible, setIsFooterVisible] = useState(false);
   const [publicRealtimeReady, setPublicRealtimeReady] = useState(() => (
-    !showStartupPreloader || isCatalogStartupRoute(initialRouteRef.current)
+    !showStartupPreloader || isCatalogStartupRoute(initialRouteRef.current) || initialRouteRef.current.view === 'home'
   ));
   const scrollYRef = useRef(0);
   const modalUnlockRef = useRef(null);
@@ -303,6 +303,7 @@ const AppContent = () => {
 
   const activePublicRealtimeCollectionsKey = React.useMemo(() => {
     if (view === 'admin') return 'furniture|cutting_boards|affiliate_products';
+    if (view === 'home') return 'furniture|affiliate_products';
     if (view === 'shop' || view === 'shop-detail') return 'affiliate_products';
     if (view === 'gallery') {
       return persistentGalleryState.activeCollection === 'cutting_boards' ? 'cutting_boards' : 'furniture';
@@ -420,7 +421,7 @@ const AppContent = () => {
 
   useEffect(() => {
     if (showStartupPreloader) return undefined;
-    if (['home', 'about'].includes(initialRouteRef.current.view)) return;
+    if (initialRouteRef.current.view === 'about') return;
     if (!items.length && !boardItems.length && !affiliateProducts.length) return;
     if (startupCatalogWarmupStartedRef.current) return;
 
@@ -444,14 +445,14 @@ const AppContent = () => {
     };
   }, [showStartupPreloader, items, boardItems, affiliateProducts]);
 
-  // Marketplace Discovery Trigger (STRICTEMENT sur Accueil - Au Footer)
+  // Marketplace Discovery Trigger (ancienne page atelier, pas sur la landing SEO)
   useEffect(() => {
     // 1. Si déjà vu, on sort
     const alreadySeen = localStorage.getItem('hasSeenMarketplacePopup');
     if (alreadySeen) return;
 
-    // 2. Uniquement sur la page d'accueil (Home)
-    if (view !== 'home') return;
+    // 2. Uniquement sur la page atelier historique.
+    if (view !== 'about') return;
 
     // 3. Trigger au scroll (proche du bas / après FAQ)
     let scrollHandler = null;
@@ -461,7 +462,7 @@ const AppContent = () => {
         const pageHeight = document.documentElement.scrollHeight;
         const triggerPoint = pageHeight - 400; // Proche du footer/après FAQ
 
-        if (scrollPosition > triggerPoint && view === 'home') {
+        if (scrollPosition > triggerPoint && view === 'about') {
           console.log('MARKETPLACE POPUP TRIGGERED (bottom of home)');
           setShowMarketplacePopup(true);
           localStorage.setItem('hasSeenMarketplacePopup', 'true');
@@ -740,7 +741,9 @@ const AppContent = () => {
       pushUrl('/comptoir', { view });
     } else if (view === 'delivery') {
       pushUrl('/livraison-meubles-anciens-france', { view });
-    } else if (view === 'about' || view === 'home') {
+    } else if (view === 'home') {
+      pushUrl('/', { view: 'home' });
+    } else if (view === 'about') {
       pushUrl('/a-propos', { view: 'about' });
     } else if (view === 'checkout') {
       pushUrl('/checkout', { view });
@@ -749,7 +752,6 @@ const AppContent = () => {
     } else if (view === 'admin') {
       pushUrl('/admin', { view });
     } else if (view === 'gallery') {
-      if (window.location.pathname === '/' && !window.location.search && !window.location.hash) return;
       const path = persistentGalleryState.activeCollection === 'cutting_boards'
         ? '/planches-a-decouper-anciennes'
         : getFurnitureCategoryPath(persistentGalleryState.activeCategory || 'all');

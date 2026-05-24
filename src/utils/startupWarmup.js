@@ -28,6 +28,20 @@ const BOARD_HERO_IMAGES = {
   ],
 };
 
+const ROOT_LANDING_IMAGES = {
+  mobile: [
+    '/images/gallery/hero-buffet-parisien-2026-mobile-640.webp',
+    '/images/gallery/hero-buffet-parisien-2026-mobile-840.webp',
+    '/images/gallery/hero-planches-2026-mobile-outpaint-840.webp',
+  ],
+  desktop: [
+    '/images/gallery/hero-buffet-parisien-2026-960.webp',
+    '/images/gallery/hero-buffet-parisien-2026-1440.webp',
+    '/images/gallery/hero-planches-2026-1440.webp',
+    '/images/landing/calvados-map-2026.webp',
+  ],
+};
+
 const CRITICAL_ABOUT_IMAGES = {
   mobile: [
     'https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=720&auto=format&fit=crop',
@@ -309,6 +323,11 @@ export const warmupCriticalAboutImages = () => {
   );
 };
 
+export const warmupRootLandingImages = () => {
+  const candidates = selectViewportImages(ROOT_LANDING_IMAGES);
+  return warmImageList(candidates, { highPriorityCount: 1, timeout: shouldLimitNetworkWarmup() ? 1500 : 2400 });
+};
+
 export const warmupFurnitureProductImages = ({
   items = [],
 } = {}) => {
@@ -386,8 +405,20 @@ export const warmupAboutStartup = () => (
   ])
 );
 
+export const warmupRootStartup = (catalogPayload = {}) => (
+  Promise.allSettled([
+    warmupRootLandingImages(),
+    warmupFurnitureProductImages(catalogPayload),
+    warmupShopIntent(catalogPayload),
+  ])
+);
+
 export const warmupStartupForRoute = (route = {}, catalogPayload = {}) => {
-  if (route.view === 'home' || route.view === 'about') {
+  if (route.view === 'home') {
+    return warmupRootStartup(catalogPayload);
+  }
+
+  if (route.view === 'about') {
     return warmupAboutStartup();
   }
 
@@ -420,6 +451,10 @@ export const warmupStartupForRoute = (route = {}, catalogPayload = {}) => {
 };
 
 export const warmupStartupCatalogImagesForRoute = (route = {}, catalogPayload = {}) => {
+  if (route.view === 'home') {
+    return warmupRootStartup(catalogPayload);
+  }
+
   if (route.view === 'gallery' && route.galleryState?.activeCollection === 'cutting_boards') {
     return warmupBoardsIntent(catalogPayload);
   }
