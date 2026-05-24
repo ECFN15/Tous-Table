@@ -455,8 +455,11 @@ const RootLandingView = ({
                         <a href="/a-propos" onClick={(event) => handleInternalNav(event, onOpenAbout)} className="transition-colors hover:text-[#f0c987]">Atelier</a>
                         <a href="/livraison-meubles-anciens-france" onClick={(event) => handleInternalNav(event, onOpenDelivery)} className="transition-colors hover:text-[#f0c987]">Livraison</a>
                     </div>
-                    <a href="/meubles-anciens" onClick={(event) => handleInternalNav(event, onOpenGallery)} className="hidden h-10 shrink-0 items-center justify-center rounded-full bg-[#f0c987] px-4 text-[10px] font-black uppercase tracking-[0.18em] text-stone-950 transition-transform hover:scale-[1.03] active:scale-[0.98] sm:inline-flex md:px-5">
+                    <a href="/meubles-anciens" onClick={(event) => handleInternalNav(event, onOpenGallery)} className="group hidden h-10 shrink-0 items-center justify-between gap-3 rounded-full bg-[#f0c987] pl-5 pr-1.5 text-[10px] font-black uppercase tracking-[0.22em] text-stone-950 transition-all duration-300 hover:bg-[#f6d8a3] hover:shadow-[0_0_20px_rgba(240,201,135,0.22)] active:scale-[0.98] sm:inline-flex">
                         Découvrir
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-stone-950/10 text-stone-950 transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-0.5 group-hover:scale-105">
+                            <ArrowRight size={13} strokeWidth={2.5} />
+                        </span>
                     </a>
                 </div>
             </nav>
@@ -474,18 +477,25 @@ const RootLandingView = ({
                             Tables de ferme, buffets, armoires, commodes et pièces uniques en bois massif. Un atelier-showroom à Ifs pour découvrir le mobilier ancien autrement.
                         </p>
                         <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-                            <a href="/meubles-anciens" onClick={(event) => handleInternalNav(event, onOpenGallery)} className="inline-flex h-14 w-full items-center justify-center gap-3 rounded-full bg-[#f0c987] px-5 text-[11px] font-black uppercase tracking-[0.18em] text-stone-950 transition-transform hover:scale-[1.02] active:scale-[0.98] sm:w-auto sm:px-7 sm:tracking-[0.22em]">
+                            <a href="/meubles-anciens" onClick={(event) => handleInternalNav(event, onOpenGallery)} className="group inline-flex h-14 w-full items-center justify-between sm:justify-start gap-4 rounded-full bg-[#f0c987] pl-7 pr-3 text-[11px] font-black uppercase tracking-[0.22em] text-stone-950 transition-all duration-300 hover:bg-[#f6d8a3] hover:shadow-[0_0_30px_rgba(240,201,135,0.22)] active:scale-[0.98] sm:w-auto">
                                 Découvrir la galerie
-                                <ArrowRight size={16} strokeWidth={1.8} />
+                                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-stone-950/10 text-stone-950 transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-1 group-hover:scale-105">
+                                    <ArrowRight size={15} strokeWidth={2.2} />
+                                </span>
                             </a>
-                            <a href="/livraison-meubles-anciens-france" onClick={(event) => handleInternalNav(event, onOpenDelivery)} className="inline-flex h-14 w-full items-center justify-center gap-3 rounded-full border border-white/18 bg-white/8 px-5 text-[11px] font-black uppercase tracking-[0.18em] text-white transition-colors hover:bg-white hover:text-stone-950 sm:w-auto sm:px-7 sm:tracking-[0.22em]">
+                            <a href="/livraison-meubles-anciens-france" onClick={(event) => handleInternalNav(event, onOpenDelivery)} className="group inline-flex h-14 w-full items-center justify-between sm:justify-start gap-4 rounded-full border border-white/12 bg-white/5 pl-7 pr-3 text-[11px] font-black uppercase tracking-[0.22em] text-white transition-all duration-300 hover:bg-white/10 hover:border-white/20 active:scale-[0.98] sm:w-auto">
                                 Livraison France
-                                <Truck size={16} strokeWidth={1.8} />
+                                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-1 group-hover:scale-105">
+                                    <Truck size={15} strokeWidth={1.8} />
+                                </span>
                             </a>
                         </div>
                     </div>
                     <div className="tat-root-media relative w-full max-w-[calc(100vw-2.5rem)] min-w-0 lg:col-span-5 lg:max-w-none">
-                        <div className="tat-root-hero-carousel relative aspect-[4/5] overflow-hidden rounded-[2.25rem] border border-white/10 bg-stone-900 shadow-[0_50px_160px_rgba(0,0,0,0.5)] md:rounded-[3rem] lg:h-[min(56svh,580px)] lg:aspect-auto xl:h-[min(58svh,620px)]">
+                        {/* High-End Double Bezel Hero Carousel Outer Wrapper */}
+                        <div className="tat-root-hero-carousel p-2 bg-white/[0.02] border border-white/5 rounded-[2.6rem] shadow-[0_50px_160px_rgba(0,0,0,0.5)] md:rounded-[3.4rem] lg:h-[min(56svh,580px)] lg:aspect-auto xl:h-[min(58svh,620px)]">
+                            {/* Inner Core */}
+                            <div className="relative w-full h-full aspect-[4/5] lg:aspect-auto overflow-hidden rounded-[2.1rem] bg-stone-900 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] border border-white/10 md:rounded-[2.9rem]">
                             {heroSlides.map((slide, index) => (
                                 <picture key={slide.key} className={`tat-root-hero-slide tat-root-hero-slide-${index + 1} absolute inset-0 block h-full w-full`}>
                                     <source media="(max-width: 767px)" srcSet={slide.mobile} />
@@ -500,11 +510,17 @@ const RootLandingView = ({
                                     />
                                 </picture>
                             ))}
+                            </div>
                         </div>
-                        <div className="absolute -bottom-8 left-5 right-5 rounded-[1.6rem] border border-white/10 bg-black/68 p-5 backdrop-blur-xl md:-left-8 md:right-[14rem] xl:right-[16rem]">
-                            <div className="flex items-start gap-4">
-                                <MapPin className="mt-1 shrink-0 text-[#dba45f]" size={20} strokeWidth={1.7} />
-                                <p className="text-sm leading-relaxed text-stone-200">À Ifs, aux portes de Caen : sélection, préparation et accompagnement pour choisir un meuble ancien durable.</p>
+                        {/* High-End Double Bezel Location Card Wrapper */}
+                        <div className="absolute -bottom-8 left-5 right-5 p-1.5 bg-white/[0.02] border border-white/5 rounded-[1.85rem] backdrop-blur-2xl shadow-[0_24px_80px_rgba(0,0,0,0.38)] md:-left-8 md:right-[14rem] xl:right-[16rem]">
+                            <div className="rounded-[1.4rem] border border-white/10 bg-black/75 p-4 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)]">
+                                <div className="flex items-start gap-4">
+                                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/5 border border-white/10 text-[#dba45f]">
+                                        <MapPin size={16} strokeWidth={2} />
+                                    </div>
+                                                                <p className="text-[13px] leading-relaxed text-stone-300">À Ifs, aux portes de Caen : sélection, préparation et accompagnement pour choisir un meuble ancien durable.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
