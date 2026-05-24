@@ -341,12 +341,15 @@ const RootLandingView = ({
                     scrollTrigger: { trigger: '.tat-root-delivery-card', start: 'top 90%' },
                 });
             gsap.utils.toArray('.tat-root-product-card').forEach((element, index) => {
-                gsap.fromTo(element, { y: 34 + (index * 12), rotate: index % 2 === 0 ? -1.2 : 1.2 }, {
-                    y: 0,
-                    rotate: 0,
-                    ease: 'none',
-                    scrollTrigger: { trigger: element, start: 'top 92%', end: 'bottom 48%', scrub: 0.6 },
-                });
+                gsap.fromTo(element, 
+                    { y: 38, opacity: 0 },
+                    {
+                        y: 0,
+                        opacity: 1,
+                        duration: 0.78,
+                        ease: 'power3.out',
+                        scrollTrigger: { trigger: element, start: 'top 90%' },
+                    });
             });
             gsap.to('.tat-root-word', {
                 opacity: 1,
@@ -533,7 +536,7 @@ const RootLandingView = ({
                             <ArrowRight size={15} />
                         </a>
                     </div>
-                    <div className="grid grid-cols-2 gap-3 md:gap-4 xl:grid-cols-4">
+                    <div className="grid grid-cols-2 gap-4 md:gap-5 lg:gap-6 xl:grid-cols-4">
                         {visibleFurniture.map((item, index) => {
                             const image = getItemImage(item);
                             const price = formatPrice(item.currentPrice ?? item.startingPrice ?? item.price);
@@ -545,16 +548,20 @@ const RootLandingView = ({
                                 onSelectItem?.(item.id);
                             };
                             return (
-                                <a key={item.id || item.name} href={href} onClick={handleCardClick} className={`tat-root-reveal tat-root-product-card group block overflow-hidden rounded-[1.25rem] bg-white shadow-[0_20px_60px_rgba(70,45,20,0.12)] md:rounded-[2rem] ${index === 0 ? 'xl:mt-16' : index === 2 ? 'xl:mt-8' : ''}`}>
-                                    <div className="aspect-square overflow-hidden bg-stone-200 md:aspect-[4/5]">
-                                        {image && <img src={image} alt={item.name} className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" loading="lazy" decoding="async" />}
+                                <a key={item.id || item.name} href={href} onClick={handleCardClick} className="tat-root-reveal tat-root-product-card group block p-2 bg-[#fdfbf7] rounded-[2.2rem] border border-[#e8dac1]/50 hover:border-[#8a531c]/32 shadow-[0_16px_40px_rgba(43,28,14,0.04),0_1px_2px_rgba(43,28,14,0.01)] hover:shadow-[0_30px_70px_rgba(43,28,14,0.12)] transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1.5">
+                                    <div className="aspect-square overflow-hidden rounded-[1.6rem] m-0.5 bg-stone-200 md:aspect-[4/5] relative ring-1 ring-inset ring-black/5">
+                                        {image && <img src={image} alt={item.name} className="h-full w-full object-cover" loading="lazy" decoding="async" />}
                                     </div>
-                                    <div className="p-4 md:p-6">
-                                        <p className="truncate text-[8px] font-black uppercase tracking-[0.16em] text-[#8a531c] md:text-[9px] md:tracking-[0.22em]">{item.material || 'Bois massif'}</p>
-                                        <h3 className="mt-2 line-clamp-2 font-serif text-xl leading-none tracking-[-0.035em] md:mt-3 md:text-3xl">{item.name}</h3>
-                                        <div className="mt-4 flex items-center justify-between gap-3 text-xs text-stone-500 md:mt-6 md:text-sm">
-                                            <span>{price || 'Pièce unique'}</span>
-                                            <ChevronRight className="transition-transform group-hover:translate-x-1" size={18} />
+                                    <div className="p-4 md:p-5 lg:p-6 flex flex-col justify-between">
+                                        <div>
+                                            <p className="truncate text-[8px] font-black uppercase tracking-[0.25em] text-[#8a531c] md:text-[9px] md:tracking-[0.28em]">{item.material || 'Bois massif'}</p>
+                                            <h3 className="mt-2.5 line-clamp-2 font-serif text-[clamp(1.2rem,1.55vw,1.6rem)] leading-tight tracking-[-0.02em] text-stone-950 min-h-[2.8rem]">{item.name}</h3>
+                                        </div>
+                                        <div className="mt-6 flex items-center justify-between border-t border-stone-100/60 pt-4 gap-3">
+                                            <span className="font-serif text-sm font-semibold text-stone-950 md:text-base">{price || 'Pièce unique'}</span>
+                                            <span className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-stone-50 border border-stone-200/50 flex items-center justify-center text-stone-600 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:bg-[#8a531c] group-hover:text-white group-hover:border-transparent">
+                                                <ChevronRight className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" size={16} />
+                                            </span>
                                         </div>
                                     </div>
                                 </a>
@@ -564,15 +571,15 @@ const RootLandingView = ({
                 </div>
             </section>
 
-            <section id="comptoir" className="px-5 py-28 md:px-10 md:py-44 xl:px-16">
-                <div className="mx-auto grid max-w-[1480px] gap-8 lg:grid-cols-12">
+            <section id="comptoir" className="px-5 py-16 md:px-10 md:py-24 xl:px-16">
+                <div className="mx-auto grid max-w-[1480px] gap-8 lg:grid-cols-12 lg:items-center">
                     <div className="tat-root-reveal lg:col-span-5">
                         <p className="text-[10px] font-black uppercase tracking-[0.34em] text-[#dba45f]">Le Comptoir</p>
-                        <h2 className="mt-5 font-serif text-[clamp(2.8rem,6vw,7rem)] leading-[0.9] tracking-[-0.05em]">Entretenir le bois après le coup de cœur.</h2>
-                        <p className="mt-7 max-w-xl text-lg leading-relaxed text-stone-300">Huiles, cires, savons, accessoires et gestes simples pour protéger une table ancienne, nourrir un buffet ou prolonger la vie d une planche en bois massif.</p>
-                        <a href="/comptoir" onClick={(event) => handleInternalNav(event, onOpenShop)} className="mt-9 inline-flex h-14 items-center justify-center gap-3 rounded-full bg-white px-7 text-[11px] font-black uppercase tracking-[0.22em] text-stone-950 transition-transform hover:scale-[1.02]">
+                        <h2 className="mt-4 font-serif text-[clamp(2rem,3.8vw,4rem)] leading-[0.95] tracking-[-0.04em]">Entretenir le bois après le coup de cœur.</h2>
+                        <p className="mt-4 max-w-xl text-sm leading-relaxed text-stone-300 md:text-base">Huiles, cires, savons, accessoires et gestes simples pour protéger une table ancienne, nourrir un buffet ou prolonger la vie d une planche en bois massif.</p>
+                        <a href="/comptoir" onClick={(event) => handleInternalNav(event, onOpenShop)} className="mt-6 inline-flex h-11 items-center justify-center gap-2.5 rounded-full bg-white px-6 text-[10px] font-black uppercase tracking-[0.2em] text-stone-950 transition-transform hover:scale-[1.02]">
                             Explorer le Comptoir
-                            <ShoppingBag size={16} />
+                            <ShoppingBag size={14} />
                         </a>
                     </div>
                     <div className="grid gap-4 md:grid-cols-3 lg:col-span-7 lg:items-stretch">
@@ -583,16 +590,22 @@ const RootLandingView = ({
                         ]).map((product, index) => {
                             const image = getShopImage(product);
                             return (
-                                <a key={product.id || product.name} href="/comptoir" onClick={(event) => handleInternalNav(event, onOpenShop)} className="tat-root-reveal tat-root-product-card group flex min-h-full flex-col overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.06] transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1">
-                                    <div className="aspect-[5/4] overflow-hidden bg-stone-900 md:aspect-[4/5]">
-                                        {image && <img src={image} alt={product.name} className="h-full w-full object-cover object-center opacity-90 transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-105" loading="lazy" decoding="async" />}
-                                    </div>
-                                    <div className="flex flex-1 flex-col p-5">
-                                        <h3 className="font-serif text-2xl leading-none tracking-[-0.03em] text-white">{product.detailDraft?.shortTitle || product.name}</h3>
-                                        <p className="mt-4 text-xs leading-relaxed text-stone-400">{product.brand || product.category || 'Sélection atelier'}</p>
-                                        <div className="mt-auto flex items-center justify-between pt-8 text-[9px] font-black uppercase tracking-[0.2em] text-[#dba45f]">
-                                            <span>Voir</span>
-                                            <ChevronRight className="transition-transform group-hover:translate-x-1" size={16} />
+                                <a key={product.id || product.name} href="/comptoir" onClick={(event) => handleInternalNav(event, onOpenShop)} className="tat-root-reveal tat-root-product-card group flex min-h-full flex-col p-2 bg-white/[0.02] rounded-[2.2rem] border border-white/5 hover:border-[#dba45f]/25 shadow-[0_16px_40px_rgba(0,0,0,0.3),0_1px_2px_rgba(255,255,255,0.01)] hover:shadow-[0_30px_70px_rgba(0,0,0,0.5)] transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1.5">
+                                    <div className="flex flex-1 flex-col bg-[#13100d]/90 rounded-[1.8rem] overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] border border-white/[0.03]">
+                                        <div className="aspect-[6/5] md:aspect-[1.1] overflow-hidden rounded-[1.5rem] m-0.5 relative ring-1 ring-inset ring-white/5 bg-stone-900">
+                                            {image && <img src={image} alt={product.name} className="h-full w-full object-cover object-center opacity-90" loading="lazy" decoding="async" />}
+                                        </div>
+                                        <div className="p-4 md:p-5 flex flex-1 flex-col justify-between">
+                                            <div>
+                                                <p className="truncate text-[8px] font-black uppercase tracking-[0.2em] text-[#dba45f]/80 md:text-[9px] md:tracking-[0.24em]">{product.brand || product.category || 'Sélection atelier'}</p>
+                                                <h3 className="mt-2 font-serif text-[clamp(1.15rem,1.4vw,1.45rem)] leading-tight tracking-[-0.02em] text-white min-h-[2.4rem] line-clamp-2">{product.detailDraft?.shortTitle || product.name}</h3>
+                                            </div>
+                                            <div className="mt-5 pt-3 border-t border-white/5 flex items-center justify-between gap-3">
+                                                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#dba45f]">Voir</span>
+                                                <span className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:bg-[#dba45f] group-hover:text-black group-hover:border-transparent">
+                                                    <ChevronRight className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" size={16} />
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </a>
