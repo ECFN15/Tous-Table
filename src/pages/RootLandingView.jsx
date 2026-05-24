@@ -494,7 +494,7 @@ const RootLandingView = ({
                 </div>
             </div>
 
-            <section className="relative min-h-[80svh] overflow-hidden px-5 pb-10 pt-28 md:px-10 md:pb-12 md:pt-32 xl:px-16">
+            <section className="relative min-h-[80svh] overflow-hidden px-5 pb-10 pt-36 md:px-10 md:pb-12 md:pt-44 xl:pt-48 xl:px-16">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_76%_18%,rgba(219,164,95,0.28),transparent_32%),radial-gradient(circle_at_14%_18%,rgba(255,255,255,0.08),transparent_24%),linear-gradient(180deg,#090806_0%,#17100a_54%,#090806_100%)]" />
                 <div className="absolute inset-0 opacity-[0.18] [background-image:linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:72px_72px]" />
                 <div className="relative mx-auto grid w-full max-w-[1560px] min-w-0 items-center gap-12 lg:grid-cols-12">
