@@ -628,10 +628,10 @@ const RootLandingView = ({
                 </div>
             </section>
 
-            <section id="comptoir" className="px-5 py-20 md:px-10 md:py-28 xl:px-16 overflow-hidden relative">
+            <section id="comptoir" className="px-5 py-18 md:px-10 md:py-22 xl:px-16 xl:py-24 overflow-hidden relative">
                 <div className="mx-auto max-w-[1480px]">
                     {/* Header Row */}
-                    <div className="tat-root-reveal mb-12 flex flex-col md:flex-row md:items-end md:justify-between gap-8">
+                    <div className="tat-root-reveal mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
                         <div className="max-w-4xl">
                             <p className="text-[10px] font-black uppercase tracking-[0.34em] text-[#dba45f]">Le Comptoir</p>
                             <h2 className="mt-4 font-serif text-[clamp(2.4rem,4.5vw,5rem)] leading-[0.92] tracking-[-0.05em] text-white">
@@ -678,10 +678,10 @@ const RootLandingView = ({
                                     key={product.id || product.name} 
                                     href="/comptoir" 
                                     onClick={(event) => handleInternalNav(event, onOpenShop)} 
-                                    className="tat-root-reveal tat-root-product-card group flex flex-col p-2 bg-white/[0.02] rounded-[2.2rem] border border-white/5 hover:border-[#dba45f]/25 shadow-[0_16px_40px_rgba(0,0,0,0.3)] hover:-translate-y-1.5 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] shrink-0 w-[280px] sm:w-[320px] md:w-[360px] snap-start"
+                                    className="tat-root-reveal tat-root-product-card group flex flex-col p-1.5 bg-white/[0.02] rounded-[1.8rem] border border-white/5 hover:border-[#dba45f]/25 shadow-[0_16px_40px_rgba(0,0,0,0.3)] hover:-translate-y-1.5 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] shrink-0 w-[210px] sm:w-[240px] md:w-[270px] snap-start"
                                 >
-                                    <div className="flex flex-1 flex-col bg-[#13100d]/90 rounded-[1.8rem] overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] border border-white/[0.03]">
-                                        <div className="aspect-[1.1] overflow-hidden rounded-[1.5rem] m-0.5 relative ring-1 ring-inset ring-white/5 bg-[#e8d9c6] flex items-center justify-center p-3">
+                                    <div className="flex flex-1 flex-col bg-[#13100d]/90 rounded-[1.5rem] overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] border border-white/[0.03]">
+                                        <div className="aspect-[1.1] overflow-hidden rounded-[1.2rem] m-0.5 relative ring-1 ring-inset ring-white/5 bg-[#e8d9c6] flex items-center justify-center p-2.5">
                                             {image && (
                                                 <img 
                                                     src={image} 
@@ -696,16 +696,16 @@ const RootLandingView = ({
                                                 {getFamilyLabel(product.family)}
                                             </span>
                                         </div>
-                                        <div className="p-4 md:p-5 flex flex-1 flex-col justify-between">
+                                        <div className="p-3 md:p-3.5 flex flex-1 flex-col justify-between">
                                             <div>
                                                 <p className="truncate text-[8px] font-black uppercase tracking-[0.2em] text-[#dba45f]/80 md:text-[9px] md:tracking-[0.24em]">
                                                     {product.brand || 'Sélection atelier'}
                                                 </p>
-                                                <h3 className="mt-2 font-serif text-[clamp(1.15rem,1.4vw,1.45rem)] leading-tight tracking-[-0.02em] text-white min-h-[2.4rem] line-clamp-2">
+                                                <h3 className="mt-1.5 font-serif text-[clamp(0.96rem,1.1vw,1.14rem)] leading-tight tracking-[-0.02em] text-white min-h-[2rem] line-clamp-2">
                                                     {product.detailDraft?.shortTitle || product.name}
                                                 </h3>
                                             </div>
-                                            <div className="mt-5 pt-3 border-t border-white/5 flex items-center justify-between gap-3">
+                                            <div className="mt-3.5 pt-2 border-t border-white/5 flex items-center justify-between gap-2.5">
                                                 <span className="text-sm md:text-[15px] font-serif font-bold text-stone-200">
                                                     {product.currentPrice ? (typeof product.currentPrice === 'number' || !isNaN(product.currentPrice) ? `${Number(product.currentPrice).toFixed(2).replace('.', ',')} €` : `${product.currentPrice} €`) : 'Voir prix'}
                                                 </span>
