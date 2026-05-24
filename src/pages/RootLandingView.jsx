@@ -2,7 +2,7 @@ import React, { useMemo, useRef } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ArrowRight, MapPin, Hammer, ShoppingBag, Truck, ChevronRight } from 'lucide-react';
+import { ArrowRight, MapPin, Hammer, ShoppingBag, Truck, ChevronRight, ChevronLeft } from 'lucide-react';
 import SEO from '../components/shared/SEO';
 import { SITE_URL, getProductPath } from '../utils/seoRoutes';
 
@@ -182,6 +182,63 @@ const RootLandingView = ({
     onSelectItem,
 }) => {
     const rootRef = useRef(null);
+    const comptoirScrollRef = useRef(null);
+    const handleComptoirScroll = (direction) => {
+        if (comptoirScrollRef.current) {
+            const { scrollLeft, clientWidth } = comptoirScrollRef.current;
+            const scrollAmount = clientWidth * 0.75;
+            const scrollTo = direction === 'left' ? scrollLeft - scrollAmount : scrollLeft + scrollAmount;
+            comptoirScrollRef.current.scrollTo({ left: scrollTo, behavior: 'smooth' });
+        }
+    };
+
+    const getFamilyLabel = (family) => {
+        switch (family) {
+            case 'huiles': return 'Protection Profonde';
+            case 'cires': return 'Patine & Finition';
+            case 'savons': return 'Le Geste Quotidien';
+            case 'accessoires': return "L'Essentiel du Quotidien";
+            default: return 'Sélection Atelier';
+        }
+    };
+
+    const carouselProducts = useMemo(() => {
+        const categories = [
+            { family: 'huiles', count: 2, defaultName: ['Rubio Monocoat Oil Plus 2C', 'Osmo Polyx-Oil 3032 MAT'], defaultBrand: ['Rubio Monocoat', 'Osmo'], defaultPrice: [38, 29], defaultImg: ['https://images.unsplash.com/photo-1617897903246-719242758050?auto=format&fit=crop&w=600&q=80', 'https://images.unsplash.com/photo-1541532713592-79a0317b6b77?auto=format&fit=crop&w=600&q=80'] },
+            { family: 'cires', count: 2, defaultName: ['Cire Black Bison Liberon', 'Rust-Oleum Chalky Finish'], defaultBrand: ['Liberon', 'Rust-Oleum'], defaultPrice: [18, 22], defaultImg: ['https://images.unsplash.com/photo-1601612628452-9e99ced43524?auto=format&fit=crop&w=600&q=80', 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&w=600&q=80'] },
+            { family: 'savons', count: 2, defaultName: ['Osmo Wash & Care 8016', 'Savon Doux pour Bois Liberon'], defaultBrand: ['Osmo', 'Liberon'], defaultPrice: [19, 15], defaultImg: ['https://images.unsplash.com/photo-1558403135-c144da5373ab?auto=format&fit=crop&w=600&q=80', 'https://images.unsplash.com/photo-1607006342411-1a90d7968b31?auto=format&fit=crop&w=600&q=80'] },
+            { family: 'accessoires', count: 2, defaultName: ['Pinceau Plat "Le Spalter"', 'Bahco 474 Racloir d\'%bǸniste'], defaultBrand: ['Liberon', 'Bahco'], defaultPrice: [12, 14], defaultImg: ['https://images.unsplash.com/photo-1520408222757-6f9f95d87d5d?auto=format&fit=crop&w=600&q=80', 'https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=600&q=80'] }
+        ];
+
+        let result = [];
+        categories.forEach((cat) => {
+            const dbProducts = affiliateProducts
+                .filter(p => p.category === cat.family && p.status === 'published')
+                .slice(0, cat.count)
+                .map(p => ({
+                    ...p,
+                    family: p.category,
+                    currentPrice: p.price
+                }));
+            result.push(...dbProducts);
+            
+            // Fill with fallbacks if database lacks items
+            const remaining = cat.count - dbProducts.length;
+            for (let i = 0; i < remaining; i++) {
+                const index = dbProducts.length + i;
+                result.push({
+                    id: `fallback-${cat.family}-${index}`,
+                    name: cat.defaultName[index],
+                    brand: cat.defaultBrand[index],
+                    family: cat.family,
+                    imageUrl: cat.defaultImg[index],
+                    currentPrice: cat.defaultPrice[index],
+                    detailDraft: { shortTitle: cat.defaultName[index].split(' (')[0] }
+                });
+            }
+        });
+        return result;
+    }, [affiliateProducts]);
 
     const featuredItems = useMemo(() => items
         .filter((item) => item.status === 'published' && item.auctionActive !== true && !item.sold)
@@ -571,37 +628,87 @@ const RootLandingView = ({
                 </div>
             </section>
 
-            <section id="comptoir" className="px-5 py-16 md:px-10 md:py-24 xl:px-16">
-                <div className="mx-auto grid max-w-[1480px] gap-8 lg:grid-cols-12 lg:items-center">
-                    <div className="tat-root-reveal lg:col-span-5">
-                        <p className="text-[10px] font-black uppercase tracking-[0.34em] text-[#dba45f]">Le Comptoir</p>
-                        <h2 className="mt-4 font-serif text-[clamp(2rem,3.8vw,4rem)] leading-[0.95] tracking-[-0.04em]">Entretenir le bois après le coup de cœur.</h2>
-                        <p className="mt-4 max-w-xl text-sm leading-relaxed text-stone-300 md:text-base">Huiles, cires, savons, accessoires et gestes simples pour protéger une table ancienne, nourrir un buffet ou prolonger la vie d une planche en bois massif.</p>
-                        <a href="/comptoir" onClick={(event) => handleInternalNav(event, onOpenShop)} className="mt-6 inline-flex h-11 items-center justify-center gap-2.5 rounded-full bg-white px-6 text-[10px] font-black uppercase tracking-[0.2em] text-stone-950 transition-transform hover:scale-[1.02]">
-                            Explorer le Comptoir
-                            <ShoppingBag size={14} />
-                        </a>
+            <section id="comptoir" className="px-5 py-20 md:px-10 md:py-28 xl:px-16 overflow-hidden relative">
+                <div className="mx-auto max-w-[1480px]">
+                    {/* Header Row */}
+                    <div className="tat-root-reveal mb-12 flex flex-col md:flex-row md:items-end md:justify-between gap-8">
+                        <div className="max-w-4xl">
+                            <p className="text-[10px] font-black uppercase tracking-[0.34em] text-[#dba45f]">Le Comptoir</p>
+                            <h2 className="mt-4 font-serif text-[clamp(2.4rem,4.5vw,5rem)] leading-[0.92] tracking-[-0.05em] text-white">
+                                Entretenir le bois après le coup de cœur.
+                            </h2>
+                            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-stone-300 md:text-base">
+                                Huiles, cires, savons, accessoires et gestes simples pour protéger une table ancienne, nourrir un buffet ou prolonger la vie d'une planche en bois massif.
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-4 shrink-0">
+                            <a href="/comptoir" onClick={(event) => handleInternalNav(event, onOpenShop)} className="inline-flex h-11 items-center justify-center gap-2.5 rounded-full border border-white/10 bg-white/5 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-white transition-transform hover:scale-[1.02] active:scale-[0.98]">
+                                Tout voir
+                                <ShoppingBag size={14} />
+                            </a>
+                            <div className="flex items-center gap-2">
+                                <button 
+                                    onClick={() => handleComptoirScroll('left')}
+                                    className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white transition-all hover:bg-white/10 active:scale-95"
+                                    aria-label="Précédent"
+                                >
+                                    <ChevronLeft size={18} />
+                                </button>
+                                <button 
+                                    onClick={() => handleComptoirScroll('right')}
+                                    className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white transition-all hover:bg-white/10 active:scale-95"
+                                    aria-label="Suivant"
+                                >
+                                    <ChevronRight size={18} />
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <div className="grid gap-4 md:grid-cols-3 lg:col-span-7 lg:items-stretch">
-                        {(shopHighlights.length > 0 ? shopHighlights : [
-                            { id: 'care-1', name: 'Huiles pour bois massif', imageUrl: '/images/gallery/hero-planches-2026-960.webp' },
-                            { id: 'care-2', name: 'Cires et savons doux', imageUrl: '/images/gallery/hero-planches-2026-1440.webp' },
-                            { id: 'care-3', name: 'Accessoires d atelier', imageUrl: '/images/gallery/hero-planches-2026-1672.webp' },
-                        ]).map((product, index) => {
+
+                    {/* Carousel Container */}
+                    <div 
+                        ref={comptoirScrollRef}
+                        className="flex gap-5 md:gap-6 overflow-x-auto scrollbar-none snap-x snap-mandatory pb-4 w-full cursor-grab active:cursor-grabbing"
+                        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                    >
+                        {carouselProducts.map((product, index) => {
                             const image = getShopImage(product);
                             return (
-                                <a key={product.id || product.name} href="/comptoir" onClick={(event) => handleInternalNav(event, onOpenShop)} className="tat-root-reveal tat-root-product-card group flex min-h-full flex-col p-2 bg-white/[0.02] rounded-[2.2rem] border border-white/5 hover:border-[#dba45f]/25 shadow-[0_16px_40px_rgba(0,0,0,0.3),0_1px_2px_rgba(255,255,255,0.01)] hover:shadow-[0_30px_70px_rgba(0,0,0,0.5)] transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1.5">
+                                <a 
+                                    key={product.id || product.name} 
+                                    href="/comptoir" 
+                                    onClick={(event) => handleInternalNav(event, onOpenShop)} 
+                                    className="tat-root-reveal tat-root-product-card group flex flex-col p-2 bg-white/[0.02] rounded-[2.2rem] border border-white/5 hover:border-[#dba45f]/25 shadow-[0_16px_40px_rgba(0,0,0,0.3)] hover:-translate-y-1.5 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] shrink-0 w-[280px] sm:w-[320px] md:w-[360px] snap-start"
+                                >
                                     <div className="flex flex-1 flex-col bg-[#13100d]/90 rounded-[1.8rem] overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] border border-white/[0.03]">
-                                        <div className="aspect-[6/5] md:aspect-[1.1] overflow-hidden rounded-[1.5rem] m-0.5 relative ring-1 ring-inset ring-white/5 bg-stone-900">
-                                            {image && <img src={image} alt={product.name} className="h-full w-full object-cover object-center opacity-90" loading="lazy" decoding="async" />}
+                                        <div className="aspect-[1.1] overflow-hidden rounded-[1.5rem] m-0.5 relative ring-1 ring-inset ring-white/5 bg-[#e8d9c6] flex items-center justify-center p-3">
+                                            {image && (
+                                                <img 
+                                                    src={image} 
+                                                    alt={product.name} 
+                                                    className="w-full h-full object-contain mix-blend-multiply opacity-95 transition-opacity" 
+                                                    loading="lazy" 
+                                                    decoding="async" 
+                                                />
+                                            )}
+                                            {/* Category Tag overlay on image top-right */}
+                                            <span className="absolute top-3 right-3 rounded-full bg-black/60 border border-white/10 px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.12em] text-[#dba45f] backdrop-blur-md">
+                                                {getFamilyLabel(product.family)}
+                                            </span>
                                         </div>
                                         <div className="p-4 md:p-5 flex flex-1 flex-col justify-between">
                                             <div>
-                                                <p className="truncate text-[8px] font-black uppercase tracking-[0.2em] text-[#dba45f]/80 md:text-[9px] md:tracking-[0.24em]">{product.brand || product.category || 'Sélection atelier'}</p>
-                                                <h3 className="mt-2 font-serif text-[clamp(1.15rem,1.4vw,1.45rem)] leading-tight tracking-[-0.02em] text-white min-h-[2.4rem] line-clamp-2">{product.detailDraft?.shortTitle || product.name}</h3>
+                                                <p className="truncate text-[8px] font-black uppercase tracking-[0.2em] text-[#dba45f]/80 md:text-[9px] md:tracking-[0.24em]">
+                                                    {product.brand || 'Sélection atelier'}
+                                                </p>
+                                                <h3 className="mt-2 font-serif text-[clamp(1.15rem,1.4vw,1.45rem)] leading-tight tracking-[-0.02em] text-white min-h-[2.4rem] line-clamp-2">
+                                                    {product.detailDraft?.shortTitle || product.name}
+                                                </h3>
                                             </div>
                                             <div className="mt-5 pt-3 border-t border-white/5 flex items-center justify-between gap-3">
-                                                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#dba45f]">Voir</span>
+                                                <span className="text-sm md:text-[15px] font-serif font-bold text-stone-200">
+                                                    {product.currentPrice ? (typeof product.currentPrice === 'number' || !isNaN(product.currentPrice) ? `${Number(product.currentPrice).toFixed(2).replace('.', ',')} €` : `${product.currentPrice} €`) : 'Voir prix'}
+                                                </span>
                                                 <span className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:bg-[#dba45f] group-hover:text-black group-hover:border-transparent">
                                                     <ChevronRight className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" size={16} />
                                                 </span>
