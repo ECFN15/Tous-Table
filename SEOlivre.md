@@ -2570,3 +2570,32 @@ Tests :
 - `npm run build` : OK apres relance hors sandbox Windows approuvee.
 - `git diff --check` : OK ; avertissements CRLF Windows uniquement.
 - Captures Edge headless sur `/` desktop/mobile et `/meubles-anciens` mobile.
+
+### Micro-ajustements metas/schema landing racine - 25 mai 2026
+
+Objectif :
+
+- Rendre le title SEO de `/` plus court dans les SERP et harmoniser le schema LocalBusiness statique avec le schema React.
+
+Changements :
+
+- `src/components/shared/SEO.jsx` : ajout d une option `appendSiteTitle` pour permettre un title exact sur les pages qui le demandent, sans changer le comportement par defaut des autres pages.
+- `src/pages/RootLandingView.jsx` : title de `/` passe a `Meubles anciens à Caen | Showroom à Ifs` sans suffixe automatique.
+- `index.html` : title statique et `og:title` alignes en ASCII sur `Meubles anciens a Caen | Showroom a Ifs`.
+- `index.html` : `priceRange` du schema statique passe a `EUR 100 - EUR 3000`, comme le schema React.
+- `functions/src/seo/seoTools.js` : meta de partage racine alignee sur le nouveau title court.
+- `scripts/verify-seo-roadmap.mjs` : attente du title racine mise a jour pour garder le gate SEO coherent.
+
+Impact SEO :
+
+- Signal title plus concis pour la page locale Ifs / Caen.
+- Moins d incoherence entre les schemas LocalBusiness statique et React.
+
+Risque UI :
+
+- Nul : aucune structure visuelle modifiee.
+
+Tests :
+
+- `npm run verify:seo-roadmap` : OK, 25 checks.
+- `npm run build` : OK avec warnings non bloquants existants CSS/chunks Vite.

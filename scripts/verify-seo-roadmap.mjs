@@ -120,7 +120,7 @@ includesAll('root landing and meubles collection have distinct meta copy', [
   read('src/pages/RootLandingView.jsx'),
   read('src/pages/GalleryView.jsx'),
 ].join('\n'), [
-  'title="Meubles anciens à Caen - Showroom à Ifs"',
+  'title="Meubles anciens à Caen | Showroom à Ifs"',
   'title: \'Meubles Anciens a Vendre\'',
   'url="/"',
 ]);

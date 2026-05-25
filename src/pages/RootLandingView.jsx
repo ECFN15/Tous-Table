@@ -461,10 +461,11 @@ const RootLandingView = ({
     return (
         <main ref={rootRef} className="w-full max-w-full overflow-x-hidden bg-[#090806] text-[#fff8ec] selection:bg-[#dba45f] selection:text-black">
             <SEO
-                title="Meubles anciens à Caen - Showroom à Ifs"
+                title="Meubles anciens à Caen | Showroom à Ifs"
                 description="Showroom local à Ifs près de Caen : meubles anciens restaurés, tables de ferme, buffets, armoires, commodes, planches anciennes et produits d entretien bois. Livraison Normandie et France."
                 url="/"
                 schema={rootSchema}
+                appendSiteTitle={false}
             />
 
                         <div className="fixed left-1/2 top-4 z-[120] w-[calc(100%-2rem)] max-w-6xl -translate-x-1/2 md:top-6" style={{ pointerEvents: 'none' }}>

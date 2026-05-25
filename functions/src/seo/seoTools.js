@@ -28,7 +28,7 @@ const CATEGORY_URLS = [
 
 const ROUTE_SHARE_META = {
     '/': {
-        title: 'Meubles anciens a Caen - Showroom a Ifs',
+        title: 'Meubles anciens a Caen | Showroom a Ifs',
         desc: 'Showroom local a Ifs pres de Caen : meubles anciens restaures, tables de ferme, buffets, armoires, commodes, planches anciennes et produits d entretien bois.',
     },
     '/meubles-anciens': {
