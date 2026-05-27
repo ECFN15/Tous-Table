@@ -117,10 +117,15 @@ includesAll('meubles collection has distinct visible SEO intro', read('src/data/
 ]);
 
 includesAll('root landing and meubles collection have distinct meta copy', [
+  read('index.html'),
+  read('functions/src/seo/seoTools.js'),
   read('src/pages/RootLandingView.jsx'),
   read('src/pages/GalleryView.jsx'),
+  read('src/utils/homeSEOSettings.js'),
 ].join('\n'), [
-  'title="Meubles anciens à Caen | Showroom à Ifs"',
+  'Meubles anciens Made in Normandie | Showroom à Ifs',
+  'title={homeSEO.heroTitle}',
+  "heroTitle: 'Meubles anciens restaurés en Normandie.'",
   'title: \'Meubles Anciens a Vendre\'',
   'url="/"',
 ]);

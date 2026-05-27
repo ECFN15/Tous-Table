@@ -2599,3 +2599,111 @@ Tests :
 
 - `npm run verify:seo-roadmap` : OK, 25 checks.
 - `npm run build` : OK avec warnings non bloquants existants CSS/chunks Vite.
+
+### Alignement HomeSEO premier rendu - 26 mai 2026
+
+Objectif :
+
+- Eviter que Google Search Console capture l ancien H1 HomeSEO par defaut avant le chargement Firestore des reglages admin.
+
+Changements :
+
+- `src/utils/homeSEOSettings.js` : fallback `heroTitle` aligne sur `Meubles anciens restaures en Normandie.`.
+- `src/pages/RootLandingView.jsx` : le title SEO React, la meta description et le schema `WebPage` utilisent maintenant `homeSEO.heroTitle` et `homeSEO.heroDescription`.
+
+Impact SEO :
+
+- Le premier rendu d un visiteur sans cache local, dont Googlebot, est plus proche de la version admin attendue.
+- Les metas React et le schema suivent mieux la landing pilotee par HomeSEO.
+
+Risque UI :
+
+- Faible : changement limite au H1 de fallback, aux metas React et au schema.
+- Aucun changement galerie, filtres meubles/planches ou Firestore prod.
+
+Tests :
+
+- `npm run verify:seo-roadmap` : OK, 25 checks.
+- `npm run build` : OK apres relance hors sandbox Windows approuvee ; warnings non bloquants existants CSS/chunks Vite.
+
+### Deploy prod SEO title/description - 27 mai 2026
+
+Objectif :
+
+- Publier en production le title Google racine, la description accentuee, `shareMeta` et `sitemap`.
+
+Changements deployes :
+
+- Hosting Firebase prod : `dist/index.html` publie avec `Meubles anciens Made in Normandie | Showroom à Ifs`.
+- Function `shareMeta` : titles/descriptions SEO publics deployes.
+- Function `sitemap` : sitemap public redeploye.
+
+Verification publique apres deploy :
+
+- HTML public `/` : title OK, `Meubles anciens Made in Normandie | Showroom à Ifs`.
+- HTML public `/` : meta description OK, `Showroom local à Ifs près de Caen : meubles anciens restaurés, tables de ferme, buffets, armoires, commodes, planches à découper et produits d'entretien bois. Livraison Normandie et France.`
+- `npm run audit:public-seo` : OK, 32 checks.
+- `npm run audit:functions-env -- --project=tousatable-client` : OK, audit compte uniquement, aucun secret affiche.
+
+Preflight :
+
+- `npm run preflight:prod` : OK avant deploy.
+
+Note Search Console :
+
+- Google peut garder l'ancien resultat visible tant que la page n'a pas ete recrawlee et retraitee. Utiliser Inspection de l'URL > Tester l'URL en ligne > Demander une indexation sur `https://tousatable-madeinnormandie.fr/`.
+
+### Correction accents descriptions SEO - 27 mai 2026
+
+Objectif :
+
+- Corriger les accents dans les textes SEO publics et remplacer `planches anciennes` par `planches à découper` dans la description racine.
+
+Changements :
+
+- `index.html` : meta description, descriptions Open Graph/Twitter, keywords et schema statique corriges avec accents.
+- `functions/src/seo/seoTools.js` : titles/descriptions `shareMeta` corriges avec accents sur les routes publiques.
+- `src/utils/homeSEOSettings.js` : fallbacks HomeSEO visibles corriges avec accents.
+- `scripts/verify-seo-roadmap.mjs` : attente du fallback HomeSEO mise a jour.
+
+Impact SEO :
+
+- Le snippet cible de `/` devient : `Showroom local à Ifs près de Caen : meubles anciens restaurés, tables de ferme, buffets, armoires, commodes, planches à découper et produits d'entretien bois.`
+- Les apercus sociaux et les metas statiques ne diffusent plus les versions sans accents.
+
+Risque UI :
+
+- Faible : changements textuels uniquement.
+
+Tests :
+
+- `npm run verify:seo-roadmap` : OK, 25 checks.
+- `npm run verify:functions-syntax` : OK.
+- `node --check functions/src/seo/seoTools.js` : OK.
+- `npm run build` : OK apres relance hors sandbox Windows approuvee ; warnings non bloquants existants CSS/chunks Vite.
+
+### Alignement title Google racine - 27 mai 2026
+
+Objectif :
+
+- Aligner le title statique que Google lit en premier sur le libelle souhaite pour le resultat de recherche.
+
+Changements :
+
+- `index.html` : title et `og:title` de `/` passent a `Meubles anciens Made in Normandie | Showroom à Ifs`.
+- `functions/src/seo/seoTools.js` : title `shareMeta` de `/` aligne sur le meme libelle.
+- `scripts/verify-seo-roadmap.mjs` : le gate SEO verifie maintenant ce title statique.
+
+Impact SEO :
+
+- Le signal title principal de la home n est plus `Meubles anciens a Caen | Showroom a Ifs`.
+- Google devra recrawler puis retraiter la page apres deploy pour que le resultat visible change.
+
+Risque UI :
+
+- Nul : aucune structure visuelle modifiee.
+
+Tests :
+
+- `npm run verify:seo-roadmap` : OK, 25 checks.
+- `npm run build` : OK apres relance hors sandbox Windows approuvee ; warnings non bloquants existants CSS/chunks Vite.

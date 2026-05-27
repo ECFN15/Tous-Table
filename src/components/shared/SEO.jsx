@@ -11,8 +11,8 @@ const SEO = ({
     robots = 'index,follow,max-image-preview:large',
     appendSiteTitle = true,
 }) => {
-    const siteTitle = 'Tous a Table Made in Normandie';
-    const defaultDescription = "Atelier de restauration de mobilier a Ifs pres de Caen. Vente de meubles anciens restaures en bois massif : tables de ferme, armoires, buffets, commodes et planches anciennes. Livraison locale, France et pays frontaliers.";
+    const siteTitle = 'Tous à Table Made in Normandie';
+    const defaultDescription = "Atelier de restauration de mobilier à Ifs près de Caen. Vente de meubles anciens restaurés en bois massif : tables de ferme, armoires, buffets, commodes et planches anciennes. Livraison locale, France et pays frontaliers.";
     const defaultImage = 'https://firebasestorage.googleapis.com/v0/b/tousatable-client.appspot.com/o/sys_assets%2Fog_cover.jpg?alt=media';
     const siteUrl = 'https://tousatable-madeinnormandie.fr';
 

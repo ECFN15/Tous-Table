@@ -98,21 +98,22 @@ const projectPoint = (lon, lat) => {
 };
 
 const FRANCE_MAINLAND_LONLAT = [
-    [2.55, 51.09], [1.75, 50.96], [1.28, 50.72], [1.06, 50.36],
-    [0.12, 49.52], [-0.72, 49.36], [-1.26, 49.68], [-1.95, 49.72],
-    [-1.88, 49.36], [-2.55, 49.20], [-3.08, 48.84], [-4.34, 48.68],
-    [-4.78, 48.39], [-4.78, 48.04], [-4.47, 47.78], [-3.86, 47.70],
-    [-3.18, 47.84], [-2.42, 47.52], [-2.05, 47.28], [-2.23, 46.86],
-    [-1.63, 46.35], [-1.20, 45.75], [-1.13, 45.28], [-1.44, 44.66],
-    [-1.22, 44.10], [-1.66, 43.39], [-0.76, 43.30], [0.18, 42.86],
-    [1.44, 42.62], [2.16, 42.43], [2.95, 42.35], [3.18, 42.84],
-    [3.02, 43.24], [3.78, 43.37], [4.35, 43.51], [4.78, 43.36],
-    [5.38, 43.25], [5.98, 43.08], [6.73, 43.14], [7.53, 43.78],
-    [7.16, 44.17], [6.98, 44.74], [6.80, 45.18], [7.05, 45.74],
-    [6.64, 45.94], [6.10, 46.24], [6.14, 46.67], [6.82, 47.43],
-    [7.50, 47.78], [7.80, 48.58], [7.36, 49.11], [6.90, 49.16],
-    [6.38, 49.45], [5.88, 49.53], [5.48, 49.50], [4.84, 50.16],
-    [4.14, 49.98], [3.63, 50.38], [3.07, 50.78],
+    [2.53, 51.10], [1.65, 50.96], [1.20, 50.74], [1.02, 50.34],
+    [0.36, 49.76], [-0.45, 49.36], [-1.12, 49.64], [-1.84, 49.72],
+    [-1.94, 49.42], [-1.46, 48.98], [-2.10, 48.72], [-2.95, 48.86],
+    [-3.45, 48.62], [-4.76, 48.54], [-5.12, 48.32], [-4.70, 47.96],
+    [-4.22, 47.84], [-3.54, 47.74], [-3.05, 47.90], [-2.36, 47.56],
+    [-1.78, 47.22], [-2.20, 46.78], [-1.52, 46.22], [-1.14, 45.66],
+    [-1.02, 45.16], [-1.32, 44.62], [-1.16, 43.98], [-1.78, 43.37],
+    [-0.78, 43.28], [0.24, 42.86], [1.20, 42.66], [2.08, 42.40],
+    [2.72, 42.35], [3.05, 42.46], [3.18, 42.86], [3.00, 43.24],
+    [3.72, 43.36], [4.36, 43.50], [4.90, 43.34], [5.52, 43.20],
+    [6.18, 43.06], [6.78, 43.18], [7.52, 43.78], [7.32, 44.14],
+    [7.02, 44.56], [6.84, 45.08], [7.04, 45.62], [6.68, 45.94],
+    [6.12, 46.22], [6.10, 46.66], [6.72, 47.30], [7.50, 47.80],
+    [7.72, 48.44], [7.34, 49.04], [6.76, 49.16], [6.24, 49.46],
+    [5.78, 49.54], [5.36, 49.48], [4.92, 49.84], [4.30, 50.16],
+    [3.66, 50.34], [3.08, 50.72],
 ];
 
 const CORSICA_LONLAT = [
@@ -137,26 +138,27 @@ const CORSICA_OUTLINE_PATH = `M${CORSICA_POLYGON.map(([x, y]) => `${x} ${y}`).jo
 const IFS_COORD = projectPoint(-0.35, 49.14);
 
 const DELIVERY_CITIES = [
-    { name: 'IFS', ...IFS_COORD, r: 8.4, labelDx: 15, labelDy: -8, anchor: 'start', main: true },
-    { name: 'PARIS', ...projectPoint(2.35, 48.86), r: 6.8, labelDx: 12, labelDy: 14, anchor: 'start', main: true },
-    { name: 'BORDEAUX', ...projectPoint(-0.58, 44.84), r: 6.2, labelDx: -12, labelDy: 18, anchor: 'end', main: true },
-    { name: 'LYON', ...projectPoint(4.83, 45.76), r: 6.4, labelDx: 12, labelDy: 4, anchor: 'start', main: true },
-    { name: 'MARSEILLE', ...projectPoint(5.37, 43.30), r: 5.8, labelDx: -12, labelDy: 18, anchor: 'end', main: true },
+    { name: 'IFS', ...IFS_COORD, r: 6.6, labelDx: 13, labelDy: -9, anchor: 'start', main: true },
+    { name: 'PARIS', ...projectPoint(2.35, 48.86), r: 5.9, labelDx: 11, labelDy: 14, anchor: 'start', main: true },
+    { name: 'BORDEAUX', ...projectPoint(-0.58, 44.84), r: 5.5, labelDx: -11, labelDy: 17, anchor: 'end', main: true },
+    { name: 'LYON', ...projectPoint(4.83, 45.76), r: 5.7, labelDx: 11, labelDy: 4, anchor: 'start', main: true },
+    { name: 'MARSEILLE', ...projectPoint(5.37, 43.30), r: 5.4, labelDx: -8, labelDy: 20, anchor: 'end', main: true },
     { name: 'LILLE', ...projectPoint(3.06, 50.63), r: 4.3, labelDx: 9, labelDy: -12, anchor: 'start' },
-    { name: 'NANTES', ...projectPoint(-1.55, 47.22), r: 4.7, labelDx: -10, labelDy: -10, anchor: 'end' },
-    { name: 'TOULOUSE', ...projectPoint(1.44, 43.60), r: 5.1, labelDx: 12, labelDy: 17, anchor: 'start' },
-    { name: 'STRASBOURG', ...projectPoint(7.75, 48.58), r: 4.7, labelDx: 12, labelDy: -8, anchor: 'start' },
-    { name: 'RENNES', ...projectPoint(-1.68, 48.12), r: 4.1, labelDx: -10, labelDy: -10, anchor: 'end' },
+    { name: 'NANTES', ...projectPoint(-1.55, 47.22), r: 4.7, labelDx: -11, labelDy: -12, anchor: 'end' },
+    { name: 'TOULOUSE', ...projectPoint(1.44, 43.60), r: 5.1, labelDx: 11, labelDy: 13, anchor: 'start' },
+    { name: 'STRASBOURG', ...projectPoint(7.75, 48.58), r: 4.7, labelDx: 10, labelDy: -7, anchor: 'start' },
+    { name: 'RENNES', ...projectPoint(-1.68, 48.12), r: 4.1, labelDx: -12, labelDy: -7, anchor: 'end' },
+    { name: 'BRETAGNE', ...projectPoint(-4.15, 48.20), r: 3.6, labelDx: -8, labelDy: -7, anchor: 'end', subtle: true },
     { name: 'NICE', ...projectPoint(7.26, 43.71), r: 4.4, labelDx: 12, labelDy: 4, anchor: 'start' },
 ];
 
 const COUNTRY_LABELS = [
-    { label: 'BELGIQUE / LUX.', ...projectPoint(4.98, 50.72) },
-    { label: 'ALLEMAGNE', ...projectPoint(8.25, 48.95) },
-    { label: 'SUISSE', ...projectPoint(7.42, 46.33) },
-    { label: 'ITALIE', ...projectPoint(8.1, 42.42) },
-    { label: 'ESPAGNE', ...projectPoint(-1.65, 41.74) },
-    { label: 'FRANCE ENTIERE', ...projectPoint(2.0, 42.0), strong: true },
+    { label: 'BELGIQUE / LUX.', ...projectPoint(4.86, 50.82) },
+    { label: 'ALLEMAGNE', ...projectPoint(8.62, 49.10) },
+    { label: 'SUISSE', ...projectPoint(7.60, 46.48) },
+    { label: 'ITALIE', ...projectPoint(8.25, 42.42) },
+    { label: 'ESPAGNE', ...projectPoint(-1.78, 41.66) },
+    { label: 'FRANCE ENTIERE', ...projectPoint(2.0, 41.72), strong: true },
 ];
 
 const seededNoise = (seed) => {
@@ -283,9 +285,9 @@ const routeTo = ({ x, y }, lift = 0) => {
 
 const DELIVERY_ROUTES = DELIVERY_CITIES
     .filter((city) => city.name !== 'IFS')
-    .filter((city) => ['PARIS', 'BORDEAUX', 'LYON', 'MARSEILLE', 'LILLE', 'NANTES', 'TOULOUSE', 'STRASBOURG'].includes(city.name))
+    .filter((city) => ['PARIS', 'BORDEAUX', 'LYON', 'MARSEILLE', 'LILLE', 'NANTES', 'TOULOUSE', 'STRASBOURG', 'BRETAGNE'].includes(city.name))
     .map((city, index) => ({
-        d: routeTo(city, index % 2 === 0 ? 10 : -8),
+        d: routeTo(city, city.name === 'BRETAGNE' ? -28 : (index % 2 === 0 ? 10 : -8)),
         label: city.name,
     }));
 
@@ -379,9 +381,9 @@ const DeliveryParticleMap = ({ darkMode, shell, core, muted }) => {
                                     className={`${country.strong ? '' : 'hidden sm:block'} ${country.strong
                                         ? (darkMode ? 'fill-stone-400' : 'fill-stone-600')
                                         : (darkMode ? 'fill-stone-500' : 'fill-stone-500')}`}
-                                    fontSize={country.strong ? 15 : 12}
+                                    fontSize={country.strong ? 13 : 10}
                                     fontWeight={country.strong ? 900 : 800}
-                                    letterSpacing={country.strong ? 4 : 3}
+                                    letterSpacing={country.strong ? 3.4 : 2.6}
                             >
                                 {country.label}
                             </text>
@@ -389,16 +391,26 @@ const DeliveryParticleMap = ({ darkMode, shell, core, muted }) => {
 
                             <path
                                 d={FRANCE_OUTLINE_PATH}
+                                fill={darkMode ? 'rgba(240,185,105,0.025)' : 'rgba(111,67,29,0.035)'}
+                                stroke="none"
+                            />
+                            <path
+                                d={FRANCE_OUTLINE_PATH}
                                 fill="none"
-                                stroke={darkMode ? 'rgba(245,213,159,0.22)' : 'rgba(111,67,29,0.22)'}
-                                strokeWidth="1.2"
+                                stroke={darkMode ? 'rgba(245,213,159,0.28)' : 'rgba(111,67,29,0.26)'}
+                                strokeWidth="1"
                                 strokeLinejoin="round"
                             />
                             <path
                                 d={CORSICA_OUTLINE_PATH}
+                                fill={darkMode ? 'rgba(240,185,105,0.025)' : 'rgba(111,67,29,0.035)'}
+                                stroke="none"
+                            />
+                            <path
+                                d={CORSICA_OUTLINE_PATH}
                                 fill="none"
-                                stroke={darkMode ? 'rgba(245,213,159,0.18)' : 'rgba(111,67,29,0.18)'}
-                                strokeWidth="1"
+                                stroke={darkMode ? 'rgba(245,213,159,0.24)' : 'rgba(111,67,29,0.22)'}
+                                strokeWidth="0.9"
                                 strokeLinejoin="round"
                             />
 
@@ -440,8 +452,8 @@ const DeliveryParticleMap = ({ darkMode, shell, core, muted }) => {
                                     <path
                                         d={route.d}
                                         fill="none"
-                                        stroke={darkMode ? 'rgba(245,213,159,0.2)' : 'rgba(111,67,29,0.16)'}
-                                        strokeWidth="1.15"
+                                        stroke={darkMode ? 'rgba(245,213,159,0.17)' : 'rgba(111,67,29,0.14)'}
+                                        strokeWidth="0.95"
                                         strokeLinecap="round"
                                     />
                                     <path
@@ -449,7 +461,7 @@ const DeliveryParticleMap = ({ darkMode, shell, core, muted }) => {
                                         d={route.d}
                                         fill="none"
                                         stroke="url(#deliveryRoute)"
-                                        strokeWidth="2"
+                                        strokeWidth={route.label === 'BRETAGNE' ? '1.55' : '1.75'}
                                         strokeLinecap="round"
                                         filter="url(#deliveryGlow)"
                                     />
@@ -460,24 +472,24 @@ const DeliveryParticleMap = ({ darkMode, shell, core, muted }) => {
                                 className="delivery-pulse"
                                 cx={IFS_COORD.x}
                                 cy={IFS_COORD.y}
-                                r="14"
-                                data-pulse-from="14"
-                                data-pulse-to="38"
+                                r="10"
+                                data-pulse-from="10"
+                                data-pulse-to="30"
                                 fill="none"
                                 stroke="#f0b969"
-                                strokeWidth="1.6"
+                                strokeWidth="1.35"
                                 vectorEffect="non-scaling-stroke"
                             />
                             <circle
                                 className="delivery-pulse"
                                 cx={IFS_COORD.x}
                                 cy={IFS_COORD.y}
-                                r="26"
-                                data-pulse-from="26"
-                                data-pulse-to="58"
+                                r="20"
+                                data-pulse-from="20"
+                                data-pulse-to="46"
                                 fill="none"
                                 stroke="#f0b969"
-                                strokeWidth="1"
+                                strokeWidth="0.85"
                                 vectorEffect="non-scaling-stroke"
                             />
 
@@ -487,9 +499,9 @@ const DeliveryParticleMap = ({ darkMode, shell, core, muted }) => {
                                         className="delivery-city"
                                         cx={city.x}
                                         cy={city.y}
-                                        r={city.r + 4}
+                                        r={city.r + (city.main ? 3.1 : 2.5)}
                                         fill={city.main ? '#f0b969' : '#7d9a72'}
-                                        opacity="0.12"
+                                        opacity={city.main ? 0.1 : 0.12}
                                     />
                                     <circle
                                         className="delivery-city"
@@ -512,19 +524,19 @@ const DeliveryParticleMap = ({ darkMode, shell, core, muted }) => {
                                         y={city.y + city.labelDy}
                                         textAnchor={city.anchor}
                                         fill={darkMode ? '#f7efe3' : '#2d2118'}
-                                        fontSize={city.main ? 13 : 10}
+                                        fontSize={city.main ? 12 : 8.6}
                                         fontWeight={900}
-                                        letterSpacing={city.main ? 2.2 : 1.8}
+                                        letterSpacing={city.main ? 1.9 : 1.45}
                                     >
                                         {city.name}
                                     </text>
                                     {city.name === 'IFS' && (
                                         <text
                                             className="delivery-city-label hidden sm:block"
-                                            x={city.x + 16}
-                                            y={city.y + 10}
+                                            x={city.x + 13}
+                                            y={city.y + 8}
                                             fill={darkMode ? '#a8a29e' : '#756456'}
-                                            fontSize="11"
+                                            fontSize="9.5"
                                             fontWeight="700"
                                         >
                                             atelier pres de Caen

@@ -112,7 +112,7 @@ async function main() {
   }
 
   const shareChecks = [
-    ['/meubles-anciens', 'Meubles anciens restaures'],
+    ['/meubles-anciens', 'Meubles anciens restaurés'],
     ['/comptoir', 'Le Comptoir'],
     ['/livraison-meubles-anciens-france', 'Livraison meubles anciens France'],
     ['/a-propos', 'Atelier de restauration'],

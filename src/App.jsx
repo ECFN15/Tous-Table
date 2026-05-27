@@ -44,6 +44,12 @@ import {
   warmupStartupCatalogImagesForRoute,
 } from './utils/startupWarmup';
 import { applyDevicePerformanceClasses, isTouchDevice } from './utils/devicePerformance';
+import {
+  HOME_SEO_SETTINGS_CACHE_KEY,
+  HOME_SEO_SETTINGS_DOC,
+  HOME_SEO_SETTINGS_UPDATED_EVENT,
+  mergeHomeSEOSettings,
+} from './utils/homeSEOSettings';
 
 const getInitialDarkMode = () => {
   if (typeof window === 'undefined') return true;
@@ -106,6 +112,15 @@ const getCachedContactInfo = () => {
   }
 };
 
+const getCachedHomeSEOSettings = () => {
+  if (typeof localStorage === 'undefined') return {};
+  try {
+    return mergeHomeSEOSettings(JSON.parse(localStorage.getItem(HOME_SEO_SETTINGS_CACHE_KEY) || '{}') || {});
+  } catch {
+    return {};
+  }
+};
+
 const AppContent = () => {
   const toast = useToast();
 
@@ -121,6 +136,7 @@ const AppContent = () => {
     affiliate_products: false,
   });
   const [contactInfo, setContactInfo] = useState(getCachedContactInfo);
+  const [homeSEOSettings, setHomeSEOSettings] = useState(getCachedHomeSEOSettings);
 
 
   const [showMarketplacePopup, setShowMarketplacePopup] = useState(false);
@@ -374,6 +390,31 @@ const AppContent = () => {
     });
   }, []);
 
+  useEffect(() => {
+    let mounted = true;
+    getDoc(doc(db, 'sys_metadata', HOME_SEO_SETTINGS_DOC)).then((snap) => {
+      if (!mounted || !snap.exists()) return;
+      const data = mergeHomeSEOSettings(snap.data());
+      setHomeSEOSettings(data);
+      try {
+        localStorage.setItem(HOME_SEO_SETTINGS_CACHE_KEY, JSON.stringify(data));
+      } catch {
+        // Cache unavailable; keep in-memory value.
+      }
+    }).catch((error) => {
+      console.error('HomeSEO settings load error:', error);
+    });
+    return () => { mounted = false; };
+  }, []);
+
+  useEffect(() => {
+    const handleHomeSEOSettingsUpdated = (event) => {
+      setHomeSEOSettings(mergeHomeSEOSettings(event.detail || {}));
+    };
+    window.addEventListener(HOME_SEO_SETTINGS_UPDATED_EVENT, handleHomeSEOSettingsUpdated);
+    return () => window.removeEventListener(HOME_SEO_SETTINGS_UPDATED_EVENT, handleHomeSEOSettingsUpdated);
+  }, []);
+
   const runStartupWarmup = React.useCallback(() => (
     warmupStartupForRoute(initialRouteRef.current, startupWarmupPayloadRef.current)
   ), []);
@@ -432,6 +473,7 @@ const AppContent = () => {
       const warmup = () => {
         warmupStartupCatalogImagesForRoute(initialRouteRef.current, startupWarmupPayloadRef.current);
       };
+
       if (isCatalogStartupRoute(initialRouteRef.current)) {
         warmup();
       } else {
@@ -1252,6 +1294,7 @@ const AppContent = () => {
           persistentGalleryState={persistentGalleryState}
           saveGalleryState={saveGalleryState}
           affiliateProducts={affiliateProducts}
+          homeSEOSettings={homeSEOSettings}
           isProductCatalogResolved={isProductCatalogResolved}
           contactInfo={contactInfo}
         />
@@ -1263,7 +1306,7 @@ const AppContent = () => {
         item={view === 'shop-detail' ? selectedAffiliateProduct : selectedCatalogItem}
         cartCount={cartItems.length}
         cartTotal={cartTotal}
-        hidden={['admin', 'login'].includes(view) || isCartOpen || showFullLogin || showStartupPreloader || isMenuOpen || showMarketplacePopup || showOrderSuccess || stockAlert || isFooterVisible}
+        hidden={['admin', 'login', 'home'].includes(view) || isCartOpen || showFullLogin || showStartupPreloader || isMenuOpen || showMarketplacePopup || showOrderSuccess || stockAlert || isFooterVisible}
       />
       {
         ['home', 'gallery', 'detail', 'checkout', 'my-orders', 'shop', 'shop-detail'].includes(view) && (

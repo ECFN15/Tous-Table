@@ -25,6 +25,7 @@ import { Palette,
 const AdminShop = React.lazy(() => import('./features/admin/AdminShop'));
 const AdminDashboard = React.lazy(() => import('./features/admin/AdminDashboard'));
 const AdminHomepage = React.lazy(() => import('./features/admin/AdminHomepage'));
+const AdminHomeSEO = React.lazy(() => import('./features/admin/AdminHomeSEO'));
 const AdminOrders = React.lazy(() => import('./features/admin/AdminOrders'));
 const AdminShippingReminder = React.lazy(() => import('./features/admin/AdminShippingReminder'));
 
@@ -84,6 +85,7 @@ const AppRouter = ({
     saveGalleryState,
     affiliateProducts,
     contactInfo,
+    homeSEOSettings,
     isProductCatalogResolved = false
 }) => {
     const { user, isAdmin, logout } = useAuth();
@@ -102,6 +104,7 @@ const AppRouter = ({
         { id: 'cutting_boards', label: 'Planches', icon: LayoutPanelTop },
         { id: 'studio', label: 'Studio', icon: Palette },
         { id: 'homepage', label: 'Accueil', icon: Home },
+        { id: 'home_seo', label: 'HomeSEO', icon: Home },
         { id: 'orders', label: 'Commandes', icon: Package },
         { id: 'shop', label: 'Boutique', icon: ShoppingBag },
         { id: 'users', label: 'Admin', icon: Users },
@@ -157,6 +160,7 @@ const AppRouter = ({
                 <RootLandingView
                     items={items}
                     affiliateProducts={affiliateProducts}
+                    homeSEOSettings={homeSEOSettings}
                     darkMode={darkMode}
                     onOpenGallery={() => {
                         startGalleryTransition();
@@ -485,6 +489,8 @@ const AppRouter = ({
                             <AdminDashboard user={user} darkMode={darkMode} items={items} boardItems={boardItems} />
                         ) : adminCollection === 'homepage' ? (
                             <AdminHomepage darkMode={darkMode} />
+                        ) : adminCollection === 'home_seo' ? (
+                            <AdminHomeSEO darkMode={darkMode} items={items} affiliateProducts={affiliateProducts} />
                         ) : adminCollection === 'orders' ? (
                             <AdminOrders darkMode={darkMode} />
 

@@ -68,7 +68,7 @@ const Footer = ({ darkMode = false, contactInfo: contactInfoProp = {} }) => {
                     </MobileDisclosure>
                 </div>
 
-                <div className="grid gap-10 md:grid-cols-[1.2fr_0.75fr_0.75fr_0.9fr_1.25fr] md:items-start">
+                <div className="grid gap-10 md:grid-cols-2 md:items-start lg:grid-cols-[1.2fr_0.75fr_0.75fr_0.9fr_minmax(18rem,1.35fr)]">
                     <div className="space-y-5">
                         <div>
                             <p className={`font-serif text-[1.35rem] md:text-2xl leading-none ${darkMode ? 'text-white' : 'text-stone-950'}`}>Tous à Table</p>
@@ -119,35 +119,35 @@ const Footer = ({ darkMode = false, contactInfo: contactInfoProp = {} }) => {
                         </FooterColumn>
                     </div>
 
-                    <div className="space-y-5 md:pt-0">
+                    <div className="min-w-0 space-y-5 md:pt-0">
                         <h3 className="text-[#dba45f] text-[11px] font-black uppercase tracking-[0.24em]">Contact atelier</h3>
                         <p className={`font-serif text-lg leading-snug ${darkMode ? 'text-stone-300' : 'text-stone-700'}`}>
                             Une question sur une piece, une livraison ou une restauration ? Contactez directement l'atelier.
                         </p>
                         <div className={`space-y-3 border-l border-[#8a5b2a]/50 pl-4 ${darkMode ? 'text-stone-300' : 'text-stone-700'}`}>
-                            <a href={`mailto:${email}`} className={`flex items-start gap-3 break-all font-serif text-lg italic hover:text-[#dba45f] ${darkMode ? 'text-white' : 'text-stone-950'}`}>
+                            <a href={`mailto:${email}`} className={`flex min-w-0 items-start gap-3 font-serif text-base italic [overflow-wrap:anywhere] hover:text-[#dba45f] xl:text-lg ${darkMode ? 'text-white' : 'text-stone-950'}`}>
                                 <Mail size={17} className="mt-1 shrink-0 text-[#dba45f]" />
-                                {email}
+                                <span className="min-w-0 break-words">{email}</span>
                             </a>
                             <a href={`tel:${phone.replace(/\s/g, '')}`} className="flex items-center gap-3 font-serif text-lg italic hover:text-[#dba45f]">
                                 <Phone size={17} className="text-[#dba45f]" />
                                 {phone}
                             </a>
-                            <address className="flex items-start gap-3 not-italic text-[10px] font-black uppercase tracking-[0.22em] leading-relaxed text-stone-500">
+                            <address className="flex min-w-0 items-start gap-3 not-italic text-[10px] font-black uppercase tracking-[0.22em] leading-relaxed text-stone-500 [overflow-wrap:anywhere]">
                                 <MapPin size={17} className="mt-0.5 shrink-0 text-[#dba45f]" />
-                                {address}
+                                <span className="min-w-0 break-words">{address}</span>
                             </address>
                         </div>
                     </div>
                 </div>
 
-                <div className="mt-12 border-t border-[#8a5b2a]/25 pt-8 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-                    <p className={`font-serif text-lg ${darkMode ? 'text-stone-400' : 'text-stone-600'}`}>© 2026 Tous à Table - Atelier Normand</p>
-                    <div className="flex flex-wrap gap-x-8 gap-y-3 text-[10px] font-black uppercase tracking-[0.22em] text-stone-500">
+                <div className="mt-12 border-t border-[#8a5b2a]/25 pt-8 flex min-w-0 flex-col gap-5 md:flex-row md:flex-wrap md:items-center md:justify-between">
+                    <p className={`min-w-0 font-serif text-lg ${darkMode ? 'text-stone-400' : 'text-stone-600'}`}>© 2026 Tous à Table - Atelier Normand</p>
+                    <div className="flex min-w-0 flex-wrap gap-x-8 gap-y-3 text-[10px] font-black uppercase tracking-[0.22em] text-stone-500">
                         <span>Made with ♥ by Matthis Fradin</span>
                         <a href="tel:0782013155" className="hover:text-[#dba45f]">Contact : 07.82.01.31.55</a>
                     </div>
-                    <div className="flex gap-5 text-[10px] font-black uppercase tracking-[0.18em] text-stone-500">
+                    <div className="flex min-w-0 flex-wrap gap-5 text-[10px] font-black uppercase tracking-[0.18em] text-stone-500 md:justify-end">
                         <a href="/" className="hover:text-[#dba45f]">Accueil</a>
                         <a href="/meubles-anciens" className="hover:text-[#dba45f]">La galerie</a>
                         <span>Privacy policy</span>
