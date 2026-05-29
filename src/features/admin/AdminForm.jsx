@@ -4,7 +4,7 @@ import { db, storage, appId } from '../../firebase/config';
 import { doc, addDoc, updateDoc, collection, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getMillis } from '../../utils/time';
-import { compressImage, isLikelyHeicImage } from '../../utils/imageUtils'; // [NEW] Import compression utility
+import { compressImage, getImageFileDimensions, isLikelyHeicImage } from '../../utils/imageUtils'; // [NEW] Import compression utility
 import ImageCropperModal from './components/ImageCropperModal';
 
 const WOOD_TYPES = [
@@ -25,6 +25,44 @@ const FURNITURE_CATEGORIES = [
   { slug: 'commode', label: 'Commodes & chevets' },
   { slug: 'autre', label: 'Autres' },
 ];
+
+const normalizeImageMetrics = (metrics) => {
+  const width = Number(metrics?.width ?? metrics?.imageWidth);
+  const height = Number(metrics?.height ?? metrics?.imageHeight);
+  const explicitAspectRatio = Number(metrics?.aspectRatio ?? metrics?.primaryImageAspectRatio);
+
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+    return null;
+  }
+
+  return {
+    width: Math.round(width),
+    height: Math.round(height),
+    aspectRatio: Number((Number.isFinite(explicitAspectRatio) && explicitAspectRatio > 0
+      ? explicitAspectRatio
+      : height / width
+    ).toFixed(4)),
+  };
+};
+
+const getStoredImageMetrics = (item, index, editData) => {
+  const fromItem = normalizeImageMetrics(item?.imageMetrics);
+  if (fromItem) return fromItem;
+
+  const dimensions = Array.isArray(editData?.imageDimensions) ? editData.imageDimensions : [];
+  const fromList = normalizeImageMetrics(dimensions[index]);
+  if (fromList) return fromList;
+
+  if (index === 0) {
+    return normalizeImageMetrics({
+      width: editData?.primaryImageWidth,
+      height: editData?.primaryImageHeight,
+      aspectRatio: editData?.primaryImageAspectRatio,
+    });
+  }
+
+  return null;
+};
 
 const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkMode = false }) => {
   const isFurniture = collectionName === 'furniture';
@@ -119,7 +157,8 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
         file: null,
         preview: url,
         thumbnail: initialThumbnails[idx] || null, // Store existing thumbnail if any
-        isExisting: true
+        isExisting: true,
+        imageMetrics: getStoredImageMetrics(null, idx, editData)
       })));
     } else { resetForm(); }
   }, [editData]);
@@ -164,10 +203,12 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
     const optimizedItems = await Promise.all(newItems.map(async (item) => {
       try {
         const compressed = await compressImage(item.file);
+        const imageMetrics = normalizeImageMetrics(await getImageFileDimensions(compressed));
         return {
           ...item,
           file: compressed,
-          isCompressed: true
+          isCompressed: true,
+          imageMetrics
         };
       } catch (error) {
         console.error("Auto-compression failed for", item.file.name, error);
@@ -204,6 +245,7 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
     const optimizedItems = await Promise.all(newItems.map(async (item) => {
       try {
         const compressed = await compressImage(item.file, 0.9, 1920);
+        const imageMetrics = normalizeImageMetrics(await getImageFileDimensions(compressed));
         const optimizedPreview = URL.createObjectURL(compressed);
         if (item.preview) URL.revokeObjectURL(item.preview);
         return {
@@ -212,7 +254,8 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
           preview: optimizedPreview,
           isCompressed: true,
           isProcessing: false,
-          uploadError: null
+          uploadError: null,
+          imageMetrics
         };
       } catch (error) {
         console.error("Auto-compression failed for", item.file.name, error);
@@ -279,14 +322,17 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
 
     try {
       let finalImageUrls = [];
+      let finalImageDimensions = [];
       let count = 0;
 
-      for (const item of galleryItems) {
+      for (const [index, item] of galleryItems.entries()) {
         count++;
         const progressPrefix = `[${count}/${galleryItems.length}]`;
+        let imageMetrics = getStoredImageMetrics(item, index, editData);
 
         if (item.isExisting) {
           finalImageUrls.push(item.preview);
+          finalImageDimensions.push(imageMetrics);
         } else if (item.file) {
           let fileToUpload = item.file;
 
@@ -296,6 +342,7 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
             try {
               // High Quality WebP (0.85 quality, max 1920px width)
               fileToUpload = await compressImage(item.file, 0.9, 1920);
+              imageMetrics = normalizeImageMetrics(await getImageFileDimensions(fileToUpload));
             } catch (err) {
               console.warn("Compression failed, upload blocked", err);
               throw new Error(`${item.file.name}: image incompatible, publication bloquee.`);
@@ -304,6 +351,10 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
 
           setMsg(`⏳ ${progressPrefix} Envoi de l'image...`);
 
+          if (!imageMetrics) {
+            imageMetrics = normalizeImageMetrics(await getImageFileDimensions(fileToUpload));
+          }
+
           const imageRef = ref(storage, `${collectionName}/${Date.now()}_tat_${fileToUpload.name}`);
           await uploadBytes(imageRef, fileToUpload, {
             cacheControl: 'public, max-age=31536000',
@@ -311,6 +362,7 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
           });
           const fullUrl = await getDownloadURL(imageRef);
           finalImageUrls.push(fullUrl);
+          finalImageDimensions.push(imageMetrics);
         }
       }
 
@@ -320,10 +372,16 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
         ? (editData?.sold ? 0 : 1)
         : (Number.isFinite(parsedStock) && parsedStock >= 0 ? parsedStock : 1);
       const soldValue = stockValue <= 0;
+      const normalizedImageDimensions = finalImageDimensions.map(metrics => normalizeImageMetrics(metrics));
+      const primaryImageMetrics = normalizedImageDimensions[0] || null;
 
       const data = {
         ...formData,
         images: finalImageUrls,
+        imageDimensions: normalizedImageDimensions,
+        primaryImageWidth: primaryImageMetrics?.width || null,
+        primaryImageHeight: primaryImageMetrics?.height || null,
+        primaryImageAspectRatio: primaryImageMetrics?.aspectRatio || null,
         thumbnails: [], // No separate thumbnails
         imageUrl: finalImageUrls[0] || "",
         thumbnailUrl: "", // No separate thumbnail URL
@@ -442,6 +500,8 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
   const handleCropComplete = async (croppedBlob) => {
     const itemId = cropperConfig.itemId;
     if (!itemId) return;
+    const croppedFile = new File([croppedBlob], `cropped_${Date.now()}.webp`, { type: 'image/webp' });
+    const imageMetrics = normalizeImageMetrics(await getImageFileDimensions(croppedFile));
 
     const newItems = galleryItems.map(item => {
       if (item.id === itemId) {
@@ -451,10 +511,11 @@ const AdminForm = ({ editData, onCancelEdit, collectionName = 'furniture', darkM
 
         return {
           ...item,
-          file: new File([croppedBlob], `cropped_${Date.now()}.webp`, { type: 'image/webp' }),
+          file: croppedFile,
           preview: newPreview,
           isCompressed: true, // It's already optimized by cropper quality
-          originalSize: croppedBlob.size
+          originalSize: croppedBlob.size,
+          imageMetrics
         };
       }
       return item;

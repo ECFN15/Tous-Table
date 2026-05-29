@@ -384,6 +384,48 @@ Deploiement Hosting prod du 2026-05-29 - tri varie galerie :
 - Verification navigateur prod : `/meubles-anciens` charge sans erreur console, `Selection variee` est le tri par defaut et la grille melange les familles de meubles.
 - Aucune ecriture Firestore prod, aucune modification rules, aucun deploiement Functions.
 
+Deploiement Hosting sandbox du 2026-05-29 - ratios images masonry :
+
+- Ajout des champs de metriques image au pipeline admin pour les nouvelles publications: `imageDimensions`, `primaryImageWidth`, `primaryImageHeight`, `primaryImageAspectRatio`.
+- Le placement galerie lit ces champs avant le fallback runtime, afin d'eviter de decouvrir les hauteurs seulement apres chargement image.
+- Migration sandbox appliquee avec `scripts/backfill-sandbox-image-ratios.cjs --apply`: 103 documents enrichis sur 111.
+- 8 documents sandbox non enrichis car l'image principale Storage renvoie HTTP 404.
+- `npm run build` : OK.
+- `firebase deploy --only hosting --project tatmadeinnormandie` : OK.
+- Verification navigateur sandbox : `/meubles-anciens` charge sans erreur console, `Selection variee` reste le tri par defaut.
+- Aucune ecriture Firestore prod, aucune modification rules, aucun deploiement Functions.
+
+Deploiement Hosting sandbox du 2026-05-29 - ajustement tri varie :
+
+- Correction du tri `Selection variee` : les familles ne sont plus ordonnees par le produit le plus recent de chaque famille.
+- Ordre editorial stable en haut de galerie mobilier : tables, autres, buffets, commodes, chaises/bancs, armoires.
+- Objectif : eviter que deux produits tres recents restent systematiquement en tete quand ils appartiennent a deux familles differentes.
+- `npm run build` : OK.
+- `firebase deploy --only hosting --project tatmadeinnormandie` : OK.
+- Verification navigateur sandbox cache-bustee : premiere ligne `/meubles-anciens` = table, console, bibliotheque, commode.
+- Aucune ecriture Firestore prod, aucune modification rules, aucun deploiement Functions.
+
+Deploiement Hosting prod du 2026-05-29 - ratios images masonry et tri varie stable :
+
+- Accord utilisateur explicite recu : demande "mettre en place tout ce qu'on a fait dernierement pour la prod".
+- `scripts/backfill-sandbox-image-ratios.cjs` securise pour la prod : `--prod` en dry-run, ecriture prod seulement avec `--prod --apply --confirm-prod-write`.
+- `npm run preflight:prod` : OK, mapping prod 56/56, SEO roadmap OK, analytics OK, syntaxe Functions OK, build prod OK, bundle prod OK, audit env Functions sans valeurs sensibles.
+- `firebase deploy --only hosting --project tousatable-client` : OK, release Hosting publiee.
+- Migration ratios prod appliquee : dry-run 84/84 a mettre a jour, apply 84 documents enrichis, dry-run final 0 mise a jour restante.
+- `firebase use default` : retour sur `tatmadeinnormandie`.
+- `npm run audit:public-seo` : OK, 32 checks passes.
+- `publicCatalog` prod HTTP 200.
+- Verification navigateur prod : `/meubles-anciens` charge sans erreur console, `Selection variee` est le tri par defaut, premiere ligne = table, console, bibliotheque, commode.
+- Aucune modification rules, aucun deploiement Functions.
+
+Changement local du 2026-05-29 - gate categories meubles prod :
+
+- `verify:prod-furniture` accepte desormais un meuble prod si son champ Firestore `category` est valide, ou sinon si son ID est couvert par `src/data/legacyFurnitureCategories.js`.
+- Le gate continue de bloquer les meubles sans categorie exploitable, les categories hors liste et les IDs legacy qui n'existent plus en prod.
+- Documentation mise a jour dans `_DOCS/LEGACY_FURNITURE_CATEGORY_MAPPING.md` et `_DOCS/DEPLOIEMENT_PROD_RUNBOOK.md`.
+- Verification : `npm run verify:prod-furniture` OK.
+- Aucune ecriture Firestore prod, aucune modification rules, aucun deploy.
+
 ## Reste a suivre
 
 1. Decider le traitement des legacy env vars Functions: nettoyage + rotation recommandes.

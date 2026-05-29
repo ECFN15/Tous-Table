@@ -14,6 +14,35 @@ export const RATIO_CACHE = new Map();
 const getImage = (item) => item?.images?.[0] || item?.imageUrl || item?.thumbnailUrl || '';
 const getPrice = (item) => item?.currentPrice || item?.startingPrice || item?.price;
 
+export const getStoredImageHeightRatio = (item) => {
+    const directRatio = Number(item?.primaryImageAspectRatio);
+    if (Number.isFinite(directRatio) && directRatio > 0) return directRatio;
+
+    const width = Number(item?.primaryImageWidth);
+    const height = Number(item?.primaryImageHeight);
+    if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
+        return height / width;
+    }
+
+    const firstImageDimensions = Array.isArray(item?.imageDimensions) ? item.imageDimensions[0] : null;
+    const firstRatio = Number(firstImageDimensions?.aspectRatio);
+    if (Number.isFinite(firstRatio) && firstRatio > 0) return firstRatio;
+
+    const firstWidth = Number(firstImageDimensions?.width);
+    const firstHeight = Number(firstImageDimensions?.height);
+    if (Number.isFinite(firstWidth) && Number.isFinite(firstHeight) && firstWidth > 0 && firstHeight > 0) {
+        return firstHeight / firstWidth;
+    }
+
+    return null;
+};
+
+const getStoredCssAspectRatio = (item) => {
+    const heightRatio = getStoredImageHeightRatio(item);
+    if (!heightRatio) return null;
+    return `1 / ${heightRatio}`;
+};
+
 const LETTERBOX_QUEUE = [];
 let isLetterboxQueueRunning = false;
 let nativeScrollTrackingReady = false;
@@ -113,7 +142,8 @@ const ProductCard = ({
 
     // Hydratation depuis le cache module → pas de flash de carrés au switch de catégorie.
     const cached = image ? RATIO_CACHE.get(image) : null;
-    const [aspectRatio, setAspectRatio] = useState(cached?.aspectRatio || null);
+    const storedAspectRatio = getStoredCssAspectRatio(item);
+    const [aspectRatio, setAspectRatio] = useState(cached?.aspectRatio || storedAspectRatio || null);
     const [objectPos, setObjectPos] = useState(cached?.objectPos || 'center');
     const imgRef = useRef(null);
 
@@ -167,6 +197,12 @@ const ProductCard = ({
         const h = img.naturalHeight;
         if (!w || !h) return;
         const fastRatio = `${w} / ${h}`;
+        if (storedAspectRatio) {
+            if (image && !RATIO_CACHE.has(image)) {
+                RATIO_CACHE.set(image, { aspectRatio: storedAspectRatio, objectPos: 'center' });
+            }
+            return;
+        }
         // On pose le ratio natif IMMÉDIATEMENT (pas de carré) puis on défère l'analyse letterbox.
         setAspectRatio((prev) => prev || fastRatio);
         if (image && !RATIO_CACHE.has(image)) {
@@ -186,6 +222,13 @@ const ProductCard = ({
             applyNaturalRatio(img);
         }
     }, [image, aspectRatio]);
+
+    useEffect(() => {
+        if (storedAspectRatio) {
+            setAspectRatio(storedAspectRatio);
+            setObjectPos('center');
+        }
+    }, [storedAspectRatio]);
 
     return (
         <a
@@ -277,6 +320,9 @@ const ProductCard = ({
 export default React.memo(ProductCard, (prev, next) => {
     return prev.item?.id === next.item?.id &&
         prev.item?.updatedAt === next.item?.updatedAt &&
+        prev.item?.primaryImageWidth === next.item?.primaryImageWidth &&
+        prev.item?.primaryImageHeight === next.item?.primaryImageHeight &&
+        prev.item?.primaryImageAspectRatio === next.item?.primaryImageAspectRatio &&
         prev.className === next.className &&
         prev.hideStock === next.hideStock &&
         prev.darkMode === next.darkMode &&

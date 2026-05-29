@@ -12,17 +12,22 @@ Ce mapping est une securite de transition :
 
 Le mapping est uniquement cote frontend. Il ne doit jamais etre reinjecte automatiquement dans Firestore.
 
-## Probleme actuel
+## Comportement corrige le 2026-05-29
 
-Le systeme est sur mais pas ideal.
+Le systeme garde le garde-fou prod, mais ne force plus l'ajout manuel des nouveaux meubles dans le mapping legacy.
 
-Quand un nouveau meuble existe en production et que son ID n'est pas encore dans `src/data/legacyFurnitureCategories.js`, le preflight prod echoue avec une sortie du type :
+`npm run verify:prod-furniture` accepte maintenant un meuble prod si :
+
+- son champ Firestore `category` est valide ;
+- ou son ID est present dans `src/data/legacyFurnitureCategories.js`.
+
+Le preflight prod echoue encore avec une sortie du type :
 
 ```text
-missing: ["ID_DU_MEUBLE"]
+missing: [{ "id": "ID_DU_MEUBLE", "category": null }]
 ```
 
-Cela force une modification de code avant de pouvoir deployer, meme si le meuble possede deja un champ `category` dans Firestore.
+si un meuble n'a ni categorie Firestore valide ni fallback legacy.
 
 Exemple rencontre le 2026-05-16 :
 
@@ -34,11 +39,12 @@ Ces deux IDs ont ete ajoutes au mapping local pour debloquer le preflight, sans 
 ## Methode actuelle avant deploy prod
 
 1. Lancer `npm run preflight:prod`.
-2. Si `verify:prod-furniture` signale des IDs manquants, ne pas deployer.
+2. Si `verify:prod-furniture` signale des meubles dans `missing`, ne pas deployer.
 3. Lire les documents prod concernes en lecture seule.
-4. Ajouter les IDs manquants dans `src/data/legacyFurnitureCategories.js`.
-5. Relancer `npm run preflight:prod`.
-6. Deployer uniquement si le preflight est vert.
+4. Si le meuble est nouveau, corriger le champ `category` via l'admin ou une migration explicite validee par l'utilisateur.
+5. Si le meuble est vraiment legacy et ne doit pas etre modifie en prod, ajouter son ID dans `src/data/legacyFurnitureCategories.js`.
+6. Relancer `npm run preflight:prod`.
+7. Deployer uniquement si le preflight est vert.
 
 ## TODO long terme
 
@@ -64,7 +70,7 @@ Objectif : supprimer la dependance au mapping manuel pour les nouveaux meubles, 
 - Utiliser `LEGACY_FURNITURE_CATEGORY_BY_ID` uniquement comme fallback pour les anciens documents.
 - Ne pas supprimer le mapping tant qu'il reste au moins un meuble legacy non migre.
 
-### 4. Adapter le gate `verify:prod-furniture`
+### 4. Adapter le gate `verify:prod-furniture` - fait le 2026-05-29
 
 Le gate doit accepter un meuble prod si :
 
@@ -76,6 +82,8 @@ Le gate doit continuer a echouer si :
 - un meuble n'a ni categorie Firestore valide ni fallback mapping ;
 - une categorie est hors liste ;
 - le mapping contient des IDs qui n'existent plus en prod, sauf decision explicite de garder une archive.
+
+Verification initiale : `npm run verify:prod-furniture` OK le 2026-05-29.
 
 ### 5. Nettoyer progressivement
 

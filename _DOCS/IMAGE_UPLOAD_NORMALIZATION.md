@@ -92,3 +92,50 @@ Deploiements effectues apres validation:
 
 - production Hosting: projet `tousatable-client`;
 - sandbox Hosting: projet `tatmadeinnormandie`.
+
+## Extension sandbox du 2026-05-29 - ratios images catalogue
+
+Objectif: tester en sandbox un placement masonry plus stable sans mesurer les cartes pendant le scroll.
+
+Changements:
+
+- `src/utils/imageUtils.js` expose `getImageFileDimensions(file)` pour lire largeur, hauteur et ratio hauteur/largeur apres normalisation.
+- `src/features/admin/AdminForm.jsx` conserve ces metriques sur les nouvelles images et ecrit `imageDimensions`, `primaryImageWidth`, `primaryImageHeight`, `primaryImageAspectRatio` a la publication.
+- Le recadrage admin recalcule aussi les metriques de l'image recadree.
+- `src/designs/architectural/components/ProductCard.jsx` et `src/designs/architectural/MarketplaceLayout.jsx` utilisent ces champs avant le fallback 4/5 ou le cache runtime.
+- Script sandbox: `scripts/backfill-sandbox-image-ratios.cjs`.
+
+Migration sandbox:
+
+- Commande appliquee: `node scripts/backfill-sandbox-image-ratios.cjs --apply`.
+- Projet ecrit: `tatmadeinnormandie` uniquement.
+- Resultat: 103 documents enrichis sur 111; 8 documents ignores car leur image principale repond en HTTP 404.
+- Aucune ecriture Firestore prod, aucune modification rules.
+
+Verification:
+
+- `npm run build` OK.
+- `firebase deploy --only hosting --project tatmadeinnormandie` OK.
+- Verification navigateur: `/meubles-anciens` charge sans erreur console et le tri par defaut reste `Selection variee`.
+
+## Deploiement prod du 2026-05-29 - ratios images catalogue
+
+Changements deployes en production:
+
+- Pipeline admin: les nouvelles publications ecrivent `imageDimensions`, `primaryImageWidth`, `primaryImageHeight`, `primaryImageAspectRatio`.
+- Galerie publique: les cartes utilisent ces metriques avant le cache runtime ou le fallback 4/5.
+- Script de backfill: `scripts/backfill-sandbox-image-ratios.cjs` accepte maintenant `--prod` en dry-run et exige `--prod --apply --confirm-prod-write` pour ecrire en prod.
+
+Migration production:
+
+- Dry-run prod: 84 documents scannes, 84 mises a jour prevues, 0 echec.
+- Application prod: 84 documents enrichis, 0 echec.
+- Dry-run final prod: 84 documents deja enrichis, 0 mise a jour restante.
+
+Verification:
+
+- `npm run preflight:prod` OK.
+- `firebase deploy --only hosting --project tousatable-client` OK.
+- `npm run audit:public-seo` OK, 32 checks.
+- `publicCatalog` prod HTTP 200.
+- Verification navigateur prod: `/meubles-anciens` charge sans erreur console; la premiere ligne utilise des ratios stockes et un tri varie stable.

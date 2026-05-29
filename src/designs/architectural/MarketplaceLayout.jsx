@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import ProductCard, { RATIO_CACHE } from './components/ProductCard';
+import ProductCard, { RATIO_CACHE, getStoredImageHeightRatio } from './components/ProductCard';
 import { ArrowDown, ArrowRight, ChevronDown, Hammer, ShieldCheck, Tag, Truck } from 'lucide-react';
 import { FurnitureHeaderIcon, BreadBoardHeaderIcon, CounterHeaderIcon } from './components/ArchitecturalHeader';
 import TextType from '../../components/ui/TextType';
@@ -121,6 +121,9 @@ const getLoadMoreRevealProfile = () => {
 };
 
 const getPredictedHeightRatio = (item) => {
+    const storedRatio = getStoredImageHeightRatio(item);
+    if (storedRatio) return storedRatio;
+
     const img = getCardImage(item);
     if (!img) return FALLBACK_HEIGHT_RATIO;
     const cached = RATIO_CACHE.get(img);
@@ -320,6 +323,36 @@ const getDiversityGroup = (item, { activeCollection, activeCategory }) => {
     return getFurnitureSubtype(item);
 };
 
+const ALL_FURNITURE_DIVERSITY_ORDER = ['table', 'autre', 'buffet', 'commode', 'chaise', 'armoire'];
+const FURNITURE_SUBTYPE_DIVERSITY_ORDER = [
+    'table',
+    'console',
+    'buffet',
+    'bibliotheque',
+    'commode',
+    'armoire',
+    'fauteuil',
+    'chaise',
+    'banc',
+    'tabouret',
+    'bureau',
+    'coffre',
+    'vitrine',
+    'miroir',
+    'tapis',
+];
+const BOARD_DIVERSITY_ORDER = ['ronde', 'rectangulaire', 'speciale', 'xxl', 'xl', 'l'];
+
+const getDiversityGroupRank = (key, { activeCollection, activeCategory }) => {
+    const order = activeCollection === 'cutting_boards'
+        ? BOARD_DIVERSITY_ORDER
+        : activeCategory === 'all'
+            ? ALL_FURNITURE_DIVERSITY_ORDER
+            : FURNITURE_SUBTYPE_DIVERSITY_ORDER;
+    const index = order.indexOf(key);
+    return index === -1 ? order.length : index;
+};
+
 const diversifyRecentItems = (items, context) => {
     if (items.length < 3) return [...items].sort(compareRecent);
 
@@ -336,21 +369,16 @@ const diversifyRecentItems = (items, context) => {
         key,
         cursor: 0,
         items: bucketItems.sort(compareRecent),
-    }));
+    })).sort((a, b) => {
+        const rankDiff = getDiversityGroupRank(a.key, context) - getDiversityGroupRank(b.key, context);
+        if (rankDiff !== 0) return rankDiff;
+        return a.key.localeCompare(b.key, 'fr');
+    });
 
     const diversified = [];
     let remaining = items.length;
 
     while (remaining > 0) {
-        bucketList.sort((a, b) => {
-            const nextA = a.items[a.cursor];
-            const nextB = b.items[b.cursor];
-            if (!nextA && !nextB) return 0;
-            if (!nextA) return 1;
-            if (!nextB) return -1;
-            return compareRecent(nextA, nextB);
-        });
-
         let addedThisPass = 0;
         for (const bucket of bucketList) {
             const next = bucket.items[bucket.cursor];

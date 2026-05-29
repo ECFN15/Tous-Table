@@ -36,6 +36,28 @@ const canvasToBlob = (canvas, mimeType, quality) =>
         canvas.toBlob((blob) => resolve(blob), mimeType, quality);
     });
 
+export const getImageFileDimensions = async (file) => {
+    if (!file) return null;
+
+    const objectUrl = URL.createObjectURL(file);
+
+    try {
+        const img = await loadImageFromObjectUrl(objectUrl);
+        const width = img.naturalWidth || img.width;
+        const height = img.naturalHeight || img.height;
+
+        if (!width || !height) return null;
+
+        return {
+            width,
+            height,
+            aspectRatio: Number((height / width).toFixed(4)),
+        };
+    } finally {
+        URL.revokeObjectURL(objectUrl);
+    }
+};
+
 const withTimeout = (promise, timeoutMs, timeoutMessage, timeoutCode) => {
     let timeoutId;
     const timeout = new Promise((_, reject) => {

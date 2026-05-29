@@ -37,7 +37,7 @@ Etat attendu:
 
 - `verify:prod-env` passe si `.env.prod` pointe vers Firebase prod.
 - Stripe live est exige uniquement quand `VITE_STRIPE_CARD_PAYMENTS_ENABLED=true`.
-- `verify:prod-furniture` confirme que les 28 meubles prod sont couverts par le mapping legacy.
+- `verify:prod-furniture` confirme que chaque meuble prod a une categorie Firestore valide ou un fallback dans le mapping legacy.
 - `verify:functions-syntax` verifie au minimum l'entrypoint Functions et la correction analytics.
 - `build:prod` produit un bundle prod optimise.
 - `verify:prod-bundle` bloque si le bundle contient une config sandbox, une cle Stripe test, un placeholder Stripe ou le loader Stripe actif alors que les paiements carte sont desactives.
