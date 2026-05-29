@@ -48,6 +48,7 @@ export const LEGACY_FURNITURE_CATEGORY_BY_ID = {
   iZ892KoIIgYThZ2Vjlpo: 'autre', // Boite en marqueterie ancienne avec sa clé
   lJnaCJL8gSRBwsnWWAkI: 'autre', // Lot de 2 miroirs bambou ancien
   nC1fdj8PSkXH8orZXzVK: 'chaise', // Paire de bancs chêne 
+  g4TNT1QwxgtLPKLEYCmE: 'chaise', // Paire de bancs en chene
   rj7R4HQelgi8ZPTSoUsC: 'autre', // Lot de  7 flacons d'apothicaire couleur ambrée
   yKyvXLZ2mwh2yAzb0ujq: 'autre', // Lampe Monix 1930
   A89ATxl7ULCgYpRIHZcI: 'autre', // Console en rotin

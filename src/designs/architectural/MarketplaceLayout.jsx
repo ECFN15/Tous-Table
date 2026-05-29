@@ -193,6 +193,56 @@ const getFurnitureCategory = (item) => {
     return 'autre';
 };
 
+const FURNITURE_SUBTYPE_RULES = [
+    ['tabouret', /tabouret/],
+    ['banc', /banc/],
+    ['chaise', /chaise/],
+    ['fauteuil', /fauteuil/],
+    ['table', /table/],
+    ['bureau', /bureau/],
+    ['console', /console/],
+    ['buffet', /buffet|bahut|desserte/],
+    ['bibliotheque', /bibliotheque|etagere/],
+    ['armoire', /armoire|vestiaire|penderie|porte[\s-]?manteaux/],
+    ['commode', /commode|chevet|secretaire|semainier/],
+    ['vitrine', /vitrine/],
+    ['coffre', /coffre/],
+    ['miroir', /miroir/],
+    ['tapis', /tapis/],
+];
+
+const BOARD_SUBTYPE_RULES = [
+    ['xxl', /\bxxl\b|tres grande|grande planche/],
+    ['xl', /\bxl\b/],
+    ['l', /\bl\b|large/],
+    ['ronde', /ronde|rond/],
+    ['rectangulaire', /rectangulaire|rectangle/],
+    ['speciale', /special|gaucher|ancienne|debut/],
+];
+
+const getFurnitureSubtype = (item) => {
+    const name = normalizeText(item?.name || '');
+    const rule = FURNITURE_SUBTYPE_RULES.find(([, pattern]) => pattern.test(name));
+    if (rule) return rule[0];
+
+    const material = normalizeText(item?.material || '');
+    return `${getFurnitureCategory(item)}:${material || 'sans-matiere'}`;
+};
+
+const getBoardSubtype = (item) => {
+    const name = normalizeText(item?.name || '');
+    const rule = BOARD_SUBTYPE_RULES.find(([, pattern]) => pattern.test(name));
+    if (rule) return rule[0];
+
+    const material = normalizeText(item?.material || '');
+    if (material) return `matiere:${material}`;
+
+    const price = getPrice(item);
+    if (price >= 150) return 'prix-haut';
+    if (price >= 70) return 'prix-moyen';
+    return 'prix-bas';
+};
+
 const BENEFITS = [
     {
         title: 'Pièces uniques',
@@ -256,6 +306,65 @@ const getMillis = (value) => {
     if (typeof value.toMillis === 'function') return value.toMillis();
     if (value.seconds) return value.seconds * 1000;
     return new Date(value).getTime() || 0;
+};
+
+const compareRecent = (a, b) => {
+    const dateDiff = getMillis(b.createdAt || b.updatedAt) - getMillis(a.createdAt || a.updatedAt);
+    if (dateDiff !== 0) return dateDiff;
+    return String(a.name || a.id || '').localeCompare(String(b.name || b.id || ''), 'fr');
+};
+
+const getDiversityGroup = (item, { activeCollection, activeCategory }) => {
+    if (activeCollection === 'cutting_boards') return getBoardSubtype(item);
+    if (activeCategory === 'all') return getFurnitureCategory(item);
+    return getFurnitureSubtype(item);
+};
+
+const diversifyRecentItems = (items, context) => {
+    if (items.length < 3) return [...items].sort(compareRecent);
+
+    const buckets = new Map();
+    for (const item of items) {
+        const key = getDiversityGroup(item, context);
+        if (!buckets.has(key)) buckets.set(key, []);
+        buckets.get(key).push(item);
+    }
+
+    if (buckets.size < 2) return [...items].sort(compareRecent);
+
+    const bucketList = [...buckets.entries()].map(([key, bucketItems]) => ({
+        key,
+        cursor: 0,
+        items: bucketItems.sort(compareRecent),
+    }));
+
+    const diversified = [];
+    let remaining = items.length;
+
+    while (remaining > 0) {
+        bucketList.sort((a, b) => {
+            const nextA = a.items[a.cursor];
+            const nextB = b.items[b.cursor];
+            if (!nextA && !nextB) return 0;
+            if (!nextA) return 1;
+            if (!nextB) return -1;
+            return compareRecent(nextA, nextB);
+        });
+
+        let addedThisPass = 0;
+        for (const bucket of bucketList) {
+            const next = bucket.items[bucket.cursor];
+            if (!next) continue;
+            diversified.push(next);
+            bucket.cursor += 1;
+            remaining -= 1;
+            addedThisPass += 1;
+        }
+
+        if (addedThisPass === 0) break;
+    }
+
+    return diversified;
 };
 
 const AtelierBadge = () => (
@@ -527,7 +636,7 @@ const MarketplaceLayout = ({
     const [activeCategory, setActiveCategory] = useState(initialCategory || 'all');
     const [activeMaterial, setActiveMaterial] = useState('');
     const [activePriceRange, setActivePriceRange] = useState('');
-    const [sortMode, setSortMode] = useState('recent');
+    const [sortMode, setSortMode] = useState('curated');
 
     useEffect(() => {
         setActiveCategory(activeCollection === 'cutting_boards' ? 'all' : (initialCategory || 'all'));
@@ -599,10 +708,14 @@ const MarketplaceLayout = ({
             }
             return true;
         });
+        if (sortMode === 'curated') {
+            return diversifyRecentItems(filtered, { activeCollection, activeCategory });
+        }
+
         return [...filtered].sort((a, b) => {
             if (sortMode === 'priceAsc') return getPrice(a) - getPrice(b);
             if (sortMode === 'priceDesc') return getPrice(b) - getPrice(a);
-            return getMillis(b.createdAt || b.updatedAt) - getMillis(a.createdAt || a.updatedAt);
+            return compareRecent(a, b);
         });
     }, [items, activeCategory, activeCollection, activeMaterial, priceRange, sortMode]);
 
@@ -1117,6 +1230,7 @@ const MarketplaceLayout = ({
                                             }}
                                             className={`h-8 sm:h-9 md:h-10 appearance-none rounded-full border bg-transparent pl-3 pr-8 sm:pl-3.5 sm:pr-9 md:pl-4 md:pr-10 text-[9px] md:text-[10px] font-black uppercase tracking-[0.18em] sm:tracking-[0.20em] md:tracking-[0.22em] outline-none transition-colors focus:border-[#dba45f] cursor-pointer ${selectIdleClass}`}
                                         >
+                                            <option value="curated" className={optionClass}>Sélection variée</option>
                                             <option value="recent" className={optionClass}>Plus récents</option>
                                             <option value="priceAsc" className={optionClass}>Prix croissant</option>
                                             <option value="priceDesc" className={optionClass}>Prix décroissant</option>

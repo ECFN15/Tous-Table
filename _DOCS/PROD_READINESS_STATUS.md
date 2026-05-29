@@ -364,6 +364,26 @@ Deploiement Hosting prod du 2026-05-20 - stabilisation image fiche produit mobil
 - Smokes publics : `/`, `/meubles-anciens`, `/planches-a-decouper-anciennes`, `/comptoir`, `/admin`, `https://tousatable-client.web.app/` et `publicCatalog` HTTP 200.
 - Aucune ecriture Firestore prod, aucune modification rules, aucun deploiement Functions.
 
+Deploiement Hosting sandbox du 2026-05-29 - tri varie galerie :
+
+- Grille mobilier : ajout du tri par defaut `Selection variee`, qui alterne les familles de meubles dans `Tous les produits` et les sous-types dans les categories pour eviter les batchs homogenes en tete de galerie.
+- `Plus recents`, `Prix croissant` et `Prix decroissant` restent disponibles comme tris stricts.
+- Sandbox : `npm run build` OK, puis `firebase deploy --only hosting --project tatmadeinnormandie` OK.
+- Verification sandbox : `/meubles-anciens` affiche `Selection variee` par defaut et melange banc, buffet/bibliotheque, armoire, autre, table, commode ; `/meubles-anciens/chaises-bancs` alterne banc, tabouret, fauteuil, chaise.
+- Aucune ecriture Firestore prod, aucune modification rules, aucun deploiement Functions, aucun deploy prod.
+
+Deploiement Hosting prod du 2026-05-29 - tri varie galerie :
+
+- Accord utilisateur explicite recu : demande "deploy en prod".
+- Preflight initial bloque par `verify:prod-furniture` : meuble prod publie `g4TNT1QwxgtLPKLEYCmE` absent du mapping legacy.
+- Correction locale : ajout de `g4TNT1QwxgtLPKLEYCmE` en categorie `chaise` dans `src/data/legacyFurnitureCategories.js`, sans ecriture Firestore prod.
+- `npm run preflight:prod` : OK, mapping prod 56/56, SEO roadmap OK, analytics OK, syntaxe Functions OK, build prod OK, bundle prod OK, audit env Functions sans valeurs sensibles.
+- `firebase deploy --only hosting --project tousatable-client` : OK, release Hosting publiee.
+- `firebase use default` : retour sur `tatmadeinnormandie`.
+- `npm run audit:public-seo` : OK, 32 checks passes.
+- Verification navigateur prod : `/meubles-anciens` charge sans erreur console, `Selection variee` est le tri par defaut et la grille melange les familles de meubles.
+- Aucune ecriture Firestore prod, aucune modification rules, aucun deploiement Functions.
+
 ## Reste a suivre
 
 1. Decider le traitement des legacy env vars Functions: nettoyage + rotation recommandes.
