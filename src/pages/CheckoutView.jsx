@@ -2,7 +2,9 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom';
 import { ArrowLeft, CreditCard, Truck, AlertCircle, Landmark, Wallet, ReceiptText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { functions, db, appId } from '../firebase/config';
+import { functions, db, appId, auth } from '../firebase/config';
+import { sendEmailVerification } from 'firebase/auth';
+import { logClientError } from '../utils/logger';
 import { httpsCallable } from 'firebase/functions';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { Elements } from '@stripe/react-stripe-js';
@@ -196,6 +198,51 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
     const scrollYRef = useRef(0);
     const unlockPageScrollRef = useRef(null);
     const wasPaymentModalOpenRef = useRef(false);
+    const [emailVerified, setEmailVerified] = useState(user?.emailVerified);
+    const [resendLoading, setResendLoading] = useState(false);
+    const [checkLoading, setCheckLoading] = useState(false);
+
+    // Sync state if user changes
+    useEffect(() => {
+        setEmailVerified(user?.emailVerified);
+    }, [user]);
+
+    const handleCheckVerification = async () => {
+        if (!auth.currentUser) return;
+        setCheckLoading(true);
+        try {
+            await auth.currentUser.reload();
+            const verified = auth.currentUser.emailVerified;
+            setEmailVerified(verified);
+            if (verified) {
+                toast("Compte vérifié avec succès !", { type: 'success' });
+            } else {
+                toast("L'email n'est pas encore vérifié. Veuillez cliquer sur le lien reçu par email.", { type: 'warning' });
+            }
+        } catch (e) {
+            console.error("Reload error:", e);
+            toast("Erreur lors de la vérification : " + e.message, { type: 'error' });
+        } finally {
+            setCheckLoading(false);
+        }
+    };
+
+    const handleResendVerification = async () => {
+        if (!auth.currentUser) return;
+        setResendLoading(true);
+        try {
+            await sendEmailVerification(auth.currentUser, {
+                url: window.location.origin + '/checkout',
+                handleCodeInApp: true
+            });
+            toast("Email de confirmation renvoyé ! Pensez à regarder dans vos spams.", { type: 'success' });
+        } catch (e) {
+            console.error("Resend error:", e);
+            toast("Erreur lors de l'envoi : " + e.message, { type: 'error' });
+        } finally {
+            setResendLoading(false);
+        }
+    };
 
     // iOS Safari scroll lock — empêche le body de scroller derrière la modale Stripe
     useEffect(() => {
@@ -489,6 +536,13 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
         } catch (error) {
             console.error("Order error:", error);
             setCheckoutState('editing');
+            logClientError(error, {
+                action: 'createOrder',
+                paymentMethod,
+                cartItemsCount: cartItems?.length || 0,
+                cartTotal: total,
+                items: cartItems?.map(i => ({ id: i.id, name: i.name, price: i.price })) || []
+            });
             let msg = "Une erreur est survenue lors de la commande.";
             if (error.message.includes('vendu')) {
                 msg = "Désolé, cet article vient d'être vendu à l'instant.";
@@ -566,6 +620,87 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                     <button onClick={onBack} className={`w-full py-4 rounded-xl font-bold uppercase text-xs tracking-widest transition-all text-stone-900 bg-amber-500 hover:bg-amber-400`}>
                         Retourner à la boutique
                     </button>
+                </div>
+            </div>
+            </>
+        );
+    }
+
+    // --- RENDU EMAIL NON VÉRIFIÉ (OPTION A) ---
+    if (!emailVerified) {
+        return (
+            <>
+            <SEO
+                title="Vérification requise"
+                description="Veuillez valider votre adresse email pour finaliser votre commande."
+                url="/checkout"
+                robots="noindex,nofollow,noarchive"
+            />
+            <div className="min-h-screen pt-12 px-6 flex items-center justify-center bg-transparent">
+                <div className={`p-8 md:p-10 rounded-[2rem] shadow-2xl max-w-md w-full text-center space-y-6 border ${darkMode ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-100'}`}>
+                    <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto ${darkMode ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-amber-50 text-amber-600 border border-amber-100'}`}>
+                        <AlertCircle size={32} />
+                    </div>
+                    <div className="space-y-2">
+                        <h2 className={`text-2xl font-black tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>Email non vérifié</h2>
+                        <p className={`text-sm leading-relaxed ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
+                            Pour sécuriser votre commande, veuillez valider votre adresse email. <br />
+                            Un lien de confirmation a été envoyé à <strong>{user?.email || 'votre adresse'}</strong>.
+                        </p>
+                    </div>
+
+                    <div className="space-y-3 pt-4">
+                        <button
+                            onClick={handleCheckVerification}
+                            disabled={checkLoading}
+                            className={`w-full py-4 rounded-xl font-bold uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-2
+                                ${darkMode 
+                                    ? 'bg-white text-stone-900 hover:bg-stone-200' 
+                                    : 'bg-stone-900 text-white hover:bg-stone-800'} 
+                                disabled:opacity-50`}
+                        >
+                            {checkLoading ? (
+                                <span className="flex items-center gap-2">
+                                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-70" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                    </svg>
+                                    Vérification...
+                                </span>
+                            ) : (
+                                "J'ai validé mon email"
+                            )}
+                        </button>
+
+                        <button
+                            onClick={handleResendVerification}
+                            disabled={resendLoading}
+                            className={`w-full py-4 rounded-xl font-bold uppercase text-xs tracking-widest transition-all border flex items-center justify-center gap-2
+                                ${darkMode 
+                                    ? 'border-stone-800 text-stone-300 hover:bg-stone-800' 
+                                    : 'border-stone-200 text-stone-600 hover:bg-stone-50'} 
+                                disabled:opacity-50`}
+                        >
+                            {resendLoading ? (
+                                <span className="flex items-center gap-2">
+                                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-70" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                    </svg>
+                                    Envoi en cours...
+                                </span>
+                            ) : (
+                                "Renvoyer l'email"
+                            )}
+                        </button>
+
+                        <button
+                            onClick={onBack}
+                            className={`w-full py-3 text-xs font-bold uppercase tracking-wider transition-colors ${darkMode ? 'text-stone-500 hover:text-stone-300' : 'text-stone-400 hover:text-stone-600'}`}
+                        >
+                            Retourner à la boutique
+                        </button>
+                    </div>
                 </div>
             </div>
             </>
@@ -982,6 +1117,11 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                             }}
                             onPaymentError={(err) => {
                                 console.error("Payment error inline:", err);
+                                logClientError(err, {
+                                    action: 'stripe_payment_failed',
+                                    orderId: createdOrderId,
+                                    cartTotal: total
+                                });
                             }}
                         />
                     </Elements>

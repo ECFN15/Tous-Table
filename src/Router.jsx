@@ -19,7 +19,7 @@ const DeliveryView = React.lazy(() => import('./pages/DeliveryView'));
 import { Palette,
     CreditCard, Users, Share2, Globe,
     Activity, Home, Package, Layout, LayoutPanelTop, BarChart3, ChevronLeft,
-    MoreHorizontal, ChevronDown, ShoppingBag
+    MoreHorizontal, ChevronDown, ShoppingBag, AlertTriangle
 } from 'lucide-react';
 
 const AdminShop = React.lazy(() => import('./features/admin/AdminShop'));
@@ -38,6 +38,7 @@ const AdminAnalytics = React.lazy(() => import('./features/admin/AdminAnalytics'
 const AdminSEO = React.lazy(() => import('./features/admin/AdminSEO'));
 const AdminIPManager = React.lazy(() => import('./features/admin/AdminIPManager'));
 const AdminPaymentSettings = React.lazy(() => import('./features/admin/AdminPaymentSettings'));
+const AdminLogs = React.lazy(() => import('./features/admin/AdminLogs'));
 
 const AdminIPTracker = React.lazy(() => import('./components/admin/AdminIPTracker'));
 
@@ -111,6 +112,7 @@ const AppRouter = ({
         { id: 'ip_manager', label: 'Session Exclu', icon: Globe },
         { id: 'seo', label: 'SEO', icon: Share2 },
         { id: 'payment_settings', label: 'Paiement', icon: CreditCard },
+        { id: 'logs', label: 'Logs Client', icon: AlertTriangle },
     ];
 
     const handleToggleStatus = async (item, col) => {
@@ -506,6 +508,8 @@ const AppRouter = ({
                             <AdminAnalytics darkMode={darkMode} />
                         ) : adminCollection === 'payment_settings' ? (
                             <AdminPaymentSettings darkMode={darkMode} />
+                        ) : adminCollection === 'logs' ? (
+                            <AdminLogs darkMode={darkMode} />
                         ) : adminCollection === 'shop' ? (
                             <AdminShop darkMode={darkMode} />
                         ) : (

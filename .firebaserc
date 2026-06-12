@@ -1,8 +1,7 @@
 {
   "projects": {
-    "default": "tatmadeinnormandie",
-    "production": "tatmadeinnormandie",
-    "staging": "tatmadeinnormandie-staging",
+    "default": "tousatable-client",
+    "production": "tousatable-client",
     "prod": "tousatable-client"
   },
   "targets": {},

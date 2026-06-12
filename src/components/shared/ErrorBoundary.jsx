@@ -1,5 +1,6 @@
 import React from 'react';
 import { AlertTriangle, RefreshCcw } from 'lucide-react';
+import { logClientError } from '../../utils/logger';
 
 class ErrorBoundary extends React.Component {
     constructor(props) {
@@ -16,6 +17,12 @@ class ErrorBoundary extends React.Component {
         // You can also log the error to an error reporting service
         console.error("Uncaught error:", error, errorInfo);
         this.setState({ error, errorInfo });
+        
+        // Envoi de l'erreur au tableau de bord Firestore
+        logClientError(error, {
+            componentStack: errorInfo?.componentStack?.substring(0, 2000) || null,
+            source: 'ErrorBoundary'
+        });
     }
 
     render() {

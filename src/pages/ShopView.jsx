@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { collection, getDocs, query, orderBy, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, appId } from '../firebase/config';
 import { useAuth } from '../contexts/AuthContext';
@@ -141,23 +141,24 @@ const matchesPriceFilter = (product, filterId) => {
 };
 
 const buildShopItemList = (products) => products
-    .filter((product) => product?.name)
+    .filter((product) => product?.name && getProductPrice(product))
     .slice(0, 24)
     .map((product, index) => {
-        const price = Number(product.price);
+        const price = getProductPrice(product);
+        const description = product.description || product.whyWeRecommend || `${product.name} sélectionné par Tous à Table Made in Normandie.`;
         return {
             '@type': 'ListItem',
             position: index + 1,
             item: {
                 '@type': 'Product',
                 name: product.name,
+                description: description.substring(0, 500),
                 ...(product.brand ? { brand: { '@type': 'Brand', name: product.brand } } : {}),
                 ...(product.imageUrl ? { image: product.imageUrl } : {}),
-                ...(product.description || product.whyWeRecommend ? { description: product.description || product.whyWeRecommend } : {}),
                 offers: {
                     '@type': 'Offer',
                     priceCurrency: 'EUR',
-                    ...(Number.isFinite(price) && price > 0 ? { price } : {}),
+                    price,
                     availability: 'https://schema.org/InStock',
                     url: 'https://tousatable-madeinnormandie.fr/comptoir',
                 },

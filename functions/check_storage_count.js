@@ -48,7 +48,7 @@ try {
 
 async function countFiles() {
     try {
-        const bucket = getStorage().bucket('tatmadeinnormandie.firebasestorage.app');
+        const bucket = getStorage().bucket('tousatable-client.firebasestorage.app');
         const [files] = await bucket.getFiles();
 
         console.log(`\n=== RAPPORT STOCKAGE ===`);

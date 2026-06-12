@@ -79,6 +79,15 @@ const getStructuredDataPrice = (item) => {
     return Number.isFinite(price) && price > 0 ? price : null;
 };
 
+const getStructuredDataDescription = (item, collectionName) => {
+    if (!item) return '';
+    if (item.description && item.description.trim()) {
+        return item.description;
+    }
+    const action = collectionName === 'cutting_boards' ? 'sélectionné' : 'restauré';
+    return `${item.name} ${action} par Tous à Table Made in Normandie.`;
+};
+
 const ArchitecturalProductDetail = ({ item, itemId, isCatalogResolving = false, user, onBack, onAddToCart, onOpenCart, onShowLogin, darkMode, setHeaderProps, cartItems = [], affiliateProducts = [], onOpenProductDetail }) => {
     const { palette } = useLiveTheme();
     const [activeImg, setActiveImg] = useState(0);
@@ -378,7 +387,7 @@ const ArchitecturalProductDetail = ({ item, itemId, isCatalogResolving = false, 
             "@id": `${productUrl}#product`,
             "name": item.name,
             "image": images,
-            "description": item.description || `${item.name} selectionne par Tous a Table Made in Normandie.`,
+            "description": getStructuredDataDescription(item, collectionName),
             "sku": item.reference || item.id,
             "category": categoryName,
             "material": item.material || undefined,
@@ -392,6 +401,27 @@ const ArchitecturalProductDetail = ({ item, itemId, isCatalogResolving = false, 
                 "availability": isAvailable ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
                 "itemCondition": "https://schema.org/UsedCondition",
                 "seller": { "@type": "FurnitureStore", "name": "Tous a Table Made in Normandie", "url": SITE_URL },
+                "shippingDetails": {
+                    "@type": "OfferShippingDetails",
+                    "shippingRate": {
+                        "@type": "MonetaryAmount",
+                        "value": isCuttingBoard ? 4.90 : 20.00,
+                        "currency": "EUR"
+                    },
+                    "shippingDestination": {
+                        "@type": "DefinedRegion",
+                        "addressCountry": "FR"
+                    }
+                },
+                "hasMerchantReturnPolicy": {
+                    "@type": "MerchantReturnPolicy",
+                    "applicableCountry": "FR",
+                    "returnPolicyCountry": "FR",
+                    "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+                    "merchantReturnDays": 14,
+                    "returnMethod": "https://schema.org/ReturnByMail",
+                    "returnFees": "https://schema.org/ReturnFeesCustomerResponsibility"
+                }
             }
             });
         }
@@ -400,7 +430,7 @@ const ArchitecturalProductDetail = ({ item, itemId, isCatalogResolving = false, 
             "@context": "https://schema.org",
             "@graph": graph
         };
-    }, [item, images, collectionName]);
+    }, [item, images, collectionName, isCuttingBoard]);
 
     const handleQuickBid = async (inc) => {
         if (bidLoading) return;

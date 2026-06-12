@@ -28,6 +28,7 @@ import {
 
 import AppRouter from './Router';
 import ErrorBoundary from './components/shared/ErrorBoundary';
+import { logClientError } from './utils/logger';
 import CartSidebar from './components/cart/CartSidebar';
 import Footer from './components/layout/Footer';
 import WhatsAppFloatingButton from './components/layout/WhatsAppFloatingButton';
@@ -159,6 +160,35 @@ const AppContent = () => {
     return () => {
       window.removeEventListener('resize', setVh);
       window.removeEventListener('orientationchange', setVh);
+    };
+  }, []);
+
+  // --- GLOBAL ERROR LOGGING LISTENERS ---
+  useEffect(() => {
+    const handleGlobalError = (event) => {
+      const error = event.error || event.message || 'Erreur globale inconnue';
+      logClientError(error, {
+        source: 'window_onerror',
+        filename: event.filename,
+        lineno: event.lineno,
+        colno: event.colno
+      });
+    };
+
+    const handleUnhandledRejection = (event) => {
+      const error = event.reason || 'Rejet de promesse inconnu';
+      logClientError(error, {
+        source: 'unhandledrejection',
+        message: error?.message || String(error)
+      });
+    };
+
+    window.addEventListener('error', handleGlobalError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+    return () => {
+      window.removeEventListener('error', handleGlobalError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
     };
   }, []);
 
@@ -304,6 +334,9 @@ const AppContent = () => {
 
   // Header Props for Architectural Design
   const [headerProps, setHeaderProps] = useState(null);
+
+  // Redirect to checkout after successful login
+  const [redirectToCheckoutAfterLogin, setRedirectToCheckoutAfterLogin] = useState(false);
 
   // [NEW] Persistent Gallery State (To restore collection after detail/checkout)
   const [persistentGalleryState, setPersistentGalleryState] = useState({
@@ -842,6 +875,35 @@ const AppContent = () => {
       setPendingItem(null);
     }
   }, [user, pendingItem]);
+
+  // --- CHECKOUT SECURITY GUARD (OPTION A) ---
+  useEffect(() => {
+    if (!authLoading && !loading && view === 'checkout') {
+      if (!user || user.isAnonymous) {
+        console.warn("Accès Checkout refusé : utilisateur non connecté ou anonyme.");
+        setView('gallery');
+        setRedirectToCheckoutAfterLogin(true); // Se souvenir qu'on voulait aller au checkout
+        setShowFullLogin(true);
+        toast("Veuillez vous connecter pour accéder au paiement sécurisé.", { type: 'warning' });
+      }
+    }
+  }, [view, user, authLoading, loading]);
+
+  // --- AUTO-REDIRECT TO CHECKOUT AFTER LOGIN ---
+  useEffect(() => {
+    if (user && !user.isAnonymous && redirectToCheckoutAfterLogin) {
+      setRedirectToCheckoutAfterLogin(false);
+      setView('checkout');
+      scrollToTop();
+    }
+  }, [user, redirectToCheckoutAfterLogin]);
+
+  // --- RESET REDIRECT ON LOGIN CLOSE ---
+  useEffect(() => {
+    if (!showFullLogin) {
+      setRedirectToCheckoutAfterLogin(false);
+    }
+  }, [showFullLogin]);
 
   // --- ACTIONS ---
   // Admin actions moved to Router.jsx

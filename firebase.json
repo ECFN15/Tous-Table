@@ -10,6 +10,7 @@
   },
   "hosting": {
     "public": "dist",
+    "trailingSlash": false,
     "ignore": [
       "firebase.json",
       "**/.git",
@@ -89,6 +90,10 @@
       {
         "source": "/sitemap.xml",
         "function": "sitemap"
+      },
+      {
+        "source": "/produit/**",
+        "function": "renderPage"
       },
       {
         "source": "**",

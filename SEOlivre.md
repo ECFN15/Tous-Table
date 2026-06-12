@@ -2707,3 +2707,75 @@ Tests :
 
 - `npm run verify:seo-roadmap` : OK, 25 checks.
 - `npm run build` : OK apres relance hors sandbox Windows approuvee ; warnings non bloquants existants CSS/chunks Vite.
+
+## Chapitre 31 - HTML first-octet : prerender SSG + renderPage - 10 juin 2026
+
+Objectif :
+
+- Servir aux robots (Google, Bing, crawlers sociaux) un HTML complet au premier octet pour 100% des pages publiques, au lieu du shell SPA generique. Cause n1 de l'invisibilite sur les requetes generiques : `shareMeta` existait mais n'etait branchee sur aucune rewrite Hosting, la rewrite `**` servait `/index.html` generique partout.
+
+Architecture retenue ("HTML Shell Injection" en 2 etages, sans migration framework, sans Dynamic Rendering deprecie) :
+
+- Etage A, SSG build-time : `scripts/prerender-static-routes.mjs` genere apres `vite build` un `dist/<route>/index.html` par route stable (12 routes : `/`, `/meubles-anciens`, 6 categories, planches, comptoir, a-propos, livraison). Head injecte (title, meta description, canonical, OG, Twitter Card), JSON-LD `CollectionPage` + `BreadcrumbList`, bloc semantique crawlable (h1, paragraphe `categorySeoContent.js`, maillage interne) dans `#root` borne par des marqueurs `<!--tat-ssg-->`. React (createRoot) remplace ce bloc au mount : meme HTML pour robots et humains, zero cloaking, zero Function, zero cout.
+- Etage B, Function `renderPage` : rewrite Hosting `/produit/**` -> `renderPage` (avant `**`). La Function recupere le shell `/` (cache memoire 10 min), fait 1-2 reads Firestore sur le produit, injecte head complet + JSON-LD `Product`/`Offer`/`BreadcrumbList` + bloc semantique produit, repond avec `s-maxage=3600` (cache CDN Hosting, cout quasi nul). Produit introuvable ou non publie : 404 + `noindex,follow`.
+
+Fichiers :
+
+- `functions/src/seo/routeMeta.js` : nouveau, source unique des metas par route (consomme par seoTools, renderPage et le prerender via createRequire).
+- `functions/src/seo/htmlInject.js` : nouveau, logique d'injection head/body partagee (pure, idempotente).
+- `functions/src/seo/renderPage.js` : nouvelle Function HTTP.
+- `functions/src/seo/seoTools.js` : refactor, consomme `routeMeta.js`, exporte les helpers ; `CATEGORY_URLS`, `sitemap` et `shareMeta` inchanges.
+- `functions/index.js` : export `renderPage`.
+- `scripts/prerender-static-routes.mjs` : nouveau script post-build.
+- `package.json` : `build` et `build:prod` chainent le prerender apres vite build.
+- `firebase.json` : ajout `"trailingSlash": false` (sert `dist/<route>/index.html` sur l'URL sans slash, coherent avec les redirects 301 existants, pas de boucle) + rewrite `/produit/**` -> `renderPage`.
+
+Decision cout Firebase :
+
+- `renderPage` : 1-2 reads Firestore par produit non cache CDN, `s-maxage=3600`. Pas de listener, pas de lecture large. Conforme au playbook AGENTS.md.
+
+Tests :
+
+- `node --check` sur routeMeta, htmlInject, renderPage, seoTools, index.js : OK.
+- `npm run build` : OK, 12 routes prerendues generees dans `dist/`.
+- `npm run verify:seo-roadmap` : OK, 25 checks.
+
+Reste a faire :
+
+- Smoke local : `npm run preview` puis verifier que `/meubles-anciens` retourne le bon `<title>` sans JS (curl ou affichage source).
+- Deploy prod (accord explicite requis) : `npm run preflight:prod` puis deploy Hosting + Functions (nouvelle Function `renderPage`).
+- Apres deploy : `npm run audit:public-seo`, test `curl https://tousatable-madeinnormandie.fr/produit/<slug-id>` (title produit attendu), Rich Results Test, Search Console (inspection URL + demande d'indexation sur 3 pages types).
+- Etendre `verify:seo-roadmap` avec un check prerender/renderPage si le chantier est valide en prod.
+
+---
+
+## Chapitre 25 - Correction des données structurées Fiches de marchand (GSC) - 12 juin 2026
+
+Objectif :
+- Corriger les alertes de la Search Console concernant les champs manquants `shippingDetails` et `hasMerchantReturnPolicy` dans les objets `offers` des fiches produits, et l'absence du champ `description` dans les listes `ItemList`.
+
+Règles appliquées :
+- Pas de modification de l'UI (modifications limitées aux données structurées JSON-LD invisibles).
+- Pas de fausses données d'avis (`review`) ni de notes (`aggregateRating`), ni de codes GTIN inventés.
+- Alignement strict entre le front-end React et la Cloud Function `renderPage`.
+
+Changements :
+- `src/designs/architectural/ArchitecturalProductDetail.jsx` :
+  - Ajout d'un helper `getStructuredDataDescription` pour fournir une description de secours propre si `item.description` est vide.
+  - Ajout des objets `shippingDetails` (frais Mondial Relay représentatifs à 4,90 € pour les planches, ou à partir de 20,00 € pour les meubles) et `hasMerchantReturnPolicy` (politique de retour standard de 14 jours, frais de retour à la charge du client, retour par courrier) dans l'offre du produit.
+- `functions/src/seo/renderPage.js` :
+  - Intégration de la même logique de fallback description et des mêmes structures `shippingDetails` et `hasMerchantReturnPolicy` dans `buildProductJsonLd` pour garantir que le HTML servi aux robots concorde avec le client.
+- `src/pages/GalleryView.jsx` :
+  - Mise à jour de `buildProductListSchema` pour accepter le nom de la collection et injecter le champ `description` requis avec le fallback approprié dans les mini-produits de l'`ItemList`.
+- `src/pages/ShopView.jsx` :
+  - Mise à jour de `buildShopItemList` pour s'assurer que seuls les produits avec un nom et un prix valide sont listés, et y ajouter le champ `description` avec le fallback correspondant.
+
+Impact SEO :
+- Élimination des avertissements GSC sur les fiches de marchand.
+- Meilleure visibilité et transparence des fiches produits sur Google Shopping / résultats enrichis.
+
+Tests :
+- `npm run verify:functions-syntax` : OK.
+- `npm run verify:seo-roadmap` : OK.
+- `npm run build` : OK.
+

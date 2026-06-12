@@ -209,5 +209,14 @@ service cloud.firestore {
       allow read: if isArtisan(); // Admins only
       allow write: if false; // Managed by Cloud Functions
     }
+
+    // Logs d'erreurs client
+    match /client_errors/{errorId} {
+      allow create: if request.auth != null 
+        && request.resource.data.message is string 
+        && request.resource.data.timestamp is timestamp;
+      allow read, delete: if isArtisan();
+      allow update: if false;
+    }
   }
 }

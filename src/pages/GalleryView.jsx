@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useLiveTheme } from '../hooks/useLiveTheme';
 import { useCallback } from 'react';
 // Note : la marketplace repose sur le scroll natif pour limiter le coût CPU/GPU.
@@ -71,13 +71,19 @@ const getStructuredDataAvailability = (item) => {
         : 'https://schema.org/OutOfStock';
 };
 
-const buildProductListSchema = (item, url, image) => {
+const buildProductListSchema = (item, url, image, collectionName) => {
     const price = getStructuredDataPrice(item);
     if (!price) return null;
+
+    const action = collectionName === 'cutting_boards' ? 'sélectionné' : 'restauré';
+    const description = item.description && item.description.trim()
+        ? item.description
+        : `${item.name} ${action} par Tous à Table Made in Normandie.`;
 
     return {
         '@type': 'Product',
         name: item.name,
+        description: description.substring(0, 500),
         url,
         ...(image ? { image } : {}),
         offers: {
@@ -183,7 +189,7 @@ const GalleryView = ({
         return categoryItems.slice(0, 24).map((item, index) => {
             const url = `${SITE_URL}${getProductPath(item)}`;
             const image = item.images?.[0] || item.imageUrl || item.thumbnailUrl;
-            const productSchema = buildProductListSchema(item, url, image);
+            const productSchema = buildProductListSchema(item, url, image, activeCollection);
             return {
                 '@type': 'ListItem',
                 position: index + 1,

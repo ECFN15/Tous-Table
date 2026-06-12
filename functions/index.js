@@ -64,9 +64,11 @@ exports.getUploadUrl = getUploadUrl;
 
 // ── SEO ──────────────────────────────────────────────────
 const { sitemap, shareMeta } = require('./src/seo/seoTools');
+const { renderPage } = require('./src/seo/renderPage');
 
 exports.sitemap = sitemap;
 exports.shareMeta = shareMeta;
+exports.renderPage = renderPage;
 
 const { publicCatalog } = require('./src/public/catalog');
 

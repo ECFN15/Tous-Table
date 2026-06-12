@@ -25,6 +25,7 @@ Ce fichier est le chef d'orchestre du projet. Lis-le en premier, puis va seuleme
 - Import images admin mobilier/planches, formats mobiles, cases blanches : lire `_DOCS/IMAGE_UPLOAD_NORMALIZATION.md`.
 - Audits anciens : lire `_DOCS/AUDITS/` et `audit/` seulement si la tache concerne le sujet.
 - Commandes utiles : lire `_DOCS/COMMANDS.md` et `package.json`.
+- Correction des alertes de données structurées Search Console : lire `_DOCS/GSC_MERCHANT_LISTING_FIX.md`.
 
 ## Roadmap SEO active
 
