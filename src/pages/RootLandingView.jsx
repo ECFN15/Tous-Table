@@ -563,7 +563,7 @@ const RootLandingView = ({
                 <div className="relative mx-auto grid w-full max-w-[1560px] min-w-0 items-center gap-10 md:gap-12 lg:grid-cols-12">
                     <div className="tat-root-hero-copy w-full max-w-[calc(100vw-2.5rem)] min-w-0 lg:col-span-7 lg:max-w-none">
                         <p className="mb-7 max-w-2xl text-[10px] font-black uppercase tracking-[0.34em] text-[#dba45f]">{homeSEO.heroEyebrow}</p>
-                        <h1 className="max-w-full font-serif text-[clamp(3.4rem,8.4vw,9.4rem)] leading-[0.84] tracking-[-0.055em] text-white md:max-w-6xl">
+                        <h1 className="max-w-full font-serif text-[clamp(2.7rem,7vw,7.8rem)] leading-[0.9] tracking-normal text-white md:max-w-6xl">
                             {homeSEO.heroTitle}
                         </h1>
                         <p className="mt-8 max-w-full text-lg leading-relaxed text-stone-300 md:max-w-2xl md:text-2xl md:leading-relaxed">
@@ -639,7 +639,7 @@ const RootLandingView = ({
                         <p className="text-[10px] font-black uppercase tracking-[0.34em] text-[#dba45f]">Mobilier ancien, ancrage local</p>
                     </div>
                     <div className="lg:col-span-8">
-                        <h2 className="max-w-5xl font-serif text-[clamp(2.7rem,5.8vw,7rem)] leading-[0.92] tracking-[-0.045em] text-white">
+                        <h2 className="max-w-5xl font-serif text-[clamp(2.2rem,4.7vw,5.6rem)] leading-[0.96] tracking-normal text-white">
                             {splitWords('Un showroom à Ifs pour relier le Calvados, Caen, la Normandie et les maisons qui cherchent une pièce avec une âme.')}
                         </h2>
                     </div>
@@ -715,7 +715,7 @@ const RootLandingView = ({
                     <div className="tat-root-reveal mb-12 flex flex-col justify-between gap-8 md:flex-row md:items-end">
                         <div>
                             <p className="text-[10px] font-black uppercase tracking-[0.34em] text-[#8a531c]">{homeSEO.featuredEyebrow}</p>
-                            <h2 className="mt-5 max-w-4xl font-serif text-[clamp(2.8rem,6vw,7rem)] leading-[0.9] tracking-[-0.05em]">{homeSEO.featuredTitle}</h2>
+                            <h2 className="mt-5 max-w-4xl font-serif text-[clamp(2.3rem,4.8vw,5.8rem)] leading-[0.94] tracking-normal">{homeSEO.featuredTitle}</h2>
                         </div>
                         <a href="/meubles-anciens" onClick={(event) => handleInternalNav(event, onOpenGallery)} className="inline-flex h-12 items-center justify-center gap-3 rounded-full bg-stone-950 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-white transition-transform md:hover:scale-[1.02]">
                             Voir plus
@@ -763,7 +763,7 @@ const RootLandingView = ({
                     <div className="tat-root-reveal mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
                         <div className="max-w-4xl">
                             <p className="text-[10px] font-black uppercase tracking-[0.34em] text-[#dba45f]">{homeSEO.comptoirEyebrow}</p>
-                            <h2 className="mt-4 font-serif text-[clamp(2.4rem,4.5vw,5rem)] leading-[0.92] tracking-[-0.05em] text-white">
+                            <h2 className="mt-4 font-serif text-[clamp(2.1rem,3.8vw,4.3rem)] leading-[0.96] tracking-normal text-white">
                                 {homeSEO.comptoirTitle}
                             </h2>
                             <p className="mt-4 max-w-2xl text-sm leading-relaxed text-stone-300 md:text-base">
@@ -855,7 +855,7 @@ const RootLandingView = ({
                 <div className="mx-auto max-w-5xl">
                     <div className="tat-root-reveal text-center">
                         <p className="text-[10px] font-black uppercase tracking-[0.34em] text-[#8a531c]">Questions fréquentes</p>
-                        <h2 className="mt-5 font-serif text-[clamp(2.8rem,6vw,6.8rem)] leading-[0.9] tracking-[-0.05em]">Avant de venir au showroom.</h2>
+                        <h2 className="mt-5 font-serif text-[clamp(2.3rem,4.8vw,5.6rem)] leading-[0.94] tracking-normal">Avant de venir au showroom.</h2>
                     </div>
                     <div className="mt-14 divide-y divide-stone-950/12 border-y border-stone-950/12">
                         {faqItems.map((item) => (
@@ -878,7 +878,7 @@ const RootLandingView = ({
                     </div>
                     <div className="grid gap-10 lg:grid-cols-12 lg:items-end">
                         <div className="lg:col-span-8">
-                            <h2 className="font-serif text-[clamp(3.2rem,7vw,8.8rem)] leading-[0.84] tracking-[-0.055em] text-white">Voir les meubles anciens disponibles.</h2>
+                            <h2 className="font-serif text-[clamp(2.55rem,5.6vw,7.2rem)] leading-[0.9] tracking-normal text-white">Voir les meubles anciens disponibles.</h2>
                             <p className="mt-6 max-w-2xl text-[0.94rem] leading-[1.58] text-stone-300 md:mt-7 md:text-base md:leading-relaxed">La galerie reste l espace principal pour filtrer les buffets, tables, chaises, armoires, commodes, planches et pièces uniques actuellement publiées.</p>
                         </div>
                         <div className="flex flex-col gap-3 lg:col-span-4 lg:items-end">

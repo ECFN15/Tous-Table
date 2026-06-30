@@ -1,233 +1,251 @@
 /**
- * COMMERCE: Création de commande (Stripe Checkout + Manuel)
- * 
- * INPUT: { items: [{ id, collectionName, quantity }], paymentMethod: 'stripe'|'manual', shipping: {...} }
- * OUTPUT: { success: true, url: string } (Stripe) ou { success: true, orderId: string } (Manuel)
- * 
- * SÉCURITÉ:
- * - Auth requise + email_verified
- * - Prix recalculé côté serveur (jamais confiance au front)
- * - Stock vérifié en transaction atomique
+ * COMMERCE: creation de commande.
+ *
+ * INPUT: { orderData: { items: [{ id, originalId, collectionName, quantity }], paymentMethod, shipping } }
+ * OUTPUT: { success: true, orderId } for deferred payment, or Stripe PaymentIntent data.
+ *
+ * Security:
+ * - Auth required + verified email token.
+ * - Product collection and quantities validated server-side.
+ * - Prices are recalculated from Firestore.
+ * - Stock reads happen before all writes inside each transaction.
  */
 const functions = require('firebase-functions/v1');
 const admin = require('firebase-admin');
-const { checkIsAdmin } = require('../../helpers/security');
 const { STRIPE_SECRET_KEY, GMAIL_EMAIL, GMAIL_PASSWORD } = require('../../helpers/secrets');
-const { APP_ID, getSiteUrl } = require('../../helpers/config');
+const { APP_ID } = require('../../helpers/config');
 
 const db = admin.firestore();
 const Stripe = require('stripe');
 
-exports.createOrder = functions.runWith({ secrets: [STRIPE_SECRET_KEY, GMAIL_EMAIL, GMAIL_PASSWORD] }).https.onCall(async (data, context) => {
-    if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'Auth requise.');
+const ALLOWED_PRODUCT_COLLECTIONS = new Set(['furniture', 'cutting_boards']);
+const BUSINESS_ERROR_CODES = new Set([
+    'invalid-argument',
+    'failed-precondition',
+    'not-found',
+    'unauthenticated',
+    'permission-denied'
+]);
 
-    // Sécurité: Email vérifié obligatoire
-    if (!context.auth.token.email_verified) {
-        throw new functions.https.HttpsError('failed-precondition',
-            'Veuillez vérifier votre email avant de passer commande. Consultez votre boîte de réception (ou spams).'
+const isCallableBusinessError = (error) => (
+    error instanceof functions.https.HttpsError || BUSINESS_ERROR_CODES.has(error?.code)
+);
+
+const getValidQuantity = (item = {}) => {
+    const quantity = item.quantity === undefined || item.quantity === null ? 1 : Number(item.quantity);
+    if (!Number.isInteger(quantity) || quantity <= 0 || quantity > 50) {
+        throw new functions.https.HttpsError('invalid-argument', 'Quantite invalide dans le panier.');
+    }
+    return quantity;
+};
+
+const getItemLookup = (item = {}) => {
+    const colName = item.collectionName || 'furniture';
+    const realItemId = item.originalId || item.productId || item.id;
+
+    if (!ALLOWED_PRODUCT_COLLECTIONS.has(colName)) {
+        throw new functions.https.HttpsError('invalid-argument', 'Collection produit non supportee.');
+    }
+
+    if (!realItemId || typeof realItemId !== 'string') {
+        throw new functions.https.HttpsError(
+            'invalid-argument',
+            'Un article du panier est invalide. Retirez-le puis ajoutez-le de nouveau.'
         );
     }
 
-    const stripe = Stripe(STRIPE_SECRET_KEY.value());
+    return { colName, realItemId, quantity: getValidQuantity(item) };
+};
 
-    const userId = context.auth.uid;
-    const { orderData } = data;
+const normalizeOrderItems = (items = []) => {
+    const byProduct = new Map();
 
-    if (!orderData || !orderData.items || !Array.isArray(orderData.items) || orderData.items.length === 0) {
-        throw new functions.https.HttpsError('invalid-argument', 'Format de commande invalide.');
-    }
+    for (const item of items) {
+        const { colName, realItemId, quantity } = getItemLookup(item);
+        const key = `${colName}/${realItemId}`;
+        const existing = byProduct.get(key);
 
-    // 1. Validation de stock et calcul du prix TOTAL réel (côté serveur)
-    // Note: pour stripe_elements, cette étape est intégrée dans la transaction de réservation unique (section 4)
-    let totalAmount = 0;
-
-    if (orderData.paymentMethod === 'manual' || orderData.paymentMethod === 'deferred') {
-        try {
-            await db.runTransaction(async (transaction) => {
-                const stockTracker = {};
-
-                for (const item of orderData.items) {
-                    const colName = item.collectionName || 'furniture';
-                    const realItemId = item.originalId || item.id;
-                    const itemRef = db.doc(`artifacts/${APP_ID}/public/data/${colName}/${realItemId}`);
-                    const itemSnap = await transaction.get(itemRef);
-
-                    if (!itemSnap.exists) {
-                        throw new functions.https.HttpsError('not-found', `Produit "${realItemId}" introuvable.`);
-                    }
-
-                    const itemDb = itemSnap.data();
-                    const alreadyTaken = stockTracker[realItemId] || 0;
-                    const currentDbStock = itemDb.stock !== undefined ? Number(itemDb.stock) : 1;
-                    const isUniqueFurniture = colName === 'furniture';
-                    const qtyToReserve = item.quantity || 1;
-                    const availableStock = isUniqueFurniture
-                        ? (alreadyTaken > 0 ? 0 : currentDbStock)
-                        : currentDbStock - alreadyTaken;
-
-                    if (availableStock < qtyToReserve || itemDb.sold) {
-                        throw new functions.https.HttpsError('failed-precondition', `Article indisponible (Stock épuisé): ${itemDb.name}`);
-                    }
-
-                    stockTracker[realItemId] = alreadyTaken + qtyToReserve;
-
-                    // Prix prioritaire : Enchère gagnante > Prix actuel > Prix départ
-                    let realPrice = itemDb.currentPrice || itemDb.startingPrice || 0;
-                    totalAmount += realPrice;
-                }
-            });
-        } catch (e) {
-            console.error("Stock Check Error", e);
-            throw e;
+        if (existing) {
+            existing.quantity += quantity;
+        } else {
+            byProduct.set(key, { ...item, colName, realItemId, quantity });
         }
     }
 
-    const SITE_URL = getSiteUrl();
+    return Array.from(byProduct.values());
+};
 
-    // 2. Paiement Différé (Manuel: Virement/Chèque)
+const getProductPrice = (itemDb = {}) => {
+    const price = Number(itemDb.currentPrice ?? itemDb.startingPrice ?? 0);
+    if (!Number.isFinite(price) || price < 0) {
+        throw new functions.https.HttpsError(
+            'failed-precondition',
+            `Prix produit invalide: ${itemDb.name || 'article'}`
+        );
+    }
+    return price;
+};
+
+const prepareStockReservation = async (transaction, normalizedItems, userId) => {
+    const preparedUpdates = [];
+    const serverItems = [];
+    let txTotal = 0;
+
+    // Firestore transactions require all reads before writes. Keep this loop read-only.
+    for (const item of normalizedItems) {
+        const { colName, realItemId, quantity } = item;
+        const itemRef = db.doc(`artifacts/${APP_ID}/public/data/${colName}/${realItemId}`);
+        const itemDoc = await transaction.get(itemRef);
+
+        if (!itemDoc.exists) {
+            throw new functions.https.HttpsError(
+                'not-found',
+                `Produit "${item.name || realItemId}" introuvable. Retirez-le du panier puis ajoutez-le de nouveau.`
+            );
+        }
+
+        const itemDb = itemDoc.data();
+        const currentStock = itemDb.stock !== undefined ? Number(itemDb.stock) : 1;
+        const isUniqueFurniture = colName === 'furniture';
+
+        if (!Number.isFinite(currentStock) || currentStock < quantity || itemDb.sold) {
+            throw new functions.https.HttpsError(
+                'failed-precondition',
+                `Article indisponible (stock epuise): ${itemDb.name || item.name || realItemId}`
+            );
+        }
+
+        const newStock = isUniqueFurniture ? 0 : Math.max(0, currentStock - quantity);
+        const realPrice = getProductPrice(itemDb);
+        const updates = { stock: newStock, buyerId: userId };
+
+        if (isUniqueFurniture || newStock === 0) {
+            updates.sold = true;
+            updates.soldAt = admin.firestore.FieldValue.serverTimestamp();
+        }
+
+        txTotal += realPrice * quantity;
+        serverItems.push({
+            id: realItemId,
+            originalId: realItemId,
+            collectionName: colName,
+            name: itemDb.name || item.name || 'Article',
+            price: realPrice,
+            quantity,
+            image: item.image || (itemDb.images && itemDb.images.length > 0 ? itemDb.images[0] : (itemDb.imageUrl || null))
+        });
+        preparedUpdates.push({ itemRef, updates });
+    }
+
+    return { preparedUpdates, serverItems, txTotal };
+};
+
+const restoreReservedStock = async (transaction, items = []) => {
+    const preparedRestorations = [];
+
+    // Same transaction rule: read every product first, then write.
+    for (const item of items) {
+        const { colName, realItemId, quantity } = getItemLookup(item);
+        const itemRef = db.doc(`artifacts/${APP_ID}/public/data/${colName}/${realItemId}`);
+        const itemDoc = await transaction.get(itemRef);
+        if (!itemDoc.exists) continue;
+
+        const currentStock = itemDoc.data().stock !== undefined ? Number(itemDoc.data().stock) : 0;
+        const restoredStock = colName === 'furniture' ? 1 : currentStock + quantity;
+        preparedRestorations.push({
+            itemRef,
+            updates: {
+                stock: restoredStock,
+                sold: false,
+                soldAt: admin.firestore.FieldValue.delete(),
+                buyerId: admin.firestore.FieldValue.delete()
+            }
+        });
+    }
+
+    for (const restoration of preparedRestorations) {
+        transaction.update(restoration.itemRef, restoration.updates);
+    }
+};
+
+exports.createOrder = functions.runWith({ secrets: [STRIPE_SECRET_KEY, GMAIL_EMAIL, GMAIL_PASSWORD] }).https.onCall(async (data, context) => {
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'Auth requise.');
+    }
+
+    if (!context.auth.token.email_verified) {
+        throw new functions.https.HttpsError(
+            'failed-precondition',
+            'Veuillez verifier votre email avant de passer commande. Consultez votre boite de reception (ou spams).'
+        );
+    }
+
+    const userId = context.auth.uid;
+    const { orderData } = data || {};
+
+    if (!orderData || !Array.isArray(orderData.items) || orderData.items.length === 0) {
+        throw new functions.https.HttpsError('invalid-argument', 'Format de commande invalide.');
+    }
+
+    const normalizedItems = normalizeOrderItems(orderData.items);
+
     if (orderData.paymentMethod === 'manual' || orderData.paymentMethod === 'deferred') {
         const orderRef = db.collection('orders').doc();
+
         try {
             await db.runTransaction(async (transaction) => {
-                const stockTrackerManual = {};
-                const serverItems = [];
-                let txTotal = 0;
-                for (const item of orderData.items) {
-                    const colName = item.collectionName || 'furniture';
-                    const realItemId = item.originalId || item.id;
-                    const itemRef = db.doc(`artifacts/${APP_ID}/public/data/${colName}/${realItemId}`);
+                const { preparedUpdates, serverItems, txTotal } = await prepareStockReservation(transaction, normalizedItems, userId);
 
-                    const itemDoc = await transaction.get(itemRef);
-                    if (!itemDoc.exists) throw new Error("Item not found");
-                    const itemDb = itemDoc.data();
-
-                    const currentStock = itemDb.stock !== undefined ? Number(itemDb.stock) : 1;
-                    const alreadyTaken = stockTrackerManual[realItemId] || 0;
-                    const isUniqueFurniture = colName === 'furniture';
-                    const qtyToReserve = item.quantity || 1;
-                    const availableStock = isUniqueFurniture
-                        ? (alreadyTaken > 0 ? 0 : currentStock)
-                        : currentStock - alreadyTaken;
-
-                    if (availableStock < qtyToReserve || itemDb.sold) {
-                        throw new functions.https.HttpsError('failed-precondition', `Article indisponible (Stock épuisé): ${itemDb.name}`);
-                    }
-
-                    const newStock = isUniqueFurniture ? 0 : Math.max(0, currentStock - qtyToReserve - alreadyTaken);
-                    const realPrice = itemDb.currentPrice || itemDb.startingPrice || 0;
-
-                    txTotal += realPrice * qtyToReserve;
-                    serverItems.push({
-                        id: realItemId,
-                        originalId: realItemId,
-                        collectionName: colName,
-                        name: itemDb.name,
-                        price: realPrice,
-                        quantity: qtyToReserve,
-                        image: item.image || (itemDb.images && itemDb.images.length > 0 ? itemDb.images[0] : (itemDb.imageUrl || null))
-                    });
-
-                    const updates = { stock: newStock, buyerId: userId };
-                    if (isUniqueFurniture || newStock === 0) {
-                        updates.sold = true;
-                        updates.soldAt = admin.firestore.FieldValue.serverTimestamp();
-                    }
-
-                    transaction.update(itemRef, updates);
-                    stockTrackerManual[realItemId] = alreadyTaken + qtyToReserve;
+                for (const item of preparedUpdates) {
+                    transaction.update(item.itemRef, item.updates);
                 }
+
                 transaction.set(orderRef, {
                     ...orderData,
                     items: serverItems,
-                    userId: userId,
+                    userId,
                     userEmail: context.auth.token.email || orderData.shipping?.email,
                     paymentMethod: 'deferred',
                     total: txTotal,
                     status: 'pending_payment',
+                    stockReserved: true,
                     createdAt: admin.firestore.FieldValue.serverTimestamp(),
                     stripeSessionId: null
                 });
             });
 
             return { success: true, orderId: orderRef.id };
-        } catch (e) {
-            console.error("Manual Order Error", e);
-            throw new functions.https.HttpsError('internal', "Erreur enregistrement commande.");
+        } catch (error) {
+            console.error('Manual Order Error', {
+                code: error?.code || null,
+                message: error?.message || String(error),
+                orderId: orderRef.id
+            });
+
+            if (isCallableBusinessError(error)) throw error;
+            throw new functions.https.HttpsError('internal', 'Erreur enregistrement commande.');
         }
     }
 
-    // 3. Stripe Checkout Session — SUPPRIMÉ (Mars 2026)
-    // Mode externe supprimé au profit du PaymentElement inline (stripe_elements)
-
-    // 4. Stripe Elements (PaymentElement intégré — PaymentIntent)
-    // Architecture anti-survente (fix Mars 2026):
-    // 1. Transaction atomique unique: valide stock + calcule prix serveur + réserve stock + crée commande
-    // 2. Crée le PaymentIntent Stripe avec l'orderId en metadata
-    // 3. En cas d'échec Stripe: restaure le stock + supprime la commande en transaction
-    // 4. Le webhook payment_intent.succeeded confirme la commande (sans re-décrémenter le stock)
-    // 5. Le webhook payment_intent.payment_failed restaure le stock
     if (orderData.paymentMethod === 'stripe_elements') {
+        const stripe = Stripe(STRIPE_SECRET_KEY.value());
         const orderRef = db.collection('orders').doc();
-
-        // Transaction unique : valider stock + calculer prix serveur + réserver stock + créer commande
-        // Remplace l'ancienne double-transaction (validation puis réservation) par une seule opération atomique
         let serverTotalAmount = 0;
+        let serverItemsForMetadata = [];
+
         try {
             await db.runTransaction(async (transaction) => {
-                const stockTracker = {};
-                let txTotal = 0;
-                const serverItems = [];
+                const { preparedUpdates, serverItems, txTotal } = await prepareStockReservation(transaction, normalizedItems, userId);
 
-                for (const item of orderData.items) {
-                    const colName = item.collectionName || 'furniture';
-                    const realItemId = item.originalId || item.id;
-                    const itemRef = db.doc(`artifacts/${APP_ID}/public/data/${colName}/${realItemId}`);
-                    const itemDoc = await transaction.get(itemRef);
-
-                    if (!itemDoc.exists) throw new functions.https.HttpsError('not-found', `Produit "${realItemId}" introuvable.`);
-
-                    const itemDb = itemDoc.data();
-                    const alreadyTaken = stockTracker[realItemId] || 0;
-                    const currentStock = itemDb.stock !== undefined ? Number(itemDb.stock) : 1;
-                    const isUniqueFurniture = colName === 'furniture';
-                    const qtyToReserve = item.quantity || 1;
-                    const availableStock = isUniqueFurniture
-                        ? (alreadyTaken > 0 ? 0 : currentStock)
-                        : currentStock - alreadyTaken;
-
-                    if (availableStock < qtyToReserve || itemDb.sold) {
-                        throw new functions.https.HttpsError('failed-precondition', `Article indisponible (Stock épuisé): ${itemDb.name}`);
-                    }
-
-                    // Prix recalculé côté serveur (jamais confiance au client)
-                    const realPrice = itemDb.currentPrice || itemDb.startingPrice || 0;
-                    txTotal += realPrice;
-
-                    serverItems.push({
-                        id: realItemId,
-                        collectionName: colName,
-                        name: itemDb.name,
-                        price: realPrice,
-                        quantity: item.quantity || 1,
-                        image: item.image || (item.images && item.images.length > 0 ? item.images[0] : (item.imageUrl || null))
-                    });
-
-                    const newStock = isUniqueFurniture ? 0 : Math.max(0, currentStock - qtyToReserve - alreadyTaken);
-                    const updates = { stock: newStock };
-                    if (isUniqueFurniture || newStock === 0) {
-                        updates.sold = true;
-                        updates.soldAt = admin.firestore.FieldValue.serverTimestamp();
-                        updates.buyerId = userId;
-                    }
-
-                    transaction.update(itemRef, updates);
-                    stockTracker[realItemId] = alreadyTaken + qtyToReserve;
+                for (const item of preparedUpdates) {
+                    transaction.update(item.itemRef, item.updates);
                 }
 
                 serverTotalAmount = txTotal;
+                serverItemsForMetadata = serverItems;
 
                 transaction.set(orderRef, {
-                    userId: userId,
+                    userId,
                     userEmail: context.auth.token.email || orderData.shipping?.email,
                     items: serverItems,
                     shipping: orderData.shipping || {},
@@ -239,12 +257,16 @@ exports.createOrder = functions.runWith({ secrets: [STRIPE_SECRET_KEY, GMAIL_EMA
                     stripePaymentIntentId: null
                 });
             });
-        } catch (e) {
-            console.error("Stock Reservation Error:", e);
-            throw e;
+        } catch (error) {
+            console.error('Stock Reservation Error', {
+                code: error?.code || null,
+                message: error?.message || String(error),
+                orderId: orderRef.id
+            });
+            if (isCallableBusinessError(error)) throw error;
+            throw new functions.https.HttpsError('internal', 'Erreur reservation stock.');
         }
 
-        // Créer le PaymentIntent (après la réservation du stock)
         const shippingData = orderData.shipping || {};
         try {
             const paymentIntent = await stripe.paymentIntents.create({
@@ -263,11 +285,15 @@ exports.createOrder = functions.runWith({ secrets: [STRIPE_SECRET_KEY, GMAIL_EMA
                     phone: shippingData.phone || '',
                 },
                 metadata: {
-                    userId: userId,
+                    userId,
                     userEmail: context.auth.token.email || '',
                     orderId: orderRef.id,
                     shippingMeta: JSON.stringify(shippingData).substring(0, 500),
-                    itemsMeta: JSON.stringify(orderData.items.map(i => ({ id: i.originalId || i.id, col: i.collectionName || 'furniture', qty: i.quantity || 1 }))).substring(0, 500)
+                    itemsMeta: JSON.stringify(serverItemsForMetadata.map((item) => ({
+                        id: item.originalId || item.id,
+                        col: item.collectionName || 'furniture',
+                        qty: item.quantity || 1
+                    }))).substring(0, 500)
                 }
             });
 
@@ -280,34 +306,26 @@ exports.createOrder = functions.runWith({ secrets: [STRIPE_SECRET_KEY, GMAIL_EMA
                 orderId: orderRef.id
             };
         } catch (error) {
-            // Échec Stripe : restaurer le stock + supprimer la commande en transaction
-            console.error("PaymentIntent Error, restoring stock:", error);
+            console.error('PaymentIntent Error, restoring stock', {
+                message: error?.message || String(error),
+                orderId: orderRef.id
+            });
+
             try {
                 await db.runTransaction(async (transaction) => {
-                    for (const item of orderData.items) {
-                        const colName = item.collectionName || 'furniture';
-                        const realItemId = item.originalId || item.id;
-                        const itemRef = db.doc(`artifacts/${APP_ID}/public/data/${colName}/${realItemId}`);
-                        const itemDoc = await transaction.get(itemRef);
-                        if (!itemDoc.exists) continue;
-                        const currentStock = itemDoc.data().stock !== undefined ? Number(itemDoc.data().stock) : 0;
-                        const qtyToRestore = item.quantity || 1;
-                        transaction.update(itemRef, {
-                            stock: currentStock + qtyToRestore,
-                            sold: false,
-                            soldAt: admin.firestore.FieldValue.delete(),
-                            buyerId: admin.firestore.FieldValue.delete()
-                        });
-                    }
+                    await restoreReservedStock(transaction, normalizedItems);
                     transaction.delete(orderRef);
                 });
             } catch (restoreError) {
-                console.error("CRITICAL: Stock restore failed after PI error:", restoreError);
+                console.error('CRITICAL: Stock restore failed after PaymentIntent error', {
+                    message: restoreError?.message || String(restoreError),
+                    orderId: orderRef.id
+                });
             }
-            throw new functions.https.HttpsError('internal', "Erreur initialisation paiement sécurisé.");
+
+            throw new functions.https.HttpsError('internal', 'Erreur initialisation paiement securise.');
         }
     }
 
-    // Fallback: méthode de paiement non reconnue
-    throw new functions.https.HttpsError('invalid-argument', 'Méthode de paiement non supportée.');
+    throw new functions.https.HttpsError('invalid-argument', 'Methode de paiement non supportee.');
 });

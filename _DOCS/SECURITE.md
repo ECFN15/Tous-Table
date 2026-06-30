@@ -331,3 +331,25 @@ Toutes les failles critiques sont corrigées. Les anomalies restantes sont de cr
 
 *Audit réalisé le 18 Février 2026 à 23:20. Enforcement App Check activé sur les deux environnements.*
 *Prochain audit recommandé : Après ajout de nouvelles fonctionnalités ou dans 3 mois.*
+
+---
+
+## Note auth checkout - 13 juin 2026
+
+Contexte: plusieurs erreurs `createOrder` indiquaient `Veuillez verifier votre email avant de passer commande` pour un compte client qui tentait de finaliser le checkout.
+
+Changement: `src/pages/CheckoutView.jsx` force maintenant un `getIdToken(true)` apres confirmation d'un email verifie, revalide le statut juste avant l'appel `createOrder`, et n'affiche plus d'ecran bloquant qui remplace tout le checkout quand `emailVerified` est encore stale. `src/contexts/AuthContext.jsx` consomme aussi automatiquement les liens Firebase `mode=verifyEmail&oobCode=...` quand ils reviennent dans l'app.
+
+Raison: `auth.currentUser.reload()` peut mettre a jour `user.emailVerified` cote frontend sans rafraichir immediatement le token Firebase utilise par la Cloud Function. Le backend lit `context.auth.token.email_verified`; un token stale pouvait donc refuser une commande pourtant affichee comme verifiee cote navigateur.
+
+Verification: `npm run build`.
+
+---
+
+## Note stabilite checkout multi-articles - 13 juin 2026
+
+Contexte: des erreurs client `FirebaseError: Erreur enregistrement commande.` apparaissaient sur `/checkout` avec plusieurs articles dans le panier et paiement differe. L'audit a identifie une transaction Firestore fragile: lectures et ecritures etaient alternees dans les boucles multi-articles, puis les erreurs metier etaient masquees.
+
+Changement: `functions/src/commerce/createOrder.js` lit maintenant tous les produits avant toute ecriture, agrege les doublons par produit, valide les collections et quantites cote serveur, recalcule les prix avec quantite, pose `stockReserved: true` pour les commandes differees, et renvoie les erreurs metier explicites. `cancelOrder.js` et `stripeWebhook.js` appliquent la meme discipline lecture-puis-ecriture pour restaurer ou decrementer le stock. `CheckoutView.jsx` bloque aussi les articles supprimes ou a stock insuffisant avant l'appel `createOrder` et enrichit les logs avec `productId`/`collectionName`.
+
+Verification: `node --check` sur `createOrder.js`, `cancelOrder.js`, `stripeWebhook.js`; `npm run verify:functions-syntax`; `npm run verify:analytics-reliability`; `npm run build`. Smoke navigateur local: `/checkout` charge sans overlay Vite et redirige correctement vers la connexion quand l'utilisateur est anonyme; le test de connexion reelle reste bloque localement par App Check/localhost sans token debug enregistre.

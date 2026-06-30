@@ -24,6 +24,63 @@ Decision paiement: les paiements carte ne font pas partie du lancement actuel. `
 
 ## Preuves recentes
 
+Deploiement prod du 2026-06-13 - stabilite checkout multi-articles :
+
+- Accord utilisateur explicite recu : demande "ta push en prod ? fait le !".
+- Runbook prod relu : `_DOCS/DEPLOIEMENT_PROD_RUNBOOK.md`.
+- Correctif deploye : transactions checkout multi-articles stabilisees dans `createOrder`, restauration stock multi-articles dans `cancelOrderClient`, restaurations/decrements Stripe dans `stripeWebhook`, garde-fous checkout frontend sur articles supprimes/stock insuffisant et logs enrichis.
+- `npm run preflight:prod` : premier essai bloque par le proxy sandbox Firestore, relance hors sandbox OK.
+- Mapping meubles prod valide : 49 meubles prod, 30 categories Firestore, 19 fallbacks legacy, aucun manquant, aucun extra, aucune categorie invalide.
+- SEO roadmap : 25 checks passes.
+- Analytics reliability : OK.
+- Syntaxe Functions : OK.
+- Build prod : OK. Avertissements Vite conserves sur certains chunks > 500 kB et CSS genere.
+- Bundle prod : OK, aucune config sandbox ni loader Stripe actif.
+- Audit Functions prod preflight : 31 Functions, 31 avec legacy env vars, 93 legacy env vars au total, 11 secrets attaches ; aucune valeur sensible affichee.
+- `firebase deploy --only "functions:createOrder,functions:cancelOrderClient,functions:stripeWebhook" --project tousatable-client` : OK, 3 Functions checkout mises a jour.
+- `firebase deploy --only hosting --project tousatable-client` : OK, release Hosting publiee.
+- Audit Functions prod post-deploy : OK, compteurs uniquement, aucune valeur sensible affichee.
+- `npm run audit:public-seo` : OK, 32 checks passes.
+- Smokes HTTP : `/checkout`, `/mes-commandes`, `/admin`, `https://tousatable-client.web.app/` et `publicCatalog` HTTP 200.
+- Aucune modification Firestore prod directe, aucune modification rules, aucun import sandbox.
+
+Deploiement Hosting prod du 2026-06-13 - checkout sans mur email avant confirmation :
+
+- Accord utilisateur explicite recu : demande "push en prod".
+- Runbook prod relu : `_DOCS/DEPLOIEMENT_PROD_RUNBOOK.md`.
+- Correctif deploye : suppression de l'ecran bloquant `Email non verifie` qui remplacait tout le checkout ; le statut email est maintenant rafraichi automatiquement et controle uniquement au clic final `createOrder`.
+- Correctif auth deploye : `AuthContext.jsx` consomme automatiquement les liens Firebase `mode=verifyEmail&oobCode=...`, recharge le compte et force un token frais.
+- `npm run preflight:prod` : premier essai bloque par le reseau sandbox Firestore, relance hors sandbox OK.
+- Mapping meubles prod valide : 49 meubles prod, 30 categories Firestore, 19 fallbacks legacy, aucun manquant, aucun extra, aucune categorie invalide.
+- SEO roadmap : 25 checks passes.
+- Analytics reliability : OK.
+- Syntaxe Functions : OK.
+- Build prod : OK. Avertissements Vite conserves sur certains chunks > 500 kB et CSS genere.
+- Bundle prod : OK, aucune config sandbox ni loader Stripe actif.
+- Audit Functions prod : 31 Functions, 31 avec legacy env vars, 93 legacy env vars au total, 11 secrets attaches ; aucune valeur sensible affichee.
+- `firebase deploy --only hosting --project tousatable-client` : OK, release Hosting publiee.
+- `npm run audit:public-seo` : OK, 32 checks passes.
+- Smokes publics : `/`, `/meubles-anciens`, `/planches-a-decouper-anciennes`, `/comptoir`, `/admin`, `https://tousatable-client.web.app/` et `publicCatalog` HTTP 200.
+- Aucune ecriture Firestore prod, aucune modification rules, aucun deploiement Functions.
+
+Deploiement Hosting prod du 2026-06-13 - refresh token email verifie checkout :
+
+- Accord utilisateur explicite recu : demande "push en prod".
+- Runbook prod relu : `_DOCS/DEPLOIEMENT_PROD_RUNBOOK.md`.
+- Correctif deploye : le checkout force `getIdToken(true)` apres confirmation d'un email verifie et revalide le statut avant `createOrder`, pour eviter un token Firebase stale avec `email_verified=false`.
+- `npm run preflight:prod` : premier essai bloque par le reseau sandbox Firestore, relance hors sandbox OK.
+- Mapping meubles prod valide : 49 meubles prod, 30 categories Firestore, 19 fallbacks legacy, aucun manquant, aucun extra, aucune categorie invalide.
+- SEO roadmap : 25 checks passes.
+- Analytics reliability : OK.
+- Syntaxe Functions : OK.
+- Build prod : OK. Avertissements Vite conserves sur certains chunks > 500 kB et CSS genere.
+- Bundle prod : OK, aucune config sandbox ni loader Stripe actif.
+- Audit Functions prod : 31 Functions, 31 avec legacy env vars, 93 legacy env vars au total, 11 secrets attaches ; aucune valeur sensible affichee.
+- `firebase deploy --only hosting --project tousatable-client` : OK, release Hosting publiee.
+- `npm run audit:public-seo` : OK, 32 checks passes.
+- Smokes publics : `/`, `/meubles-anciens`, `/planches-a-decouper-anciennes`, `/comptoir`, `/admin`, `https://tousatable-client.web.app/` et `publicCatalog` HTTP 200.
+- Aucune ecriture Firestore prod, aucune modification rules, aucun deploiement Functions.
+
 Deploiement Hosting du 2026-05-08 - checkout virement/Wero et footer mobile :
 
 - Accord utilisateur explicite : demande "deploy en prod [production_workflow.md](.agent/workflows/production_workflow.md)".
@@ -425,6 +482,18 @@ Changement local du 2026-05-29 - gate categories meubles prod :
 - Documentation mise a jour dans `_DOCS/LEGACY_FURNITURE_CATEGORY_MAPPING.md` et `_DOCS/DEPLOIEMENT_PROD_RUNBOOK.md`.
 - Verification : `npm run verify:prod-furniture` OK.
 - Aucune ecriture Firestore prod, aucune modification rules, aucun deploy.
+
+Deploiement prod du 2026-06-13 - coherence vendu/cache public :
+
+- Accord utilisateur explicite recu : demande "push en prod".
+- Correction front : `ProductCard` re-rend quand `sold`, `stock`, prix, nom, image ou libelles visibles changent, meme si `updatedAt` ne change pas.
+- Correction catalogue public : cache memoire `publicCatalog` reduit a 60 secondes, headers HTTP `max-age=30`, `s-maxage=60`, `stale-while-revalidate=30`, et appel frontend versionne par bucket minute.
+- `npm run preflight:prod` : OK, env prod OK, mapping meubles prod OK, SEO roadmap OK, analytics OK, syntaxe Functions OK, build prod OK, bundle prod OK, audit env Functions sans valeurs sensibles.
+- `firebase deploy --only "functions:publicCatalog" --project tousatable-client` : OK.
+- `firebase deploy --only hosting --project tousatable-client` : OK.
+- Post-deploy : `npm run audit:functions-env -- --project=tousatable-client` OK, `publicCatalog` HTTP 200 avec nouveau `Cache-Control`, `/meubles-anciens` HTTP 200, `npm run audit:public-seo` OK avec 32 checks.
+- Etat public observe via `publicCatalog` apres deploy : `Tabouret carre` et `Lot de 7 flacons d'apothicaire couleur ambree` exposes `sold:false`, `stock:1`.
+- Aucune ecriture Firestore prod, aucune modification rules.
 
 ## Reste a suivre
 

@@ -144,24 +144,17 @@ const buildShopItemList = (products) => products
     .filter((product) => product?.name && getProductPrice(product))
     .slice(0, 24)
     .map((product, index) => {
-        const price = getProductPrice(product);
         const description = product.description || product.whyWeRecommend || `${product.name} sélectionné par Tous à Table Made in Normandie.`;
         return {
             '@type': 'ListItem',
             position: index + 1,
             item: {
-                '@type': 'Product',
+                '@type': 'Thing',
                 name: product.name,
                 description: description.substring(0, 500),
                 ...(product.brand ? { brand: { '@type': 'Brand', name: product.brand } } : {}),
                 ...(product.imageUrl ? { image: product.imageUrl } : {}),
-                offers: {
-                    '@type': 'Offer',
-                    priceCurrency: 'EUR',
-                    price,
-                    availability: 'https://schema.org/InStock',
-                    url: 'https://tousatable-madeinnormandie.fr/comptoir',
-                },
+                url: 'https://tousatable-madeinnormandie.fr/comptoir',
             },
         };
     });

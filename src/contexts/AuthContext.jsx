@@ -8,7 +8,8 @@ import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
     signOut,
-    sendEmailVerification
+    sendEmailVerification,
+    applyActionCode
 } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, googleProvider, db } from '../firebase/config';
@@ -45,6 +46,35 @@ export const AuthProvider = ({ children }) => {
 
     // Authentication relies on Firestore Rules & Custom Claims now.
     // No hardcoded emails in client bundle.
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('mode') !== 'verifyEmail' || !params.get('oobCode')) return;
+
+        const handleEmailVerificationLink = async () => {
+            try {
+                await applyActionCode(auth, params.get('oobCode'));
+                if (auth.currentUser) {
+                    await auth.currentUser.reload();
+                    await auth.currentUser.getIdToken(true);
+                    setUser(auth.currentUser);
+                }
+            } catch (error) {
+                // The code may already have been consumed by Firebase's hosted action page.
+                console.warn('Email verification link handling failed:', error);
+            } finally {
+                const cleanParams = new URLSearchParams(window.location.search);
+                ['mode', 'oobCode', 'apiKey', 'lang', 'continueUrl'].forEach((key) => cleanParams.delete(key));
+                const cleanSearch = cleanParams.toString();
+                const cleanUrl = `${window.location.pathname}${cleanSearch ? `?${cleanSearch}` : ''}${window.location.hash}`;
+                window.history.replaceState({}, document.title, cleanUrl);
+            }
+        };
+
+        handleEmailVerificationLink();
+    }, []);
 
     // 1. Handle redirect result FIRST (before signInAnonymously can fire)
     // On page reload after signInWithRedirect, getRedirectResult resolves with the Google user.

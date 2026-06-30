@@ -2740,6 +2740,13 @@ Tests :
 - `npm run build` : OK, 12 routes prerendues generees dans `dist/`.
 - `npm run verify:seo-roadmap` : OK, 25 checks.
 
+Correctif 13 juin 2026 :
+
+- Cause du flash texte sur refresh : le bloc semantique SSG injecte dans `#root` etait visible quelques millisecondes avant le mount React, surtout sur fond noir.
+- Correction : `functions/src/seo/htmlInject.js` enveloppe maintenant ce bloc dans un conteneur visuellement cache (`data-tat-ssg-root`) tout en gardant le contenu dans le HTML pour les crawlers.
+- Impact SEO : metas, JSON-LD et contenu HTML crawlable conserves ; uniquement le rendu visuel initial est masque pour eviter le flash utilisateur.
+- Risque UI : faible, le bloc est remplace par React au mount comme avant.
+
 Reste a faire :
 
 - Smoke local : `npm run preview` puis verifier que `/meubles-anciens` retourne le bon `<title>` sans JS (curl ou affichage source).
@@ -2778,4 +2785,98 @@ Tests :
 - `npm run verify:functions-syntax` : OK.
 - `npm run verify:seo-roadmap` : OK.
 - `npm run build` : OK.
+
+### Ajustement Comptoir / Merchant Center - 17 juin 2026
+
+Objectif :
+
+- Eviter que Google Merchant Center interprete les produits affilies du Comptoir comme des produits vendus directement par Tous a Table.
+- Garder les fiches Comptoir hors index, comme prevu, sans affaiblir les fiches meubles/planches `/produit/...`.
+
+Constat :
+
+- Search Console liste 3 URLs `/comptoir/...` dans le motif `Exclue par la balise noindex`.
+- Ces URLs correspondent a des fiches affiliees volontairement en `noindex`, pas aux fiches meubles/planches.
+- Le sitemap public expose bien les fiches marchandises propres via `/produit/...`.
+
+Fichiers touches :
+
+- `src/pages/ShopView.jsx`
+- `src/pages/ShopProductDetail.jsx`
+- `SEOlivre.md`
+
+Changements :
+
+- `src/pages/ShopView.jsx` :
+  - l'`ItemList` du Comptoir garde une liste descriptive ;
+  - les elements ne sont plus declares comme `Product` ;
+  - les objets `Offer` ont ete retires de cette liste affiliee.
+- `src/pages/ShopProductDetail.jsx` :
+  - les fiches Comptoir restent en `noindex,follow,max-image-preview:large` ;
+  - le schema invisible passe de `Product` a `WebPage` ;
+  - `og:type` n'est plus `product` sur ces pages affiliees.
+
+Impact SEO / Merchant :
+
+- Les vrais produits marchands restent les fiches `/produit/...` des meubles et planches.
+- Le Comptoir reste une page de conseil/selection, pas une source de produits Merchant Center.
+- Le rapport `noindex` peut continuer a afficher les URLs Comptoir deja decouvertes : c'est attendu tant que ces pages restent volontairement hors index.
+
+Tests :
+
+- `npm run verify:seo-roadmap` : OK.
+- `npm run audit:public-seo` : OK en production avant correction locale, 88 URLs dont 76 fiches `/produit/...`.
+
+Reste a faire :
+
+- Apres deploy approuve, relancer `npm run audit:public-seo`.
+- Dans Merchant Center, verifier que les produits trouves automatiquement correspondent surtout aux URLs `/produit/...`.
+- Si des produits Comptoir restent dans Merchant Center, les exclure/cacher dans la source automatique.
+
+### Renforcement maillage sitelinks - 17 juin 2026
+
+Objectif :
+
+- Donner a Google des signaux de navigation plus clairs pour les futures sitelinks de marque.
+- Renforcer les liens visibles vers les collections fortes sans casser le responsive.
+
+Fichiers touches :
+
+- `src/components/layout/GlobalMenu.jsx`
+- `src/components/layout/Footer.jsx`
+- `SEOlivre.md`
+
+Changements :
+
+- Ajout d'un lien principal `Livraison` dans le menu global.
+- Ajout d'un bloc compact `Meubles anciens` dans le menu global :
+  - Buffets ;
+  - Tables de ferme ;
+  - Armoires ;
+  - Commodes ;
+  - Chaises & bancs ;
+  - Planches.
+- Le panneau de menu devient scrollable pour eviter tout debordement sur mobile.
+- Ajout d'une colonne desktop `Collections` dans le footer.
+- Ajout d'un accordéon mobile `Collections` dans le footer.
+
+Impact SEO :
+
+- Maillage interne plus explicite vers les pages categories deja indexables.
+- Labels courts et stables, plus lisibles pour Google et les utilisateurs.
+
+Risque UI :
+
+- Faible a moyen sur menu/footer.
+- Mesure prise : liens categories compacts en grille 2 colonnes dans le menu, panneau scrollable, footer mobile en disclosure.
+
+Correctif responsive :
+
+- Reduction des grands libelles du menu global et des espacements verticaux.
+- Masquage de la scrollbar interne du panneau menu, tout en gardant un scroll de secours sur tres petits ecrans.
+- Reprise du panneau menu en flux vertical normal : suppression du grand vide entre les boutons collections et les icones sociales.
+- Espacement du bloc `Meubles anciens` harmonise entre label, grille de 6 boutons et footer social.
+- Reduction progressive des grands titres de la landing pour limiter les retours a la ligne agressifs et les risques de debordement.
+- Retour a un espacement de lettres normal sur les grands titres ajustes.
+- Footer rendu plus souple : 6 colonnes seulement en tres grande largeur, grille plus respirante en desktop intermediaire.
 

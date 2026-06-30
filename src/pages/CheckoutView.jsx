@@ -14,17 +14,24 @@ import SEO from '../components/shared/SEO';
 import { useToast } from '../components/ui/Toast';
 import { lockPageScroll, scrollToTarget } from '../utils/smoothScroll';
 
+const prefersCheckoutReducedMotion = () => {
+    if (typeof window === 'undefined') return true;
+    return window.matchMedia?.('(prefers-reduced-motion: reduce), (pointer: coarse), (max-width: 767px)').matches ?? false;
+};
+
 /**
  * PremiumActionBtn — Bouton Ultra-Premium (Mouse Tracking + Morphing Loading)
  * Design inspiré par Apple / Linear. Zéro scale on hover, effets de lumière dynamiques.
  */
 const PremiumActionBtn = ({ children, isLoading, disabled, onClick, darkMode }) => {
     const buttonRef = React.useRef(null);
+    const reduceMotion = React.useMemo(prefersCheckoutReducedMotion, []);
+    const enablePointerEffects = !reduceMotion;
     const [mousePosition, setMousePosition] = React.useState({ x: 0, y: 0 });
     const [isHovered, setIsHovered] = React.useState(false);
 
     const handleMouseMove = (e) => {
-        if (!buttonRef.current || disabled) return;
+        if (!buttonRef.current || disabled || !enablePointerEffects) return;
         const rect = buttonRef.current.getBoundingClientRect();
         setMousePosition({
             x: e.clientX - rect.left,
@@ -39,15 +46,13 @@ const PremiumActionBtn = ({ children, isLoading, disabled, onClick, darkMode }) 
     return (
         <motion.button
             ref={buttonRef}
-            layout
             onClick={onClick}
             disabled={disabled || isLoading}
-            onMouseMove={handleMouseMove}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
+            onMouseMove={enablePointerEffects ? handleMouseMove : undefined}
+            onMouseEnter={enablePointerEffects ? () => setIsHovered(true) : undefined}
+            onMouseLeave={enablePointerEffects ? () => setIsHovered(false) : undefined}
             whileHover={{}} // ABSOLUMENT AUCUN SCALE AU HOVER (Premium Static Layout)
-            whileTap={!disabled && !isLoading ? { scale: 0.985 } : {}}
-            transition={{ layout: { type: "spring", stiffness: 450, damping: 35 } }}
+            whileTap={!reduceMotion && !disabled && !isLoading ? { scale: 0.985 } : {}}
             className={`relative overflow-hidden font-black uppercase text-sm tracking-widest flex items-center justify-center mx-auto transition-colors duration-700 outline-none w-full h-[64px] py-0 px-4 rounded-[1.25rem]
                 ${isLoading ? 'cursor-wait' : 'cursor-pointer'}
                 ${disabled 
@@ -57,7 +62,7 @@ const PremiumActionBtn = ({ children, isLoading, disabled, onClick, darkMode }) 
             `}
         >
             {/* 1. MAGNETIC SPOTLIGHT BORDER GLOW (Épaissi à 2px, Suit la souris) */}
-            {!disabled && !isLoading && (
+            {enablePointerEffects && !disabled && !isLoading && (
                 <motion.div
                     className="absolute inset-0 pointer-events-none z-0 p-[2px] rounded-[1.25rem]"
                     animate={{ opacity: isHovered ? 1 : 0 }}
@@ -72,7 +77,7 @@ const PremiumActionBtn = ({ children, isLoading, disabled, onClick, darkMode }) 
             )}
 
             {/* 2. INNER MAGNETIC GLOW (Reflet interne délicat suivant la souris) */}
-            {!disabled && !isLoading && (
+            {enablePointerEffects && !disabled && !isLoading && (
                 <motion.div
                     className="absolute inset-0 pointer-events-none z-10 rounded-[1.25rem]"
                     animate={{ opacity: isHovered ? 1 : 0 }}
@@ -85,7 +90,7 @@ const PremiumActionBtn = ({ children, isLoading, disabled, onClick, darkMode }) 
 
             {/* 3. NEON BORDER LOADING TRANSITION (Faisceau lumineux balayant le grand rectangle) */}
             <AnimatePresence>
-                {isLoading && (
+                {isLoading && !reduceMotion && (
                     <motion.div
                         key="neon-spinner"
                         className="absolute inset-0 pointer-events-none z-0 p-[2px] rounded-[1.25rem] overflow-hidden"
@@ -190,6 +195,7 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
 
     // Status global : 'editing' -> 'fetching_stripe' -> 'ready_to_pay' -> 'processing_deferred'
     const [checkoutState, setCheckoutState] = useState('editing'); 
+    const reduceCheckoutMotion = useMemo(prefersCheckoutReducedMotion, []);
     
     const [clientSecret, setClientSecret] = useState(null);
     const [createdOrderId, setCreatedOrderId] = useState(null);
@@ -207,13 +213,55 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
         setEmailVerified(user?.emailVerified);
     }, [user]);
 
+    const refreshEmailVerificationStatus = useCallback(async () => {
+        if (!auth.currentUser) return false;
+
+        await auth.currentUser.reload();
+        const verified = auth.currentUser.emailVerified === true;
+        setEmailVerified(verified);
+
+        if (verified) {
+            await auth.currentUser.getIdToken(true);
+        }
+
+        return verified;
+    }, []);
+
+    useEffect(() => {
+        if (!auth.currentUser || auth.currentUser.isAnonymous) return undefined;
+
+        let cancelled = false;
+        const refreshIfNeeded = async () => {
+            if (cancelled || auth.currentUser?.emailVerified) return;
+            try {
+                await refreshEmailVerificationStatus();
+            } catch (error) {
+                console.warn("Email verification auto-refresh failed:", error);
+            }
+        };
+
+        refreshIfNeeded();
+
+        const handleFocus = () => refreshIfNeeded();
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') refreshIfNeeded();
+        };
+
+        window.addEventListener('focus', handleFocus);
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            cancelled = true;
+            window.removeEventListener('focus', handleFocus);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, [refreshEmailVerificationStatus, user]);
+
     const handleCheckVerification = async () => {
         if (!auth.currentUser) return;
         setCheckLoading(true);
         try {
-            await auth.currentUser.reload();
-            const verified = auth.currentUser.emailVerified;
-            setEmailVerified(verified);
+            const verified = await refreshEmailVerificationStatus();
             if (verified) {
                 toast("Compte vérifié avec succès !", { type: 'success' });
             } else {
@@ -446,21 +494,43 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
 
     // --- TEMPS RÉEL : SURVEILLANCE STOCK ---
     useEffect(() => {
-        if (cartItems.length === 0) return;
+        if (cartItems.length === 0) {
+            setUnavailableItems([]);
+            return undefined;
+        }
 
         const unsubscribes = cartItems.map(item => {
             const collectionName = item.collectionName || 'furniture';
-            return onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', collectionName, item.originalId || item.id), (docSnap) => {
+            const productId = item.originalId || item.productId || item.id;
+
+            if (!productId) {
+                setUnavailableItems(prev => {
+                    if (prev.find(i => i.id === item.id)) return prev;
+                    return [...prev, { id: item.id, name: item.name, reason: 'invalid-cart-item' }];
+                });
+                return () => {};
+            }
+
+            return onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', collectionName, productId), (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    if (data.sold) {
+                    const currentStock = data.stock !== undefined ? Number(data.stock) : 1;
+                    const requestedQuantity = Number(item.quantity || 1);
+                    const isUnavailable = data.sold || !Number.isFinite(currentStock) || currentStock < requestedQuantity;
+
+                    if (isUnavailable) {
                         setUnavailableItems(prev => {
                             if (prev.find(i => i.id === item.id)) return prev;
-                            return [...prev, { id: item.id, name: item.name }];
+                            return [...prev, { id: item.id, name: item.name, reason: data.sold ? 'sold' : 'stock' }];
                         });
+                    } else {
+                        setUnavailableItems(prev => prev.filter(i => i.id !== item.id));
                     }
                 } else {
-                    setUnavailableItems(prev => [...prev, { id: item.id, name: item.name, reason: 'deleted' }]);
+                    setUnavailableItems(prev => {
+                        if (prev.find(i => i.id === item.id)) return prev;
+                        return [...prev, { id: item.id, name: item.name, reason: 'deleted' }];
+                    });
                 }
             });
         });
@@ -487,6 +557,23 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
         if (!isFormValid) return;
         if (unavailableItems.length > 0) {
             toast("Attention : Un article de votre panier n'est plus disponible.", { type: 'warning' });
+            return;
+        }
+
+        if (!auth.currentUser || auth.currentUser.isAnonymous) {
+            toast("Veuillez vous connecter avant de passer commande.", { type: 'warning' });
+            return;
+        }
+
+        try {
+            const verified = await refreshEmailVerificationStatus();
+            if (!verified) {
+                toast("Veuillez vérifier votre email avant de passer commande. Consultez votre boîte de réception (ou spams).", { type: 'warning' });
+                return;
+            }
+        } catch (error) {
+            console.error("Verification refresh error:", error);
+            toast("Impossible de confirmer la vérification email pour le moment. Réessayez dans quelques instants.", { type: 'error' });
             return;
         }
 
@@ -541,15 +628,25 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                 paymentMethod,
                 cartItemsCount: cartItems?.length || 0,
                 cartTotal: total,
-                items: cartItems?.map(i => ({ id: i.id, name: i.name, price: i.price })) || []
+                items: cartItems?.map(i => ({
+                    cartDocId: i.id,
+                    productId: i.originalId || i.productId || i.id,
+                    collectionName: i.collectionName || 'furniture',
+                    quantity: i.quantity || 1,
+                    name: i.name,
+                    price: i.price
+                })) || []
             });
             let msg = "Une erreur est survenue lors de la commande.";
-            if (error.message.includes('vendu')) {
+            const errorMessage = error?.message || '';
+            if (errorMessage.includes('indisponible') || errorMessage.includes('stock') || errorMessage.includes('epuise') || errorMessage.includes('épuisé')) {
+                msg = errorMessage;
+            } else if (errorMessage.includes('introuvable') || errorMessage.includes('invalide')) {
+                msg = errorMessage;
+            } else if (errorMessage.includes('vendu')) {
                 msg = "Désolé, cet article vient d'être vendu à l'instant.";
-            } else if (error.message.includes('stock')) {
-                msg = "Stock insuffisant pour cet article.";
-            } else if (error.message) {
-                msg = error.message;
+            } else if (errorMessage) {
+                msg = errorMessage;
             }
             toast(msg, { type: 'error' });
         }
@@ -620,87 +717,6 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                     <button onClick={onBack} className={`w-full py-4 rounded-xl font-bold uppercase text-xs tracking-widest transition-all text-stone-900 bg-amber-500 hover:bg-amber-400`}>
                         Retourner à la boutique
                     </button>
-                </div>
-            </div>
-            </>
-        );
-    }
-
-    // --- RENDU EMAIL NON VÉRIFIÉ (OPTION A) ---
-    if (!emailVerified) {
-        return (
-            <>
-            <SEO
-                title="Vérification requise"
-                description="Veuillez valider votre adresse email pour finaliser votre commande."
-                url="/checkout"
-                robots="noindex,nofollow,noarchive"
-            />
-            <div className="min-h-screen pt-12 px-6 flex items-center justify-center bg-transparent">
-                <div className={`p-8 md:p-10 rounded-[2rem] shadow-2xl max-w-md w-full text-center space-y-6 border ${darkMode ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-100'}`}>
-                    <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto ${darkMode ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-amber-50 text-amber-600 border border-amber-100'}`}>
-                        <AlertCircle size={32} />
-                    </div>
-                    <div className="space-y-2">
-                        <h2 className={`text-2xl font-black tracking-tight ${darkMode ? 'text-white' : 'text-stone-900'}`}>Email non vérifié</h2>
-                        <p className={`text-sm leading-relaxed ${darkMode ? 'text-stone-400' : 'text-stone-500'}`}>
-                            Pour sécuriser votre commande, veuillez valider votre adresse email. <br />
-                            Un lien de confirmation a été envoyé à <strong>{user?.email || 'votre adresse'}</strong>.
-                        </p>
-                    </div>
-
-                    <div className="space-y-3 pt-4">
-                        <button
-                            onClick={handleCheckVerification}
-                            disabled={checkLoading}
-                            className={`w-full py-4 rounded-xl font-bold uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-2
-                                ${darkMode 
-                                    ? 'bg-white text-stone-900 hover:bg-stone-200' 
-                                    : 'bg-stone-900 text-white hover:bg-stone-800'} 
-                                disabled:opacity-50`}
-                        >
-                            {checkLoading ? (
-                                <span className="flex items-center gap-2">
-                                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-70" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                                    </svg>
-                                    Vérification...
-                                </span>
-                            ) : (
-                                "J'ai validé mon email"
-                            )}
-                        </button>
-
-                        <button
-                            onClick={handleResendVerification}
-                            disabled={resendLoading}
-                            className={`w-full py-4 rounded-xl font-bold uppercase text-xs tracking-widest transition-all border flex items-center justify-center gap-2
-                                ${darkMode 
-                                    ? 'border-stone-800 text-stone-300 hover:bg-stone-800' 
-                                    : 'border-stone-200 text-stone-600 hover:bg-stone-50'} 
-                                disabled:opacity-50`}
-                        >
-                            {resendLoading ? (
-                                <span className="flex items-center gap-2">
-                                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-70" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                                    </svg>
-                                    Envoi en cours...
-                                </span>
-                            ) : (
-                                "Renvoyer l'email"
-                            )}
-                        </button>
-
-                        <button
-                            onClick={onBack}
-                            className={`w-full py-3 text-xs font-bold uppercase tracking-wider transition-colors ${darkMode ? 'text-stone-500 hover:text-stone-300' : 'text-stone-400 hover:text-stone-600'}`}
-                        >
-                            Retourner à la boutique
-                        </button>
-                    </div>
                 </div>
             </div>
             </>
@@ -846,7 +862,7 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                                     className={`relative group p-[1.5px] rounded-[1.125rem] overflow-hidden cursor-pointer w-full transition-all`}
                                 >
                                     {/* NEON LAYER - ONLY VISIBLE IF SELECTED */}
-                                    {paymentMethod === 'stripe_elements' && (
+                                    {paymentMethod === 'stripe_elements' && !reduceCheckoutMotion && (
                                         <motion.div
                                             initial={{ opacity: 0, rotate: 0 }}
                                             animate={{ opacity: 1, rotate: -360 }}
@@ -864,8 +880,8 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                                     )}
 
                                     {/* DEFAULT BORDER FALLBACK */}
-                                    {paymentMethod !== 'stripe_elements' && (
-                                        <div className={`absolute inset-0 z-0 rounded-[1.125rem] border-2 transition-colors ${darkMode ? 'border-stone-800' : 'border-stone-200'}`} />
+                                    {(paymentMethod !== 'stripe_elements' || reduceCheckoutMotion) && (
+                                        <div className={`absolute inset-0 z-0 rounded-[1.125rem] border-2 transition-colors ${paymentMethod === 'stripe_elements' ? (darkMode ? 'border-white/60' : 'border-stone-900') : (darkMode ? 'border-stone-800' : 'border-stone-200')}`} />
                                     )}
 
                                     {/* INNER CONTENT - OPAQUE MASKING (to hide the center of the wave) */}
@@ -920,7 +936,7 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                                     className={`relative group p-[1.5px] rounded-[1.125rem] overflow-hidden cursor-pointer w-full transition-all`}
                                 >
                                     {/* NEON LAYER - ONLY VISIBLE IF SELECTED */}
-                                    {paymentMethod === 'deferred' && (
+                                    {paymentMethod === 'deferred' && !reduceCheckoutMotion && (
                                         <motion.div
                                             initial={{ opacity: 0, rotate: 0 }}
                                             animate={{ opacity: 1, rotate: -360 }}
@@ -938,8 +954,8 @@ const CheckoutView = ({ cartItems, total, user, darkMode = false, onBack, onPlac
                                     )}
 
                                     {/* DEFAULT BORDER FALLBACK */}
-                                    {paymentMethod !== 'deferred' && (
-                                        <div className={`absolute inset-0 z-0 rounded-[1.125rem] border-2 transition-colors ${darkMode ? 'border-stone-800' : 'border-stone-200'}`} />
+                                    {(paymentMethod !== 'deferred' || reduceCheckoutMotion) && (
+                                        <div className={`absolute inset-0 z-0 rounded-[1.125rem] border-2 transition-colors ${paymentMethod === 'deferred' ? (darkMode ? 'border-white/60' : 'border-stone-900') : (darkMode ? 'border-stone-800' : 'border-stone-200')}`} />
                                     )}
 
                                     {/* INNER CONTENT - OPAQUE MASKING (to hide the center of the wave) */}

@@ -255,6 +255,28 @@ npm run verify:analytics-reliability
 npm run build
 ```
 
+## Patch stock public 2026-06-13 - Fraicheur vendu/disponible
+
+Contexte: apres une commande test, la vue admin connectee pouvait afficher rapidement un etat `Vendu` ou restaure depuis Firestore, tandis qu'une vue visiteur non connectee pouvait rester sur une reponse `publicCatalog` cachee plus longtemps.
+
+Changements:
+
+- `ProductCard` re-rend maintenant quand les champs visibles changent (`sold`, `stock`, prix, nom, image, libelles), meme si `updatedAt` n'est pas modifie par l'ecriture stock/commande.
+- Le cache memoire de `publicCatalog` passe de 5 minutes a 60 secondes.
+- Les headers HTTP de `publicCatalog` passent a `max-age=30`, `s-maxage=60`, `stale-while-revalidate=30`.
+- Le frontend appelle `publicCatalog` avec un bucket minute (`?v=...`) pour eviter qu'un cache navigateur/CDN ancien survive plusieurs minutes apres une reservation.
+
+Choix cout/fiabilite:
+
+- Les visiteurs publics gardent une source catalogue cachee, donc on ne revient pas a des listeners Firestore publics complets.
+- La fenetre d'incoherence apres une commande est reduite a environ 1 minute au chargement/rechargement public, au lieu de plusieurs minutes.
+
+Tests:
+
+```bash
+npm run build
+```
+
 ## Patch quota 2026-05-11 - Admin manuel et petits contenus caches
 
 Contexte: apres les optimisations catalogue, les surfaces restantes a blinder sans casser le site etaient les gros ecrans admin et les petits documents publics lus en temps reel.

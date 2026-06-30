@@ -3,6 +3,15 @@ import { motion, useAnimation } from 'framer-motion';
 import { X, Menu, Instagram, Facebook, Mail, Plus } from 'lucide-react';
 import { lockPageScroll, scrollToTop } from '../../utils/smoothScroll';
 
+const COLLECTION_LINKS = [
+    { href: '/meubles-anciens/buffets', label: 'Buffets' },
+    { href: '/meubles-anciens/tables-de-ferme', label: 'Tables de ferme' },
+    { href: '/meubles-anciens/armoires', label: 'Armoires' },
+    { href: '/meubles-anciens/commodes-chevets', label: 'Commodes' },
+    { href: '/meubles-anciens/chaises-bancs', label: 'Chaises & bancs' },
+    { href: '/planches-a-decouper-anciennes', label: 'Planches' },
+];
+
 // ── Courbes d'easing (approximation fidèle des springs Framer Motion) ──
 // Open spring (stiffness:250, damping:35, mass:0.8) → ζ≈1.24 overdamped → pas d'oscillation
 // Close spring (stiffness:450, damping:30, mass:0.7) → ζ≈0.85 underdamped → ~4% overshoot
@@ -98,7 +107,7 @@ const MenuItemHover = React.memo(({ item, index, isClicked, darkMode, handlePrem
 
     // active:scale-[0.96] + active:opacity-70 = CSS :active pseudo-class → compositor thread
     // Remplace whileTap de Framer Motion qui tournait sur le main thread (RAF JS)
-    const className = `group flex items-center justify-between w-full py-2 text-left text-4xl md:text-5xl font-light tracking-tighter cursor-pointer active:scale-[0.96] active:opacity-70 ${isClicked ? 'text-amber-500' : 'text-stone-400 hover:text-white'}`;
+    const className = `group flex items-center justify-between w-full py-1.5 text-left text-[2rem] sm:text-[2.15rem] md:text-[2.65rem] font-light tracking-normal cursor-pointer active:scale-[0.96] active:opacity-70 ${isClicked ? 'text-amber-500' : 'text-stone-400 hover:text-white'}`;
 
     const tapStyle = { transition: 'color 500ms ease, transform 150ms ease-out, opacity 150ms ease-out' };
 
@@ -199,6 +208,15 @@ const GlobalMenu = ({
             },
             href: '/a-propos'
         },
+        {
+            label: activeDesignId === 'architectural' ? 'Livraison' : 'Livraison.',
+            onClick: (e) => {
+                if (!e.ctrlKey && !e.metaKey) {
+                    e.preventDefault(); setView('delivery'); setIsMenuOpen(false); scrollToTop();
+                }
+            },
+            href: '/livraison-meubles-anciens-france'
+        },
         ...(user && !user.isAnonymous ? [{
             label: activeDesignId === 'architectural' ? 'Commandes' : 'Commandes.',
             onClick: () => { setView('my-orders'); setIsMenuOpen(false); scrollToTop(); }
@@ -278,8 +296,8 @@ const GlobalMenu = ({
             {/* Panel — GPU pre-promoted : translate3d + will-change permanent
                 Le compositing layer est créé AVANT l'animation → zéro jank premier frame */}
             <div className={`absolute right-0 top-0 bottom-0 w-full md:w-[450px] shadow-2xl
-                pt-[max(1.5rem,calc(env(safe-area-inset-top,0px)+1.5rem))] px-8 md:px-12 pb-12 md:pb-12 md:pt-[28px]
-                flex flex-col justify-between z-[2001]
+                pt-[max(1.25rem,calc(env(safe-area-inset-top,0px)+1.25rem))] px-6 md:px-10 pb-7 md:pb-8 md:pt-[24px]
+                flex flex-col z-[2001] overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden
               ${activeDesignId === 'architectural'
                   ? (darkMode ? 'bg-[#0A0A0A] text-stone-200' : 'bg-[#FAFAF9] text-stone-900')
                   : (darkMode ? 'bg-stone-900' : 'bg-white')}
@@ -294,7 +312,7 @@ const GlobalMenu = ({
                     contain: 'content', // Isolate layout et rendering du document (crucial pour 144Hz)
                 }}
             >
-                <div className="space-y-20">
+                <div className="space-y-7 md:space-y-10">
                     <div className="flex justify-between items-center h-10 relative">
                         <span className={`text-[10px] font-black uppercase tracking-[0.3em] transition-opacity duration-500 ${isMenuOpen ? 'opacity-100' : 'opacity-0'} ${darkMode ? 'text-stone-500' : 'text-stone-300'}`}>Menu</span>
                         
@@ -312,7 +330,7 @@ const GlobalMenu = ({
                             </button>
                         </div>
                     </div>
-                    <nav className="flex flex-col gap-8">
+                    <nav className="flex flex-col gap-3.5 md:gap-5">
                         {menuItems.map((item, index, arr) => {
                             const isClicked = clickedMenuItem === index;
                             return (
@@ -336,11 +354,38 @@ const GlobalMenu = ({
                             );
                         })}
                     </nav>
+                    <div
+                        className={`space-y-4 border-t pt-6 md:space-y-5 md:pt-7 ${darkMode ? 'border-stone-800' : 'border-stone-100'}`}
+                        style={{
+                            transform: isMenuOpen ? 'translate3d(0,0,0)' : 'translate3d(0,16px,0)',
+                            opacity: isMenuOpen ? 1 : 0,
+                            transition: isMenuOpen
+                                ? `transform 650ms ${EASE_OPEN} 420ms, opacity 650ms ${EASE_OPEN} 420ms`
+                                : `transform 300ms ${EASE_CLOSE}, opacity 300ms ${EASE_CLOSE}`,
+                            willChange: 'transform, opacity',
+                        }}
+                    >
+                        <p className={`text-[10px] font-black uppercase tracking-[0.28em] ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>
+                            Meubles anciens
+                        </p>
+                        <div className="grid grid-cols-2 gap-2.5 md:gap-3">
+                            {COLLECTION_LINKS.map((link) => (
+                                <a
+                                    key={link.href}
+                                    href={link.href}
+                                    onClick={() => setIsMenuOpen(false)}
+                                    className={`min-h-9 rounded-full border px-2.5 py-2 text-center text-[9px] font-black uppercase tracking-[0.1em] transition-colors sm:text-[9.5px] sm:tracking-[0.12em] ${darkMode ? 'border-stone-800 bg-white/[0.03] text-stone-300 hover:border-amber-500/45 hover:text-amber-300' : 'border-stone-200 bg-stone-50 text-stone-700 hover:border-amber-600/40 hover:text-amber-700'}`}
+                                >
+                                    {link.label}
+                                </a>
+                            ))}
+                        </div>
+                    </div>
                 </div>
 
                 {/* Footer — CSS transition (compositor thread) */}
                 <div
-                    className={`space-y-6 pt-10 border-t origin-bottom ${darkMode ? 'border-stone-800' : 'border-stone-100'}`}
+                    className={`mt-7 space-y-4 border-t pt-5 origin-bottom md:mt-8 md:pt-6 ${darkMode ? 'border-stone-800' : 'border-stone-100'}`}
                     style={{
                         transform: isMenuOpen ? 'translate3d(0,0,0) scale(1)' : 'translate3d(0,20px,0) scale(0.95)',
                         opacity: isMenuOpen ? 1 : 0,
@@ -359,23 +404,23 @@ const GlobalMenu = ({
                             <p className={`text-[10px] uppercase tracking-widest ${darkMode ? 'text-stone-500' : 'text-stone-400'}`}>Connecté</p>
                         </div>
                     )}
-                    <div className="flex gap-4 sm:gap-6">
+                    <div className="flex gap-3 sm:gap-4">
                         {contactInfo?.instagram && (
                             <a
                                 href={contactInfo.instagram}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors duration-300 ${darkMode ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-stone-50 hover:bg-stone-900 hover:text-white'}`}
+                                className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-300 ${darkMode ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-stone-50 hover:bg-stone-900 hover:text-white'}`}
                             >
                                 <Instagram size={20} />
                             </a>
                         )}
                         {contactInfo?.facebook && (
-                            <a href={contactInfo.facebook} target="_blank" rel="noopener noreferrer" className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors duration-300 ${darkMode ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-stone-50 hover:bg-stone-900 hover:text-white'}`}>
+                            <a href={contactInfo.facebook} target="_blank" rel="noopener noreferrer" className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-300 ${darkMode ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-stone-50 hover:bg-stone-900 hover:text-white'}`}>
                                 <Facebook size={20} />
                             </a>
                         )}
-                        <a href={`mailto:${contactInfo?.email}`} className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors duration-300 ${darkMode ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-stone-50 hover:bg-stone-900 hover:text-white'}`}>
+                        <a href={`mailto:${contactInfo?.email}`} className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-300 ${darkMode ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-stone-50 hover:bg-stone-900 hover:text-white'}`}>
                             <Mail size={20} />
                         </a>
                     </div>

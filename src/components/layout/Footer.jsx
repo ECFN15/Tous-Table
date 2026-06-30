@@ -31,6 +31,15 @@ const DEFAULT_CONTACT_INFO = {
     legacyText: 'Tous a Table made in Normandie livre sur toute la France et pays frontaliers.'
 };
 
+const COLLECTION_LINKS = [
+    { href: '/meubles-anciens/buffets', label: 'Buffets' },
+    { href: '/meubles-anciens/tables-de-ferme', label: 'Tables de ferme' },
+    { href: '/meubles-anciens/armoires', label: 'Armoires' },
+    { href: '/meubles-anciens/commodes-chevets', label: 'Commodes' },
+    { href: '/meubles-anciens/chaises-bancs', label: 'Chaises & bancs' },
+    { href: '/planches-a-decouper-anciennes', label: 'Planches' },
+];
+
 const Footer = ({ darkMode = false, contactInfo: contactInfoProp = {} }) => {
     const contactInfo = { ...DEFAULT_CONTACT_INFO, ...contactInfoProp };
 
@@ -47,6 +56,11 @@ const Footer = ({ darkMode = false, contactInfo: contactInfoProp = {} }) => {
                         <a href="/a-propos" className="block hover:text-[#dba45f]">Notre histoire</a>
                         <a href="/meubles-anciens" className="block hover:text-[#dba45f]">La galerie</a>
                         <a href="/comptoir" className="block hover:text-[#dba45f]">Le comptoir</a>
+                    </MobileDisclosure>
+                    <MobileDisclosure title="Collections" darkMode={darkMode}>
+                        {COLLECTION_LINKS.map((link) => (
+                            <a key={link.href} href={link.href} className="block hover:text-[#dba45f]">{link.label}</a>
+                        ))}
                     </MobileDisclosure>
                     <MobileDisclosure title="Aide" darkMode={darkMode}>
                         <a href="/livraison-meubles-anciens-france" className="block hover:text-[#dba45f]">Livraison</a>
@@ -68,7 +82,7 @@ const Footer = ({ darkMode = false, contactInfo: contactInfoProp = {} }) => {
                     </MobileDisclosure>
                 </div>
 
-                <div className="grid gap-10 md:grid-cols-2 md:items-start lg:grid-cols-[1.2fr_0.75fr_0.75fr_0.9fr_minmax(18rem,1.35fr)]">
+                <div className="grid gap-10 md:grid-cols-2 md:items-start lg:grid-cols-[1.1fr_0.75fr_0.85fr] xl:grid-cols-[1.15fr_0.72fr_0.85fr_0.7fr_0.78fr_minmax(17rem,1.25fr)]">
                     <div className="space-y-5">
                         <div>
                             <p className={`font-serif text-[1.35rem] md:text-2xl leading-none ${darkMode ? 'text-white' : 'text-stone-950'}`}>Tous à Table</p>
@@ -100,6 +114,14 @@ const Footer = ({ darkMode = false, contactInfo: contactInfoProp = {} }) => {
                             <a href="/a-propos" className="block hover:text-[#dba45f]">Notre histoire</a>
                             <a href="/meubles-anciens" className="block hover:text-[#dba45f]">La galerie</a>
                             <a href="/comptoir" className="block hover:text-[#dba45f]">Le comptoir</a>
+                        </FooterColumn>
+                    </div>
+
+                    <div className="hidden md:block">
+                        <FooterColumn title="Collections" darkMode={darkMode}>
+                            {COLLECTION_LINKS.map((link) => (
+                                <a key={link.href} href={link.href} className="block hover:text-[#dba45f]">{link.label}</a>
+                            ))}
                         </FooterColumn>
                     </div>
 

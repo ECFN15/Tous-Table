@@ -607,7 +607,8 @@ const AppContent = () => {
     const fetchPublicCatalogFallback = (reason, { rethrow = false } = {}) => {
       if (!publicCatalogFallbackRef.current) {
         const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
-        const url = `https://us-central1-${projectId}.cloudfunctions.net/publicCatalog`;
+        const cacheBucket = Math.floor(Date.now() / 60000);
+        const url = `https://us-central1-${projectId}.cloudfunctions.net/publicCatalog?v=${cacheBucket}`;
         publicCatalogFallbackRef.current = fetch(url)
           .then((response) => {
             if (!response.ok) throw new Error(`publicCatalog ${response.status}`);
@@ -714,13 +715,12 @@ const AppContent = () => {
     if (params.get('order_success') === 'true' && user && !user.isAnonymous) {
 
       const clearCartAfterStripe = async () => {
-        // 1. Déclencher l'UI succès immédiatement
+        // 1. Déclencher l'UI succès immédiatement. La navigation se fait depuis la modale.
         setOrderSuccessMethod('stripe_elements');
         setShowOrderSuccess(true);
-        setView('my-orders');
 
-        // 2. Nettoyer l'URL pour éviter de re-déclencher au F5
-        replaceUrl('/mes-commandes');
+        // 2. Nettoyer l'URL pour éviter de re-déclencher au F5 sans changer la vue sous la modale.
+        replaceUrl('/checkout');
 
         // 3. Vider le panier Firestore réellement
         try {
@@ -967,34 +967,29 @@ const AppContent = () => {
   const handlePlaceOrder = async (orderData) => {
     if (!user) return;
 
-    // 1. Create Order - REMOVED (Handled by Cloud Function createOrder)
-    // The order is securely created server-side to manage stock transactions.
-    // We just need to clear the local cart now.
+    const cartItemsToClear = [...cartItems];
 
-    // 2. Clear Cart (Batch)
-    // Note: In a real app we would use a batch, but loop is fine for small carts
-    // We already have cartItems in state
-    for (const item of cartItems) {
-      await deleteDoc(doc(db, 'users', user.uid, 'cart', item.id));
-    }
-
-    // 3. Handle Payment Redirect or Success
     setCartItems([]); // Clear UI cart immediately
     setIsCartOpen(false);
     setOrderSuccessMethod(orderData.paymentMethod || 'deferred');
     setShowOrderSuccess(true); // Trigger Success Modal
 
-    // Restore gallery state if we have it
-    if (persistentGalleryState) {
-      setHeaderProps(prev => ({
-        ...prev,
-        activeCollection: persistentGalleryState.activeCollection,
-        filter: persistentGalleryState.filter
-      }));
+    if (cartItemsToClear.length > 0) {
+      const batch = writeBatch(db);
+      cartItemsToClear.forEach((item) => {
+        if (item.id) {
+          batch.delete(doc(db, 'users', user.uid, 'cart', item.id));
+        }
+      });
+      batch.commit().catch((error) => {
+        console.error("Erreur nettoyage panier post-commande:", error);
+        logClientError(error, {
+          action: 'clear_cart_after_order',
+          paymentMethod: orderData.paymentMethod || 'deferred',
+          cartItemsCount: cartItemsToClear.length
+        });
+      });
     }
-
-    setView('my-orders'); // Prepare Mes commandes behind the modal
-    scrollToTop({ immediate: true, duration: 0 });
 
     // Email simulation log
     console.log("Order placed restoration:", persistentGalleryState, orderData);

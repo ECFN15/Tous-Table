@@ -317,9 +317,35 @@ const ProductCard = ({
     );
 };
 
+const getTimestampKey = (value) => {
+    if (!value) return '';
+    if (typeof value === 'string' || typeof value === 'number') return String(value);
+    if (typeof value.seconds === 'number') {
+        return `${value.seconds}:${value.nanoseconds || 0}`;
+    }
+    return '';
+};
+
+const getCardRenderKey = (item = {}) => [
+    item.id || '',
+    getImage(item),
+    item.name || '',
+    item.sold === true ? 'sold' : 'available',
+    item.stock ?? '',
+    item.priceOnRequest === true ? 'price-on-request' : 'priced',
+    getPrice(item) ?? '',
+    item.material || '',
+    item.collection || '',
+    item.craft || '',
+    item.metier || '',
+    item.isNew === true ? 'new' : '',
+    item.auctionActive === true ? 'auction' : '',
+    getTimestampKey(item.auctionEnd),
+    getTimestampKey(item.updatedAt),
+].join('|');
+
 export default React.memo(ProductCard, (prev, next) => {
-    return prev.item?.id === next.item?.id &&
-        prev.item?.updatedAt === next.item?.updatedAt &&
+    return getCardRenderKey(prev.item) === getCardRenderKey(next.item) &&
         prev.item?.primaryImageWidth === next.item?.primaryImageWidth &&
         prev.item?.primaryImageHeight === next.item?.primaryImageHeight &&
         prev.item?.primaryImageAspectRatio === next.item?.primaryImageAspectRatio &&

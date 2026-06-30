@@ -21,7 +21,7 @@ const PUBLIC_COLLECTIONS = [
     'shop_tutorials',
 ];
 
-const CACHE_TTL_MS = 5 * 60 * 1000;
+const CACHE_TTL_MS = 60 * 1000;
 let cachedCatalog = null;
 let cachedAt = 0;
 let inflightCatalogRead = null;
@@ -97,7 +97,7 @@ exports.publicCatalog = functions.https.onRequest(async (req, res) => {
     }
     res.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.set('Access-Control-Allow-Headers', 'Content-Type');
-    res.set('Cache-Control', 'public, max-age=300, s-maxage=600, stale-while-revalidate=300');
+    res.set('Cache-Control', 'public, max-age=30, s-maxage=60, stale-while-revalidate=30');
 
     if (req.method === 'OPTIONS') {
         res.status(204).send('');

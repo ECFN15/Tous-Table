@@ -75,20 +75,17 @@ const safeItems = (items = []) => (
 );
 
 const buildSchema = (product, draft, path) => {
-    const price = Number(product?.price);
     return {
         '@context': 'https://schema.org',
-        '@type': 'Product',
+        '@type': 'WebPage',
         name: draft.shortTitle || product?.name,
         description: draft.customerDescription || draft.detailIntro || product?.description,
-        image: product?.imageUrl ? [product.imageUrl] : undefined,
-        brand: draft.correctedBrand ? { '@type': 'Brand', name: draft.correctedBrand } : undefined,
-        offers: {
-            '@type': 'Offer',
-            priceCurrency: 'EUR',
-            ...(Number.isFinite(price) && price > 0 ? { price } : {}),
-            availability: 'https://schema.org/InStock',
-            url: `https://tousatable-madeinnormandie.fr${path}`
+        image: product?.imageUrl,
+        url: `https://tousatable-madeinnormandie.fr${path}`,
+        isPartOf: {
+            '@type': 'CollectionPage',
+            name: 'Le Comptoir',
+            url: 'https://tousatable-madeinnormandie.fr/comptoir'
         }
     };
 };
@@ -358,7 +355,7 @@ const ShopProductDetail = ({ product, isLoading = false, darkMode = false, onBac
                 description={draft.customerDescription || draft.detailIntro}
                 image={product.imageUrl}
                 url={pagePath}
-                type="product"
+                type="website"
                 schema={schema}
                 robots="noindex,follow,max-image-preview:large"
             />
